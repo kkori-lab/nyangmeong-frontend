@@ -24,8 +24,9 @@ export default function SubPageLayout({
   const activeItem = findActiveItem(sectionMenu, menu, pathname);
   const hasBack = (back ?? Boolean(title)) && Boolean(activeItem);
 
+  /** 760px 이하: 하단 여백은 UserLayout main이 바텀 네비 기준으로 맡아 0, 위 여백 0으로 헤더~경로 24px */
   return (
-    <div className="grid grid-cols-1 pt-2 pb-[126px] text-ink leading-[1.6] break-keep min-[1101px]:grid-cols-[210px_minmax(0,1fr)] min-[1101px]:gap-x-12">
+    <div className="grid grid-cols-1 pt-2 pb-[126px] max-[760px]:pt-0 max-[760px]:pb-0 text-ink leading-[1.6] break-keep min-[1101px]:grid-cols-[210px_minmax(0,1fr)] min-[1101px]:gap-x-12">
       <SubPageHead
         section={sectionMenu}
         activeItem={activeItem}

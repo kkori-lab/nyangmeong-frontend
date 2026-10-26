@@ -9,7 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
-import PetFace from '../shared/PetFace';
+import PetFace from '@/components/PetFace';
 import { MAX_OWN_PETS, PET_REL, PET_SE } from '@/utils/petCodes';
 import FamilySection from './FamilySection';
 import {
@@ -207,7 +207,9 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
     >
       <div className="flex items-center justify-center max-[760px]:self-center">
         <PetFace
-          pet={pet}
+          petSn={pet.petSn}
+          petSeCd={pet.petSeCd}
+          chrcSttsCd={pet.chrcSttsCd}
           alt={`${pet.petNm} 캐릭터`}
           className="size-28 shrink-0 rounded-full bg-surface-2 text-line-strong shadow-[inset_0_0_0_1px_var(--color-line-strong)] max-[760px]:size-[84px]"
           iconClassName="size-14 max-[760px]:size-9"

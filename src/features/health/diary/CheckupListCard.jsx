@@ -36,7 +36,8 @@ const findCheckupTypeNm = (cd) =>
 export default function CheckupListCard({ pet, pets, onReceipt }) {
   const currentYear = getYear(getTodayYmd());
   const [year, setYear] = useState(currentYear);
-  const [isVaccinationOnly, setIsVaccinationOnly] = useState(false);
+  // 켜진 필터 칩: 'ALL'(그해 전체)·'VACC'(예방접종)·null(둘 다 꺼짐, 그해 전체)
+  const [chipFilter, setChipFilter] = useState('ALL');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteSn, setDeleteSn] = useState(null);
@@ -55,9 +56,10 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
   const vaccinationCount = checkups.filter(
     (checkup) => checkup.ckupTypeCd === VACCINATION,
   ).length;
-  const visibleCheckups = isVaccinationOnly
-    ? checkups.filter((checkup) => checkup.ckupTypeCd === VACCINATION)
-    : checkups;
+  const visibleCheckups =
+    chipFilter === VACCINATION
+      ? checkups.filter((checkup) => checkup.ckupTypeCd === VACCINATION)
+      : checkups;
   const pageCount = Math.max(1, Math.ceil(visibleCheckups.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
   const pageCheckups = visibleCheckups.slice(
@@ -69,6 +71,12 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
   );
   const yearLabel = year === currentYear ? '올해' : `${year}년`;
 
+  // 켜진 칩을 다시 누르면 꺼진다 (FN-HLT-002-06 재클릭 해제)
+  const toggleChip = (filter) => {
+    setChipFilter((prev) => (prev === filter ? null : filter));
+    setPage(1);
+  };
+
   const handleDelete = () =>
     deleteCheckup.mutate(deleteSn, { onSuccess: () => setDeleteSn(null) });
 
@@ -79,59 +87,65 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
         : 'border-line bg-white text-ink hover:bg-surface-2'
     }`;
 
+  /** 연도 선택은 제목 바로 옆(Card의 sub 자리), 등록 버튼은 제목줄 오른쪽 끝 */
+  const yearSelect = (
+    <select
+      aria-label="조회 연도"
+      value={year}
+      disabled={!data.hasAnyCheckup}
+      className={`${SELECT_CLASS} w-30!`}
+      style={SELECT_ARROW_STYLE}
+      onChange={(event) => {
+        setYear(Number(event.target.value));
+        setPage(1);
+      }}
+    >
+      {yearOptions.map((option) => (
+        <option key={option} value={option}>
+          {option}년
+        </option>
+      ))}
+    </select>
+  );
+  /** 760px 이하는 제목줄이 좁아 지속 관찰처럼 작은 [+ 등록], 761px 이상은 [검진기록 등록] */
+  const registerButton = (
+    <button
+      type="button"
+      className={`${BTN_PRIMARY} h-8! shrink-0 px-3! min-[761px]:h-10! min-[761px]:px-4!`}
+      onClick={() => setIsModalOpen(true)}
+    >
+      <span className="min-[761px]:hidden">+ 등록</span>
+      <span className="hidden min-[761px]:inline">검진기록 등록</span>
+    </button>
+  );
+
   return (
-    <Card title="검진기록" sub={`${year}년 이력`} className="min-w-0">
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <label htmlFor="hlt002-exam-year" className="text-sm/[1.6] text-subtle">
-          조회 연도
-        </label>
-        <select
-          id="hlt002-exam-year"
-          value={year}
-          disabled={!data.hasAnyCheckup}
-          className={`${SELECT_CLASS} w-30!`}
-          style={SELECT_ARROW_STYLE}
-          onChange={(event) => {
-            setYear(Number(event.target.value));
-            setPage(1);
-          }}
-        >
-          {yearOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}년
-            </option>
-          ))}
-        </select>
-        <div role="group" aria-label="검진 건수 필터" className="flex gap-2">
-          <button
-            type="button"
-            aria-pressed={!isVaccinationOnly}
-            className={chipClass(!isVaccinationOnly)}
-            onClick={() => {
-              setIsVaccinationOnly(false);
-              setPage(1);
-            }}
-          >
-            {yearLabel} 검진 {checkups.length}
-          </button>
-          <button
-            type="button"
-            aria-pressed={isVaccinationOnly}
-            className={chipClass(isVaccinationOnly)}
-            onClick={() => {
-              setIsVaccinationOnly((prev) => !prev);
-              setPage(1);
-            }}
-          >
-            예방접종 {vaccinationCount}
-          </button>
-        </div>
+    <Card
+      title="검진기록"
+      sub={yearSelect}
+      className="min-w-0"
+      action={registerButton}
+    >
+      <div
+        role="group"
+        aria-label="검진 건수 필터"
+        className="mb-4 flex flex-wrap gap-2"
+      >
         <button
           type="button"
-          className={`${BTN_PRIMARY} ml-auto`}
-          onClick={() => setIsModalOpen(true)}
+          aria-pressed={chipFilter === 'ALL'}
+          className={chipClass(chipFilter === 'ALL')}
+          onClick={() => toggleChip('ALL')}
         >
-          검진기록 등록
+          {yearLabel} 검진 {checkups.length}
+        </button>
+        <button
+          type="button"
+          aria-pressed={chipFilter === VACCINATION}
+          className={chipClass(chipFilter === VACCINATION)}
+          onClick={() => toggleChip(VACCINATION)}
+        >
+          예방접종 {vaccinationCount}
         </button>
       </div>
 

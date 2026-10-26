@@ -7,7 +7,7 @@ import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { formatAge, getVrtyName } from '@/utils/petFormat';
 import { useAcceptInvitation, useInvitation } from '../queries';
-import PetFace from '../shared/PetFace';
+import PetFace from '@/components/PetFace';
 import InvitationMismatch from './InvitationMismatch';
 import InvitationRejectDialog from './InvitationRejectDialog';
 
@@ -38,7 +38,9 @@ function InvitePetCard({ pet, checked, onToggle }) {
           className="absolute top-3 left-3 size-5 cursor-pointer accent-brand-500"
         />
         <PetFace
-          pet={pet}
+          petSn={pet.petSn}
+          petSeCd={pet.petSeCd}
+          chrcSttsCd={pet.chrcSttsCd}
           className="mb-2 size-28 rounded-full bg-white text-brand-500"
           iconClassName="size-12"
         />

@@ -7,6 +7,7 @@ import {
   BTN_PRIMARY,
   BTN_SECONDARY,
 } from '@/components/buttonStyles';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import { formatDate } from '@/utils/formatDate';
 import {
   MEAL,
@@ -44,10 +45,27 @@ const formatDayCell = (summary, typeCd) => {
   return `${formatAmount(typeCd, summary.sum)} (${summary.count}회)`;
 };
 
+/** 값이 최신 한 건인 종류(체중·배변상태). 나머지는 합계와 횟수 */
+const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
+
+/** 760px 이하 목록의 한 줄 요약: 기록이 있는 종류만 "체중 3.8kg · 식사량 709g"처럼 잇는다 */
+const formatDaySummary = (dayRecords) => {
+  const parts = RECORD_TYPES.map((type) => {
+    const summary = summarizeType(dayRecords, type.cd);
+    if (summary.count === 0) return null;
+    const value = LATEST_ONLY_TYPES.includes(type.cd)
+      ? formatRecordValue(summary.latest)
+      : formatAmount(type.cd, summary.sum);
+    return `${type.nm} ${value}`;
+  }).filter(Boolean);
+  return parts.length === 0 ? '기록 없음' : parts.join(' · ');
+};
+
 /**
  * [최근 건강기록 날짜별 표]
  * - 하루치를 종류별 합계(횟수)로 한 줄, 행을 누르면 그날 상세 기록 모달 (FN-HLT-002-13)
  * - 모달의 기록 줄을 누르면 그 줄만 인라인 편집, 삭제는 확인 후 처리
+ * - 760px 이하: 표 대신 "날짜 줄 + 한 줄 요약" 목록, 모달은 5칸 종류 버튼으로 고른 종류의 합계와 시간별 기록만 크게 보여 준다
  */
 export default function RecentRecordTable({ records, todayYmd }) {
   const [periodDays, setPeriodDays] = useState(DEFAULT_PERIOD);
@@ -55,6 +73,7 @@ export default function RecentRecordTable({ records, todayYmd }) {
   const [editingSn, setEditingSn] = useState(null);
   const [deleteSn, setDeleteSn] = useState(null);
   const deleteRecord = useDeleteDailyRecord();
+  const isPc = useMediaQuery('(min-width: 761px)');
 
   const ymds = getRecordedYmds(records, todayYmd, periodDays);
 
@@ -97,6 +116,18 @@ export default function RecentRecordTable({ records, todayYmd }) {
           title={`최근 ${periodDays}일 동안 기록이 없어요`}
           description="위의 [오늘 기록추가]로 첫 기록을 남겨 보세요"
         />
+      ) : !isPc ? (
+        <ul className="flex flex-col">
+          {ymds.map((ymd) => (
+            <DayListRow
+              key={ymd}
+              ymd={ymd}
+              isToday={ymd === todayYmd}
+              dayRecords={records.filter((record) => record.rcdYmd === ymd)}
+              onOpen={() => setDetailYmd(ymd)}
+            />
+          ))}
+        </ul>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-left text-sm/[1.6]">
@@ -177,6 +208,34 @@ export default function RecentRecordTable({ records, todayYmd }) {
   );
 }
 
+/** 760px 이하 목록의 하루: 날짜 줄 + 한 줄 요약 */
+function DayListRow({ ymd, isToday, dayRecords, onOpen }) {
+  const dateText = formatDate(ymd, { hasYear: false, weekday: true });
+
+  return (
+    <li className="border-b border-line-soft last:border-b-0">
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        className="flex w-full items-center gap-3 py-3 text-left"
+        onClick={onOpen}
+      >
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span
+            className={`font-semibold tabular-nums ${isToday ? 'text-brand-600' : 'text-ink'}`}
+          >
+            {isToday ? `오늘 ${dateText}` : dateText}
+          </span>
+          <span className="truncate text-sm/[1.6] text-subtle tabular-nums">
+            {formatDaySummary(dayRecords)}
+          </span>
+        </span>
+        <Icon name="chevron_right" className="shrink-0 text-subtle" />
+      </button>
+    </li>
+  );
+}
+
 function DayRows({ ymd, isToday, dayRecords, onOpen }) {
   const dateText = formatDate(ymd, { hasYear: false, weekday: true });
   const cellClass = `h-12 px-3 tabular-nums ${isToday ? 'bg-brand-50 text-brand-600' : 'text-ink'}`;
@@ -215,6 +274,7 @@ function DetailModal({
   onRequestDelete,
   onClose,
 }) {
+  const isPc = useMediaQuery('(min-width: 761px)');
   const dateText = formatDate(ymd, { hasYear: false, weekday: true });
   const summaries = DETAIL_ORDER.map((typeCd) => ({
     typeCd,
@@ -229,76 +289,171 @@ function DetailModal({
       isLarge
       onClose={onClose}
       footer={
-        <button type="button" className={BTN_SECONDARY} onClick={onClose}>
+        <button
+          type="button"
+          className={`${BTN_SECONDARY} ml-auto`}
+          onClick={onClose}
+        >
           닫기
         </button>
       }
     >
       {/* isLarge 본문은 여백이 없고 넘침도 막아서 안쪽에서 여백과 스크롤을 준다 */}
       <div className="min-h-0 flex-1 overflow-auto px-6 py-5">
-        <div className="overflow-x-auto rounded-[10px] border border-line-strong">
-          <table className="w-full min-w-[640px] table-fixed border-collapse text-sm/[1.6]">
-            <thead>
-              <tr>
-                {summaries.map(({ typeCd }) => (
-                  <th
-                    key={typeCd}
-                    scope="col"
-                    className="border-b border-line-strong bg-surface-3 px-3 py-2 text-center text-base/[1.6] font-normal text-ink-2 not-first:border-l not-first:border-l-line-strong"
-                  >
-                    {findRecordType(typeCd).nm}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: rowCount }, (_, rowIndex) => (
-                <tr key={rowIndex} className="odd:bg-surface-2">
-                  {summaries.map(({ typeCd, items }) => {
-                    const record = items[rowIndex];
-                    return (
-                      <td
-                        key={typeCd}
-                        className="border-b border-line px-3 py-1.5 align-middle tabular-nums not-first:border-l not-first:border-l-line-strong"
-                      >
-                        {record ? (
-                          <RecordCell
-                            record={record}
-                            isEditing={record.dlyRcdSn === editingSn}
-                            onEdit={onEdit}
-                            onRequestDelete={onRequestDelete}
-                          />
-                        ) : (
-                          rowIndex === 0 && (
-                            <span className="block text-center text-line-strong">
-                              -
-                            </span>
-                          )
-                        )}
-                      </td>
-                    );
-                  })}
+        {!isPc ? (
+          <MobileDetail
+            summaries={summaries}
+            editingSn={editingSn}
+            onEdit={onEdit}
+            onRequestDelete={onRequestDelete}
+          />
+        ) : (
+          <div className="overflow-x-auto rounded-[10px] border border-line-strong">
+            <table className="w-full min-w-[640px] table-fixed border-collapse text-sm/[1.6]">
+              <thead>
+                <tr>
+                  {summaries.map(({ typeCd }) => (
+                    <th
+                      key={typeCd}
+                      scope="col"
+                      className="border-b border-line-strong bg-surface-3 px-3 py-2 text-center text-base/[1.6] font-normal text-ink-2 not-first:border-l not-first:border-l-line-strong"
+                    >
+                      {findRecordType(typeCd).nm}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                {summaries.map(({ typeCd, count, sum }) => (
-                  <td
-                    key={typeCd}
-                    className="border-t border-line-strong px-3 py-2 text-right font-semibold text-subtle tabular-nums not-first:border-l not-first:border-l-line-strong"
-                  >
-                    {typeCd === WEIGHT || typeCd === STOOL
-                      ? `총 ${count}회`
-                      : `총 ${formatAmount(typeCd, sum)} · ${count}회`}
-                  </td>
+              </thead>
+              <tbody>
+                {Array.from({ length: rowCount }, (_, rowIndex) => (
+                  <tr key={rowIndex} className="odd:bg-surface-2">
+                    {summaries.map(({ typeCd, items }) => {
+                      const record = items[rowIndex];
+                      return (
+                        <td
+                          key={typeCd}
+                          className="border-b border-line px-3 py-1.5 align-middle tabular-nums not-first:border-l not-first:border-l-line-strong"
+                        >
+                          {record ? (
+                            <RecordCell
+                              record={record}
+                              isEditing={record.dlyRcdSn === editingSn}
+                              onEdit={onEdit}
+                              onRequestDelete={onRequestDelete}
+                            />
+                          ) : (
+                            rowIndex === 0 && (
+                              <span className="block text-center text-line-strong">
+                                -
+                              </span>
+                            )
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
                 ))}
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+              </tbody>
+              <tfoot>
+                <tr>
+                  {summaries.map(({ typeCd, count, sum }) => (
+                    <td
+                      key={typeCd}
+                      className="border-t border-line-strong px-3 py-2 text-right font-semibold text-subtle tabular-nums not-first:border-l not-first:border-l-line-strong"
+                    >
+                      {typeCd === WEIGHT || typeCd === STOOL
+                        ? `총 ${count}회`
+                        : `총 ${formatAmount(typeCd, sum)} · ${count}회`}
+                    </td>
+                  ))}
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </div>
     </Modal>
+  );
+}
+
+/**
+ * 760px 이하 상세 기록: 5칸 종류 버튼으로 고르고 고른 종류의 합계와 시간별 기록만 크게 보여 준다
+ * - 처음에는 기록이 있는 첫 종류를 고른다. 기록이 없는 종류도 눌러 볼 수 있다
+ */
+function MobileDetail({ summaries, editingSn, onEdit, onRequestDelete }) {
+  const [typeCd, setTypeCd] = useState(
+    () =>
+      RECORD_TYPES.find(
+        (type) =>
+          summaries.find((summary) => summary.typeCd === type.cd).count > 0,
+      )?.cd ?? RECORD_TYPES[0].cd,
+  );
+  const { items, count, sum, latest } = summaries.find(
+    (summary) => summary.typeCd === typeCd,
+  );
+  const isLatestOnly = LATEST_ONLY_TYPES.includes(typeCd);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div
+        role="radiogroup"
+        aria-label="기록 종류"
+        className="grid grid-cols-5 gap-1 rounded-md bg-surface-3 p-1"
+      >
+        {RECORD_TYPES.map((type) => {
+          const isSelected = type.cd === typeCd;
+          return (
+            <button
+              key={type.cd}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              className={`h-10 rounded-sm text-sm whitespace-nowrap ${
+                isSelected
+                  ? 'bg-white font-semibold text-brand-600'
+                  : 'font-medium text-muted'
+              }`}
+              onClick={() => setTypeCd(type.cd)}
+            >
+              {type.nm}
+            </button>
+          );
+        })}
+      </div>
+
+      {count === 0 ? (
+        <p className="py-10 text-center text-lg text-muted">
+          {findRecordType(typeCd).nm} 기록이 없어요
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-col items-center gap-1 text-center tabular-nums">
+            <span className="text-muted">
+              {isLatestOnly ? '마지막 기록' : '합계'} · {count}회
+            </span>
+            <b className="text-3xl font-bold text-ink">
+              {isLatestOnly
+                ? formatRecordValue(latest)
+                : formatAmount(typeCd, sum)}
+            </b>
+          </div>
+          <ul className="flex flex-col text-lg">
+            {items.map((record) => (
+              <li
+                key={record.dlyRcdSn}
+                className="border-b border-line-soft py-3 last:border-b-0"
+              >
+                <RecordCell
+                  record={record}
+                  isEditing={record.dlyRcdSn === editingSn}
+                  onEdit={onEdit}
+                  onRequestDelete={onRequestDelete}
+                />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
   );
 }
 

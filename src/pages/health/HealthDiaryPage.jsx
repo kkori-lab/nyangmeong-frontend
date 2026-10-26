@@ -1,18 +1,22 @@
 import { useState } from 'react';
-import { generatePath, useLocation, useNavigate } from 'react-router-dom';
+import {
+  generatePath,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 import PageSkeleton from '@/components/PageSkeleton';
 import SkeletonCard from '@/components/SkeletonCard';
 import ReceiptUploadModal from '@/features/ai/receipt/ReceiptUploadModal';
 import CheckupListCard from '@/features/health/diary/CheckupListCard';
 import CheckupModal from '@/features/health/diary/CheckupModal';
 import DailyTrendCard from '@/features/health/diary/DailyTrendCard';
-import DiaryTabs from '@/features/health/diary/DiaryTabs';
+import DiaryPetBar from '@/features/health/diary/DiaryPetBar';
 import ObservationCard from '@/features/health/diary/ObservationCard';
 import ReceiptResultStep from '@/features/health/diary/ReceiptResultStep';
 import RecentRecordTable from '@/features/health/diary/RecentRecordTable';
 import TodayRecordCard from '@/features/health/diary/TodayRecordCard';
 import TodayRecordForm from '@/features/health/diary/TodayRecordForm';
-import PetTabs from '@/features/health/PetTabs';
 import { MEAL } from '@/features/health/diaryTypes';
 import {
   useDailyRecords,
@@ -44,7 +48,35 @@ const getTabFromHash = (hash) =>
 
 export default function HealthDiaryPage() {
   const navigate = useNavigate();
-  const { hash } = useLocation();
+  const location = useLocation();
+  const { hash } = location;
+  const [searchParams, setSearchParams] = useSearchParams();
+  /** 지속 관찰 모바일 상세 화면으로 연 항목. 주소에 남겨 브라우저 뒤로 가기로 목록에 돌아온다 */
+  const openObsvSn = Number(searchParams.get('obsv')) || null;
+  const openObservation = (obsvItmSn) =>
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('obsv', String(obsvItmSn));
+        return next;
+      },
+      { state: { isObsvFromList: true } },
+    );
+  /** 목록에서 연 상세면 뒤로 가기와 같게, 주소로 바로 들어왔으면 쿼리만 지운다 */
+  const closeObservation = () => {
+    if (location.state?.isObsvFromList) {
+      navigate(-1);
+      return;
+    }
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('obsv');
+        return next;
+      },
+      { replace: true },
+    );
+  };
   const todayYmd = getTodayYmd();
   const [tabPetSn, setTabPetSn] = useState(null);
   const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
@@ -126,16 +158,13 @@ export default function HealthDiaryPage() {
 
   return (
     <SubPageLayout {...LAYOUT_PROPS}>
-      <PetTabs
+      <DiaryPetBar
         pets={pets}
         selectedPetSn={selectedPetSn}
-        label="반려동물 선택"
-        onSelect={setTabPetSn}
-      />
-      <DiaryTabs
-        items={SECTION_TABS}
-        activeId={sectionId}
-        onSelect={setSectionId}
+        onSelectPet={setTabPetSn}
+        tabs={SECTION_TABS}
+        activeTabId={sectionId}
+        onSelectTab={setSectionId}
       />
 
       {selectedPet && sectionId === 'hlt002-graph' && (
@@ -175,7 +204,13 @@ export default function HealthDiaryPage() {
 
       {selectedPet && sectionId === 'hlt002-obs' && (
         <div id="hlt002-obs" role="tabpanel" aria-labelledby="hlt002-obs-tab">
-          <ObservationCard petSn={selectedPet.petSn} />
+          <ObservationCard
+            key={selectedPet.petSn}
+            petSn={selectedPet.petSn}
+            openItmSn={openObsvSn}
+            onOpenItem={openObservation}
+            onCloseItem={closeObservation}
+          />
         </div>
       )}
       {selectedPet && sectionId === 'hlt002-exam' && (

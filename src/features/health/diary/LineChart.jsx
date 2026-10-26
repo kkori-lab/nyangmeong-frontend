@@ -61,6 +61,8 @@ const getCurvePath = (points, slopes) => {
  * - 시안 nyangmung-chart.js의 nmCurveChart와 같은 모양: 곡선 + 연한 그라데이션, 범위는 점선 + 왼쪽 눈금(상한·하한), 최근 값은 말풍선
  * - points: [{ label, value }] 2개 이상, band: [최소, 최대], goal: 목표, formatValue: 말풍선 값, formatTag: 범위 라벨 값
  * - bandLabelSide: 'left'(기본, 오른쪽 라벨 없이 왼쪽 눈금을 상한·하한으로) / 'right'(오른쪽 최대·최소 라벨)
+ * - activeIndex: 말풍선을 띄울 점(points의 순번). 없으면 마지막 점
+ * - isLeftColumn: 상한·목표·하한을 모두 왼쪽 한 열의 라벨로 두고 오른쪽 라벨은 없앤다(모바일 건강기록 변화). bandLabelSide보다 우선
  */
 export default function LineChart({
   points,
@@ -69,6 +71,8 @@ export default function LineChart({
   formatValue,
   formatTag = String,
   bandLabelSide = 'left',
+  isLeftColumn = false,
+  activeIndex,
   height,
   ariaLabel,
 }) {
@@ -86,12 +90,17 @@ export default function LineChart({
           formatValue={formatValue}
           formatTag={formatTag}
           bandLabelSide={bandLabelSide}
+          isLeftColumn={isLeftColumn}
+          activeIndex={activeIndex}
           ariaLabel={ariaLabel}
         />
       )}
     </div>
   );
 }
+
+/** 왼쪽 한 열 라벨(글자 14) 사이 최소 간격 */
+const LABEL_GAP = 24;
 
 function Chart({
   width,
@@ -102,14 +111,17 @@ function Chart({
   formatValue,
   formatTag,
   bandLabelSide,
+  isLeftColumn,
+  activeIndex,
   ariaLabel,
 }) {
   const gradientId = useId();
-  const isBandLeft = bandLabelSide === 'left';
+  const isBandLeft = bandLabelSide === 'left' || isLeftColumn;
   const values = points.map((point) => point.value);
   const count = values.length;
   const isSmall = width < 600;
-  const hasTag = (band != null && !isBandLeft) || goal != null;
+  const hasTag =
+    !isLeftColumn && ((band != null && !isBandLeft) || goal != null);
   const left = isBandLeft ? (isSmall ? 64 : 80) : isSmall ? 40 : 56;
   // 왼쪽 라벨일 때는 마지막 날짜 글자가 잘리지 않게 오른쪽을 조금 남김
   const right = hasTag
@@ -143,13 +155,39 @@ function Chart({
   const coords = values.map((value, i) => [getX(i), getY(value)]);
   const slopes = getSlopes(coords);
   const curve = getCurvePath(coords, slopes);
-  const [lastX, lastY] = coords[count - 1];
-  const lastValue = values[count - 1];
-  const lastLabel = formatValue(lastValue);
-  const tipWidth = Math.max(52, lastLabel.length * 9 + 24);
-  const tipX = Math.min(lastX, width - right - tipWidth / 2 + 4);
-  const tipY = lastY - 48;
+  const [lastX] = coords[count - 1];
+  /** 말풍선을 띄울 점: activeIndex가 없거나 범위 밖이면 마지막 점 */
+  const tipIndex =
+    activeIndex != null && activeIndex >= 0 && activeIndex < count
+      ? activeIndex
+      : count - 1;
+  const [tipPointX, tipPointY] = coords[tipIndex];
+  const tipValue = values[tipIndex];
+  const tipLabel = formatValue(tipValue);
+  const tipWidth = Math.max(52, tipLabel.length * 9 + 24);
+  const tipX = Math.min(
+    Math.max(tipPointX, left + tipWidth / 2),
+    width - right - tipWidth / 2 + 4,
+  );
+  const tipY = tipPointY - 48;
   const tagWidth = right - 12;
+
+  /** 왼쪽 한 열: 값이 가까워 라벨이 겹치면 아래로 밀어 LABEL_GAP 간격을 둔다 */
+  const labelYs = {};
+  if (isLeftColumn) {
+    const items = [];
+    if (band)
+      items.push(
+        { key: 'upper', y: getY(band[1]) },
+        { key: 'lower', y: getY(band[0]) },
+      );
+    if (goal != null) items.push({ key: 'goal', y: getY(goal) });
+    items.sort((a, b) => a.y - b.y);
+    items.forEach((item, i) => {
+      if (i > 0) item.y = Math.max(item.y, items[i - 1].y + LABEL_GAP);
+      labelYs[item.key] = item.y;
+    });
+  }
 
   const rangeLine = (value, text, isGoal, hasLabel = true) => (
     <g key={text}>
@@ -163,24 +201,24 @@ function Chart({
       {hasLabel && (
         <>
           <rect
-        x={width - right + 8}
-        y={getY(value) - 11}
-        width={tagWidth}
-        height={22}
-        rx={11}
-        fill={COLORS.white}
-        stroke={COLORS.line}
-      />
-      <text
-        x={width - right + 8 + tagWidth / 2}
-        y={getY(value) + 5}
-        textAnchor="middle"
-        fontSize="13"
-        fontWeight="600"
-        fill={isGoal ? COLORS.brandInk : COLORS.ok}
-      >
-        {text}
-      </text>
+            x={width - right + 8}
+            y={getY(value) - 11}
+            width={tagWidth}
+            height={22}
+            rx={11}
+            fill={COLORS.white}
+            stroke={COLORS.line}
+          />
+          <text
+            x={width - right + 8 + tagWidth / 2}
+            y={getY(value) + 5}
+            textAnchor="middle"
+            fontSize="13"
+            fontWeight="600"
+            fill={isGoal ? COLORS.brandInk : COLORS.ok}
+          >
+            {text}
+          </text>
         </>
       )}
     </g>
@@ -211,7 +249,11 @@ function Chart({
             />
             <text
               x={left - 10}
-              y={getY(value) + 5}
+              y={
+                (isLeftColumn
+                  ? labelYs[value === band[1] ? 'upper' : 'lower']
+                  : getY(value)) + 5
+              }
               textAnchor="end"
               fontSize="14"
               fill={COLORS.subtle}
@@ -228,9 +270,23 @@ function Chart({
         strokeWidth="1"
       />
 
-      {band && rangeLine(band[1], `최대 ${formatTag(band[1])}`, false, !isBandLeft)}
-      {band && rangeLine(band[0], `최소 ${formatTag(band[0])}`, false, !isBandLeft)}
-      {goal != null && rangeLine(goal, `목표 ${formatTag(goal)}`, true)}
+      {band &&
+        rangeLine(band[1], `최대 ${formatTag(band[1])}`, false, !isBandLeft)}
+      {band &&
+        rangeLine(band[0], `최소 ${formatTag(band[0])}`, false, !isBandLeft)}
+      {goal != null &&
+        rangeLine(goal, `목표 ${formatTag(goal)}`, true, !isLeftColumn)}
+      {isLeftColumn && goal != null && (
+        <text
+          x={left - 10}
+          y={labelYs.goal + 5}
+          textAnchor="end"
+          fontSize="14"
+          fill={COLORS.brandInk}
+        >
+          {`목표 ${formatTag(goal)}`}
+        </text>
+      )}
 
       <path
         d={`${curve}L${lastX} ${height - bottom}L${coords[0][0]} ${height - bottom}Z`}
@@ -262,28 +318,36 @@ function Chart({
           )}
 
       <path
-        d={`M${lastX} ${lastY + 10}V${height - bottom}`}
+        d={`M${tipPointX} ${tipPointY + 10}V${height - bottom}`}
         stroke={COLORS.brandLine}
         strokeWidth="1.5"
         strokeDasharray="4 4"
       />
-      {coords.slice(0, -1).map(([x, y], i) => (
-        <circle
-          key={points[i].label + i}
-          cx={x}
-          cy={y}
-          r="4.5"
-          fill={COLORS.white}
-          stroke={isOut(values[i]) ? COLORS.danger : COLORS.brand}
-          strokeWidth="2.5"
-        />
-      ))}
-      <circle cx={lastX} cy={lastY} r="11" fill={COLORS.brand} opacity="0.15" />
+      {coords.map(([x, y], i) =>
+        i === tipIndex ? null : (
+          <circle
+            key={points[i].label + i}
+            cx={x}
+            cy={y}
+            r="4.5"
+            fill={COLORS.white}
+            stroke={isOut(values[i]) ? COLORS.danger : COLORS.brand}
+            strokeWidth="2.5"
+          />
+        ),
+      )}
       <circle
-        cx={lastX}
-        cy={lastY}
+        cx={tipPointX}
+        cy={tipPointY}
+        r="11"
+        fill={COLORS.brand}
+        opacity="0.15"
+      />
+      <circle
+        cx={tipPointX}
+        cy={tipPointY}
         r="6"
-        fill={isOut(lastValue) ? COLORS.danger : COLORS.brand}
+        fill={isOut(tipValue) ? COLORS.danger : COLORS.brand}
         stroke={COLORS.white}
         strokeWidth="3"
       />
@@ -300,7 +364,7 @@ function Chart({
           strokeWidth="1.5"
         />
         <path
-          d={`M${lastX - 5} ${tipY + 30}L${lastX} ${tipY + 36}L${lastX + 5} ${tipY + 30}Z`}
+          d={`M${tipPointX - 5} ${tipY + 30}L${tipPointX} ${tipY + 36}L${tipPointX + 5} ${tipY + 30}Z`}
           fill={COLORS.brand}
         />
         <text
@@ -311,7 +375,7 @@ function Chart({
           fontWeight="700"
           fill={COLORS.brandInk}
         >
-          {lastLabel}
+          {tipLabel}
         </text>
       </g>
 

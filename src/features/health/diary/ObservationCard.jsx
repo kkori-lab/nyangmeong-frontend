@@ -9,6 +9,7 @@ import {
   BTN_PRIMARY,
   BTN_SECONDARY,
 } from '@/components/buttonStyles';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import { formatMonthDayDot } from '@/utils/formatDate';
 import {
   useDeleteObservationRound,
@@ -17,6 +18,10 @@ import {
 } from '../queries';
 import EmptyBox from './EmptyBox';
 import ObservationDetail from './ObservationDetail';
+import {
+  ObservationMobileDetail,
+  ObservationMobileList,
+} from './ObservationMobile';
 import ObservationModal from './ObservationModal';
 import { formatPart, getItemValueText } from './observationUtils';
 
@@ -24,9 +29,16 @@ import { formatPart, getItemValueText } from './observationUtils';
  * [지속 관찰 카드]
  * - 왼쪽 관찰 항목 목록, 오른쪽 선택한 항목의 회차별 사진·크기 변화·회차 상세 (FN-HLT-002-15~19)
  * - 관찰 기록 등록 모달 A(항목 등록)·B(회차 추가)·E(회차 수정)와 회차 삭제·사진 원본 보기
+ * - 760px 이하는 목록 → 상세 화면(ObservationMobile). 연 항목은 페이지가 주소 ?obsv=로 넘겨 준다(openItmSn·onOpenItem·onCloseItem)
  */
-export default function ObservationCard({ petSn }) {
+export default function ObservationCard({
+  petSn,
+  openItmSn = null,
+  onOpenItem,
+  onCloseItem,
+}) {
   const { data, isPending } = useObservations(petSn);
+  const isPc = useMediaQuery('(min-width: 761px)');
   const [selection, setSelection] = useState({ itmSn: null, rndSn: null });
   const [modal, setModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -36,8 +48,14 @@ export default function ObservationCard({ petSn }) {
 
   const items = data?.content ?? [];
   const activeCount = items.filter((item) => item.obsvEndYmd === null).length;
+  /** 760px 이하에서 상세 화면으로 연 항목(주소의 ?obsv=). 없거나 지워졌으면 목록 화면 */
+  const openItem = isPc
+    ? null
+    : (items.find((item) => item.obsvItmSn === openItmSn) ?? null);
   const selectedItem =
-    items.find((item) => item.obsvItmSn === selection.itmSn) ?? items[0];
+    openItem ??
+    items.find((item) => item.obsvItmSn === selection.itmSn) ??
+    items[0];
   const foundIndex = selectedItem
     ? selectedItem.rounds.findIndex(
         (round) => round.obsvRndSn === selection.rndSn,
@@ -59,16 +77,18 @@ export default function ObservationCard({ petSn }) {
           itmSn: deleteTarget.isOnlyRound ? null : deleteTarget.obsvItmSn,
           rndSn: null,
         });
+        /** 모바일 상세에서 항목까지 지워지면 목록 화면으로 */
+        if (deleteTarget.isOnlyRound && openItem) onCloseItem();
       },
     });
 
-  const registerButton = (className) => (
+  const registerButton = (className, label = '관찰 항목 등록') => (
     <button
       type="button"
       className={className}
       onClick={() => setModal({ mode: 'A' })}
     >
-      관찰 항목 등록
+      {label}
     </button>
   );
 
@@ -80,68 +100,36 @@ export default function ObservationCard({ petSn }) {
     );
   }
 
-  return (
-    <Card
-      title="지속 관찰"
-      sub={`관찰중 ${activeCount}건 · 종료 ${items.length - activeCount}건`}
-      className="min-w-0"
-      action={items.length > 0 && registerButton(`${BTN_PRIMARY} h-8! px-3!`)}
-    >
-      {items.length === 0 ? (
-        <EmptyBox
-          icon="favorite"
-          title="관찰 중인 항목이 없어요"
-          description="피부·눈·상처처럼 계속 지켜볼 곳을 사진으로 남기고 변화를 비교해요"
-          action={registerButton(`${BTN_SECONDARY} mt-2 h-8! px-3!`)}
-        />
-      ) : (
-        <>
-          <p className="mb-4 text-muted">
-            피부·눈·상처 등 지속적으로 확인할 항목을 기록하고 변화를 비교해요
-          </p>
-          <div className="grid gap-5 min-[1101px]:grid-cols-[242px_minmax(0,1fr)]">
-            <div
-              role="group"
-              aria-label="관찰 항목 목록"
-              className="flex flex-col"
-            >
-              {items.map((item) => (
-                <ItemButton
-                  key={item.obsvItmSn}
-                  item={item}
-                  isSelected={item.obsvItmSn === selectedItem.obsvItmSn}
-                  onSelect={() =>
-                    setSelection({ itmSn: item.obsvItmSn, rndSn: null })
-                  }
-                />
-              ))}
-            </div>
-            <div className="min-w-0 min-[1101px]:border-l min-[1101px]:border-line-soft min-[1101px]:pl-6">
-              <ObservationDetail
-                key={selectedItem.obsvItmSn}
-                item={selectedItem}
-                selectedIndex={selectedIndex}
-                onSelectRound={(rndSn) =>
-                  setSelection({ itmSn: selectedItem.obsvItmSn, rndSn })
-                }
-                onEditRound={(round) => setModal({ mode: 'E', round })}
-                onDeleteRound={(round) =>
-                  setDeleteTarget({
-                    obsvRndSn: round.obsvRndSn,
-                    obsvItmSn: selectedItem.obsvItmSn,
-                    obsvItmNm: selectedItem.obsvItmNm,
-                    isOnlyRound: selectedItem.rounds.length === 1,
-                  })
-                }
-                onAddRound={() => setModal({ mode: 'B' })}
-                onEnd={() => endObservation.mutate(selectedItem.obsvItmSn)}
-                onViewPhoto={setPhotoPath}
-              />
-            </div>
-          </div>
-        </>
-      )}
+  const emptyBox = (
+    <EmptyBox
+      icon="favorite"
+      title="관찰 중인 항목이 없어요"
+      description="피부·눈·상처처럼 계속 지켜볼 곳을 사진으로 남기고 변화를 비교해요"
+      action={registerButton(`${BTN_SECONDARY} mt-2 h-8! px-3!`)}
+    />
+  );
 
+  /** PC 상세와 모바일 상세가 같이 쓰는 회차 동작 */
+  const detailProps = selectedItem && {
+    item: selectedItem,
+    selectedIndex,
+    onSelectRound: (rndSn) =>
+      setSelection({ itmSn: selectedItem.obsvItmSn, rndSn }),
+    onEditRound: (round) => setModal({ mode: 'E', round }),
+    onDeleteRound: (round) =>
+      setDeleteTarget({
+        obsvRndSn: round.obsvRndSn,
+        obsvItmSn: selectedItem.obsvItmSn,
+        obsvItmNm: selectedItem.obsvItmNm,
+        isOnlyRound: selectedItem.rounds.length === 1,
+      }),
+    onAddRound: () => setModal({ mode: 'B' }),
+    onEnd: () => endObservation.mutate(selectedItem.obsvItmSn),
+    onViewPhoto: setPhotoPath,
+  };
+
+  const dialogs = (
+    <>
       {modal && (
         <ObservationModal
           mode={modal.mode}
@@ -204,6 +192,79 @@ export default function ObservationCard({ petSn }) {
           <img src={photoPath} alt="" className="w-full rounded-[10px]" />
         </Modal>
       )}
+    </>
+  );
+
+  /** 760px 이하: 목록 화면 → 항목을 누르면 상세 화면(브라우저 뒤로 가기로 목록) */
+  if (!isPc) {
+    return (
+      <Card
+        title="지속 관찰"
+        className="min-w-0"
+        action={
+          !openItem &&
+          items.length > 0 &&
+          registerButton(`${BTN_PRIMARY} h-8! px-3!`, '+ 등록')
+        }
+      >
+        {items.length === 0 ? (
+          emptyBox
+        ) : openItem ? (
+          <ObservationMobileDetail {...detailProps} onBack={onCloseItem} />
+        ) : (
+          <>
+            <p className="mb-1 text-sm/[1.6] text-subtle tabular-nums">
+              관찰중 {activeCount}건 · 종료 {items.length - activeCount}건
+            </p>
+            <ObservationMobileList items={items} onOpen={onOpenItem} />
+          </>
+        )}
+        {dialogs}
+      </Card>
+    );
+  }
+
+  return (
+    <Card
+      title="지속 관찰"
+      sub={`관찰중 ${activeCount}건 · 종료 ${items.length - activeCount}건`}
+      className="min-w-0"
+      action={items.length > 0 && registerButton(`${BTN_PRIMARY} h-8! px-3!`)}
+    >
+      {items.length === 0 ? (
+        emptyBox
+      ) : (
+        <>
+          <p className="mb-4 text-muted">
+            피부·눈·상처 등 지속적으로 확인할 항목을 기록하고 변화를 비교해요
+          </p>
+          <div className="grid gap-5 min-[1101px]:grid-cols-[242px_minmax(0,1fr)]">
+            <div
+              role="group"
+              aria-label="관찰 항목 목록"
+              className="flex flex-col"
+            >
+              {items.map((item) => (
+                <ItemButton
+                  key={item.obsvItmSn}
+                  item={item}
+                  isSelected={item.obsvItmSn === selectedItem.obsvItmSn}
+                  onSelect={() =>
+                    setSelection({ itmSn: item.obsvItmSn, rndSn: null })
+                  }
+                />
+              ))}
+            </div>
+            <div className="min-w-0 min-[1101px]:border-l min-[1101px]:border-line-soft min-[1101px]:pl-6">
+              <ObservationDetail
+                key={selectedItem.obsvItmSn}
+                {...detailProps}
+              />
+            </div>
+          </div>
+        </>
+      )}
+      {dialogs}
     </Card>
   );
 }

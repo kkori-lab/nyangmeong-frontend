@@ -2,7 +2,7 @@ import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Badge from '@/components/Badge';
 import { PATHS } from '@/routes/paths';
-import PetFace from '../shared/PetFace';
+import PetFace from '@/components/PetFace';
 import { CHRC_STTS, PET_REL } from '@/utils/petCodes';
 import { formatAge, getVrtyName } from '@/utils/petFormat';
 
@@ -33,7 +33,9 @@ export default function PetMiniCard({ pet, index }) {
         }`}
       >
         <PetFace
-          pet={pet}
+          petSn={pet.petSn}
+          petSeCd={pet.petSeCd}
+          chrcSttsCd={pet.chrcSttsCd}
           className="size-full rounded-full"
           iconClassName="size-7 max-[760px]:size-5"
         />

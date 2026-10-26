@@ -1,4 +1,4 @@
-import PetFace from './shared/PetFace';
+import PetFace from '@/components/PetFace';
 import {
   formatAge,
   formatWeight,
@@ -20,7 +20,9 @@ export default function PetProfileCard({ pet }) {
   return (
     <div className="flex items-start gap-4 p-5">
       <PetFace
-        pet={pet}
+        petSn={pet.petSn}
+        petSeCd={pet.petSeCd}
+        chrcSttsCd={pet.chrcSttsCd}
         alt={`${pet.petNm} 캐릭터`}
         className="size-[76px] shrink-0 rounded-modal bg-white"
         fallback={

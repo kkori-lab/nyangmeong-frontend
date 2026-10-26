@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Card from '@/components/Card';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import { formatMonthDayDot } from '@/utils/formatDate';
 import {
   RECORD_TYPES,
@@ -26,10 +27,39 @@ import {
  * [건강기록 변화 카드]
  * - 지표 탭 5종 단일 선택, 최근 14개 기록 기준 그래프 (FN-HLT-002-09·10)
  * - 0건·1건은 그래프 대신 안내
+ * - 760px 이하: 지표 탭이 한 줄 가로 밀기이고 줄 끝에 걸쳐 잘린 탭은 반투명, 체중 그래프의 상한·목표·하한은 왼쪽 한 열
  */
 export default function DailyTrendCard({ pet, records, onAddRecord }) {
   const [typeCd, setTypeCd] = useState(WEIGHT);
   const type = findRecordType(typeCd);
+  const isPc = useMediaQuery('(min-width: 761px)');
+  const rowRef = useRef(null);
+  /** 줄 끝에 걸쳐 일부만 보이는 탭(모바일 가로 밀기) */
+  const [clipped, setClipped] = useState([]);
+
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return undefined;
+    const update = () => {
+      const rowRect = row.getBoundingClientRect();
+      setClipped(
+        [...row.children].map((chip) => {
+          const rect = chip.getBoundingClientRect();
+          const visible =
+            Math.min(rect.right, rowRect.right) -
+            Math.max(rect.left, rowRect.left);
+          return visible > 0 && visible < rect.width - 1;
+        }),
+      );
+    };
+    update();
+    row.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      row.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
 
   return (
     <Card
@@ -38,11 +68,12 @@ export default function DailyTrendCard({ pet, records, onAddRecord }) {
       className="min-w-0"
     >
       <div
+        ref={rowRef}
         role="radiogroup"
         aria-label="지표 선택"
-        className="mb-4 flex flex-wrap gap-2"
+        className="mb-4 flex gap-2 overflow-x-auto [scrollbar-width:none] min-[761px]:flex-wrap min-[761px]:overflow-visible [&::-webkit-scrollbar]:hidden"
       >
-        {RECORD_TYPES.map((item) => {
+        {RECORD_TYPES.map((item, index) => {
           const isSelected = item.cd === typeCd;
           return (
             <button
@@ -50,7 +81,9 @@ export default function DailyTrendCard({ pet, records, onAddRecord }) {
               type="button"
               role="radio"
               aria-checked={isSelected}
-              className={`inline-flex h-9 items-center rounded-full border px-3.5 ${
+              className={`inline-flex h-9 shrink-0 items-center rounded-full border px-3.5 transition-opacity ${
+                clipped[index] ? 'opacity-50' : ''
+              } ${
                 isSelected
                   ? 'border-brand-500 bg-brand-500 text-white'
                   : 'border-line bg-white text-ink-2 hover:border-line-strong hover:text-ink'
@@ -67,13 +100,14 @@ export default function DailyTrendCard({ pet, records, onAddRecord }) {
         pet={pet}
         records={records}
         type={type}
+        isPc={isPc}
         onAddRecord={onAddRecord}
       />
     </Card>
   );
 }
 
-function TrendBody({ pet, records, type, onAddRecord }) {
+function TrendBody({ pet, records, type, isPc, onAddRecord }) {
   const emptyBox = (
     <EmptyBox
       icon="monitoring"
@@ -139,10 +173,15 @@ function TrendBody({ pet, records, type, onAddRecord }) {
   return (
     <LineChart
       points={chartPoints}
-      band={isWeight ? [pet.nrmlWghtMinVal, pet.nrmlWghtMaxVal] : undefined}
+      band={
+        isWeight && pet.nrmlWghtMinVal != null && pet.nrmlWghtMaxVal != null
+          ? [pet.nrmlWghtMinVal, pet.nrmlWghtMaxVal]
+          : undefined
+      }
       goal={isWeight ? pet.goalWghtVal : undefined}
       formatValue={(value) => formatAmount(type.cd, value)}
       formatTag={(value) => value.toFixed(1)}
+      isLeftColumn={!isPc}
       ariaLabel={`${type.nm} 변화 선그래프 · ${summary}`}
     />
   );

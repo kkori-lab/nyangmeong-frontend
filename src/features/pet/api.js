@@ -1,4 +1,3 @@
-import { api } from '@/api/axios';
 import {
   CGVR_ROLE,
   CHRC_STTS,
@@ -239,14 +238,6 @@ export const getPets = () => {
 /** 상세 조회 GET /pets/{petSn} */
 export const getPet = (petSn) =>
   fakeDelay(fakePets.find((pet) => pet.petSn === petSn));
-
-/** 캐릭터 이미지 조회 GET /pets/{petSn}/character-image (로그인 전 401 랜딩 이동 끄기) */
-export const getCharacterImage = (petSn, part) =>
-  api.get(`/pets/${petSn}/character-image`, {
-    params: { part },
-    responseType: 'blob',
-    skipAuthRedirect: true,
-  });
 
 /** 등록 POST /pets */
 export const createPet = (body) => {

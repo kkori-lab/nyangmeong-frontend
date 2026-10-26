@@ -1,14 +1,16 @@
 import { Cat, Dog } from 'lucide-react';
 import { CHRC_STTS, PET_SE } from '@/utils/petCodes';
-import { useCharacterImage } from '../queries';
+import { useCharacterImage } from '@/hooks/useCharacterImage';
 
 /**
  * 반려동물 캐릭터 얼굴 (마이페이지·건강기록·건강일지·메인에서 같이 쓴다)
  *
  * 사용법
- *   <PetFace pet={pet} className="size-16 rounded-full" iconClassName="size-7" alt="초코 캐릭터" />
+ *   <PetFace petSn={pet.petSn} petSeCd={pet.petSeCd} chrcSttsCd={pet.chrcSttsCd} className="size-16 rounded-full" iconClassName="size-7" alt="초코 캐릭터" />
  *
- * - pet: 반려동물 객체. `petSn`(얼굴 요청), `petSeCd`(기본 아이콘 종류), `chrcSttsCd`(오류 확인 중이면 흑백)를 쓴다
+ * - petSn: 얼굴 이미지 요청에 쓴다
+ * - petSeCd: 이미지가 없을 때 그릴 기본 아이콘 종류(강아지·고양이)
+ * - chrcSttsCd: 오류 확인 중이면 흑백으로 그린다
  * - className: 크기·모양·바탕을 정한다. 이미지와 기본 아이콘 자리에 똑같이 붙으므로 `rounded-full`, `size-*`는 여기에 쓴다
  * - iconClassName: 기본 아이콘(종별 강아지·고양이) 크기. 기본 `size-7`
  * - alt: 이미지 설명. 꾸밈용이면 비워 둔다(기본 빈 문자열)
@@ -19,15 +21,16 @@ import { useCharacterImage } from '../queries';
  * 도트 이미지라 `image-rendering: pixelated`로 늘려 그린다.
  */
 export default function PetFace({
-  pet,
+  petSn,
+  petSeCd,
+  chrcSttsCd,
   className = '',
   iconClassName = 'size-7',
   alt = '',
   fallback,
 }) {
-  const url = useCharacterImage(pet.petSn, 'face');
-  const muted =
-    pet.chrcSttsCd === CHRC_STTS.ERROR ? ' opacity-55 grayscale' : '';
+  const url = useCharacterImage(petSn, 'face');
+  const muted = chrcSttsCd === CHRC_STTS.ERROR ? ' opacity-55 grayscale' : '';
 
   if (url) {
     return (
@@ -40,7 +43,7 @@ export default function PetFace({
   }
   if (fallback) return fallback;
 
-  const Icon = pet.petSeCd === PET_SE.CAT ? Cat : Dog;
+  const Icon = petSeCd === PET_SE.CAT ? Cat : Dog;
   return (
     <span className={`grid place-items-center ${className}${muted}`}>
       <Icon className={iconClassName} aria-hidden="true" />

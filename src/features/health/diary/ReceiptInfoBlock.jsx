@@ -242,7 +242,7 @@ export default function ReceiptInfoBlock({
           <span>가계부에도 기록</span>
           {ledgerAmount != null && (
             <span className="text-sm text-subtle tabular-nums">
-              병원 · {formatAmount(ledgerAmount)} · 내용 ={' '}
+              병원 · {formatAmount(ledgerAmount)} · 사용처 ={' '}
               {hospNm.trim() || '병원명'}
             </span>
           )}

@@ -13,7 +13,6 @@ import {
   deleteCaregiver,
   deletePet,
   getCaregivers,
-  getCharacterImage,
   getCharacterItems,
   getInvitation,
   getPet,
@@ -35,7 +34,6 @@ export const petKeys = {
   detail: (petSn) => ['pets', petSn],
   caregivers: (petSn) => ['pets', petSn, 'caregivers'],
   items: (petSn) => ['pets', petSn, 'items'],
-  characterImage: (petSn, part) => ['pets', petSn, 'character-image', part],
   varieties: (petSeCd) => ['varieties', petSeCd],
   shopItems: () => ['items', 'shop'],
 };
@@ -55,27 +53,6 @@ export const usePet = (petSn) =>
     queryFn: () => getPet(petSn),
     enabled: petSn != null,
   });
-
-/** Blob을 <img>에 바로 쓸 data URL로 바꾼다(object URL과 달리 해제할 것이 없다) */
-const blobToDataUrl = (blob) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-
-/** 캐릭터 이미지를 <img src>로 쓸 수 있는 주소로 돌려준다. 실패·로딩 중에는 null */
-export const useCharacterImage = (petSn, part) => {
-  const { data } = useQuery({
-    queryKey: petKeys.characterImage(petSn, part),
-    queryFn: () => getCharacterImage(petSn, part).then(blobToDataUrl),
-    enabled: petSn != null,
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
-  return data ?? null;
-};
 
 export const useVarieties = (petSeCd) =>
   useQuery({

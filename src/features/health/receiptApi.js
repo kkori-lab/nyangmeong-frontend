@@ -17,7 +17,10 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 /** 검진상세(SCR-HLT-005) 전이라 저장한 처방 약품을 쌓아만 둔다. 주기 체크는 OFF */
 const fakePrescriptions = [];
 
-/** 가계부 지출(SJM). 같은 반려동물·날짜·금액·병원이면 중복 */
+/**
+ * 가계부 지출(SJM). 같은 반려동물·날짜·금액이면 중복
+ * 키는 가계부 도메인(`expndYmd`·`expndAmt`·`dtlMttr`·`expndPlcusNm`)과 같다. 병원명은 사용처에 넣고 내용은 사용자가 적는 메모라 비운다
+ */
 const fakeLedger = [];
 
 const ROUND_UNIT = 1000;
@@ -98,8 +101,8 @@ const isLedgerDuplicate = ({ petSn, ckupYmd, ledgerAmt }) =>
   fakeLedger.some(
     (expense) =>
       expense.petSn === petSn &&
-      expense.expsYmd === ckupYmd &&
-      expense.expsAmt === ledgerAmt,
+      expense.expndYmd === ckupYmd &&
+      expense.expndAmt === ledgerAmt,
   );
 
 /**
@@ -174,9 +177,10 @@ export const saveReceiptCheckups = async ({
     if (entry.ledgerAmt != null) {
       fakeLedger.push({
         petSn: entry.petSn,
-        expsYmd: ckupYmd,
-        expsAmt: entry.ledgerAmt,
-        expsCn: hospNm,
+        expndYmd: ckupYmd,
+        expndAmt: entry.ledgerAmt,
+        dtlMttr: '',
+        expndPlcusNm: hospNm,
         expsCtgrCd: 'HOSP',
         inputMthdCd: 'OCR',
         rcptSn,

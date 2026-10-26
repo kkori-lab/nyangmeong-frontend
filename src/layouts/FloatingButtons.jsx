@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Bot, ChevronLeft } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import arrow from '@/assets/arrow.svg';
 import useAiDock from '@/hooks/useAiDock';
 import useAiWindow from '@/hooks/useAiWindow';
 import { PATHS } from '@/routes/paths';
@@ -32,7 +33,7 @@ export default function FloatingButtons({ hasBottomNav = false }) {
         {dock.bubbleVisible && (
           <div
             role="status"
-            className="absolute right-full top-1/2 mr-[17px] -translate-y-1/2 animate-sway whitespace-nowrap motion-reduce:animate-none h-[31px] rounded-full border border-fab-line bg-linear-to-r from-fab-soft to-white px-4 text-sm font-normal leading-[29px] text-brand-500 drop-shadow-[0_4px_4px_rgba(0,0,0,0.05)]"
+            className="absolute right-full top-1/2 mr-[17px] -translate-y-1/2 animate-sway whitespace-nowrap motion-reduce:animate-none h-10 rounded-full border border-fab-line bg-linear-to-r from-fab-soft to-white px-4 text-base font-semibold leading-[38px] text-brand-500 drop-shadow-[0_4px_4px_rgba(0,0,0,0.05)]"
           >
             AI 매니저
             <svg
@@ -70,7 +71,7 @@ export default function FloatingButtons({ hasBottomNav = false }) {
             aria-label="AI 매니저 펼치기"
             onClick={dock.expand}
           >
-            <ChevronLeft size={26} strokeWidth={1.5} />
+            <img src={arrow} alt="" width={7} height={13} />
           </button>
         ) : (
           <button
