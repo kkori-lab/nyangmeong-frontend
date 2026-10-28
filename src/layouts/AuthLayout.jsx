@@ -1,5 +1,6 @@
-import { PawPrint } from 'lucide-react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useSearchParams } from 'react-router-dom';
+import sideImage from '@/assets/auth_side.jpg';
+import logo_white from '@/assets/logo-white.svg';
 import logo from '@/assets/nm_logo.svg';
 import { PATHS } from '@/routes/paths';
 
@@ -16,7 +17,11 @@ const PANEL_COPY = {
 
 export default function AuthLayout() {
   const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
   const isSignup = pathname === PATHS.SIGNUP;
+  const isWide =
+    isSignup ||
+    (pathname === PATHS.LOGIN && searchParams.get('method') === 'email');
   const isSlider = isSignup || pathname === PATHS.LOGIN;
   const copy = isSignup ? PANEL_COPY.signup : PANEL_COPY.login;
 
@@ -24,22 +29,27 @@ export default function AuthLayout() {
     <div className="flex min-h-dvh items-center justify-center bg-surface-2 p-4 max-md:items-start max-md:bg-white max-md:p-0 lg:p-5">
       <main
         className={`grid w-full max-w-270 md:h-150 overflow-hidden rounded-4xl bg-white shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-[grid-template-columns] duration-800 ease-[cubic-bezier(0.25,1,0.5,1)] max-md:min-h-dvh max-md:grid-cols-1 max-md:rounded-none max-md:shadow-none ${
-          isSignup
+          isWide
             ? 'grid-cols-[0.7fr_1.5fr] lg:grid-cols-[1.1fr_1.5fr]'
             : 'grid-cols-[1fr_1.1fr] lg:grid-cols-[1.6fr_1fr]'
         }`}
       >
-        <section className="relative flex min-w-0 flex-col justify-between overflow-hidden bg-linear-to-br from-brand-500 to-brand-900 px-8 py-9 text-white max-md:hidden lg:px-11 lg:py-12.5">
+        <section className="relative flex min-w-0 flex-col justify-between overflow-hidden bg-brand-900 px-8 py-9 text-white max-md:hidden lg:px-11 lg:py-12.5">
+          <img
+            src={sideImage}
+            alt=""
+            className="pointer-events-none absolute inset-0 size-full object-cover"
+          />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-20 -left-20 size-75 rounded-full bg-white/10"
+            className="pointer-events-none absolute inset-0 bg-linear-to-t from-brand-900/75 via-brand-900/10 to-brand-900/45"
           />
-          <Link
-            to={PATHS.HOME}
-            className="relative flex items-center gap-2.5 text-lg font-bold"
-          >
-            <PawPrint className="size-6" />
-            냥멍케어
+          <Link to={PATHS.HOME} className="relative block w-fit rounded-xl">
+            <img
+              src={logo_white}
+              alt="냥멍케어"
+              className="block h-8 w-[121px]"
+            />
           </Link>
           <div
             key={isSignup ? 'signup' : 'login'}

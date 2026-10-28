@@ -7,6 +7,7 @@ const LIST_MAX_HEIGHT = 256;
 /**
  * 목록을 직접 그리는 셀렉트 (디자인의 custom select)
  * - options: [{ value, label }], 고르지 않았을 때는 placeholder를 보여 준다
+ * - isPill: 알약형 버튼에 종합 건강기록 히어로와 같은 색(초록 바탕·흰 글자). 목록은 버튼보다 좁아지지 않고 긴 이름만큼 넓어진다
  * - 키보드: ↑↓ 이동, Enter·Space 선택, Esc·Tab 닫기. 아래 공간이 모자라면 위로 연다
  */
 export default function DropdownSelect({
@@ -15,6 +16,7 @@ export default function DropdownSelect({
   options,
   placeholder,
   label,
+  isPill = false,
   className = '',
 }) {
   const listId = useId();
@@ -97,17 +99,21 @@ export default function DropdownSelect({
         aria-activedescendant={isOpen ? `${listId}-${activeIndex}` : undefined}
         onClick={() => (isOpen ? close() : open())}
         onKeyDown={handleKeyDown}
-        className={`flex h-10 w-full cursor-pointer items-center rounded-md border bg-white pr-9 pl-3 text-left text-base hover:border-[#b9c4c4] focus:outline-none max-[760px]:h-11 ${isOpen ? 'border-[#285a5c] shadow-[0_0_0_3px_rgba(182,218,172,0.5)]' : 'border-[#d3dae2]'}`}
+        className={`flex h-10 w-full cursor-pointer items-center border text-left text-base focus:outline-none max-[760px]:h-11 ${
+          isPill
+            ? `rounded-full border-brand-500 bg-brand-500 pr-10 pl-5 font-semibold text-white hover:bg-brand-600 ${isOpen ? 'shadow-[0_0_0_3px_rgba(249,234,166,0.6)]' : ''}`
+            : `rounded-md bg-white pr-9 pl-3 hover:border-[#b9c4c4] ${isOpen ? 'border-[#285a5c] shadow-[0_0_0_3px_rgba(182,218,172,0.5)]' : 'border-[#d3dae2]'}`
+        }`}
       >
         <span
-          className={`min-w-0 flex-1 truncate ${selected ? 'text-[#1a3234]' : 'text-[#8c9899]'}`}
+          className={`min-w-0 flex-1 truncate ${isPill ? '' : selected ? 'text-[#1a3234]' : 'text-[#8c9899]'}`}
         >
           {selected ? selected.label : placeholder}
         </span>
         <ChevronDown
           size={20}
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-[#566465]"
+          className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${isPill ? 'right-4 text-white' : 'right-2.5 text-[#566465]'}`}
         />
       </button>
       {isOpen && (
@@ -116,7 +122,7 @@ export default function DropdownSelect({
           id={listId}
           role="listbox"
           aria-label={label}
-          className={`absolute right-0 left-0 z-30 max-h-64 overflow-y-auto rounded-lg border border-[#e2e7e7] bg-white p-1 shadow-[0_12px_32px_-8px_rgba(15,23,35,0.18),0_2px_6px_rgba(15,23,35,0.06)] ${isUp ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'}`}
+          className={`absolute right-0 left-0 z-30 max-h-64 ${isPill ? 'min-w-max' : ''} overflow-y-auto rounded-lg border border-[#e2e7e7] bg-white p-1 shadow-[0_12px_32px_-8px_rgba(15,23,35,0.18),0_2px_6px_rgba(15,23,35,0.06)] ${isUp ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'}`}
         >
           {options.map((option, index) => {
             const isSelected = index === selectedIndex;

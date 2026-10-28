@@ -45,7 +45,7 @@ export default function FallbackBubble({ text, hasActions, hasFaqGuide }) {
               className="flex items-center gap-1.5 font-bold text-[#285a5c] hover:underline"
               onClick={() => openInMainWindow(PATHS.FAQS)}
             >
-              자주하는 질문 보기
+              자주 묻는 질문 보기
               <ArrowRight aria-hidden="true" className="size-4" />
             </button>
           </div>

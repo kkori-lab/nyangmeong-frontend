@@ -22,7 +22,7 @@ import { SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
 const PAGE_SIZE = 10;
 
 /** 필터 칩으로 따로 세는 검진 종류(예방접종) */
-const VACCINATION = 'VACC';
+const VACCINATION = 'HLTC0002';
 
 const findCheckupTypeNm = (cd) =>
   CHECKUP_TYPES.find((type) => type.cd === cd)?.nm;
@@ -36,7 +36,7 @@ const findCheckupTypeNm = (cd) =>
 export default function CheckupListCard({ pet, pets, onReceipt }) {
   const currentYear = getYear(getTodayYmd());
   const [year, setYear] = useState(currentYear);
-  // 켜진 필터 칩: 'ALL'(그해 전체)·'VACC'(예방접종)·null(둘 다 꺼짐, 그해 전체)
+  // 켜진 필터 칩: 'ALL'(그해 전체)·VACCINATION(예방접종)·null(둘 다 꺼짐, 그해 전체)
   const [chipFilter, setChipFilter] = useState('ALL');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);

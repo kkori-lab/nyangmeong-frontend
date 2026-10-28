@@ -76,7 +76,7 @@
 
 | 보내는 곳 | 대상 → URL |
 | --- | --- |
-| 알림 클릭 (COM-004-07) | 케어 일정 → `/health/calendar` · 공동양육 → `/mypage/caregivers` · 실종 만료 → `/community/missing` · 가계부 → `/mypage/expenses` · 캐릭터 → `/mypage/characters` · 공지 → `/notices` · 문의 답변 → `/inquiries/:otoInqrySn` · 펫돌봄 거래 → `/chat?otoChatRoomSn=` |
+| 알림 클릭 (COM-004-07) | 케어 일정 → `/health/calendar` · 공동양육 초대 수신 → `/mypage/invitations/:invitationToken` · 공동양육 초대 결과·연동 해제 → `/mypage/pets` · 실종 만료 → `/community/missing` · 가계부 → `/mypage/expenses` · 캐릭터 → `/mypage/characters` · 공지 → `/notices` · 문의 답변 → `/inquiries/:otoInqrySn` · 펫돌봄 거래 → `/chat?otoChatRoomSn=` |
 | AI 라우팅 (AIM-004) | 1장의 ✓ 행 |
 | 로그인 복귀 (COM-003-02·05·06) | `/?redirect=<경로>` → 로그인 후 그 경로, 없으면 `/main` |
 

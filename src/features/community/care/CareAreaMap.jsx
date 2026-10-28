@@ -1,25 +1,60 @@
-import { MapPin } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import useKakaoMap from '@/hooks/useKakaoMap';
+import MissingMap from '../missing/MissingMap';
+import { findDongCenter } from '../missing/placeSearch';
 
 /**
- * 동네 인근 대략적인 위치 자리: 공개 화면에는 정확한 좌표를 주지 않아 지도 대신 반경 표시만 그린다
- * - area: 「서곡동 인근」처럼 라벨에 쓰는 문구
- * - isTall: 상세 화면의 큰 지도(320px), 글쓰기 미리보기는 200px
+ * 돌봄 장소 지도: 실종센터 지도(MissingMap)와 같은 크기·형태(높이 400px, 반경 원, +/−)
+ * - place: { sggNm, emdNm, wtnsPlcLat?, wtnsPlcLot? }. 좌표가 없으면(상세·수정은 공개 좌표가 없다) 동 중심을 찾아 보여 준다
+ * - 라벨은 공개 범위에 맞춰 항상 「○○동 인근」
+ * - onMove: 글쓰기에서만 넘긴다. 지도를 끌면 그 자리의 장소(좌표·시군구·동)를 넘긴다
  */
-export default function CareAreaMap({ area, isTall = false, className = '' }) {
+export default function CareAreaMap({ place, onMove, className = '' }) {
+  const { kakao } = useKakaoMap();
+  const { sggNm, emdNm, wtnsPlcLat, wtnsPlcLot } = place;
+  const area = `${emdNm} 인근`;
+  const dongKey = `${sggNm} ${emdNm}`;
+  const hasCoords = wtnsPlcLat != null && wtnsPlcLot != null;
+  /** { key, coords }: coords가 null이면 못 찾음 */
+  const [center, setCenter] = useState(null);
+
+  useEffect(() => {
+    if (!kakao || hasCoords) return;
+    let isCancelled = false;
+    findDongCenter(kakao, sggNm, emdNm)
+      .catch(() => null)
+      .then((coords) => {
+        if (!isCancelled) setCenter({ key: dongKey, coords });
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, [kakao, hasCoords, dongKey, sggNm, emdNm]);
+
+  const found = center?.key === dongKey ? center : null;
+  const coords = hasCoords ? { wtnsPlcLat, wtnsPlcLot } : found?.coords;
+  const lat = coords?.wtnsPlcLat;
+  const lng = coords?.wtnsPlcLot;
+  /** 좌표가 같으면 같은 객체: 다시 그릴 때마다 지도가 가운데로 돌아가지 않게 */
+  const mapPlace = useMemo(
+    () =>
+      lat == null
+        ? null
+        : { wtnsPlcNm: area, wtnsPlcLat: lat, wtnsPlcLot: lng },
+    [area, lat, lng],
+  );
+
   return (
-    <div
-      role="img"
-      aria-label={`${area} 대략적인 위치`}
-      className={`relative ${isTall ? 'h-[320px]' : 'h-[200px]'} overflow-hidden rounded-lg border border-line bg-[#f1f5f3] bg-[linear-gradient(0deg,rgba(255,255,255,0.55),rgba(255,255,255,0.55)),repeating-linear-gradient(0deg,#e6ecea_0_1px,transparent_1px_40px),repeating-linear-gradient(90deg,#e6ecea_0_1px,transparent_1px_40px)] ${className}`}
-    >
-      <span
-        aria-hidden="true"
-        className="absolute top-1/2 left-1/2 -mt-[60px] -ml-[60px] size-[120px] rounded-full border-[1.5px] border-dashed border-brand-500 bg-brand-500/12"
+    <div className={className}>
+      <MissingMap
+        place={mapPlace}
+        isPreview
+        mapLabel="돌봄 장소 지도"
+        emptyText={
+          found ? '지도를 불러오지 못했어요' : '지도를 불러오고 있어요'
+        }
+        onMove={onMove}
       />
-      <span className="absolute bottom-3 left-3 inline-flex h-7 items-center gap-1 rounded-full bg-white px-2.5 text-sm text-ink-2 shadow-[inset_0_0_0_1px_var(--color-line)]">
-        <MapPin size={14} aria-hidden="true" className="text-brand-500" />
-        {area}
-      </span>
     </div>
   );
 }

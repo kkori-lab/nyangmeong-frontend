@@ -4,7 +4,9 @@ import Icon from '@/components/Icon';
 import {
   formatMonthDayWeekday,
   formatTime,
+  getHmOf,
   getTodayYmd,
+  getYmdOf,
 } from '@/utils/formatDate';
 import {
   compareSchedules,
@@ -26,7 +28,7 @@ export default function ScheduleDayDetail({
   const todayYmd = getTodayYmd();
   const isPast = ymd < todayYmd;
   const sorted = schedules
-    .filter((schedule) => schedule.schdlYmd === ymd)
+    .filter((schedule) => getYmdOf(schedule.schdlDt) === ymd)
     .sort(compareSchedules);
 
   return (
@@ -37,12 +39,15 @@ export default function ScheduleDayDetail({
       className={className}
       bodyClassName={bodyClassName}
       action={
+        // 좁은 화면에서는 제목·부제가 잘리지 않게 ＋ 아이콘만 남긴다
         <button
           type="button"
-          className="inline-flex h-8 shrink-0 items-center rounded-[6px] bg-brand-500 px-3 text-base font-semibold text-white hover:bg-brand-600"
+          aria-label="새 일정 등록"
+          className="inline-flex h-8 shrink-0 items-center justify-center rounded-[6px] bg-brand-500 px-3 text-base font-semibold text-white hover:bg-brand-600 max-[760px]:w-8 max-[760px]:px-0"
           onClick={onCreate}
         >
-          새 일정 등록
+          <Icon name="add" className="text-xl min-[761px]:hidden" />
+          <span className="max-[760px]:hidden">새 일정 등록</span>
         </button>
       }
     >
@@ -79,9 +84,9 @@ export default function ScheduleDayDetail({
                       backgroundColor: getScheduleTone(schedule).fg,
                     }}
                   />
-                  {schedule.schdlTm && (
+                  {schedule.hrInptYn && (
                     <span className="shrink-0 whitespace-nowrap text-[#667374]">
-                      {formatTime(schedule.schdlTm)}
+                      {formatTime(getHmOf(schedule.schdlDt))}
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
@@ -92,7 +97,7 @@ export default function ScheduleDayDetail({
                     >
                       {schedule.petNm} · {getScheduleKindName(schedule)} ·{' '}
                       {isHospital(schedule)
-                        ? schedule.hospNm
+                        ? schedule.hsptlNm
                         : schedule.schdlNm}
                     </span>
                     {isPast && isHospital(schedule) && (
@@ -107,9 +112,9 @@ export default function ScheduleDayDetail({
                         </Badge>
                       </>
                     )}
-                    {schedule.schdlMemoCn && (
+                    {schedule.memoCn && (
                       <span className="block text-sm text-[#667374]">
-                        {schedule.schdlMemoCn}
+                        {schedule.memoCn}
                       </span>
                     )}
                   </span>

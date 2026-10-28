@@ -13,7 +13,6 @@ import {
   markMissingFound,
   reportMissing,
   reportMissingComment,
-  searchMissingPlaces,
   toggleMissingLike,
   updateMissing,
 } from './missingApi';
@@ -84,9 +83,6 @@ export const useReportMissing = () =>
   useMutation({ mutationFn: reportMissing });
 export const useReportMissingComment = () =>
   useMutation({ mutationFn: reportMissingComment });
-export const useSearchMissingPlaces = () =>
-  useMutation({ mutationFn: searchMissingPlaces });
-
 /** CommentSection에 넘기는 실종센터 댓글 훅 묶음 */
 export const missingCommentHooks = {
   useComments: useMissingComments,

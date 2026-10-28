@@ -2,34 +2,49 @@
 
 ## 지금 하는 것
 
-SCR-COM-002 플로팅 AI 버튼 모바일 접힘 탭 · 첫 방문 말풍선 — 끝 (검증 `통과`, 사람 확인 2026-10-23). 기획·결정·추가 요청은 `milestones/LJS.md` 그 절과 아래 표
+SCR-AIM-011 대화 API 서버 연결 · AI 서버 요청 기반 — 끝 (2026-10-27, 검증 통과(2회차 중 1회 실패 뒤 수정, 추가-1~4 포함 재검증)·사람 확인). 기획·완료 조건은 `milestones/LJS.md`와 이 커밋 이력에 있다
 
-- 근거: 공통레이아웃_기능명세서_v0.4 FN-COM-002-19(플로팅 AI 버튼, 클릭 → AI 대화창 새 창), 002-21(우측 하단 고정). 접힘·말풍선은 명세에 없는 사람 요청(2026-10-23, 참고: iOS PiP를 옆으로 밀어 숨긴 탭)
-- 디자인: 없음, 사람이 대화에서 정한 동작 기준. 아이콘은 지금의 `Bot` 그대로
-- 채팅창 여는 동작(`useAiWindow`, 팝업 차단 안내)은 그대로 두고 아이콘 동작만 바꾼다
-
-| 기능 | 바꿀 파일 | API | 완료 조건 |
-| --- | --- | --- | --- |
-| D-01 모바일 접힘 탭 | `layouts/FloatingButtons.jsx`, `hooks/useAiDock.js`(신규) | 없음 | `화면:` 390px 첫 접속 시 AI 버튼이 우측 가장자리에 붙은 세로 탭(`‹`, 왼쪽 모서리만 둥금)으로 접혀 있다. 탭을 누르면 `Bot` 아이콘으로 펼쳐지기만 하고 AI 창은 열리지 않는다 |
-| D-02 펼친 아이콘 → AI 창 | `layouts/FloatingButtons.jsx` | 없음 | `화면:` 390px 펼친 상태에서 아이콘을 누르면 지금처럼 AI 창이 열린다(팝업 차단 안내도 그대로). 1440px은 지금과 같다(접힘 없음) |
-| D-03 드래그로 접기 | `hooks/useAiDock.js`, `layouts/FloatingButtons.jsx` | 없음 | `화면:` 390px 펼친 아이콘을 우측으로 끌어 놓으면 접힌다. 덜 끌면 제자리로 돌아온다. 끈 직후에는 AI 창이 열리지 않는다. 우측에만 붙고 세로 위치는 바뀌지 않는다(바텀 네비 위 규칙 유지) |
-| D-04 접힘 상태 기억 | `hooks/useAiDock.js` | 없음 | `화면:` 390px 펼친 뒤 새로고침하면 펼친 채, 접은 뒤 새로고침하면 접힌 채다. 저장값이 없으면 접힘. `localStorage`는 try/catch로 감싸 막혀도 화면이 깨지지 않는다 |
-| D-05 첫 방문 말풍선 | `layouts/FloatingButtons.jsx`(커지면 `layouts/AiBubble.jsx`로 뺀다) | 없음 | `화면:` 첫 방문에만 "AI 매니저예요" 말풍선이 뜬다. 모바일은 접힌 탭 위, PC는 아이콘 위. 몇 초 뒤 사라지고 X로도 닫힌다. 한 번 뜬 뒤 새로고침하면 다시 뜨지 않는다. 드래그 중에는 숨는다 |
-| 공통 | — | — | `명령:` `yarn -s lint`, `yarn -s build` |
-
-### 추가 요청
-
-| 추가 | 바꿀 파일 | 완료 조건 | 근거 |
-| --- | --- | --- | --- |
-| 추가-1 | `hooks/useAiDock.js`, `layouts/FloatingButtons.jsx` | `화면:` 첫 방문 말풍선이 6초 뒤 사라지지 않고 계속 떠 있다. 접힌 탭을 눌러 펼치면 사라진다(PC는 X 또는 아이콘을 누르면 사라진다). 한 번 뜬 뒤 새로고침하면 다시 뜨지 않는다 | 요청 2026-10-23 "말풍선 6초 뒤 사라지게 하지 말고 계속 유지, 한 번 펼쳐졌을 때 사라지는 걸로" |
-| 추가-2 | `layouts/FloatingButtons.jsx` | `화면:` 390px 접힌 탭 폭이 28px보다 좁고(22px), 탭과 펼친 `Bot` 아이콘이 프라이머리색(`brand-500`) 채움에 흰 아이콘이다 | 요청 2026-10-23 "너비를 좀 줄이고 스타일을 프라이머리 컬러에 맞게 변경" |
-| 추가-3 | `layouts/FloatingButtons.jsx` | `화면:` 말풍선에 X 버튼이 없다. `brand-500` 채움에 흰 글자(굵기 600), 꼬리도 `brand-500`, `rounded-lg`, 테두리·그림자 없음. 모바일은 접힌 탭을 펼칠 때, PC는 아이콘을 누를 때 사라진다 | 요청 2026-10-23 "말풍선 X 버튼 삭제하고 프라이머리 채움(A안)" |
-| 추가-4 | `layouts/FloatingButtons.jsx`, `assets/index.css`(키프레임) | `화면:` 말풍선이 위아래로 천천히 오르내린다(약 4px). 모션 줄이기 설정에서는 멈춘다. 말풍선 위치·사라지는 조건은 그대로 | 요청 2026-10-23 "약간 위아래로 움직이는 애니메이션까지만 추가하고 마무리" |
-
-- 이번엔 안 함: 캐릭터 이미지 아이콘(이미지가 나오면 교체), 지도 페이지 위치 조정(002-21, PLC 설계서), 좌측 스냅·세로 드래그
-- 새 의존성: 없음
+- 바꾼 것: `api/axios.js`(`aiApi` `baseURL: '/ai'`, 응답 인터셉터를 `api`와 공유, 재발급은 항상 `api.post('/auth/refresh')`·재시도는 요청을 보낸 인스턴스로), `features/ai/api.js`(대화 생성·목록·상세·삭제를 `/ai/conversations`로, 서버에 없는 메시지는 메모리 `fakeMessages`에 덧붙임), `features/ai/shared/aiCodes.js`(역할 코드 `AI_ROLE`), 필드 이름을 서버 것으로(`cnvrsTtl`·`regDt`·`roleCd`·`cnvrsCn`), `scripts/check-axios-errors.mjs`(`@/` 별칭 훅, 이동 기대값 로그인으로, `aiApi` 경우 3개), `docs/convention/api.md`·`docs/OPEN_ISSUES.md`(AI 서버는 같은 오리진 `/ai`, `VITE_AI_API_URL` 폐기)
+- 추가 요청(모두 검증 통과): 추가-1·3 761~1099px에서 대화 목록 drawer가 화면을 어둡게 덮지 않고 본문을 밀어냄(760px 이하는 전체 폭 + 가림막), 추가-2 이어 쓴 대화가 목록 맨 위로(서버에 갱신 시각이 없어 새로고침하면 원래 자리), 추가-4 drawer 슬라이드 애니메이션
+- 결정(사용자): 펫 태그는 서버에 `petSn: null`로 보내고 목록도 `petSn` 없이 조회, 반려동물 목록은 pet(SJM)에 실제 API가 붙을 때 연결. 두 번째 이후 메시지·가짜 답변은 새로고침하면 사라지는 것을 받음(메시지 추가 API 없음)
+- 확인 환경: 백엔드 `./gradlew bootRun`(8080, `ai` 도메인 있는 작업 트리) + ai 저장소 `uv run python -m uvicorn app.main:app --reload`(8000) + 프론트 `yarn dev`, 로그인 쿠키
 
 ## 다음에 할 것
+
+- SCR-AIM-011 연결 남음: ① FN-AIM-011-08 반려동물 목록 API(SJM)가 붙으면 `AiChatPage.jsx`의 `fakePets`를 `features/pet` 훅으로 바꾸고 `features/ai/api.js` `createConversation`·`getConversations`에 `petSn`을 되살린다(지금은 서버 태그가 모두 "전체", 서버 응답에 `petNm`이 없어 이름은 목록의 펫으로 찾아 붙인다) ② 두 번째 이후 메시지·AI 답변 저장은 ai 저장소가 메시지 추가·질문 API를 만들 때(AIM-001·002) `fakeMessages`·`lastActive`를 지운다 ③ FN-AIM-011-03·17 세션 만료 시 창 닫기(SCR-COM-003 003-10과 함께). 서버가 대화 갱신 시각을 주면 `lastActive`(이어 쓴 대화 목록 순서)를 그 값으로 바꾼다
+- 팀에 알릴 것(SCR-AIM-011, PR 전): "AI 서버 요청은 `api/axios.js`의 `aiApi`(같은 오리진 `/ai`)로 보내요. `VITE_AI_API_URL`·`withCredentials`는 쓰지 않고(`docs/convention/api.md`), 오류 모양·401 재발급은 `api`와 같은 인터셉터를 써요. 재발급은 항상 `/api/auth/refresh`예요. `scripts/check-axios-errors.mjs`가 `@/` 별칭 때문에 돌지 않던 것을 고쳤으니 인터셉터를 고치면 `node scripts/check-axios-errors.mjs`를 돌려 주세요"
+- ai-e6·백엔드 세션에 알릴 것: 공용 DB를 쓰는 백엔드에서 `POST /ai/conversations`가 502 `EXTERNAL_API_ERROR`를 낸 적이 있다(방과 메시지는 저장됨). ai 저장소 `app/core/backend.py`의 `TIMEOUT_SEC = 3.0`보다 Java 응답이 느린 것으로 보인다. 이때 화면은 "메시지를 보내지 못했어요"를 띄운다(새로고침하면 대화는 목록에 있음)
+
+- 사람이 할 일(SCR-COM-003): ① (완료 2026-10-27) DMS에 공통레이아웃 기능명세서 v0.7(FN-COM-003-03 로그인 직행·003-04·003-01 확인 중 로딩·002-02 역할 불일치 이동)과 화면설계서 v0.10을 올렸다. ② 디스코드로 알린다: "로그인이 필요한 화면(user 레이아웃의 mypage·health·settings·community·support·main)이 이제 `ProtectedRoute`로 감싸져 로그인 없이는 열리지 않아요. 로그아웃 상태로 들어가면 스켈레톤 뒤 `/login?redirect=`로 가고, 회원이 `/admin`에 가면 `/main`으로 가요. 화면을 만들 때 백엔드를 띄우고 로그인해야 해요. `api/axios.js`는 401이면 랜딩이 아니라 로그인으로 보내고(`/login`에서는 이동 안 함), 로그인 화면 보조 요청(`getLoginStatus`·`getCaptcha`)에 `skipAuthRedirect`를 붙였어요" ③ YAY에 알린다: 로그인 화면 `features/member/api.js`·`login/useEmailLogin.js`를 이 PR에서 고쳤다(이메일 입력 중에는 비밀번호·보안코드를 유지하고 칸을 벗어날 때 `checkedEmail`과 다르면 비우고 새 보안코드). `getRoleHome`(`routes/redirect.js`)은 003-08(로그인 상태로 랜딩에 오면 메인으로)에서 쓰면 된다
+- SCR-COM-003 연결 남음: `ai`·`chat`·`place`·`main`(bare 랜딩 제외)도 로그인 필요라면 `AppRoutes.jsx`에 `pick('bare', 'member')`를 `ProtectedRoute` 아래에 더해야 한다. `ai`·`chat`은 세션 만료 때 창 닫기(003-10)와 함께 정한다. 배포 때 nginx에서 로그인 쿠키가 없으면 `/login`으로 보내는 방법은 배포 담당과 이야기해 볼 수 있다(`ProtectedRoute` 확인은 그대로 필요). 로그아웃 상태에서 `/auth/me`가 두 번 나가는 것(`main.jsx` 미리 요청 + `useMe`)은 동작에 영향 없음
+- 백엔드 세션(`backend-a8`)이 이 세션 요청을 처리함(로컬 커밋, push 전): 알림 목록 정렬을 안 읽음 우선으로(COM-004-05), 시드 알림·미션 경로를 프론트 라우트로 고침. 사람이 할 일: ① DMS 명세 FN-COM-004-05 문구를 새 버전으로 올린다 — 제안 문구 "안 읽은 알림을 먼저, 같은 읽음 상태끼리는 최신순으로 최대 5건 노출한다." ② 미션 이동 경로(`/health/calendar`로 맞춘 시드)는 SJM이 미션 기획대로 확정 ③ 공용 DB의 기존 알림 행은 팀원이 마이그레이션 UPDATE로 고친다
+- 디스코드로 알릴 것(백엔드 세션이 적용할 때): 공용 DB 요청이 1초씩 걸린 원인은 DB 왕복 횟수. 백엔드가 JDBC URL 옵션 5개로 약 0.3초까지 줄였고, `application.properties`는 git에 없어 팀원이 직접 URL을 바꿔야 한다
+- 알림 화면 로딩 표시 확인: 알림 패널(5행)·프로필 드롭다운·전체 메뉴(NavDrawer) 스켈레톤을 넣었다. `ProtectedRoute`의 `return null`(로그인 확인 전 화면이 통째로 빈다)은 이번에 안 건드렸다 — 헤더·푸터를 먼저 그릴지 결정 대기(공용 파일, `docs/convention/shared-files.md`)
+- 디스코드로 알릴 것(공용 `src/api/axios.js`, 팀에 알리지 않고 고침 — 사용자 결정 10-26): "`api/axios.js`가 서버 오류의 `code`·`message`를 읽지 못해 모든 API 오류가 '일시적인 오류가 발생했어요.'로 나오던 것을 고쳤어요. 이제 `error.code`·`error.message`가 서버 값 그대로고, 입력값 오류(`INVALID_INPUT_VALUE`)는 `error.fields`에 `[{ field, message }]`가 와요. 재발급은 401 `TOKEN_EXPIRED`일 때만 하고, `UNAUTHORIZED`·403 `MEMBER_INACTIVE`는 바로 로그인 화면(`/login?redirect=`)으로 가요. `SERVER_ERROR`를 기대하고 분기한 곳이 있으면 확인해 주세요. 인터셉터를 고치면 `node scripts/check-axios-errors.mjs`를 돌려 주세요". SJM: `PetFormModal.jsx:294` `error.fields` 입력칸 문구가 이제 처음 동작한다(화면 확인 안 함)
+- SCR-AIM-013 연결 남음 (2026-10-26 확정 반영)
+  - 013-04·08·09 채팅 영수증 분석·취소·이력: Spring 경유(`POST /api/receipts`에 요청 출처 'AI 대화창'(AIMG07 신설)을 더하는 방향, 백엔드 논의 중 — LJS 백엔드 / 인식은 Python)
+  - 영수증 인식 결과 조회 API 확정(백엔드 10-26, 사용자 결정): `GET /api/receipts/{recptSn}` → `ReceiptResponse` `{ recptSn, ocrPrcsSttsCd, failRsn, hsptlNm, ckupYmd, recptAmt, dstrbDscntAmt, sections:[{ sectionNm, petSn, sbttlAmt, dscntAmt, sectionAmt, ckupCn, items:[{ itemNm, itemAmt }], prescriptions:[{ mdcnNm, mdcnBgngYmd, mdcnEndYmd, dayMdcnNmtm, prscSttsCd, mdcnAmt }] }] }`(분석 응답과 같은 모양, `expense/dto/ReceiptResponse.java`). 없거나 남의 영수증은 404 `RECEIPT_NOT_FOUND`. 조회할 때마다 OCR 원본을 다시 가공해 날짜 기본값·반려동물 자동 연결이 분석 직후와 조금 다를 수 있음(사용자 허용, 화면에서 차이가 보이면 백엔드에 알림). 백엔드 구현은 내부 인증 작업 다음 마일스톤
+  - 가짜를 이 모양으로 맞출 것: `features/ai/api.js` `analyzeChatReceipt`(`petAmts` → `sections`, `prscrptnCnt` → `prescriptions`)·`getChatReceiptResult`(`localStorage` 가짜 → `GET /api/receipts/{recptSn}`, 연결 때 `localStorage` 지움)·`recognizeCheckupReceipt`·`ReceiptUploadModal`(`rcptSn` → `recptSn`, `{ items }` → `ReceiptResponse`). 건강 일지 결과 확인 모달(`features/health/diary/ReceiptResultStep.jsx`·`health/receiptApi.js` `getReceiptDetail`, JAJ)의 입력도 `ReceiptResponse` 하나로 바뀌어야 해서 JAJ와 함께 바꾼다(한쪽만 바꾸면 SCR-AIM-008 → 결과 확인 흐름이 깨짐). 본창 조회가 404면 무엇을 보여 줄지 정한다(지금은 실패하면 모달이 안 열림)
+  - 이미지와 함께 보낸 글(사용자 확정 10-26, FN-AIM-013-02): 내 말풍선 표시·분석에는 안 씀은 그대로, 서버가 사용자 메시지로 대화 이력에 저장(다시 열면 보이고 AI 컨텍스트 6턴에 포함). 연결 때 글을 서버로 함께 보낸다(요청 형식은 API 계약 때). 지금 가짜는 글을 저장하지 않아 다시 열면 요약 한 줄만 보임
+  - [확인 후 저장] 뒤 대화창 닫힘: 사용자 확정(10-26, FN-AIM-013-06, FN-AIM-012-15와 같은 방식)
+  - 013-05 카드 필드 이름은 위 `ReceiptResponse`로 맞춘다. 013-06·07 건강 일지 입구 쿼리 이름(`checkup=manual`·`recptSn`)은 JAJ 확인
+  - 남은 미결(AI 세션): OCR 요청 출처 코드 AIMG07 'AI 대화창'(백엔드), 다시 열었을 때 결과 카드 다시 불러오기
+- JAJ에 알릴 것(SCR-AIM-013): `HealthDiaryPage.jsx`에 넣은 입구 2개(`?checkup=manual&recptSn=` 빈 폼, `?recptSn=` 결과 확인)와 쿼리 이름 확인 요청, 결과 확인 모달 입력을 `ReceiptResponse`(`GET /api/receipts/{recptSn}`)로 함께 바꾸자는 제안. PR #93 참고. 메시지 초안은 2026-10-26 세션에서 사용자에게 전달함
+- 다음 작업(AI 채팅 서버 연결 이어서): SCR-AIM-011 대화 API는 연결됨(위). 질문·답변(001·002, SSE는 `fetch`로 읽고 401 → `api.post('/auth/refresh')` → 1회 재시도를 따로 둔다)·라우팅(004)·폴백(005)·일정 생성 확인(012)은 서버가 아직 없어 가짜. 경로·필드·SSE 형식은 ai 저장소 `docs/api/chat.md`에 정해지면 알려 준다(ai-e6). 영수증 OCR·채팅 영수증 분석·캐릭터 생성도 프론트가 Python을 직접 부르기로 바뀌었고(ai-e6 10-27) 경로는 다음 마일스톤에서 정함, 그때까지 가짜 유지
+- AI 서버 연결 기반(2026-10-25 결정, 사용자 확정): AI 기능(채팅·영수증 OCR·캐릭터 생성·검사결과지 PDF 분석)은 프론트가 Python을 직접 부르고, 나머지와 영수증 save-check·save는 Spring. 주소는 같은 오리진 경로 접두사로 나눈다 — 배포 nginx `/api/` → Spring(:8080), `/ai/` → Python(:8000), 둘 다 접두사를 자르지 않는다(`proxy_pass` 끝 슬래시 없음). 개발은 `vite.config.js` 프록시 `'^/ai/'`(커밋 `5c35ea3`. `/ai` 단독은 화면 URL `PATHS.AI`라 제외). 백엔드·AI 세션에 `/ai` 접두사 요구 전달함
+  - 남은 것: `api/axios.js`에 `aiApi`(`baseURL: '/ai'`, 같은 `X-Requested-With`) 생성, 응답 인터셉터를 `api`와 같이 쓰기(재발급은 항상 `api.post('/auth/refresh')` — `refresh_token`이 `Path=/api/auth`라 Python에 안 감, `refreshing` 공유, 재시도는 요청을 보낸 인스턴스로). 채팅 스트리밍은 SSE를 POST라 `fetch`로 읽으므로 인터셉터를 안 탄다 — 401 → 재발급 → 1회 재시도를 따로 둔다. 생성 도중 오류는 스트림 이벤트로 온다(형식은 AI 세션과 맞춘다)
+  - `docs/convention/api.md` 7·9·148줄(`VITE_AI_API_URL` + `withCredentials`)을 `/ai` 상대 경로로 고친다(공용 규칙, 팀 합의). `docs/OPEN_ISSUES.md` 27행의 CORS 허용 오리진은 같은 오리진이라 필요 없어진다
+  - nginx에서 Python `/internal/v1/...`·`/health`는 내보내지 않는다(`location /ai/`만)
+  - 2026-10-26 정정(사용자 결정, AI·백엔드 세션 통보): DB는 Java만 다루고 Python은 상태 없는 AI 서버. 영수증 OCR(`POST /api/receipts`, `/api/receipts/{recptSn}/analyze`·`/cancel`)·캐릭터 생성(`POST /api/pets/{petSn}/pixel-characters`)·채팅 영수증 분석(SCR-AIM-013, 백엔드 확인 중)은 Spring 경유, Python 직접은 AI 채팅(`/ai/conversations…`, 스트리밍)만. Vite·nginx `/ai/` 프록시는 그대로. PDF 분석 위치도 Spring 경유로 바뀔 가능성(미확정)
+  - 연결 작업 때 고칠 것(사용자 결정 10-26): `features/ai/api.js` `analyzeChatReceipt` 머리 주석 "경로 미정, Python AI 서버 `/ai/` 아래" → Spring `/api/receipts` 경유. 검진 영수증(`ai/api.js` `recognizeCheckupReceipt` "POST /receipts/recognize/checkup 추정")·가계부 영수증(`expense/api.js` "POST /receipts/recognize")·캐릭터 생성(`pet/api.js` "POST /pets/{petSn}/character")의 추정 경로도 위 Spring 경로와 맞춘다
+  - AI 세션·백엔드 세션 답장 보냄(10-26): 경로 변경 영향 작음(가짜뿐), SSE 미착수, `/ai/` 인증 오류(401·403 `MEMBER_INACTIVE`·502 `EXTERNAL_API_ERROR`)는 `aiApi`에 같은 인터셉터를 붙여 받고 SSE는 `fetch`에서 같은 규칙으로 처리할 예정. 백엔드에 영수증 번호로 인식 결과를 받는 조회 API 요청
+- 디스코드로 알릴 것(PR #87 병합됨): "`SubPageLayout`을 쓰는 섹션 화면(건강기록·커뮤니티·고객센터·마이페이지)의 앱(≤760) 위 8px·아래 126px 여백을 뺐어요. 헤더~경로 24px, 콘텐츠 끝~탭바는 main 여백만 남아요. 화면 안에서 아래 여백을 따로 기대던 곳이 있으면 확인해 주세요"
+- SJM에 전달: 마이페이지 화면설계서 v0.6 ⑦ "상단 여백 약 40 → 20px"와 달리 구현은 섹션 화면 공통 24px로 정했다(마이페이지만 다르게 두지 않음). 설계서 문구를 고쳐 달라고 한다. 같은 ⑦의 "하단 여백 축소"는 PR #87로 반영
+- 결정 대기(사람): 페이지 머리 구조. v5 시안(`nyangmung-com.css` COM-5 "별도 브레드크럼은 쓰지 않아요 (10-12)")과 마이페이지 시안은 첫 줄이 섹션 이름("마이페이지")이고, 구현(`SubPageHead`)은 경로 줄(홈 / 섹션 / 메뉴)이다. 시안 구조로 바꿀지(27개 화면 영향) 그대로 둘지 정한다. 공통레이아웃 화면설계서 v0.8은 "브레드크럼 사용"으로 올라가 있다
+- 문서 업로드 완료(DMS, 2026-10-25): 공통레이아웃 기능명세서 v0.6(FN-COM-003-02·05 회원가입 경유 redirect, 004-07 공동양육 이동 대상 분리, 004-08 행 안 버튼 삭제 → 초대 수락 화면 이동)·화면설계서 v0.9, AI매니저 기능명세서 v0.8(FN-AIM-009-10·21 가계부 "내용 = 병원명" → "사용처 = 병원명")·화면설계서 v0.10(SCR-AIM-009 ⑦). 같은 날 앞서 공통레이아웃 기능명세서 v0.5·화면설계서 v0.8(구현 현행화)도 올렸다. 남은 문서 일은 아래 "사람이 고치는 문서"·SCR-COM-006 항목
+- 백엔드 세션에서: EXPND 사용처 컬럼(varchar(80) NULL, 기준 컬럼은 `CKUP_RCD.HSPTL_NM`, 기존 `DTL_MTTR`과 역할 정리), 초대받은 사람(연동 전)의 PetFace(`GET /pets/{petSn}/character-image`는 `PetAuthorizer`라 막힘), 초대 일부 수락 API(지금은 일괄 수락만), 알림 `mvmnPath`의 초대 식별자 이름(`invitationToken` vs `jntBrupInvtnSn`, 미정)
+- YAY에 알릴 것: 로그인 → [회원가입] 이동(`pages/auth/LoginPage.jsx` `navigate(PATHS.SIGNUP)`)과 가입 완료 → 로그인(`SignupPage.jsx` `/login?joined=1`)에서 `?redirect=`가 사라진다. 공통레이아웃 명세 v0.6 FN-COM-003-02·05로 유지가 정해짐(초대 링크로 온 미가입자)
+- 공동양육 알림 이동(SJM이 알림을 만들 때): 초대 수신은 `/mypage/invitations/:invitationToken`, 결과·연동 해제는 `/mypage/pets`. `docs/routes.md` 79행을 정정했고(추가-3) 백엔드 세션에도 전했다
 
 - 서브 화면 경로(SCR-COM-002 B-01) 확인 남음(각 담당 화면, 선택): 761~1100px 폭과 건강기록(JAJ)·마이페이지(SJM)·고객센터(KSJ) 실제 화면에서 경로 줄·섹션 제목 위치를 한 번 본다. 공용 틀(`SubPageHead`·`SubPageLayout`·`SideMenu`)을 고쳤다. 사이드 메뉴 이탈 확인(`onLeave`)이 develop 병합 뒤에도 되는지 글쓰기 화면에서 본다
 - SCR-COM-002 PR 전: 아래 디스코드 알림을 보내고, `docs/convention/ui.md` "로딩 표시" 절 변경을 팀과 합의한다. KSJ에 알릴 것: `useNotices`·`useFaqs`·`useInquiries`에 `placeholderData: keepPreviousData`(탭·검색·쪽 이동 때 이전 내용 유지), 390px `/faqs` 카테고리 탭 줄 때문에 가로 스크롤(범위 밖, 다 불러온 뒤)
@@ -104,23 +119,22 @@ SCR-COM-002 플로팅 AI 버튼 모바일 접힘 탭 · 첫 방문 말풍선 —
   - 팀에 알릴 것: SJM에게 `receiptFile.js`를 `src/utils/`로 옮겼다고 PR에 적는다(사전 공지 메시지는 보냄). `common.md` "비동기" 절 추가는 팀 합의 문서라 PR에서 알린다
 - 선택: `src/utils/formatDate.js`로 바꿀 수 있는 곳 — `ConversationHeader.jsx`의 `formatDate`는 `formatDate(crtDt)`, `features/expense/shared/expenseFormat.js`의 `formatMonthDay`는 `formatDate(expndYmd, { hasYear: false, separator: '-' })`. 이번에 안 건드렸다
 - 범위 밖에서 본 것(말만): `ConversationMessages.jsx`의 `{children && <li>…}`가 항상 참이라 대화 목록 끝에 빈 `<li>`가 생긴다
-- 사람이 고치는 문서(SCR-COM-002 반응형): 기능명세서 v0.4 FN-COM-002-23 "햄버거 메뉴 미사용"을 "≤1100px에서 햄버거 사용"으로, FN-COM-002-20 TOP에 "≤760px 미노출"을, FN-COM-006-07 터치 동작의 "반응형 범위 확정 후"를 범위 확정(≤1100px·≤760px)으로. 화면설계서 v0.7 SCR-COM-002 "햄버거[≡]를 두지 않는다", SCR-COM-006 터치(잠정) 문구도 같이
+- 사람이 고치는 문서(SCR-COM-002 반응형): FN-COM-002-23 햄버거·002-20 TOP은 기능명세서 v0.5·화면설계서 v0.8(2026-10-25)에 반영됨. 남은 것: FN-COM-006-07 터치 동작의 "반응형 범위 확정 후"를 범위 확정(≤1100px·≤760px)으로, 화면설계서 SCR-COM-006 터치(잠정) 문구
 - SCR-COM-002 반응형 남은 것: 실제 대표전화·팩스 번호를 디스코드로 받아 `UserFooter.jsx`의 `TEL_PLACEHOLDER`·`FAX_PLACEHOLDER`에 넣는다. drawer 슬라이드 애니메이션(시안에 있음)·Tab 포커스 가두기는 안 했다. AI 플로팅 버튼의 고양이 이미지(시안 `.fab-ai`, `src/assets/ai-character.png`)는 디자인 담당과 맞춘다
 - SCR-AIM-005 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `sendMessage` 가짜를 바꾸고 `FALLBACK` 판정 필드와 실패 안내 메시지 구분 필드를 Swagger로 확인(`FallbackBubble`을 고르는 `ConversationMessages.jsx`의 문구 비교를 그 필드로 바꾼다). 005-02 새로고침 뒤 실패 안내 문구가 이력에 남는지는 그때 확인한다. 고객센터 버튼은 `/faqs`(SCR-CSC-002, KSJ)가 만들어진 뒤 화면 이동을 확인한다
 - SCR-AIM-004 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `sendMessage` 가짜를 바꾸고 `route`·`aiCnvrsMsgSn` 필드 이름을 Swagger로 확인(`fakeRoutingMap.js`는 지운다). 004-03 새로고침 뒤에도 안내 문구가 이력에 남는지는 그때 확인한다. 본창이 닫혀 있을 때 새 탭으로 여는 `/main`은 라우트가 아직 없다(MAN-001, YAY)
 - SCR-AIM-002 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `streamAnswer` 가짜를 바꾸고 스트리밍 방식(SSE 등)·`rltdShrtcts`·`aiCnvrsMsgCmptnYn` 필드 이름을 Swagger로 확인. 웰컴에 Figma의 고양이 캐릭터를 넣을지(`src/assets/ai-character.png`는 이미 있음)는 디자인 담당과 맞춘다
 - SCR-AIM-001 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `sendMessage` 가짜를 바꾸고 `intent` 필드 이름·값(`REGISTER·ROUTE·SEARCH·FALLBACK`은 추정)을 Swagger로 확인. Figma의 고양이 캐릭터 이미지(`ai-character.png`)는 저장소에 파일이 없어 웰컴에 넣지 못했다(파일을 받으면 `WelcomeMessage.jsx`에 추가). 직접 주소창으로 연 `/ai`에서는 칩을 눌러도 브라우저가 `window.close()`를 막아 창이 남는다(설계대로)
-- SCR-AIM-011 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 가짜(`getConversations`·`getConversation`·`deleteConversation`)를 바꾸고 필드 이름(`aiCnvrs…` 추정)을 Swagger로 확인. 011-08 반려동물 목록 API(SJM)로 `AiChatPage.jsx`의 `fakePets`를 `features/pet` 훅으로 바꾼다. 011-03·17④ 세션 만료 시 AI 창 닫기는 로그인 연결 때(SCR-COM-003 003-10과 함께)
-- SCR-COM-008 연결 남음: 알림 설정 API(LJS 백엔드, `GET`·`PUT /members/me/notification-settings`)로 `features/notification/api.js`의 설정 가짜를 바꾼다. 008-12 캐릭터 완료 알림을 설정 가능하게 할지는 명세 확정 대기(명세 작성자)
-- SCR-COM-004 연결 남음: 알림 API(LJS 백엔드)로 `features/notification/api.js` 가짜를 바꾸고 AIMG02 코드값 확정 뒤 `notiTabs.js`의 가짜 코드를 고친다. 004-08 공동양육 [수락]·[거절]은 응답에 초대 식별자(`jntBrupInvtnSn`)가 있어야 한다(LJS 백엔드·SJM, 백엔드 issues 14번). 004-09 펫돌봄은 채팅방 식별자(`otoChatRoomSn`)로 방을 열어야 한다(SCR-COM-009, KSJ). 시간 표시("10분 전")는 `NotificationSummary`에 수신 일시 필드가 없어 LJS 백엔드에서 추가. 가짜 공지 `mvmnPath`가 `/notices/1`이라 `docs/routes.md` 75행(`/notices`)과 다르다(가짜라 동작 영향 없음)
+- SCR-COM-008 남은 것: 008-12 캐릭터 완료 알림을 설정 가능하게 할지는 명세 확정 대기(명세 작성자). 알림 설정 API 연결은 끝남
+- SCR-COM-004 남은 것: 004-08 공동양육 초대 알림 이동(알림 생성 SJM), 004-09 펫돌봄 알림의 채팅 모달(채팅 API·알림 생성 KSJ, 시드 `mvmnPath`는 `/chats`라 방 번호가 없음), 커뮤니티(`AIMC0010`) 알림 이동 경로(KSJ와 결정, `docs/routes.md` 79행에 없음), 공지 알림이 `/notices` 목록인지 `/notices/{sn}` 상세인지 결정. 시간 표시("10분 전")는 `NotificationSummary.regDt`로 화면에서 계산할 수 있다
 - SCR-COM-003 연결 남음: 003-08 로그인 상태로 랜딩에 오면 `/main`으로(`useMe` 필요, 로그인 연결 때, YAY). 003-10 AI 대화창이 401이면 인증 오류 표시 후 창 닫기(SCR-AIM-011). 로그인 화면(ACC-002, YAY)은 성공 뒤 `routes/redirect.js`의 `getRedirectPath(location.search)`로 이동 경로를 정한다(YAY에 알릴 것). 테스트 러너가 없어 이 함수의 회귀 테스트가 없다(러너 추가는 의존성이라 팀 결정)
 - SCR-COM-005 연결 남음: 005-02 회원 요약 조회 API(LJS 백엔드)로 `getMemberSummary`를 바꾸고 응답 키(`maskedAcntEml`, 명세 기준)를 Swagger로 확인, 005-07 로그아웃 API(YAY)로 `logout`을 바꾼다(로그인 연결 때)
 - SCR-COM-007 연결 남음: 007-03 메인 히어로 검색바가 `useAiWindow`의 `open(문장)`을 부르게 연결(YAY, MAN-001). `/ai`가 `?q=`를 새 대화의 첫 메시지로 보내는 일(SCR-AIM-001, 읽기까지는 `AiChatPage.jsx`가 한다). 이미 열린 `/ai` 창에서는 `open(firstMessage)`의 첫 메시지가 무시되므로(`useAiWindow.js` else 분기) 그때 처리 방식을 정한다
 - 사람이 고치는 문서 (`?cat` → `?category`):
   - AI매니저 기능명세서 v0.7: FN-AIM-004-10, 「부록_라우팅매핑표」 No.2·3·17~20행, 제.개정내역 새 버전 행
   - AI매니저 화면설계서 v0.9: 부록 라우팅 표의 `?cat=hospital`, `?cat=…` 2곳
-- SCR-COM-006 문서 불일치(공통레이아웃): 기능명세서 v0.4 006-03(3열 한 패널)·006-04(건강기록 = 건강 종합·검진기록관리·건강상태관리, 커뮤니티 순서)와 화면설계서 v0.7 SCR-COM-006(같은 내용)이 구현(메뉴별 카드, 건강기록 = 종합 건강기록·건강 일지·케어 캘린더)과 다름. 작성자가 어느 쪽이 맞는지 정해 문서를 고친다. Figma 플레이스 프레임은 없음
+- SCR-COM-006 문서 불일치(공통레이아웃): 006-03 메뉴별 카드·006-04 커뮤니티 순서는 기능명세서 v0.5·화면설계서 v0.8(2026-10-25)에 반영됨. 남은 것: 건강기록 2차 메뉴명(문서 건강 종합·검진기록관리·건강상태관리 ↔ 구현 종합 건강기록·건강 일지·케어 캘린더)은 JAJ 확인 후, 플레이스 지도 화면의 푸터·플로팅 미노출(002-01·21)과 캐릭터 완료 알림 표기(008-12)도 확인 필요로 남김. Figma 플레이스 프레임은 없음
 - 화면설계서 v0.7 SCR-COM-006의 건강기록 첫 화면 ID `SCR-HLT-001`은 결번이다. `SCR-HLT-011`로 고친다(AI매니저 명세 부록 No.43 기준)
 - 범위 밖에서 본 것(말만): 공통레이아웃 기능명세서 FN-COM-004-07의 케어 일정 알림 이동 대상(건강상태관리 정기관리)이 AI매니저 FN-AIM-006-13(케어 캘린더 SCR-HLT-003)과 다름
 - SCR-COM-006 연결 남음: 006-07 터치 동작 명세 확정(반응형 범위는 ≤1100px·≤760px로 정해졌다. 명세 작성자가 문구를 갱신하면 구현할 내용을 정한다)
-- SCR-COM-002 연결 남음: 002-02 `ProtectedRoute`로 감싸기(로그인 연결 때), 002-06 GNB 대상 페이지를 `UserLayout` 아래 라우트로 붙이기(각 담당), 002-09 알림 미확인 수 API(LJS 백엔드), 002-11 채팅 안 읽은 수 조회 위치를 KSJ와 맞추고 연결(KSJ), 002-15 회원 프로필 이미지, 002-24 세션 만료 토스트(SCR-COM-003과 함께)
+- SCR-COM-002 연결 남음: 002-02 `ProtectedRoute`로 감싸기(user 레이아웃은 끝, ai·chat·place·main bare는 위 SCR-COM-003 연결 남음), 002-06 GNB 대상 페이지를 `UserLayout` 아래 라우트로 붙이기(각 담당), 002-09 알림 미확인 수 API(LJS 백엔드), 002-11 채팅 안 읽은 수 조회 위치를 KSJ와 맞추고 연결(KSJ), 002-15 회원 프로필 이미지, 002-24 세션 만료 토스트(SCR-COM-003과 함께)

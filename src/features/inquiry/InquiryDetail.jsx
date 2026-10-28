@@ -1,53 +1,53 @@
-import { ChevronLeft, Clock, Headset, Lock } from 'lucide-react';
+import { ChevronLeft, Clock, Headset, ImageIcon, Lock } from 'lucide-react';
 import { generatePath, Link } from 'react-router-dom';
 import Badge from '@/components/Badge';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
+import { isAnswered } from './api';
 import InquiryStatusBadge from './InquiryStatusBadge';
 
 const EDIT_BUTTON_CLASS =
   'inline-flex h-10 min-w-[120px] items-center justify-center gap-1.5 rounded-md bg-[#e9f2f2] px-4 font-semibold text-[#1e4a4c] max-[760px]:h-12 max-[760px]:min-w-0 max-[760px]:flex-1';
 
-/** 'YYYY-MM-DD HH:mm' → '2026.09.18 14:32' */
+/** '2026-09-18T14:32:00' → '2026.09.18 14:32' */
 const formatDateTime = (value) => `${formatDate(value)} ${value.slice(11, 16)}`;
 
 export default function InquiryDetail({ inquiry }) {
-  const isAnswered = Boolean(inquiry.ansCn);
-  const { atchFiles } = inquiry;
+  const answered = isAnswered(inquiry);
+  const { imgs } = inquiry;
 
   return (
     <article className="rounded-[14px] border border-[#e2e7e7] bg-white px-9 pt-8 pb-8 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-5">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge tone="outline">{inquiry.inqryTyNm}</Badge>
-        <InquiryStatusBadge isAnswered={isAnswered} />
+        <Badge tone="outline">{inquiry.inqryTypeCdNm}</Badge>
+        <InquiryStatusBadge isAnswered={answered} />
       </div>
       <h2 className="mt-[10px] text-2xl leading-[1.35] font-bold tracking-[-0.24px] text-[#1a3234] max-[760px]:text-xl">
         {inquiry.inqryTtl}
       </h2>
       <p className="mt-4 flex items-center gap-2 border-b border-[#e2e7e7] pb-6 text-sm text-[#667374]">
         <span>접수일</span>
-        <time>{formatDateTime(inquiry.crtDt)}</time>
+        <time>{formatDateTime(inquiry.regDt)}</time>
       </p>
 
       <p className="mt-6 text-base leading-[1.7] whitespace-pre-line text-[#1a3234] max-[760px]:mt-5">
         {inquiry.inqryCn}
       </p>
-      {atchFiles.length > 0 && (
+      {imgs.length > 0 && (
         <>
           <p className="mt-6 text-sm font-semibold text-[#566465]">
-            첨부 이미지 {atchFiles.length}
+            첨부 이미지 {imgs.length}
           </p>
+          {/* 서버가 atchFileSn만 줘서(이미지 조회 API 전) 이미지 자리만 보여 준다 */}
           <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(120px,148px))] gap-3 max-[760px]:grid-cols-3 max-[760px]:gap-2">
-            {atchFiles.map((file) => (
+            {imgs.map((img, index) => (
               <li
-                key={file.id}
-                className="aspect-square overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#f4f6f6]"
+                key={img.atchFileSn}
+                role="img"
+                aria-label={`첨부 이미지 ${index + 1}`}
+                className="grid aspect-square place-items-center overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#f4f6f6] text-[#b9c4c4]"
               >
-                <img
-                  src={file.url}
-                  alt={file.name}
-                  className="size-full object-cover"
-                />
+                <ImageIcon size={32} aria-hidden="true" />
               </li>
             ))}
           </ul>
@@ -64,7 +64,7 @@ export default function InquiryDetail({ inquiry }) {
         >
           관리자 답변
         </h3>
-        {isAnswered ? (
+        {answered ? (
           <div className="rounded-[10px] bg-[#e9f2f2] px-6 py-[22px] max-[760px]:p-[18px]">
             <p className="flex flex-wrap items-center gap-2 text-sm text-[#566465]">
               <span className="flex size-8 items-center justify-center rounded-full bg-white text-[#1e4a4c]">
@@ -105,7 +105,7 @@ export default function InquiryDetail({ inquiry }) {
           <ChevronLeft size={14} aria-hidden="true" />
           목록으로
         </Link>
-        {isAnswered ? (
+        {answered ? (
           <p className="ml-auto flex items-center gap-1.5 text-sm text-[#667374] max-[760px]:order-2 max-[760px]:ml-0 max-[760px]:w-full max-[760px]:justify-center">
             <Lock size={16} aria-hidden="true" />
             답변이 등록된 문의는 수정할 수 없어요

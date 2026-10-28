@@ -1,6 +1,7 @@
 import { ExternalLink, MapPin } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import useKakaoMap from '@/hooks/useKakaoMap';
+import { findPlaceAt } from './placeSearch';
 
 const MAP_LEVEL = 4;
 /** 개인정보 보호: 정확한 좌표 대신 반경 약 250m 원으로 보여 준다 */
@@ -9,12 +10,36 @@ const RADIUS_METER = 250;
 /**
  * 목격 장소 지도: 카카오맵 SDK(@/hooks/useKakaoMap)로 반경 원 + 장소명 라벨, 키가 없거나 SDK 오류면 안내만
  * - 길찾기: 카카오맵 앱·웹으로 연결
- * - isPreview: 글쓰기 미리보기(링크 없이 높이를 낮춤)
+ * - isPreview: 길찾기 링크 없음(글쓰기 미리보기·장소 검색·펫돌봄)
+ * - mapLabel·emptyText: 지도 이름(스크린 리더)과 장소가 없을 때 안내(펫돌봄이 바꿔 쓴다)
+ * - height: 지도 높이 Tailwind 클래스(장소 검색 모달은 낮게)
+ * - onMove: 넘기면 지도를 끌어 놓은 가운데로 원을 옮기고 그 자리의 장소(주소·시군구·동·좌표)를 onMove(place)로 넘긴다.
+ *   전북 밖이면 안내 후 이전 위치로 되돌린다. 상세는 넘기지 않아 둘러보기만 한다
  */
-export default function MissingMap({ place, isPreview = false }) {
+export default function MissingMap({
+  place,
+  isPreview = false,
+  height = 'h-[400px]',
+  mapLabel = '목격 장소 지도',
+  emptyText = '장소를 고르면 지도에 표시돼요',
+  onMove,
+}) {
   const { kakao, isError } = useKakaoMap();
   const containerRef = useRef(null);
   const mapRef = useRef(null);
+  const onMoveRef = useRef(onMove);
+  const placeRef = useRef(place);
+  const [moveNotice, setMoveNotice] = useState('');
+  useLayoutEffect(() => {
+    onMoveRef.current = onMove;
+    placeRef.current = place;
+  });
+
+  useEffect(() => {
+    if (!moveNotice) return;
+    const timer = setTimeout(() => setMoveNotice(''), 2500);
+    return () => clearTimeout(timer);
+  }, [moveNotice]);
 
   useEffect(() => {
     if (!kakao || !place) return;
@@ -23,7 +48,7 @@ export default function MissingMap({ place, isPreview = false }) {
       const map = new kakao.maps.Map(containerRef.current, {
         center,
         level: MAP_LEVEL,
-        draggable: false,
+        draggable: true,
         scrollwheel: false,
       });
       const circle = new kakao.maps.Circle({
@@ -36,6 +61,31 @@ export default function MissingMap({ place, isPreview = false }) {
         fillOpacity: 0.12,
       });
       circle.setMap(map);
+      map.addControl(
+        new kakao.maps.ZoomControl(),
+        kakao.maps.ControlPosition.RIGHT,
+      );
+      kakao.maps.event.addListener(map, 'center_changed', () => {
+        if (onMoveRef.current) circle.setPosition(map.getCenter());
+      });
+      kakao.maps.event.addListener(map, 'dragend', async () => {
+        if (!onMoveRef.current) return;
+        const moved = map.getCenter();
+        const goBack = (message) => {
+          const prev = placeRef.current;
+          map.setCenter(
+            new kakao.maps.LatLng(prev.wtnsPlcLat, prev.wtnsPlcLot),
+          );
+          setMoveNotice(message);
+        };
+        try {
+          const next = await findPlaceAt(kakao, moved.getLat(), moved.getLng());
+          if (next) onMoveRef.current?.(next);
+          else goBack('전북 지역만 선택할 수 있어요');
+        } catch {
+          goBack('위치를 확인하지 못했어요. 다시 움직여 주세요');
+        }
+      });
       mapRef.current = { map, circle };
       return;
     }
@@ -45,23 +95,29 @@ export default function MissingMap({ place, isPreview = false }) {
 
   let notice = null;
   if (isError) notice = '지도를 불러오지 못했어요';
-  else if (!place) notice = '장소를 고르면 지도에 표시돼요';
+  else if (!place) notice = emptyText;
 
   return (
     <div
-      className={`relative overflow-hidden rounded-lg border border-line bg-surface-2 ${isPreview ? 'h-[180px]' : 'h-[240px]'}`}
+      className={`relative overflow-hidden rounded-lg border border-line bg-surface-2 ${height}`}
     >
       <div
         ref={containerRef}
         className="size-full"
         role="img"
-        aria-label={
-          place ? `${place.wtnsPlcNm} 목격 장소 지도` : '목격 장소 지도'
-        }
+        aria-label={place ? `${place.wtnsPlcNm} ${mapLabel}` : mapLabel}
       />
       {notice && (
         <p className="absolute inset-0 grid place-items-center bg-surface-2 text-sm text-subtle">
           {notice}
+        </p>
+      )}
+      {moveNotice && (
+        <p
+          role="status"
+          className="absolute top-3 left-1/2 -translate-x-1/2 rounded-full bg-ink/85 px-3 py-1.5 text-sm whitespace-nowrap text-white"
+        >
+          {moveNotice}
         </p>
       )}
       {place && (

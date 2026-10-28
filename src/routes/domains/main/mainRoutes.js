@@ -6,11 +6,13 @@ const MainPage = lazy(() => import('@/pages/main/MainPage'));
 
 export default [
   {
-    layout: 'user',
+    layout: 'bare',
     auth: 'public',
-    routes: [
-      { path: PATHS.HOME, Component: LandingPage },
-      { path: PATHS.MAIN, Component: MainPage },
-    ],
+    routes: [{ path: PATHS.HOME, Component: LandingPage }],
+  },
+  {
+    layout: 'user',
+    auth: 'member',
+    routes: [{ path: PATHS.MAIN, Component: MainPage }],
   },
 ];

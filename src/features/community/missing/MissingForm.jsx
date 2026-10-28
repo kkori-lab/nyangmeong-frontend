@@ -383,9 +383,13 @@ export default function MissingForm({
                 <Required />
               </span>
               <div className="flex flex-wrap items-center gap-3">
-                <p
+                {/* 표시 칸을 눌러도 장소 찾기가 열린다. 키보드는 옆 [장소 찾기] 버튼으로 가므로 탭 순서에서 뺀다 */}
+                <button
+                  type="button"
+                  tabIndex={-1}
                   aria-labelledby="missing-place-label"
-                  className={`flex min-h-10 min-w-0 flex-1 items-center gap-1.5 rounded-md border bg-surface-2 px-3 ${errors.place ? 'border-danger' : 'border-input-line'} ${values.place ? 'text-ink' : 'text-muted'}`}
+                  onClick={() => setIsPlaceOpen(true)}
+                  className={`flex min-h-10 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-md border bg-surface-2 px-3 text-left hover:border-line-strong ${errors.place ? 'border-danger' : 'border-input-line'} ${values.place ? 'text-ink' : 'text-muted'}`}
                 >
                   <MapPin
                     size={16}
@@ -393,7 +397,7 @@ export default function MissingForm({
                     className="shrink-0 text-subtle"
                   />
                   {placeText}
-                </p>
+                </button>
                 <button
                   type="button"
                   data-invalid={Boolean(errors.place)}
@@ -405,7 +409,13 @@ export default function MissingForm({
               </div>
               {values.place && (
                 <>
-                  <MissingMap place={values.place} isPreview />
+                  <MissingMap
+                    place={values.place}
+                    isPreview
+                    onMove={(coords) =>
+                      set({ place: { ...values.place, ...coords } })
+                    }
+                  />
                   <p className="flex items-center gap-1.5 text-sm text-ink-2">
                     <Navigation
                       size={16}

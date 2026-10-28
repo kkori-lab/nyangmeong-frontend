@@ -113,19 +113,8 @@ function CheckupDetail({ ckupRcdSn }) {
 
   return (
     <SubPageLayout {...LAYOUT_PROPS}>
-      <Link
-        to={PATHS.HEALTH_DIARY}
-        className="inline-flex items-center gap-2 self-start font-medium text-[#566465] hover:text-[#1a3234]"
-      >
-        <span
-          aria-hidden="true"
-          className="ml-[3px] size-2 rotate-45 border-b-2 border-l-2 border-current"
-        />
-        건강 일지로 돌아가기
-      </Link>
-
       {otherSavedCheckups.length > 0 && (
-        <p role="status" className="-mt-3 flex flex-wrap gap-x-4 gap-y-1">
+        <p role="status" className="flex flex-wrap gap-x-4 gap-y-1">
           {otherSavedCheckups.map((saved) => (
             <Link
               key={saved.ckupRcdSn}

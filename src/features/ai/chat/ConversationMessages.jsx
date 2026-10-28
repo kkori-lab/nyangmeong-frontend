@@ -1,9 +1,9 @@
 import AnswerBubble from './AnswerBubble';
 import FallbackBubble from './FallbackBubble';
 import RegisterCard from './RegisterCard';
+import { AI_ROLE } from '../shared/aiCodes';
 import { FALLBACK_MESSAGE, FAQ_FAIL_COUNT } from '../shared/fallbackCount';
 
-const ROLE_USER = 'USER';
 const INCOMPLETE = 'N';
 
 /** 저장된 메시지 목록 */
@@ -43,26 +43,26 @@ export default function ConversationMessages({
           );
         }
         if (
-          message.aiCnvrsMsgRoleCd !== ROLE_USER &&
-          message.aiCnvrsMsgCn === FALLBACK_MESSAGE
+          message.roleCd !== AI_ROLE.USER &&
+          message.cnvrsCn === FALLBACK_MESSAGE
         ) {
           return (
             <li key={message.aiCnvrsMsgSn}>
               <FallbackBubble
-                text={message.aiCnvrsMsgCn}
+                text={message.cnvrsCn}
                 hasActions={message.aiCnvrsMsgSn === lastSn}
                 hasFaqGuide={fallbackCount >= FAQ_FAIL_COUNT}
               />
             </li>
           );
         }
-        if (message.aiCnvrsMsgRoleCd !== ROLE_USER) {
+        if (message.roleCd !== AI_ROLE.USER) {
           const isIncomplete = message.aiCnvrsMsgCmptnYn === INCOMPLETE;
           return (
             <li key={message.aiCnvrsMsgSn}>
               <AnswerBubble
                 status={isIncomplete ? 'incomplete' : 'done'}
-                text={message.aiCnvrsMsgCn}
+                text={message.cnvrsCn}
                 onRegenerate={
                   isIncomplete && message.aiCnvrsMsgSn === lastSn
                     ? () => onRegenerate(message)
@@ -75,7 +75,7 @@ export default function ConversationMessages({
         return (
           <li key={message.aiCnvrsMsgSn} className="flex justify-end">
             <p className="max-w-[592px] whitespace-pre-wrap rounded-[18px_4px_18px_18px] border border-[#e8d27e] bg-[#f9eaa6] px-4 py-3 text-[15px] leading-relaxed text-[#1a3234]">
-              {message.aiCnvrsMsgCn}
+              {message.cnvrsCn}
             </p>
           </li>
         );

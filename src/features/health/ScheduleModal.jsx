@@ -1,28 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import ConfirmModal from '@/components/ConfirmModal';
 import Icon from '@/components/Icon';
-import {
-  BADGE_COLORS,
-  CHECKUP_TYPES,
-  HOSPITAL,
-  SCHEDULE_TYPES,
-  TONES,
-} from './scheduleTypes';
+import { getHmOf, getYmdOf, makeDateTime } from '@/utils/formatDate';
+import { CHECKUP_TYPES, HOSPITAL, SCHEDULE_TYPES } from './scheduleTypes';
 import {
   useCreateSchedule,
   useDeleteSchedule,
   useUpdateSchedule,
 } from './queries';
-
-// 뱃지 색상 견본 이름. 색은 scheduleTypes의 BADGE_COLORS·TONES와 같다
-const BADGE_COLOR_NAMES = {
-  '#3b82f6': '파랑',
-  '#22a06b': '초록',
-  '#e05a8c': '분홍',
-  '#8b5cf6': '보라',
-  '#f59e0b': '주황',
-  '#8a9596': '회색',
-};
 
 // 퍼블리싱 시안 .sel의 오른쪽 화살표
 const SELECT_ARROW_STYLE = {
@@ -38,14 +23,13 @@ const MAX_MEMO_LENGTH = 200;
 
 const toForm = (schedule, defaultPetSn, defaultYmd) => ({
   petSn: schedule?.petSn ?? defaultPetSn ?? null,
-  schdlTypeCd: schedule?.schdlTypeCd ?? null,
+  schdlKndCd: schedule?.schdlKndCd ?? null,
   ckupTypeCd: schedule?.ckupTypeCd ?? '',
-  hospNm: schedule?.hospNm ?? '',
+  hsptlNm: schedule?.hsptlNm ?? '',
   schdlNm: schedule?.schdlNm ?? '',
-  schdlYmd: schedule?.schdlYmd ?? defaultYmd,
-  schdlTm: schedule?.schdlTm ?? '',
-  schdlMemoCn: schedule?.schdlMemoCn ?? '',
-  bdgClrCd: schedule?.bdgClrCd ?? null,
+  scheduleDate: schedule ? getYmdOf(schedule.schdlDt) : defaultYmd,
+  scheduleTime: schedule?.hrInptYn ? getHmOf(schedule.schdlDt) : '',
+  memoCn: schedule?.memoCn ?? '',
 });
 
 // 일정 등록·수정 모달(FN-HLT-003-32~37). schedule이 있으면 수정, 없으면 등록이다
@@ -82,45 +66,47 @@ export default function ScheduleModal({
     setForm((prev) => ({ ...prev, [name]: value }));
 
   // 종류를 바꾸면 이전 종류의 입력값은 유지하지 않는다(FN-HLT-003-35)
-  const handleTypeChange = (schdlTypeCd) =>
+  const handleTypeChange = (schdlKndCd) =>
     setForm((prev) => ({
       ...prev,
-      schdlTypeCd,
+      schdlKndCd,
       ckupTypeCd: '',
-      hospNm: '',
+      hsptlNm: '',
       schdlNm: '',
     }));
 
-  const isHospitalForm = form.schdlTypeCd === HOSPITAL;
+  const isHospitalForm = form.schdlKndCd === HOSPITAL;
   const canSubmit =
     form.petSn != null &&
-    form.schdlTypeCd !== null &&
-    form.schdlYmd !== '' &&
+    form.schdlKndCd !== null &&
+    form.scheduleDate !== '' &&
     (isHospitalForm
-      ? form.ckupTypeCd !== '' && form.hospNm.trim() !== ''
+      ? form.ckupTypeCd !== '' && form.hsptlNm.trim() !== ''
       : form.schdlNm.trim() !== '') &&
     !isPending;
 
   const toBody = () => ({
-    petSn: form.petSn,
-    schdlTypeCd: form.schdlTypeCd,
+    schdlKndCd: form.schdlKndCd,
+    schdlDt: makeDateTime(form.scheduleDate, form.scheduleTime),
+    hrInptYn: form.scheduleTime !== '',
     ckupTypeCd: isHospitalForm ? form.ckupTypeCd : null,
-    hospNm: isHospitalForm ? form.hospNm.trim() : null,
+    hsptlNm: isHospitalForm ? form.hsptlNm.trim() : null,
     schdlNm: isHospitalForm ? null : form.schdlNm.trim(),
-    schdlYmd: form.schdlYmd,
-    schdlTm: form.schdlTm || null,
-    schdlMemoCn: form.schdlMemoCn.trim(),
-    bdgClrCd: form.bdgClrCd,
+    memoCn: form.memoCn.trim(),
   });
 
   const save = () => {
     const options = { onSuccess: onClose };
     if (isEdit)
       updateSchedule.mutate(
-        { schdlSn: schedule.schdlSn, ...toBody() },
+        {
+          petSn: schedule.petSn,
+          schdlSn: schedule.schdlSn,
+          body: { ...toBody(), petSn: form.petSn },
+        },
         options,
       );
-    else createSchedule.mutate(toBody(), options);
+    else createSchedule.mutate({ petSn: form.petSn, body: toBody() }, options);
   };
 
   const handleSubmit = (event) => {
@@ -129,7 +115,7 @@ export default function ScheduleModal({
     // 검진기록이 연결된 병원 일정의 반려동물을 바꾸면 연동 데이터도 옮겨지므로 먼저 확인받는다(FN-HLT-003-37)
     const movesLinkedRecords =
       isEdit &&
-      schedule.schdlTypeCd === HOSPITAL &&
+      schedule.schdlKndCd === HOSPITAL &&
       schedule.ckupRcdCnt > 0 &&
       form.petSn !== schedule.petSn;
     if (movesLinkedRecords) {
@@ -140,7 +126,10 @@ export default function ScheduleModal({
   };
 
   const handleDelete = () =>
-    deleteSchedule.mutate(schedule.schdlSn, { onSuccess: onClose });
+    deleteSchedule.mutate(
+      { petSn: schedule.petSn, schdlSn: schedule.schdlSn },
+      { onSuccess: onClose },
+    );
 
   const handleCancel = (event) => {
     event.preventDefault();
@@ -219,7 +208,7 @@ export default function ScheduleModal({
             </legend>
             <div className="flex h-10 rounded-[6px] border border-[#e6eaeb] bg-[#f1f3f4] p-[3px]">
               {SCHEDULE_TYPES.map((type) => {
-                const isSelected = form.schdlTypeCd === type.cd;
+                const isSelected = form.schdlKndCd === type.cd;
                 return (
                   <button
                     key={type.cd}
@@ -245,18 +234,22 @@ export default function ScheduleModal({
               <input
                 type="date"
                 required
-                value={form.schdlYmd}
+                value={form.scheduleDate}
                 className={`${inputClass} tabular-nums`}
-                onChange={(event) => setField('schdlYmd', event.target.value)}
+                onChange={(event) =>
+                  setField('scheduleDate', event.target.value)
+                }
               />
             </label>
             <label className="flex flex-col gap-1.5">
               <span className={labelClass}>시간{optional}</span>
               <input
                 type="time"
-                value={form.schdlTm}
+                value={form.scheduleTime}
                 className={`${inputClass} tabular-nums`}
-                onChange={(event) => setField('schdlTm', event.target.value)}
+                onChange={(event) =>
+                  setField('scheduleTime', event.target.value)
+                }
               />
             </label>
           </div>
@@ -285,17 +278,19 @@ export default function ScheduleModal({
                 <label className="flex flex-col gap-1.5">
                   <span className={labelClass}>병원명{required}</span>
                   <input
-                    value={form.hospNm}
+                    value={form.hsptlNm}
                     maxLength={MAX_HOSPITAL_NAME_LENGTH}
                     className={inputClass}
-                    onChange={(event) => setField('hospNm', event.target.value)}
+                    onChange={(event) =>
+                      setField('hsptlNm', event.target.value)
+                    }
                   />
                 </label>
               </div>
             </div>
           )}
 
-          {form.schdlTypeCd !== null && !isHospitalForm && (
+          {form.schdlKndCd !== null && !isHospitalForm && (
             <label className="flex flex-col gap-1.5">
               <span className={labelClass}>일정명{required}</span>
               <input
@@ -310,49 +305,14 @@ export default function ScheduleModal({
           <label className="flex flex-col gap-1.5">
             <span className={labelClass}>일정 메모{optional}</span>
             <input
-              value={form.schdlMemoCn}
+              value={form.memoCn}
               maxLength={MAX_MEMO_LENGTH}
               className={inputClass}
-              onChange={(event) => setField('schdlMemoCn', event.target.value)}
+              onChange={(event) => setField('memoCn', event.target.value)}
             />
           </label>
 
-          <fieldset className="flex flex-col gap-1.5">
-            <legend className={`${labelClass} mb-1.5`}>
-              캘린더 뱃지 색상{optional}
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {BADGE_COLORS.map((color) => {
-                const isSelected = form.bdgClrCd === color;
-                return (
-                  <button
-                    key={color}
-                    type="button"
-                    title={BADGE_COLOR_NAMES[color]}
-                    aria-label={BADGE_COLOR_NAMES[color]}
-                    aria-pressed={isSelected}
-                    className={`grid size-8 place-items-center rounded-full ${
-                      isSelected ? 'shadow-[0_0_0_3px_rgba(40,90,92,0.18)]' : ''
-                    }`}
-                    style={{
-                      backgroundColor: TONES[color].bg,
-                      color: TONES[color].fg,
-                    }}
-                    onClick={() =>
-                      setField('bdgClrCd', isSelected ? null : color)
-                    }
-                  >
-                    {isSelected && (
-                      <Icon name="check" className="text-lg font-semibold" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-sm leading-normal text-[#566465]">
-              고르지 않으면 일정 종류의 기본 색상이 적용돼요
-            </p>
-          </fieldset>
+          {/** 캘린더 뱃지 색상: 공통코드(HLTG21) 확정 전까지 미노출 */}
         </div>
 
         <footer className="flex items-center justify-end gap-2 rounded-b-[20px] border-t border-[#e2e7e7] bg-[#fbfcfd] px-7 py-4">

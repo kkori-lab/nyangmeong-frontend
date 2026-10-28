@@ -11,7 +11,7 @@ import {
 
 /**
  * [실종센터 가짜 응답]
- * - 실종 게시글·댓글·좋아요·신고·연장·찾았어요 API(KSJ 백엔드)와 장소 검색(AIC) 연결 전: api.get()·post()로 교체
+ * - 실종 게시글·댓글·좋아요·신고·연장·찾았어요 API(KSJ 백엔드) 연결 전: api.get()·post()로 교체
  * - 키는 ERD(PST·LOST_TPOF·CMNT 컬럼)를 camelCase로 바꾼 것이다. 실종 글은 PST(1) + LOST_TPOF(1)를 서버가 합쳐 준다고 가정한다
  *   [PST] pstSn, pstTtl, pstCn, inqCnt, rcmdtnCnt, regDt, mdfcnDt
  *   [LOST_TPOF] lostTpofSn, petSeCd, petNm, colrNm, chrcCn, vrtyNm(VRTY_SN의 품종명), vrtyDrctInptNm, lastWtnsDt, wtnsPlcNm,
@@ -48,7 +48,7 @@ const photo = (name, color) => ({
   )}`,
 });
 
-/** 장소 검색 결과(가짜). 장소 검색 API(AIC)로 바뀐다. 좌표는 전주 일대 */
+/** 가짜 게시글의 목격 장소. 글쓰기의 장소 찾기는 카카오 검색(missing/placeSearch.js)을 쓴다. 좌표는 전주 일대 */
 const PLACES = [
   ['서곡초등학교 인근', '전주시 완산구', '서곡동', 35.8452, 127.0884],
   ['서곡공원', '전주시 완산구', '서곡동', 35.8478, 127.0851],
@@ -724,18 +724,6 @@ export const reportMissingComment = ({ cmntSn }) => {
   }
   reportedCmntSns.add(cmntSn);
   return Promise.resolve();
-};
-
-/** 장소 검색(전북 한정): 장소명·동 이름·주소 키워드. 결과가 없으면 빈 배열 */
-export const searchMissingPlaces = (keyword) => {
-  const word = normalize(keyword);
-  return Promise.resolve(
-    word
-      ? PLACES.filter((row) =>
-          normalize(`${row.wtnsPlcNm}${row.emdNm}${row.sggNm}`).includes(word),
-        )
-      : [],
-  );
 };
 
 /** 품종 목록: 반려동물 구분별. 품종 마스터 API(vrtySn, vrtyNm)로 바뀐다 */

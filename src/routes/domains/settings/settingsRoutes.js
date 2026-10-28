@@ -8,7 +8,7 @@ const NotificationSettingsPage = lazy(
 export default [
   {
     layout: 'user',
-    auth: 'public',
+    auth: 'member',
     routes: [
       {
         path: PATHS.SETTINGS_NOTIFICATIONS,

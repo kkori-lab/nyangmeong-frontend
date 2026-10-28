@@ -202,9 +202,7 @@ export default function ObservationCard({
         title="지속 관찰"
         className="min-w-0"
         action={
-          !openItem &&
-          items.length > 0 &&
-          registerButton(`${BTN_PRIMARY} h-8! px-3!`, '+ 등록')
+          !openItem && registerButton(`${BTN_PRIMARY} h-8! px-3!`, '+ 등록')
         }
       >
         {items.length === 0 ? (
@@ -229,7 +227,7 @@ export default function ObservationCard({
       title="지속 관찰"
       sub={`관찰중 ${activeCount}건 · 종료 ${items.length - activeCount}건`}
       className="min-w-0"
-      action={items.length > 0 && registerButton(`${BTN_PRIMARY} h-8! px-3!`)}
+      action={registerButton(`${BTN_PRIMARY} h-8! px-3!`)}
     >
       {items.length === 0 ? (
         emptyBox

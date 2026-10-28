@@ -4,8 +4,10 @@ import {
   formatTime,
   formatWeekdayLong,
   getDay,
+  getHmOf,
   getMonth,
   getTodayYmd,
+  getYmdOf,
 } from '@/utils/formatDate';
 import {
   compareSchedules,
@@ -28,7 +30,7 @@ export default function UpcomingSchedules({
 }) {
   const todayYmd = getTodayYmd();
   const upcoming = schedules
-    .filter((schedule) => schedule.schdlYmd >= todayYmd)
+    .filter((schedule) => getYmdOf(schedule.schdlDt) >= todayYmd)
     .sort(compareSchedules)
     .slice(0, MAX_UPCOMING);
 
@@ -59,13 +61,13 @@ export default function UpcomingSchedules({
               >
                 <span className="flex w-10 shrink-0 flex-col items-center rounded-[6px] bg-[#f4f6f6] py-1 leading-tight">
                   <span className="text-[13px] text-[#667374]">
-                    {getMonth(schedule.schdlYmd)}월
+                    {getMonth(getYmdOf(schedule.schdlDt))}월
                   </span>
                   <span className="text-lg font-semibold text-[#1a3234]">
-                    {getDay(schedule.schdlYmd)}
+                    {getDay(getYmdOf(schedule.schdlDt))}
                   </span>
                   <span className="text-[13px] text-[#667374]">
-                    {formatWeekdayLong(schedule.schdlYmd)}
+                    {formatWeekdayLong(getYmdOf(schedule.schdlDt))}
                   </span>
                 </span>
                 <span
@@ -87,9 +89,10 @@ export default function UpcomingSchedules({
                   <span className="block truncate text-sm text-[#667374]">
                     {schedule.petNm} ·{' '}
                     {isHospital(schedule)
-                      ? schedule.hospNm
+                      ? schedule.hsptlNm
                       : getScheduleTypeName(schedule)}
-                    {schedule.schdlTm && ` · ${formatTime(schedule.schdlTm)}`}
+                    {schedule.hrInptYn &&
+                      ` · ${formatTime(getHmOf(schedule.schdlDt))}`}
                   </span>
                 </span>
                 <Icon name="chevron_right" className="-mr-1 text-[#b9c4c4]" />

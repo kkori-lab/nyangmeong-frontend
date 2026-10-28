@@ -70,7 +70,7 @@ export function ObservationMobileList({ items, onOpen }) {
                 <span className="block truncate text-ink">
                   {item.obsvItmNm}
                 </span>
-                <span className="block truncate text-sm/[1.6] text-subtle tabular-nums">
+                <span className="block text-sm/[1.6] break-keep text-subtle tabular-nums">
                   {formatPart(item)} · {item.rounds.length}회차
                 </span>
               </span>
@@ -210,7 +210,7 @@ export function ObservationMobileDetail({
             }))}
             formatValue={formatSize}
             formatTag={(value) => value.toFixed(1)}
-            activeIndex={activePoint >= 0 ? activePoint : undefined}
+            activeIndex={activePoint >= 0 ? activePoint : null}
             height={200}
             ariaLabel={`크기 변화 선그래프 · ${sizedRounds
               .map((target) => formatSize(target.obsvSizeMm))

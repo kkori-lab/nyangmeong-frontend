@@ -6,8 +6,6 @@ import useCapsLock from '@/hooks/useCapsLock';
 const WRAP =
   'flex h-12 items-center gap-2.5 rounded-xl border bg-white px-3.5 text-sm focus-within:ring-focus';
 
-// 인증 화면의 입력칸. 오류는 칸 아래 문구로, hasGuide면 AI 안내로도 알린다. 오류가 없으면 help·success를 보인다.
-// icon(lucide 아이콘)은 입력칸 왼쪽 안에 놓인다. 비밀번호는 보기 전환과 Caps Lock 안내가 붙고, endAdornment는 입력칸 오른쪽 안에, action(버튼)은 입력칸 오른쪽 밖에 놓인다
 export default function AuthField({
   id,
   label,

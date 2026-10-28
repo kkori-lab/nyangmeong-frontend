@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
-import { formatDate, getDay, getMonth } from '@/utils/formatDate';
+import { formatDate, getDay, getMonth, getYmdOf } from '@/utils/formatDate';
 import { CHECKUP_TYPES } from '../scheduleTypes';
 
 /** "9/12" */
@@ -33,14 +33,18 @@ export default function NearScheduleModal({
 
   const renderSchedule = (schedule) => (
     <>
-      [병원] {formatDate(schedule.schdlYmd, { separator: '-', hasYear: false })}{' '}
+      [병원]{' '}
+      {formatDate(getYmdOf(schedule.schdlDt), {
+        separator: '-',
+        hasYear: false,
+      })}{' '}
       · {schedule.petNm} · {findCheckupTypeNm(schedule.ckupTypeCd)} ·{' '}
-      {schedule.hospNm}
+      {schedule.hsptlNm}
     </>
   );
 
   const title = isSingle
-    ? `${formatMonthDaySlash(rows[0].schedule.schdlYmd)} ${findCheckupTypeNm(rows[0].schedule.ckupTypeCd)} 일정이 있어요`
+    ? `${formatMonthDaySlash(getYmdOf(rows[0].schedule.schdlDt))} ${findCheckupTypeNm(rows[0].schedule.ckupTypeCd)} 일정이 있어요`
     : '가까운 예정 일정이 있어요';
   const description = isSingle
     ? `이 검진기록과 연결하고 일정을 ${formatMonthDaySlash(ckupYmd)}로 옮길까요?`

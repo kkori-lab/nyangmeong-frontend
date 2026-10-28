@@ -45,8 +45,12 @@ export default function ConversationSidebar({
     <>
       {/** 접힘 폭 56px: 펼침 단추 유지, 안쪽은 펼친 폭 고정으로 글자 줄바꿈 방지. 1100px 미만은 늘 접힌 띠, 760px 미만은 띠도 없음 */}
       <aside
-        className={`relative shrink-0 overflow-hidden border-r border-[#e2e7e7] bg-white transition-[width] duration-200 ease-out motion-reduce:transition-none max-[1100px]:w-14 max-[760px]:hidden ${
+        className={`relative shrink-0 overflow-hidden border-r border-[#e2e7e7] bg-white transition-[width,visibility] duration-200 ease-out motion-reduce:transition-none max-[760px]:hidden ${
           isCollapsed ? 'w-14' : 'w-[296px]'
+        } ${
+          isDrawerOpen
+            ? 'max-[1100px]:invisible max-[1100px]:w-0 max-[1100px]:border-r-0'
+            : 'max-[1100px]:w-14'
         }`}
       >
         <button
@@ -77,32 +81,39 @@ export default function ConversationSidebar({
         </div>
       </aside>
 
-      {isDrawerOpen && (
-        <div className="fixed inset-0 z-40 min-[1100px]:hidden">
-          <button
-            type="button"
-            aria-label="대화 목록 닫기"
-            className="absolute inset-0 bg-black/40"
-            onClick={onCloseDrawer}
+      {/** 항상 그려 두고 폭(761~1099px, 본문을 밀어냄)·이동(760px 이하, 전체 폭으로 덮음)으로 미끄러지게 한다. 닫힌 동안은 invisible이라 초점이 가지 않는다 */}
+      <div
+        className={`flex shrink-0 justify-end overflow-hidden border-r border-[#e2e7e7] transition-[width,visibility] duration-200 ease-out motion-reduce:transition-none min-[1100px]:hidden max-[760px]:fixed max-[760px]:inset-0 max-[760px]:z-40 max-[760px]:block max-[760px]:w-auto max-[760px]:overflow-visible max-[760px]:border-0 ${
+          isDrawerOpen ? 'w-[320px]' : 'invisible w-0 border-r-0'
+        }`}
+      >
+        <button
+          type="button"
+          aria-label="대화 목록 닫기"
+          tabIndex={isDrawerOpen ? 0 : -1}
+          className={`absolute inset-0 hidden bg-black/40 transition-opacity duration-200 motion-reduce:transition-none max-[760px]:block ${
+            isDrawerOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={onCloseDrawer}
+        />
+        <div
+          role="dialog"
+          aria-label="대화 목록"
+          className={`h-full w-[320px] shrink-0 bg-white transition-transform duration-200 ease-out motion-reduce:transition-none max-[760px]:absolute max-[760px]:inset-y-0 max-[760px]:left-0 max-[760px]:w-full max-[760px]:shadow-lg ${
+            isDrawerOpen ? '' : 'max-[760px]:-translate-x-full'
+          }`}
+        >
+          <SidebarPanel
+            {...panelProps}
+            conversationsQuery={conversationsQuery}
+            headerButton={{
+              label: '대화 목록 닫기',
+              icon: X,
+              onClick: onCloseDrawer,
+            }}
           />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="대화 목록"
-            className="absolute inset-y-0 left-0 w-[320px] bg-white shadow-lg max-[760px]:w-full"
-          >
-            <SidebarPanel
-              {...panelProps}
-              conversationsQuery={conversationsQuery}
-              headerButton={{
-                label: '대화 목록 닫기',
-                icon: X,
-                onClick: onCloseDrawer,
-              }}
-            />
-          </div>
         </div>
-      )}
+      </div>
     </>
   );
 }
@@ -185,7 +196,11 @@ function SidebarPanel({
           </p>
         )}
         {conversations?.length === 0 && (
-          <p className="p-2 text-sm text-[#667374]">저장된 대화가 없어요</p>
+          <p className="p-2 text-sm text-[#667374]">
+            {selectedPetSn == null
+              ? '저장된 대화가 없어요'
+              : '이 반려동물과 나눈 대화가 아직 없어요'}
+          </p>
         )}
         {conversations &&
           groupConversations(conversations).map((group) => (
@@ -213,9 +228,7 @@ function SidebarPanel({
                       <span className="shrink-0 rounded-full bg-[#edf1f1] px-2 py-0.5 text-xs text-[#3d4a4b]">
                         {conversation.petNm ?? '전체'}
                       </span>
-                      <span className="truncate">
-                        {conversation.aiCnvrsRoomCnvrsTtl}
-                      </span>
+                      <span className="truncate">{conversation.cnvrsTtl}</span>
                     </button>
                   </li>
                 ))}

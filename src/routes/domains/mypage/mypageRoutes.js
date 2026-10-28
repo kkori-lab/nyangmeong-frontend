@@ -12,9 +12,8 @@ const ProfileEditPage = lazy(() => import('@/pages/mypage/ProfileEditPage'));
 
 export default [
   {
-    /** 로그인 API(AIC) 후 auth를 'member'로 바꿈 */
     layout: 'user',
-    auth: 'public',
+    auth: 'member',
     routes: [
       { path: PATHS.MYPAGE, Component: MyPageHomePage },
       { path: PATHS.MYPAGE_PETS, Component: PetListPage },

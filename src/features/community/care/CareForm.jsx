@@ -563,9 +563,13 @@ export default function CareForm({
                 <Required />
               </span>
               <div className="flex flex-wrap items-center gap-3">
-                <p
+                {/* 표시 칸을 눌러도 돌봄 장소 찾기가 열린다. 키보드는 옆 [돌봄 장소 찾기] 버튼으로 가므로 탭 순서에서 뺀다 */}
+                <button
+                  type="button"
+                  tabIndex={-1}
                   aria-labelledby="care-place-label"
-                  className={`flex min-h-10 min-w-0 flex-1 items-center gap-1.5 rounded-md border bg-surface-2 px-3 ${errors.place ? 'border-danger' : 'border-input-line'} ${values.place ? 'text-ink' : 'text-muted'}`}
+                  onClick={() => setIsPlaceOpen(true)}
+                  className={`flex min-h-10 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-md border bg-surface-2 px-3 text-left hover:border-line-strong ${errors.place ? 'border-danger' : 'border-input-line'} ${values.place ? 'text-ink' : 'text-muted'}`}
                 >
                   <MapPin
                     size={16}
@@ -573,18 +577,23 @@ export default function CareForm({
                     className="shrink-0 text-subtle"
                   />
                   {placeText}
-                </p>
+                </button>
                 <button
                   type="button"
                   data-invalid={Boolean(errors.place)}
                   onClick={() => setIsPlaceOpen(true)}
                   className={`${BTN_SECONDARY} shrink-0`}
                 >
-                  주소 찾기
+                  돌봄 장소 찾기
                 </button>
               </div>
               {values.place && (
-                <CareAreaMap area={`${values.place.emdNm} 인근`} />
+                <CareAreaMap
+                  place={values.place}
+                  onMove={(next) =>
+                    set({ place: { ...values.place, ...next } })
+                  }
+                />
               )}
               <p className="text-sm text-muted">
                 개인정보 보호를 위해 게시글에는 동네까지만 보여요. 상세 주소는
@@ -653,8 +662,9 @@ export default function CareForm({
 
       {isPlaceOpen && (
         <PlaceSearchModal
-          title="주소 찾기"
+          title="돌봄 장소 찾기"
           confirmLabel="돌봄 장소로 설정"
+          guide="돌봄 장소 근처의 장소나 동 이름 검색"
           onSelect={(place) => {
             set({ place }, ['place']);
             setIsPlaceOpen(false);

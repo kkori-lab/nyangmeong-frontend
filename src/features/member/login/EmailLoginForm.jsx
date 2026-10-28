@@ -56,7 +56,8 @@ export default function EmailLoginForm({ onBack, onSuccess }) {
         />
         {form.isCaptchaOn && (
           <CaptchaBlock
-            code={form.captchaCode}
+            image={form.captchaImg}
+            isLoading={form.isCaptchaLoading}
             value={form.captchaInput}
             onChange={form.changeCaptcha}
             onRefresh={form.refreshCaptcha}

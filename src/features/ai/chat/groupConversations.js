@@ -15,7 +15,9 @@ export function groupConversations(conversations, now = new Date()) {
   conversations.forEach((conversation) => {
     /** 날짜 단위 차이: 시각 포함 시 어제 밤 대화가 오늘로 묶임 */
     const diffDays = Math.round(
-      (startOfDay(now) - startOfDay(new Date(conversation.crtDt))) / DAY_MS,
+      (startOfDay(now) -
+        startOfDay(new Date(conversation.lastDt ?? conversation.regDt))) /
+        DAY_MS,
     );
     const index =
       diffDays <= 0 ? 0 : diffDays === 1 ? 1 : diffDays <= 7 ? 2 : 3;

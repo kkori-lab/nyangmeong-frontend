@@ -18,7 +18,7 @@ const LabInputPage = lazy(() => import('@/pages/health/LabInputPage'));
 export default [
   {
     layout: 'user',
-    auth: 'public',
+    auth: 'member',
     routes: [
       { path: PATHS.HEALTH, Component: HealthSummaryPage },
       { path: PATHS.HEALTH_DIARY, Component: HealthDiaryPage },

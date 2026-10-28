@@ -82,7 +82,14 @@ export const useUpdatePhone = () => {
 export const useUpdatePassword = () =>
   useMutation({ mutationFn: updatePassword });
 
-export const useLogin = () => useMutation({ mutationFn: login });
+/** 로그인하면 쿠키가 바뀌므로 내 정보(헤더)를 다시 받는다 */
+export const useLogin = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: login,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: memberKeys.me }),
+  });
+};
 
 export const useLoginStatus = () => useMutation({ mutationFn: getLoginStatus });
 

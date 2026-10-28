@@ -16,7 +16,7 @@ const InquiryEditPage = lazy(() => import('@/pages/inquiry/InquiryEditPage'));
 export default [
   {
     layout: 'user',
-    auth: 'public',
+    auth: 'member',
     routes: [
       {
         Component: CustomerCenterLayout,

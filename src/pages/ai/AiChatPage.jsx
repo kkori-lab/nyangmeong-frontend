@@ -8,6 +8,8 @@ import ConversationHeader, {
 import ConversationMessages from '@/features/ai/chat/ConversationMessages';
 import AnswerBubble from '@/features/ai/chat/AnswerBubble';
 import ConversationSidebar from '@/features/ai/chat/ConversationSidebar';
+import ReceiptAnalysisBubble from '@/features/ai/chat/ReceiptAnalysisBubble';
+import { AI_ROLE } from '@/features/ai/shared/aiCodes';
 import { CHAT_MODAL_ACTION } from '@/features/ai/shared/fakeRoutingMap';
 import { fakePets } from '@/features/ai/chat/fakePets';
 import {
@@ -24,6 +26,7 @@ import {
 } from '@/features/ai/queries';
 import PetChoiceChips from '@/features/ai/chat/PetChoiceChips';
 import useAnswerStream from '@/features/ai/chat/useAnswerStream';
+import useChatReceipt from '@/features/ai/chat/useChatReceipt';
 import RouteGuideBubble from '@/features/ai/chat/RouteGuideBubble';
 import WelcomeMessage from '@/features/ai/chat/WelcomeMessage';
 import { useMemberSummary } from '@/features/member/queries';
@@ -33,6 +36,16 @@ import { PATHS } from '@/routes/paths';
 /** 임시 반려동물 목록 */
 const pets = fakePets;
 const representativePet = pets.find((pet) => pet.rprsPetYn === 'Y');
+
+/** 본창 건강 일지 결과 확인 모달: 파라미터 이름은 건강기록(JAJ)과 협의 전 제안값 */
+const receiptResultPath = (recptSn) =>
+  `${PATHS.HEALTH_DIARY}?recptSn=${recptSn}`;
+/** 본창 건강 일지 검진기록 탭 + 검진기록 등록 모달 빈 폼 */
+const manualCheckupPath = (recptSn) => {
+  const params = new URLSearchParams({ checkup: 'manual' });
+  if (recptSn) params.set('recptSn', String(recptSn));
+  return `${PATHS.HEALTH_DIARY}?${params}#hlt002-exam`;
+};
 
 /** 별도 창 전체 화면 AI 채팅 */
 export default function AiChatPage() {
@@ -56,6 +69,14 @@ export default function AiChatPage() {
   const cancelRegister = useCancelRegister();
   const answer = useAnswerStream();
   const openChatWindow = useChatWindow();
+  /** 영수증 파일 고르기 창 */
+  const fileInputRef = useRef(null);
+  const receipt = useChatReceipt({
+    onAnalyzed: ({ aiCnvrsRoomSn }) => {
+      setFirstMessage(null);
+      setSelectedRoomSn(aiCnvrsRoomSn);
+    },
+  });
   /** 이동 안내 상태 */
   const [route, setRoute] = useState(null);
   /** 이번 화면에서 받은 미리보기 카드: 메시지 번호별 카드·상태·결과 문구 */
@@ -73,18 +94,18 @@ export default function AiChatPage() {
   const resetRegister = () => {
     setRegisterCards({});
     setPetChoices(null);
+    receipt.reset();
   };
 
   const selectedPet = pets.find((pet) => pet.petSn === selectedPetSn);
 
   /** 메시지 전송 */
-  const handleSend = (aiCnvrsMsgCn) => {
+  const handleSend = (cnvrsCn) => {
     sendMessage.mutate(
       {
         aiCnvrsRoomSn: selectedRoomSn,
         petSn: selectedPet?.petSn,
-        petNm: selectedPet?.petNm,
-        aiCnvrsMsgCn,
+        cnvrsCn,
       },
       {
         onSuccess: ({
@@ -98,6 +119,7 @@ export default function AiChatPage() {
           setFirstMessage(null);
           setRoute(null);
           setPetChoices(null);
+          receipt.reset();
           setSelectedRoomSn(aiCnvrsRoomSn);
           if (intent === 'REGISTER') {
             answer.reset();
@@ -111,7 +133,7 @@ export default function AiChatPage() {
           }
           /** 검색·이동 안내·매칭 실패만 이 화면 처리 */
           if (intent === 'SEARCH') {
-            answer.start({ aiCnvrsRoomSn, question: aiCnvrsMsgCn });
+            answer.start({ aiCnvrsRoomSn, question: cnvrsCn });
           }
           if (intent === 'ROUTE') {
             setRoute({ ...nextRoute, aiCnvrsMsgSn, status: 'waiting' });
@@ -128,18 +150,37 @@ export default function AiChatPage() {
     );
   };
 
+  /** 이미지 첨부 전송: 의도 분기 없이 영수증 분석, 1마리면 자동 선택 */
+  const handleSendReceipt = (file, text) => {
+    answer.reset();
+    setRoute(null);
+    setPetChoices(null);
+    receipt.start({
+      file,
+      text,
+      aiCnvrsRoomSn: selectedRoomSn,
+      pet: selectedPet ?? (pets.length === 1 ? pets[0] : null),
+    });
+  };
+
+  /** 실패 안내에서 다시 올리기 */
+  const handleRetryReceipt = () => {
+    receipt.reset();
+    fileInputRef.current.click();
+  };
+
   /** 등록·취소 결과를 카드에 반영 */
   const settleRegisterCard = (mutation, status, aiCnvrsMsgSn) => {
     mutation.mutate(
       { aiCnvrsRoomSn: selectedRoomSn, aiCnvrsMsgSn },
       {
-        onSuccess: ({ aiCnvrsMsgCn }) => {
+        onSuccess: ({ cnvrsCn }) => {
           setRegisterCards((prev) => ({
             ...prev,
             [aiCnvrsMsgSn]: {
               ...prev[aiCnvrsMsgSn],
               status,
-              resultText: aiCnvrsMsgCn,
+              resultText: cnvrsCn,
             },
           }));
         },
@@ -162,7 +203,7 @@ export default function AiChatPage() {
     );
     const question = messages
       .slice(0, index)
-      .findLast((item) => item.aiCnvrsMsgRoleCd === 'USER')?.aiCnvrsMsgCn;
+      .findLast((item) => item.roleCd === AI_ROLE.USER)?.cnvrsCn;
     if (!question) return;
     answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
@@ -277,12 +318,14 @@ export default function AiChatPage() {
               대화를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
             </p>
           )}
-          {conversation && (
+          {(conversation || receipt.receipt) && (
             <ConversationMessages
-              messages={conversation.messages.filter(
+              messages={(conversation?.messages ?? []).filter(
                 (message) =>
                   !answer.hiddenMsgSns.includes(message.aiCnvrsMsgSn) &&
-                  message.aiCnvrsMsgSn !== route?.aiCnvrsMsgSn,
+                  message.aiCnvrsMsgSn !== route?.aiCnvrsMsgSn &&
+                  message.aiCnvrsMsgSn !==
+                    receipt.receipt?.result?.aiCnvrsMsgSn,
               )}
               fallbackCount={fallbackCount}
               registerCards={registerCards}
@@ -328,6 +371,26 @@ export default function AiChatPage() {
                   onSelect={handleSend}
                 />
               )}
+              {receipt.receipt && (
+                <ReceiptAnalysisBubble
+                  receipt={receipt.receipt}
+                  pets={pets}
+                  onChoosePet={receipt.choosePet}
+                  onCancel={receipt.cancel}
+                  onConfirm={() =>
+                    openInMainWindow(
+                      receiptResultPath(receipt.receipt.result.recptSn),
+                    )
+                  }
+                  onDismiss={receipt.dismiss}
+                  onRetry={handleRetryReceipt}
+                  onManualInput={() =>
+                    openInMainWindow(
+                      manualCheckupPath(receipt.receipt.result?.recptSn),
+                    )
+                  }
+                />
+              )}
               {route && (
                 <RouteGuideBubble
                   key={route.aiCnvrsMsgSn}
@@ -339,7 +402,7 @@ export default function AiChatPage() {
               )}
             </ConversationMessages>
           )}
-          {selectedRoomSn === null && (
+          {selectedRoomSn === null && !receipt.receipt && (
             <div className="flex min-h-full items-center justify-center">
               <WelcomeMessage
                 nickname={member?.mbrNcnm ?? ''}
@@ -355,8 +418,10 @@ export default function AiChatPage() {
         )}
         <ChatInput
           petNm={selectedPet?.petNm}
-          isDisabled={sendMessage.isPending || isAnswering}
+          isDisabled={sendMessage.isPending || isAnswering || receipt.isBusy}
+          fileInputRef={fileInputRef}
           onSubmit={handleSend}
+          onSubmitReceipt={handleSendReceipt}
         />
       </main>
     </div>

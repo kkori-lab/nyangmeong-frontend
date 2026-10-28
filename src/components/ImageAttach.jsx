@@ -1,14 +1,16 @@
-import { CircleAlert, ImagePlus, X } from 'lucide-react';
+import { CircleAlert, ImageIcon, ImagePlus, X } from 'lucide-react';
 import { useId, useState } from 'react';
 import { RECEIPT_ACCEPT, validateReceiptFile } from '@/utils/receiptFile';
 
 export const MAX_IMAGES = 10;
 
 /**
- * 이미지 첨부: images는 [{ id, name, url }], 최대 10장, jpg·png·webp, 한 장 10MB
+ * 이미지 첨부: images는 [{ id, name, url, file }], 최대 10장, jpg·png·webp, 한 장 10MB
+ * - file: 방금 고른 원본 File. 서버에 올릴 때 쓴다
+ * - 서버에서 받아 온 첨부는 file 없이 url도 null일 수 있다(이미지 조회 API 전): 이름만 있는 자리 표시로 그린다
  * - hint: 안내 문구 위에 덧붙일 한 줄(선택)
  * - 형식·용량 검사는 영수증 업로드와 같은 validateReceiptFile을 쓴다
- * - 미리보기 주소(blob:)는 가짜 응답이 그대로 저장하므로 삭제해도 해제하지 않는다
+ * - 미리보기 주소(blob:)는 삭제해도 해제하지 않는다
  */
 export default function ImageAttach({ images, onChange, hint }) {
   const inputId = useId();
@@ -34,6 +36,7 @@ export default function ImageAttach({ images, onChange, hint }) {
         id: crypto.randomUUID(),
         name: file.name,
         url: URL.createObjectURL(file),
+        file,
       });
     }
     setErrorMessage(nextError);
@@ -108,11 +111,20 @@ export default function ImageAttach({ images, onChange, hint }) {
         {images.map((image) => (
           <li key={image.id} className="flex min-w-0 flex-col gap-1.5">
             <div className="group relative aspect-square overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#eef1f1]">
-              <img
-                src={image.url}
-                alt={image.name}
-                className="size-full object-cover"
-              />
+              {image.url ? (
+                <img
+                  src={image.url}
+                  alt={image.name}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="grid size-full place-items-center text-[#b9c4c4]"
+                >
+                  <ImageIcon size={32} />
+                </span>
+              )}
               <button
                 type="button"
                 aria-label={`${image.name} 삭제`}

@@ -99,7 +99,7 @@ export default function useAnswerStream() {
         setState((prev) => ({
           ...prev,
           status: isComplete ? 'done' : 'incomplete',
-          text: result.aiCnvrsMsgCn ?? text,
+          text: result.cnvrsCn ?? text,
           shortcuts: isComplete ? result.rltdShrtcts : [],
           hiddenMsgSns: [...prev.hiddenMsgSns, result.aiCnvrsMsgSn],
         }));

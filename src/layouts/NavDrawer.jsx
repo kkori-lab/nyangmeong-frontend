@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ChevronRight, LogOut, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import userAvatar from '@/assets/user.svg';
+import Skeleton from '@/components/Skeleton';
 import { useMemberSummary } from '@/features/member/queries';
 import { PATHS } from '@/routes/paths';
 import { GNB_MENUS } from './gnbMenus';
@@ -102,15 +103,23 @@ export default function NavDrawer({ onClose, onLogout }) {
                 className="size-full object-cover"
               />
             </span>
-            <span className="min-w-0 grow">
-              <span className="flex items-center gap-0.5 text-xl font-bold leading-[1.4] text-[#1a3234]">
-                {summary?.mbrNcnm}
+            <div className="min-w-0 grow">
+              <div className="flex items-center gap-0.5 text-xl font-bold leading-[1.4] text-[#1a3234]">
+                {summary ? (
+                  summary.mbrNcnm
+                ) : (
+                  <Skeleton className="my-1 h-5 w-24" />
+                )}
                 <ChevronRight size={24} className="text-[#667374]" />
-              </span>
-              <span className="mt-0.5 block truncate text-sm text-[#667374]">
-                {summary?.maskedAcntEml}
-              </span>
-            </span>
+              </div>
+              <div className="mt-0.5 truncate text-sm text-[#667374]">
+                {summary ? (
+                  summary.maskedAcntEml
+                ) : (
+                  <Skeleton className="my-0.5 h-4 w-36" />
+                )}
+              </div>
+            </div>
           </Link>
 
           <div className="pb-6 pt-2">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import PageSkeleton from '@/components/PageSkeleton';
 import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
@@ -6,19 +7,18 @@ import CareList from '@/features/health/CareList';
 import DiaryTabs from '@/features/health/diary/DiaryTabs';
 import MonthCalendar from '@/features/health/MonthCalendar';
 import PetFilterChips from '@/features/health/PetFilterChips';
-import PetTabs from '@/features/health/PetTabs';
 import ScheduleDayDetail from '@/features/health/ScheduleDayDetail';
 import ScheduleModal from '@/features/health/ScheduleModal';
 import UpcomingSchedules from '@/features/health/UpcomingSchedules';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { usePets, useSchedules } from '@/features/health/queries';
 import {
-  addDays,
   addMonths,
   getDaysInMonth,
   getMonth,
   getTodayYmd,
   getYear,
+  getYmdOf,
   makeYmd,
 } from '@/utils/formatDate';
 
@@ -29,16 +29,22 @@ const LAYOUT_PROPS = {
   contentClassName: 'gap-7 min-[1101px]:pt-6',
 };
 
-// 다가오는 일정을 찾을 범위. 최대 3건만 보여 주므로 1년이면 충분하다
-const UPCOMING_RANGE_DAYS = 365;
+/** 다가오는 케어 일정 최대 건수(FN-HLT-003-40) */
+const MAX_UPCOMING = 3;
 
 const SECTION_TABS = [
   { id: 'hlt003-calendar', label: '캘린더' },
   { id: 'hlt003-care', label: '케어리스트' },
 ];
 
+/** #hlt003-calendar·#hlt003-care로 오면 그 탭으로 시작 */
+const getTabFromHash = (hash) =>
+  SECTION_TABS.find((tab) => tab.id === hash.slice(1))?.id ??
+  SECTION_TABS[0].id;
+
 export default function CareCalendarPage() {
-  const [sectionId, setSectionId] = useState(SECTION_TABS[0].id);
+  const { hash } = useLocation();
+  const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
   const todayYmd = getTodayYmd();
   const [viewMonthYmd, setViewMonthYmd] = useState(() =>
     makeYmd(getYear(todayYmd), getMonth(todayYmd), 1),
@@ -56,24 +62,29 @@ export default function CareCalendarPage() {
   } = usePets();
   const year = getYear(viewMonthYmd);
   const month = getMonth(viewMonthYmd);
+  const allPetSns = pets?.map((pet) => pet.petSn);
   const { data: monthData, isError: isMonthError } = useSchedules({
-    startYmd: viewMonthYmd,
-    endYmd: makeYmd(year, month, getDaysInMonth(year, month)),
+    petSns: allPetSns,
+    fromYmd: viewMonthYmd,
+    toYmd: makeYmd(year, month, getDaysInMonth(year, month)),
   });
   const { data: upcomingData, isError: isUpcomingError } = useSchedules({
-    startYmd: todayYmd,
-    endYmd: addDays(todayYmd, UPCOMING_RANGE_DAYS),
+    petSns: allPetSns,
+    fromYmd: todayYmd,
+    size: MAX_UPCOMING,
   });
+  /** 월 이동 가능 여부용: 기간 없이 반려동물마다 1건 */
+  const { data: anyData } = useSchedules({ petSns: allPetSns, size: 1 });
 
   /** 첫 진입: 반려동물·이번 달·다가오는 일정이 모두 올 때까지 */
   if (
     isPetsPending ||
-    (!monthData && !isMonthError) ||
-    (!upcomingData && !isUpcomingError)
+    (!isPetsError && !monthData && !isMonthError) ||
+    (!isPetsError && !upcomingData && !isUpcomingError)
   )
     return (
       <SubPageLayout {...LAYOUT_PROPS}>
-        <CalendarSkeleton />
+        <CalendarSkeleton sectionId={sectionId} />
       </SubPageLayout>
     );
   if (isPetsError) {
@@ -86,7 +97,6 @@ export default function CareCalendarPage() {
     );
   }
 
-  const allPetSns = pets.map((pet) => pet.petSn);
   const visiblePetSns = filterPetSns ?? allPetSns;
   const isAllPets = visiblePetSns.length === allPetSns.length;
   const petLabel = isAllPets
@@ -97,10 +107,16 @@ export default function CareCalendarPage() {
         .join(', ');
   const selectedTabPetSn = tabPetSn ?? pets[0]?.petSn ?? null;
 
+  /** 표시 반려동물만, 태그·행에 쓸 반려동물 이름 결합 */
   const filterByPet = (schedules = []) =>
-    schedules.filter((schedule) => visiblePetSns.includes(schedule.petSn));
-  const monthSchedules = filterByPet(monthData?.content);
-  const upcomingSchedules = filterByPet(upcomingData?.content);
+    schedules
+      .filter((schedule) => visiblePetSns.includes(schedule.petSn))
+      .map((schedule) => ({
+        ...schedule,
+        petNm: pets.find((pet) => pet.petSn === schedule.petSn)?.petNm,
+      }));
+  const monthSchedules = filterByPet(monthData);
+  const upcomingSchedules = filterByPet(upcomingData);
 
   const handleFilterChange = (petSns) =>
     setFilterPetSns(petSns.length === allPetSns.length ? null : petSns);
@@ -118,7 +134,11 @@ export default function CareCalendarPage() {
   const openCreate = (ymd) =>
     setModal({ key: Date.now(), schedule: null, defaultYmd: ymd });
   const openEdit = (schedule) =>
-    setModal({ key: Date.now(), schedule, defaultYmd: schedule.schdlYmd });
+    setModal({
+      key: Date.now(),
+      schedule,
+      defaultYmd: getYmdOf(schedule.schdlDt),
+    });
 
   return (
     <SubPageLayout {...LAYOUT_PROPS}>
@@ -141,7 +161,7 @@ export default function CareCalendarPage() {
             month={month}
             schedules={monthSchedules}
             selectedYmd={selectedYmd}
-            canMoveMonth={(monthData?.totalSchdlCnt ?? 0) > 0}
+            canMoveMonth={(anyData?.length ?? 0) > 0}
             onMoveMonth={handleMoveMonth}
             onSelectDate={setSelectedYmd}
           >
@@ -173,13 +193,20 @@ export default function CareCalendarPage() {
       )}
 
       {sectionId === 'hlt003-care' && (
-        <div id="hlt003-care" role="tabpanel" aria-labelledby="hlt003-care-tab">
-          <PetTabs
-            pets={pets}
-            selectedPetSn={selectedTabPetSn}
-            onSelect={setTabPetSn}
-          />
-          {selectedTabPetSn != null && <CareList petSn={selectedTabPetSn} />}
+        <div
+          id="hlt003-care"
+          role="tabpanel"
+          aria-labelledby="hlt003-care-tab"
+          className="mt-5"
+        >
+          {/* 반려동물 셀렉트는 카드 제목 왼쪽에 있다. 고른 반려동물은 새 일정 모달 기본값에도 쓰인다 */}
+          {selectedTabPetSn != null && (
+            <CareList
+              petSn={selectedTabPetSn}
+              pets={pets}
+              onSelectPet={setTabPetSn}
+            />
+          )}
         </div>
       )}
 
@@ -198,23 +225,34 @@ export default function CareCalendarPage() {
   );
 }
 
-/** 로딩 자리: 달력 + 오른쪽 카드 2장, 반려동물 칩, 케어 목록 */
-function CalendarSkeleton() {
+/**
+ * 로딩 자리: 탭 막대(48px) + 처음 열릴 탭의 모양. 높이는 불러온 뒤 실측값이다
+ * - 캘린더: 달력(5줄 달, 760px 이하는 점 표시 달력) + 날짜 상세·다가오는 일정. 1101px 이상은 오른쪽 두 장의 합이 달력과 같다
+ * - 케어리스트: 토탈 케어리스트 카드 한 장(CareList 로딩 자리와 같은 높이)
+ */
+function CalendarSkeleton({ sectionId }) {
   return (
     <PageSkeleton>
-      <div className="grid gap-5 min-[1101px]:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <SkeletonCard className="h-[624px]" />
-        <div className="flex flex-col gap-5">
-          <SkeletonCard className="h-[262px]" />
-          <SkeletonCard className="h-[342px]" />
-        </div>
+      <div
+        aria-hidden="true"
+        className="flex h-12 items-center gap-8 border-b border-line px-4"
+      >
+        <Skeleton className="h-5 w-16" />
+        <Skeleton className="h-5 w-20" />
       </div>
-      <div aria-hidden="true" className="mt-2 flex gap-2">
-        {[0, 1, 2].map((index) => (
-          <Skeleton key={index} className="h-9 w-28 rounded-full" />
-        ))}
+      <div className="mt-7">
+        {sectionId === 'hlt003-care' ? (
+          <SkeletonCard className="h-[1486px] max-sm:h-[1678px]" />
+        ) : (
+          <div className="grid gap-5 min-[1101px]:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+            <SkeletonCard className="h-[664px] max-[760px]:h-[468px]" />
+            <div className="flex flex-col gap-5">
+              <SkeletonCard className="h-[281px] max-[1100px]:h-[222px]" />
+              <SkeletonCard className="h-[363px] max-[1100px]:h-[351px]" />
+            </div>
+          </div>
+        )}
       </div>
-      <SkeletonCard className="h-[1538px] max-[760px]:h-[2400px]" />
     </PageSkeleton>
   );
 }

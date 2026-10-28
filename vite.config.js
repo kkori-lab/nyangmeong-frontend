@@ -9,6 +9,10 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: {
-    proxy: { '/api': 'http://localhost:8080' },
+    proxy: {
+      '/api': 'http://localhost:8080',
+      /** 화면 URL /ai(PATHS.AI)는 제외 */
+      '^/ai/': 'http://localhost:8000',
+    },
   },
 });

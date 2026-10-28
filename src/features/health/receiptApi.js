@@ -45,7 +45,7 @@ export const getReceiptDetail = async ({ rcptSn, petSn, items }) => {
       ...common,
       totalAmt: 63000,
       discountAmt: 0,
-      ckupTypeCd: 'REG',
+      ckupTypeCd: 'HLTC0001',
       zones: [],
       lines: [
         { lineSn: 1, nm: '진찰료', amt: 10000, kind: 'item' },
@@ -75,7 +75,7 @@ export const getReceiptDetail = async ({ rcptSn, petSn, items }) => {
   const zones = [
     {
       zoneNm: uploadPetNm,
-      ckupTypeCd: 'DISE',
+      ckupTypeCd: 'HLTC0003',
       subtotal: firstSubtotal,
       items: [
         { itmNm: '진찰료' },
@@ -88,7 +88,7 @@ export const getReceiptDetail = async ({ rcptSn, petSn, items }) => {
   if (isTwoZones) {
     zones.push({
       zoneNm: '린이',
-      ckupTypeCd: 'VACC',
+      ckupTypeCd: 'HLTC0002',
       subtotal: gross == null ? null : gross - firstSubtotal,
       items: [{ itmNm: '종합백신' }],
       drugs: [],

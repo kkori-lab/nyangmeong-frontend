@@ -11,7 +11,6 @@
 @theme {
   --font-sans: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
 
-  /** 플로팅 AI 말풍선이 좌우로 흔들림 */
   --animate-sway: sway 2s ease-in-out infinite;
   @keyframes sway {
     0%,
@@ -156,6 +155,15 @@
   }
 }
 
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  summary,
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 @keyframes man-float {
   0%,
   100% {
@@ -174,5 +182,61 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes landing-slide-in {
+  from {
+    transform: translateX(100.1%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes landing-slide-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100.1%);
+  }
+}
+
+@keyframes landing-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes landing-char {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes landing-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
   }
 }

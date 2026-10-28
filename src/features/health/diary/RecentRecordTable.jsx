@@ -287,6 +287,8 @@ function DetailModal({
     <Modal
       title={`${isToday ? '오늘 ' : ''}${dateText} 상세 기록`}
       isLarge
+      isAutoHeight
+      isCloseIconHidden
       onClose={onClose}
       footer={
         <button

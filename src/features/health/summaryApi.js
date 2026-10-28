@@ -1,5 +1,5 @@
-import { addDays, getTodayYmd, getYear } from '@/utils/formatDate';
-import { getQueryParam, getSchedules } from './api';
+import { addDays, getTodayYmd, getYear, getYmdOf } from '@/utils/formatDate';
+import { getFakeScheduleList, getQueryParam } from './api';
 import { DOSING } from './checkup/checkupTypes';
 import { getCheckupDetail } from './checkupApi';
 import { getCheckups, getDailyRecords, getObservations } from './diaryApi';
@@ -17,8 +17,8 @@ import { HOSPITAL } from './scheduleTypes';
 const TIMELINE_COUNT = 5;
 const TREND_COUNT = 4;
 const ATTACHMENT_COUNT = 4;
-const VACCINATION = 'VACC';
-const REGULAR = 'REG';
+const VACCINATION = 'HLTC0002';
+const REGULAR = 'HLTC0001';
 
 /** 타임라인 항목 종류 */
 export const TIMELINE_CHECKUP = 'CKUP';
@@ -64,8 +64,7 @@ const getAllCheckups = async (petSn) => {
   return lists
     .flatMap((list) => list.content)
     .sort(
-      (a, b) =>
-        compareDesc(a.ckupYmd, b.ckupYmd) || b.ckupRcdSn - a.ckupRcdSn,
+      (a, b) => compareDesc(a.ckupYmd, b.ckupYmd) || b.ckupRcdSn - a.ckupRcdSn,
     );
 };
 
@@ -74,34 +73,32 @@ const findNextHospitalYmd = (schedules, ckupTypeCd) =>
   schedules
     .filter(
       (schedule) =>
-        schedule.schdlTypeCd === HOSPITAL && schedule.ckupTypeCd === ckupTypeCd,
+        schedule.schdlKndCd === HOSPITAL && schedule.ckupTypeCd === ckupTypeCd,
     )
-    .map((schedule) => schedule.schdlYmd)
+    .map((schedule) => getYmdOf(schedule.schdlDt))
     .sort()[0] ?? null;
 
 /** 혈액검사 항목별 이력(오래된 순, 최근 4회) */
 const buildTrends = (detailsByCheckup) => {
   const trends = {};
-  [...detailsByCheckup]
-    .reverse()
-    .forEach(({ checkup, bloodInspections }) => {
-      bloodInspections.forEach((item) => {
-        const trend = (trends[item.inspItmNm] ??= {
-          inspItmNm: item.inspItmNm,
-          fnctTagCd: item.fnctTagCd,
-          unitNm: item.unitNm,
-          points: [],
-        });
-        trend.unitNm = item.unitNm;
-        trend.refMinVal = item.refMinVal;
-        trend.refMaxVal = item.refMaxVal;
-        trend.points.push({
-          ckupRcdSn: checkup.ckupRcdSn,
-          ckupYmd: checkup.ckupYmd,
-          rsltVal: item.rsltVal,
-        });
+  [...detailsByCheckup].reverse().forEach(({ checkup, bloodInspections }) => {
+    bloodInspections.forEach((item) => {
+      const trend = (trends[item.inspItmNm] ??= {
+        inspItmNm: item.inspItmNm,
+        fnctTagCd: item.fnctTagCd,
+        unitNm: item.unitNm,
+        points: [],
+      });
+      trend.unitNm = item.unitNm;
+      trend.refMinVal = item.refMinVal;
+      trend.refMaxVal = item.refMaxVal;
+      trend.points.push({
+        ckupRcdSn: checkup.ckupRcdSn,
+        ckupYmd: checkup.ckupYmd,
+        rsltVal: item.rsltVal,
       });
     });
+  });
   Object.values(trends).forEach((trend) => {
     trend.points = trend.points.slice(-TREND_COUNT);
   });
@@ -124,13 +121,11 @@ export const getHealthSummary = async (petSn) => {
   // ?fakePets=8로 늘어난 반려동물은 앞 세 마리 프로필을 돌려 쓴다
   const profile = fakeProfiles[petSn] ?? fakeProfiles[((petSn - 1) % 3) + 1];
   const [{ content: dailyRecords }, { content: observationItems }] =
-    await Promise.all([
-      getDailyRecords({ petSn }),
-      getObservations({ petSn }),
-    ]);
-  const { content: schedules } = await getSchedules({
-    startYmd: today,
-    endYmd: addDays(today, 730),
+    await Promise.all([getDailyRecords({ petSn }), getObservations({ petSn })]);
+  const endYmd = addDays(today, 730);
+  const schedules = (await getFakeScheduleList()).filter((schedule) => {
+    const ymd = getYmdOf(schedule.schdlDt);
+    return ymd >= today && ymd <= endYmd;
   });
   const petSchedules = schedules.filter((schedule) => schedule.petSn === petSn);
 
@@ -182,13 +177,13 @@ export const getHealthSummary = async (petSn) => {
         ckupYmd: checkup.ckupYmd,
       })),
     )
-    .sort(
-      (a, b) => compareDesc(a.ckupYmd, b.ckupYmd) || b.atchSn - a.atchSn,
-    )
+    .sort((a, b) => compareDesc(a.ckupYmd, b.ckupYmd) || b.atchSn - a.atchSn)
     .slice(0, ATTACHMENT_COUNT);
 
   /** 관찰중 항목만, 회차는 관찰일 순 */
-  let observations = observationItems.filter((item) => item.obsvEndYmd === null);
+  let observations = observationItems.filter(
+    (item) => item.obsvEndYmd === null,
+  );
   if (isEmptyMode) observations = [];
   if (isOneMode) {
     observations = observations
@@ -240,7 +235,11 @@ export const getHealthSummary = async (petSn) => {
     .sort(
       (a, b) =>
         compareDesc(a.ymd, b.ymd) ||
-        (a.tlTypeCd === b.tlTypeCd ? 0 : a.tlTypeCd === TIMELINE_CHECKUP ? -1 : 1),
+        (a.tlTypeCd === b.tlTypeCd
+          ? 0
+          : a.tlTypeCd === TIMELINE_CHECKUP
+            ? -1
+            : 1),
     )
     .slice(0, TIMELINE_COUNT);
 

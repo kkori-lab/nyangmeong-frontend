@@ -19,7 +19,6 @@ function Stat({ icon, label, value, unit, sub }) {
   );
 }
 
-// 프로필 옆 요약 3칸: 최근 검진 · 검사 수치(CREA) · 현재 처방
 export default function HealthSummary({ exam, lab, rx }) {
   return (
     <div className="grid grid-cols-3 max-[700px]:grid-cols-1">

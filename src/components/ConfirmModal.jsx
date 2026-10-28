@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 
 export default function ConfirmModal({
   title,
+  description,
   confirmLabel = '확인',
   cancelLabel = '취소',
   errorMessage,
@@ -46,6 +47,9 @@ export default function ConfirmModal({
     >
       <div className="p-6">
         <p className="text-base font-bold text-[#1a3234]">{title}</p>
+        {description && (
+          <p className="mt-2 text-sm text-[#566465]">{description}</p>
+        )}
         {errorMessage && (
           <p role="alert" className="mt-2 text-sm text-[#f44b21]">
             {errorMessage}

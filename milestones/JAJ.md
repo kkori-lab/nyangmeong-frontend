@@ -67,6 +67,30 @@
 - 연결 남음: 2. 영수증 사용처 키 (가계부 지출 생성·중복 확인 실제 호출, SJM)
 - 추가 요청: 건강 일지(SCR-HLT-002) 추가-1~20을 이 작업에서 함께 처리(핸드오프 기록, 추가-9·11은 추가-13으로 되돌림)
 
+## SCR-HLT-002 건강 일지 · 결함 정리와 모달 다듬기 — 끝
+
+- 기능: 건강 일지 핸드오프 "참고(실패 아님)" 4건과 결정 필요 1건, 상세 기록 모달 높이·✕ (명세 기능 ID 추가 없음, FN-HLT-002-11·13·15·16·18·14에 걸침)
+- 기다리는 것: 없음 (공용 `Modal.jsx`·`Card.jsx`는 선택 속성 추가·접근성만 고치고 알린다)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 통과 / 화면: 아래 기획의 항목별 확인
+- 연결 남음: 없음 (실제 API 연결은 기존 항목 그대로)
+- 추가 요청: 추가-1 반려동물 칩 → 셀렉트, 추가-2 알약형·히어로 색(`DropdownSelect` `isPill`), 추가-3 이름 칸 세 글자 폭·말줄임, 추가-4 검진상세 [건강 일지로 돌아가기] 삭제
+
+## SCR-HLT-003 케어 캘린더 · 결함 정리 — 끝
+
+- 기능: 케어 캘린더 핸드오프 "참고" 2건 (명세 기능 ID 추가 없음, FN-HLT-003-31·01에 걸침)
+- 기다리는 것: 없음
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 통과 / 화면: 390px에서 날짜 상세 카드 제목이 잘리지 않고 부제가 한 줄 / `#hlt003-care`로 들어오면 케어리스트 탭으로 시작
+- 연결 남음: 없음 (실제 API 연결은 기존 항목 그대로)
+- 추가 요청: 추가-1~18. 달력 칸 88px·760px 이하 점 달력(5·12, 1·11 대체), [출처 보기] 삭제(4), 케어리스트 셀렉트를 카드 제목 왼쪽으로(13, 2·7 대체), 두 열 줄 높이(9, 3 대체), 처방약 연동 배지 정렬·투약 한 줄(10·17, 8 대체), 모바일 카드 머리·둥근 칸·더보기(14·15), 스켈레톤 높이(6·16·18)
+
+## SCR-HLT-003 케어 캘린더 · 일정 API 연결 — 대기
+
+- 기능: 케어 캘린더 절의 일정 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-003-29~37·40에 걸침). `features/health/api.js`의 일정 조회·등록·수정·삭제 → `/pets/{petSn}/care-schedules`(반려동물마다 조회 후 합침), 필드를 서버 이름(`schdlKndCd`·`schdlKndCdNm`·`ckupTypeCdNm`·`hsptlNm`·`schdlDt`·`hrInptYn`·`memoCn`·`ckupRcdCnt`)과 일정·검진 코드 HLTC 값으로 맞춤
+- 이미 바뀐 것: 백엔드 저장소 SCR-HLT-003 일정 작업(2026-10-26) 중 먼저 고친 파일이 커밋 전으로 남아 있다. `features/health/` `api.js`·`queries.js`·`scheduleTypes.js`·`MonthCalendar.jsx`·`ScheduleDayDetail.jsx`·`ScheduleModal.jsx`·`UpcomingSchedules.jsx`·`diaryApi.js`·`receiptApi.js`·`summaryApi.js`·`diary/CheckupListCard.jsx`·`diary/NearScheduleModal.jsx`, `pages/health/CareCalendarPage.jsx`, `utils/formatDate.js`. 이 마일스톤의 기획은 이 변경을 기준으로 쓰고, 검증·사람 확인 뒤 커밋한다
+- 기다리는 것: 백엔드 일정 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `http://localhost:5173/health/calendar`에서 API로 등록한 일정이 월간 캘린더·날짜 상세에 코드명·시간 순으로 나오고, 모달의 등록·수정·삭제가 서버에 반영된다
+- 그대로 두는 것: 가짜 일정 `fakeSchedules`(건강 일지·종합 건강기록이 쓴다. 그 화면의 백엔드 연결 때 지운다), 가짜 반려동물 목록 (SJM), 뱃지 색상 선택은 HLTG21 코드가 정해질 때까지 숨김
+
 ## 제외
 
 - AI매니저 FN-AIM-008 참조 대상 반려동물 선택: 화면 SCR-AIM-008 영수증 업로드는 LJS(분배 표 "AIM-008 영수증 업로드")

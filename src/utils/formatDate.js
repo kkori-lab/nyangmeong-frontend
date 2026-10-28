@@ -101,6 +101,15 @@ export const formatTime = (hhmm) => {
   return `${period} ${displayHour}:${pad(minute)}`;
 };
 
+/** 서버 일시 문자열: 'YYYY-MM-DD' + 'HH:mm'(없으면 자정) */
+export const makeDateTime = (ymd, hm) => `${ymd}T${hm || '00:00'}:00`;
+
+/** 서버 일시의 날짜 'YYYY-MM-DD' */
+export const getYmdOf = (dateTime) => dateTime.slice(0, 10);
+
+/** 서버 일시의 시각 'HH:mm' */
+export const getHmOf = (dateTime) => dateTime.slice(11, 16);
+
 // 지금 시각 "13:05"
 export const getNowHm = () => {
   const now = new Date();

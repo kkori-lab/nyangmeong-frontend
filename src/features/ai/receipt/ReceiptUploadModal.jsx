@@ -5,34 +5,13 @@ import Modal from '@/components/Modal';
 import Select from '@/components/Select';
 import { RECEIPT_ACCEPT, validateReceiptFile } from '@/utils/receiptFile';
 import { useRecognizeCheckupReceipt } from '../queries';
-
-/** 분석이 이 시간을 넘기면 일시 오류로 판정(FN-AIM-008-07) */
-const ANALYZE_TIMEOUT_MS = 15000;
+import { ANALYZE_TIMEOUT_MS, FAILURE } from './receiptFailure';
 
 /** 진행 막대 갱신 간격과 차오르는 속도(약 6초에 63%, 15초에 약 85%) */
 const PROGRESS_TICK_MS = 100;
 const PROGRESS_TIME_CONSTANT_MS = 6000;
 
 const HELP ='jpg · jpeg · png · webp · 1건 10MB 이하';
-
-const FAILURE = {
-  empty: {
-    title: '영수증을 읽지 못했어요',
-    message: '글씨가 흐리거나 접힌 부분이 있으면 인식이 어려울 수 있어요.',
-    noteStyle: 'border-danger/30 bg-danger-soft text-danger',
-  },
-  timeout: {
-    title: '분석을 끝내지 못했어요',
-    message: '분석이 오래 걸려 멈췄어요. 다시 올리거나 직접 입력해 주세요.',
-    noteStyle: 'border-warn-line bg-warn-soft text-warn',
-  },
-  error: {
-    title: '분석을 끝내지 못했어요',
-    message:
-      '일시적인 오류가 생겼어요. 잠시 후 다시 올리거나 직접 입력해 주세요.',
-    noteStyle: 'border-warn-line bg-warn-soft text-warn',
-  },
-};
 
 const formatSize = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 

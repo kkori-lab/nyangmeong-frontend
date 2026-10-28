@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { useRoutes } from 'react-router-dom';
+import PageLoading from '@/components/PageLoading';
 import { MEMBER_ROLE } from '@/constants/memberRole';
 import AdminLayout from '@/layouts/AdminLayout';
 import UserLayout from '@/layouts/UserLayout';
@@ -17,12 +18,11 @@ const pick = (layout, auth) =>
     .flatMap((group) => group.routes);
 
 const routes = [
+  { element: <UserLayout />, children: pick('user', 'public') },
   {
-    element: <UserLayout />,
-    children: [
-      ...pick('user', 'public'),
-      { element: <ProtectedRoute />, children: pick('user', 'member') },
-    ],
+    /** 로그인 확인이 끝난 뒤에만 헤더·본문을 그린다(확인 중에는 스켈레톤) */
+    element: <ProtectedRoute />,
+    children: [{ element: <UserLayout />, children: pick('user', 'member') }],
   },
   ...pick('bare', 'public'),
   {
@@ -34,5 +34,5 @@ const routes = [
 export default function AppRoutes() {
   const element = useRoutes(routes);
 
-  return <Suspense fallback={null}>{element}</Suspense>;
+  return <Suspense fallback={<PageLoading />}>{element}</Suspense>;
 }

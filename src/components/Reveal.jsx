@@ -3,8 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 const BASE =
   '[transition:transform_.35s_cubic-bezier(.2,.8,.2,1),opacity_.5s_ease,border-color_.25s_ease] motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none';
 
-// 화면에 들어오면 아래에서 떠오르며 나타난다. delay(ms)만큼 늦게 시작하고, 나타난 뒤에는 hover가 늦지 않게 지연을 없앤다.
-// isInstant: 처음부터 보인다(이미 나타난 화면에서 내용만 바뀔 때). popDelay(ms)가 있으면 나타나는 대신 통통 튀며 바뀐다
 export default function Reveal({
   as = 'div',
   delay = 0,

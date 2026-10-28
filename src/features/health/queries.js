@@ -83,11 +83,12 @@ const showErrorToast = (error) => showToast(error.message);
 export const usePets = () =>
   useQuery({ queryKey: healthKeys.pets, queryFn: getPets });
 
-// params: { startYmd, endYmd }
+/** params: { petSns, fromYmd, toYmd, size } */
 export const useSchedules = (params) =>
   useQuery({
     queryKey: healthKeys.scheduleList(params),
     queryFn: () => getSchedules(params),
+    enabled: params.petSns != null,
     placeholderData: keepPreviousData,
   });
 

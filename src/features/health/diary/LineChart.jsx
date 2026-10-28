@@ -61,7 +61,7 @@ const getCurvePath = (points, slopes) => {
  * - 시안 nyangmung-chart.js의 nmCurveChart와 같은 모양: 곡선 + 연한 그라데이션, 범위는 점선 + 왼쪽 눈금(상한·하한), 최근 값은 말풍선
  * - points: [{ label, value }] 2개 이상, band: [최소, 최대], goal: 목표, formatValue: 말풍선 값, formatTag: 범위 라벨 값
  * - bandLabelSide: 'left'(기본, 오른쪽 라벨 없이 왼쪽 눈금을 상한·하한으로) / 'right'(오른쪽 최대·최소 라벨)
- * - activeIndex: 말풍선을 띄울 점(points의 순번). 없으면 마지막 점
+ * - activeIndex: 말풍선을 띄울 점(points의 순번). 없으면 마지막 점, null이면 말풍선 없이 점만
  * - isLeftColumn: 상한·목표·하한을 모두 왼쪽 한 열의 라벨로 두고 오른쪽 라벨은 없앤다(모바일 건강기록 변화). bandLabelSide보다 우선
  */
 export default function LineChart({
@@ -156,14 +156,16 @@ function Chart({
   const slopes = getSlopes(coords);
   const curve = getCurvePath(coords, slopes);
   const [lastX] = coords[count - 1];
-  /** 말풍선을 띄울 점: activeIndex가 없거나 범위 밖이면 마지막 점 */
-  const tipIndex =
-    activeIndex != null && activeIndex >= 0 && activeIndex < count
+  /** 말풍선을 띄울 점: activeIndex가 없거나 범위 밖이면 마지막 점, null이면 띄우지 않음(-1) */
+  const hasTip = activeIndex !== null;
+  const tipIndex = !hasTip
+    ? -1
+    : activeIndex !== undefined && activeIndex >= 0 && activeIndex < count
       ? activeIndex
       : count - 1;
-  const [tipPointX, tipPointY] = coords[tipIndex];
-  const tipValue = values[tipIndex];
-  const tipLabel = formatValue(tipValue);
+  const [tipPointX, tipPointY] = hasTip ? coords[tipIndex] : [0, 0];
+  const tipValue = hasTip ? values[tipIndex] : 0;
+  const tipLabel = hasTip ? formatValue(tipValue) : '';
   const tipWidth = Math.max(52, tipLabel.length * 9 + 24);
   const tipX = Math.min(
     Math.max(tipPointX, left + tipWidth / 2),
@@ -317,12 +319,14 @@ function Chart({
             ) : null,
           )}
 
-      <path
-        d={`M${tipPointX} ${tipPointY + 10}V${height - bottom}`}
-        stroke={COLORS.brandLine}
-        strokeWidth="1.5"
-        strokeDasharray="4 4"
-      />
+      {hasTip && (
+        <path
+          d={`M${tipPointX} ${tipPointY + 10}V${height - bottom}`}
+          stroke={COLORS.brandLine}
+          strokeWidth="1.5"
+          strokeDasharray="4 4"
+        />
+      )}
       {coords.map(([x, y], i) =>
         i === tipIndex ? null : (
           <circle
@@ -336,48 +340,52 @@ function Chart({
           />
         ),
       )}
-      <circle
-        cx={tipPointX}
-        cy={tipPointY}
-        r="11"
-        fill={COLORS.brand}
-        opacity="0.15"
-      />
-      <circle
-        cx={tipPointX}
-        cy={tipPointY}
-        r="6"
-        fill={isOut(tipValue) ? COLORS.danger : COLORS.brand}
-        stroke={COLORS.white}
-        strokeWidth="3"
-      />
+      {hasTip && (
+        <>
+          <circle
+            cx={tipPointX}
+            cy={tipPointY}
+            r="11"
+            fill={COLORS.brand}
+            opacity="0.15"
+          />
+          <circle
+            cx={tipPointX}
+            cy={tipPointY}
+            r="6"
+            fill={isOut(tipValue) ? COLORS.danger : COLORS.brand}
+            stroke={COLORS.white}
+            strokeWidth="3"
+          />
 
-      <g style={{ filter: 'drop-shadow(0 4px 8px rgba(30,74,76,.14))' }}>
-        <rect
-          x={tipX - tipWidth / 2}
-          y={tipY}
-          width={tipWidth}
-          height={30}
-          rx={15}
-          fill={COLORS.white}
-          stroke={COLORS.brand}
-          strokeWidth="1.5"
-        />
-        <path
-          d={`M${tipPointX - 5} ${tipY + 30}L${tipPointX} ${tipY + 36}L${tipPointX + 5} ${tipY + 30}Z`}
-          fill={COLORS.brand}
-        />
-        <text
-          x={tipX}
-          y={tipY + 20}
-          textAnchor="middle"
-          fontSize="15"
-          fontWeight="700"
-          fill={COLORS.brandInk}
-        >
-          {tipLabel}
-        </text>
-      </g>
+          <g style={{ filter: 'drop-shadow(0 4px 8px rgba(30,74,76,.14))' }}>
+            <rect
+              x={tipX - tipWidth / 2}
+              y={tipY}
+              width={tipWidth}
+              height={30}
+              rx={15}
+              fill={COLORS.white}
+              stroke={COLORS.brand}
+              strokeWidth="1.5"
+            />
+            <path
+              d={`M${tipPointX - 5} ${tipY + 30}L${tipPointX} ${tipY + 36}L${tipPointX + 5} ${tipY + 30}Z`}
+              fill={COLORS.brand}
+            />
+            <text
+              x={tipX}
+              y={tipY + 20}
+              textAnchor="middle"
+              fontSize="15"
+              fontWeight="700"
+              fill={COLORS.brandInk}
+            >
+              {tipLabel}
+            </text>
+          </g>
+        </>
+      )}
 
       {points.map((point, i) => (
         <text

@@ -107,7 +107,7 @@ export default function NewsList({
                       <h3 className="mt-2.5 truncate text-lg leading-[1.4] font-semibold tracking-[-0.18px] text-[#1a3234] group-hover:text-[#285a5c] max-[760px]:line-clamp-2 max-[760px]:whitespace-normal">
                         {item.newsTtl}
                       </h3>
-                      <p className="mt-3.5 line-clamp-2 text-base leading-[1.6] text-[#3d4a4b] max-[760px]:mt-2 max-[760px]:text-sm">
+                      <p className="mt-3.5 line-clamp-2 min-h-[3.2em] text-base leading-[1.6] text-[#3d4a4b] max-[760px]:mt-2 max-[760px]:text-sm">
                         {item.newsCn}
                       </p>
                     </div>

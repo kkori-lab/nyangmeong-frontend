@@ -1,13 +1,20 @@
+import { api } from '@/api/axios';
 import { IS_DEV } from '@/api/env';
 import profile1 from '@/assets/pets/profile1.png';
 import profile2 from '@/assets/pets/profile2.png';
 import profile3 from '@/assets/pets/profile3.png';
-import { addDays, diffDays, getTodayYmd } from '@/utils/formatDate';
+import {
+  addDays,
+  diffDays,
+  getTodayYmd,
+  getYmdOf,
+  makeDateTime,
+} from '@/utils/formatDate';
 import { CHRC_STTS, PET_REL, PET_SE } from '@/utils/petCodes';
 import { MAX_MAIN_CARE, getNextDueYmd } from './careDue';
-import { HOSPITAL } from './scheduleTypes';
+import { HOSPITAL, compareSchedules } from './scheduleTypes';
 
-// 케어 캘린더 API(JAJ 백엔드)와 반려동물 목록(SJM)이 생기기 전까지 쓰는 가짜 응답이다. api.get() 등으로 바꾸고 실제 필드 이름에 맞춘다
+// 케어 캘린더 일정은 실제 API(JAJ 백엔드). 반려동물 목록(SJM)·케어리스트·검진기록 연결용 일정은 아직 가짜 응답
 // 필드 이름은 ERD 약어 기준 가안이다. 메모리 배열이라 새로고침하면 처음 상태로 돌아간다
 // 개발 환경에서만 ?fakePets=1로 반려동물 1마리를, ?fakePets=8로 8마리(캐릭터 미생성·공동양육 포함)를, ?fakeSchedules=0으로 일정 0건을, ?fakeRecords=0으로 완료 기록 0건을 확인할 수 있다
 
@@ -63,18 +70,23 @@ const extraPets = [
   ['콩이', PET_SE.DOG, '강아지', CHRC_STTS.DONE, PET_REL.CO_PARENT, profile3],
   ['율무', PET_SE.CAT, '고양이', CHRC_STTS.NONE, PET_REL.CO_PARENT, null],
   ['까미', PET_SE.CAT, '고양이', CHRC_STTS.DONE, PET_REL.OWNER, profile2],
-].map(([petNm, petSeCd, petSpcsCdNm, chrcSttsCd, petRelCd, chrctrImgPath], index) => ({
-  petSn: 4 + index,
-  petNm,
-  petSeCd,
-  chrcSttsCd,
-  petRelCd,
-  petSpcsCdNm,
-  chrctrImgPath,
-  nrmlWghtMinVal: null,
-  nrmlWghtMaxVal: null,
-  goalWghtVal: null,
-}));
+].map(
+  (
+    [petNm, petSeCd, petSpcsCdNm, chrcSttsCd, petRelCd, chrctrImgPath],
+    index,
+  ) => ({
+    petSn: 4 + index,
+    petNm,
+    petSeCd,
+    chrcSttsCd,
+    petRelCd,
+    petSpcsCdNm,
+    chrctrImgPath,
+    nrmlWghtMinVal: null,
+    nrmlWghtMaxVal: null,
+    goalWghtVal: null,
+  }),
+);
 
 const getFakePets = () => {
   const mode = getQueryParam('fakePets');
@@ -95,171 +107,171 @@ const fakeSchedules = [
   {
     schdlSn: 1,
     petSn: 1,
-    schdlTypeCd: 'HOSP',
-    ckupTypeCd: 'REG',
-    hospNm: '늘봄동물병원',
+    schdlKndCd: 'HLTC0057',
+    ckupTypeCd: 'HLTC0001',
+    hsptlNm: '늘봄동물병원',
     schdlNm: null,
-    schdlYmd: addDays(today, -10),
-    schdlTm: '10:30',
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, -10), '10:30'),
+    hrInptYn: true,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 1,
   },
   {
     schdlSn: 2,
     petSn: 3,
-    schdlTypeCd: 'HOSP',
-    ckupTypeCd: 'DISE',
-    hospNm: '해맑은동물병원',
+    schdlKndCd: 'HLTC0057',
+    ckupTypeCd: 'HLTC0003',
+    hsptlNm: '해맑은동물병원',
     schdlNm: null,
-    schdlYmd: addDays(today, -3),
-    schdlTm: null,
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, -3), null),
+    hrInptYn: false,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 3,
     petSn: 2,
-    schdlTypeCd: 'BEAUTY',
+    schdlKndCd: 'HLTC0058',
     ckupTypeCd: null,
-    hospNm: null,
+    hsptlNm: null,
     schdlNm: '집 목욕',
-    schdlYmd: today,
-    schdlTm: '15:00',
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(today, '15:00'),
+    hrInptYn: true,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 4,
     petSn: 1,
-    schdlTypeCd: 'HOSP',
-    ckupTypeCd: 'REG',
-    hospNm: '늘봄동물병원',
+    schdlKndCd: 'HLTC0057',
+    ckupTypeCd: 'HLTC0001',
+    hsptlNm: '늘봄동물병원',
     schdlNm: null,
-    schdlYmd: today,
-    schdlTm: '10:00',
-    schdlMemoCn: '오전 예약, 공복 방문',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(today, '10:00'),
+    hrInptYn: true,
+    memoCn: '오전 예약, 공복 방문',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 5,
     petSn: 1,
-    schdlTypeCd: 'HOSP',
-    ckupTypeCd: 'VACC',
-    hospNm: '늘봄동물병원',
+    schdlKndCd: 'HLTC0057',
+    ckupTypeCd: 'HLTC0002',
+    hsptlNm: '늘봄동물병원',
     schdlNm: null,
-    schdlYmd: addDays(today, 3),
-    schdlTm: '11:00',
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, 3), '11:00'),
+    hrInptYn: true,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 6,
     petSn: 3,
-    schdlTypeCd: 'HOSP',
-    ckupTypeCd: 'REG',
-    hospNm: '해맑은동물병원',
+    schdlKndCd: 'HLTC0057',
+    ckupTypeCd: 'HLTC0001',
+    hsptlNm: '해맑은동물병원',
     schdlNm: null,
-    schdlYmd: addDays(today, 6),
-    schdlTm: null,
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, 6), null),
+    hrInptYn: false,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 7,
     petSn: 2,
-    schdlTypeCd: 'BEAUTY',
+    schdlKndCd: 'HLTC0058',
     ckupTypeCd: null,
-    hospNm: null,
+    hsptlNm: null,
     schdlNm: '미용',
-    schdlYmd: addDays(today, 10),
-    schdlTm: null,
-    schdlMemoCn: '',
-    bdgClrCd: '#f59e0b',
+    schdlDt: makeDateTime(addDays(today, 10), null),
+    hrInptYn: false,
+    memoCn: '',
+    cldrBadgeColrCd: '#f59e0b',
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 8,
     petSn: 1,
-    schdlTypeCd: 'ETC',
+    schdlKndCd: 'HLTC0060',
     ckupTypeCd: null,
-    hospNm: null,
+    hsptlNm: null,
     schdlNm: '사료 주문',
-    schdlYmd: addDays(today, 20),
-    schdlTm: null,
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, 20), null),
+    hrInptYn: false,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   // 일정이 5건인 날(캘린더 +n 확인용)
   {
     schdlSn: 9,
     petSn: 1,
-    schdlTypeCd: 'HOSP',
-    ckupTypeCd: 'VACC',
-    hospNm: '늘봄동물병원',
+    schdlKndCd: 'HLTC0057',
+    ckupTypeCd: 'HLTC0002',
+    hsptlNm: '늘봄동물병원',
     schdlNm: null,
-    schdlYmd: addDays(today, 2),
-    schdlTm: '09:30',
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, 2), '09:30'),
+    hrInptYn: true,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 10,
     petSn: 2,
-    schdlTypeCd: 'BEAUTY',
+    schdlKndCd: 'HLTC0058',
     ckupTypeCd: null,
-    hospNm: null,
+    hsptlNm: null,
     schdlNm: '미용',
-    schdlYmd: addDays(today, 2),
-    schdlTm: '11:00',
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, 2), '11:00'),
+    hrInptYn: true,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 11,
     petSn: 3,
-    schdlTypeCd: 'HOSP',
-    ckupTypeCd: 'REG',
-    hospNm: '해맑은동물병원',
+    schdlKndCd: 'HLTC0057',
+    ckupTypeCd: 'HLTC0001',
+    hsptlNm: '해맑은동물병원',
     schdlNm: null,
-    schdlYmd: addDays(today, 2),
-    schdlTm: '13:30',
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, 2), '13:30'),
+    hrInptYn: true,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 12,
     petSn: 1,
-    schdlTypeCd: 'ETC',
+    schdlKndCd: 'HLTC0060',
     ckupTypeCd: null,
-    hospNm: null,
+    hsptlNm: null,
     schdlNm: '사료 수령',
-    schdlYmd: addDays(today, 2),
-    schdlTm: '16:00',
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, 2), '16:00'),
+    hrInptYn: true,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
   {
     schdlSn: 13,
     petSn: 2,
-    schdlTypeCd: 'ETC',
+    schdlKndCd: 'HLTC0060',
     ckupTypeCd: null,
-    hospNm: null,
+    hsptlNm: null,
     schdlNm: '장난감 사기',
-    schdlYmd: addDays(today, 2),
-    schdlTm: null,
-    schdlMemoCn: '',
-    bdgClrCd: null,
+    schdlDt: makeDateTime(addDays(today, 2), null),
+    hrInptYn: false,
+    memoCn: '',
+    cldrBadgeColrCd: null,
     ckupRcdCnt: 0,
   },
 ];
@@ -275,46 +287,32 @@ const toScheduleResponse = (schedule) => ({
   petNm: findPetNm(schedule.petSn),
 });
 
-// startYmd·endYmd(포함) 범위의 일정. totalSchdlCnt는 기간과 관계없는 전체 일정 수다(0건이면 월 이동 비활성, FN-HLT-003-29)
-export const getSchedules = ({ startYmd, endYmd }) => {
-  const all = getFakeSchedules();
-  const content = all
-    .filter(
-      (schedule) =>
-        schedule.schdlYmd >= startYmd && schedule.schdlYmd <= endYmd,
-    )
-    .map(toScheduleResponse);
-  return Promise.resolve({ content, totalSchdlCnt: all.length });
+/** 종합 건강기록 가짜 응답용 일정(summaryApi) */
+export const getFakeScheduleList = () =>
+  Promise.resolve(getFakeSchedules().map(toScheduleResponse));
+
+/**
+ * 반려동물들의 일정 목록(FN-HLT-003-29·31·40)
+ * - 서버가 반려동물 단위 조회라 반려동물 수만큼 요청 후 합침
+ * - size: 반려동물마다의 최대 건수
+ */
+export const getSchedules = async ({ petSns, fromYmd, toYmd, size }) => {
+  const lists = await Promise.all(
+    petSns.map((petSn) =>
+      api.get(`/pets/${petSn}/care-schedules`, {
+        params: { fromYmd, toYmd, size },
+      }),
+    ),
+  );
+  return lists.flat().sort(compareSchedules);
 };
 
-const pickScheduleFields = (body) => ({
-  petSn: body.petSn,
-  schdlTypeCd: body.schdlTypeCd,
-  ckupTypeCd: body.ckupTypeCd ?? null,
-  hospNm: body.hospNm ?? null,
-  schdlNm: body.schdlNm ?? null,
-  schdlYmd: body.schdlYmd,
-  schdlTm: body.schdlTm || null,
-  schdlMemoCn: body.schdlMemoCn ?? '',
-  bdgClrCd: body.bdgClrCd ?? null,
-});
+export const createSchedule = ({ petSn, body }) =>
+  api.post(`/pets/${petSn}/care-schedules`, body);
 
-export const createSchedule = (body) => {
-  const schedule = {
-    schdlSn: nextSchdlSn++,
-    ...pickScheduleFields(body),
-    ckupRcdCnt: 0,
-  };
-  fakeSchedules.push(schedule);
-  return Promise.resolve(toScheduleResponse(schedule));
-};
-
-// 반려동물을 바꾸면 연결된 검진기록·연동 케어 항목도 서버가 함께 옮긴다(FN-HLT-003-37). 가짜는 일정만 옮긴다
-export const updateSchedule = ({ schdlSn, ...body }) => {
-  const target = fakeSchedules.find((schedule) => schedule.schdlSn === schdlSn);
-  Object.assign(target, pickScheduleFields(body));
-  return Promise.resolve(toScheduleResponse(target));
-};
+/** 경로는 원래 반려동물, body.petSn은 옮길 반려동물(FN-HLT-003-37) */
+export const updateSchedule = ({ petSn, schdlSn, body }) =>
+  api.patch(`/pets/${petSn}/care-schedules/${schdlSn}`, body);
 
 /** 일정 삭제 알림을 받을 곳: 검진기록의 연결 일정 해제용(diaryApi) */
 const scheduleDeletedListeners = [];
@@ -322,43 +320,39 @@ const scheduleDeletedListeners = [];
 export const onScheduleDeleted = (listener) =>
   scheduleDeletedListeners.push(listener);
 
-export const deleteSchedule = (schdlSn) => {
-  const index = fakeSchedules.findIndex(
-    (schedule) => schedule.schdlSn === schdlSn,
-  );
-  if (index >= 0) fakeSchedules.splice(index, 1);
+export const deleteSchedule = async ({ petSn, schdlSn }) => {
+  await api.delete(`/pets/${petSn}/care-schedules/${schdlSn}`);
   scheduleDeletedListeners.forEach((listener) => listener(schdlSn));
-  return Promise.resolve();
 };
 
 const NEAR_SCHEDULE_DAYS = 7;
+
+const isFakeHospital = (schedule) => schedule.schdlKndCd === HOSPITAL;
 
 const findSameDayHospital = (petSn, ymd) =>
   fakeSchedules
     .filter(
       (schedule) =>
         schedule.petSn === petSn &&
-        schedule.schdlTypeCd === HOSPITAL &&
-        schedule.schdlYmd === ymd,
+        isFakeHospital(schedule) &&
+        getYmdOf(schedule.schdlDt) === ymd,
     )
     .sort((a, b) => a.schdlSn - b.schdlSn)[0];
 
 /** 가까운 예정 병원 일정 1건: 같은 날 병원 일정이 없고 앞뒤 7일 안에 검진기록 없는 일정(FN-HLT-002-46) */
 export const findNearHospitalSchedule = ({ petSn, ckupYmd }) => {
   if (findSameDayHospital(petSn, ckupYmd)) return Promise.resolve(null);
+  const distance = (schedule) =>
+    Math.abs(diffDays(ckupYmd, getYmdOf(schedule.schdlDt)));
   const near = fakeSchedules
     .filter(
       (schedule) =>
         schedule.petSn === petSn &&
-        schedule.schdlTypeCd === HOSPITAL &&
+        isFakeHospital(schedule) &&
         schedule.ckupRcdCnt === 0 &&
-        Math.abs(diffDays(ckupYmd, schedule.schdlYmd)) <= NEAR_SCHEDULE_DAYS,
+        distance(schedule) <= NEAR_SCHEDULE_DAYS,
     )
-    .sort(
-      (a, b) =>
-        Math.abs(diffDays(ckupYmd, a.schdlYmd)) -
-          Math.abs(diffDays(ckupYmd, b.schdlYmd)) || a.schdlSn - b.schdlSn,
-    )[0];
+    .sort((a, b) => distance(a) - distance(b) || a.schdlSn - b.schdlSn)[0];
   return Promise.resolve(near ? toScheduleResponse(near) : null);
 };
 
@@ -373,20 +367,21 @@ export const linkCheckupToSchedule = ({
   let target = findSameDayHospital(petSn, ckupYmd);
   if (!target && nearSchdlSn != null) {
     target = fakeSchedules.find((schedule) => schedule.schdlSn === nearSchdlSn);
-    target.schdlYmd = ckupYmd;
+    target.schdlDt = makeDateTime(ckupYmd, null);
+    target.hrInptYn = false;
   }
   if (!target) {
     target = {
       schdlSn: nextSchdlSn++,
       petSn,
-      schdlTypeCd: HOSPITAL,
+      schdlKndCd: HOSPITAL,
       ckupTypeCd,
-      hospNm,
+      hsptlNm: hospNm,
       schdlNm: null,
-      schdlYmd: ckupYmd,
-      schdlTm: null,
-      schdlMemoCn: '',
-      bdgClrCd: null,
+      schdlDt: makeDateTime(ckupYmd, null),
+      hrInptYn: false,
+      memoCn: '',
+      cldrBadgeColrCd: null,
       ckupRcdCnt: 0,
     };
     fakeSchedules.push(target);

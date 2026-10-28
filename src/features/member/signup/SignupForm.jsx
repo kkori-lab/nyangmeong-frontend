@@ -1,3 +1,4 @@
+import StepMotion from '@/components/StepMotion';
 import AuthCard from '../shared/AuthCard';
 import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
@@ -36,22 +37,6 @@ const STEPS = {
     Body: PasswordStep,
   },
 };
-
-// 단계가 바뀌면 key가 바뀌어 새로 그려지고, 방향에 따라 옆에서 들어오며 나타난다(크기는 변하지 않는다)
-function StepMotion({ stepKey, direction, children }) {
-  return (
-    <div
-      key={stepKey}
-      className={`transition duration-300 ease-out starting:opacity-0 ${
-        direction === 'back'
-          ? 'starting:-translate-x-5'
-          : 'starting:translate-x-5'
-      }`}
-    >
-      {children}
-    </div>
-  );
-}
 
 // 이메일 가입(약관 → 이메일 인증 → 휴대전화번호 → 비밀번호). 가입은 마지막 단계에서만 일어나고,
 // 성공하면 닉네임 설정 모달이 열린 가입 완료 화면으로 간다. 가입만으로 로그인하지 않는다

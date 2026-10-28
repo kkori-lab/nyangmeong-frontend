@@ -69,7 +69,6 @@ export default function CareDetail({ post }) {
   const isLiked = post.likeYn === 'Y';
   const badges = [...new Set([...getShapeNames(post), ...getPetBadges(post)])];
   const schedule = formatScheduleDetail(post);
-  const area = `${post.emdNm} 인근`;
 
   /** 클릭 핸들러에서 바로 연다: 요청을 기다린 뒤 열면 팝업이 차단된다 */
   const handleChat = (params) => {
@@ -192,7 +191,10 @@ export default function CareDetail({ post }) {
                 </span>
               </InfoRow>
             </dl>
-            <CareAreaMap area={area} isTall className="mt-3" />
+            <CareAreaMap
+              place={{ sggNm: post.sggNm, emdNm: post.emdNm }}
+              className="mt-3"
+            />
           </section>
         </PostBody>
 
