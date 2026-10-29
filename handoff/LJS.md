@@ -2,37 +2,15 @@
 
 ## 지금 하는 것
 
-SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 끝(2026-10-29): 검증 통과(추가-1~3 포함)·사람 확인 끝. FN-AIM-002-07은 사람 확인에서 재현 못 함(넘어감)
-
-계약: ai 저장소 LJS `41385b7` `docs/api/chat.md`의 `POST /ai/conversations/{aiCnvrsRoomSn}/messages`(MessageSendRequest `{cnvrsCn?}`, 응답 SSE `intent` → `delta`… → `done`|`error`). 기능명세서 AI매니저 v0.9(20261026). 디자인: `html/SCR-AIM-002.html`, 화면 모양은 바꾸지 않는다(이미 끝난 화면에 서버만 붙임).
-
-- B-01 SSE 요청 공통: `src/api/axios.js`에 `aiStream(url, body, { signal, onEvent })`를 더한다. `fetch('/ai' + url)` POST, 헤더 `X-Requested-With`·`Content-Type: application/json`. 응답이 JSON이면 스트림 전 오류로 보고 인터셉터와 같은 규칙을 쓴다(오류 모양 `{code, message, fields}`, 401 `TOKEN_EXPIRED`면 `refreshing` 공유 재발급 → 1회 재시도, 그 밖의 401·403 `MEMBER_INACTIVE`는 로그인 이동, 연결 실패 `NETWORK_ERROR`). `text/event-stream`이면 `response.body.getReader()`로 읽어 빈 줄로 블록을 나누고 `event:`·`data:`(JSON)를 `onEvent(name, data)`로 넘긴다. 로그인 이동·오류 모양 코드는 인터셉터와 함수로 나눠 쓴다. `docs/convention/api.md` "주소와 인증"에 "AI 스트리밍은 `aiStream`, 화면 코드에서 `fetch`를 직접 쓰지 않는다" 한 줄. 완료 조건 — 명령: `node scripts/check-axios-errors.mjs`에 `aiStream` 경우 4개(이벤트 파싱·조각이 블록 중간에서 끊겨도 같은 결과 / 401 `TOKEN_EXPIRED` → `/auth/refresh` → 재시도 / 401 `UNAUTHORIZED` → 로그인 이동 / 400 `INVALID_REQUEST` → 그 코드로 실패)를 더하고 전부 ok
-- FN-AIM-001-04·05, 011-07·14 전송·의도 분기: `features/ai/api.js` `sendMessage`·`streamAnswer` 가짜를 `sendMessage({ aiCnvrsRoomSn, cnvrsCn, signal, onIntent, onDelta })` 하나로 바꾼다. 방이 없으면 `createConversation(cnvrsCn)` 뒤 같은 방에 `{}`, 있으면 `{cnvrsCn}`, `cnvrsCn`이 없으면(다시 시도·다시 생성) `{}`. `done`이면 `{ aiCnvrsRoomSn, intent, message, shortcut }`을 돌려주고 `error` 이벤트면 `{code, message}`로 실패. 사용자·AI 메시지는 서버가 저장하므로 검색·이동·폴백 경로의 `fakeMessages` 저장을 지운다(등록·영수증 가짜만 남김). `lastActive`(이어 쓴 대화 목록 맨 위)는 서버에 갱신 시각이 없어 남긴다. `useAnswerStream.js`가 전송부터 끝까지 맡고(`start({ aiCnvrsRoomSn, cnvrsCn, replaceMsgSn, onIntent })`), `pages/ai/AiChatPage.jsx` `handleSend`는 `intent`로 화면을 가른다. 새 대화는 방이 생기면 바로 그 방을 선택해 서버가 저장한 첫 메시지가 보이게 한다. API: Python AI 서버(LJS). 완료 조건 — 화면: 새 대화와 이어지는 질문 모두 내 말풍선이 바로 보이고, 새로고침해도 질문·답변이 남는다
-- FN-AIM-002-02·03·06 검색 답변: `delta.text`를 받는 대로 이어 붙이고 첫 `delta` 전까지 점 3개, `done`·`error`까지 입력 차단. 의료 고지는 서버가 마지막 `delta`로 주므로 화면에서 붙이지 않는다. 클라이언트 10초·60초 타이머는 서버가 판정하므로 지우고, 서버가 멈췄을 때만 쓰는 70초 안전 중단을 둔다. 완료 조건 — 화면: "강아지 예방접종 언제 해?" → 점 3개 → 글자가 이어 붙고 끝에 "※ 참고 정보이며 의료 진단이 아닙니다" / 답변 중 입력창 비활성
-- FN-AIM-002-04·05 연관 바로가기: `done.shortcut`(Intent ROUTE 모양)을 변환표로 경로로 바꿔 `AnswerBubble` "관련 기능 바로가기" 버튼(`label: scrNm`), 누르면 ROUTE와 같은 이동. 저장하지 않으므로 다시 열면 없다(명세대로). 완료 조건 — 화면: 바로가기가 온 답변에 버튼이 보이고 누르면 본창 이동 + 창 닫힘. 서버가 바로가기를 주는 질문을 찾지 못하면 이유와 함께 보고
-- FN-AIM-002-07 오류·미완료: `error` 이벤트 → 기존 "일시적으로 답변할 수 없어요" + [다시 시도] + 칩 재노출, [다시 시도]는 `{}`로 다시 보낸다. `done.message.cmptnYn === false` → 미완료 말풍선 + [다시 생성](`{}`, 그 말풍선을 새 답변으로 교체). 다시 열 때 미완료 판정을 `aiCnvrsMsgCmptnYn === 'N'` → `cmptnYn === false`로(`ConversationMessages.jsx`, 가짜 메시지도 `cmptnYn: true`). 스트림 전 오류(400·404·502)는 기존 "메시지를 보내지 못했어요". 완료 조건 — 화면: AI 서버의 LLM을 쓸 수 없게 띄워 `error`를 내고 [다시 시도]로 답을 받는다. 미완료(60초 초과·도중 끊김)는 서버에서 만들기 어려우면 이유와 함께 보고
-- FN-AIM-004-01·03·06·07·10·12 이동: 새 `features/ai/shared/screenPaths.js`에 화면 ID(+`param`) → `PATHS` 변환표(ai `data/routing.yaml`의 라우팅 대상 행 30개, `docs/routes.md` 1장 ✓ 기준). `intent.kind === 'ROUTE'`면 기존 이동 안내(`RouteGuideBubble`, 3초 유예·취소)에 `scrNm`·경로를 넣고, `moveType === 'MODAL'`(COM-009)이면 채팅 창을 연다. 변환표에 없는 화면 ID는 실패 안내로 보인다. `fakeRoutingMap.js`(`matchRoute`·`isRegisterRequest`)를 지우고 `CHAT_MODAL_ACTION`은 `moveType`으로 바꾼다. 이동 안내 문구는 서버가 저장하지 않아 새로고침하면 사라진다. 완료 조건 — 화면: "가계부" → 3초 뒤 본창 `/mypage/expenses`·창 닫힘 / "동물병원" → `/places?category=hospital` / [취소]면 이동 안 함 / "채팅" → 채팅 창이 열림
-- FN-AIM-005-01·02 폴백: `intent.kind === 'FALLBACK'`이면 기존처럼 실패 횟수를 늘리고 칩을 다시 보인다. 안내 문구는 서버가 저장한 `done.message`를 상세를 다시 불러 보인다(문구가 `FALLBACK_MESSAGE`와 같음 확인함). 완료 조건 — 화면: "ㅋㅋㅋ" 2회 → 실패 안내 + FAQ 버튼, 새로고침해도 실패 안내가 남는다
-- REGISTER·RECEIPT(SCR-AIM-012·013 연결 전): 서버가 `REGISTER`라고 하면 기존 가짜 해석(`interpretRegister`, 미리보기 카드)을 그대로 돌린다. 되묻는 중(반려동물·빠진 칸)이거나 카드 수정 문구면 서버를 부르지 않고 지금처럼 가짜로 처리한다. `RECEIPT`면 "영수증 사진을 첨부해 주세요" 안내를 보인다(저장 안 함). 완료 조건 — 화면: "다음 주 화요일 산책 등록해줘" → 기존 미리보기 카드가 나오고 [등록]이 동작
-- 공통 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`, `node scripts/check-axios-errors.mjs`
-- 확인 환경: 백엔드 `./gradlew bootRun`(8080) + ai 저장소 LJS(`41385b7` 이후) `uv run python -m uvicorn app.main:app --reload`(8000, LLM 키 필요) + 프론트 `yarn dev`, 로그인 쿠키
-- 질문(승인 때 답):
-  1. 일정 등록 되묻기·카드 수정 문구는 서버를 거치지 않고 가짜로 처리한다(이 대화 이력은 새로고침하면 사라짐). (추천: 그대로, SCR-AIM-012 연결 때 서버로)
-  2. 서버 `param`이 `?cat=hospital`인데 프론트 URL은 `?category=hospital`(`docs/routes.md`)이다. 변환표에서 `category`로 바꾸고 AI 서버에 `category`로 맞춰 달라고 알린다. (추천: 그렇게)
-  3. 서버 화면 ID `SCR-MYP-031`은 가계부 전체 내역(`/mypage/expenses/all`, routes.md의 MYP-030 30-2)으로, `SCR-CMU-001-01`·`SCR-CMU-003-01`·`SCR-CSC-002-01`은 각 목록(`/community`·`/community/news`·`/faqs`)으로 본다. (추천: 그렇게)
-  - 결정: 추천안대로 (1~3 모두)
-- AI 서버에 확인할 것(구현 중 메시지): [다시 생성] 뒤 이전 미완료 메시지가 DB에 남는지(남으면 다시 열 때 미완료와 새 답변이 둘 다 보임). `param` 이름 `cat` → `category`
-- 새 의존성: 없음
-
-### 추가 요청
-
-| 추가-1 | `src/pages/ai/AiChatPage.jsx` | 명령: `yarn -s lint`, `yarn -s build` / 화면: 메인 AI 입력에 "안녕" → AI 창(`/ai?q=안녕`)이 열리며 내 말풍선이 바로 보이고 답변이 이어진다(개발 모드 StrictMode 포함) | 요청 2026-10-29 09:59 "메인 입력값으로 대화가 시작되지 않고 빈 창만 뜸" |
-| 추가-2 | `src/pages/ai/AiChatPage.jsx` | 명령: `yarn -s lint`, `yarn -s build` / 화면: 새 대화 첫 메시지 → 방이 생기고 상세를 받기 전까지 헤더 틀이 남고 제목 자리에 스켈레톤, 받은 뒤 제목 헤더 | 요청 2026-10-29 "대화 시작 때 헤더가 사라졌다 다시 생김, 스켈레톤으로" |
-| 추가-3 | `src/hooks/useAiWindow.js` | 명령: `yarn -s lint`, `yarn -s build` / 화면: /mypage 플로팅 버튼으로 AI 창을 연 채 /main AI 입력에 "안녕" → 열린 AI 창이 `/ai?q=안녕`으로 바뀌고 그 메시지로 새 대화가 시작된다 | 요청 2026-10-29 "AI 창이 이미 열려 있으면 메인 입력값이 버려지고 기본 창이 뜸" |
+SCR-AIM-012 등록 카드 서버 연결 — 끝(2026-10-29): 검증 통과(1회차)·사람 확인 끝. 되물음 `draft`·반려동물 칩·서버 카드 표시·최근 카드만 활성·등록/취소 결과 저장을 ai 서버(messages `draft`·`done.card`, register-result)로 옮기고 등록 가짜(`fakeRegisterParser`)를 지움. 결정: 처리 안 한 카드는 새로고침하면 사라짐(명세대로), Java 등록은 가짜(`registerToHealth`)
 
 ## 다음에 할 것
 
-- SCR-AIM-002 연결 남음: REGISTER·RECEIPT 판정 뒤 처리(서버 이어 가기 API, SCR-AIM-012·013 마일스톤, LJS). FN-AIM-002-07은 ai 반영(③) 뒤 틀린 LLM 키로 다시 확인해 볼 수 있다
+- SCR-AIM-012 연결 남음: 012-13·14 Java 일정·케어 항목 등록 API(JAJ, 출처 HLTC0067, 사람이 JAJ에게 요청 예정). 나오면 `features/ai/api.js` `registerToHealth` 가짜만 실제 요청으로 바꾼다(카드 필드가 SCHDL·CARE_ARTCL 컬럼 이름 그대로). 직접입력 주기 `cycleDays` 저장 컬럼은 백엔드와 정할 것. 지금은 [등록]해도 캘린더에 생기지 않고 대화에 "✔ 등록됨"만 저장된다
+- SCR-AIM-012 PR 전 확인: 프론트는 ai 저장소 LJS 작업 사본(커밋 전)의 `docs/api/chat.md` messages `draft`·`done.card`와 `POST /ai/conversations/{aiCnvrsRoomSn}/register-result`에 붙었다. ai 쪽이 커밋·배포돼야 develop에서 동작한다(ai-23 세션 몫)
+- SCR-AIM-012 사람이 정할 것(검증 판정 밖): ① 등록 오류 안내가 `confirmRegister.isError || cancelRegister.isError`라 [취소] 실패 뒤 [등록]이 성공해도 "처리하지 못했어요…"가 남는다(전부터 있던 동작) ② 처리 안 한 카드는 새로고침하면 사라져 내 말풍선만 남는다(결정 A, 나중에 B 브라우저 `sessionStorage` 보관·C 서버 카드 저장을 다시 볼 수 있음). 고치면 추가 요청이나 새 마일스톤으로
+
+- SCR-AIM-002 연결 남음: RECEIPT 판정 뒤 처리(SCR-AIM-013 마일스톤, LJS. REGISTER는 SCR-AIM-012 연결로 끝남). FN-AIM-002-07은 ai 반영(③) 뒤 틀린 LLM 키로 다시 확인해 볼 수 있다
 - SCR-AIM-002 AI 서버 반영(ai-c7 2026-10-29, ai 커밋 전): ① ROUTE 이동 안내를 AI 메시지로 저장(`done.message`) — 이동 중 저장 말풍선과 카운트다운 안내가 함께 보이는 것은 그대로 둔다(사용자 결정 2026-10-29) ② 15자 이하 첫 메시지는 그대로 제목 ③ 분류 LLM 장애는 `intent` 없이 `error` 이벤트 — 틀린 LLM 키로 FN-AIM-002-07 재현 가능. 명세 FN-AIM-004 문구 갱신은 사람 몫
 - SCR-AIM-002 FN-AIM-002-07 사람 확인: 아래 방법으로도 재현 안 됨, 사용자가 넘어가기로 함(2026-10-29). 검증은 브라우저에서 꾸민 SSE로만 확인된 상태. 원인은 아직 모름
 - SCR-AIM-002 FN-AIM-002-07 재현법 정정: LLM 키를 빼면 서버가 안 뜨고, 틀린 키는 위 ③ 때문에 폴백이 된다. ai `.env.local`에 `AI_MODE=real`·올바른 `LLM_API_KEY`인 채로 `ANSWER_FIRST_TOKEN_SEC=0.01`을 넣고 재시작(mock에서는 첫 조각이 바로 나와 재현 안 됨, ai-c7 답 2026-10-29) → 건강 질문 → "일시적으로 답변할 수 없어요" + [다시 시도] → 줄을 지우고 재시작 → [다시 시도]
@@ -68,7 +46,6 @@ SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 끝(
 - 디스코드로 알릴 것(PR #87 병합됨): "`SubPageLayout`을 쓰는 섹션 화면(건강기록·커뮤니티·고객센터·마이페이지)의 앱(≤760) 위 8px·아래 126px 여백을 뺐어요. 헤더~경로 24px, 콘텐츠 끝~탭바는 main 여백만 남아요. 화면 안에서 아래 여백을 따로 기대던 곳이 있으면 확인해 주세요"
 - SJM에 전달: 마이페이지 화면설계서 v0.6 ⑦ "상단 여백 약 40 → 20px"와 달리 구현은 섹션 화면 공통 24px로 정했다(마이페이지만 다르게 두지 않음). 설계서 문구를 고쳐 달라고 한다. 같은 ⑦의 "하단 여백 축소"는 PR #87로 반영
 - 결정 대기(사람): 페이지 머리 구조. v5 시안(`nyangmung-com.css` COM-5 "별도 브레드크럼은 쓰지 않아요 (10-12)")과 마이페이지 시안은 첫 줄이 섹션 이름("마이페이지")이고, 구현(`SubPageHead`)은 경로 줄(홈 / 섹션 / 메뉴)이다. 시안 구조로 바꿀지(27개 화면 영향) 그대로 둘지 정한다. 공통레이아웃 화면설계서 v0.8은 "브레드크럼 사용"으로 올라가 있다
-- 문서 업로드 완료(DMS, 2026-10-25): 공통레이아웃 기능명세서 v0.6(FN-COM-003-02·05 회원가입 경유 redirect, 004-07 공동양육 이동 대상 분리, 004-08 행 안 버튼 삭제 → 초대 수락 화면 이동)·화면설계서 v0.9, AI매니저 기능명세서 v0.8(FN-AIM-009-10·21 가계부 "내용 = 병원명" → "사용처 = 병원명")·화면설계서 v0.10(SCR-AIM-009 ⑦). 같은 날 앞서 공통레이아웃 기능명세서 v0.5·화면설계서 v0.8(구현 현행화)도 올렸다. 남은 문서 일은 아래 "사람이 고치는 문서"·SCR-COM-006 항목
 - 백엔드 세션에서: EXPND 사용처 컬럼(varchar(80) NULL, 기준 컬럼은 `CKUP_RCD.HSPTL_NM`, 기존 `DTL_MTTR`과 역할 정리), 초대받은 사람(연동 전)의 PetFace(`GET /pets/{petSn}/character-image`는 `PetAuthorizer`라 막힘), 초대 일부 수락 API(지금은 일괄 수락만), 알림 `mvmnPath`의 초대 식별자 이름(`invitationToken` vs `jntBrupInvtnSn`, 미정)
 - YAY에 알릴 것: 로그인 → [회원가입] 이동(`pages/auth/LoginPage.jsx` `navigate(PATHS.SIGNUP)`)과 가입 완료 → 로그인(`SignupPage.jsx` `/login?joined=1`)에서 `?redirect=`가 사라진다. 공통레이아웃 명세 v0.6 FN-COM-003-02·05로 유지가 정해짐(초대 링크로 온 미가입자)
 - 공동양육 알림 이동(SJM이 알림을 만들 때): 초대 수신은 `/mypage/invitations/:invitationToken`, 결과·연동 해제는 `/mypage/pets`. `docs/routes.md` 79행을 정정했고(추가-3) 백엔드 세션에도 전했다
@@ -137,7 +114,6 @@ SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 끝(
 - SCR-AIM-006 연결 남음(가짜로 끝남): 006-01~08·10·15~18·20 사전 알림 배치(LJS 백엔드) — 매일 09:00 KST 스캔으로 케어 캘린더 병원 일정 D-N 대상 추출, 연동 양육자 전원(탈퇴 제외)별 설정(채널·D-0/1/3/7·케어 일정 유형) 적용, 이메일(가입 주소, 제목 `[냥멍케어] {반려동물명}의 {검진유형} 일정이 {D-N} 남았어요`, 당일은 "오늘이에요")·인앱(`CARE_SCHDL`, `mvmnPath` `/health/calendar`) 생성, 이력·10분 간격 3회 재시도·(회원+일정+일정일+시점+채널) 중복 방지. 메일 [케어 캘린더에서 확인하기]는 `/health/calendar`, 수신 해제는 `/settings/notifications`. 006-09·11·12 프론트는 알림 목록·미확인 수 API(LJS 백엔드)로 가짜를 바꿀 때 같이(SCR-COM-004 연결). 006-13 메일 링크 미인증 복귀는 로그인 연결 때 `ProtectedRoute`·`getRedirectPath`(YAY). 배지 1분 polling은 KSJ 채팅 안 읽은 수 방식이 정해지면 맞춘다
 - SCR-AIM-010 연결 남음(가짜로 끝남): 검진기록 등록·수정 모달(SCR-HLT-002, JAJ)이 `ReceiptUploadModal`의 `onManualInput({ rcptSn? })`으로 빈 폼을 연다. `rcptSn`이 있으면 저장 때 영수증 상태를 인식실패→저장완료로 바꾸는 일은 LJS 백엔드·JAJ 저장 API와 맞춘다(명세 10-06 [확인 필요]). 영수증 인식 결과 확인 모달(SCR-HLT-002, JAJ)은 `onRecognized(result)`를 받는다. 부분 인식은 `ckupYmd`·`ckupAmt`가 `null`일 수 있다
 - 사람이 고치는 문서(SCR-AIM-010 추가 요청): 기능명세서 v0.7 FN-AIM-010-03 [다시 촬영]→[다시 올리기], FN-AIM-010-07 문구 2종 "다시 촬영하거나"→"다시 올리거나". 화면설계서 v0.9 SCR-AIM-010 ② 라벨과 같은 문구도 같이
-- SCR-AIM-012 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `sendMessage`(REGISTER 분기)·`confirmRegister`·`cancelRegister` 가짜를 바꾸고 `fakeRegisterParser.js`·`fakeDrafts`·`fakePendingCards`·`fakeCareItems`는 지운다. 서버와 먼저 맞출 가정: 서버가 대화별로 되묻는 초안과 확정 전 최근 카드를 기억하고, 확정·취소는 `{aiCnvrsRoomSn, aiCnvrsMsgSn}`만 받는다(서버가 상태를 안 들면 [등록] 때 카드 내용을 같이 보내야 해서 `confirmRegister` 인자와 `RegisterCard`가 바뀐다). 카드 필드 이름은 `schdlCkupTypeCd`·`schdlHsptlNm`·`schdlNm`만 ERD 기준이고 `schdlKndNm`·`schdlYmd`·`schdlTm`·`schdlMemo`·`careArtclNm`·`careRpttTypeCd`·`careCycleNm`·`careLastYmd`·`careNextYmd`·`isDuplicate`는 추정이라 Swagger로 확인. 일정·케어 항목 저장(JAJ, 012-13·14), 반려동물 목록(SJM)으로 `fakePets`를 바꾼다
 - SCR-AIM-008 연결 남음(가짜로 끝남, `ReceiptUploadModal`은 `features/ai/receipt/`, 같은 날 SCR-AIM-010도 이 모달을 고쳤다):
   - 영수증 인식 API(LJS 백엔드): `features/ai/api.js`의 `recognizeCheckupReceipt` 가짜를 `api.post`로 바꾼다. 경로(`POST /receipts/recognize/checkup`)와 응답 필드(`rcptSn`·`petSn`·`items[]`의 `ckupNm`·`ckupYmd`·`ckupAmt`)는 추정이라 Swagger로 확인한다. `signal`은 axios에 넘기고, `waitAbortable`은 지운다. 15초 시간 초과는 모달(`ANALYZE_TIMEOUT_MS`)이 판정하므로 서버 타임아웃(15초, 명세 008-07)과 맞춘다. [취소] 때 영수증 상태 '취소'를 서버에 알릴 API가 필요한지 확인한다
   - 건강 일지(JAJ, SCR-HLT-002): [영수증으로 등록하기]에서 모달을 연다. `pets`(`usePets`, SJM), `defaultPetSn`(건강 일지에서 선택 중인 반려동물), `onRecognized(result)`(영수증 인식 결과 확인 모달로), `onManualInput()`(검진기록 등록·수정 모달 빈 폼으로)를 넘긴다. 붙인 뒤 확인용 `pages/dev/ReceiptUploadDevPage.jsx`와 `routes/domains/dev/`(`/dev/receipt-upload`)를 지운다
