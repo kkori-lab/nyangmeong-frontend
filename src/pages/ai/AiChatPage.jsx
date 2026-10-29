@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ChatInput from '@/features/ai/chat/ChatInput';
+import Skeleton from '@/components/Skeleton';
 import ConversationHeader, {
   DrawerButton,
   chatHeaderClass,
@@ -272,12 +273,11 @@ export default function AiChatPage() {
     }
   };
 
-  /** StrictMode effect 이중 실행 방지 */
-  const hasSentFirstMessage = useRef(false);
+  /** 첫 메시지 전송: StrictMode가 effect를 정리했다 다시 돌리면(그때 답변 스트림도 취소) 예약을 지우고 새로 잡아 한 번만 보낸다 */
   useEffect(() => {
-    if (!firstMessage || hasSentFirstMessage.current) return;
-    hasSentFirstMessage.current = true;
-    handleSend(firstMessage.slice(0, 1000));
+    if (!firstMessage) return;
+    const timer = setTimeout(() => handleSend(firstMessage.slice(0, 1000)));
+    return () => clearTimeout(timer);
     /* eslint-disable-next-line react-hooks/exhaustive-deps -- 창을 연 직후 한 번만 전송 */
   }, []);
 
@@ -344,6 +344,13 @@ export default function AiChatPage() {
             <span className="shrink-0 rounded-full bg-[#e9f2f2] px-2.5 py-0.5 text-xs font-medium text-[#285a5c]">
               {selectedPet?.petNm ?? '전체'}
             </span>
+          </header>
+        )}
+        {/** 방이 생겼거나 골랐는데 상세를 받기 전: 헤더 틀 유지 */}
+        {selectedRoomSn !== null && !conversation && !isError && (
+          <header className={chatHeaderClass}>
+            <DrawerButton onClick={openDrawer} />
+            <Skeleton className="h-6 w-48" />
           </header>
         )}
         {conversation && (
