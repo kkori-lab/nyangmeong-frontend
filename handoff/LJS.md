@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 진행 중: 구현·검증 통과(2026-10-28, 6회차), 사람 확인 남음 (승인 2026-10-28 14:35)
+SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 끝(2026-10-29): 검증 통과(추가-1~3 포함)·사람 확인 끝. FN-AIM-002-07은 사람 확인에서 재현 못 함(넘어감)
 
 계약: ai 저장소 LJS `41385b7` `docs/api/chat.md`의 `POST /ai/conversations/{aiCnvrsRoomSn}/messages`(MessageSendRequest `{cnvrsCn?}`, 응답 SSE `intent` → `delta`… → `done`|`error`). 기능명세서 AI매니저 v0.9(20261026). 디자인: `html/SCR-AIM-002.html`, 화면 모양은 바꾸지 않는다(이미 끝난 화면에 서버만 붙임).
 
@@ -24,18 +24,19 @@ SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 진�
 - AI 서버에 확인할 것(구현 중 메시지): [다시 생성] 뒤 이전 미완료 메시지가 DB에 남는지(남으면 다시 열 때 미완료와 새 답변이 둘 다 보임). `param` 이름 `cat` → `category`
 - 새 의존성: 없음
 
+### 추가 요청
+
+| 추가-1 | `src/pages/ai/AiChatPage.jsx` | 명령: `yarn -s lint`, `yarn -s build` / 화면: 메인 AI 입력에 "안녕" → AI 창(`/ai?q=안녕`)이 열리며 내 말풍선이 바로 보이고 답변이 이어진다(개발 모드 StrictMode 포함) | 요청 2026-10-29 09:59 "메인 입력값으로 대화가 시작되지 않고 빈 창만 뜸" |
+| 추가-2 | `src/pages/ai/AiChatPage.jsx` | 명령: `yarn -s lint`, `yarn -s build` / 화면: 새 대화 첫 메시지 → 방이 생기고 상세를 받기 전까지 헤더 틀이 남고 제목 자리에 스켈레톤, 받은 뒤 제목 헤더 | 요청 2026-10-29 "대화 시작 때 헤더가 사라졌다 다시 생김, 스켈레톤으로" |
+| 추가-3 | `src/hooks/useAiWindow.js` | 명령: `yarn -s lint`, `yarn -s build` / 화면: /mypage 플로팅 버튼으로 AI 창을 연 채 /main AI 입력에 "안녕" → 열린 AI 창이 `/ai?q=안녕`으로 바뀌고 그 메시지로 새 대화가 시작된다 | 요청 2026-10-29 "AI 창이 이미 열려 있으면 메인 입력값이 버려지고 기본 창이 뜸" |
+
 ## 다음에 할 것
 
-- **SCR-AIM-002 사람 확인 남음** (검증 6회차 통과 2026-10-28, 사람이 아직 확인 안 함). 다음 세션에서 아래를 확인하고 `/end`에 `확인`이라고 답하면 `끝` 판정. 검증 루프 잠금은 통과 뒤 보관 중이고 `끝` 판정 때 `/end`가 버린다. 기획은 고치지 않는다
-  - 띄우기: 백엔드 저장소 `./gradlew bootRun`(8080) + ai 저장소 LJS(`41385b7` 이후) `uv run python -m uvicorn app.main:app --reload`(8000, LLM 키) + 프론트 `yarn dev`(5173). 로그인한 뒤 http://localhost:5173/main 에서 AI 창을 연다(본창 이동은 opener가 있어야 확인됨)
-  - FN-AIM-001-04·05, 011-07·14: http://localhost:5173/ai → [새 대화] → "강아지 예방접종 언제 해?" → 내 말풍선이 바로 보임 → 같은 대화에서 "동물병원" → 이동 안내 동안에도 내 말풍선이 보임 → 목록에서 그 대화를 다시 열면 질문·답변이 남음
-  - FN-AIM-002-02·03·06: 같은 질문 → 점 3개 → 글자가 이어 붙고 끝에 "참고 정보이며 의료 진단이 아닙니다…" / 답변 중 전송 버튼 비활성
-  - FN-AIM-002-04·05: 그 답변의 "관련 기능 바로가기" [케어 캘린더] → 본창 /health/calendar, AI 창 닫힘
-  - FN-AIM-002-07: AI 서버를 LLM 키 없이 띄우고 질문 → "일시적으로 답변할 수 없어요" + [다시 시도] → 키를 넣어 다시 띄운 뒤 [다시 시도] → 답변(검증은 브라우저에서 꾸민 SSE로만 확인함)
-  - FN-AIM-004: "가계부" → 3초 뒤 본창 http://localhost:5173/mypage/expenses, 창 닫힘 / "동물병원" → /places?category=hospital / "가계부" 뒤 [취소] → 이동 안 함 / "채팅" → 채팅 창이 열림
-  - FN-AIM-005-01·02: 새 대화에서 "ㅋㅋㅋ" 2회 → "질문을 이해하지 못했어요…" + [자주 묻는 질문 보기] → 대화를 다시 열어도 실패 안내가 남음
-  - REGISTER: "다음 주 화요일 미용 등록해줘" → 미리보기 카드 → [등록] → "등록됨 — …"("산책"은 기존 가짜 해석기가 종류를 먼저 되물음)
-  - 정리: 검증용 대화(강아지 예방접종 시기 안내, ㅋㅋㅋ… 등)를 사이드바에서 [삭제]
+- SCR-AIM-002 연결 남음: REGISTER·RECEIPT 판정 뒤 처리(서버 이어 가기 API, SCR-AIM-012·013 마일스톤, LJS). FN-AIM-002-07은 ai 반영(③) 뒤 틀린 LLM 키로 다시 확인해 볼 수 있다
+- SCR-AIM-002 AI 서버 반영(ai-c7 2026-10-29, ai 커밋 전): ① ROUTE 이동 안내를 AI 메시지로 저장(`done.message`) — 이동 중 저장 말풍선과 카운트다운 안내가 함께 보이는 것은 그대로 둔다(사용자 결정 2026-10-29) ② 15자 이하 첫 메시지는 그대로 제목 ③ 분류 LLM 장애는 `intent` 없이 `error` 이벤트 — 틀린 LLM 키로 FN-AIM-002-07 재현 가능. 명세 FN-AIM-004 문구 갱신은 사람 몫
+- SCR-AIM-002 FN-AIM-002-07 사람 확인: 아래 방법으로도 재현 안 됨, 사용자가 넘어가기로 함(2026-10-29). 검증은 브라우저에서 꾸민 SSE로만 확인된 상태. 원인은 아직 모름
+- SCR-AIM-002 FN-AIM-002-07 재현법 정정: LLM 키를 빼면 서버가 안 뜨고, 틀린 키는 위 ③ 때문에 폴백이 된다. ai `.env.local`에 `AI_MODE=real`·올바른 `LLM_API_KEY`인 채로 `ANSWER_FIRST_TOKEN_SEC=0.01`을 넣고 재시작(mock에서는 첫 조각이 바로 나와 재현 안 됨, ai-c7 답 2026-10-29) → 건강 질문 → "일시적으로 답변할 수 없어요" + [다시 시도] → 줄을 지우고 재시작 → [다시 시도]
+
 - SCR-AIM-002 사람이 정할 것(검증 판정 밖, 코드 읽다 나옴): ① 채팅(COM-009) 바로가기 버튼이 채팅 창 대신 본창을 `/chat`으로 옮김(`AnswerBubble`이 `isModal`을 안 씀) ② 서버 저장 전 전송 실패(400·404·502) 때 임시 내 말풍선이 "메시지를 보내지 못했어요"와 함께 남음. 고치면 `### 추가 요청`으로 받는다
 - SCR-AIM-002 AI 서버(ai-41) 답(2026-10-28, 그쪽 사람 결정): ① 메시지 테이블은 INSERT 전용이라 [다시 생성] 뒤에도 미완료(`cmptnYn=false`) 메시지가 DB에 남는다 → 프론트 표시 규칙으로 처리: AI 메시지가 `cmptnYn=false`이고 다음 사용자 메시지 전에 다른 AI 메시지가 있으면 미완료를 숨기고(새 답변으로 교체된 것), 없으면 미완료 말풍선 + [다시 생성]. 지금 `ConversationMessages.jsx`는 이 규칙이 없어 다시 열면 둘 다 보인다 — 사람 확인 때 같이 보고 추가 요청으로 고칠지 정한다 ② `param` `?cat=`은 명세 부록 A 값이라 서버는 그대로, 프론트 `screenPaths.js`에서 `category`로 바꿔 쓰는 지금 방식 유지
 - SCR-AIM-002 AI 서버에 보낸 것, 답 기다림: 의료 고지 두 번 저장·고지 앞 "※" 없음, `scrNm`에 "화면"이 들어가 "~화면 화면으로 이동할게요", 웃음만 보낸 대화 제목이 LLM 설명문(그쪽 승인 절차 뒤 알려 주기로 함)
@@ -59,10 +60,7 @@ SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 진�
   - 013-05 카드 필드 이름은 위 `ReceiptResponse`로 맞춘다. 013-06·07 건강 일지 입구 쿼리 이름(`checkup=manual`·`recptSn`)은 JAJ 확인
   - 남은 미결(AI 세션): OCR 요청 출처 코드 AIMG07 'AI 대화창'(백엔드), 다시 열었을 때 결과 카드 다시 불러오기
 - JAJ에 알릴 것(SCR-AIM-013): `HealthDiaryPage.jsx`에 넣은 입구 2개(`?checkup=manual&recptSn=` 빈 폼, `?recptSn=` 결과 확인)와 쿼리 이름 확인 요청, 결과 확인 모달 입력을 `ReceiptResponse`(`GET /api/receipts/{recptSn}`)로 함께 바꾸자는 제안. PR #93 참고. 메시지 초안은 2026-10-26 세션에서 사용자에게 전달함
-- 다음 작업(AI 채팅 서버 연결 이어서): SCR-AIM-011 대화 API는 연결됨(위). 질문·답변(001·002, SSE는 `fetch`로 읽고 401 → `api.post('/auth/refresh')` → 1회 재시도를 따로 둔다)·라우팅(004)·폴백(005)·일정 생성 확인(012)은 서버가 아직 없어 가짜. 경로·필드·SSE 형식은 ai 저장소 `docs/api/chat.md`에 정해지면 알려 준다(ai-e6). 영수증 OCR·채팅 영수증 분석·캐릭터 생성도 프론트가 Python을 직접 부르기로 바뀌었고(ai-e6 10-27) 경로는 다음 마일스톤에서 정함, 그때까지 가짜 유지
 - AI 서버 연결 기반(2026-10-25 결정, 사용자 확정): AI 기능(채팅·영수증 OCR·캐릭터 생성·검사결과지 PDF 분석)은 프론트가 Python을 직접 부르고, 나머지와 영수증 save-check·save는 Spring. 주소는 같은 오리진 경로 접두사로 나눈다 — 배포 nginx `/api/` → Spring(:8080), `/ai/` → Python(:8000), 둘 다 접두사를 자르지 않는다(`proxy_pass` 끝 슬래시 없음). 개발은 `vite.config.js` 프록시 `'^/ai/'`(커밋 `5c35ea3`. `/ai` 단독은 화면 URL `PATHS.AI`라 제외). 백엔드·AI 세션에 `/ai` 접두사 요구 전달함
-  - 남은 것: `api/axios.js`에 `aiApi`(`baseURL: '/ai'`, 같은 `X-Requested-With`) 생성, 응답 인터셉터를 `api`와 같이 쓰기(재발급은 항상 `api.post('/auth/refresh')` — `refresh_token`이 `Path=/api/auth`라 Python에 안 감, `refreshing` 공유, 재시도는 요청을 보낸 인스턴스로). 채팅 스트리밍은 SSE를 POST라 `fetch`로 읽으므로 인터셉터를 안 탄다 — 401 → 재발급 → 1회 재시도를 따로 둔다. 생성 도중 오류는 스트림 이벤트로 온다(형식은 AI 세션과 맞춘다)
-  - `docs/convention/api.md` 7·9·148줄(`VITE_AI_API_URL` + `withCredentials`)을 `/ai` 상대 경로로 고친다(공용 규칙, 팀 합의). `docs/OPEN_ISSUES.md` 27행의 CORS 허용 오리진은 같은 오리진이라 필요 없어진다
   - nginx에서 Python `/internal/v1/...`·`/health`는 내보내지 않는다(`location /ai/`만)
   - 2026-10-26 정정(사용자 결정, AI·백엔드 세션 통보): DB는 Java만 다루고 Python은 상태 없는 AI 서버. 영수증 OCR(`POST /api/receipts`, `/api/receipts/{recptSn}/analyze`·`/cancel`)·캐릭터 생성(`POST /api/pets/{petSn}/pixel-characters`)·채팅 영수증 분석(SCR-AIM-013, 백엔드 확인 중)은 Spring 경유, Python 직접은 AI 채팅(`/ai/conversations…`, 스트리밍)만. Vite·nginx `/ai/` 프록시는 그대로. PDF 분석 위치도 Spring 경유로 바뀔 가능성(미확정)
   - 연결 작업 때 고칠 것(사용자 결정 10-26): `features/ai/api.js` `analyzeChatReceipt` 머리 주석 "경로 미정, Python AI 서버 `/ai/` 아래" → Spring `/api/receipts` 경유. 검진 영수증(`ai/api.js` `recognizeCheckupReceipt` "POST /receipts/recognize/checkup 추정")·가계부 영수증(`expense/api.js` "POST /receipts/recognize")·캐릭터 생성(`pet/api.js` "POST /pets/{petSn}/character")의 추정 경로도 위 Spring 경로와 맞춘다
@@ -150,15 +148,10 @@ SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 진�
 - 범위 밖에서 본 것(말만): `ConversationMessages.jsx`의 `{children && <li>…}`가 항상 참이라 대화 목록 끝에 빈 `<li>`가 생긴다
 - 사람이 고치는 문서(SCR-COM-002 반응형): FN-COM-002-23 햄버거·002-20 TOP은 기능명세서 v0.5·화면설계서 v0.8(2026-10-25)에 반영됨. 남은 것: FN-COM-006-07 터치 동작의 "반응형 범위 확정 후"를 범위 확정(≤1100px·≤760px)으로, 화면설계서 SCR-COM-006 터치(잠정) 문구
 - SCR-COM-002 반응형 남은 것: 실제 대표전화·팩스 번호를 디스코드로 받아 `UserFooter.jsx`의 `TEL_PLACEHOLDER`·`FAX_PLACEHOLDER`에 넣는다. drawer 슬라이드 애니메이션(시안에 있음)·Tab 포커스 가두기는 안 했다. AI 플로팅 버튼의 고양이 이미지(시안 `.fab-ai`, `src/assets/ai-character.png`)는 디자인 담당과 맞춘다
-- SCR-AIM-005 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `sendMessage` 가짜를 바꾸고 `FALLBACK` 판정 필드와 실패 안내 메시지 구분 필드를 Swagger로 확인(`FallbackBubble`을 고르는 `ConversationMessages.jsx`의 문구 비교를 그 필드로 바꾼다). 005-02 새로고침 뒤 실패 안내 문구가 이력에 남는지는 그때 확인한다. 고객센터 버튼은 `/faqs`(SCR-CSC-002, KSJ)가 만들어진 뒤 화면 이동을 확인한다
-- SCR-AIM-004 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `sendMessage` 가짜를 바꾸고 `route`·`aiCnvrsMsgSn` 필드 이름을 Swagger로 확인(`fakeRoutingMap.js`는 지운다). 004-03 새로고침 뒤에도 안내 문구가 이력에 남는지는 그때 확인한다. 본창이 닫혀 있을 때 새 탭으로 여는 `/main`은 라우트가 아직 없다(MAN-001, YAY)
-- SCR-AIM-002 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `streamAnswer` 가짜를 바꾸고 스트리밍 방식(SSE 등)·`rltdShrtcts`·`aiCnvrsMsgCmptnYn` 필드 이름을 Swagger로 확인. 웰컴에 Figma의 고양이 캐릭터를 넣을지(`src/assets/ai-character.png`는 이미 있음)는 디자인 담당과 맞춘다
-- SCR-AIM-001 연결 남음: 대화 API(Python AI 서버, 담당 없음)로 `features/ai/api.js`의 `sendMessage` 가짜를 바꾸고 `intent` 필드 이름·값(`REGISTER·ROUTE·SEARCH·FALLBACK`은 추정)을 Swagger로 확인. Figma의 고양이 캐릭터 이미지(`ai-character.png`)는 저장소에 파일이 없어 웰컴에 넣지 못했다(파일을 받으면 `WelcomeMessage.jsx`에 추가). 직접 주소창으로 연 `/ai`에서는 칩을 눌러도 브라우저가 `window.close()`를 막아 창이 남는다(설계대로)
 - SCR-COM-008 남은 것: 008-12 캐릭터 완료 알림을 설정 가능하게 할지는 명세 확정 대기(명세 작성자). 알림 설정 API 연결은 끝남
 - SCR-COM-004 남은 것: 004-08 공동양육 초대 알림 이동(알림 생성 SJM), 004-09 펫돌봄 알림의 채팅 모달(채팅 API·알림 생성 KSJ, 시드 `mvmnPath`는 `/chats`라 방 번호가 없음), 커뮤니티(`AIMC0010`) 알림 이동 경로(KSJ와 결정, `docs/routes.md` 79행에 없음), 공지 알림이 `/notices` 목록인지 `/notices/{sn}` 상세인지 결정. 시간 표시("10분 전")는 `NotificationSummary.regDt`로 화면에서 계산할 수 있다
 - SCR-COM-003 연결 남음: 003-08 로그인 상태로 랜딩에 오면 `/main`으로(`useMe` 필요, 로그인 연결 때, YAY). 003-10 AI 대화창이 401이면 인증 오류 표시 후 창 닫기(SCR-AIM-011). 로그인 화면(ACC-002, YAY)은 성공 뒤 `routes/redirect.js`의 `getRedirectPath(location.search)`로 이동 경로를 정한다(YAY에 알릴 것). 테스트 러너가 없어 이 함수의 회귀 테스트가 없다(러너 추가는 의존성이라 팀 결정)
 - SCR-COM-005 연결 남음: 005-02 회원 요약 조회 API(LJS 백엔드)로 `getMemberSummary`를 바꾸고 응답 키(`maskedAcntEml`, 명세 기준)를 Swagger로 확인, 005-07 로그아웃 API(YAY)로 `logout`을 바꾼다(로그인 연결 때)
-- SCR-COM-007 연결 남음: 007-03 메인 히어로 검색바가 `useAiWindow`의 `open(문장)`을 부르게 연결(YAY, MAN-001). `/ai`가 `?q=`를 새 대화의 첫 메시지로 보내는 일(SCR-AIM-001, 읽기까지는 `AiChatPage.jsx`가 한다). 이미 열린 `/ai` 창에서는 `open(firstMessage)`의 첫 메시지가 무시되므로(`useAiWindow.js` else 분기) 그때 처리 방식을 정한다
 - 사람이 고치는 문서 (`?cat` → `?category`):
   - AI매니저 기능명세서 v0.7: FN-AIM-004-10, 「부록_라우팅매핑표」 No.2·3·17~20행, 제.개정내역 새 버전 행
   - AI매니저 화면설계서 v0.9: 부록 라우팅 표의 `?cat=hospital`, `?cat=…` 2곳
