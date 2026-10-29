@@ -7,10 +7,13 @@
 - 완료 조건: `/login`에서 방법 선택 → 이메일 입력, 불일치 4번 뒤 5번째에 보안코드, 올바른 값이면 메인 이동(가짜 응답 기준)
 - 연결 남음: 로그인·보안코드·로그아웃 API → 아래 "API 연결" 절
 
-## SCR-ACC-002 로그인 · 로그인·로그아웃 API 연결 — 진행
+## SCR-ACC-002 로그인 · 로그인·로그아웃 API 연결 — 끝
 - 백엔드 끝: `GET /auth/login-attempt-limits`, `POST /auth/captchas`, `POST /auth/login`, `POST /auth/logout` (백엔드 SCR-ACC-002 절의 "프론트 연결")
 - 대상: `features/member/api.js`의 가짜 `getLoginStatus`·`getCaptcha`·`login`·`logout`
 - 완료 조건: 실제 서버로 로그인하면 쿠키가 생기고 헤더가 로그인 상태가 된다. 5번 틀리면 서버가 그린 보안코드 이미지가 나온다
+- 끝남: 승인 2026-10-27, 검증 통과(재검증), 사람 확인 2026-10-27
+- 연결 남음: FN-ACC-001-22 (닉네임 확인·저장 API `PATCH /members/me/nickname`, YAY 백엔드 SCR-ACC-001)
+- 연결 남음: (기반) 메인·마이페이지 라우트 `auth: 'member'` 전환 (팀과 정한 뒤, 각 라우트 담당)
 
 ## SCR-ACC-011 비밀번호 찾기 — 끝
 - 기능: FN-ACC-011-01 로그인으로 돌아가기, FN-ACC-011-02 이메일 아이디 입력, FN-ACC-011-03 재설정 인증번호 보내기, FN-ACC-011-05 인증 대상 이메일, FN-ACC-011-06 재설정 인증번호 입력, FN-ACC-011-07 인증번호 재전송, FN-ACC-011-08 인증 확인 및 계정 분기, FN-ACC-011-09 인증 오류 안내, FN-ACC-011-10 SNS 전용 계정 안내, FN-ACC-011-11 SNS 로그인 화면으로
@@ -52,6 +55,20 @@
 - 이미 만든 것: `pages/main/MainPage.jsx`(히어로 AI·프로필·데일리 케어미션, 가짜 데이터). `/end` 기록 없음
 - 기다리는 것: `pet` 목록·프로필 조회(SJM), 캐릭터 이미지 조회(LJS), 건강 지표·케어리스트(JAJ), AI 대화창 SCR-AIM-001·011(LJS 화면), 메인 조회 조합·위젯 순서 저장(YAY 백엔드)
 - 완료 조건: 반려동물 탭을 바꾸면 프로필·위젯·케어미션이 그 반려동물 기준으로 바뀐다. 위젯 순서를 바꾸고 새로고침해도 유지된다
+
+## SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결 — 대기
+- 백엔드 끝: `GET /terms`, `GET /terms/{trmsSn}`, `POST /email-certifications`, `POST /email-certifications/{emlCertSn}/verify`, `GET /members/phone-availability`, `GET /members/nickname-availability`, `POST /members`, `PATCH /members/me/nickname` (백엔드 SCR-ACC-001 절의 "프론트 연결")
+- 기능: 명세 기능 ID 추가 없음. FN-ACC-001-03~14·24~30·38에 걸친다
+- 대상: `features/member/signup/`의 가짜 약관·이메일 인증·번호/닉네임 중복확인·가입·닉네임 저장 API
+- 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-001)의 PR 병합과 공용 DB 마이그레이션
+- 완료 조건: 실제 서버로 약관 → 인증번호 발송·확인 → 번호 중복확인 → 가입 → 닉네임 저장이 되고, 가입 뒤 로그인 쿠키 없이 닉네임 모달이 동작한다. 재전송 제한은 `resendAvailableDt`로 남은 시간을 보여 준다
+
+## SCR-ACC-011 비밀번호 찾기 · 인증번호 API 연결 — 대기
+- 백엔드 끝: `POST /email-certifications`(목적 `USRC0011`), `POST /email-certifications/{emlCertSn}/verify`, `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-011 절의 "프론트 연결")
+- 기능: 명세 기능 ID 추가 없음. FN-ACC-011-02~10에 걸친다
+- 대상: `features/member/password/`와 `features/member/api.js`의 가짜 `sendRecoveryCode`·`verifyRecoveryCode`·`getRecoveryStatus`. 확인 응답의 `certRslt`(`PASSWORD_RESET_READY`·`SNS_ONLY`+`snsOffrCds`·`MEMBER_NOT_FOUND`·`MEMBER_WITHDRAWN`)로 화면을 가르고, 이메일을 다시 입력하면 `invalidate`(본문 `certTrgtEml`)를 부른다
+- 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-011)의 PR 병합. 재설정 토큰(`pswdInitTkn`)을 쓰는 비밀번호 재설정은 백엔드 SCR-ACC-012가 끝난 뒤
+- 완료 조건: 실제 서버로 발송 → 확인에서 계정 종류별 화면으로 가고, 재전송 제한은 `resendAvailableDt`로 남은 시간을 보여 준다
 
 ## 제외
 - 없음. 외부인증창 참고 행 6개(네이버·카카오·구글 외부 로그인·동의 창)는 명세에 기능 ID가 없다
