@@ -7,6 +7,30 @@
 /** 분석이 이 시간을 넘기면 일시 오류로 판정(FN-AIM-008-07) */
 export const ANALYZE_TIMEOUT_MS = 15000;
 
+/**
+ * AI 서버로 분석할 때의 안전망: 서버가 15초에 OCR_TIMEOUT으로 끝내므로 그보다 늦게 끊는다
+ * 화면이 먼저 끊으면 서버에는 '취소'로 남는다
+ */
+export const SERVER_ANALYZE_GUARD_MS = 20000;
+
+/** 서버가 거절한 파일: 업로드 전 검사(utils/receiptFile)와 같은 문구 */
+export const FILE_ERROR = {
+  FILE_TYPE_NOT_ALLOWED:
+    '지원하지 않는 형식이에요. jpg·jpeg·png·webp 이미지를 올려 주세요',
+  FILE_SIZE_EXCEEDED: '용량이 너무 커요. 10MB 이하 이미지를 올려 주세요',
+};
+
+/** 서버 오류 code → 실패 안내 종류 */
+export const getFailureByCode = (code) =>
+  code === 'OCR_TIMEOUT' ? 'timeout' : 'error';
+
+/** 200인데 아무것도 읽지 못한 결과(추출 0건) */
+export const isEmptyOcr = (ocr) =>
+  ocr.sections.length === 0 &&
+  [ocr.hsptlNm, ocr.ckupYmd, ocr.recptAmt, ocr.btmDscntAmt].every(
+    (value) => value == null,
+  );
+
 export const FAILURE = {
   empty: {
     title: '영수증을 읽지 못했어요',
