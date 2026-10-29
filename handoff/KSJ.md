@@ -2,18 +2,19 @@
 
 ## 지금 하는 것
 
-SCR-CSC-003 1:1 문의 API 연결 (2026-10-27~28) — 상태: 끝 (검증 `확인 못 함 있음`(연결 남음만), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-10-28)
+SCR-CSC-003 1:1 문의 · 첨부 이미지 표시 (2026-10-29) — 상태: 끝 (검증 `통과` 1회차, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-10-29)
 
-- 바꾼 것: `features/inquiry/{api,queries}.js`(가짜 삭제, 실제 API, 유형은 공통코드 CSCG02, 상태 코드 CSCC0012·0013 → 화면 문구 「미답변」·「답변 완료」), `InquiryList`·`InquiryForm`·`InquiryDetail`, `pages/inquiry/*Page.jsx`, 공용 `components/ImageAttach.jsx`(항목에 원본 `file`, 주소 없는 서버 첨부는 자리 표시)
-- 결정: 서버 목록에 전체 건수가 없어 필터가 켜졌을 때만 `size=1` 목록으로 전체 건수를 따로 묻는다. 수정은 남길 첨부를 `keepAtchFileSns`로 보내고 모두 지우면 빈 값 하나로 보낸다. 서버 오류는 `message`, 입력 오류는 `fields`를 입력칸 아래에
-- 확인 방법: 백엔드(8080) + 브라우저에서 `POST /api/auth/dev-tokens {"mbrSn":1}`로 개발용 쿠키 + `yarn dev`
+- 바꾼 것: `features/inquiry/api.js`(`getInquiryImage` blob), `queries.js`(`inquiryKeys.image`, `useInquiryImageUrls`: 주소를 캐시에 두고 `gcTime: 0`, 화면을 떠날 때 해제), `InquiryDetail.jsx`(실제 썸네일·크게 보기 버튼), 새 `InquiryImageViewer.jsx`(제목 줄·판 없는 dialog, 파일명 위·「N / 전체」 아래, ←·→, ✕·밖 클릭·ESC), `InquiryForm.jsx`(기존 첨부 실제 이미지, 이름은 `orgnlFileNm`), `components/ImageAttach.jsx` 주석
+- 결정: `<img src>`로 API 주소를 바로 쓰지 않고 blob으로 받는다(쿠키 만료 때 재발급). 파일명이 빈 옛 첨부는 「첨부 이미지 N」. 썸네일 줄 없음
+- 확인 방법: 백엔드(8080, KSJ 78a5e90 이후) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`
 
 ## 다음에 할 것
 
-- SCR-CSC-003 연결 남음: FN-CSC-003-09·12·15 첨부 이미지 표시(백엔드 연결 이미지 조회 API, 백엔드 저장소에서 /start). 그 뒤 프론트에서 `InquiryDetail.jsx`의 자리 표시와 `InquiryForm.jsx` `toAttachItems`의 `url`을 채운다(쿠키가 필요한 응답이면 `<img src>`로 바로 쓸 수 있는지 먼저 본다)
+- LJS 「공통 파일 이미지 컴포넌트」(`hooks/`·`components/`)가 생기면 `features/inquiry/queries.js` `useInquiryImageUrls`를 그것으로 바꾼다
+- 문의를 수정해 저장하면 `inquiryKeys.all` 무효화가 이미지 쿼리까지 다시 받아, 방금 지운 첨부에 404 요청이 한 번 나간다(화면 영향 없음). 거슬리면 무효화 범위를 목록·상세로 좁힌다
 - SCR-CSC-003 연결 남음: FN-CSC-003-09·11·15 업로드 한도(백엔드 연결 `max-request-size` 10MB → 100MB, 백엔드 저장소에서 /start). `application.properties.example` 커밋과 팀원·디스코드 `application.properties`도 같이 바꾼다
 - SCR-CSC-003 연결 남음: FN-CSC-003-10 `pixelCharSn`·`charPhotoSn` 전송(SJM 캐릭터 화면이 `petSn`만 넘김), 003-14 답변 알림(YAY), 003-16 로그인 화면 쿠키 뒤 동작 확인(AIC, 라우트는 LJS #100이 `member`로 감쌈)
-- 검증·확인 중 만든 테스트 문의(회원 1의 201·215·217~220, 회원 2의 216, 사람 확인 때 만든 것)는 삭제 API가 없어 DB `OTO_INQRY`·`OTO_INQRY_STTS_HSTRY`·`INQRY_ATCH_PHOTO`·`ATCH_FILE`과 업로드 파일에서 직접 지운다(사람)
+- 검증·확인 중 만든 테스트 문의(회원 1의 201·215·217~227, 회원 2의 216, 사람 확인 때 만든 것)는 삭제 API가 없어 DB `OTO_INQRY`·`OTO_INQRY_STTS_HSTRY`·`INQRY_ATCH_PHOTO`·`ATCH_FILE`과 업로드 파일에서 직접 지운다(사람)
 - 장소 검색을 프론트(카카오)로 바꾼 것을 AIC 담당에게 알리고 합의한다(서버 장소 검색·역지오코딩 API가 필요 없어짐). PR 본문에 공용 `Modal.jsx` 변경(`isWide`·`isTop`)을 적는다
 - 가짜 데이터의 「서곡동」(`missingCodes.js` `DONG_BY_REGION`, `careApi.js`, `missingApi.js` `PLACES`)은 카카오에 없는 동이라 펫돌봄 상세 1번 지도가 「지도를 불러오지 못했어요」다. 효자동 등으로 바꿀지 정한다
 - 읍·면·동 필터 목록이 서버 행정동 코드 목록으로 바뀌면 `placeSearch.js`의 `toBaseDong`(효자동1가→효자동, 인후1동→인후동) 규칙을 다시 맞춘다

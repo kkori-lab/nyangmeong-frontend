@@ -7,16 +7,17 @@ import ConfirmModal from '@/components/ConfirmModal';
 import DropdownSelect from '@/components/DropdownSelect';
 import ImageAttach from '@/components/ImageAttach';
 import { PATHS } from '@/routes/paths';
+import { useInquiryImageUrls } from './queries';
 
 const TITLE_MAX = 50;
 const BODY_MAX = 2000;
 
-/** 서버가 준 첨부 [{ atchFileSn, sortSeq }]를 ImageAttach 항목으로: 이미지 주소가 없어 자리 표시로 그린다 */
+/** 서버가 준 첨부 [{ atchFileSn, sortSeq, orgnlFileNm }]를 ImageAttach 항목으로: 이미지 주소는 그릴 때 채운다 */
 const toAttachItems = (imgs = []) =>
-  imgs.map(({ atchFileSn }, index) => ({
+  imgs.map(({ atchFileSn, orgnlFileNm }, index) => ({
     id: `file-${atchFileSn}`,
     atchFileSn,
-    name: `첨부 이미지 ${index + 1}`,
+    name: orgnlFileNm || `첨부 이미지 ${index + 1}`,
     url: null,
   }));
 
@@ -59,6 +60,10 @@ export default function InquiryForm({
   const [body, setBody] = useState(initial.inqryCn);
   const [initialImages] = useState(() => toAttachItems(initial.imgs));
   const [images, setImages] = useState(initialImages);
+  const existingUrls = useInquiryImageUrls(
+    initial.otoInqrySn,
+    initial.imgs ?? [],
+  );
   const [errors, setErrors] = useState({});
   const [leaveTo, setLeaveTo] = useState(null);
 
@@ -249,7 +254,11 @@ export default function InquiryForm({
         </div>
 
         <ImageAttach
-          images={images}
+          images={images.map((image) =>
+            image.atchFileSn
+              ? { ...image, url: existingUrls[image.atchFileSn] ?? null }
+              : image,
+          )}
           onChange={setImages}
           hint="화면 캡처를 함께 올려 주시면 확인이 빨라요."
         />

@@ -5,8 +5,8 @@ import { api } from '@/api/axios';
  * - 목록 GET /inquiries, 상세 GET /inquiries/{otoInqrySn}, 작성 POST /inquiries, 수정 PATCH /inquiries/{otoInqrySn}
  *   작성·수정은 multipart/form-data(inqryTypeCd·inqryTtl·inqryCn·images, 수정은 남길 첨부 keepAtchFileSns)
  * - 응답: 목록 {content[{otoInqrySn, inqryTypeCd, inqryTypeCdNm, inqryTtl, inqryPrcsSttsCd, inqryPrcsSttsCdNm, regDt}], page, size, totalElements, totalPages, hasNext},
- *   상세·작성·수정 {…, inqryCn, imgs[{atchFileSn, sortSeq}], ansCn, ansDt}
- * - 첨부 이미지는 서버가 atchFileSn만 준다(이미지 조회 API가 생기면 imgs로 표시한다)
+ *   상세·작성·수정 {…, inqryCn, imgs[{atchFileSn, sortSeq, orgnlFileNm}], ansCn, ansDt}
+ * - 첨부 이미지는 GET /inquiries/{otoInqrySn}/images/{atchFileSn}(본인 문의만, 이미지 Blob)로 받는다
  */
 
 /** 문의 유형 공통코드 그룹(CSCG02): 코드 CSCC0005~0011 */
@@ -35,6 +35,12 @@ export const getInquiries = ({ page = 1, size = 10, status = '' } = {}) =>
   });
 
 export const getInquiry = (otoInqrySn) => api.get(`/inquiries/${otoInqrySn}`);
+
+/** 첨부 이미지 Blob. 쿠키 만료 때 재발급을 타도록 <img src>에 주소를 바로 쓰지 않는다 */
+export const getInquiryImage = (otoInqrySn, atchFileSn) =>
+  api.get(`/inquiries/${otoInqrySn}/images/${atchFileSn}`, {
+    responseType: 'blob',
+  });
 
 /** 문의 유형 목록: [{ comCd, comCdNm, sortSeq }] */
 export const getInquiryTypes = () =>
