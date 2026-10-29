@@ -53,11 +53,7 @@ import {
   updateDailyRecord,
   updateObservationRound,
 } from './diaryApi';
-import {
-  getReceiptDetail,
-  prepareReceiptSave,
-  saveReceiptCheckups,
-} from './receiptApi';
+import { prepareReceiptSave, saveReceiptCheckups } from './receiptApi';
 import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
@@ -74,7 +70,6 @@ export const healthKeys = {
   checkups: ['health', 'checkups'],
   checkupList: (params) => ['health', 'checkups', params],
   checkupDetail: (ckupRcdSn) => ['health', 'checkups', 'detail', ckupRcdSn],
-  receiptDetail: (rcptSn) => ['health', 'receipt-detail', rcptSn],
   summary: (petSn) => ['health', 'summary', petSn],
 };
 
@@ -316,14 +311,6 @@ export const useHealthSummary = (petSn) =>
     queryKey: healthKeys.summary(petSn),
     queryFn: () => getHealthSummary(petSn),
     enabled: petSn != null,
-  });
-
-/** 영수증 인식 결과의 나머지 칸. 같은 영수증은 다시 불러오지 않는다 */
-export const useReceiptDetail = (result) =>
-  useQuery({
-    queryKey: healthKeys.receiptDetail(result.rcptSn),
-    queryFn: () => getReceiptDetail(result),
-    staleTime: Infinity,
   });
 
 /** 저장 전 가계부 중복·가까운 예정 일정 확인. 실패 안내는 모달 안에서 한다 */

@@ -2,10 +2,11 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 등록 카드 서버 연결 — 끝(2026-10-29): 검증 통과(1회차)·사람 확인 끝. 되물음 `draft`·반려동물 칩·서버 카드 표시·최근 카드만 활성·등록/취소 결과 저장을 ai 서버(messages `draft`·`done.card`, register-result)로 옮기고 등록 가짜(`fakeRegisterParser`)를 지움. 결정: 처리 안 한 카드는 새로고침하면 사라짐(명세대로), Java 등록은 가짜(`registerToHealth`)
+SCR-AIM-008 영수증 분석 AI 서버 연결 — 끝(2026-10-29): 검증 통과(1회차)·사람 확인 끝. 검진 영수증 분석을 `POST /ai/receipts`로 연결하고, 건강 일지 결과 확인 모달(JAJ 파일)이 응답 `{ recptSn, petSn, ocr }`를 그대로 읽게 바꿈(가짜 `getReceiptDetail` 삭제, 구역 없음·할인 배분·용법 n회). 확인용 `/dev/receipt-upload` 삭제. 결정: OCR은 Python 직접(10-26 Spring 경유 결정 정정), 저장은 가짜(Java API 없음)
 
 ## 다음에 할 것
 
+- 전달(SCR-AIM-008, PR 전): JAJ에게 "건강 일지 영수증 결과 확인 모달(`features/health/diary/Receipt*`·`receiptUtils.js`)이 이제 AI 서버 분석 응답 `{ recptSn, petSn, ocr: { hsptlNm, ckupYmd, recptAmt, btmDscntAmt, sections:[{ sectionNm, sbttlAmt, dscntAmt, items:[{ itemNm, itemAmt }], drugs:[{ mdcnNm, mdcnDays, mdcnUsage, mdcnAmt }] }] } }`를 그대로 읽어요. `receiptApi.js` `getReceiptDetail`·`useReceiptDetail`·`healthKeys.receiptDetail`과 `?fakeReceipt=`는 지웠고, `saveReceiptCheckups` 인자는 `recptSn`이에요. 검진 종류는 응답에 없어 회원이 골라요". ai-23에게 "프론트 연결 끝(검진 영수증·결과 확인 모달). 실제 청구서 확인함. 아조딜 `mdcnUsage`가 null로 와서 1일 횟수 칸이 비어요(회원 입력)"
 - SCR-AIM-012 연결 남음: 012-13·14 Java 일정·케어 항목 등록 API(JAJ, 출처 HLTC0067, 사람이 JAJ에게 요청 예정). 나오면 `features/ai/api.js` `registerToHealth` 가짜만 실제 요청으로 바꾼다(카드 필드가 SCHDL·CARE_ARTCL 컬럼 이름 그대로). 직접입력 주기 `cycleDays` 저장 컬럼은 백엔드와 정할 것. 지금은 [등록]해도 캘린더에 생기지 않고 대화에 "✔ 등록됨"만 저장된다
 - SCR-AIM-012 PR 전 확인: 프론트는 ai 저장소 LJS 작업 사본(커밋 전)의 `docs/api/chat.md` messages `draft`·`done.card`와 `POST /ai/conversations/{aiCnvrsRoomSn}/register-result`에 붙었다. ai 쪽이 커밋·배포돼야 develop에서 동작한다(ai-23 세션 몫)
 - SCR-AIM-012 사람이 정할 것(검증 판정 밖): ① 등록 오류 안내가 `confirmRegister.isError || cancelRegister.isError`라 [취소] 실패 뒤 [등록]이 성공해도 "처리하지 못했어요…"가 남는다(전부터 있던 동작) ② 처리 안 한 카드는 새로고침하면 사라져 내 말풍선만 남는다(결정 A, 나중에 B 브라우저 `sessionStorage` 보관·C 서버 카드 저장을 다시 볼 수 있음). 고치면 추가 요청이나 새 마일스톤으로
@@ -41,6 +42,7 @@ SCR-AIM-012 등록 카드 서버 연결 — 끝(2026-10-29): 검증 통과(1회�
 - AI 서버 연결 기반(2026-10-25 결정, 사용자 확정): AI 기능(채팅·영수증 OCR·캐릭터 생성·검사결과지 PDF 분석)은 프론트가 Python을 직접 부르고, 나머지와 영수증 save-check·save는 Spring. 주소는 같은 오리진 경로 접두사로 나눈다 — 배포 nginx `/api/` → Spring(:8080), `/ai/` → Python(:8000), 둘 다 접두사를 자르지 않는다(`proxy_pass` 끝 슬래시 없음). 개발은 `vite.config.js` 프록시 `'^/ai/'`(커밋 `5c35ea3`. `/ai` 단독은 화면 URL `PATHS.AI`라 제외). 백엔드·AI 세션에 `/ai` 접두사 요구 전달함
   - nginx에서 Python `/internal/v1/...`·`/health`는 내보내지 않는다(`location /ai/`만)
   - 2026-10-26 정정(사용자 결정, AI·백엔드 세션 통보): DB는 Java만 다루고 Python은 상태 없는 AI 서버. 영수증 OCR(`POST /api/receipts`, `/api/receipts/{recptSn}/analyze`·`/cancel`)·캐릭터 생성(`POST /api/pets/{petSn}/pixel-characters`)·채팅 영수증 분석(SCR-AIM-013, 백엔드 확인 중)은 Spring 경유, Python 직접은 AI 채팅(`/ai/conversations…`, 스트리밍)만. Vite·nginx `/ai/` 프록시는 그대로. PDF 분석 위치도 Spring 경유로 바뀔 가능성(미확정)
+  - 2026-10-29 정정(사용자 결정, ai-23 안내): 검진 영수증 OCR(SCR-AIM-008)은 Python 직접 `POST /ai/receipts`(multipart, 응답 `{ recptSn, ocr }`, 계약은 ai 저장소 `docs/api/ocr.md`). 저장 전 확인·저장은 Java(아직 없음)
   - 연결 작업 때 고칠 것(사용자 결정 10-26): `features/ai/api.js` `analyzeChatReceipt` 머리 주석 "경로 미정, Python AI 서버 `/ai/` 아래" → Spring `/api/receipts` 경유. 검진 영수증(`ai/api.js` `recognizeCheckupReceipt` "POST /receipts/recognize/checkup 추정")·가계부 영수증(`expense/api.js` "POST /receipts/recognize")·캐릭터 생성(`pet/api.js` "POST /pets/{petSn}/character")의 추정 경로도 위 Spring 경로와 맞춘다
   - AI 세션·백엔드 세션 답장 보냄(10-26): 경로 변경 영향 작음(가짜뿐), SSE 미착수, `/ai/` 인증 오류(401·403 `MEMBER_INACTIVE`·502 `EXTERNAL_API_ERROR`)는 `aiApi`에 같은 인터셉터를 붙여 받고 SSE는 `fetch`에서 같은 규칙으로 처리할 예정. 백엔드에 영수증 번호로 인식 결과를 받는 조회 API 요청
 - 디스코드로 알릴 것(PR #87 병합됨): "`SubPageLayout`을 쓰는 섹션 화면(건강기록·커뮤니티·고객센터·마이페이지)의 앱(≤760) 위 8px·아래 126px 여백을 뺐어요. 헤더~경로 24px, 콘텐츠 끝~탭바는 main 여백만 남아요. 화면 안에서 아래 여백을 따로 기대던 곳이 있으면 확인해 주세요"
@@ -114,12 +116,9 @@ SCR-AIM-012 등록 카드 서버 연결 — 끝(2026-10-29): 검증 통과(1회�
 - SCR-AIM-006 연결 남음(가짜로 끝남): 006-01~08·10·15~18·20 사전 알림 배치(LJS 백엔드) — 매일 09:00 KST 스캔으로 케어 캘린더 병원 일정 D-N 대상 추출, 연동 양육자 전원(탈퇴 제외)별 설정(채널·D-0/1/3/7·케어 일정 유형) 적용, 이메일(가입 주소, 제목 `[냥멍케어] {반려동물명}의 {검진유형} 일정이 {D-N} 남았어요`, 당일은 "오늘이에요")·인앱(`CARE_SCHDL`, `mvmnPath` `/health/calendar`) 생성, 이력·10분 간격 3회 재시도·(회원+일정+일정일+시점+채널) 중복 방지. 메일 [케어 캘린더에서 확인하기]는 `/health/calendar`, 수신 해제는 `/settings/notifications`. 006-09·11·12 프론트는 알림 목록·미확인 수 API(LJS 백엔드)로 가짜를 바꿀 때 같이(SCR-COM-004 연결). 006-13 메일 링크 미인증 복귀는 로그인 연결 때 `ProtectedRoute`·`getRedirectPath`(YAY). 배지 1분 polling은 KSJ 채팅 안 읽은 수 방식이 정해지면 맞춘다
 - SCR-AIM-010 연결 남음(가짜로 끝남): 검진기록 등록·수정 모달(SCR-HLT-002, JAJ)이 `ReceiptUploadModal`의 `onManualInput({ rcptSn? })`으로 빈 폼을 연다. `rcptSn`이 있으면 저장 때 영수증 상태를 인식실패→저장완료로 바꾸는 일은 LJS 백엔드·JAJ 저장 API와 맞춘다(명세 10-06 [확인 필요]). 영수증 인식 결과 확인 모달(SCR-HLT-002, JAJ)은 `onRecognized(result)`를 받는다. 부분 인식은 `ckupYmd`·`ckupAmt`가 `null`일 수 있다
 - 사람이 고치는 문서(SCR-AIM-010 추가 요청): 기능명세서 v0.7 FN-AIM-010-03 [다시 촬영]→[다시 올리기], FN-AIM-010-07 문구 2종 "다시 촬영하거나"→"다시 올리거나". 화면설계서 v0.9 SCR-AIM-010 ② 라벨과 같은 문구도 같이
-- SCR-AIM-008 연결 남음(가짜로 끝남, `ReceiptUploadModal`은 `features/ai/receipt/`, 같은 날 SCR-AIM-010도 이 모달을 고쳤다):
-  - 영수증 인식 API(LJS 백엔드): `features/ai/api.js`의 `recognizeCheckupReceipt` 가짜를 `api.post`로 바꾼다. 경로(`POST /receipts/recognize/checkup`)와 응답 필드(`rcptSn`·`petSn`·`items[]`의 `ckupNm`·`ckupYmd`·`ckupAmt`)는 추정이라 Swagger로 확인한다. `signal`은 axios에 넘기고, `waitAbortable`은 지운다. 15초 시간 초과는 모달(`ANALYZE_TIMEOUT_MS`)이 판정하므로 서버 타임아웃(15초, 명세 008-07)과 맞춘다. [취소] 때 영수증 상태 '취소'를 서버에 알릴 API가 필요한지 확인한다
-  - 건강 일지(JAJ, SCR-HLT-002): [영수증으로 등록하기]에서 모달을 연다. `pets`(`usePets`, SJM), `defaultPetSn`(건강 일지에서 선택 중인 반려동물), `onRecognized(result)`(영수증 인식 결과 확인 모달로), `onManualInput()`(검진기록 등록·수정 모달 빈 폼으로)를 넘긴다. 붙인 뒤 확인용 `pages/dev/ReceiptUploadDevPage.jsx`와 `routes/domains/dev/`(`/dev/receipt-upload`)를 지운다
-  - 반려동물 목록(SJM): 모달은 `petNm`과 `vrtyNm`(있으면 "초코 (말티즈)")을 쓴다. `vrtyNm`이 미정 키라 확정되면 확인한다
-  - 실패 사유별 문구(FN-AIM-010-07)는 SCR-AIM-010에서 한다. 지금 모달의 실패 3종(`FAILURE`: 추출 0건·15초 초과·API 오류)을 거기서 맞춘다
-  - 팀에 알릴 것: SJM에게 `receiptFile.js`를 `src/utils/`로 옮겼다고 PR에 적는다(사전 공지 메시지는 보냄). `common.md` "비동기" 절 추가는 팀 합의 문서라 PR에서 알린다
+- SCR-AIM-008 연결 남음(2026-10-29 AI 서버 연결로 끝남): 저장 전 확인·저장(`health/receiptApi.js` `prepareReceiptSave`·`saveReceiptCheckups`)은 가짜. Java 영수증 저장 API(LJS 백엔드)와 가계부 지출·중복 확인(SJM)이 나오면 바꾸고, 저장 때 `recptSn`을 넘긴다. 결과 모달 원본 썸네일(FN-AIM-009-01)은 분석 응답에 이미지 주소가 없어 아이콘. 반려동물 목록(SJM) `vrtyNm` 키 확정 대기
+- 반려동물 구역 없는 영수증·서버 400·409·504는 검증 때 응답을 가로채서만 확인했다. 실제 구역 없는 영수증이 생기면 건강 일지 [영수증으로 등록하기]로 고른 반려동물 탭 하나로 시작하는지 본다. 구역 없는 영수증의 구역 `dscntAmt`는 하단 할인과 합쳐 비율 배분한다(`getSplitDiscount`, 명세 FN-AIM-009-20 해석)
+- 팀에 알릴 것(SCR-AIM-008, PR 전): SJM에게 `receiptFile.js`를 `src/utils/`로 옮겼다고 PR에 적는다. `common.md` "비동기" 절 추가는 팀 합의 문서라 PR에서 알린다
 - 선택: `src/utils/formatDate.js`로 바꿀 수 있는 곳 — `ConversationHeader.jsx`의 `formatDate`는 `formatDate(crtDt)`, `features/expense/shared/expenseFormat.js`의 `formatMonthDay`는 `formatDate(expndYmd, { hasYear: false, separator: '-' })`. 이번에 안 건드렸다
 - 범위 밖에서 본 것(말만): `ConversationMessages.jsx`의 `{children && <li>…}`가 항상 참이라 대화 목록 끝에 빈 `<li>`가 생긴다
 - 사람이 고치는 문서(SCR-COM-002 반응형): FN-COM-002-23 햄버거·002-20 TOP은 기능명세서 v0.5·화면설계서 v0.8(2026-10-25)에 반영됨. 남은 것: FN-COM-006-07 터치 동작의 "반응형 범위 확정 후"를 범위 확정(≤1100px·≤760px)으로, 화면설계서 SCR-COM-006 터치(잠정) 문구

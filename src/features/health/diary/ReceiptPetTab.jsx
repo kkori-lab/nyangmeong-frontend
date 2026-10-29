@@ -57,11 +57,11 @@ export default function ReceiptPetTab({
           );
           return (
             <span key={tab.id} className={chipClass(isActive)}>
-              {tab.zoneNm && <span>영수증 &apos;{tab.zoneNm}&apos; →</span>}
+              {tab.sectionNm && <span>영수증 &apos;{tab.sectionNm}&apos; →</span>}
               <select
                 aria-label={
-                  tab.zoneNm
-                    ? `영수증 '${tab.zoneNm}' 반려동물 선택`
+                  tab.sectionNm
+                    ? `영수증 '${tab.sectionNm}' 반려동물 선택`
                     : '반려동물 선택'
                 }
                 value={tab.petSn ?? ''}
