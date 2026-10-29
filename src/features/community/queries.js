@@ -72,7 +72,21 @@ const useInvalidatingMutation = (mutationFn) => {
 
 export const useCreatePost = () => useInvalidatingMutation(createPost);
 export const useUpdatePost = () => useInvalidatingMutation(updatePost);
-export const useDeletePost = () => useInvalidatingMutation(deletePost);
+/**
+ * 목록·레일만 무효화한다. all로 하면 아직 떠 있는 지운 글의 상세를 다시 받아 404가 나고,
+ * 상세가 오류 화면으로 바뀌어 삭제 뒤 이동·토스트(mutate의 onSuccess)가 불리지 않는다
+ */
+export const useDeletePost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deletePost,
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: [...postKeys.all, 'list'] }),
+        queryClient.invalidateQueries({ queryKey: postKeys.rail }),
+      ]),
+  });
+};
 export const useTogglePostLike = () => useInvalidatingMutation(togglePostLike);
 /** 댓글 영역(CommentSection)은 게시판 종류를 몰라 targetSn으로 받는다 */
 export const useCreateComment = () =>
