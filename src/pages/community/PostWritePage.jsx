@@ -6,7 +6,7 @@ import useLeaveGuard from '@/features/community/useLeaveGuard';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 
-const INITIAL = { bbsCd: BBS_INFO, pstTtl: '', pstCn: '', atchFiles: [] };
+const INITIAL = { bbsCd: BBS_INFO, pstTtl: '', pstCn: '', imgs: [] };
 
 export default function PostWritePage() {
   const navigate = useNavigate();
