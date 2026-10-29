@@ -1,4 +1,4 @@
-/** 결과 없음 박스: 문구, 보조 문구, 아래 버튼(children)을 가운데에 쌓는다 */
+/** 결과 없음 박스: 문구, 보조 문구, 아래 버튼(children)을 가운데 쌓기 */
 export default function EmptyResult({ icon, title, description, children }) {
   return (
     <div className="rounded-[14px] border border-[#e2e7e7] bg-white px-6 py-14">

@@ -48,7 +48,7 @@ const formatDayCell = (summary, typeCd) => {
 /** 값이 최신 한 건인 종류(체중·배변상태). 나머지는 합계와 횟수 */
 const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
 
-/** 760px 이하 목록의 한 줄 요약: 기록이 있는 종류만 "체중 3.8kg · 식사량 709g"처럼 잇는다 */
+/** 760px 이하 목록의 한 줄 요약: 기록이 있는 종류만 "체중 3.8kg · 식사량 709g"처럼 연결 */
 const formatDaySummary = (dayRecords) => {
   const parts = RECORD_TYPES.map((type) => {
     const summary = summarizeType(dayRecords, type.cd);
@@ -65,7 +65,7 @@ const formatDaySummary = (dayRecords) => {
  * [최근 건강기록 날짜별 표]
  * - 하루치를 종류별 합계(횟수)로 한 줄, 행을 누르면 그날 상세 기록 모달 (FN-HLT-002-13)
  * - 모달의 기록 줄을 누르면 그 줄만 인라인 편집, 삭제는 확인 후 처리
- * - 760px 이하: 표 대신 "날짜 줄 + 한 줄 요약" 목록, 모달은 5칸 종류 버튼으로 고른 종류의 합계와 시간별 기록만 크게 보여 준다
+ * - 760px 이하: 표 대신 "날짜 줄 + 한 줄 요약" 목록, 모달은 5칸 종류 버튼으로 고른 종류의 합계와 시간별 기록만 크게 표시
  */
 export default function RecentRecordTable({ records, todayYmd }) {
   const [periodDays, setPeriodDays] = useState(DEFAULT_PERIOD);
@@ -378,8 +378,8 @@ function DetailModal({
 }
 
 /**
- * 760px 이하 상세 기록: 5칸 종류 버튼으로 고르고 고른 종류의 합계와 시간별 기록만 크게 보여 준다
- * - 처음에는 기록이 있는 첫 종류를 고른다. 기록이 없는 종류도 눌러 볼 수 있다
+ * 760px 이하 상세 기록: 5칸 종류 버튼으로 선택, 선택한 종류의 합계와 시간별 기록만 크게 표시
+ * - 처음에는 기록이 있는 첫 종류 선택. 기록이 없는 종류도 눌러 볼 수 있음
  */
 function MobileDetail({ summaries, editingSn, onEdit, onRequestDelete }) {
   const [typeCd, setTypeCd] = useState(

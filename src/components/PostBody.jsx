@@ -1,7 +1,7 @@
 /**
  * 게시판 본문 영역: 최소 높이 200px + 아래 80px 여백
- * - 200px은 사진(children)과 글을 합친 영역 기준이다. 사진이 있으면 글 아래를 200px까지 채우지 않고 글 길이까지만 보인다
- * - 글은 빈 줄로 문단을 나눈다
+ * - 200px은 사진(children)과 글을 합친 영역 기준. 사진이 있으면 글 아래를 200px까지 채우지 않고 글 길이까지만 표시
+ * - 글은 빈 줄로 문단 구분
  */
 export default function PostBody({ content, children }) {
   return (

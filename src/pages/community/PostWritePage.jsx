@@ -19,7 +19,7 @@ export default function PostWritePage() {
         navigate(generatePath(PATHS.COMMUNITY_POST_DETAIL, { pstSn })),
     });
 
-  /** 「목록으로」는 폼 아래 줄에 있어 머리의 ‹ 목록으로(back)는 끈다 */
+  /** 「목록으로」는 폼 아래 줄에 있어 머리의 ‹ 목록으로(back)는 끔 */
   return (
     <SubPageLayout
       section="community"

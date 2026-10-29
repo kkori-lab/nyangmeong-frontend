@@ -17,7 +17,7 @@ import InvitationRejectDialog from './InvitationRejectDialog';
  * - [거절]은 선택과 관계없이 초대 전체 거절
  * - 수락 -> 반려동물 관리로 이동해 방금 연동된 동물 표시
  * - 초대받은 이메일과 로그인 계정이 다르면(emlMtchYn === 'N') 수락 화면 대신 안내
- * - 만료·처리된 초대는 이 화면에 오지 않는다(InvitationPage가 InvitationClosed로 보낸다)
+ * - 만료·처리된 초대는 이 화면에 오지 않음(InvitationPage가 InvitationClosed로 전달)
  */
 
 const CARD =

@@ -174,7 +174,7 @@ function Chart({
   const tipY = tipPointY - 48;
   const tagWidth = right - 12;
 
-  /** 왼쪽 한 열: 값이 가까워 라벨이 겹치면 아래로 밀어 LABEL_GAP 간격을 둔다 */
+  /** 왼쪽 한 열: 값이 가까워 라벨이 겹치면 아래로 밀어 LABEL_GAP 간격 확보 */
   const labelYs = {};
   if (isLeftColumn) {
     const items = [];

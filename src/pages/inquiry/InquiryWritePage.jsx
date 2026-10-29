@@ -12,7 +12,7 @@ import { useCreateInquiry, useInquiryTypes } from '@/features/inquiry/queries';
 import { PATHS } from '@/routes/paths';
 
 /**
- * 문의 유형을 미리 고른다
+ * 문의 유형 미리 선택
  * - 픽셀 캐릭터 화면의 문의 링크(state.inquiryType === 'PIXEL_CHARACTER')
  * - ?type=에 유형 코드나 이름이 오면 그 유형
  */

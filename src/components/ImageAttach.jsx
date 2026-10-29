@@ -6,11 +6,11 @@ export const MAX_IMAGES = 10;
 
 /**
  * 이미지 첨부: images는 [{ id, name, url, file }], 최대 10장, jpg·png·webp, 한 장 10MB
- * - file: 방금 고른 원본 File. 서버에 올릴 때 쓴다
- * - 서버에서 받아 온 첨부는 file 없이 url도 null일 수 있다(받는 중이거나 실패): 이름만 있는 자리 표시로 그린다
+ * - file: 방금 고른 원본 File. 서버에 업로드용
+ * - 서버에서 받아 온 첨부는 file 없이 url도 null일 수 있다(받는 중이거나 실패): 이름만 있는 자리 표시
  * - hint: 안내 문구 위에 덧붙일 한 줄(선택)
- * - 형식·용량 검사는 영수증 업로드와 같은 validateReceiptFile을 쓴다
- * - 미리보기 주소(blob:)는 삭제해도 해제하지 않는다
+ * - 형식·용량 검사는 영수증 업로드와 같은 validateReceiptFile 사용
+ * - 미리보기 주소(blob:)는 삭제해도 해제 안 함
  */
 export default function ImageAttach({ images, onChange, hint }) {
   const inputId = useId();
@@ -45,7 +45,7 @@ export default function ImageAttach({ images, onChange, hint }) {
 
   const handleInputChange = (event) => {
     addFiles(event.target.files);
-    /** 같은 파일을 다시 고를 수 있게 비운다 */
+    /** 같은 파일을 재선택을 위해 비움 */
     event.target.value = '';
   };
 

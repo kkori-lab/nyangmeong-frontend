@@ -1,6 +1,6 @@
 /**
  * 펫이야기 게시판 공통코드: 화면 이름 ↔ bbsCd (공통코드 그룹 CMUG01)
- * - 코드 값은 가정이다. 연결 때 DB의 공통코드 값으로 바꾼다
+ * - 코드 값은 가정. 연결 때 DB의 공통코드 값으로 교체
  */
 export const POST_BOARDS = [
   { name: '펫정보', code: 'CMUC0001', tone: 'blue' },

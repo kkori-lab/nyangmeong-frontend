@@ -5,9 +5,9 @@ import { findDongCenter } from '../missing/placeSearch';
 
 /**
  * 돌봄 장소 지도: 실종센터 지도(MissingMap)와 같은 크기·형태(높이 400px, 반경 원, +/−)
- * - place: { sggNm, emdNm, wtnsPlcLat?, wtnsPlcLot? }. 좌표가 없으면(상세·수정은 공개 좌표가 없다) 동 중심을 찾아 보여 준다
+ * - place: { sggNm, emdNm, wtnsPlcLat?, wtnsPlcLot? }. 좌표가 없으면(상세·수정은 공개 좌표 없음) 동 중심을 찾아 표시
  * - 라벨은 공개 범위에 맞춰 항상 「○○동 인근」
- * - onMove: 글쓰기에서만 넘긴다. 지도를 끌면 그 자리의 장소(좌표·시군구·동)를 넘긴다
+ * - onMove: 글쓰기에서만 전달. 지도를 끌면 그 자리의 장소(좌표·시군구·동) 전달
  */
 export default function CareAreaMap({ place, onMove, className = '' }) {
   const { kakao } = useKakaoMap();

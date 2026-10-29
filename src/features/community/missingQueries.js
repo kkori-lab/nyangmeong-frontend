@@ -55,7 +55,7 @@ export const useBreeds = (petSeCd) =>
     staleTime: Infinity,
   });
 
-/** 글·댓글·좋아요·상태가 바뀌면 목록·상세·레일을 모두 다시 받는다 */
+/** 글·댓글·좋아요·상태가 바뀌면 목록·상세·레일을 모두 재조회 */
 const useInvalidatingMutation = (mutationFn) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -78,7 +78,7 @@ export const useCreateMissingComment = () =>
 export const useDeleteMissingComment = () =>
   useInvalidatingMutation(deleteMissingComment);
 
-/** 신고·장소 검색은 화면이 바뀌지 않아 다시 받지 않는다 */
+/** 신고·장소 검색은 화면이 바뀌지 않아 재조회 없음 */
 export const useReportMissing = () =>
   useMutation({ mutationFn: reportMissing });
 export const useReportMissingComment = () =>

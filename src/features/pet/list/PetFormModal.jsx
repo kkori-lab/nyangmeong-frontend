@@ -170,7 +170,7 @@ function PetForm({ pet, onClose }) {
     return pet.vrtySn == null ? VRTY_DRCT_LABEL : (pet.vrtyNm ?? '');
   });
   const [errors, setErrors] = useState({});
-  /** 추가 정보: 등록은 접힘, 수정은 펼침으로 시작. 접어도 입력값은 form에 남는다 */
+  /** 추가 정보: 등록은 접힘, 수정은 펼침으로 시작. 접어도 입력값은 form에 유지 */
   const [isOptOpen, setIsOptOpen] = useState(pet != null);
   const optRef = useRef(null);
   const { data: varieties = [] } = useVarieties(form.petSeCd);

@@ -8,8 +8,8 @@
 export const ANALYZE_TIMEOUT_MS = 15000;
 
 /**
- * AI 서버로 분석할 때의 안전망: 서버가 15초에 OCR_TIMEOUT으로 끝내므로 그보다 늦게 끊는다
- * 화면이 먼저 끊으면 서버에는 '취소'로 남는다
+ * AI 서버로 분석할 때의 안전망: 서버가 15초에 OCR_TIMEOUT으로 끝내므로 그보다 늦게 끊기
+ * 화면이 먼저 끊으면 서버에는 '취소'로 기록
  */
 export const SERVER_ANALYZE_GUARD_MS = 20000;
 

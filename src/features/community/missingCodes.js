@@ -2,7 +2,7 @@ import { PET_SE } from '@/utils/petCodes';
 
 /**
  * [실종센터 코드·목록]
- * - 상태 코드 값은 공통코드가 정해지기 전의 가정이다. 연결 때 백엔드 값으로 바꾼다
+ * - 상태 코드 값은 공통코드가 정해지기 전의 가정. 연결 때 백엔드 값으로 교체
  */
 export const LOST_STTS = {
   LOST: 'CMUC0030',
@@ -43,7 +43,7 @@ export const PERIOD_FILTERS = [
 
 export const ALL_REGION = '';
 
-/** 전북 시·군·구. 전주시 전체는 완산구·덕진구를 함께 묶는다 */
+/** 전북 시·군·구. 전주시 전체는 완산구·덕진구를 함께 묶음 */
 export const REGION_OPTIONS = [
   { value: ALL_REGION, label: '전북 전체' },
   { value: '전주시', label: '전주시 전체' },
@@ -66,7 +66,7 @@ export const REGION_OPTIONS = [
   ].map((name) => ({ value: name, label: name })),
 ];
 
-/** 읍·면·동 목록(가짜). 서버 행정동 코드 목록으로 바뀐다 */
+/** 읍·면·동 목록(가짜). 서버 행정동 코드 목록으로 교체 */
 export const DONG_BY_REGION = {
   '전주시 완산구': [
     '서곡동',
@@ -92,10 +92,10 @@ export const DONG_BY_REGION = {
   부안군: ['부안읍', '변산면'],
 };
 
-/** 전주시 전체와 전북 전체는 읍·면·동을 고를 수 없다 */
+/** 전주시 전체와 전북 전체는 읍·면·동을 선택 불가 */
 export const hasDong = (region) => Boolean(DONG_BY_REGION[region]);
 
-/** 품종 목록(가짜). 품종 마스터 API로 바뀐다 */
+/** 품종 목록(가짜). 품종 마스터 API로 교체 */
 export const BREEDS = {
   [PET_SE.DOG]: [
     '골든 리트리버',
@@ -148,10 +148,10 @@ export const getPetLabel = (post) => {
 
 export const isFound = (post) => post.lostTpofSttsCd === LOST_STTS.FOUND;
 
-/** 게시 종료 7일 전부터 연장할 수 있다 */
+/** 게시 종료 7일 전부터 연장 가능 */
 export const EXTEND_BEFORE_DAYS = 7;
 export const EXTEND_DAYS = 30;
 
-/** 찾았어요 처리 때 자동으로 만드는 댓글 문구. 사용자가 고칠 수 없다 */
+/** 찾았어요 처리 때 자동으로 만드는 댓글 문구. 사용자가 수정 불가 */
 export const foundCommentText = (petNm) =>
   `여러분의 제보와 관심 덕분에 ${petNm}가 무사히 가족의 품으로 돌아갔어요. 감사합니다!`;

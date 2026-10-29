@@ -14,7 +14,7 @@ import {
  * 한 줄: 라벨 + 입력. 1280px 초과에서는 두 줄이 한 행에 나란히(라벨·입력 열을 가장 긴 라벨에 맞춘다),
  * 1280px 이하는 한 줄씩, 760px 이하는 라벨 위·입력 아래
  * - isWide: 1280px 초과에서도 한 행을 다 쓴다(실종 기간)
- * - index 1 이상은 위에 구분선, 1280px 초과의 첫 행 오른쪽 칸(index 1)만 선이 없다
+ * - index 1 이상은 위에 구분선, 1280px 초과의 첫 행 오른쪽 칸(index 1)만 선 없음
  */
 function Row({ label, index, isWide = false, children }) {
   const border =
@@ -75,7 +75,7 @@ const countActive = ({ region, pet, period }) =>
 /**
  * 빠른 필터: 지역(시·군·구 → 읍·면·동) · 반려동물 · 실종 기간. 바꾸면 바로 적용(AND)
  * - filters: { region, dong, pet, period }, onChange(바뀐 값만), onReset
- * - 760px 이하에서는 [상세 필터] 버튼으로 열고 닫는다
+ * - 760px 이하에서는 [상세 필터] 버튼으로 열고 닫음
  */
 export default function MissingFilters({ filters, onChange, onReset }) {
   const [isOpen, setIsOpen] = useState(false);

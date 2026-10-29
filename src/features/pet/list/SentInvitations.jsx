@@ -44,7 +44,7 @@ const formatMonthDay = (ymd) => ymd.slice(5);
 
 export default function SentInvitations() {
   const { data: invitations = [], isPending } = useSentInvitations();
-  /** 초대 1건을 동물마다 한 줄로 펼친다 */
+  /** 초대 1건을 동물마다 한 줄로 펼침 */
   const rows = invitations.flatMap((invitation) =>
     invitation.pets.map((pet) => ({ invitation, pet })),
   );

@@ -53,7 +53,7 @@ export default function ItemSelect({
     buttonRef.current.focus();
   };
 
-  /** 바깥을 누르면 닫는다 */
+  /** 바깥을 누르면 닫힘 */
   useEffect(() => {
     if (!isOpen) return undefined;
     const handleMouseDown = (event) => {

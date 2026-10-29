@@ -25,7 +25,7 @@ export const useChatReceiptResult = (rcptSn) =>
     queryFn: () => getChatReceiptResult(rcptSn),
     enabled: rcptSn != null,
     retry: false,
-    /** 한 번 읽으면 지워지므로 다시 조회하지 않는다 */
+    /** 한 번 읽으면 지워지므로 재조회 없음 */
     staleTime: Infinity,
   });
 

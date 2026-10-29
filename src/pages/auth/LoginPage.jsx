@@ -15,7 +15,7 @@ export default function LoginPage() {
   // 이메일 로그인으로 들어가면 forward, 방법 선택으로 돌아오면 back (전환 모션의 방향)
   const [prevIsEmail, setPrevIsEmail] = useState(isEmail);
   const [direction, setDirection] = useState('forward');
-  /** 가입 후 첫 로그인인데 닉네임 설정이 안 끝났으면 서버가 준 닉네임으로 모달을 띄운다 */
+  /** 가입 후 첫 로그인인데 닉네임 설정이 안 끝났으면 서버가 준 닉네임으로 모달 표시 */
   const [reguideNickname, setReguideNickname] = useState(null);
   if (prevIsEmail !== isEmail) {
     setPrevIsEmail(isEmail);

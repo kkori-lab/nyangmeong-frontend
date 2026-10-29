@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 /**
  * [지출 ⋮ 메뉴] PC 날짜별 상세의 행 오른쪽 메뉴
- * - [수정]·[삭제](빨간색), 바깥을 누르거나 항목을 고르면 닫힌다
+ * - [수정]·[삭제](빨간색), 바깥을 누르거나 항목을 고르면 닫힘
  */
 export default function ExpenseMenu({ onEdit, onDelete }) {
   const [isOpen, setIsOpen] = useState(false);

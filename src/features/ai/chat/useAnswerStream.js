@@ -22,7 +22,7 @@ const idleState = {
   aiCnvrsRoomSn: null,
   /** 화면이 대신하는 저장 메시지 */
   hiddenMsgSns: [],
-  /** 보낸 메시지: 서버가 저장한 메시지를 불러오기 전까지 화면에 먼저 보인다 */
+  /** 보낸 메시지: 서버가 저장한 메시지를 불러오기 전까지 화면에 먼저 표시 */
   pendingText: null,
 };
 
@@ -94,7 +94,7 @@ export default function useAnswerStream() {
           },
           onIntent: ({ kind }) => {
             if (!isCurrent()) return;
-            /** 판정 시점에 서버가 저장한 내 메시지를 바로 보인다 */
+            /** 판정 시점에 서버가 저장한 내 메시지를 바로 표시 */
             queryClient.invalidateQueries({
               queryKey: aiKeys.detail(roomSn),
             });
@@ -113,7 +113,7 @@ export default function useAnswerStream() {
         refresh();
 
         if (result.intent?.kind !== SEARCH) {
-          /** 내 메시지는 다시 불러온 상세에 들어올 때까지 임시 말풍선으로 남긴다 */
+          /** 내 메시지는 다시 불러온 상세에 들어올 때까지 임시 말풍선으로 유지 */
           setState((prev) => ({ ...idleState, pendingText: prev.pendingText }));
           return result;
         }
@@ -143,7 +143,7 @@ export default function useAnswerStream() {
           setState((prev) => ({ ...prev, status: 'error' }));
           return null;
         }
-        /** 글자 뒤 끊김: 서버가 미완료로 저장한 메시지를 다시 불러 보인다 */
+        /** 글자 뒤 끊김: 서버가 미완료로 저장한 메시지를 다시 불러 표시 */
         setState((prev) => ({
           ...idleState,
           hiddenMsgSns: prev.hiddenMsgSns,

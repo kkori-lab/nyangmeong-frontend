@@ -5,7 +5,7 @@ export const HELP = 'text-sm leading-normal text-muted';
 /** 본인 확인 카드 */
 export const CARD =
   'rounded-card border border-line bg-white px-5 py-6 shadow-depth-sm sm:px-10 sm:py-8';
-/** 행이 쌓이는 카드. 안쪽 여백은 행이 가진다 */
+/** 행이 쌓이는 카드. 안쪽 여백은 행 몫 */
 export const CARD_ROWS =
   'overflow-hidden rounded-card border border-line bg-white shadow-depth-sm';
 export const SECTION_TITLE = 'text-xl font-bold tracking-[-0.02em]';

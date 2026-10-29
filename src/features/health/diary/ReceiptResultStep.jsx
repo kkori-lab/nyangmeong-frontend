@@ -44,14 +44,14 @@ const OPTIONAL = (
 
 const aiClass = (isAi) => (isAi ? 'border-dashed' : '');
 
-/** 영수증 원본 주소는 아직 분석 응답에 없어 아이콘으로 대신한다 */
+/** 영수증 원본 주소는 아직 분석 응답에 없어 아이콘으로 대체 */
 const imgUrl = null;
 
 /**
  * [영수증 인식 결과 확인] (FN-HLT-002-34~46)
- * - LJS의 영수증 업로드 모달(SCR-AIM-008)이 받은 AI 서버 분석 응답을 그대로 받아 확인·수정한다
+ * - LJS의 영수증 업로드 모달(SCR-AIM-008)이 받은 AI 서버 분석 응답을 그대로 받아 확인·수정
  * - result: { recptSn, petSn(업로드 때 고른 반려동물), ocr }, onSaved(saved): [{ petSn, petNm, ckupRcdSn }]
- * - onRetake: 입력을 버리고 업로드로 돌아간다
+ * - onRetake: 입력을 버리고 업로드로 복귀
  */
 export default function ReceiptResultStep({
   result,
@@ -77,7 +77,7 @@ export default function ReceiptResultStep({
       : buildSectionTabs({ ocr, pets, todayYmd }),
   );
   const [activeId, setActiveId] = useState(() => tabs[0].id);
-  /** { [lineSn]: tabId } 구역이 없는 영수증에서 탭이 2개 이상일 때 품목을 나눈다 */
+  /** { [lineSn]: tabId } 구역이 없는 영수증에서 탭이 2개 이상일 때 품목 분배 */
   const [assign, setAssign] = useState({});
   /** 저장 전 확인 단계: { type: 'dup' | 'near', entries, dupTabIds?, nears } */
   const [phase, setPhase] = useState(null);

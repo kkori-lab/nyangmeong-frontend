@@ -9,7 +9,7 @@ const getCharacterImage = (petSn, part) =>
     skipAuthRedirect: true,
   });
 
-/** Blob을 <img>에 바로 쓸 data URL로 바꾼다(object URL과 달리 해제할 것이 없다) */
+/** Blob을 <img>에 바로 쓸 data URL로 변환(object URL과 달리 해제 불필요) */
 const blobToDataUrl = (blob) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -20,7 +20,7 @@ const blobToDataUrl = (blob) =>
 
 /**
  * 캐릭터 이미지를 <img src>로 쓸 수 있는 주소로 돌려준다. 실패·로딩 중에는 null
- * 키가 `['pets', ...]`로 시작해 반려동물 캐시를 무효화하면 같이 다시 받는다
+ * 키가 `['pets', ...]`로 시작해 반려동물 캐시를 무효화하면 같이 재조회
  */
 export const useCharacterImage = (petSn, part) => {
   const { data } = useQuery({

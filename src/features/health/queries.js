@@ -206,7 +206,7 @@ export const useCheckups = (params) =>
     placeholderData: keepPreviousData,
   });
 
-/** 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어진다 */
+/** 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐 */
 const useCheckupMutation = (mutationFn) => {
   const queryClient = useQueryClient();
 
@@ -234,7 +234,7 @@ export const useCheckupDetail = (ckupRcdSn) =>
     queryFn: () => getCheckupDetail(ckupRcdSn),
   });
 
-/** 검진상세 변경: 변수의 ckupRcdSn 상세를 다시 읽고, 케어 항목이 바뀌는 변경은 케어리스트도 다시 읽는다 */
+/** 검진상세 변경: 변수의 ckupRcdSn 상세를 다시 읽고, 케어 항목이 바뀌는 변경은 케어리스트도 재조회 */
 const useCheckupDetailMutation = (
   mutationFn,
   { hasCareItems = false } = {},
@@ -264,7 +264,7 @@ export const useReplaceAttachment = () =>
 export const useDeleteAttachment = () =>
   useCheckupDetailMutation(deleteAttachment);
 
-/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 돌려준다 */
+/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 반환 */
 export const useAnalyzeLabPdf = () =>
   useMutation({ mutationFn: analyzeLabPdf, onError: showErrorToast });
 
@@ -313,11 +313,11 @@ export const useHealthSummary = (petSn) =>
     enabled: petSn != null,
   });
 
-/** 저장 전 가계부 중복·가까운 예정 일정 확인. 실패 안내는 모달 안에서 한다 */
+/** 저장 전 가계부 중복·가까운 예정 일정 확인. 실패 안내는 모달 안에서 처리 */
 export const usePrepareReceiptSave = () =>
   useMutation({ mutationFn: prepareReceiptSave });
 
-/** 영수증으로 검진기록 저장. 실패하면 입력값을 유지한 채 모달 안에서 다시 시도하게 한다 */
+/** 영수증으로 검진기록 저장. 실패하면 입력값을 유지한 채 모달 안에서 재시도 */
 export const useSaveReceiptCheckups = () => {
   const queryClient = useQueryClient();
 

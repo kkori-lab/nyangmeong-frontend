@@ -16,10 +16,10 @@ const nowLocal = () => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 };
 
-/** 이어서 진행한 대화의 마지막 활동 시각: 서버에 갱신 시각이 없어 이 창 메모리에만 있다 */
+/** 이어서 진행한 대화의 마지막 활동 시각: 서버에 갱신 시각이 없어 이 창 메모리에만 보관 */
 const lastActive = new Map();
 
-/** 대화를 이어서 진행하면 목록 맨 위로 올린다 */
+/** 이어서 진행한 대화를 목록 맨 위로 */
 const touchConversation = (aiCnvrsRoomSn) =>
   lastActive.set(aiCnvrsRoomSn, nowLocal());
 
@@ -44,7 +44,7 @@ export const deleteConversation = async (aiCnvrsRoomSn) => {
   lastActive.delete(aiCnvrsRoomSn);
 };
 
-/** 새 대화 저장: 서버가 방과 첫 사용자 메시지를 만들고 제목을 정한다 */
+/** 새 대화 저장: 서버가 방과 첫 사용자 메시지 생성, 제목 결정 */
 const createConversation = (cnvrsCn) =>
   aiApi.post('/conversations', { petSn: null, cnvrsCn });
 
@@ -53,9 +53,9 @@ const STREAM_CLOSED = { code: 'STREAM_CLOSED', message: '연결이 끊겼어요'
 
 /**
  * 메시지 전송: 판정(intent) → 답변 조각(delta) → 끝(done)|오류(error) SSE
- * - 방이 없으면 대화를 만들고(첫 메시지 저장) 같은 방에 cnvrsCn 없이 보낸다
+ * - 방이 없으면 대화 생성(첫 메시지 저장) 뒤 같은 방에 cnvrsCn 없이 전송
  * - cnvrsCn이 없으면 저장 없이 방의 마지막 사용자 메시지에 답한다([다시 시도]·[다시 생성])
- * - draft: 가장 최근 등록 카드(done.card 그대로), 새 방에는 없다
+ * - draft: 가장 최근 등록 카드(done.card 그대로), 새 방에는 없음
  * - error 이벤트는 { code, message }로 실패
  */
 export const sendMessage = async ({
@@ -156,7 +156,7 @@ const OCR_SOURCE_HEALTH = 'AIMC0026';
 /** AI 대화창에서 연 영수증 분석의 요청 출처 */
 const OCR_SOURCE_CHAT = 'AIMC0031';
 
-/** 영수증 분석 (POST /ai/receipts, multipart): 응답 { recptSn, ocr }에 고른 반려동물을 붙인다 */
+/** 영수증 분석 (POST /ai/receipts, multipart): 응답 { recptSn, ocr }에 고른 반려동물 추가 */
 const analyzeReceipt = async ({ file, petSn, ocrRqstSrcCd, signal }) => {
   const form = new FormData();
   form.append('file', file);
@@ -166,7 +166,7 @@ const analyzeReceipt = async ({ file, petSn, ocrRqstSrcCd, signal }) => {
   return { recptSn, petSn, ocr };
 };
 
-/** 검진 영수증 분석: 결과 확인 모달로 넘긴다 */
+/** 검진 영수증 분석: 결과 확인 모달 입력 */
 export const recognizeCheckupReceipt = ({ file, petSn, signal }) =>
   analyzeReceipt({ file, petSn, ocrRqstSrcCd: OCR_SOURCE_HEALTH, signal });
 
@@ -177,7 +177,7 @@ export const analyzeChatReceipt = ({ file, petSn, signal }) =>
 /**
  * 대화창 영수증 결과 이력 저장 (POST /ai/conversations/{aiCnvrsRoomSn}/receipt-result)
  * - result: RECOGNIZED·FAILED·ERROR·CANCELED, 병원명·검진일·금액은 RECOGNIZED일 때만
- * - 방이 없으면 함께 보낸 글(없으면 '영수증 분석')을 첫 메시지로 방을 만들고 글은 다시 보내지 않는다
+ * - 방이 없으면 함께 보낸 글(없으면 '영수증 분석')을 첫 메시지로 방 생성, 글은 재전송 없음
  * - 응답: 저장한 메시지(사용자 메시지(있으면) → AI 요약)
  */
 export const saveReceiptResult = async ({
@@ -209,7 +209,7 @@ export const saveReceiptResult = async ({
 /** 본창에 넘길 분석 결과: 서버에 영수증 번호로 다시 조회하는 API가 없어 두 창이 같이 보는 localStorage로 전달 */
 const chatReceiptKey = (recptSn) => `chatReceipt:${recptSn}`;
 
-/** [확인 후 저장] 전에 대화창이 받은 { recptSn, petSn, ocr }를 남긴다 */
+/** [확인 후 저장] 전에 대화창이 받은 { recptSn, petSn, ocr } 보관 */
 export const keepChatReceiptResult = (result) => {
   try {
     localStorage.setItem(chatReceiptKey(result.recptSn), JSON.stringify(result));
@@ -220,7 +220,7 @@ export const keepChatReceiptResult = (result) => {
 
 /**
  * 대화창에서 분석한 영수증 인식 결과 (본창 건강 일지 결과 확인 모달용)
- * 검진 영수증 분석 응답과 같은 { recptSn, petSn, ocr }, 한 번 읽으면 지운다
+ * 검진 영수증 분석 응답과 같은 { recptSn, petSn, ocr }, 한 번 읽으면 삭제
  */
 export const getChatReceiptResult = async (recptSn) => {
   let saved = null;

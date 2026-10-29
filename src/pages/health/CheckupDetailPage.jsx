@@ -52,7 +52,7 @@ function CheckupDetail({ ckupRcdSn }) {
       ? requestedTab
       : DEFAULT_TAB,
   );
-  /** 영상검사 칩의 [첨부 자료 탭에서 등록하기]로 들어오면 첨부 추가 영역을 펼친 채 연다 */
+  /** 영상검사 칩의 [첨부 자료 탭에서 등록하기]로 들어오면 첨부 추가 영역을 펼친 채 열림 */
   const [isAddOpenOnEnter, setIsAddOpenOnEnter] = useState(false);
   const {
     data: detail,

@@ -42,7 +42,7 @@ export default function SharePanel({ title }) {
     try {
       await navigator.share({ title, url: window.location.href });
     } catch {
-      /** 사용자가 공유 창을 닫으면 AbortError: 알릴 것이 없다 */
+      /** 사용자가 공유 창을 닫으면 AbortError: 알림 없음 */
     }
   };
 

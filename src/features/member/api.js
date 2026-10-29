@@ -9,7 +9,7 @@ export const logout = () => api.post('/auth/logout');
  * [회원정보 수정 가짜 API]
  * - 회원 조회·수정 API(AIC) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
  * - 미확정 키: acntEml·mbrNcnm·mbrTelno·prflImgUrl·snsTyCd·dplctYn·mbrJoinPathCd·mbrRegDt·mbrLastLgnDt
- * - 주소에 ?fake=sns 가 있으면 소셜 로그인 회원으로 본다
+ * - 주소에 ?fake=sns 가 있으면 소셜 로그인 회원으로 간주
  * - 비밀번호에 wrong 을 넣으면 실패, 닉네임 초코맘2·관리자와 번호 01099998888은 중복,
  *   번호 01000000000은 조회 실패
  */
@@ -76,20 +76,20 @@ export const updatePhone = ({ mbrTelno }) => {
 export const updatePassword = ({ curPswd }) =>
   curPswd === 'wrong' ? fail('MISMATCH') : wait();
 
-/** 실패 횟수·보안코드 요구 상태. 기록 없는 아이디도 false·0이라 가입 여부를 드러내지 않는다 */
+/** 실패 횟수·보안코드 요구 상태. 기록 없는 아이디도 false·0이라 가입 여부 비노출 */
 export const getLoginStatus = ({ acntEml }) =>
   api.get('/auth/login-attempt-limits', {
     params: { email: acntEml },
     skipAuthRedirect: true,
   });
 
-/** 보안코드 발급·새로고침. captchaImg는 PNG data URI이고 코드 원문은 오지 않는다 */
+/** 보안코드 발급·새로고침. captchaImg는 PNG data URI이고 코드 원문은 미포함 */
 export const getCaptcha = ({ acntEml }) =>
   api.post('/auth/captchas', { acntEml }, { skipAuthRedirect: true });
 
 /**
- * 성공은 { ncnmReguide, mbrNcnm }, 실패는 code로 거부된다
- * - 정지 회원(MEMBER_INACTIVE)도 이 화면에서 안내하므로 랜딩 이동을 끈다
+ * 성공은 { ncnmReguide, mbrNcnm }, 실패는 code로 거부
+ * - 정지 회원(MEMBER_INACTIVE)도 이 화면에서 안내하므로 랜딩 이동 해제
  */
 export const login = ({ acntEml, pswd, scrtyCd }) =>
   api.post(
@@ -104,7 +104,7 @@ export const login = ({ acntEml, pswd, scrtyCd }) =>
  * - 미확정 키: acntEml·authCd·expiresAt·snsTyCd·pswd, 인증 결과와 실패를 응답 본문으로 줄지 오류 응답으로 줄지
  * - 인증번호 123456은 일반 계정, 234567은 SNS 전용(카카오), 345678은 미가입, 456789는 탈퇴 계정, 그 외는 불일치
  * - 이메일 fail@example.com은 발송 실패, 새 비밀번호에 fail이 들어가면 저장 실패
- * - 유효시간 3분은 가짜에서만 쓴다(운영값 미확정). 본인확인 완료 상태는 새로고침하면 사라진다
+ * - 유효시간 3분은 가짜에서만 사용(운영값 미확정). 본인확인 완료 상태는 새로고침하면 사라짐
  */
 const RECOVERY_TTL_MS = 3 * 60 * 1000;
 const RECOVERY_CODES = {
@@ -152,7 +152,7 @@ export const resetPassword = ({ pswd }) => {
  * - 미확정 키: acntEml·authCd·expiresAt·mbrTelno·pswd·termsAgreeList·mbrNcnm, 중복·복구 대상 결과를 응답 본문으로 줄지 오류 응답으로 줄지
  * - 이메일 duplicate@example.com은 가입된 이메일, restore@example.com은 탈퇴 후 30일 이내 계정, fail@example.com은 발송 실패
  * - 인증번호 123456은 성공, 그 외는 불일치. 번호 01012345678은 중복, 01000000000은 조회 실패
- * - 비밀번호에 fail이 들어가면 가입 실패. 기본 닉네임은 가짜에서 고정값을 준다
+ * - 비밀번호에 fail이 들어가면 가입 실패. 기본 닉네임은 가짜에서 고정값 제공
  * - 유효시간 3분은 가짜에서만 쓴다(운영값 미확정)
  */
 const SIGNUP_CODE = '123456';
@@ -163,7 +163,7 @@ const SIGNUP_DUP_PHONE = '01012345678';
 
 let signup = { acntEml: '', expiresAt: 0 };
 
-/** 결과는 OK·DUPLICATE·RESTORE 중 하나. OK이면 expiresAt을 함께 준다 */
+/** 결과는 OK·DUPLICATE·RESTORE 중 하나. OK이면 expiresAt을 함께 제공 */
 export const sendSignupCode = ({ acntEml }) => {
   if (acntEml === 'fail@example.com') return fail('SEND_FAILED');
   if (acntEml === SIGNUP_DUP_EMAIL) return wait({ result: 'DUPLICATE' });

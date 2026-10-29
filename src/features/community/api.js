@@ -6,7 +6,7 @@ import { BBS_DAILY, BBS_INFO, PST_STTS_OPEN } from './postCodes';
  * - 게시글·댓글·좋아요·신고 API(KSJ 백엔드) 연결 전: api.get()·post()로 교체
  * - 키는 ERD(PST·CMNT) 컬럼을 camelCase로 바꾼 것이다. ERD에 없는 값은 서버가 계산해 줄 것으로 가정하고 가짜 응답에만 붙인다:
  *   wrtrNcknm(작성자 닉네임), cmntCnt, popYn(인기글), thmbUrlPath, atchFiles, likeYn(내가 좋아요), mineYn(내 글·내 댓글)
- * - 로그인 전이라 내 회원번호는 MY_MBR_SN으로 고정한다
+ * - 로그인 전이라 내 회원번호는 MY_MBR_SN으로 고정
  */
 const MY_MBR_SN = 1;
 const MY_NICKNAME = '토리맘';
@@ -415,7 +415,7 @@ export const deletePost = (pstSn) => {
   return Promise.resolve();
 };
 
-/** 좋아요 토글: 바뀐 상태와 수를 돌려준다 */
+/** 좋아요 토글: 바뀐 상태와 수 반환 */
 export const togglePostLike = (pstSn) => {
   const target = findPost(pstSn);
   if (!target) return Promise.reject(new Error('게시글을 찾지 못했어요'));
@@ -448,7 +448,7 @@ export const getComments = (pstSn) => {
   );
 };
 
-/** 댓글 수는 삭제된 댓글을 뺀다 */
+/** 댓글 수는 삭제된 댓글 제외 */
 const countComments = (pstSn) =>
   comments.filter((row) => row.pstSn === pstSn && row.delYn !== 'Y').length;
 
@@ -474,7 +474,7 @@ export const deleteComment = ({ pstSn, cmntSn }) => {
   return Promise.resolve();
 };
 
-/** 댓글 신고: 같은 회원이 같은 댓글을 두 번 신고하면 막는다 */
+/** 댓글 신고: 같은 회원이 같은 댓글을 두 번 신고하면 차단 */
 export const reportComment = ({ cmntSn }) => {
   if (reportedCmntSns.has(cmntSn)) {
     return Promise.reject(new Error('이미 신고한 댓글입니다'));

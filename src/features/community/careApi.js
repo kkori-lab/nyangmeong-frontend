@@ -9,8 +9,8 @@ import {
 
 /**
  * [우리동네 펫돌봄 가짜 응답]
- * - 돌봄 모집 게시글·좋아요·신고 API(KSJ 백엔드) 연결 전: api.get()·post()로 교체. 채팅은 LJS의 채팅 창(useChatWindow)이 연다
- * - 키는 ERD(PST·PET_PRTC_RCRT·RCRT_PET_KND·RCRT_PRTC_SHP 컬럼)를 camelCase로 바꾼 것이다. 돌봄 글은 PST(1) + PET_PRTC_RCRT(1)를 서버가 합친다고 가정한다
+ * - 돌봄 모집 게시글·좋아요·신고 API(KSJ 백엔드) 연결 전: api.get()·post()로 교체. 채팅은 LJS의 채팅 창(useChatWindow)으로 연결
+ * - 키는 ERD(PST·PET_PRTC_RCRT·RCRT_PET_KND·RCRT_PRTC_SHP 컬럼)를 camelCase로 바꾼 것. 돌봄 글은 PST(1) + PET_PRTC_RCRT(1)를 서버가 합친다는 가정
  *   [PST] pstSn, pstTtl, pstCn, inqCnt, rcmdtnCnt, regDt, mdfcnDt
  *   [PET_PRTC_RCRT] petPrtcRcrtSn, rcrtSttsCd, cstUnitCd, cstAmt, rlsRgnNm, prtcBgngDt, prtcEndDt, schdlCnsltnPsbltyYn, utztnRulAgreYn
  *   [RCRT_PET_KND] petKnds: [{ petSeCd, petSizeCd(가정, ERD는 PET_BDWG 체중), vrtyNm(VRTY_SN의 품종명), vrtyDrctInptNm }]
@@ -19,7 +19,7 @@ import {
  *   likeYn, mineYn, thmbUrlPath, atchFiles, mtchSttrNcknm(매칭된 돌보미 닉네임)
  * - 상세 주소(PRTC_PLC_DADDR_ENC)와 정확한 좌표(PRTC_PLC_LAT·LOT)는 저장만 하고 응답에는 넣지 않는다(공개 응답 제외)
  * - 좋아요·신고·채팅은 pstSn, 상세·수정·삭제는 petPrtcRcrtSn 기준
- * - 로그인 전이라 내 회원번호는 MY_MBR_SN으로 고정한다
+ * - 로그인 전이라 내 회원번호는 MY_MBR_SN으로 고정
  */
 const MY_MBR_SN = 1;
 const MY_NICKNAME = '토리맘';
@@ -341,7 +341,7 @@ const findPost = (petPrtcRcrtSn) =>
 
 const findPostByPst = (pstSn) => posts.find((row) => row.pstSn === pstSn);
 
-/** 응답에서 상세 주소·정확한 좌표를 뺀다 */
+/** 응답에서 상세 주소·정확한 좌표 제외 */
 const PRIVATE_KEYS = ['prtcPlcDaddr', 'prtcPlcLat', 'prtcPlcLot'];
 
 const toSummary = (row) => ({
@@ -360,7 +360,7 @@ const matchesRegion = (row, sggNm, emdNm) => {
   return sameRegion && (!emdNm || row.emdNm === emdNm);
 };
 
-/** 돌봄 기간이 고른 날짜 범위와 하루라도 겹치는지. 일정 미정 글은 날짜를 고르면 빠진다 */
+/** 돌봄 기간이 고른 날짜 범위와 하루라도 겹치는지. 일정 미정 글은 날짜를 고르면 제외 */
 const matchesDates = (row, fromDate, toDate) => {
   if (!fromDate && !toDate) return true;
   if (!row.prtcBgngDt) return false;
@@ -425,7 +425,7 @@ export const getCare = (petPrtcRcrtSn) => {
   return Promise.resolve(toSummary(target));
 };
 
-/** 등록: 모집중 상태로 만든다. 돌봄 지역(sggNm, emdNm)은 고른 장소에서 정해진다(역지오코딩은 서버가 한다) */
+/** 등록: 모집중 상태로 생성. 돌봄 지역(sggNm, emdNm)은 고른 장소에서 결정(역지오코딩은 서버) */
 export const createCare = (values) => {
   const petPrtcRcrtSn =
     Math.max(0, ...posts.map((row) => row.petPrtcRcrtSn)) + 1;
@@ -452,7 +452,7 @@ export const createCare = (values) => {
   return Promise.resolve({ petPrtcRcrtSn });
 };
 
-/** 수정: 상태·조회수·좋아요·채팅은 바꾸지 않는다. 장소를 다시 고르지 않으면 장소 값은 그대로 둔다 */
+/** 수정: 상태·조회수·좋아요·채팅은 변경 없음. 장소를 다시 고르지 않으면 장소 값 유지 */
 export const updateCare = ({ petPrtcRcrtSn, ...values }) => {
   const target = findPost(petPrtcRcrtSn);
   if (!target || target.mbrSn !== MY_MBR_SN) {
@@ -471,7 +471,7 @@ export const deleteCare = (petPrtcRcrtSn) => {
   return Promise.resolve();
 };
 
-/** 좋아요 토글: 바뀐 상태와 수를 돌려준다 */
+/** 좋아요 토글: 바뀐 상태와 수 반환 */
 export const toggleCareLike = (pstSn) => {
   const target = findPostByPst(pstSn);
   if (!target) return Promise.reject(new Error('게시글을 찾지 못했어요'));
@@ -488,7 +488,7 @@ export const toggleCareLike = (pstSn) => {
   });
 };
 
-/** 게시글 신고: 같은 회원이 같은 글을 두 번 신고하면 막는다 */
+/** 게시글 신고: 같은 회원이 같은 글을 두 번 신고하면 차단 */
 export const reportCare = ({ pstSn }) => {
   if (reportedSns.has(pstSn)) {
     return Promise.reject(new Error('이미 신고한 게시글이에요'));

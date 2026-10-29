@@ -142,8 +142,8 @@ function CommentMenu({ comment, onReport }) {
 
 /**
  * 댓글 한 줄: 프로필 · 닉네임(작성자 배지) · 시간 · 본문 · [답글쓰기]
- * - 루트 댓글에 답글이 있으면 프로필 아래로 세로선(스레드)이 이어진다
- * - 삭제된 댓글은 문구만 남기고 ⋮·답글쓰기를 감춘다
+ * - 루트 댓글에 답글이 있으면 프로필 아래로 세로선(스레드) 연결
+ * - 삭제된 댓글은 문구만 남기고 ⋮·답글쓰기를 숨김
  */
 function CommentRow({
   comment,
@@ -224,7 +224,7 @@ function CommentRow({
   );
 }
 
-/** 답글: 왼쪽에 ㄴ 모양 연결선, 마지막이 아니면 세로선이 아래로 이어진다 */
+/** 답글: 왼쪽에 ㄴ 모양 연결선, 마지막이 아니면 세로선이 아래로 연결 */
 const REPLY_ITEM_CLASS =
   "relative before:absolute before:top-0 before:-left-[33px] before:h-[21px] before:w-[27px] before:rounded-bl-[14px] before:border-b-2 before:border-l-2 before:border-[#e2e7e7] before:content-[''] [&:not(:last-child)]:after:absolute [&:not(:last-child)]:after:top-0 [&:not(:last-child)]:after:bottom-0 [&:not(:last-child)]:after:-left-[33px] [&:not(:last-child)]:after:border-l-2 [&:not(:last-child)]:after:border-[#e2e7e7] [&:not(:last-child)]:after:content-[''] max-[760px]:before:-left-[27px] max-[760px]:before:w-[23px] max-[760px]:[&:not(:last-child)]:after:-left-[27px]";
 
@@ -232,9 +232,9 @@ const REPLY_ITEM_CLASS =
  * 댓글 영역: 댓글 + 대댓글 1단계
  * - targetSn: 글 번호, hooks: 게시판별 댓글 훅 묶음(useComments·useCreateComment·useDeleteComment·useReportComment)
  * - title·placeholder: 제목과 입력창 문구(실종센터는 「제보 · 댓글」), inputId: 맨 위 입력창 id(밖에서 포커스를 줄 때)
- * - sysAutoCrtYn이 Y인 댓글(찾았어요 안내)은 강조해 보이고 답글·신고를 받지 않는다
+ * - sysAutoCrtYn이 Y인 댓글(찾았어요 안내)은 강조 표시, 답글·신고 불가
  * - 답글에 단 답글은 원 댓글 스레드에 이어서 붙는다(prntCmntSn은 항상 원 댓글)
- * - 삭제된 댓글은 문구로 바뀌고 답글은 남는다. 댓글 수는 삭제된 댓글을 뺀다
+ * - 삭제된 댓글은 문구로 대체, 답글은 유지. 댓글 수는 삭제된 댓글 제외
  */
 export default function CommentSection({
   targetSn,
@@ -270,7 +270,7 @@ export default function CommentSection({
       },
     );
 
-  /** 눌린 댓글 아래에 입력창을 열고, 등록할 때는 원 댓글의 답글로 붙인다 */
+  /** 눌린 댓글 아래에 입력창 열기, 등록 시 원 댓글의 답글로 연결 */
   const renderReplyForm = (comment) =>
     replyTo === comment.cmntSn && (
       <CommentInput

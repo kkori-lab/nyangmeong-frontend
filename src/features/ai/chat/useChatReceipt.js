@@ -18,7 +18,7 @@ const RESULT_BY_FAILURE = {
  * [대화창 영수증 분석 흐름]
  * - 반려동물 되묻기 → 분석(/ai/receipts) → 결과 카드·실패·취소 (SCR-AIM-013)
  * - 분석이 끝나면 receipt-result로 함께 보낸 글과 요약 한 줄을 이력에 저장, 결과 카드 [취소]는 저장 안 함
- * - 저장된 메시지(afterMsgSn 초과 ~ savedUntilSn)는 이 말풍선이 떠 있는 동안 화면이 숨긴다
+ * - 저장된 메시지(afterMsgSn 초과 ~ savedUntilSn)는 이 말풍선이 떠 있는 동안 화면에서 숨김
  */
 export default function useChatReceipt({ onSaved }) {
   const analyze = useAnalyzeChatReceipt();
@@ -106,7 +106,7 @@ export default function useChatReceipt({ onSaved }) {
             return save(target, RESULT_BY_FAILURE.timeout);
           }
           if (controller.signal.aborted) {
-            /** 화면을 떠나며 끊은 것은 저장하지 않는다 */
+            /** 화면을 떠나며 끊은 것은 저장 없음 */
             if (target.id !== idRef.current) return;
             update(target.id, { status: 'cancelled' });
             return save(target, 'CANCELED');
@@ -150,13 +150,13 @@ export default function useChatReceipt({ onSaved }) {
     run({ ...receipt, pet });
   };
 
-  /** 분석 중 [취소]: 요청을 끊으면 서버가 영수증 상태를 '취소'로 남긴다 */
+  /** 분석 중 [취소]: 요청을 끊으면 서버가 영수증 상태를 '취소'로 기록 */
   const cancel = () => abortRef.current?.abort();
 
   /** 결과 카드 [취소]: 저장 없이 '취소됨' 표시 */
   const dismiss = () => update(receipt.id, { status: 'dismissed' });
 
-  /** [확인 후 저장]: 본창 결과 확인 모달이 읽을 분석 결과를 남긴다 */
+  /** [확인 후 저장]: 본창 결과 확인 모달이 읽을 분석 결과 보관 */
   const keepResult = () => keepChatReceiptResult(receipt.result);
 
   const reset = () => {
