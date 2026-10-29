@@ -6,7 +6,8 @@ SCR-AIM-013 대화창 영수증 분석 서버 연결 — 끝(2026-10-29): 검증
 
 ## 다음에 할 것
 
-- 다음 작업: SCR-AIM-013 [확인 후 저장] 본창 전달을 `localStorage`에서 실제 조회 API로 바꾼다(`/start AIM-013`, 마일스톤 "SCR-AIM-013 영수증 인식 결과 조회 API 연결 — 대기")
+- 다음 작업: SCR-AIM-013 [확인 후 저장] 본창 전달을 `localStorage`에서 실제 조회 API로 바꾼다(`/start AIM-013`, 마일스톤 "SCR-AIM-013 대화창 · 영수증 분석 · 결과 조회 API 연결 — 대기")
+  - 백엔드 끝(backend-36 2026-10-29): `GET /api/receipts/{recptSn}?petSn=` → `{ recptSn, petSn, ocrPrcsSttsCd, failRsn, ocr }`(마일스톤 절 참고). 본창이 `petSn`도 받아야 해서 건강 일지 쿼리(`?recptSn=`에 `petSn` 추가)를 JAJ와 정한다
   - 흐름 확정(2026-10-29, 백엔드 사람 결정, backend-36 답): 분석 중심은 React → Python `POST /ai/receipts` 그대로. 백엔드가 새로 만든다 ① Python → Java 내부 저장 API(분석 전 원본 + RECPT → recptSn, 분석 뒤 결과·상태 보고, 계약은 ai 저장소 `docs/api/internal.md`·ai-23과 맞춤) ② React → Java 결과 조회 API(응답 `{ recptSn, petSn, ocr }` 모양, 본인만·남의 것 404, 공동양육자 허용은 백엔드 기획에서 정함). 아직 없음, 생기면 backend-36이 경로·응답을 알려 준다. 그 전까지 `localStorage` 유지
   - 바꿀 것: `features/ai/api.js` `getChatReceiptResult`를 조회 API 요청으로(`api`, Spring), `keepChatReceiptResult`와 `useChatReceipt.js` `keepResult`·`AiChatPage.jsx`의 호출을 지운다. `queries.js` `useChatReceiptResult`의 `staleTime: Infinity`(한 번 읽고 지우기 때문)는 다시 본다. 본창 조회가 404·실패면 무엇을 보여 줄지 정한다(지금은 모달이 안 열림, `pages/health/HealthDiaryPage.jsx`)
   - 같이 볼 것: 다시 연 대화에서 결과 카드 다시 불러오기(명세 FN-AIM-013-09 미결, 메시지에 영수증 참조가 필요하면 스키마 변경). 반려동물 목록은 계속 `fakePets`(SJM)
