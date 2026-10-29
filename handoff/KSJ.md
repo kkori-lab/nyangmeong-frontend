@@ -2,19 +2,20 @@
 
 ## 지금 하는 것
 
-SCR-CSC-003 1:1 문의 · 첨부 이미지 표시 (2026-10-29) — 상태: 끝 (검증 `통과` 1회차, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-10-29)
+SCR-CSC-003 1:1 문의 · 문의 삭제 (2026-10-29) — 상태: 끝 (검증 `통과` 1회차, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-10-29)
 
-- 바꾼 것: `features/inquiry/api.js`(`getInquiryImage` blob), `queries.js`(`inquiryKeys.image`, `useInquiryImageUrls`: 주소를 캐시에 두고 `gcTime: 0`, 화면을 떠날 때 해제), `InquiryDetail.jsx`(실제 썸네일·크게 보기 버튼), 새 `InquiryImageViewer.jsx`(제목 줄·판 없는 dialog, 파일명 위·「N / 전체」 아래, ←·→, ✕·밖 클릭·ESC), `InquiryForm.jsx`(기존 첨부 실제 이미지, 이름은 `orgnlFileNm`), `components/ImageAttach.jsx` 주석
-- 결정: `<img src>`로 API 주소를 바로 쓰지 않고 blob으로 받는다(쿠키 만료 때 재발급). 파일명이 빈 옛 첨부는 「첨부 이미지 N」. 썸네일 줄 없음
-- 확인 방법: 백엔드(8080, KSJ 78a5e90 이후) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`
+- 바꾼 것: `features/inquiry/api.js`(`deleteInquiry`), `queries.js`(`useDeleteInquiry`: 목록만 무효화), `InquiryDetail.jsx`(미답변일 때 [문의 수정] 왼쪽 테두리 [삭제] 버튼, `ConfirmModal`, 성공 토스트 + 목록으로 replace 이동, 실패는 모달 안에 서버 문구)
+- 결정: 지운 문의의 상세 캐시를 `removeQueries`로 지우지 않는다(아직 떠 있는 상세가 다시 받아 404). 상세는 화면을 떠난 뒤 gc에 맡기고, 이미지는 `gcTime: 0`이라 떠나면 지워진다
+- 확인 방법: 백엔드(8080, PR #55 포함) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`
 
 ## 다음에 할 것
 
+- 사람이 고치는 문서: 기능명세서 FN-CSC-003-18 끝 문구 「표시하고다」 오타, 화면설계서 SCR-CSC-003-03에 [삭제] 버튼·확인 모달 추가
 - LJS 「공통 파일 이미지 컴포넌트」(`hooks/`·`components/`)가 생기면 `features/inquiry/queries.js` `useInquiryImageUrls`를 그것으로 바꾼다
 - 문의를 수정해 저장하면 `inquiryKeys.all` 무효화가 이미지 쿼리까지 다시 받아, 방금 지운 첨부에 404 요청이 한 번 나간다(화면 영향 없음). 거슬리면 무효화 범위를 목록·상세로 좁힌다
 - SCR-CSC-003 연결 남음: FN-CSC-003-09·11·15 업로드 한도(백엔드 연결 `max-request-size` 10MB → 100MB, 백엔드 저장소에서 /start). `application.properties.example` 커밋과 팀원·디스코드 `application.properties`도 같이 바꾼다
 - SCR-CSC-003 연결 남음: FN-CSC-003-10 `pixelCharSn`·`charPhotoSn` 전송(SJM 캐릭터 화면이 `petSn`만 넘김), 003-14 답변 알림(YAY), 003-16 로그인 화면 쿠키 뒤 동작 확인(AIC, 라우트는 LJS #100이 `member`로 감쌈)
-- 검증·확인 중 만든 테스트 문의(회원 1의 201·215·217~227, 회원 2의 216, 사람 확인 때 만든 것)는 삭제 API가 없어 DB `OTO_INQRY`·`OTO_INQRY_STTS_HSTRY`·`INQRY_ATCH_PHOTO`·`ATCH_FILE`과 업로드 파일에서 직접 지운다(사람)
+- 검증·확인 중 만든 테스트 문의(회원 1의 201·204·205·215·217~227, 회원 2의 216, 사람 확인 때 만든 것. 204·205와 이후 것은 삭제 API로 숨김 처리만 됨)는 DB `OTO_INQRY`·`OTO_INQRY_STTS_HSTRY`·`INQRY_ATCH_PHOTO`·`ATCH_FILE`과 업로드 파일에서 직접 지운다(사람)
 - 장소 검색을 프론트(카카오)로 바꾼 것을 AIC 담당에게 알리고 합의한다(서버 장소 검색·역지오코딩 API가 필요 없어짐). PR 본문에 공용 `Modal.jsx` 변경(`isWide`·`isTop`)을 적는다
 - 가짜 데이터의 「서곡동」(`missingCodes.js` `DONG_BY_REGION`, `careApi.js`, `missingApi.js` `PLACES`)은 카카오에 없는 동이라 펫돌봄 상세 1번 지도가 「지도를 불러오지 못했어요」다. 효자동 등으로 바꿀지 정한다
 - 읍·면·동 필터 목록이 서버 행정동 코드 목록으로 바뀌면 `placeSearch.js`의 `toBaseDong`(효자동1가→효자동, 인후1동→인후동) 규칙을 다시 맞춘다
