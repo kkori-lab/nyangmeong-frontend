@@ -1,10 +1,13 @@
 import { ChevronLeft, Clock, Headset, ImageIcon, Lock } from 'lucide-react';
+import { useState } from 'react';
 import { generatePath, Link } from 'react-router-dom';
 import Badge from '@/components/Badge';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { isAnswered } from './api';
+import InquiryImageViewer from './InquiryImageViewer';
 import InquiryStatusBadge from './InquiryStatusBadge';
+import { useInquiryImageUrls } from './queries';
 
 const EDIT_BUTTON_CLASS =
   'inline-flex h-10 min-w-[120px] items-center justify-center gap-1.5 rounded-md bg-[#e9f2f2] px-4 font-semibold text-[#1e4a4c] max-[760px]:h-12 max-[760px]:min-w-0 max-[760px]:flex-1';
@@ -15,6 +18,8 @@ const formatDateTime = (value) => `${formatDate(value)} ${value.slice(11, 16)}`;
 export default function InquiryDetail({ inquiry }) {
   const answered = isAnswered(inquiry);
   const { imgs } = inquiry;
+  const urls = useInquiryImageUrls(inquiry.otoInqrySn, imgs);
+  const [viewerIndex, setViewerIndex] = useState(null);
 
   return (
     <article className="rounded-[14px] border border-[#e2e7e7] bg-white px-9 pt-8 pb-8 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-5">
@@ -38,20 +43,38 @@ export default function InquiryDetail({ inquiry }) {
           <p className="mt-6 text-sm font-semibold text-[#566465]">
             첨부 이미지 {imgs.length}
           </p>
-          {/* 서버가 atchFileSn만 줘서(이미지 조회 API 전) 이미지 자리만 보여 준다 */}
           <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(120px,148px))] gap-3 max-[760px]:grid-cols-3 max-[760px]:gap-2">
             {imgs.map((img, index) => (
-              <li
-                key={img.atchFileSn}
-                role="img"
-                aria-label={`첨부 이미지 ${index + 1}`}
-                className="grid aspect-square place-items-center overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#f4f6f6] text-[#b9c4c4]"
-              >
-                <ImageIcon size={32} aria-hidden="true" />
+              <li key={img.atchFileSn}>
+                <button
+                  type="button"
+                  aria-label={`첨부 이미지 ${index + 1} 크게 보기`}
+                  onClick={() => setViewerIndex(index)}
+                  className="grid aspect-square w-full cursor-pointer place-items-center overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#f4f6f6] text-[#b9c4c4]"
+                >
+                  {urls[img.atchFileSn] ? (
+                    <img
+                      src={urls[img.atchFileSn]}
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <ImageIcon size={32} aria-hidden="true" />
+                  )}
+                </button>
               </li>
             ))}
           </ul>
         </>
+      )}
+      {viewerIndex !== null && (
+        <InquiryImageViewer
+          imgs={imgs}
+          urls={urls}
+          index={viewerIndex}
+          onChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
       )}
 
       <section
