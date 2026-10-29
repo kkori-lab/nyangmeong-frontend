@@ -37,7 +37,7 @@ export default function PasswordFindForm({
         <div className={`${SUMMARY} flex justify-between gap-3`}>
           <span className="text-muted">연결된 로그인 방법</span>
           <strong className="font-semibold text-ink">
-            {SNS_NAME[form.snsTyCd]}
+            {form.snsOffrCds.map((code) => SNS_NAME[code] ?? code).join(', ')}
           </strong>
         </div>
         <p className="mt-3 text-sm leading-5 text-muted">

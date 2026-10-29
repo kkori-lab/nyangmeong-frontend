@@ -41,7 +41,7 @@ const fail = (code) =>
 export const getMyProfile = () =>
   wait({
     ...profile,
-    snsTyCd: isFakeSns() ? 'KAKAO' : null,
+    snsTyCd: isFakeSns() ? 'USRC0008' : null,
     mbrJoinPathCd: isFakeSns() ? 'KAKAO' : 'EMAIL',
   });
 
@@ -98,53 +98,42 @@ export const login = ({ acntEml, pswd, scrtyCd }) =>
     { skipAuthRedirect: true },
   );
 
+/** 이메일 인증번호 목적 코드(공통코드 USRG04): 비밀번호 찾기 */
+const PASSWORD_RESET_PURPOSE = 'USRC0011';
+
+/** 인증번호 발송·재전송. 응답 { emlCertSn, certExpryDt }, 재전송 제한은 EMAIL_CERT_RESEND_NOT_YET(error.data.resendAvailableDt) */
+export const sendRecoveryCode = ({ certTrgtEml }) =>
+  api.post(
+    '/email-certifications',
+    { emlCertPrpsCd: PASSWORD_RESET_PURPOSE, certTrgtEml },
+    { skipAuthRedirect: true },
+  );
+
+/** 인증번호 확인. 응답의 certRslt로 재설정 대상·SNS 전용·미가입·탈퇴 보관을 가른다 */
+export const verifyRecoveryCode = ({ emlCertSn, certNo }) =>
+  api.post(
+    `/email-certifications/${emlCertSn}/verify`,
+    { certNo },
+    { skipAuthRedirect: true },
+  );
+
+/** 인증번호·재설정 권한 무효화(이메일을 다시 입력할 때) */
+export const invalidateRecoveryCode = ({ emlCertSn, certTrgtEml }) =>
+  api.post(
+    `/email-certifications/${emlCertSn}/invalidate`,
+    { certTrgtEml },
+    { skipAuthRedirect: true },
+  );
+
 /**
- * [비밀번호 찾기·재설정 가짜 API]
- * - 인증·재설정 API(YAY 백엔드) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
- * - 미확정 키: acntEml·authCd·expiresAt·snsTyCd·pswd, 인증 결과와 실패를 응답 본문으로 줄지 오류 응답으로 줄지
- * - 인증번호 123456은 일반 계정, 234567은 SNS 전용(카카오), 345678은 미가입, 456789는 탈퇴 계정, 그 외는 불일치
- * - 이메일 fail@example.com은 발송 실패, 새 비밀번호에 fail이 들어가면 저장 실패
- * - 유효시간 3분은 가짜에서만 쓴다(운영값 미확정). 본인확인 완료 상태는 새로고침하면 사라진다
+ * [비밀번호 재설정 가짜 API]
+ * - 재설정 API(`POST /email-certifications/{emlCertSn}/password-reset`, YAY 백엔드 SCR-ACC-012) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
+ * - 새 비밀번호에 fail이 들어가면 저장 실패
+ * - 본인확인(`pswdInitTkn`) 여부는 호출 전에 PasswordResetPage가 판단한다
  */
-const RECOVERY_TTL_MS = 3 * 60 * 1000;
-const RECOVERY_CODES = {
-  123456: 'RESET',
-  234567: 'SNS',
-  345678: 'NOT_FOUND',
-  456789: 'WITHDRAWN',
-};
-
-let recovery = { acntEml: '', expiresAt: 0, verified: false };
-
-export const sendRecoveryCode = ({ acntEml }) => {
-  if (acntEml === 'fail@example.com') return fail('SEND_FAILED');
-  recovery = {
-    acntEml,
-    expiresAt: Date.now() + RECOVERY_TTL_MS,
-    verified: false,
-  };
-  return wait({ expiresAt: recovery.expiresAt });
-};
-
-/** 결과는 RESET·SNS·NOT_FOUND·WITHDRAWN·MISMATCH·EXPIRED 중 하나 */
-export const verifyRecoveryCode = ({ acntEml, authCd }) => {
-  if (acntEml !== recovery.acntEml || Date.now() > recovery.expiresAt) {
-    return wait({ result: 'EXPIRED' });
-  }
-  const result = RECOVERY_CODES[authCd] ?? 'MISMATCH';
-  if (result === 'RESET') recovery.verified = true;
-  return wait(result === 'SNS' ? { result, snsTyCd: 'KAKAO' } : { result });
-};
-
-export const getRecoveryStatus = () => wait({ verified: recovery.verified });
-
 /** 성공이면 { ok: true }, 실패면 { ok: false, reason: 'EXPIRED' | 'FAILED' } */
-export const resetPassword = ({ pswd }) => {
-  if (!recovery.verified) return wait({ ok: false, reason: 'EXPIRED' });
-  if (pswd.includes('fail')) return wait({ ok: false, reason: 'FAILED' });
-  recovery = { acntEml: '', expiresAt: 0, verified: false };
-  return wait({ ok: true });
-};
+export const resetPassword = ({ pswd }) =>
+  wait(pswd.includes('fail') ? { ok: false, reason: 'FAILED' } : { ok: true });
 
 /**
  * [회원가입 가짜 API]

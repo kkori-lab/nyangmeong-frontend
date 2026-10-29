@@ -68,8 +68,10 @@ export default function AuthLayout() {
             <img src={logo} alt="냥멍케어" className="h-8 w-auto" />
           </Link>
           <div
-            className={`flex min-h-0 min-w-0 flex-1 flex-col justify-center ${
-              isSlider ? '' : 'px-8 py-8 max-md:px-4 max-md:py-6 lg:px-12.5'
+            className={`flex min-h-0 min-w-0 flex-1 flex-col justify-center-safe ${
+              isSlider
+                ? ''
+                : 'overflow-y-auto px-8 py-8 max-md:px-4 max-md:py-6 lg:px-12.5'
             }`}
           >
             <Outlet />
