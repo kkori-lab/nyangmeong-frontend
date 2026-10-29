@@ -2,7 +2,8 @@ import { api } from '@/api/axios';
 
 /**
  * [1:1 문의 API]
- * - 목록 GET /inquiries, 상세 GET /inquiries/{otoInqrySn}, 작성 POST /inquiries, 수정 PATCH /inquiries/{otoInqrySn}
+ * - 목록 GET /inquiries, 상세 GET /inquiries/{otoInqrySn}, 작성 POST /inquiries, 수정 PATCH /inquiries/{otoInqrySn},
+ *   삭제 DELETE /inquiries/{otoInqrySn}(미답변만, data 없음. 서버는 숨김 처리)
  *   작성·수정은 multipart/form-data(inqryTypeCd·inqryTtl·inqryCn·images, 수정은 남길 첨부 keepAtchFileSns)
  * - 응답: 목록 {content[{otoInqrySn, inqryTypeCd, inqryTypeCdNm, inqryTtl, inqryPrcsSttsCd, inqryPrcsSttsCdNm, regDt}], page, size, totalElements, totalPages, hasNext},
  *   상세·작성·수정 {…, inqryCn, imgs[{atchFileSn, sortSeq, orgnlFileNm}], ansCn, ansDt}
@@ -88,3 +89,6 @@ export const updateInquiry = ({
     `/inquiries/${otoInqrySn}`,
     toFormData({ inqryTypeCd, inqryTtl, inqryCn, images, keepAtchFileSns }),
   );
+
+export const deleteInquiry = (otoInqrySn) =>
+  api.delete(`/inquiries/${otoInqrySn}`);
