@@ -50,6 +50,12 @@ let nextCardKey = 1;
 /** 서버 저장 전 내 메시지 자리(서버 번호는 양수, 가짜는 음수) */
 const PENDING_MSG_SN = 0;
 
+/** 영수증 말풍선이 떠 있는 동안 숨길 메시지: 이번 분석으로 저장된 내 글·요약(말풍선이 같은 내용을 보여 준다) */
+const isReceiptSaved = (receipt, message) =>
+  receipt?.savedUntilSn != null &&
+  message.aiCnvrsMsgSn > receipt.afterMsgSn &&
+  message.aiCnvrsMsgSn <= receipt.savedUntilSn;
+
 /** 본창 건강 일지 결과 확인 모달: 파라미터 이름은 건강기록(JAJ)과 협의 전 제안값 */
 const receiptResultPath = (recptSn) =>
   `${PATHS.HEALTH_DIARY}?recptSn=${recptSn}`;
@@ -87,7 +93,7 @@ export default function AiChatPage() {
   /** 영수증 파일 고르기 창 */
   const fileInputRef = useRef(null);
   const receipt = useChatReceipt({
-    onAnalyzed: ({ aiCnvrsRoomSn }) => {
+    onSaved: ({ aiCnvrsRoomSn }) => {
       setFirstMessage(null);
       setSelectedRoomSn(aiCnvrsRoomSn);
     },
@@ -225,6 +231,7 @@ export default function AiChatPage() {
       file,
       text,
       aiCnvrsRoomSn: selectedRoomSn,
+      afterMsgSn: lastServerSn(conversation?.messages ?? []),
       pet: selectedPet ?? (pets.length === 1 ? pets[0] : null),
     });
   };
@@ -390,8 +397,7 @@ export default function AiChatPage() {
                 ...(conversation?.messages ?? []).filter(
                   (message) =>
                     !answer.hiddenMsgSns.includes(message.aiCnvrsMsgSn) &&
-                    message.aiCnvrsMsgSn !==
-                      receipt.receipt?.result?.aiCnvrsMsgSn,
+                    !isReceiptSaved(receipt.receipt, message),
                 ),
                 ...(isPendingShown
                   ? [
@@ -456,11 +462,12 @@ export default function AiChatPage() {
                   pets={pets}
                   onChoosePet={receipt.choosePet}
                   onCancel={receipt.cancel}
-                  onConfirm={() =>
+                  onConfirm={() => {
+                    receipt.keepResult();
                     openInMainWindow(
                       receiptResultPath(receipt.receipt.result.recptSn),
-                    )
-                  }
+                    );
+                  }}
                   onDismiss={receipt.dismiss}
                   onRetry={handleRetryReceipt}
                   onManualInput={() =>

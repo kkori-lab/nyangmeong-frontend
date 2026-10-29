@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   analyzeChatReceipt,
-  cancelChatReceipt,
   cancelRegister,
   confirmRegister,
   deleteConversation,
@@ -9,6 +8,7 @@ import {
   getConversation,
   getConversations,
   recognizeCheckupReceipt,
+  saveReceiptResult,
 } from './api';
 
 export const aiKeys = {
@@ -25,6 +25,8 @@ export const useChatReceiptResult = (rcptSn) =>
     queryFn: () => getChatReceiptResult(rcptSn),
     enabled: rcptSn != null,
     retry: false,
+    /** 한 번 읽으면 지워지므로 다시 조회하지 않는다 */
+    staleTime: Infinity,
   });
 
 /** 대화 목록 조회 */
@@ -76,16 +78,16 @@ export const useCancelRegister = () => useRegisterAnswer(cancelRegister);
 export const useRecognizeCheckupReceipt = () =>
   useMutation({ mutationFn: recognizeCheckupReceipt });
 
-/** 대화창 영수증 분석 취소 */
-export const useCancelChatReceipt = () =>
-  useMutation({ mutationFn: cancelChatReceipt });
+/** 대화창 영수증 분석 */
+export const useAnalyzeChatReceipt = () =>
+  useMutation({ mutationFn: analyzeChatReceipt });
 
-/** 대화창 영수증 분석: 요약 메시지가 저장된 대화 갱신 */
-export const useAnalyzeChatReceipt = () => {
+/** 대화창 영수증 결과 이력 저장: 메시지가 저장된 대화 갱신 */
+export const useSaveReceiptResult = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: analyzeChatReceipt,
+    mutationFn: saveReceiptResult,
     onSuccess: ({ aiCnvrsRoomSn }) => {
       queryClient.invalidateQueries({ queryKey: aiKeys.lists });
       queryClient.invalidateQueries({

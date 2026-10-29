@@ -2,10 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-AIM-008 영수증 분석 AI 서버 연결 — 끝(2026-10-29): 검증 통과(1회차)·사람 확인 끝. 검진 영수증 분석을 `POST /ai/receipts`로 연결하고, 건강 일지 결과 확인 모달(JAJ 파일)이 응답 `{ recptSn, petSn, ocr }`를 그대로 읽게 바꿈(가짜 `getReceiptDetail` 삭제, 구역 없음·할인 배분·용법 n회). 확인용 `/dev/receipt-upload` 삭제. 결정: OCR은 Python 직접(10-26 Spring 경유 결정 정정), 저장은 가짜(Java API 없음)
+SCR-AIM-013 대화창 영수증 분석 서버 연결 — 끝(2026-10-29): 검증 통과·사람 확인 끝. 이미지 전송을 `/messages` 없이 `POST /ai/receipts`(출처 AIMC0031)로 분석하고, 끝나면 `receipt-result`(RECOGNIZED·FAILED·ERROR·CANCELED)로 함께 보낸 글·요약 한 줄을 이력에 저장. 결과 카드는 응답 `ocr` 그대로(추가-1 총금액·할인·결제 금액). 분석 중 [취소]는 요청 끊기 + CANCELED. 영수증 가짜 메시지·취소·결과 코드 삭제. 결정: 이미지만 보낸 새 대화는 "영수증 분석"으로 방 생성, [확인 후 저장] 본창 전달은 `localStorage`(읽으면 지움)
 
 ## 다음에 할 것
 
+- SCR-AIM-013 병합 순서: ai 저장소 SCR-AIM-013(`receipt-result`·`AIMC0031`, 작업 사본 커밋 전)·백엔드 공통코드 AIMC0031 PR과 같은 때 병합한다. 공통코드는 알림 코드가 그대로라 `notiTabs.js` `INQRY_ANSWR`='AIMC0030' 유지
+- SCR-AIM-013 연결 남음: FN-AIM-013-06·08·09 Java 영수증 저장·인식 결과 조회 API(LJS 백엔드). 지금 영수증은 ai 서버 가짜 저장소(Python 메모리)에 있고, [확인 후 저장]은 `features/ai/api.js` `keepChatReceiptResult`·`getChatReceiptResult`가 `localStorage`로 넘긴다. 조회 API가 생기면 본창이 `recptSn`으로 직접 읽게 바꾸고, 다시 연 대화의 결과 카드 다시 불러오기(013-09 미결)를 다시 본다. 반려동물은 계속 `fakePets`(SJM, SCR-AIM-011 연결 몫)
+- SCR-AIM-013 사람이 볼 것(검증 판정 밖): 클라이언트 안전망은 20초(`SERVER_ANALYZE_GUARD_MS`, 기획 문구는 15초 — 서버 504가 15초라 동작 같음). 시간 초과·일시 오류, 결과 카드 [취소] 무저장, 할인 0 "없음"·결제 금액 없음 총금액 —은 코드로만 확인. 총금액은 결제 금액 + 할인 합계로 만든 값이라 영수증 할인이 하단·구역 할인으로 안 잡히면 실제 총액과 다를 수 있다
 - 전달(SCR-AIM-008, PR 전): JAJ에게 "건강 일지 영수증 결과 확인 모달(`features/health/diary/Receipt*`·`receiptUtils.js`)이 이제 AI 서버 분석 응답 `{ recptSn, petSn, ocr: { hsptlNm, ckupYmd, recptAmt, btmDscntAmt, sections:[{ sectionNm, sbttlAmt, dscntAmt, items:[{ itemNm, itemAmt }], drugs:[{ mdcnNm, mdcnDays, mdcnUsage, mdcnAmt }] }] } }`를 그대로 읽어요. `receiptApi.js` `getReceiptDetail`·`useReceiptDetail`·`healthKeys.receiptDetail`과 `?fakeReceipt=`는 지웠고, `saveReceiptCheckups` 인자는 `recptSn`이에요. 검진 종류는 응답에 없어 회원이 골라요". ai-23에게 "프론트 연결 끝(검진 영수증·결과 확인 모달). 실제 청구서 확인함. 아조딜 `mdcnUsage`가 null로 와서 1일 횟수 칸이 비어요(회원 입력)"
 - SCR-AIM-012 연결 남음: 012-13·14 Java 일정·케어 항목 등록 API(JAJ, 출처 HLTC0067, 사람이 JAJ에게 요청 예정). 나오면 `features/ai/api.js` `registerToHealth` 가짜만 실제 요청으로 바꾼다(카드 필드가 SCHDL·CARE_ARTCL 컬럼 이름 그대로). 직접입력 주기 `cycleDays` 저장 컬럼은 백엔드와 정할 것. 지금은 [등록]해도 캘린더에 생기지 않고 대화에 "✔ 등록됨"만 저장된다
 - SCR-AIM-012 PR 전 확인: 프론트는 ai 저장소 LJS 작업 사본(커밋 전)의 `docs/api/chat.md` messages `draft`·`done.card`와 `POST /ai/conversations/{aiCnvrsRoomSn}/register-result`에 붙었다. ai 쪽이 커밋·배포돼야 develop에서 동작한다(ai-23 세션 몫)
