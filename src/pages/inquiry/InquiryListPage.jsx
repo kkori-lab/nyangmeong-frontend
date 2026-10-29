@@ -21,6 +21,15 @@ export default function InquiryListPage() {
     isFetching,
     isError,
   } = useInquiries({ page, size: PAGE_SIZE, status });
+  /** 서버 목록은 필터와 관계없는 전체 건수를 주지 않는다: 필터가 켜졌을 때만 필터 없이 1건을 따로 물어 전체 건수(totalElements)를 얻는다 */
+  const {
+    data: allInquiries,
+    isFetching: isAllFetching,
+    isError: isAllError,
+  } = useInquiries(
+    { page: 1, size: 1, status: '' },
+    { enabled: status !== '' },
+  );
 
   /** 상태가 바뀌면 첫 쪽부터 */
   const handleStatusChange = (nextStatus) =>
@@ -30,7 +39,7 @@ export default function InquiryListPage() {
     setSearchParams({ ...(status && { status }), page: nextPage });
 
   if (isPending) return <InquiryListSkeleton />;
-  if (isError) {
+  if (isError || isAllError) {
     return (
       <p role="alert" className="text-[#566465]">
         문의를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
@@ -39,9 +48,10 @@ export default function InquiryListPage() {
   }
 
   /** 문의 이력이 없으면 목록을 건너뛰고 작성 화면이 첫 화면 */
-  if (inquiries.totalAll === 0) {
+  const total = status ? allInquiries?.totalElements : inquiries.totalElements;
+  if (total === 0) {
     /** 다시 가져오는 중에는 캐시에 남은 옛 0건으로 판단하지 않는다 */
-    if (isFetching) return <InquiryListSkeleton />;
+    if (isFetching || isAllFetching) return <InquiryListSkeleton />;
     return <Navigate to={PATHS.INQUIRY_NEW} replace />;
   }
 

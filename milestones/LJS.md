@@ -261,6 +261,30 @@
 - 연결 남음: FN-COM-002-02 (ai·chat·place·main bare 화면 감싸기, 세션 만료 FN-COM-003-10과 함께)
 - 연결 남음: FN-COM-003-03 (명세 문구를 로그인 이동으로 고쳐 DMS 새 버전 업로드, 사람)
 
+## SCR-AIM-011 대화 API 서버 연결 · AI 서버 요청 기반 — 끝
+- 기능: (연결 작업, 명세 기능 ID 추가 없음) B-01 `aiApi`와 공통 응답 인터셉터, B-02 `docs/convention/api.md` AI 서버 주소 규칙, FN-AIM-011-07·09·10·11·13·14 대화 생성·목록·상세·삭제를 `features/ai/api.js` 가짜에서 Python AI 서버 `/ai/conversations`로
+- 기다리는 것: 없음 (대화 API 구현됨, ai 저장소 `docs/api/chat.md`)
+- 완료 조건: 새 질문으로 만든 대화가 새로고침 뒤에도 목록에 남는다 / 삭제 뒤 새로고침해도 사라져 있다 / `node scripts/check-axios-errors.mjs` 전부 ok
+- 추가 요청(모두 검증 통과): 추가-1 761~1099px drawer가 화면을 어둡게 하지 않고 채팅 가능, 추가-2 이어 쓴 대화가 목록 맨 위로, 추가-3 drawer가 본문을 밀어냄, 추가-4 drawer 슬라이드 애니메이션
+- 완료 조건 결과: 검증 `통과`(2026-10-27, 2회차(1회차 `analyzeChatReceipt` 글 누락 실패 뒤 수정), 추가-1~4 포함 재검증), 사람 확인 2026-10-27
+- 연결 남음: FN-AIM-011-08 (반려동물 목록 API, SJM)
+- 연결 남음: FN-AIM-011-03·17 (세션 만료 시 AI 창 닫기, SCR-COM-003 003-10과 함께)
+- 연결 남음: FN-AIM-011-07·14 (두 번째 이후 메시지 저장은 메시지 추가·질문 API, ai 저장소 AIM-001·002)
+
+## SCR-AIM-002 메시지 전송 SSE 연결 · 판정·답변 서버 연결 — 끝
+- 기능: (연결 작업, 명세 기능 ID 추가 없음) B-01 `api/axios.js` SSE 요청(`fetch`, 401 재발급 공유), FN-AIM-002-02·04·05·06·07 검색 답변 스트리밍·연관 바로가기·미완료·오류, FN-AIM-001-04·05 전송·의도 분기, FN-AIM-004-01·03·06·07·10·12 서버 판정 ROUTE → 화면 ID 변환표로 본창 이동, FN-AIM-005-01·02 서버 판정 FALLBACK, FN-AIM-011-07·14 두 번째 이후 메시지 서버 저장
+- 기다리는 것: 없음 (메시지 API 구현됨, ai 저장소 LJS `41385b7` `docs/api/chat.md` MessageSendRequest·MessageEvent)
+- 완료 조건: 건강 질문 답변이 글자 단위로 이어 붙고 새로고침해도 남는다 / "가계부"를 입력하면 3초 뒤 본창이 가계부로 간다 / 2회 연속 실패하면 FAQ 버튼이 나오고 새로고침해도 실패 안내가 남는다 / `node scripts/check-axios-errors.mjs` 전부 ok
+- 추가 요청: 추가-1 메인 입력값 첫 메시지(StrictMode)·추가-2 대화 생성 중 헤더 스켈레톤·추가-3 열린 AI 창에 메인 입력값 (검증 통과 2026-10-29)
+- 연결 남음: REGISTER·RECEIPT 판정 뒤 처리 (서버 이어 가기 API, SCR-AIM-012·013 마일스톤, LJS)
+
+
+## 공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 대기
+- 기능: (연결 작업, 명세 기능 ID 추가 없음) 공개 이미지는 `/api/files/public/{atchFileSn}` 주소로 바로 보여 주고, 비공개 이미지는 도메인 API(`/api/receipts/{recptSn}/image`·`/api/pets/{petSn}/character-image`·`/api/items/{itemSn}/image`)를 `api.get(..., { responseType: 'blob' })`로 받아 보여 주는 공통 코드를 `components/`·`hooks/`에 만든다. 화면 담당(KSJ 게시글·SJM 캐릭터 등)이 가져다 쓴다
+- 기다리는 것: 백엔드 파일 저장 외부 디렉토리·서빙(끝, 커밋 3f44aa2, 백엔드 PR 전). 공용 DB는 옛 시드라 공개 이미지가 404이니 로컬 DB(`spring.profiles.active=local`, `seedData -Ptarget=local -Preset`)로 확인
+- 이미지 번호 키(백엔드 확인 2026-10-27, 서버 JSON 그대로): 공개 주소로 만들 수 있는 것은 게시글 `PostSummary.thumbAtchFileSn`(대표 사진)·`PostImageSummary.atchFileSn`(+`sortSeq`) 둘뿐이다. 캐릭터는 번호 없이 `GET /api/pets/{petSn}/character-image?part=full|face`(비공개 blob 대상), 아이템 `HeldItemSummary.atchFileSn`은 비공개라 `GET /api/items/{itemSn}/image`(blob), 영수증 `GET /api/receipts/{recptSn}/image`, 문의 사진 `InquiryImageSummary.atchFileSn`(비공개, 조회 API 없음), `/api/auth/me`의 `atchFileSn`(프로필 이미지)은 공개 여부 미정이라 URL을 만들지 않는다. 캐릭터를 번호 주소로 쓰려면 백엔드 응답에 번호 추가를 따로 요청해야 한다
+- 완료 조건: 쿠키 없이 게시글 사진이 공개 주소로 열리고 캐릭터 이미지는 blob 요청으로 보인다 / 공개가 아니거나 없는 번호(404 `FILE_NOT_FOUND`)와 로딩 중에는 정해진 대체 표시가 나온다 / 비공개 이미지는 blob 요청으로 받고 만료돼도 `api/axios.js` 재발급을 탄다 / 화면 이동 때 blob 주소를 해제한다
+- 연결 남음(화면 담당이 가져다 쓰기): 게시글 사진 KSJ(SCR-CMU, 공개 주소), 캐릭터 이미지 SJM(MYP-001·002·010, blob), 영수증 원본 이미지 JAJ·AI 영수증 화면. 공개·비공개 분류는 가정이고 공동양육자 한정 여부는 SJM 확인 전
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

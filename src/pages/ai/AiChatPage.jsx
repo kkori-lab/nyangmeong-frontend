@@ -1,27 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ChatInput from '@/features/ai/chat/ChatInput';
+import Skeleton from '@/components/Skeleton';
 import ConversationHeader, {
   DrawerButton,
   chatHeaderClass,
 } from '@/features/ai/chat/ConversationHeader';
 import ConversationMessages from '@/features/ai/chat/ConversationMessages';
 import AnswerBubble from '@/features/ai/chat/AnswerBubble';
+import FallbackBubble from '@/features/ai/chat/FallbackBubble';
 import ConversationSidebar from '@/features/ai/chat/ConversationSidebar';
 import ReceiptAnalysisBubble from '@/features/ai/chat/ReceiptAnalysisBubble';
-import { CHAT_MODAL_ACTION } from '@/features/ai/shared/fakeRoutingMap';
+import { AI_ROLE } from '@/features/ai/shared/aiCodes';
 import { fakePets } from '@/features/ai/chat/fakePets';
+import { isRegisterFollowUp } from '@/features/ai/api';
 import {
+  FALLBACK_MESSAGE,
   getFallbackCount,
   increaseFallbackCount,
   resetFallbackCount,
 } from '@/features/ai/shared/fallbackCount';
+import { toRoute } from '@/features/ai/shared/screenPaths';
 import { openInMainWindow } from '@/features/ai/chat/openInMainWindow';
 import {
+  useAnswerRegister,
   useCancelRegister,
   useConfirmRegister,
   useConversation,
-  useSendMessage,
 } from '@/features/ai/queries';
 import PetChoiceChips from '@/features/ai/chat/PetChoiceChips';
 import useAnswerStream from '@/features/ai/chat/useAnswerStream';
@@ -36,6 +41,13 @@ import { PATHS } from '@/routes/paths';
 const pets = fakePets;
 const representativePet = pets.find((pet) => pet.rprsPetYn === 'Y');
 
+/** 서버 메시지 중 가장 큰 번호(가짜 메시지는 음수) */
+const lastServerSn = (messages) =>
+  Math.max(0, ...messages.map((message) => message.aiCnvrsMsgSn));
+
+/** 서버 저장 전 내 메시지 자리(서버 번호는 양수, 가짜는 음수) */
+const PENDING_MSG_SN = 0;
+
 /** 본창 건강 일지 결과 확인 모달: 파라미터 이름은 건강기록(JAJ)과 협의 전 제안값 */
 const receiptResultPath = (recptSn) =>
   `${PATHS.HEALTH_DIARY}?recptSn=${recptSn}`;
@@ -45,6 +57,9 @@ const manualCheckupPath = (recptSn) => {
   if (recptSn) params.set('recptSn', String(recptSn));
   return `${PATHS.HEALTH_DIARY}?${params}#hlt002-exam`;
 };
+
+/** 판정이 영수증일 때 안내(저장 안 함): 이미지 첨부로만 분석한다 */
+const RECEIPT_GUIDE = '영수증 사진을 첨부해 주세요.';
 
 /** 별도 창 전체 화면 AI 채팅 */
 export default function AiChatPage() {
@@ -63,7 +78,7 @@ export default function AiChatPage() {
 
   const { data: member } = useMemberSummary();
   const { data: conversation, isError } = useConversation(selectedRoomSn);
-  const sendMessage = useSendMessage();
+  const answerRegister = useAnswerRegister();
   const confirmRegister = useConfirmRegister();
   const cancelRegister = useCancelRegister();
   const answer = useAnswerStream();
@@ -78,6 +93,10 @@ export default function AiChatPage() {
   });
   /** 이동 안내 상태 */
   const [route, setRoute] = useState(null);
+  /** 저장하지 않는 안내: 변환표에 없는 화면(fallback)·영수증 판정(receipt) */
+  const [notice, setNotice] = useState(null);
+  /** 보내기 전 마지막 서버 메시지 번호: 이보다 큰 내 메시지가 오면 임시 말풍선을 치운다 */
+  const [pendingAfterSn, setPendingAfterSn] = useState(0);
   /** 이번 화면에서 받은 미리보기 카드: 메시지 번호별 카드·상태·결과 문구 */
   const [registerCards, setRegisterCards] = useState({});
   /** 반려동물을 되묻는 칩 */
@@ -85,7 +104,19 @@ export default function AiChatPage() {
   /** 선택된 대화의 연속 실패 횟수 */
   const [fallbackCount, setFallbackCount] = useState(0);
   const isAnswering =
-    answer.status === 'waiting' || answer.status === 'streaming';
+    answer.status === 'waiting' ||
+    answer.status === 'streaming' ||
+    answer.status === 'silent';
+  /** 판정만 받았거나 스트림 전 오류면 말풍선 없음 */
+  const hasAnswerBubble = !['idle', 'silent', 'failed'].includes(answer.status);
+  /** 보낸 뒤 서버가 저장한 내 메시지가 아직 안 보이면 임시 말풍선 */
+  const isPendingShown =
+    Boolean(answer.pendingText) &&
+    !(conversation?.messages ?? []).some(
+      (message) =>
+        message.roleCd === AI_ROLE.USER &&
+        message.aiCnvrsMsgSn > pendingAfterSn,
+    );
   const cardSns = Object.keys(registerCards).map(Number);
   const latestCardSn = cardSns.length > 0 ? Math.max(...cardSns) : null;
 
@@ -94,66 +125,99 @@ export default function AiChatPage() {
     setRegisterCards({});
     setPetChoices(null);
     receipt.reset();
+    answerRegister.reset();
   };
 
   const selectedPet = pets.find((pet) => pet.petSn === selectedPetSn);
 
-  /** 메시지 전송 */
-  const handleSend = (aiCnvrsMsgCn) => {
-    sendMessage.mutate(
-      {
-        aiCnvrsRoomSn: selectedRoomSn,
-        petSn: selectedPet?.petSn,
-        petNm: selectedPet?.petNm,
-        aiCnvrsMsgCn,
-      },
-      {
-        onSuccess: ({
-          aiCnvrsRoomSn,
-          intent,
-          aiCnvrsMsgSn,
-          route: nextRoute,
-          card,
-          petChoices: nextPetChoices,
-        }) => {
-          setFirstMessage(null);
-          setRoute(null);
-          setPetChoices(null);
-          receipt.reset();
-          setSelectedRoomSn(aiCnvrsRoomSn);
-          if (intent === 'REGISTER') {
-            answer.reset();
-            if (card) {
-              setRegisterCards((prev) => ({
-                ...prev,
-                [aiCnvrsMsgSn]: { card, status: 'pending', resultText: null },
-              }));
-            }
-            if (nextPetChoices) setPetChoices(nextPetChoices);
-          }
-          /** 검색·이동 안내·매칭 실패만 이 화면 처리 */
-          if (intent === 'SEARCH') {
-            answer.start({ aiCnvrsRoomSn, question: aiCnvrsMsgCn });
-          }
-          if (intent === 'ROUTE') {
-            setRoute({ ...nextRoute, aiCnvrsMsgSn, status: 'waiting' });
-          }
-          if (intent === 'FALLBACK') {
-            answer.reset();
-            setFallbackCount(increaseFallbackCount(aiCnvrsRoomSn));
-          }
-          if (intent === 'ROUTE' || intent === 'REGISTER') {
-            setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
-          }
-        },
-      },
+  /** 일정 등록 해석 결과를 카드·칩으로 */
+  const applyRegister = ({
+    aiCnvrsRoomSn,
+    aiCnvrsMsgSn,
+    card,
+    petChoices: nextPetChoices,
+  }) => {
+    if (card) {
+      setRegisterCards((prev) => ({
+        ...prev,
+        [aiCnvrsMsgSn]: { card, status: 'pending', resultText: null },
+      }));
+    }
+    if (nextPetChoices) setPetChoices(nextPetChoices);
+    setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
+  };
+
+  const runRegister = (params) =>
+    answerRegister.mutate(
+      { ...params, petSn: selectedPet?.petSn },
+      { onSuccess: applyRegister },
     );
+
+  /** 서버 판정별 화면 처리: 검색 답변은 말풍선이 맡는다 */
+  const handleResult = (result, cnvrsCn) => {
+    if (!result) return;
+    const { aiCnvrsRoomSn, intent } = result;
+    if (intent.kind === 'ROUTE') {
+      const nextRoute = toRoute(intent);
+      if (nextRoute) {
+        setRoute({ ...nextRoute, id: Date.now(), status: 'waiting' });
+        setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
+      } else {
+        setNotice('fallback');
+      }
+    }
+    if (intent.kind === 'FALLBACK') {
+      setFallbackCount(increaseFallbackCount(aiCnvrsRoomSn));
+    }
+    if (intent.kind === 'REGISTER' && cnvrsCn) {
+      runRegister({ aiCnvrsRoomSn, cnvrsCn, isFollowUp: false });
+    }
+    if (intent.kind === 'RECEIPT') setNotice('receipt');
+  };
+
+  /** 메시지 전송: 되묻기 대답·카드 수정은 서버 판정 없이 등록 가짜로 */
+  const handleSend = async (cnvrsCn) => {
+    setFirstMessage(null);
+    setRoute(null);
+    setNotice(null);
+    setPetChoices(null);
+    receipt.reset();
+    answerRegister.reset();
+    if (selectedRoomSn != null && isRegisterFollowUp(selectedRoomSn, cnvrsCn)) {
+      answer.reset();
+      runRegister({ aiCnvrsRoomSn: selectedRoomSn, cnvrsCn, isFollowUp: true });
+      return;
+    }
+    setPendingAfterSn(lastServerSn(conversation?.messages ?? []));
+    const result = await answer.start({
+      aiCnvrsRoomSn: selectedRoomSn,
+      cnvrsCn,
+      onRoom: setSelectedRoomSn,
+    });
+    handleResult(result, cnvrsCn);
+  };
+
+  /** [다시 시도]·[다시 생성]: 방의 마지막 사용자 메시지에 다시 답한다 */
+  const handleAnswerAgain = async (replaceMsgSn) => {
+    setRoute(null);
+    setNotice(null);
+    answerRegister.reset();
+    /** 등록 판정이 다시 오면 해석할 질문 */
+    const question = conversation?.messages.findLast(
+      (message) => message.roleCd === AI_ROLE.USER,
+    )?.cnvrsCn;
+    const result = await answer.start({
+      aiCnvrsRoomSn: selectedRoomSn,
+      replaceMsgSn,
+    });
+    handleResult(result, question);
   };
 
   /** 이미지 첨부 전송: 의도 분기 없이 영수증 분석, 1마리면 자동 선택 */
   const handleSendReceipt = (file, text) => {
     answer.reset();
     setRoute(null);
+    setNotice(null);
     setPetChoices(null);
     receipt.start({
       file,
@@ -174,13 +238,13 @@ export default function AiChatPage() {
     mutation.mutate(
       { aiCnvrsRoomSn: selectedRoomSn, aiCnvrsMsgSn },
       {
-        onSuccess: ({ aiCnvrsMsgCn }) => {
+        onSuccess: ({ cnvrsCn }) => {
           setRegisterCards((prev) => ({
             ...prev,
             [aiCnvrsMsgSn]: {
               ...prev[aiCnvrsMsgSn],
               status,
-              resultText: aiCnvrsMsgCn,
+              resultText: cnvrsCn,
             },
           }));
         },
@@ -195,26 +259,9 @@ export default function AiChatPage() {
     setFallbackCount(resetFallbackCount(answer.aiCnvrsRoomSn));
   }, [answer.status, answer.aiCnvrsRoomSn]);
 
-  /** 미완료 답변 재생성 */
-  const handleRegenerate = (message) => {
-    const messages = conversation?.messages ?? [];
-    const index = messages.findIndex(
-      (item) => item.aiCnvrsMsgSn === message.aiCnvrsMsgSn,
-    );
-    const question = messages
-      .slice(0, index)
-      .findLast((item) => item.aiCnvrsMsgRoleCd === 'USER')?.aiCnvrsMsgCn;
-    if (!question) return;
-    answer.start({
-      aiCnvrsRoomSn: selectedRoomSn,
-      question,
-      replaceMsgSn: message.aiCnvrsMsgSn,
-    });
-  };
-
   /** 유예 종료 후 본창 이동 */
   const handleRouteElapsed = () => {
-    if (route.action === CHAT_MODAL_ACTION) {
+    if (route.isModal) {
       /** 팝업 차단 시 이 창을 채팅 화면으로 */
       if (openChatWindow()) {
         window.close();
@@ -226,12 +273,11 @@ export default function AiChatPage() {
     }
   };
 
-  /** StrictMode effect 이중 실행 방지 */
-  const hasSentFirstMessage = useRef(false);
+  /** 첫 메시지 전송: StrictMode가 effect를 정리했다 다시 돌리면(그때 답변 스트림도 취소) 예약을 지우고 새로 잡아 한 번만 보낸다 */
   useEffect(() => {
-    if (!firstMessage || hasSentFirstMessage.current) return;
-    hasSentFirstMessage.current = true;
-    handleSend(firstMessage.slice(0, 1000));
+    if (!firstMessage) return;
+    const timer = setTimeout(() => handleSend(firstMessage.slice(0, 1000)));
+    return () => clearTimeout(timer);
     /* eslint-disable-next-line react-hooks/exhaustive-deps -- 창을 연 직후 한 번만 전송 */
   }, []);
 
@@ -249,6 +295,7 @@ export default function AiChatPage() {
   const handleSelectRoom = (aiCnvrsRoomSn) => {
     answer.reset();
     setRoute(null);
+    setNotice(null);
     resetRegister();
     setFirstMessage(null);
     setSelectedRoomSn(aiCnvrsRoomSn);
@@ -259,6 +306,7 @@ export default function AiChatPage() {
   const handleNewChat = () => {
     answer.reset();
     setRoute(null);
+    setNotice(null);
     resetRegister();
     setFirstMessage(null);
     setSelectedRoomSn(null);
@@ -298,6 +346,13 @@ export default function AiChatPage() {
             </span>
           </header>
         )}
+        {/** 방이 생겼거나 골랐는데 상세를 받기 전: 헤더 틀 유지 */}
+        {selectedRoomSn !== null && !conversation && !isError && (
+          <header className={chatHeaderClass}>
+            <DrawerButton onClick={openDrawer} />
+            <Skeleton className="h-6 w-48" />
+          </header>
+        )}
         {conversation && (
           <ConversationHeader
             conversation={conversation}
@@ -306,6 +361,7 @@ export default function AiChatPage() {
             onDeleted={() => {
               answer.reset();
               setRoute(null);
+              setNotice(null);
               resetRegister();
               setSelectedRoomSn(null);
               setFallbackCount(0);
@@ -318,15 +374,25 @@ export default function AiChatPage() {
               대화를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
             </p>
           )}
-          {(conversation || receipt.receipt) && (
+          {(conversation || receipt.receipt || isPendingShown) && (
             <ConversationMessages
-              messages={(conversation?.messages ?? []).filter(
-                (message) =>
-                  !answer.hiddenMsgSns.includes(message.aiCnvrsMsgSn) &&
-                  message.aiCnvrsMsgSn !== route?.aiCnvrsMsgSn &&
-                  message.aiCnvrsMsgSn !==
-                    receipt.receipt?.result?.aiCnvrsMsgSn,
-              )}
+              messages={[
+                ...(conversation?.messages ?? []).filter(
+                  (message) =>
+                    !answer.hiddenMsgSns.includes(message.aiCnvrsMsgSn) &&
+                    message.aiCnvrsMsgSn !==
+                      receipt.receipt?.result?.aiCnvrsMsgSn,
+                ),
+                ...(isPendingShown
+                  ? [
+                      {
+                        aiCnvrsMsgSn: PENDING_MSG_SN,
+                        roleCd: AI_ROLE.USER,
+                        cnvrsCn: answer.pendingText,
+                      },
+                    ]
+                  : []),
+              ]}
               fallbackCount={fallbackCount}
               registerCards={registerCards}
               latestCardSn={latestCardSn}
@@ -336,7 +402,9 @@ export default function AiChatPage() {
               hasRegisterError={
                 confirmRegister.isError || cancelRegister.isError
               }
-              onRegenerate={handleRegenerate}
+              onRegenerate={(message) =>
+                handleAnswerAgain(message.aiCnvrsMsgSn)
+              }
               onConfirmRegister={(aiCnvrsMsgSn) =>
                 settleRegisterCard(confirmRegister, 'registered', aiCnvrsMsgSn)
               }
@@ -344,30 +412,31 @@ export default function AiChatPage() {
                 settleRegisterCard(cancelRegister, 'cancelled', aiCnvrsMsgSn)
               }
             >
-              {answer.status !== 'idle' && (
+              {hasAnswerBubble && (
                 <AnswerBubble
                   status={answer.status}
                   text={answer.text}
                   shortcuts={answer.shortcuts}
-                  onRetry={() =>
-                    answer.start({
-                      aiCnvrsRoomSn: answer.aiCnvrsRoomSn,
-                      question: answer.question,
-                    })
-                  }
+                  onRetry={() => handleAnswerAgain()}
                   onRegenerate={() =>
-                    answer.start({
-                      aiCnvrsRoomSn: answer.aiCnvrsRoomSn,
-                      question: answer.question,
-                      replaceMsgSn: answer.hiddenMsgSns.at(-1),
-                    })
+                    handleAnswerAgain(answer.hiddenMsgSns.at(-1))
                   }
                 />
+              )}
+              {notice === 'fallback' && (
+                <FallbackBubble
+                  text={FALLBACK_MESSAGE}
+                  hasActions
+                  hasFaqGuide={false}
+                />
+              )}
+              {notice === 'receipt' && (
+                <AnswerBubble status="done" text={RECEIPT_GUIDE} />
               )}
               {petChoices && (
                 <PetChoiceChips
                   pets={petChoices}
-                  isDisabled={sendMessage.isPending || isAnswering}
+                  isDisabled={answerRegister.isPending || isAnswering}
                   onSelect={handleSend}
                 />
               )}
@@ -393,7 +462,7 @@ export default function AiChatPage() {
               )}
               {route && (
                 <RouteGuideBubble
-                  key={route.aiCnvrsMsgSn}
+                  key={route.id}
                   label={route.label}
                   status={route.status}
                   onCancel={() => setRoute({ ...route, status: 'cancelled' })}
@@ -402,23 +471,25 @@ export default function AiChatPage() {
               )}
             </ConversationMessages>
           )}
-          {selectedRoomSn === null && !receipt.receipt && (
-            <div className="flex min-h-full items-center justify-center">
-              <WelcomeMessage
-                nickname={member?.mbrNcnm ?? ''}
-                petNm={selectedPet?.petNm}
-              />
-            </div>
-          )}
+          {selectedRoomSn === null &&
+            !receipt.receipt &&
+            !answer.pendingText && (
+              <div className="flex min-h-full items-center justify-center">
+                <WelcomeMessage
+                  nickname={member?.mbrNcnm ?? ''}
+                  petNm={selectedPet?.petNm}
+                />
+              </div>
+            )}
         </div>
-        {sendMessage.isError && (
+        {(answer.status === 'failed' || answerRegister.isError) && (
           <p role="alert" className="pb-2 text-center text-sm text-[#b42318]">
             메시지를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요
           </p>
         )}
         <ChatInput
           petNm={selectedPet?.petNm}
-          isDisabled={sendMessage.isPending || isAnswering || receipt.isBusy}
+          isDisabled={answerRegister.isPending || isAnswering || receipt.isBusy}
           fileInputRef={fileInputRef}
           onSubmit={handleSend}
           onSubmitReceipt={handleSendReceipt}

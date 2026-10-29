@@ -38,7 +38,7 @@ export default function useChatReceipt({ onAnalyzed }) {
 
   const update = (patch) => setReceipt((prev) => prev && { ...prev, ...patch });
 
-  const run = ({ file, aiCnvrsRoomSn, pet }) => {
+  const run = ({ file, text, aiCnvrsRoomSn, pet }) => {
     const controller = new AbortController();
     abortRef.current = controller;
     isTimedOutRef.current = false;
@@ -47,7 +47,13 @@ export default function useChatReceipt({ onAnalyzed }) {
       controller.abort();
     }, ANALYZE_TIMEOUT_MS);
     analyze.mutate(
-      { aiCnvrsRoomSn, petSn: pet.petSn, file, signal: controller.signal },
+      {
+        aiCnvrsRoomSn,
+        petSn: pet.petSn,
+        file,
+        text,
+        signal: controller.signal,
+      },
       {
         onSuccess: (result) => {
           clearTimeout(timerRef.current);

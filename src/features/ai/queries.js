@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   analyzeChatReceipt,
+  answerRegister,
   cancelChatReceipt,
   cancelRegister,
   confirmRegister,
@@ -9,7 +10,6 @@ import {
   getConversation,
   getConversations,
   recognizeCheckupReceipt,
-  sendMessage,
 } from './api';
 
 export const aiKeys = {
@@ -32,7 +32,7 @@ export const useChatReceiptResult = (rcptSn) =>
 export const useConversations = (petSn) =>
   useQuery({
     queryKey: aiKeys.list(petSn),
-    queryFn: () => getConversations({ petSn }),
+    queryFn: () => getConversations(),
   });
 
 export const useConversation = (aiCnvrsRoomSn) =>
@@ -73,11 +73,12 @@ export const useConfirmRegister = () => useRegisterAnswer(confirmRegister);
 
 export const useCancelRegister = () => useRegisterAnswer(cancelRegister);
 
-export const useSendMessage = () => {
+/** 일정 등록 해석(가짜): 되묻기·카드 메시지가 붙은 대화 갱신 */
+export const useAnswerRegister = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: sendMessage,
+    mutationFn: answerRegister,
     onSuccess: ({ aiCnvrsRoomSn }) => {
       queryClient.invalidateQueries({ queryKey: aiKeys.lists });
       queryClient.invalidateQueries({

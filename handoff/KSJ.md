@@ -2,30 +2,19 @@
 
 ## 지금 하는 것
 
-SCR-CMU-004 우리동네 펫돌봄 (2026-10-22~23) — 상태: 끝. 남은 연결·결정은 "다음에 할 것"에 있다
+SCR-CSC-003 1:1 문의 · 첨부 이미지 표시 (2026-10-29) — 상태: 끝 (검증 `통과` 1회차, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-10-29)
 
-펫뉴스 썸네일 높이, 실종센터·펫돌봄 장소 찾기와 지도 (2026-10-26, 끝난 마일스톤 CMU-002·003·004의 추가 요청) — 상태: 끝 (`yarn -s lint` 0, `yarn -s build` 0, 사람 확인 2026-10-26)
-
-- 결정: 장소 검색·좌표→주소를 서버 API(AIC) 대신 프론트에서 카카오맵 SDK services로 한다(`features/community/missing/placeSearch.js`). 전북만, 동 이름은 목록 필터 값으로 맞춘다(`toBaseDong`). 펫돌봄 상세는 공개 좌표가 없어 동 중심을 보여 준다
-- 영향: 공용 `components/Modal.jsx`에 `isWide`(가로 688px)·`isTop`(위 80px 고정, 화면 전체 스크롤) 추가. 안 넘기는 모달은 그대로. 가짜 장소 검색(`searchMissingPlaces`·`useSearchMissingPlaces`)은 지웠다
-
-### 추가 요청
-
-| 추가-1 | `features/news/NewsList.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `/community/news`에서 본문이 1줄인 카드와 2줄 이상인 카드의 썸네일 높이가 같다(본문 2줄 높이가 기본) | 요청 2026-10-26 "본문 길이에 따라 썸네일 이미지가 달라지는 부분 수정, 본문 2줄 형태를 기본 높이로" |
-| 추가-2 | `features/community/missing/MissingMap.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 실종센터 상세·글쓰기 미리보기·장소 검색 모달의 지도를 끌어서 옮길 수 있다 | 요청 2026-10-26 "글쓰기 미리보기와 검색 모달, 상세보기 모두에서 지도를 움직이게" |
-| 추가-3 | `features/community/missing/{MissingMap,MissingForm,PlaceSearchModal}.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 실종센터 글쓰기 미리보기 지도 높이 400px, 지도에 +/− 버튼, 글쓰기 미리보기·장소 검색 모달에서 지도를 끌면 반경 원이 지도 가운데로 옮겨지고 그 좌표가 목격 장소 좌표가 된다 | 요청 2026-10-26 "글쓰기 미리보기 지도 높이 h-[400px], 지도를 움직여 핀을 옮기면 그 위치를 중심으로 설정, +/− 버튼" |
-| 추가-4 | `components/Modal.jsx`(`isWide` prop 추가, 기본은 그대로), `features/community/missing/PlaceSearchModal.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 장소 찾기 모달이 데스크톱에서 가로 640px, 제목 줄 위아래 패딩 8px, 왼쪽 검색 영역 240px·오른쪽 지도, 하단 버튼 오른쪽 정렬, 760px 이하는 위아래로 쌓이고 지도 220px(− 버튼이 잘리지 않게) | 요청 2026-10-26 "모달 타이틀 상하 패딩 8px, 좌우로 나눠 왼쪽 검색·오른쪽 지도, 데스크톱 640px, 검색 영역 240px, 하단 버튼 오른쪽 하단" → 2026-10-26 사람 요청으로 되돌림(`Modal.jsx`·모달 배치 원래대로, 추가-3의 지도 끌기·+/− 버튼은 유지) |
-| 추가-5 | `components/Modal.jsx`(`isWide` prop 추가, 기본은 그대로), `features/community/missing/PlaceSearchModal.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 장소 찾기 모달은 한 칸 그대로, 제목 줄 위아래 8px, 지도 가로 560px·높이 400px(모달 가로 608px), 하단 버튼 오른쪽 아래 | 요청 2026-10-26 "타이틀 상하 여백 8px, 지도가 잘 안 보여 높이 400px·가로 560px, 모달 전체 크기도 늘어남, 버튼은 오른쪽 하단" |
-| 추가-6 | `features/community/missing/{placeSearch.js,PlaceSearchModal,MissingMap}.jsx`, `missingApi.js`·`missingQueries.js`(가짜 장소 검색 제거) | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 장소 찾기 모달이 두 단계(검색 → 위치 맞추기)다. 장소명·동·주소를 한 칸에서 카카오 장소·주소 검색으로 찾고 전북 결과만 보인다. 결과를 고르면 지도로 넘어가고 「‹ 다시 검색」으로 돌아간다. 지도를 끌면 그 자리의 주소·시군구·동으로 바뀌고 전북 밖이면 「전북 지역만 선택할 수 있어요」 후 이전 위치로 돌아간다(글쓰기 미리보기도 같다) | 요청 2026-10-26 "장소 검색을 카카오 장소·주소 검색 두 단계 모달로 진행, 지역은 전북 한정, 지도를 움직여 선택" |
-| 추가-7 | `features/community/missing/PlaceSearchModal.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 장소 찾기 검색칸 왼쪽 아이콘이 없고 안내 문구가 장소·동·도로명 주소 검색에 맞다. 글자를 입력하면 [검색]을 누르지 않아도 잠시 뒤 결과 목록이 나온다(지우면 목록이 사라진다) | 요청 2026-10-26 "플레이스홀더를 검색 구현에 맞게, 왼쪽 검색 아이콘 삭제, 입력하면서 검색 버튼 없이 목록이 나오게" |
-| 추가-8 | `components/Modal.jsx`(`isTop` prop 추가, 기본은 그대로), `features/community/missing/{PlaceSearchModal,MissingForm}.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검색칸 안내 문구가 「장소·동 이름, 도로명 주소 검색」이다. 실종 글쓰기의 「아직 고르지 않았어요」 칸을 눌러도 장소 찾기 모달이 열린다. 장소 찾기 모달은 화면 위에서 120px 떨어져 고정되고 결과가 늘어도 위치가 움직이지 않는다 | 요청 2026-10-26 "플레이스홀더 수정, 장소 표시 칸 클릭해도 검색창, 검색 모달을 상단 120px 고정" |
-| 추가-9 | `components/Modal.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 장소 찾기 모달이 위에서 80px, 가로 688px(본문·지도 640px) | 요청 2026-10-26 "상단 마진 80px, 모달 가로 80px 더 넓게" |
-| 추가-10 | `components/Modal.jsx`(`isTop`), `features/community/missing/PlaceSearchModal.jsx`, `features/community/care/CareForm.jsx`(안내 문구) | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 장소 찾기 모달이 길어지면 모달 안이 아니라 화면 전체가 스크롤된다(결과 목록도 안쪽 스크롤 없음). 검색칸 placeholder가 없고 안내 문구는 「마지막으로 본 곳 근처의 장소나 동 이름 검색」, 검색칸이 본문 너비 전체이고 검색은 칸 안 오른쪽 돋보기 버튼 | 요청 2026-10-26 "모달이 길면 전체 화면 스크롤, placeholder 삭제·안내 문구 수정·영역은 내용 전체, 검색 버튼을 인풋 안 오른쪽 돋보기 아이콘으로" |
-| 추가-11 | `features/community/care/{CareAreaMap,CareForm,CareDetail}.jsx`, `features/community/missing/{placeSearch.js,MissingMap.jsx}` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 펫돌봄 글쓰기·수정의 「아직 고르지 않았어요」 칸을 눌러도 주소 찾기가 열리고, 미리보기와 상세에 실종센터와 같은 카카오 지도(높이 400px, 반경 원, +/−)가 보인다. 글쓰기는 지도를 끌면 동이 바뀌고, 상세는 공개 좌표가 없어 동 중심을 보여 준다. 고른 동 이름이 목록 읍·면·동 필터 값(예: 효자동1가→효자동)과 맞는다(실종센터도 같다) | 요청 2026-10-26 "펫돌봄 등록 폼도 같은 지도 검색, 읍면동 필터에 맞게, 상세·글쓰기 지도가 안 보여 실종센터와 같은 크기·형태로" |
-| 추가-12 | `features/community/care/CareForm.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 펫돌봄 글쓰기의 장소 버튼과 모달 제목이 「돌봄 장소 찾기」 | 요청 2026-10-26 "펫돌봄 글등록 주소찾기 버튼명과 모달 타이틀을 돌봄 장소 찾기로" |
+- 바꾼 것: `features/inquiry/api.js`(`getInquiryImage` blob), `queries.js`(`inquiryKeys.image`, `useInquiryImageUrls`: 주소를 캐시에 두고 `gcTime: 0`, 화면을 떠날 때 해제), `InquiryDetail.jsx`(실제 썸네일·크게 보기 버튼), 새 `InquiryImageViewer.jsx`(제목 줄·판 없는 dialog, 파일명 위·「N / 전체」 아래, ←·→, ✕·밖 클릭·ESC), `InquiryForm.jsx`(기존 첨부 실제 이미지, 이름은 `orgnlFileNm`), `components/ImageAttach.jsx` 주석
+- 결정: `<img src>`로 API 주소를 바로 쓰지 않고 blob으로 받는다(쿠키 만료 때 재발급). 파일명이 빈 옛 첨부는 「첨부 이미지 N」. 썸네일 줄 없음
+- 확인 방법: 백엔드(8080, KSJ 78a5e90 이후) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`
 
 ## 다음에 할 것
 
+- LJS 「공통 파일 이미지 컴포넌트」(`hooks/`·`components/`)가 생기면 `features/inquiry/queries.js` `useInquiryImageUrls`를 그것으로 바꾼다
+- 문의를 수정해 저장하면 `inquiryKeys.all` 무효화가 이미지 쿼리까지 다시 받아, 방금 지운 첨부에 404 요청이 한 번 나간다(화면 영향 없음). 거슬리면 무효화 범위를 목록·상세로 좁힌다
+- SCR-CSC-003 연결 남음: FN-CSC-003-09·11·15 업로드 한도(백엔드 연결 `max-request-size` 10MB → 100MB, 백엔드 저장소에서 /start). `application.properties.example` 커밋과 팀원·디스코드 `application.properties`도 같이 바꾼다
+- SCR-CSC-003 연결 남음: FN-CSC-003-10 `pixelCharSn`·`charPhotoSn` 전송(SJM 캐릭터 화면이 `petSn`만 넘김), 003-14 답변 알림(YAY), 003-16 로그인 화면 쿠키 뒤 동작 확인(AIC, 라우트는 LJS #100이 `member`로 감쌈)
+- 검증·확인 중 만든 테스트 문의(회원 1의 201·215·217~227, 회원 2의 216, 사람 확인 때 만든 것)는 삭제 API가 없어 DB `OTO_INQRY`·`OTO_INQRY_STTS_HSTRY`·`INQRY_ATCH_PHOTO`·`ATCH_FILE`과 업로드 파일에서 직접 지운다(사람)
 - 장소 검색을 프론트(카카오)로 바꾼 것을 AIC 담당에게 알리고 합의한다(서버 장소 검색·역지오코딩 API가 필요 없어짐). PR 본문에 공용 `Modal.jsx` 변경(`isWide`·`isTop`)을 적는다
 - 가짜 데이터의 「서곡동」(`missingCodes.js` `DONG_BY_REGION`, `careApi.js`, `missingApi.js` `PLACES`)은 카카오에 없는 동이라 펫돌봄 상세 1번 지도가 「지도를 불러오지 못했어요」다. 효자동 등으로 바꿀지 정한다
 - 읍·면·동 필터 목록이 서버 행정동 코드 목록으로 바뀌면 `placeSearch.js`의 `toBaseDong`(효자동1가→효자동, 인후1동→인후동) 규칙을 다시 맞춘다
@@ -40,7 +29,6 @@ SCR-CMU-004 우리동네 펫돌봄 (2026-10-22~23) — 상태: 끝. 남은 연�
 - LJS 요청: `SubPageLayout`에 `back={false}`를 넘기면 머리에 목록용 메뉴 전환 ▾(761~1100px)가 켜진다(`hasSwitch = !title && !hasBack`). 본문 하단에 「목록으로」를 두는 상세(펫뉴스·공지)는 ▾와 위 「목록으로」를 모두 끄는 prop(예: `back="none"`)이 필요한지 정한다
 - CMU 화면은 `SubPageLayout`(`section="community"`)으로 만든다(사람 결정 2026-10-22): 상세는 `title` 없이 제목이 메뉴 이름이고 「목록으로」는 본문 하단, 글쓰기·수정은 `title="글쓰기"`와 `onLeave`로 「작성을 그만둘까요?」 확인, 본문 위 여백은 펫이야기 목록 `min-[1101px]:pt-0`, 펫돌봄·실종센터 목록 `min-[1101px]:pt-[7px]`
 - 고객센터(`CustomerCenterLayout`, KSJ)도 `SubPageLayout`(`section="support"`)으로 옮긴다(LJS 핸드오프). 옮기면 `SideMenu`의 `menuLabel` 호환과 `/dev/sub-page`를 지운다
-- SCR-CSC-003 연결 남음: 문의 API(KSJ 백엔드)로 가짜 교체(응답 키, 목록 `status` 필터·`totalAll`, 첨부 이미지 업로드), FN-003-10 픽셀 캐릭터 화면(MYP-010, SJM)에서 `/inquiries/new?type=픽셀 캐릭터`로 들어오는 링크, FN-003-14 답변 알림 저장(YAY `notification`)과 알림에서 상세로 가는 링크, FN-003-16 로그인 연결 후 `ProtectedRoute`로 감싸기(AIC), 직접 그리는 `DropdownSelect`를 다른 화면의 `Select`에도 쓸지 정하기
 - SCR-CSC-003 사람이 고치는 문서: 기능명세서 FN-CSC-003-13의 「[문의 수정] 비활성」을 「버튼 숨김 + 안내 문구」로, 화면설계서 SCR-CSC-003-03 ③의 같은 문구
 - SCR-CSC-002 연결 남음: FAQ API(KSJ 백엔드)로 가짜(`features/faq/api.js`) 교체, 응답 키(`faqSn`·`faqClsfNm`·`qstnCn`·`ansCn`)와 분류 값 확인, 로그인 연결 후 `ProtectedRoute`로 감싸기
 - SCR-CSC-001 연결 남음: 공지 API(KSJ 백엔드)로 가짜 교체(제목·내용 `keyword` 검색, 고정 공지가 쪽 크기에 들어가는지, 응답 키 확인), 본문 이미지 표시(응답 모양을 본 뒤), 로그인 연결 후 `ProtectedRoute`로 감싸기

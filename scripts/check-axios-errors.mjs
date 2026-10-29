@@ -2,17 +2,27 @@
 // 테스트 도구가 없어 이 스크립트가 회귀 확인을 대신한다. 서버 응답은 가짜 adapter가 만든다.
 // 오류 본문은 백엔드 ApiResponse 모양({ status, httpCode, message, path, code, data })을 따른다.
 // 사용: node scripts/check-axios-errors.mjs   (하나라도 어긋나면 종료 코드 1)
+import { register } from 'node:module';
 import { AxiosError } from 'axios';
+
+/** src의 '@/' 별칭(Vite 설정)을 node가 풀도록 연결 */
+const srcUrl = new URL('../src/', import.meta.url).href;
+const hook = `export const resolve = (specifier, context, next) =>
+  specifier.startsWith('@/')
+    ? next(${JSON.stringify(srcUrl)} + specifier.slice(2) + '.js', context)
+    : next(specifier, context);`;
+register('data:text/javascript,' + encodeURIComponent(hook));
 
 /** 랜딩 이동을 기록할 가짜 location */
 globalThis.location = { pathname: '/health', search: '?tab=1', href: '' };
-const { api } = await import('../src/api/axios.js');
+const { api, aiApi } = await import('../src/api/axios.js');
 
 /** 경로별 가짜 응답. status가 없으면 네트워크 단절 */
 let routes = {};
 let calls = [];
-api.defaults.adapter = async (config) => {
-  calls.push(config.url);
+const adapter = async (config) => {
+  /** AI 서버 요청은 'ai:' 접두사로 구분 */
+  calls.push(config.baseURL === '/ai' ? `ai:${config.url}` : config.url);
   const route = routes[config.url];
   const reply = typeof route === 'function' ? route() : route;
   if (!reply?.status) {
@@ -29,6 +39,8 @@ api.defaults.adapter = async (config) => {
   }
   return response;
 };
+api.defaults.adapter = adapter;
+aiApi.defaults.adapter = adapter;
 
 const errorBody = (httpCode, code, message, data = null) => ({
   status: 'error',
@@ -144,9 +156,9 @@ reset({
 await run('/u');
 check('UNAUTHORIZED → 재발급 없음', calls, ['/u']);
 check(
-  'UNAUTHORIZED → 랜딩 이동',
+  'UNAUTHORIZED → 로그인 이동',
   globalThis.location.href,
-  '/?redirect=%2Fhealth%3Ftab%3D1',
+  '/login?redirect=%2Fhealth%3Ftab%3D1',
 );
 
 reset({
@@ -157,9 +169,9 @@ reset({
 });
 await run('/i');
 check(
-  'MEMBER_INACTIVE → 랜딩 이동',
+  'MEMBER_INACTIVE → 로그인 이동',
   globalThis.location.href,
-  '/?redirect=%2Fhealth%3Ftab%3D1',
+  '/login?redirect=%2Fhealth%3Ftab%3D1',
 );
 
 reset({
@@ -170,5 +182,172 @@ reset({
 });
 await run('/me', { skipAuthRedirect: true });
 check('skipAuthRedirect → 이동 없음', globalThis.location.href, '');
+
+/** AI 서버(aiApi): 같은 응답 처리, 재발급은 메인 서버로, 재시도는 aiApi로 */
+const runAi = (url) => aiApi.get(url).catch((e) => ({ rejected: e }));
+
+expired = true;
+reset({
+  '/c': () =>
+    expired
+      ? {
+          status: 401,
+          data: errorBody(401, 'TOKEN_EXPIRED', '로그인이 만료되었습니다.'),
+        }
+      : ok([{ aiCnvrsRoomSn: 1 }]),
+  '/auth/refresh': () => {
+    expired = false;
+    return ok(null);
+  },
+});
+check('aiApi TOKEN_EXPIRED → 재발급 후 재시도 성공', await runAi('/c'), [
+  { aiCnvrsRoomSn: 1 },
+]);
+check('aiApi 요청 순서(재발급은 메인 서버)', calls, [
+  'ai:/c',
+  '/auth/refresh',
+  'ai:/c',
+]);
+
+reset({
+  '/c': {
+    status: 401,
+    data: errorBody(401, 'UNAUTHORIZED', '로그인이 필요합니다.'),
+  },
+});
+await runAi('/c');
+check('aiApi UNAUTHORIZED → 재발급 없음', calls, ['ai:/c']);
+check(
+  'aiApi UNAUTHORIZED → 로그인 이동',
+  globalThis.location.href,
+  '/login?redirect=%2Fhealth%3Ftab%3D1',
+);
+
+reset({
+  '/c': {
+    status: 502,
+    data: errorBody(502, 'EXTERNAL_API_ERROR', '외부 서버 오류입니다.'),
+  },
+});
+check(
+  'aiApi 502 코드 그대로·이동 없음',
+  [(await runAi('/c')).rejected?.code, globalThis.location.href],
+  ['EXTERNAL_API_ERROR', ''],
+);
+
+/** aiStream(SSE): fetch 가짜 응답. 스트림은 조각 배열, 오류는 JSON 본문 */
+const { aiStream } = await import('../src/api/axios.js');
+let streamReplies = [];
+globalThis.fetch = async (url) => {
+  calls.push(`fetch:${url}`);
+  const reply = streamReplies.shift();
+  if (reply.chunks) {
+    const encoder = new TextEncoder();
+    const body = new ReadableStream({
+      start(controller) {
+        reply.chunks.forEach((chunk) =>
+          controller.enqueue(encoder.encode(chunk)),
+        );
+        controller.close();
+      },
+    });
+    return new Response(body, {
+      headers: { 'content-type': 'text/event-stream' },
+    });
+  }
+  return new Response(JSON.stringify(reply.data), {
+    status: reply.status,
+    headers: { 'content-type': 'application/json' },
+  });
+};
+const runStream = async () => {
+  const events = [];
+  const rejected = await aiStream(
+    '/conversations/1/messages',
+    {},
+    { onEvent: (name, data) => events.push([name, data]) },
+  ).then(
+    () => null,
+    (e) => e,
+  );
+  return { events, rejected };
+};
+
+reset({});
+streamReplies = [
+  {
+    chunks: [
+      'event: intent\ndata: {"kind":"SEARCH"}\n\nevent: del',
+      'ta\ndata: {"text":"안녕"}\n',
+      '\nevent: done\ndata: {"message":null,"shortcut":null}\n\n',
+    ],
+  },
+];
+check('aiStream 이벤트 파싱(블록 중간에서 끊긴 조각)', await runStream(), {
+  events: [
+    ['intent', { kind: 'SEARCH' }],
+    ['delta', { text: '안녕' }],
+    ['done', { message: null, shortcut: null }],
+  ],
+  rejected: null,
+});
+
+reset({ '/auth/refresh': ok(null) });
+streamReplies = [
+  {
+    status: 401,
+    data: errorBody(401, 'TOKEN_EXPIRED', '로그인이 만료되었습니다.'),
+  },
+  { chunks: ['event: done\ndata: {"message":null,"shortcut":null}\n\n'] },
+];
+const refreshed = await runStream();
+check(
+  'aiStream TOKEN_EXPIRED → 재발급 후 재시도 성공',
+  [refreshed.rejected, refreshed.events.length, calls],
+  [
+    null,
+    1,
+    [
+      'fetch:/ai/conversations/1/messages',
+      '/auth/refresh',
+      'fetch:/ai/conversations/1/messages',
+    ],
+  ],
+);
+
+reset({ '/auth/refresh': ok(null) });
+streamReplies = [
+  { status: 401, data: errorBody(401, 'UNAUTHORIZED', '로그인이 필요합니다.') },
+];
+const unauthorized = await runStream();
+check(
+  'aiStream UNAUTHORIZED → 재발급 없이 로그인 이동',
+  [unauthorized.rejected?.code, calls, globalThis.location.href],
+  [
+    'UNAUTHORIZED',
+    ['fetch:/ai/conversations/1/messages'],
+    '/login?redirect=%2Fhealth%3Ftab%3D1',
+  ],
+);
+
+reset({});
+streamReplies = [
+  {
+    status: 400,
+    data: errorBody(400, 'INVALID_REQUEST', '메시지를 입력해 주세요.'),
+  },
+];
+check(
+  'aiStream 400 → 그 코드로 실패·이동 없음',
+  [(await runStream()).rejected, globalThis.location.href],
+  [
+    {
+      code: 'INVALID_REQUEST',
+      message: '메시지를 입력해 주세요.',
+      fields: null,
+    },
+    '',
+  ],
+);
 
 process.exit(failed ? 1 : 0);

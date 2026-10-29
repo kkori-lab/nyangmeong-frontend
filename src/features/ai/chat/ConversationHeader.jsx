@@ -4,7 +4,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { useDeleteConversation } from '../queries';
 
 /** 일시 표기 변환 */
-const formatDate = (crtDt) => crtDt.slice(0, 10).replaceAll('-', '.');
+const formatDate = (regDt) => regDt.slice(0, 10).replaceAll('-', '.');
 
 /** 새 대화 헤더와 같이 씀 */
 export const chatHeaderClass =
@@ -66,13 +66,13 @@ export default function ConversationHeader({
     <header className={chatHeaderClass}>
       <DrawerButton onClick={onOpenDrawer} />
       <h1 className="truncate text-lg font-bold text-[#1a3234] max-[760px]:text-base">
-        {conversation.aiCnvrsRoomCnvrsTtl}
+        {conversation.cnvrsTtl}
       </h1>
       <span className="shrink-0 rounded-full bg-[#e9f2f2] px-2.5 py-0.5 text-xs font-medium text-[#285a5c]">
         {conversation.petNm ?? '전체'}
       </span>
       <span className="truncate text-sm text-[#667374] max-[760px]:hidden">
-        {formatDate(conversation.crtDt)} · 대화 제목은 첫 메시지로 자동 생성돼요
+        {formatDate(conversation.regDt)} · 대화 제목은 첫 메시지로 자동 생성돼요
       </span>
       <button
         type="button"
