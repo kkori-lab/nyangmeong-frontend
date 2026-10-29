@@ -4,7 +4,7 @@ import { addDays } from '@/utils/formatDate';
  * [영수증 인식 결과 확인 계산]
  * - 탭 만들기·금액 배분·품목 배정·검증·저장 값 만들기를 화면 밖의 순수 함수로 둔다 (FN-HLT-002-34~45)
  * - 탭 한 개 = 반려동물 한 마리의 검진기록 한 건. petSn은 숫자, 미선택은 null, "저장 안 함"은 SKIP
- * - 인식 결과는 AI 서버 영수증 분석 응답의 ocr(hsptlNm·ckupYmd·recptAmt·btmDscntAmt·sections)을 그대로 받는다
+ * - 인식 결과는 AI 서버 영수증 분석 응답의 ocr(hsptlNm·ckupYmd·recptAmt·btmDscntAmt·sections)을 그대로 사용
  */
 
 export const MAX_HOSPITAL_NAME_LENGTH = 50;
@@ -37,12 +37,12 @@ export const getTooLongMessage = (max) => `${max}자까지 입력할 수 있어�
 export const findPetBySectionName = (sectionNm, pets) =>
   pets.find((pet) => removeSpace(pet.petNm) === removeSpace(sectionNm));
 
-/** 반려동물 구역이 없는 영수증: 이름 없는 구역 1개로 온다 */
+/** 반려동물 구역이 없는 영수증: 이름 없는 구역 1개로 수신 */
 export const isNoSectionReceipt = (ocr) =>
   ocr.sections.every((section) => section.sectionNm == null);
 
 /**
- * 비율로 나눌 할인: 하단 할인. 구역이 없는 영수증은 그 구역에 찍힌 할인도 영수증 전체 할인이라 함께 나눈다
+ * 비율로 나눌 할인: 하단 할인. 구역이 없는 영수증은 그 구역에 찍힌 할인도 영수증 전체 할인이라 함께 분배
  * 구역이 있는 영수증의 구역 할인은 그 구역 금액에서 바로 뺀다 (FN-AIM-009-20)
  */
 export const getSplitDiscount = (ocr) =>
@@ -51,7 +51,7 @@ export const getSplitDiscount = (ocr) =>
     ? sum(ocr.sections.map((section) => section.dscntAmt ?? 0))
     : 0);
 
-/** 구역이 없는 영수증의 배정 목록 행: 진료 품목·처방 약품 원래 값에 행 번호만 붙인다 */
+/** 구역이 없는 영수증의 배정 목록 행: 진료 품목·처방 약품 원래 값에 행 번호만 추가 */
 export const buildLines = (ocr) => {
   let lineSn = 0;
   return ocr.sections.flatMap((section) => [
@@ -148,7 +148,7 @@ const makeTab = (fields) => ({
   ...fields,
 });
 
-/** 구역이 있는 영수증: 구역마다 탭 1개. 구역 할인은 그 구역 소계에서 빼고 하단 할인만 비율로 나눈다 */
+/** 구역이 있는 영수증: 구역마다 탭 1개. 구역 할인은 그 구역 소계에서 차감, 하단 할인만 비율 분배 */
 export const buildSectionTabs = ({ ocr, pets, todayYmd }) => {
   const usedPetSns = new Set();
   const matchedPets = ocr.sections.map((section) => {
@@ -183,9 +183,9 @@ export const buildSectionTabs = ({ ocr, pets, todayYmd }) => {
 };
 
 /**
- * 구역이 없는 영수증: 탭마다 배정된 품목(lines)으로 검진 내용·금액·약품을 다시 채운다
- * 탭이 1개면 전부 그 탭의 것이고, 2개 이상이면 assign({ [lineSn]: tabId })으로 나눈다
- * 사람이 고친 검진 내용·금액은 그대로 두고, 약품 행은 배정이 바뀔 때마다 다시 만든다
+ * 구역이 없는 영수증: 탭마다 배정된 품목(lines)으로 검진 내용·금액·약품을 다시 채움
+ * 탭이 1개면 전부 그 탭의 것, 2개 이상이면 assign({ [lineSn]: tabId })으로 분배
+ * 사람이 고친 검진 내용·금액은 그대로 두고, 약품 행은 배정이 바뀔 때마다 재생성
  */
 export const applyLineAssignment = ({
   tabs,

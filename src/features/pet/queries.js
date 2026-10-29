@@ -125,7 +125,7 @@ export const useCharacterItems = (petSn) =>
     enabled: petSn != null,
   });
 
-/** 모달이 닫혀도 생성은 이어지므로 갱신은 여기(훅 옵션)에서 한다 */
+/** 모달이 닫혀도 생성은 이어지므로 갱신은 여기(훅 옵션)에서 처리 */
 export const useCreateCharacter = () => {
   const qc = useQueryClient();
   return useMutation({

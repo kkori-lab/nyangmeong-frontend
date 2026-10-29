@@ -61,7 +61,7 @@ export const useHealthTips = () =>
     queryFn: getHealthTips,
   });
 
-/** 글·댓글·좋아요가 바뀌면 목록·상세·레일을 모두 다시 받는다 */
+/** 글·댓글·좋아요가 바뀌면 목록·상세·레일을 모두 재조회 */
 const useInvalidatingMutation = (mutationFn) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -74,7 +74,7 @@ export const useCreatePost = () => useInvalidatingMutation(createPost);
 export const useUpdatePost = () => useInvalidatingMutation(updatePost);
 /**
  * 목록·레일만 무효화한다. all로 하면 아직 떠 있는 지운 글의 상세를 다시 받아 404가 나고,
- * 상세가 오류 화면으로 바뀌어 삭제 뒤 이동·토스트(mutate의 onSuccess)가 불리지 않는다
+ * 상세가 오류 화면으로 바뀌어 삭제 뒤 이동·토스트(mutate의 onSuccess) 호출 안 됨
  */
 export const useDeletePost = () => {
   const queryClient = useQueryClient();
@@ -88,7 +88,7 @@ export const useDeletePost = () => {
   });
 };
 export const useTogglePostLike = () => useInvalidatingMutation(togglePostLike);
-/** 댓글 영역(CommentSection)은 게시판 종류를 몰라 targetSn으로 받는다 */
+/** 댓글 영역(CommentSection)은 게시판 종류를 몰라 targetSn으로 수신 */
 export const useCreateComment = () =>
   useInvalidatingMutation(({ targetSn, ...rest }) =>
     createComment({ pstSn: targetSn, ...rest }),
@@ -98,7 +98,7 @@ export const useDeleteComment = () =>
     deleteComment({ pstSn: targetSn, cmntSn }),
   );
 
-/** 신고는 화면이 바뀌지 않아 다시 받지 않는다 */
+/** 신고는 화면이 바뀌지 않아 재조회 없음 */
 export const useReportPost = () => useMutation({ mutationFn: reportPost });
 export const useReportComment = () =>
   useMutation({ mutationFn: reportComment });

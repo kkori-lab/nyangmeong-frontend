@@ -1,6 +1,6 @@
 /**
  * [채팅 코드값]
- * - CHTG03·PCAG05·myRole 값은 미정이라 가짜 값, 확정되면 이 파일만 고친다
+ * - CHTG03·PCAG05·myRole 값은 미정이라 가짜 값, 확정되면 이 파일만 수정
  */
 
 export const MSG_TYPE = {
@@ -44,7 +44,7 @@ export const MTCH_STTS_BADGE = {
   ABORTED: { label: '매칭 취소', tone: 'gray' },
 };
 
-/** 진행 중: 나가면 매칭이 취소된다 */
+/** 진행 중: 나가면 매칭 취소 */
 export const isActiveStage = (stage) =>
   [
     MTCH_STTS.REQUESTED,

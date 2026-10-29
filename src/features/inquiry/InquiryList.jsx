@@ -93,7 +93,7 @@ export default function InquiryList({
         </div>
       )}
 
-      {/** 새 문의 작성: 상태 필터 결과와 관계없이 항상 보인다 */}
+      {/** 새 문의 작성: 상태 필터 결과와 관계없이 항상 표시 */}
       <div className="mt-5 flex justify-end max-[760px]:mt-5">
         <Link
           to={PATHS.INQUIRY_NEW}

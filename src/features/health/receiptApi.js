@@ -3,10 +3,10 @@ import { createCheckup } from './diaryApi';
 
 /**
  * [영수증 등록 API 가짜 응답]
- * - 영수증 인식은 LJS의 SCR-AIM-008(features/ai)이 AI 서버(POST /ai/receipts)로 하고, 그 응답을 결과 확인 모달이 그대로 쓴다
- * - 여기는 저장 전 확인과 저장만 가짜다. Java 영수증 저장 API와 가계부 지출 생성·중복 확인(SJM)이 생기기 전까지 쓴다
- * - 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아간다
- * - 개발 환경에서만 ?fakeLedgerDup=1(가계부 중복), ?fakeReceiptSave=fail(저장 실패)로 확인한다
+ * - 영수증 인식은 LJS의 SCR-AIM-008(features/ai)이 AI 서버(POST /ai/receipts)로 수행, 그 응답을 결과 확인 모달이 그대로 사용
+ * - 여기는 저장 전 확인과 저장만 가짜. Java 영수증 저장 API와 가계부 지출 생성·중복 확인(SJM)이 생기기 전까지 사용
+ * - 필드 이름은 ERD 약어 기준 가안, 메모리 배열이라 새로고침하면 처음 상태로 복귀
+ * - 개발 환경에서만 ?fakeLedgerDup=1(가계부 중복), ?fakeReceiptSave=fail(저장 실패)로 확인
  */
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -16,7 +16,7 @@ const fakePrescriptions = [];
 
 /**
  * 가계부 지출(SJM). 같은 반려동물·날짜·금액이면 중복
- * 키는 가계부 도메인(`expndYmd`·`expndAmt`·`dtlMttr`·`expndPlcusNm`)과 같다. 병원명은 사용처에 넣고 내용은 사용자가 적는 메모라 비운다
+ * 키는 가계부 도메인(`expndYmd`·`expndAmt`·`dtlMttr`·`expndPlcusNm`)과 같다. 병원명은 사용처에 넣고 내용은 사용자가 적는 메모라 비움
  */
 const fakeLedger = [];
 
@@ -29,7 +29,7 @@ const isLedgerDuplicate = ({ petSn, ckupYmd, ledgerAmt }) =>
   );
 
 /**
- * 저장 전 확인에 필요한 것을 한 번에 조회한다
+ * 저장 전 확인에 필요한 것을 일괄 조회
  * - dupTabIds: 가계부에 같은 지출이 이미 있는 탭 (FN-HLT-002-44)
  * - nears: 가까운 예정 병원 일정이 있는 탭과 그 일정 (FN-HLT-002-46)
  */
@@ -64,8 +64,8 @@ export const prepareReceiptSave = async ({ ckupYmd, entries }) => {
 };
 
 /**
- * 검진기록을 반려동물마다 만들고 처방 약품·가계부 지출·영수증 연결을 함께 남긴다
- * 서버가 한 번에 처리하는 것으로 가정해 하나라도 실패하면 아무것도 만들지 않는다
+ * 검진기록을 반려동물마다 만들고 처방 약품·가계부 지출·영수증 연결을 함께 기록
+ * 서버가 한 번에 처리하는 것으로 가정해 하나라도 실패하면 아무것도 만들지 않음
  * entry.nearSchdlSn: 옮겨 연결할 예정 일정, entry.ledgerAmt: 가계부에 기록할 금액(없으면 null)
  */
 export const saveReceiptCheckups = async ({

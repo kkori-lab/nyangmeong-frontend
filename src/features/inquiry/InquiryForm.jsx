@@ -12,7 +12,7 @@ import { useInquiryImageUrls } from './queries';
 const TITLE_MAX = 50;
 const BODY_MAX = 2000;
 
-/** 서버가 준 첨부 [{ atchFileSn, sortSeq, orgnlFileNm }]를 ImageAttach 항목으로: 이미지 주소는 그릴 때 채운다 */
+/** 서버가 준 첨부 [{ atchFileSn, sortSeq, orgnlFileNm }]를 ImageAttach 항목으로: 이미지 주소는 렌더 시 채움 */
 const toAttachItems = (imgs = []) =>
   imgs.map(({ atchFileSn, orgnlFileNm }, index) => ({
     id: `file-${atchFileSn}`,
@@ -37,8 +37,8 @@ function FieldError({ message }) {
 /**
  * 문의 작성·수정 공용 폼
  * - 입력한 것이 있으면(처음 값과 다르면) 목록·취소로 나갈 때 확인 모달, 새로고침·닫기는 브라우저 확인창
- * - 고객센터 사이드 메뉴 이동은 틀의 onLeave가 이 확인으로 넘긴다. 앱이 BrowserRouter라 헤더(GNB) 링크 이동은 막지 못한다
- * - initial: { inqryTypeCd, inqryTtl, inqryCn, imgs }. 수정은 서버 상세 응답을 그대로 넘긴다
+ * - 고객센터 사이드 메뉴 이동은 틀의 onLeave가 이 확인으로 연결. 앱이 BrowserRouter라 헤더(GNB) 링크 이동은 차단 불가
+ * - initial: { inqryTypeCd, inqryTtl, inqryCn, imgs }. 수정은 서버 상세 응답을 그대로 전달
  * - types: 문의 유형 공통코드 [{ comCd, comCdNm }]
  * - errorMessage·fieldErrors: 서버 오류의 message와 입력값 검증 오류 fields([{ field, message }])
  * - onSubmit({ inqryTypeCd, inqryTtl, inqryCn, images(새 File들), keepAtchFileSns(남길 기존 첨부) })
@@ -82,13 +82,13 @@ export default function InquiryForm({
     return () => window.removeEventListener('beforeunload', warn);
   }, [isDirty]);
 
-  /** 목록으로·취소: 고친 것이 있으면 먼저 묻는다 */
+  /** 목록으로·취소: 고친 것이 있으면 먼저 확인 */
   const handleLeave = (target) => {
     if (isDirty) setLeaveTo(target);
     else navigate(target);
   };
 
-  /** 고객센터 틀의 사이드 메뉴·머리 이동도 같은 확인을 거치게 건다 */
+  /** 고객센터 틀의 사이드 메뉴·머리 이동도 같은 확인을 거치도록 설정 */
   useEffect(() => {
     if (!leaveRef) return undefined;
     leaveRef.current = handleLeave;

@@ -2,7 +2,7 @@
  * [FAQ 가짜 응답]
  * - FAQ API(KSJ 백엔드) 연결 전: api.get()으로 교체
  * - 키(faqSn·faqClsfNm·qstnCn·ansCn): Swagger 전 가정
- * - 분류(faqClsfNm)는 FAQ_CATEGORIES의 글자 그대로 오는 것으로 가정한다
+ * - 분류(faqClsfNm)는 FAQ_CATEGORIES의 글자 그대로 오는 것으로 가정
  */
 export const FAQ_CATEGORIES = ['이용방법', '계정', '신고 · 제재', '기타'];
 

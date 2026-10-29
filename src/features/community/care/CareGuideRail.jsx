@@ -22,7 +22,7 @@ export function CareCheckGuide() {
   );
 }
 
-/** 목록 오른쪽 레일: 돌봄 전 확인 안내 + 안전 안내. 검색·필터·쪽과 관계없이 늘 같다 */
+/** 목록 오른쪽 레일: 돌봄 전 확인 안내 + 안전 안내. 검색·필터·쪽과 관계없이 항상 동일 */
 export default function CareGuideRail() {
   return (
     <aside

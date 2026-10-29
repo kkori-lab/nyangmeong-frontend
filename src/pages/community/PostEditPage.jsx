@@ -20,7 +20,7 @@ export default function PostEditPage() {
   const update = useUpdatePost();
   const { setDirty, onLeave, leaveModal } = useLeaveGuard();
   const detailPath = generatePath(PATHS.COMMUNITY_POST_DETAIL, { pstSn });
-  /** 본인 글이 아니면 안내 후 상세로 보낸다 */
+  /** 본인 글이 아니면 안내 후 상세로 이동 */
   const isDenied = Boolean(post) && !post.owner;
 
   useEffect(() => {

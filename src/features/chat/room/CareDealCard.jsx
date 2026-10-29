@@ -1,7 +1,7 @@
 /**
  * [거래 카드]
  * - 채팅방 위 한 줄 바(상태·글 제목·지금 할 일·내 차례 버튼)와 펼침(글 정보·5단계·확인 칸) (FN-CMU-005-06~11)
- * - 되돌릴 수 없는 단계는 카드 안 확인 칸에서 한 번 더 받는다. 단계가 바뀌면 key로 새로 그려 접힌다
+ * - 되돌릴 수 없는 단계는 카드 안 확인 칸에서 한 번 더 확인. 단계가 바뀌면 key로 새로 그려 접힘
  */
 import { useEffect, useRef, useState } from 'react';
 import { generatePath } from 'react-router-dom';

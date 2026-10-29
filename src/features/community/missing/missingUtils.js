@@ -20,10 +20,10 @@ export const formatSeenAt = (dateTime) =>
 export const formatSeenAtShort = (dateTime) =>
   `${formatMonthDayDot(dateTime)} (${WEEKDAYS[getWeekdayIndex(dateTime)]}) ${dateTime.slice(11, 16)}`;
 
-/** 입력창 id: 「댓글로 제보하기」가 이 입력창으로 이동한다 */
+/** 입력창 id: 「댓글로 제보하기」가 이 입력창으로 이동 */
 export const MISSING_COMMENT_INPUT_ID = 'missing-cmnt-input';
 
-/** 서버 글 → 폼 값. 개인정보 동의는 수정할 때도 다시 체크한다 */
+/** 서버 글 → 폼 값. 개인정보 동의는 수정할 때도 재체크 */
 export const toFormValues = (post) => ({
   petSeCd: post.petSeCd,
   petNm: post.petNm,

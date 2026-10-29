@@ -9,11 +9,11 @@ import { EXPND_CLSF_LIST, PET_STTS } from './shared/expenseCodes';
 
 /**
  * 사용처 서버 필드명 (키는 확정, 지출 API·DB에는 아직 없음)
- * TODO: 서버에 사용처가 생기면 키를 확정하고 toRequestItem이 사용처를 빼는 부분을 풀어 요청에 넣는다
+ * TODO: 서버에 사용처가 생기면 키를 확정하고 toRequestItem이 사용처를 빼는 부분을 풀어 요청에 포함
  */
 export const EXPND_PLACE_KEY = 'expndPlcusNm';
 
-/** 서버 요청 본문: 지금은 사용처를 보내지 않는다 (가짜 응답만 사용처를 저장해 화면에 남긴다) */
+/** 서버 요청 본문: 지금은 사용처 미전송 (가짜 응답만 사용처를 저장해 화면에 남김) */
 const toRequestItem = (item) => {
   const request = { ...item };
   delete request[EXPND_PLACE_KEY];

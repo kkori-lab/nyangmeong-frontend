@@ -10,14 +10,14 @@ import { REPORT_REASON_CODES } from './postCodes';
  * - 사진은 공개 파일이라 주소로 바로 그린다: getPostImageUrl
  */
 
-/** 게시글 사진 주소: 공개 파일이라 로그인 없이 받는다 */
+/** 게시글 사진 주소: 공개 파일이라 로그인 없이 조회 */
 export const getPostImageUrl = (atchFileSn) =>
   `/api/files/public/${atchFileSn}`;
 
 /** 화면의 정렬 값(new·hot)을 서버 값으로 */
 const SORT_PARAMS = { new: 'latest', hot: 'popular' };
 
-/** 목록: 게시판(bbsCd)·정렬(sort: 'new' | 'hot')·키워드. 서버가 제목 일치를 먼저 두고 최신순으로 정렬한다 */
+/** 목록: 게시판(bbsCd)·정렬(sort: 'new' | 'hot')·키워드. 서버 정렬은 제목 일치 우선, 그다음 최신순 */
 export const getPostList = ({
   page = 1,
   size = 10,
@@ -74,7 +74,7 @@ export const togglePostLike = ({ pstSn, liked }) =>
     ? api.delete(`/posts/${pstSn}/likes`)
     : api.post(`/posts/${pstSn}/likes`);
 
-/** 신고: 화면의 사유 문구를 코드로 바꿔 보낸다. 게시글이나 댓글 중 하나만 넘긴다 */
+/** 신고: 화면의 사유 문구를 코드로 바꿔 전송. 게시글이나 댓글 중 하나만 전달 */
 const report = ({ pstSn, cmntSn, reason, detail }) =>
   api.post('/reports', {
     pstSn,

@@ -50,6 +50,12 @@ let nextCardKey = 1;
 /** 서버 저장 전 내 메시지 자리(서버 번호는 양수, 가짜는 음수) */
 const PENDING_MSG_SN = 0;
 
+/** 영수증 말풍선이 떠 있는 동안 숨길 메시지: 이번 분석으로 저장된 내 글·요약(말풍선이 같은 내용 표시) */
+const isReceiptSaved = (receipt, message) =>
+  receipt?.savedUntilSn != null &&
+  message.aiCnvrsMsgSn > receipt.afterMsgSn &&
+  message.aiCnvrsMsgSn <= receipt.savedUntilSn;
+
 /** 본창 건강 일지 결과 확인 모달: 파라미터 이름은 건강기록(JAJ)과 협의 전 제안값 */
 const receiptResultPath = (recptSn) =>
   `${PATHS.HEALTH_DIARY}?recptSn=${recptSn}`;
@@ -60,7 +66,7 @@ const manualCheckupPath = (recptSn) => {
   return `${PATHS.HEALTH_DIARY}?${params}#hlt002-exam`;
 };
 
-/** 판정이 영수증일 때 안내(저장 안 함): 이미지 첨부로만 분석한다 */
+/** 판정이 영수증일 때 안내(저장 안 함): 이미지 첨부로만 분석 */
 const RECEIPT_GUIDE = '영수증 사진을 첨부해 주세요.';
 
 /** 별도 창 전체 화면 AI 채팅 */
@@ -87,7 +93,7 @@ export default function AiChatPage() {
   /** 영수증 파일 고르기 창 */
   const fileInputRef = useRef(null);
   const receipt = useChatReceipt({
-    onAnalyzed: ({ aiCnvrsRoomSn }) => {
+    onSaved: ({ aiCnvrsRoomSn }) => {
       setFirstMessage(null);
       setSelectedRoomSn(aiCnvrsRoomSn);
     },
@@ -96,7 +102,7 @@ export default function AiChatPage() {
   const [route, setRoute] = useState(null);
   /** 저장하지 않는 안내: 변환표에 없는 화면(fallback)·영수증 판정(receipt) */
   const [notice, setNotice] = useState(null);
-  /** 보내기 전 마지막 서버 메시지 번호: 이보다 큰 내 메시지가 오면 임시 말풍선을 치운다 */
+  /** 보내기 전 마지막 서버 메시지 번호: 이보다 큰 내 메시지가 오면 임시 말풍선을 제거 */
   const [pendingAfterSn, setPendingAfterSn] = useState(0);
   /**
    * 이번 화면에서 받은 미리보기 카드(서버에 저장 안 됨, 새로고침하면 사라짐)
@@ -156,7 +162,7 @@ export default function AiChatPage() {
     ]);
   };
 
-  /** 서버 판정별 화면 처리: 검색 답변은 말풍선이 맡는다, 등록이 아니면 초안을 버린다 */
+  /** 서버 판정별 화면 처리: 검색 답변은 말풍선 담당, 등록이 아니면 초안 폐기 */
   const handleResult = (result, afterSn) => {
     if (!result) return;
     const { aiCnvrsRoomSn, intent } = result;
@@ -179,7 +185,7 @@ export default function AiChatPage() {
     if (intent.kind === 'RECEIPT') setNotice('receipt');
   };
 
-  /** 메시지 전송: 가장 최근 카드를 초안으로 함께 보낸다 */
+  /** 메시지 전송: 가장 최근 카드를 초안으로 함께 전송 */
   const handleSend = async (cnvrsCn) => {
     setFirstMessage(null);
     setRoute(null);
@@ -197,12 +203,12 @@ export default function AiChatPage() {
     handleResult(result, afterSn);
   };
 
-  /** [다시 시도]·[다시 생성]: 방의 마지막 사용자 메시지에 다시 답한다 */
+  /** [다시 시도]·[다시 생성]: 방의 마지막 사용자 메시지에 재답변 */
   const handleAnswerAgain = async (replaceMsgSn) => {
     setRoute(null);
     setNotice(null);
     setPetChoices(null);
-    /** 카드가 오면 마지막 사용자 메시지 뒤에 붙인다 */
+    /** 카드가 오면 마지막 사용자 메시지 뒤에 추가 */
     const lastUserSn =
       conversation?.messages.findLast(
         (message) => message.roleCd === AI_ROLE.USER,
@@ -225,6 +231,7 @@ export default function AiChatPage() {
       file,
       text,
       aiCnvrsRoomSn: selectedRoomSn,
+      afterMsgSn: lastServerSn(conversation?.messages ?? []),
       pet: selectedPet ?? (pets.length === 1 ? pets[0] : null),
     });
   };
@@ -235,7 +242,7 @@ export default function AiChatPage() {
     fileInputRef.current.click();
   };
 
-  /** 등록·취소 결과를 카드에 반영: 결과 요약 메시지 자리로 옮기고 초안을 버린다 */
+  /** 등록·취소 결과를 카드에 반영: 결과 요약 메시지 자리로 이동, 초안 폐기 */
   const settleRegisterCard = (mutation, status, key) => {
     const target = registerCards.find(
       (registerCard) => registerCard.key === key,
@@ -283,7 +290,7 @@ export default function AiChatPage() {
     }
   };
 
-  /** 첫 메시지 전송: StrictMode가 effect를 정리했다 다시 돌리면(그때 답변 스트림도 취소) 예약을 지우고 새로 잡아 한 번만 보낸다 */
+  /** 첫 메시지 전송: StrictMode가 effect를 정리했다 다시 돌리면(그때 답변 스트림도 취소) 예약을 지우고 새로 잡아 한 번만 전송 */
   useEffect(() => {
     if (!firstMessage) return;
     const timer = setTimeout(() => handleSend(firstMessage.slice(0, 1000)));
@@ -390,8 +397,7 @@ export default function AiChatPage() {
                 ...(conversation?.messages ?? []).filter(
                   (message) =>
                     !answer.hiddenMsgSns.includes(message.aiCnvrsMsgSn) &&
-                    message.aiCnvrsMsgSn !==
-                      receipt.receipt?.result?.aiCnvrsMsgSn,
+                    !isReceiptSaved(receipt.receipt, message),
                 ),
                 ...(isPendingShown
                   ? [
@@ -456,11 +462,12 @@ export default function AiChatPage() {
                   pets={pets}
                   onChoosePet={receipt.choosePet}
                   onCancel={receipt.cancel}
-                  onConfirm={() =>
+                  onConfirm={() => {
+                    receipt.keepResult();
                     openInMainWindow(
                       receiptResultPath(receipt.receipt.result.recptSn),
-                    )
-                  }
+                    );
+                  }}
                   onDismiss={receipt.dismiss}
                   onRetry={handleRetryReceipt}
                   onManualInput={() =>

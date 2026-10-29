@@ -5,7 +5,7 @@ import { AI_ROLE } from '../shared/aiCodes';
 import { FALLBACK_MESSAGE, FAQ_FAIL_COUNT } from '../shared/fallbackCount';
 
 /**
- * 등록 카드 자리: 서버에 저장되지 않아 번호가 없다
+ * 등록 카드 자리: 서버에 저장되지 않아 번호 없음
  * - 결과 요약이 저장됐으면 그 메시지 자리, 아니면 카드를 부른 내 메시지(afterSn보다 큰 첫 사용자 메시지) 뒤
  * - 그 메시지를 아직 받지 못했으면 목록 끝
  */

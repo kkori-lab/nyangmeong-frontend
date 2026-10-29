@@ -5,10 +5,10 @@ const ARROW_CLASS =
   'absolute top-1/2 flex size-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-[rgba(15,23,35,0.62)] text-white hover:bg-[rgba(15,23,35,0.85)] max-[760px]:size-10';
 
 /**
- * 첨부 이미지 크게 보기: 제목 줄·판 없이 어두운 배경 위에 이미지만 띄운다
+ * 첨부 이미지 크게 보기: 제목 줄·판 없이 어두운 배경 위에 이미지만 표시
  * - imgs: 서버 첨부 [{ atchFileSn, sortSeq, orgnlFileNm }], urls: { [atchFileSn]: blob 주소 }
  * - index: 지금 보는 장(0부터). 파일명은 이미지 위, 「N / 전체」는 이미지 아래(여러 장일 때만)
- * - ←·→ 키와 좌우 화살표로 넘기고 처음·끝에서는 그쪽 화살표가 없다. ✕·이미지 밖 클릭·ESC로 닫힌다
+ * - ←·→ 키와 좌우 화살표로 넘기고 처음·끝에서는 그쪽 화살표 없음. ✕·이미지 밖 클릭·ESC로 닫힘
  */
 export default function InquiryImageViewer({
   imgs,
@@ -40,7 +40,7 @@ export default function InquiryImageViewer({
     if (event.key === 'ArrowRight' && hasNext) onChange(index + 1);
   };
 
-  /** 안쪽 요소는 pointer-events-auto라 dialog 자신이나 빈 가운데 판이 눌린 것은 이미지 밖이다 */
+  /** 안쪽 요소는 pointer-events-auto라 dialog 자신이나 빈 가운데 판이 눌린 것은 이미지 밖 */
   const handleMouseDown = (event) => {
     if (event.target === event.currentTarget) onClose();
   };

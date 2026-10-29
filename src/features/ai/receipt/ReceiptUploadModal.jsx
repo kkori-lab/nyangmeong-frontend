@@ -75,7 +75,7 @@ function AnalyzeProgress() {
  * 영수증 촬영·업로드 모달 (SCR-AIM-008)
  * pets: [{ petSn, petNm, vrtyNm? }], 목록은 여는 쪽이 넘긴다(features/pet import 금지)
  * onRecognized(result): 인식 성공 { recptSn, petSn, ocr }(일부만 인식돼도 실패 안내 없이 여기로)
- * onManualInput({ rcptSn? }): 직접 입력, 추출 0건 뒤에만 rcptSn(저장 때 영수증 상태를 바꾸는 데 쓴다)
+ * onManualInput({ rcptSn? }): 직접 입력, 추출 0건 뒤에만 rcptSn(저장 때 영수증 상태를 변경용)
  */
 export default function ReceiptUploadModal({
   pets,

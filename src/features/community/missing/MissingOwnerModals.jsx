@@ -71,7 +71,7 @@ export function FoundConfirmModal({
   );
 }
 
-/** 「30일 더 게시」 확인: 새 종료일을 알려 준다 */
+/** 「30일 더 게시」 확인: 새 종료일을 안내 */
 export function ExtendConfirmModal({
   post,
   isPending,

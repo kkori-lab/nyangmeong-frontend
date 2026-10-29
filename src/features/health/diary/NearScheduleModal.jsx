@@ -14,9 +14,9 @@ const findCheckupTypeNm = (cd) =>
 /**
  * [가까운 예정 일정 확인 창] (FN-HLT-002-46)
  * - rows: [{ key, schedule }] 대상 일정이 있는 검진기록. 1건이면 버튼 두 개로 바로 정하고,
- *   여러 건이면 줄마다 [옮겨 연결하기]/[새 일정으로 저장하기]를 고른 뒤 저장한다
+ *   여러 건이면 줄마다 [옮겨 연결하기]/[새 일정으로 저장하기]를 고른 뒤 저장
  * - ckupYmd: 검진일. onConfirm(moveByKey): { [key]: 옮겨 연결하면 true }
- * - ✕는 저장하지 않고 입력 화면으로 돌아간다
+ * - ✕는 저장 없이 입력 화면으로 복귀
  */
 export default function NearScheduleModal({
   rows,

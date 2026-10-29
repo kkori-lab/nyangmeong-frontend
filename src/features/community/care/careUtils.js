@@ -87,7 +87,7 @@ export const EMPTY_FORM = {
   agree: false,
 };
 
-/** 서버 글 → 폼 값. 정확한 좌표는 응답에 없어 장소는 동네만 채우고, 다시 고르지 않으면 그대로 둔다. 동의는 수정할 때도 다시 체크한다 */
+/** 서버 글 → 폼 값. 정확한 좌표는 응답에 없어 장소는 동네만 채우고, 다시 고르지 않으면 유지. 동의는 수정할 때도 재체크 */
 export const toFormValues = (post) => {
   const dogKind = post.petKnds.find((kind) => kind.petSeCd === PET_SE.DOG);
   const catKind = post.petKnds.find((kind) => kind.petSeCd === PET_SE.CAT);

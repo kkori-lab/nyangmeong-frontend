@@ -92,7 +92,7 @@ export function VisitorSide({ post }) {
 
 /**
  * 작성자 오른쪽: 「○○를 찾으셨나요?」 카드(게시 종료일 · 남은 일수 · [찾았어요] · [30일 더 게시하기]) + 실종 Check 가이드
- * - 연장은 게시 종료 7일 전부터. 연장하면 종료일이 늘어나 버튼이 사라진다
+ * - 연장은 게시 종료 7일 전부터. 연장하면 종료일이 늘어 버튼 사라짐
  */
 export function OwnerSide({ post, onFound, onExtend }) {
   const found = isFound(post);

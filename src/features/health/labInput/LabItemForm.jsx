@@ -13,7 +13,7 @@ const OPTIONAL = (
 
 /**
  * [검사 종류 · 검사 항목 입력칸] (FN-HLT-007-01·02)
- * - 검사 종류는 "혈액검사" 고정, 수정 진입(isEdit)이면 검사 항목도 바꿀 수 없다
+ * - 검사 종류는 "혈액검사" 고정, 수정 진입(isEdit)이면 검사 항목도 변경 불가
  * - errors: 보여 줄 오류 문구. { item, val, unit, range }
  */
 export default function LabItemForm({ form, errors, isEdit, onChange }) {

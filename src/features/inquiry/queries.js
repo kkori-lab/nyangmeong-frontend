@@ -25,11 +25,11 @@ export const inquiryKeys = {
     'image',
     atchFileSn,
   ],
-  /** 문의 목록·상세와 따로 둔다: 문의를 저장해도 유형 목록은 다시 받지 않는다 */
+  /** 문의 목록·상세와 따로 둔다: 문의를 저장해도 유형 목록은 재조회 없음 */
   types: ['inquiry-types'],
 };
 
-/** enabled: false면 요청하지 않는다(상태 필터가 켜졌을 때만 전체 건수를 따로 묻는 데 쓴다) */
+/** enabled: false면 요청 없음(상태 필터가 켜졌을 때만 전체 건수를 따로 묻는 용도) */
 export const useInquiries = (params, { enabled = true } = {}) =>
   useQuery({
     queryKey: inquiryKeys.list(params),
@@ -45,8 +45,8 @@ export const useInquiry = (otoInqrySn) =>
   });
 
 /**
- * 첨부 이미지 주소: { [atchFileSn]: blob 주소 }. 받는 중이거나 실패(403·404 등)한 번호는 없다
- * - 주소를 캐시에 두므로 gcTime을 0으로 해 화면을 떠나면 캐시를 지우고, 주소도 그때 해제한다
+ * 첨부 이미지 주소: { [atchFileSn]: blob 주소 }. 받는 중이거나 실패(403·404 등)한 번호는 없음
+ * - 주소를 캐시에 두므로 gcTime을 0으로 해 화면을 떠나면 캐시 삭제, 주소도 그때 해제
  */
 export const useInquiryImageUrls = (otoInqrySn, imgs) => {
   const urls = useQueries({
@@ -74,7 +74,7 @@ export const useInquiryImageUrls = (otoInqrySn, imgs) => {
   );
 };
 
-/** 공통코드는 화면을 열어 둔 동안 바뀌지 않는다 */
+/** 공통코드는 화면을 열어 둔 동안 변경 없음 */
 export const useInquiryTypes = () =>
   useQuery({
     queryKey: inquiryKeys.types,
@@ -92,8 +92,8 @@ export const useCreateInquiry = () => {
 };
 
 /**
- * 목록만 무효화한다. 지운 문의의 상세·이미지를 다시 받으면 404다
- * - 상세를 removeQueries로 지우면 아직 떠 있는 상세 화면이 새로 받아 버려 그대로 둔다(이미지는 gcTime 0이라 화면을 떠나면 지워진다)
+ * 목록만 무효화. 지운 문의의 상세·이미지를 재조회 시 404
+ * - 상세를 removeQueries로 지우면 아직 떠 있는 상세 화면이 새로 받아 버려 그대로 유지(이미지는 gcTime 0이라 화면을 떠나면 삭제)
  */
 export const useDeleteInquiry = () => {
   const queryClient = useQueryClient();

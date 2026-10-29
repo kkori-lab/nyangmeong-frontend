@@ -21,7 +21,7 @@ export default function InquiryListPage() {
     isFetching,
     isError,
   } = useInquiries({ page, size: PAGE_SIZE, status });
-  /** 서버 목록은 필터와 관계없는 전체 건수를 주지 않는다: 필터가 켜졌을 때만 필터 없이 1건을 따로 물어 전체 건수(totalElements)를 얻는다 */
+  /** 서버 목록은 필터와 관계없는 전체 건수를 주지 않음: 필터가 켜졌을 때만 필터 없이 1건을 따로 물어 전체 건수(totalElements) 확보 */
   const {
     data: allInquiries,
     isFetching: isAllFetching,
@@ -50,7 +50,7 @@ export default function InquiryListPage() {
   /** 문의 이력이 없으면 목록을 건너뛰고 작성 화면이 첫 화면 */
   const total = status ? allInquiries?.totalElements : inquiries.totalElements;
   if (total === 0) {
-    /** 다시 가져오는 중에는 캐시에 남은 옛 0건으로 판단하지 않는다 */
+    /** 다시 가져오는 중에는 캐시에 남은 옛 0건으로 판단 안 함 */
     if (isFetching || isAllFetching) return <InquiryListSkeleton />;
     return <Navigate to={PATHS.INQUIRY_NEW} replace />;
   }

@@ -63,7 +63,7 @@ const fakePets = [
   },
 ];
 
-/** ?fakePets=8에서만 더하는 반려동물. 일정·케어 가짜 데이터는 만들지 않는다 */
+/** ?fakePets=8에서만 더하는 반려동물. 일정·케어 가짜 데이터 없음 */
 const extraPets = [
   ['보리', PET_SE.DOG, '강아지', CHRC_STTS.DONE, PET_REL.OWNER, profile3],
   ['모모', PET_SE.CAT, '고양이', CHRC_STTS.NONE, PET_REL.OWNER, null],

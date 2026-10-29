@@ -3,7 +3,7 @@ import { formatWon, getExpenseDesc, getPetLabel } from './expenseFormat';
 
 /**
  * 지출 한 줄 (배지·반려동물·내용 · 사용처·금액)
- * isDay(앱 색 막대 행): 2줄에 "반려동물 · 내용 · 사용처"를 한 줄 말줄임으로 보인다
+ * isDay(앱 색 막대 행): 2줄에 "반려동물 · 내용 · 사용처"를 한 줄 말줄임으로 표시
  */
 export default function ExpenseInfo({ expense, prefix = '', isDay = false }) {
   const desc = getExpenseDesc(expense);

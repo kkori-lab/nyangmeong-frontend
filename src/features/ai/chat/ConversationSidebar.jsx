@@ -81,7 +81,7 @@ export default function ConversationSidebar({
         </div>
       </aside>
 
-      {/** 항상 그려 두고 폭(761~1099px, 본문을 밀어냄)·이동(760px 이하, 전체 폭으로 덮음)으로 미끄러지게 한다. 닫힌 동안은 invisible이라 초점이 가지 않는다 */}
+      {/** 항상 그려 두고 폭(761~1099px, 본문을 밀어냄)·이동(760px 이하, 전체 폭으로 덮음)으로 미끄러지게 처리. 닫힌 동안은 invisible이라 초점 이동 없음 */}
       <div
         className={`flex shrink-0 justify-end overflow-hidden border-r border-[#e2e7e7] transition-[width,visibility] duration-200 ease-out motion-reduce:transition-none min-[1100px]:hidden max-[760px]:fixed max-[760px]:inset-0 max-[760px]:z-40 max-[760px]:block max-[760px]:w-auto max-[760px]:overflow-visible max-[760px]:border-0 ${
           isDrawerOpen ? 'w-[320px]' : 'invisible w-0 border-r-0'

@@ -12,7 +12,7 @@ export default function CareWritePage() {
   const { mutate, isPending, isError } = useCreateCare();
   const { setDirty, onLeave, leaveModal } = useLeaveGuard();
 
-  /** 등록하면 별도 완료 모달 없이 상세로 가서 올린 글을 바로 본다 */
+  /** 등록하면 별도 완료 모달 없이 상세로 이동해 올린 글 바로 확인 */
   const handleSubmit = (values) =>
     mutate(values, {
       onSuccess: ({ petPrtcRcrtSn }) => {
@@ -24,7 +24,7 @@ export default function CareWritePage() {
       },
     });
 
-  /** 「목록으로」는 폼 아래 줄에 있어 머리의 ‹ 목록으로(back)는 끈다 */
+  /** 「목록으로」는 폼 아래 줄에 있어 머리의 ‹ 목록으로(back)는 끔 */
   return (
     <SubPageLayout
       section="community"

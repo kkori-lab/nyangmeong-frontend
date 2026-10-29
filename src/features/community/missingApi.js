@@ -12,7 +12,7 @@ import {
 /**
  * [실종센터 가짜 응답]
  * - 실종 게시글·댓글·좋아요·신고·연장·찾았어요 API(KSJ 백엔드) 연결 전: api.get()·post()로 교체
- * - 키는 ERD(PST·LOST_TPOF·CMNT 컬럼)를 camelCase로 바꾼 것이다. 실종 글은 PST(1) + LOST_TPOF(1)를 서버가 합쳐 준다고 가정한다
+ * - 키는 ERD(PST·LOST_TPOF·CMNT 컬럼)를 camelCase로 바꾼 것. 실종 글은 PST(1) + LOST_TPOF(1)를 서버가 합쳐 준다는 가정
  *   [PST] pstSn, pstTtl, pstCn, inqCnt, rcmdtnCnt, regDt, mdfcnDt
  *   [LOST_TPOF] lostTpofSn, petSeCd, petNm, colrNm, chrcCn, vrtyNm(VRTY_SN의 품종명), vrtyDrctInptNm, lastWtnsDt, wtnsPlcNm,
  *   wtnsPlcLat(WTNS_PLC_LAT), wtnsPlcLot(WTNS_PLC_LOT), lostTpofSttsCd, expryCrtrDt, dscvSwtcDt, pstgPrdUpdtNmtm, prvcRlsAgreYn
@@ -20,8 +20,8 @@ import {
  * - ERD에 없어 서버가 계산한다고 가정한 값: cnpl(CNPL_ENC를 복호화한 연락처), sggNm·emdNm(RGN_SN의 시군구·읍면동명),
  *   wtnsPlcAddr(주소 전체), wrtrNcknm, cmntCnt, likeYn, mineYn, thmbUrlPath, atchFiles, rmndDayCnt(게시 종료까지 남은 일수)
  * - 좋아요(PST_RCMDTN)·댓글(CMNT)·신고(DCLR)는 pstSn, 상태·연장·찾았어요·수정·삭제는 lostTpofSn 기준
- * - 목록의 실종 기간 필터는 마지막 목격 날짜(lastWtnsDt) 기준이다(사람 결정. ERD 비고는 등록일시 기준이라 문서가 다르다)
- * - 로그인 전이라 내 회원번호는 MY_MBR_SN으로 고정한다
+ * - 목록의 실종 기간 필터는 마지막 목격 날짜(lastWtnsDt) 기준(사람 결정. ERD 비고는 등록일시 기준이라 문서와 다름)
+ * - 로그인 전이라 내 회원번호는 MY_MBR_SN으로 고정
  */
 const MY_MBR_SN = 1;
 const MY_NICKNAME = '토리맘';
@@ -439,7 +439,7 @@ const toSummary = (row) => ({
   rmndDayCnt: diffDays(getTodayYmd(), row.expryCrtrDt),
 });
 
-/** 찾았어요 글은 다른 사용자에게 제목·상태·처리 시각만 준다(본문·사진·연락처·위치는 비운다) */
+/** 찾았어요 글은 다른 사용자에게 제목·상태·처리 시각만 제공(본문·사진·연락처·위치는 비움) */
 const hideIfFound = (row) =>
   row.lostTpofSttsCd === LOST_STTS.FOUND && row.mineYn !== 'Y'
     ? {
@@ -558,7 +558,7 @@ export const getMissing = (lostTpofSn) => {
   return Promise.resolve(hideIfFound(toSummary(target)));
 };
 
-/** 글쓰기에서 고른 장소로 실종 지역(sggNm, emdNm)을 정한다. 역지오코딩은 서버가 한다 */
+/** 글쓰기에서 고른 장소로 실종 지역(sggNm, emdNm)을 결정. 역지오코딩은 서버 */
 export const createMissing = (values) => {
   const lostTpofSn = Math.max(0, ...posts.map((row) => row.lostTpofSn)) + 1;
   const pstSn = Math.max(0, ...posts.map((row) => row.pstSn)) + 1;
@@ -584,7 +584,7 @@ export const createMissing = (values) => {
   return Promise.resolve({ lostTpofSn });
 };
 
-/** 수정: 상태·게시 종료일·조회수·좋아요는 바꾸지 않는다 */
+/** 수정: 상태·게시 종료일·조회수·좋아요는 변경 없음 */
 export const updateMissing = ({ lostTpofSn, ...values }) => {
   const target = findPost(lostTpofSn);
   if (!target || target.mbrSn !== MY_MBR_SN) {
@@ -604,7 +604,7 @@ export const deleteMissing = (lostTpofSn) => {
   return Promise.resolve();
 };
 
-/** 좋아요 토글: 바뀐 상태와 수를 돌려준다 */
+/** 좋아요 토글: 바뀐 상태와 수 반환 */
 export const toggleMissingLike = (pstSn) => {
   const target = findPostByPst(pstSn);
   if (!target) return Promise.reject(new Error('게시글을 찾지 못했어요'));
@@ -621,7 +621,7 @@ export const toggleMissingLike = (pstSn) => {
   });
 };
 
-/** 게시글 신고: 같은 회원이 같은 글을 두 번 신고하면 막는다 */
+/** 게시글 신고: 같은 회원이 같은 글을 두 번 신고하면 차단 */
 export const reportMissing = ({ pstSn }) => {
   if (reportedSns.has(pstSn)) {
     return Promise.reject(new Error('이미 신고한 게시글입니다'));
@@ -632,7 +632,7 @@ export const reportMissing = ({ pstSn }) => {
 
 /**
  * 찾았어요 처리: 작성자만. 상태를 바꾸고 완료 안내 댓글을 자동으로 만든다(작성자명·확인 시각)
- * 취소(되돌리기)는 없다
+ * 취소(되돌리기)는 없음
  */
 export const markMissingFound = (lostTpofSn) => {
   const target = findPost(lostTpofSn);
@@ -658,7 +658,7 @@ export const markMissingFound = (lostTpofSn) => {
   return Promise.resolve();
 };
 
-/** 30일 연장: 작성자, 실종 상태, 종료 7일 전부터. 중복 요청은 한 번만 늘어난다 */
+/** 30일 연장: 작성자, 실종 상태, 종료 7일 전부터. 중복 요청은 한 번만 연장 */
 export const extendMissing = (lostTpofSn) => {
   const target = findPost(lostTpofSn);
   if (!target || target.mbrSn !== MY_MBR_SN) {
@@ -672,7 +672,7 @@ export const extendMissing = (lostTpofSn) => {
   return Promise.resolve({ expryCrtrDt: target.expryCrtrDt });
 };
 
-/** 댓글: 찾았어요 안내 댓글은 목록 맨 위에 고정한다 */
+/** 댓글: 찾았어요 안내 댓글은 목록 맨 위에 고정 */
 export const getMissingComments = (pstSn) => {
   return Promise.resolve(
     comments
@@ -722,7 +722,7 @@ export const deleteMissingComment = ({ cmntSn }) => {
   return Promise.resolve();
 };
 
-/** 댓글 신고: 같은 회원이 같은 댓글을 두 번 신고하면 막는다 */
+/** 댓글 신고: 같은 회원이 같은 댓글을 두 번 신고하면 차단 */
 export const reportMissingComment = ({ cmntSn }) => {
   if (reportedCmntSns.has(cmntSn)) {
     return Promise.reject(new Error('이미 신고한 댓글입니다'));
@@ -731,5 +731,5 @@ export const reportMissingComment = ({ cmntSn }) => {
   return Promise.resolve();
 };
 
-/** 품종 목록: 반려동물 구분별. 품종 마스터 API(vrtySn, vrtyNm)로 바뀐다 */
+/** 품종 목록: 반려동물 구분별. 품종 마스터 API(vrtySn, vrtyNm)로 교체 */
 export const getBreeds = (petSeCd) => Promise.resolve(BREEDS[petSeCd] ?? []);

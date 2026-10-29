@@ -11,7 +11,7 @@ import { POST_BOARDS } from './postCodes';
 const TITLE_MAX = 50;
 const BODY_MAX = 2000;
 
-/** 서버가 준 사진 [{ atchFileSn, sortSeq }]를 ImageAttach 항목으로: 공개 파일이라 주소를 바로 쓴다 */
+/** 서버가 준 사진 [{ atchFileSn, sortSeq }]를 ImageAttach 항목으로: 공개 파일이라 주소를 바로 사용 */
 const toImageItems = (imgs) =>
   imgs.map(({ atchFileSn }, index) => ({
     id: `file-${atchFileSn}`,

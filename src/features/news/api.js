@@ -5,7 +5,7 @@ import { NEWS_SRC_ADMIN, NEWS_SRC_PRESS } from './newsCodes';
  * - 뉴스 API(KSJ 백엔드) 연결 전: api.get()으로 교체
  * - 키는 ERD 뉴스 테이블(NEWS_*)을 camelCase로 바꾼 가정. Swagger 전이라 연결 때 확인
  * - 요약 컬럼이 없어 외부 기사는 newsCn이 요약, 관리자 등록은 전문
- * - 외부 기사의 썸네일은 서버가 URL만 보관(thmbUrlPath). 가짜는 비워 자리 표시를 보여 준다
+ * - 외부 기사의 썸네일은 서버가 URL만 보관(thmbUrlPath). 가짜는 비워 자리 표시 노출
  */
 const [HEALTH, LIFE, POLICY, TRAVEL] = [
   'CMUC0018',

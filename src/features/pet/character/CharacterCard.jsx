@@ -15,7 +15,7 @@ const STAGE_TONES = [
 /**
  * [캐릭터 카드]
  * - mode: 'own'(내 캐릭터, 꾸미기·대표 지정·만들기) / 'shared'(공동양육, 조회 전용)
- * - 캐릭터가 없거나 오류 확인 중이면 종별 기본 캐릭터를 쓴다
+ * - 캐릭터가 없거나 오류 확인 중이면 종별 기본 캐릭터 사용
  */
 export default function CharacterCard({
   pet,

@@ -41,7 +41,7 @@ const ALWAYS_ON = [
   '공지사항',
 ];
 
-/** 사전 알림 시점은 선택 순서와 상관없이 같은 집합이면 같다 */
+/** 사전 알림 시점은 선택 순서와 상관없이 같은 집합이면 동일 */
 const isSameLeadTimes = (a, b) =>
   a.length === b.length && a.every((item) => b.includes(item));
 

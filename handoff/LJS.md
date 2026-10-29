@@ -2,10 +2,17 @@
 
 ## 지금 하는 것
 
-SCR-AIM-008 영수증 분석 AI 서버 연결 — 끝(2026-10-29): 검증 통과(1회차)·사람 확인 끝. 검진 영수증 분석을 `POST /ai/receipts`로 연결하고, 건강 일지 결과 확인 모달(JAJ 파일)이 응답 `{ recptSn, petSn, ocr }`를 그대로 읽게 바꿈(가짜 `getReceiptDetail` 삭제, 구역 없음·할인 배분·용법 n회). 확인용 `/dev/receipt-upload` 삭제. 결정: OCR은 Python 직접(10-26 Spring 경유 결정 정정), 저장은 가짜(Java API 없음)
+SCR-AIM-013 대화창 영수증 분석 서버 연결 — 끝(2026-10-29): 검증 통과·사람 확인 끝. 이미지 전송을 `/messages` 없이 `POST /ai/receipts`(출처 AIMC0031)로 분석하고, 끝나면 `receipt-result`(RECOGNIZED·FAILED·ERROR·CANCELED)로 함께 보낸 글·요약 한 줄을 이력에 저장. 결과 카드는 응답 `ocr` 그대로(추가-1 총금액·할인·결제 금액). 분석 중 [취소]는 요청 끊기 + CANCELED. 영수증 가짜 메시지·취소·결과 코드 삭제. 결정: 이미지만 보낸 새 대화는 "영수증 분석"으로 방 생성, [확인 후 저장] 본창 전달은 `localStorage`(읽으면 지움)
 
 ## 다음에 할 것
 
+- 다음 작업: SCR-AIM-013 [확인 후 저장] 본창 전달을 `localStorage`에서 실제 조회 API로 바꾼다(`/start AIM-013`, 마일스톤 "SCR-AIM-013 영수증 인식 결과 조회 API 연결 — 대기")
+  - 흐름 확정(2026-10-29, 백엔드 사람 결정, backend-36 답): 분석 중심은 React → Python `POST /ai/receipts` 그대로. 백엔드가 새로 만든다 ① Python → Java 내부 저장 API(분석 전 원본 + RECPT → recptSn, 분석 뒤 결과·상태 보고, 계약은 ai 저장소 `docs/api/internal.md`·ai-23과 맞춤) ② React → Java 결과 조회 API(응답 `{ recptSn, petSn, ocr }` 모양, 본인만·남의 것 404, 공동양육자 허용은 백엔드 기획에서 정함). 아직 없음, 생기면 backend-36이 경로·응답을 알려 준다. 그 전까지 `localStorage` 유지
+  - 바꿀 것: `features/ai/api.js` `getChatReceiptResult`를 조회 API 요청으로(`api`, Spring), `keepChatReceiptResult`와 `useChatReceipt.js` `keepResult`·`AiChatPage.jsx`의 호출을 지운다. `queries.js` `useChatReceiptResult`의 `staleTime: Infinity`(한 번 읽고 지우기 때문)는 다시 본다. 본창 조회가 404·실패면 무엇을 보여 줄지 정한다(지금은 모달이 안 열림, `pages/health/HealthDiaryPage.jsx`)
+  - 같이 볼 것: 다시 연 대화에서 결과 카드 다시 불러오기(명세 FN-AIM-013-09 미결, 메시지에 영수증 참조가 필요하면 스키마 변경). 반려동물 목록은 계속 `fakePets`(SJM)
+  - 영수증이 지금은 ai 서버 가짜 저장소(Python 메모리)라 `recptSn`이 DB에 없다. 연결 확인은 ①이 붙은 뒤에 한다
+- SCR-AIM-013 병합 순서: ai 저장소 SCR-AIM-013(`receipt-result`·`AIMC0031`, 작업 사본 커밋 전)·백엔드 공통코드 AIMC0031 PR과 같은 때 병합한다. 공통코드는 알림 코드가 그대로라 `notiTabs.js` `INQRY_ANSWR`='AIMC0030' 유지
+- SCR-AIM-013 사람이 볼 것(검증 판정 밖): 클라이언트 안전망은 20초(`SERVER_ANALYZE_GUARD_MS`, 기획 문구는 15초 — 서버 504가 15초라 동작 같음). 시간 초과·일시 오류, 결과 카드 [취소] 무저장, 할인 0 "없음"·결제 금액 없음 총금액 —은 코드로만 확인. 총금액은 결제 금액 + 할인 합계로 만든 값이라 영수증 할인이 하단·구역 할인으로 안 잡히면 실제 총액과 다를 수 있다
 - 전달(SCR-AIM-008, PR 전): JAJ에게 "건강 일지 영수증 결과 확인 모달(`features/health/diary/Receipt*`·`receiptUtils.js`)이 이제 AI 서버 분석 응답 `{ recptSn, petSn, ocr: { hsptlNm, ckupYmd, recptAmt, btmDscntAmt, sections:[{ sectionNm, sbttlAmt, dscntAmt, items:[{ itemNm, itemAmt }], drugs:[{ mdcnNm, mdcnDays, mdcnUsage, mdcnAmt }] }] } }`를 그대로 읽어요. `receiptApi.js` `getReceiptDetail`·`useReceiptDetail`·`healthKeys.receiptDetail`과 `?fakeReceipt=`는 지웠고, `saveReceiptCheckups` 인자는 `recptSn`이에요. 검진 종류는 응답에 없어 회원이 골라요". ai-23에게 "프론트 연결 끝(검진 영수증·결과 확인 모달). 실제 청구서 확인함. 아조딜 `mdcnUsage`가 null로 와서 1일 횟수 칸이 비어요(회원 입력)"
 - SCR-AIM-012 연결 남음: 012-13·14 Java 일정·케어 항목 등록 API(JAJ, 출처 HLTC0067, 사람이 JAJ에게 요청 예정). 나오면 `features/ai/api.js` `registerToHealth` 가짜만 실제 요청으로 바꾼다(카드 필드가 SCHDL·CARE_ARTCL 컬럼 이름 그대로). 직접입력 주기 `cycleDays` 저장 컬럼은 백엔드와 정할 것. 지금은 [등록]해도 캘린더에 생기지 않고 대화에 "✔ 등록됨"만 저장된다
 - SCR-AIM-012 PR 전 확인: 프론트는 ai 저장소 LJS 작업 사본(커밋 전)의 `docs/api/chat.md` messages `draft`·`done.card`와 `POST /ai/conversations/{aiCnvrsRoomSn}/register-result`에 붙었다. ai 쪽이 커밋·배포돼야 develop에서 동작한다(ai-23 세션 몫)
@@ -30,14 +37,6 @@ SCR-AIM-008 영수증 분석 AI 서버 연결 — 끝(2026-10-29): 검증 통과
 - 디스코드로 알릴 것(백엔드 세션이 적용할 때): 공용 DB 요청이 1초씩 걸린 원인은 DB 왕복 횟수. 백엔드가 JDBC URL 옵션 5개로 약 0.3초까지 줄였고, `application.properties`는 git에 없어 팀원이 직접 URL을 바꿔야 한다
 - 알림 화면 로딩 표시 확인: 알림 패널(5행)·프로필 드롭다운·전체 메뉴(NavDrawer) 스켈레톤을 넣었다. `ProtectedRoute`의 `return null`(로그인 확인 전 화면이 통째로 빈다)은 이번에 안 건드렸다 — 헤더·푸터를 먼저 그릴지 결정 대기(공용 파일, `docs/convention/shared-files.md`)
 - 디스코드로 알릴 것(공용 `src/api/axios.js`, 팀에 알리지 않고 고침 — 사용자 결정 10-26): "`api/axios.js`가 서버 오류의 `code`·`message`를 읽지 못해 모든 API 오류가 '일시적인 오류가 발생했어요.'로 나오던 것을 고쳤어요. 이제 `error.code`·`error.message`가 서버 값 그대로고, 입력값 오류(`INVALID_INPUT_VALUE`)는 `error.fields`에 `[{ field, message }]`가 와요. 재발급은 401 `TOKEN_EXPIRED`일 때만 하고, `UNAUTHORIZED`·403 `MEMBER_INACTIVE`는 바로 로그인 화면(`/login?redirect=`)으로 가요. `SERVER_ERROR`를 기대하고 분기한 곳이 있으면 확인해 주세요. 인터셉터를 고치면 `node scripts/check-axios-errors.mjs`를 돌려 주세요". SJM: `PetFormModal.jsx:294` `error.fields` 입력칸 문구가 이제 처음 동작한다(화면 확인 안 함)
-- SCR-AIM-013 연결 남음 (2026-10-26 확정 반영)
-  - 013-04·08·09 채팅 영수증 분석·취소·이력: Spring 경유(`POST /api/receipts`에 요청 출처 'AI 대화창'(AIMG07 신설)을 더하는 방향, 백엔드 논의 중 — LJS 백엔드 / 인식은 Python)
-  - 영수증 인식 결과 조회 API 확정(백엔드 10-26, 사용자 결정): `GET /api/receipts/{recptSn}` → `ReceiptResponse` `{ recptSn, ocrPrcsSttsCd, failRsn, hsptlNm, ckupYmd, recptAmt, dstrbDscntAmt, sections:[{ sectionNm, petSn, sbttlAmt, dscntAmt, sectionAmt, ckupCn, items:[{ itemNm, itemAmt }], prescriptions:[{ mdcnNm, mdcnBgngYmd, mdcnEndYmd, dayMdcnNmtm, prscSttsCd, mdcnAmt }] }] }`(분석 응답과 같은 모양, `expense/dto/ReceiptResponse.java`). 없거나 남의 영수증은 404 `RECEIPT_NOT_FOUND`. 조회할 때마다 OCR 원본을 다시 가공해 날짜 기본값·반려동물 자동 연결이 분석 직후와 조금 다를 수 있음(사용자 허용, 화면에서 차이가 보이면 백엔드에 알림). 백엔드 구현은 내부 인증 작업 다음 마일스톤
-  - 가짜를 이 모양으로 맞출 것: `features/ai/api.js` `analyzeChatReceipt`(`petAmts` → `sections`, `prscrptnCnt` → `prescriptions`)·`getChatReceiptResult`(`localStorage` 가짜 → `GET /api/receipts/{recptSn}`, 연결 때 `localStorage` 지움)·`recognizeCheckupReceipt`·`ReceiptUploadModal`(`rcptSn` → `recptSn`, `{ items }` → `ReceiptResponse`). 건강 일지 결과 확인 모달(`features/health/diary/ReceiptResultStep.jsx`·`health/receiptApi.js` `getReceiptDetail`, JAJ)의 입력도 `ReceiptResponse` 하나로 바뀌어야 해서 JAJ와 함께 바꾼다(한쪽만 바꾸면 SCR-AIM-008 → 결과 확인 흐름이 깨짐). 본창 조회가 404면 무엇을 보여 줄지 정한다(지금은 실패하면 모달이 안 열림)
-  - 이미지와 함께 보낸 글(사용자 확정 10-26, FN-AIM-013-02): 내 말풍선 표시·분석에는 안 씀은 그대로, 서버가 사용자 메시지로 대화 이력에 저장(다시 열면 보이고 AI 컨텍스트 6턴에 포함). 연결 때 글을 서버로 함께 보낸다(요청 형식은 API 계약 때). 지금 가짜는 글을 저장하지 않아 다시 열면 요약 한 줄만 보임
-  - [확인 후 저장] 뒤 대화창 닫힘: 사용자 확정(10-26, FN-AIM-013-06, FN-AIM-012-15와 같은 방식)
-  - 013-05 카드 필드 이름은 위 `ReceiptResponse`로 맞춘다. 013-06·07 건강 일지 입구 쿼리 이름(`checkup=manual`·`recptSn`)은 JAJ 확인
-  - 남은 미결(AI 세션): OCR 요청 출처 코드 AIMG07 'AI 대화창'(백엔드), 다시 열었을 때 결과 카드 다시 불러오기
 - JAJ에 알릴 것(SCR-AIM-013): `HealthDiaryPage.jsx`에 넣은 입구 2개(`?checkup=manual&recptSn=` 빈 폼, `?recptSn=` 결과 확인)와 쿼리 이름 확인 요청, 결과 확인 모달 입력을 `ReceiptResponse`(`GET /api/receipts/{recptSn}`)로 함께 바꾸자는 제안. PR #93 참고. 메시지 초안은 2026-10-26 세션에서 사용자에게 전달함
 - AI 서버 연결 기반(2026-10-25 결정, 사용자 확정): AI 기능(채팅·영수증 OCR·캐릭터 생성·검사결과지 PDF 분석)은 프론트가 Python을 직접 부르고, 나머지와 영수증 save-check·save는 Spring. 주소는 같은 오리진 경로 접두사로 나눈다 — 배포 nginx `/api/` → Spring(:8080), `/ai/` → Python(:8000), 둘 다 접두사를 자르지 않는다(`proxy_pass` 끝 슬래시 없음). 개발은 `vite.config.js` 프록시 `'^/ai/'`(커밋 `5c35ea3`. `/ai` 단독은 화면 URL `PATHS.AI`라 제외). 백엔드·AI 세션에 `/ai` 접두사 요구 전달함
   - nginx에서 Python `/internal/v1/...`·`/health`는 내보내지 않는다(`location /ai/`만)

@@ -31,7 +31,7 @@ const HISTORY_TEMPLATE = [
 /** HISTORY_TEMPLATE와 같은 순서의 일(최신순) */
 const HISTORY_DAYS = [13, 12, 12, 11, 10, 9, 9, 8, 6, 5, 3, 2];
 
-/** 이 달수 이전의 내역은 비어 있는 것으로 둔다 */
+/** 이 달수 이전의 내역은 빈 것으로 처리 */
 const EMPTY_AFTER_MONTHS = 6;
 
 const monthsBefore = (ym) => {
@@ -66,7 +66,7 @@ export const getPointHistory = async (ym) => {
   };
 };
 
-/** 주소에 ?fake=empty 가 있으면 주양육 동물이 없는 상태로 본다 */
+/** 주소에 ?fake=empty 가 있으면 주양육 동물이 없는 상태로 간주 */
 const isFakeEmpty = () =>
   new URLSearchParams(window.location.search).get('fake') === 'empty';
 
@@ -119,7 +119,7 @@ const FAKE_PETS = [
   ],
 ];
 
-/** 지난 날짜는 날짜 글자로 정한 값으로 완료 수를 나눠 같은 날은 같은 결과가 나오게 한다 */
+/** 지난 날짜는 날짜 글자로 정한 값으로 완료 수를 나눠 같은 날은 같은 결과가 보장 */
 const getPastDoneCount = (ymd, petSn) =>
   [...ymd].reduce((sum, ch) => sum + ch.charCodeAt(0), petSn * 3) % 9;
 
