@@ -1,6 +1,5 @@
 /**
  * 펫이야기 게시판 공통코드: 화면 이름 ↔ bbsCd (공통코드 그룹 CMUG01)
- * - 코드 값은 가정. 연결 때 DB의 공통코드 값으로 교체
  */
 export const POST_BOARDS = [
   { name: '펫정보', code: 'CMUC0001', tone: 'blue' },
@@ -10,11 +9,18 @@ export const POST_BOARDS = [
 export const BBS_INFO = 'CMUC0001';
 export const BBS_DAILY = 'CMUC0002';
 
-/** 게시글 상태 공통코드(CMUG02): 공개 */
-export const PST_STTS_OPEN = 'CMUC0003';
-
 export const getBoardName = (code) =>
   POST_BOARDS.find((board) => board.code === code)?.name;
 
 export const getBoardCode = (name) =>
   POST_BOARDS.find((board) => board.name === name)?.code;
+
+/** 신고 사유: ReportModal의 문구 → 신고 사유 공통코드(dclrRsnCd) */
+export const REPORT_REASON_CODES = {
+  '스팸 · 광고성': 'CMUC0009',
+  '욕설 · 비방': 'CMUC0010',
+  '음란물 · 유해 콘텐츠': 'CMUC0011',
+  '개인정보 노출': 'CMUC0012',
+  '사기 · 허위 정보': 'CMUC0013',
+  기타: 'CMUC0014',
+};

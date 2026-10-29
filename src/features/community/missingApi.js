@@ -674,19 +674,24 @@ export const extendMissing = (lostTpofSn) => {
 
 /** 댓글: 찾았어요 안내 댓글은 목록 맨 위에 고정 */
 export const getMissingComments = (pstSn) => {
-  const authorSn = findPostByPst(pstSn)?.mbrSn;
   return Promise.resolve(
     comments
       .filter((row) => row.pstSn === pstSn)
-      .map((row) => ({
-        ...row,
-        mineYn: row.mbrSn === MY_MBR_SN ? 'Y' : 'N',
-        authorYn: row.mbrSn === authorSn ? 'Y' : 'N',
-      }))
       .toSorted(
         (a, b) =>
           (b.sysAutoCrtYn === 'Y' ? 1 : 0) - (a.sysAutoCrtYn === 'Y' ? 1 : 0),
-      ),
+      )
+      .map((row) => ({
+        cmntSn: row.cmntSn,
+        prntCmntSn: row.prntCmntSn,
+        cmntCn: row.cmntCn,
+        mbrSn: row.mbrSn,
+        mbrNcnm: row.wrtrNcknm,
+        regDt: row.regDt,
+        delYn: row.delYn === 'Y',
+        sysAutoCrtYn: row.sysAutoCrtYn === 'Y',
+        owner: row.mbrSn === MY_MBR_SN,
+      })),
   );
 };
 

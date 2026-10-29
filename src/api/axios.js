@@ -19,20 +19,23 @@ const fallbackError = (response) =>
         code: 'SERVER_ERROR',
         message: '일시적인 오류가 발생했어요.',
         fields: null,
+        data: null,
       }
     : {
         code: 'NETWORK_ERROR',
         message: '네트워크 연결을 확인해 주세요.',
         fields: null,
+        data: null,
       };
 
-/** 서버 오류 { code, message, data } 정리(fields는 검증 오류의 data) */
+/** 서버 오류 { code, message, data } 정리(검증 오류는 data를 fields로, 그 밖은 data 그대로) */
 const toError = (body, response) =>
   body?.code
     ? {
         code: body.code,
         message: body.message,
         fields: body.code === 'INVALID_INPUT_VALUE' ? body.data : null,
+        data: body.code === 'INVALID_INPUT_VALUE' ? null : (body.data ?? null),
       }
     : fallbackError(response);
 

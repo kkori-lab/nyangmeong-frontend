@@ -147,6 +147,7 @@ function CommentMenu({ comment, onReport }) {
  */
 function CommentRow({
   comment,
+  authorSn,
   isReply = false,
   hasReplies = false,
   replyForm,
@@ -154,9 +155,9 @@ function CommentRow({
   onDelete,
   onReport,
 }) {
-  const isDeleted = comment.delYn === 'Y';
-  const isMine = comment.mineYn === 'Y';
-  const isFoundNotice = comment.sysAutoCrtYn === 'Y';
+  const isDeleted = comment.delYn;
+  const isMine = comment.owner;
+  const isFoundNotice = comment.sysAutoCrtYn;
 
   return (
     <div
@@ -174,10 +175,10 @@ function CommentRow({
       <div className="min-w-0">
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[#667374]">
           <b className="text-base font-semibold text-[#1a3234]">
-            {comment.wrtrNcknm}
+            {comment.mbrNcnm}
           </b>
           {isFoundNotice && <Badge tone="ok">찾았어요</Badge>}
-          {comment.authorYn === 'Y' && !isFoundNotice && (
+          {comment.mbrSn === authorSn && !isFoundNotice && (
             <Badge tone="brand" className="h-[22px] px-2">
               작성자
             </Badge>
@@ -230,14 +231,15 @@ const REPLY_ITEM_CLASS =
 
 /**
  * 댓글 영역: 댓글 + 대댓글 1단계
- * - targetSn: 글 번호, hooks: 게시판별 댓글 훅 묶음(useComments·useCreateComment·useDeleteComment·useReportComment)
+ * - targetSn: 글 번호, authorSn: 글쓴이 회원번호(그 댓글에 「작성자」 배지), hooks: 게시판별 댓글 훅 묶음(useComments·useCreateComment·useDeleteComment·useReportComment)
  * - title·placeholder: 제목과 입력창 문구(실종센터는 「제보 · 댓글」), inputId: 맨 위 입력창 id(밖에서 포커스를 줄 때)
- * - sysAutoCrtYn이 Y인 댓글(찾았어요 안내)은 강조 표시, 답글·신고 불가
+ * - sysAutoCrtYn이 true인 댓글(찾았어요 안내)은 강조 표시, 답글·신고 불가
  * - 답글에 단 답글은 원 댓글 스레드에 이어서 붙는다(prntCmntSn은 항상 원 댓글)
- * - 삭제된 댓글은 문구로 대체, 답글은 유지. 댓글 수는 삭제된 댓글 제외
+ * - 삭제된 댓글은 문구로 바뀌고 답글은 유지. 댓글 수는 삭제된 댓글 제외
  */
 export default function CommentSection({
   targetSn,
+  authorSn,
   hooks,
   title = '댓글',
   placeholder = '댓글을 입력하세요',
@@ -253,10 +255,10 @@ export default function CommentSection({
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [reportTarget, setReportTarget] = useState(null);
 
-  const roots = comments.filter((row) => row.prntCmntSn === null);
+  const roots = comments.filter((row) => !row.prntCmntSn);
   const repliesOf = (rootSn) =>
     comments.filter((row) => row.prntCmntSn === rootSn);
-  const count = comments.filter((row) => row.delYn !== 'Y').length;
+  const count = comments.filter((row) => !row.delYn).length;
 
   const handleCreate = (prntCmntSn) => (cmntCn, reset) =>
     create.mutate(
@@ -270,7 +272,7 @@ export default function CommentSection({
       },
     );
 
-  /** 눌린 댓글 아래에 입력창 열기, 등록 시 원 댓글의 답글로 연결 */
+  /** 눌린 댓글 아래에 입력창을 열고, 등록할 때는 원 댓글의 답글로 추가 */
   const renderReplyForm = (comment) =>
     replyTo === comment.cmntSn && (
       <CommentInput
@@ -310,6 +312,7 @@ export default function CommentSection({
           <li key={root.cmntSn}>
             <CommentRow
               comment={root}
+              authorSn={authorSn}
               hasReplies={repliesOf(root.cmntSn).length > 0}
               replyForm={renderReplyForm(root)}
               {...rowProps}
@@ -320,6 +323,7 @@ export default function CommentSection({
                   <li key={reply.cmntSn} className={REPLY_ITEM_CLASS}>
                     <CommentRow
                       comment={reply}
+                      authorSn={authorSn}
                       isReply
                       replyForm={renderReplyForm(reply)}
                       {...rowProps}
@@ -363,7 +367,7 @@ export default function CommentSection({
       {reportTarget && (
         <ReportModal
           title="댓글 신고하기"
-          targetLabel={`대상: 댓글 · "${reportTarget.wrtrNcknm}" · "${preview(reportTarget)}"`}
+          targetLabel={`대상: 댓글 · "${reportTarget.mbrNcnm}" · "${preview(reportTarget)}"`}
           isPending={report.isPending}
           errorMessage={report.isError && report.error.message}
           onSubmit={(values) =>

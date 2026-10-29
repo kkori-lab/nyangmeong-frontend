@@ -9,7 +9,7 @@ export const logout = () => api.post('/auth/logout');
  * [회원정보 수정 가짜 API]
  * - 회원 조회·수정 API(AIC) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
  * - 미확정 키: acntEml·mbrNcnm·mbrTelno·prflImgUrl·snsTyCd·dplctYn·mbrJoinPathCd·mbrRegDt·mbrLastLgnDt
- * - 주소에 ?fake=sns 가 있으면 소셜 로그인 회원으로 간주
+ * - 주소에 ?fake=sns 가 있으면 소셜 로그인 회원으로 처리
  * - 비밀번호에 wrong 을 넣으면 실패, 닉네임 초코맘2·관리자와 번호 01099998888은 중복,
  *   번호 01000000000은 조회 실패
  */
@@ -41,7 +41,7 @@ const fail = (code) =>
 export const getMyProfile = () =>
   wait({
     ...profile,
-    snsTyCd: isFakeSns() ? 'KAKAO' : null,
+    snsTyCd: isFakeSns() ? 'USRC0008' : null,
     mbrJoinPathCd: isFakeSns() ? 'KAKAO' : 'EMAIL',
   });
 
@@ -83,13 +83,13 @@ export const getLoginStatus = ({ acntEml }) =>
     skipAuthRedirect: true,
   });
 
-/** 보안코드 발급·새로고침. captchaImg는 PNG data URI이고 코드 원문은 미포함 */
+/** 보안코드 발급·새로고침. captchaImg는 PNG data URI, 코드 원문은 응답에 없음 */
 export const getCaptcha = ({ acntEml }) =>
   api.post('/auth/captchas', { acntEml }, { skipAuthRedirect: true });
 
 /**
  * 성공은 { ncnmReguide, mbrNcnm }, 실패는 code로 거부
- * - 정지 회원(MEMBER_INACTIVE)도 이 화면에서 안내하므로 랜딩 이동 해제
+ * - 정지 회원(MEMBER_INACTIVE)도 이 화면에서 안내하므로 랜딩 이동 끔
  */
 export const login = ({ acntEml, pswd, scrtyCd }) =>
   api.post(
@@ -98,53 +98,42 @@ export const login = ({ acntEml, pswd, scrtyCd }) =>
     { skipAuthRedirect: true },
   );
 
+/** 이메일 인증번호 목적 코드(공통코드 USRG04): 비밀번호 찾기 */
+const PASSWORD_RESET_PURPOSE = 'USRC0011';
+
+/** 인증번호 발송·재전송. 응답 { emlCertSn, certExpryDt }, 재전송 제한은 EMAIL_CERT_RESEND_NOT_YET(error.data.resendAvailableDt) */
+export const sendRecoveryCode = ({ certTrgtEml }) =>
+  api.post(
+    '/email-certifications',
+    { emlCertPrpsCd: PASSWORD_RESET_PURPOSE, certTrgtEml },
+    { skipAuthRedirect: true },
+  );
+
+/** 인증번호 확인. 응답의 certRslt로 재설정 대상·SNS 전용·미가입·탈퇴 보관 구분 */
+export const verifyRecoveryCode = ({ emlCertSn, certNo }) =>
+  api.post(
+    `/email-certifications/${emlCertSn}/verify`,
+    { certNo },
+    { skipAuthRedirect: true },
+  );
+
+/** 인증번호·재설정 권한 무효화(이메일을 다시 입력할 때) */
+export const invalidateRecoveryCode = ({ emlCertSn, certTrgtEml }) =>
+  api.post(
+    `/email-certifications/${emlCertSn}/invalidate`,
+    { certTrgtEml },
+    { skipAuthRedirect: true },
+  );
+
 /**
- * [비밀번호 찾기·재설정 가짜 API]
- * - 인증·재설정 API(YAY 백엔드) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
- * - 미확정 키: acntEml·authCd·expiresAt·snsTyCd·pswd, 인증 결과와 실패를 응답 본문으로 줄지 오류 응답으로 줄지
- * - 인증번호 123456은 일반 계정, 234567은 SNS 전용(카카오), 345678은 미가입, 456789는 탈퇴 계정, 그 외는 불일치
- * - 이메일 fail@example.com은 발송 실패, 새 비밀번호에 fail이 들어가면 저장 실패
- * - 유효시간 3분은 가짜에서만 사용(운영값 미확정). 본인확인 완료 상태는 새로고침하면 사라짐
+ * [비밀번호 재설정 가짜 API]
+ * - 재설정 API(`POST /email-certifications/{emlCertSn}/password-reset`, YAY 백엔드 SCR-ACC-012) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
+ * - 새 비밀번호에 fail이 들어가면 저장 실패
+ * - 본인확인(`pswdInitTkn`) 여부는 호출 전에 PasswordResetPage가 판단
  */
-const RECOVERY_TTL_MS = 3 * 60 * 1000;
-const RECOVERY_CODES = {
-  123456: 'RESET',
-  234567: 'SNS',
-  345678: 'NOT_FOUND',
-  456789: 'WITHDRAWN',
-};
-
-let recovery = { acntEml: '', expiresAt: 0, verified: false };
-
-export const sendRecoveryCode = ({ acntEml }) => {
-  if (acntEml === 'fail@example.com') return fail('SEND_FAILED');
-  recovery = {
-    acntEml,
-    expiresAt: Date.now() + RECOVERY_TTL_MS,
-    verified: false,
-  };
-  return wait({ expiresAt: recovery.expiresAt });
-};
-
-/** 결과는 RESET·SNS·NOT_FOUND·WITHDRAWN·MISMATCH·EXPIRED 중 하나 */
-export const verifyRecoveryCode = ({ acntEml, authCd }) => {
-  if (acntEml !== recovery.acntEml || Date.now() > recovery.expiresAt) {
-    return wait({ result: 'EXPIRED' });
-  }
-  const result = RECOVERY_CODES[authCd] ?? 'MISMATCH';
-  if (result === 'RESET') recovery.verified = true;
-  return wait(result === 'SNS' ? { result, snsTyCd: 'KAKAO' } : { result });
-};
-
-export const getRecoveryStatus = () => wait({ verified: recovery.verified });
-
 /** 성공이면 { ok: true }, 실패면 { ok: false, reason: 'EXPIRED' | 'FAILED' } */
-export const resetPassword = ({ pswd }) => {
-  if (!recovery.verified) return wait({ ok: false, reason: 'EXPIRED' });
-  if (pswd.includes('fail')) return wait({ ok: false, reason: 'FAILED' });
-  recovery = { acntEml: '', expiresAt: 0, verified: false };
-  return wait({ ok: true });
-};
+export const resetPassword = ({ pswd }) =>
+  wait(pswd.includes('fail') ? { ok: false, reason: 'FAILED' } : { ok: true });
 
 /**
  * [회원가입 가짜 API]
@@ -152,7 +141,7 @@ export const resetPassword = ({ pswd }) => {
  * - 미확정 키: acntEml·authCd·expiresAt·mbrTelno·pswd·termsAgreeList·mbrNcnm, 중복·복구 대상 결과를 응답 본문으로 줄지 오류 응답으로 줄지
  * - 이메일 duplicate@example.com은 가입된 이메일, restore@example.com은 탈퇴 후 30일 이내 계정, fail@example.com은 발송 실패
  * - 인증번호 123456은 성공, 그 외는 불일치. 번호 01012345678은 중복, 01000000000은 조회 실패
- * - 비밀번호에 fail이 들어가면 가입 실패. 기본 닉네임은 가짜에서 고정값 제공
+ * - 비밀번호에 fail이 들어가면 가입 실패. 기본 닉네임은 가짜에서 고정값
  * - 유효시간 3분은 가짜에서만 쓴다(운영값 미확정)
  */
 const SIGNUP_CODE = '123456';
@@ -163,7 +152,7 @@ const SIGNUP_DUP_PHONE = '01012345678';
 
 let signup = { acntEml: '', expiresAt: 0 };
 
-/** 결과는 OK·DUPLICATE·RESTORE 중 하나. OK이면 expiresAt을 함께 제공 */
+/** 결과는 OK·DUPLICATE·RESTORE 중 하나. OK이면 expiresAt도 포함 */
 export const sendSignupCode = ({ acntEml }) => {
   if (acntEml === 'fail@example.com') return fail('SEND_FAILED');
   if (acntEml === SIGNUP_DUP_EMAIL) return wait({ result: 'DUPLICATE' });

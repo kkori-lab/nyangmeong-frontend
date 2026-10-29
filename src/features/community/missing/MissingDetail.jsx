@@ -457,6 +457,7 @@ export default function MissingDetail({ post }) {
 
         <CommentSection
           targetSn={post.pstSn}
+          authorSn={post.mbrSn}
           hooks={missingCommentHooks}
           title="제보 · 댓글"
           placeholder="목격한 장소와 시간을 자세히 알려 주시면 큰 도움이 돼요"

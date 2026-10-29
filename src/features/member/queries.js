@@ -7,7 +7,7 @@ import {
   getLoginStatus,
   getMe,
   getMyProfile,
-  getRecoveryStatus,
+  invalidateRecoveryCode,
   joinMember,
   login,
   logout,
@@ -26,7 +26,6 @@ import {
 export const memberKeys = {
   me: ['members', 'me'],
   profile: ['members', 'profile'],
-  recovery: ['members', 'recovery'],
 };
 
 export const useMe = () =>
@@ -101,8 +100,8 @@ export const useSendRecoveryCode = () =>
 export const useVerifyRecoveryCode = () =>
   useMutation({ mutationFn: verifyRecoveryCode });
 
-export const useRecoveryStatus = () =>
-  useQuery({ queryKey: memberKeys.recovery, queryFn: getRecoveryStatus });
+export const useInvalidateRecoveryCode = () =>
+  useMutation({ mutationFn: invalidateRecoveryCode });
 
 export const useResetPassword = () =>
   useMutation({ mutationFn: resetPassword });
