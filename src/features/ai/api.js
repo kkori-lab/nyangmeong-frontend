@@ -201,37 +201,29 @@ const waitAbortable = (ms, signal) =>
     signal.addEventListener('abort', onAbort, { once: true });
   });
 
+/** 건강 일지에서 연 영수증 분석의 요청 출처 */
+const OCR_SOURCE_HEALTH = 'AIMC0026';
+
 /**
- * 검진 영수증 인식 (POST /receipts/recognize/checkup 추정)
- * 가짜 응답: 파일 이름의 slow(20초)·error(오류)·fail(추출 0건)에 따른 상황
- * 연결 때 Swagger로 경로·필드 확인
+ * 검진 영수증 분석 (POST /ai/receipts, multipart)
+ * 응답 { recptSn, ocr }에 고른 반려동물을 붙여 결과 확인 모달로 넘긴다
  */
 export const recognizeCheckupReceipt = async ({ file, petSn, signal }) => {
-  await waitAbortable(file.name.includes('slow') ? 20000 : 2000, signal);
-  if (file.name.includes('error')) throw new Error('일시 오류');
-  const rcptSn = Date.now();
-  if (file.name.includes('fail')) return { rcptSn, petSn, items: [] };
-  if (file.name.includes('partial')) {
-    return {
-      rcptSn,
-      petSn,
-      items: [{ ckupNm: '종합검진', ckupYmd: null, ckupAmt: null }],
-    };
-  }
-  return {
-    rcptSn,
-    petSn,
-    items: [{ ckupNm: '종합검진', ckupYmd: '2026-09-26', ckupAmt: 85000 }],
-  };
+  const form = new FormData();
+  form.append('file', file);
+  form.append('petSn', petSn);
+  form.append('ocrRqstSrcCd', OCR_SOURCE_HEALTH);
+  const { recptSn, ocr } = await aiApi.post('/receipts', form, { signal });
+  return { recptSn, petSn, ocr };
 };
 
 /** 본창이 읽을 가짜 분석 결과: 창마다 메모리가 달라 localStorage 사용 */
-const fakeChatReceiptKey = (rcptSn) => `fakeChatReceipt:${rcptSn}`;
+const fakeChatReceiptKey = (recptSn) => `fakeChatReceipt:${recptSn}`;
 
 const saveFakeChatReceipt = (result) => {
   try {
     localStorage.setItem(
-      fakeChatReceiptKey(result.rcptSn),
+      fakeChatReceiptKey(result.recptSn),
       JSON.stringify(result),
     );
   } catch {
@@ -240,8 +232,8 @@ const saveFakeChatReceipt = (result) => {
 };
 
 /**
- * 대화창 영수증 인식 결과 조회 (Spring 영수증 결과 조회 예정, 경로 미정)
- * 건강 일지 결과 확인 모달(SCR-HLT-002)이 받는 { rcptSn, petSn, items } 모양
+ * 대화창 영수증 인식 결과 조회 (경로 미정)
+ * 건강 일지 결과 확인 모달(SCR-HLT-002)이 받는 { recptSn, petSn, ocr } 모양(검진 영수증 분석 응답과 같다)
  */
 export const getChatReceiptResult = async (rcptSn) => {
   await wait(200);
@@ -321,11 +313,21 @@ export const analyzeChatReceipt = async ({
   /** 이미지는 이력에 남기지 않고 요약만 저장(FN-AIM-013-08·09) */
   const summary = saveAiMessage(roomSn, summarizeReceipt(result));
   saveFakeChatReceipt({
-    rcptSn: recptSn,
+    recptSn,
     petSn,
-    items: [
-      { ckupNm: '종합검진', ckupYmd: result.ckupYmd, ckupAmt: result.recptAmt },
-    ],
+    ocr: {
+      hsptlNm: result.hsptlNm,
+      ckupYmd: result.ckupYmd,
+      recptAmt: result.recptAmt,
+      btmDscntAmt: 0,
+      sections: result.petAmts.map((petAmt) => ({
+        sectionNm: petAmt.petNm,
+        sbttlAmt: petAmt.amt,
+        dscntAmt: 0,
+        items: [{ itemNm: '종합검진', itemAmt: petAmt.amt }],
+        drugs: [],
+      })),
+    },
   });
   return {
     aiCnvrsRoomSn: roomSn,
