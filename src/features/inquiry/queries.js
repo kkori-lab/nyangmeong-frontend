@@ -7,6 +7,7 @@ import {
 import { useEffect, useRef } from 'react';
 import {
   createInquiry,
+  deleteInquiry,
   getInquiries,
   getInquiry,
   getInquiryImage,
@@ -87,6 +88,19 @@ export const useCreateInquiry = () => {
     mutationFn: createInquiry,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: inquiryKeys.all }),
+  });
+};
+
+/**
+ * 목록만 무효화한다. 지운 문의의 상세·이미지를 다시 받으면 404다
+ * - 상세를 removeQueries로 지우면 아직 떠 있는 상세 화면이 새로 받아 버려 그대로 둔다(이미지는 gcTime 0이라 화면을 떠나면 지워진다)
+ */
+export const useDeleteInquiry = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteInquiry,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [...inquiryKeys.all, 'list'] }),
   });
 };
 

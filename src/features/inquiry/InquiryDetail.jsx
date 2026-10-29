@@ -1,16 +1,20 @@
 import { ChevronLeft, Clock, Headset, ImageIcon, Lock } from 'lucide-react';
 import { useState } from 'react';
-import { generatePath, Link } from 'react-router-dom';
+import { generatePath, Link, useNavigate } from 'react-router-dom';
 import Badge from '@/components/Badge';
+import ConfirmModal from '@/components/ConfirmModal';
+import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { isAnswered } from './api';
 import InquiryImageViewer from './InquiryImageViewer';
 import InquiryStatusBadge from './InquiryStatusBadge';
-import { useInquiryImageUrls } from './queries';
+import { useDeleteInquiry, useInquiryImageUrls } from './queries';
 
-const EDIT_BUTTON_CLASS =
-  'inline-flex h-10 min-w-[120px] items-center justify-center gap-1.5 rounded-md bg-[#e9f2f2] px-4 font-semibold text-[#1e4a4c] max-[760px]:h-12 max-[760px]:min-w-0 max-[760px]:flex-1';
+const ACTION_BUTTON_CLASS =
+  'inline-flex h-10 min-w-[120px] items-center justify-center gap-1.5 rounded-md px-4 font-semibold max-[760px]:h-12 max-[760px]:min-w-0 max-[760px]:flex-1';
+const EDIT_BUTTON_CLASS = `${ACTION_BUTTON_CLASS} bg-[#e9f2f2] text-[#1e4a4c]`;
+const DELETE_BUTTON_CLASS = `${ACTION_BUTTON_CLASS} border border-[#d5dddd] bg-white text-[#566465] hover:bg-[#f4f7f7]`;
 
 /** '2026-09-18T14:32:00' → '2026.09.18 14:32' */
 const formatDateTime = (value) => `${formatDate(value)} ${value.slice(11, 16)}`;
@@ -20,6 +24,9 @@ export default function InquiryDetail({ inquiry }) {
   const { imgs } = inquiry;
   const urls = useInquiryImageUrls(inquiry.otoInqrySn, imgs);
   const [viewerIndex, setViewerIndex] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const remove = useDeleteInquiry();
+  const navigate = useNavigate();
 
   return (
     <article className="rounded-[14px] border border-[#e2e7e7] bg-white px-9 pt-8 pb-8 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-5">
@@ -134,16 +141,46 @@ export default function InquiryDetail({ inquiry }) {
             답변이 등록된 문의는 수정할 수 없어요
           </p>
         ) : (
-          <Link
-            to={generatePath(PATHS.INQUIRY_EDIT, {
-              otoInqrySn: inquiry.otoInqrySn,
-            })}
-            className={`${EDIT_BUTTON_CLASS} hover:bg-[#cde0e0]`}
-          >
-            문의 수정
-          </Link>
+          <div className="flex gap-2 max-[760px]:w-full">
+            <button
+              type="button"
+              onClick={() => setIsDeleting(true)}
+              className={DELETE_BUTTON_CLASS}
+            >
+              삭제
+            </button>
+            <Link
+              to={generatePath(PATHS.INQUIRY_EDIT, {
+                otoInqrySn: inquiry.otoInqrySn,
+              })}
+              className={`${EDIT_BUTTON_CLASS} hover:bg-[#cde0e0]`}
+            >
+              문의 수정
+            </Link>
+          </div>
         )}
       </div>
+
+      {isDeleting && (
+        <ConfirmModal
+          title="문의를 삭제할까요? 삭제한 문의는 되돌릴 수 없어요"
+          confirmLabel="삭제"
+          isPending={remove.isPending}
+          errorMessage={remove.error?.message}
+          onConfirm={() =>
+            remove.mutate(inquiry.otoInqrySn, {
+              onSuccess: () => {
+                showToast('문의를 삭제했어요');
+                navigate(PATHS.INQUIRIES, { replace: true });
+              },
+            })
+          }
+          onCancel={() => {
+            remove.reset();
+            setIsDeleting(false);
+          }}
+        />
+      )}
     </article>
   );
 }

@@ -46,11 +46,12 @@ export default function useAnswerStream() {
   useEffect(() => reset, [reset]);
 
   /**
-   * 전송 시작: 끝나면 { aiCnvrsRoomSn, intent, message, shortcut }, 실패·중단이면 null
+   * 전송 시작: 끝나면 { aiCnvrsRoomSn, intent, message, shortcut, card }, 실패·중단이면 null
    * - cnvrsCn 없음: [다시 시도]·[다시 생성], replaceMsgSn은 새 답변으로 바꿀 미완료 메시지
+   * - draft: 가장 최근 등록 카드
    */
   const start = useCallback(
-    async ({ aiCnvrsRoomSn, cnvrsCn, replaceMsgSn, onRoom }) => {
+    async ({ aiCnvrsRoomSn, cnvrsCn, draft, replaceMsgSn, onRoom }) => {
       runIdRef.current += 1;
       const runId = runIdRef.current;
       abortRef.current?.abort();
@@ -83,6 +84,7 @@ export default function useAnswerStream() {
         const result = await sendMessage({
           aiCnvrsRoomSn,
           cnvrsCn,
+          draft,
           signal: controller.signal,
           onRoom: (nextRoomSn) => {
             if (!isCurrent()) return;

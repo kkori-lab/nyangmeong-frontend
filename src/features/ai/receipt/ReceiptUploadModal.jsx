@@ -5,13 +5,19 @@ import Modal from '@/components/Modal';
 import Select from '@/components/Select';
 import { RECEIPT_ACCEPT, validateReceiptFile } from '@/utils/receiptFile';
 import { useRecognizeCheckupReceipt } from '../queries';
-import { ANALYZE_TIMEOUT_MS, FAILURE } from './receiptFailure';
+import {
+  FAILURE,
+  FILE_ERROR,
+  SERVER_ANALYZE_GUARD_MS,
+  getFailureByCode,
+  isEmptyOcr,
+} from './receiptFailure';
 
 /** 진행 막대 갱신 간격과 차오르는 속도(약 6초에 63%, 15초에 약 85%) */
 const PROGRESS_TICK_MS = 100;
 const PROGRESS_TIME_CONSTANT_MS = 6000;
 
-const HELP ='jpg · jpeg · png · webp · 1건 10MB 이하';
+const HELP = 'jpg · jpeg · png · webp · 1건 10MB 이하';
 
 const formatSize = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 
@@ -68,7 +74,7 @@ function AnalyzeProgress() {
 /**
  * 영수증 촬영·업로드 모달 (SCR-AIM-008)
  * pets: [{ petSn, petNm, vrtyNm? }], 목록은 여는 쪽이 넘긴다(features/pet import 금지)
- * onRecognized(result): 인식 성공(일부만 인식돼도 실패 안내 없이 여기로)
+ * onRecognized(result): 인식 성공 { recptSn, petSn, ocr }(일부만 인식돼도 실패 안내 없이 여기로)
  * onManualInput({ rcptSn? }): 직접 입력, 추출 0건 뒤에만 rcptSn(저장 때 영수증 상태를 바꾸는 데 쓴다)
  */
 export default function ReceiptUploadModal({
@@ -93,7 +99,7 @@ export default function ReceiptUploadModal({
   /** 'empty' | 'timeout' | 'error' */
   const [failure, setFailure] = useState(null);
   /** 추출 0건일 때 서버가 만든 영수증 식별자 */
-  const [failedRcptSn, setFailedRcptSn] = useState(null);
+  const [failedRecptSn, setFailedRecptSn] = useState(null);
   const recognize = useRecognizeCheckupReceipt();
   const isAnalyzing = recognize.isPending;
   const hasPetSelect = pets.length >= 2;
@@ -137,23 +143,27 @@ export default function ReceiptUploadModal({
     timerRef.current = setTimeout(() => {
       isTimedOutRef.current = true;
       controller.abort();
-    }, ANALYZE_TIMEOUT_MS);
+    }, SERVER_ANALYZE_GUARD_MS);
     recognize.mutate(
       { file: picked.file, petSn, signal: controller.signal },
       {
         onSuccess: (result) => {
           clearTimeout(timerRef.current);
           isRunningRef.current = false;
-          if (result.items.length > 0) return onRecognized(result);
-          setFailedRcptSn(result.rcptSn);
+          if (!isEmptyOcr(result.ocr)) return onRecognized(result);
+          setFailedRecptSn(result.recptSn);
           setFailure('empty');
         },
         onError: (error) => {
           clearTimeout(timerRef.current);
           isRunningRef.current = false;
           if (isTimedOutRef.current) return setFailure('timeout');
-          if (error.name === 'AbortError') return setIsCancelled(true);
-          setFailure('error');
+          if (controller.signal.aborted) return setIsCancelled(true);
+          if (FILE_ERROR[error.code]) {
+            setPicked(null);
+            return setFileError(FILE_ERROR[error.code]);
+          }
+          setFailure(getFailureByCode(error.code));
         },
       },
     );
@@ -164,7 +174,7 @@ export default function ReceiptUploadModal({
   /** 실패 안내에서 다시 촬영: 이미지를 비우고 업로드 화면으로 */
   const handleRetake = () => {
     setFailure(null);
-    setFailedRcptSn(null);
+    setFailedRecptSn(null);
     setPicked(null);
     setIsCancelled(false);
   };
@@ -190,7 +200,7 @@ export default function ReceiptUploadModal({
             <button
               type="button"
               onClick={() =>
-                onManualInput(failedRcptSn ? { rcptSn: failedRcptSn } : {})
+                onManualInput(failedRecptSn ? { rcptSn: failedRecptSn } : {})
               }
               className={BTN_SECONDARY}
             >

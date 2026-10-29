@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   analyzeChatReceipt,
-  answerRegister,
   cancelChatReceipt,
   cancelRegister,
   confirmRegister,
@@ -55,7 +54,7 @@ export const useDeleteConversation = () => {
   });
 };
 
-/** 등록 확정·취소 공통: 결과 문구로 바뀐 대화 상세 갱신 */
+/** 등록 확정·취소 공통: 결과 요약 메시지가 붙은 대화 상세 갱신 */
 const useRegisterAnswer = (mutationFn) => {
   const queryClient = useQueryClient();
 
@@ -72,21 +71,6 @@ const useRegisterAnswer = (mutationFn) => {
 export const useConfirmRegister = () => useRegisterAnswer(confirmRegister);
 
 export const useCancelRegister = () => useRegisterAnswer(cancelRegister);
-
-/** 일정 등록 해석(가짜): 되묻기·카드 메시지가 붙은 대화 갱신 */
-export const useAnswerRegister = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: answerRegister,
-    onSuccess: ({ aiCnvrsRoomSn }) => {
-      queryClient.invalidateQueries({ queryKey: aiKeys.lists });
-      queryClient.invalidateQueries({
-        queryKey: aiKeys.detail(aiCnvrsRoomSn),
-      });
-    },
-  });
-};
 
 /** 검진 영수증 인식 */
 export const useRecognizeCheckupReceipt = () =>
