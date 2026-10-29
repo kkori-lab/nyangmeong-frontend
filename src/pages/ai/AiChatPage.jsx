@@ -13,7 +13,6 @@ import ConversationSidebar from '@/features/ai/chat/ConversationSidebar';
 import ReceiptAnalysisBubble from '@/features/ai/chat/ReceiptAnalysisBubble';
 import { AI_ROLE } from '@/features/ai/shared/aiCodes';
 import { fakePets } from '@/features/ai/chat/fakePets';
-import { isRegisterFollowUp } from '@/features/ai/api';
 import {
   FALLBACK_MESSAGE,
   getFallbackCount,
@@ -22,8 +21,8 @@ import {
 } from '@/features/ai/shared/fallbackCount';
 import { toRoute } from '@/features/ai/shared/screenPaths';
 import { openInMainWindow } from '@/features/ai/chat/openInMainWindow';
+import { CARD_TYPE } from '@/features/ai/shared/registerCodes';
 import {
-  useAnswerRegister,
   useCancelRegister,
   useConfirmRegister,
   useConversation,
@@ -44,6 +43,9 @@ const representativePet = pets.find((pet) => pet.rprsPetYn === 'Y');
 /** 서버 메시지 중 가장 큰 번호(가짜 메시지는 음수) */
 const lastServerSn = (messages) =>
   Math.max(0, ...messages.map((message) => message.aiCnvrsMsgSn));
+
+/** 이 창에서 받은 등록 카드의 화면 키 */
+let nextCardKey = 1;
 
 /** 서버 저장 전 내 메시지 자리(서버 번호는 양수, 가짜는 음수) */
 const PENDING_MSG_SN = 0;
@@ -78,7 +80,6 @@ export default function AiChatPage() {
 
   const { data: member } = useMemberSummary();
   const { data: conversation, isError } = useConversation(selectedRoomSn);
-  const answerRegister = useAnswerRegister();
   const confirmRegister = useConfirmRegister();
   const cancelRegister = useCancelRegister();
   const answer = useAnswerStream();
@@ -97,8 +98,13 @@ export default function AiChatPage() {
   const [notice, setNotice] = useState(null);
   /** 보내기 전 마지막 서버 메시지 번호: 이보다 큰 내 메시지가 오면 임시 말풍선을 치운다 */
   const [pendingAfterSn, setPendingAfterSn] = useState(0);
-  /** 이번 화면에서 받은 미리보기 카드: 메시지 번호별 카드·상태·결과 문구 */
-  const [registerCards, setRegisterCards] = useState({});
+  /**
+   * 이번 화면에서 받은 미리보기 카드(서버에 저장 안 됨, 새로고침하면 사라짐)
+   * - { key, card, afterSn(보내기 전 마지막 서버 메시지 번호), status, resultText, resultMsgSn }
+   */
+  const [registerCards, setRegisterCards] = useState([]);
+  /** 다음 메시지에 실어 보낼 가장 최근 카드(되물음 포함) */
+  const [draft, setDraft] = useState(null);
   /** 반려동물을 되묻는 칩 */
   const [petChoices, setPetChoices] = useState(null);
   /** 선택된 대화의 연속 실패 횟수 */
@@ -117,46 +123,44 @@ export default function AiChatPage() {
         message.roleCd === AI_ROLE.USER &&
         message.aiCnvrsMsgSn > pendingAfterSn,
     );
-  const cardSns = Object.keys(registerCards).map(Number);
-  const latestCardSn = cardSns.length > 0 ? Math.max(...cardSns) : null;
+  const latestCardKey = registerCards.at(-1)?.key ?? null;
 
-  /** 대화를 옮기거나 지울 때 카드·칩 상태 초기화 */
+  /** 대화를 옮기거나 지울 때 카드·초안·칩 상태 초기화 */
   const resetRegister = () => {
-    setRegisterCards({});
+    setRegisterCards([]);
+    setDraft(null);
     setPetChoices(null);
     receipt.reset();
-    answerRegister.reset();
   };
 
   const selectedPet = pets.find((pet) => pet.petSn === selectedPetSn);
 
-  /** 일정 등록 해석 결과를 카드·칩으로 */
-  const applyRegister = ({
-    aiCnvrsRoomSn,
-    aiCnvrsMsgSn,
-    card,
-    petChoices: nextPetChoices,
-  }) => {
-    if (card) {
-      setRegisterCards((prev) => ({
-        ...prev,
-        [aiCnvrsMsgSn]: { card, status: 'pending', resultText: null },
-      }));
-    }
-    if (nextPetChoices) setPetChoices(nextPetChoices);
+  /** 등록 판정의 카드: 되물음은 칩, 미리보기는 카드로 */
+  const applyRegister = (aiCnvrsRoomSn, card, afterSn) => {
     setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
+    if (!card) return;
+    if (card.cardType === CARD_TYPE.ASK) {
+      if (card.petChoices.length > 0) setPetChoices(card.petChoices);
+      return;
+    }
+    setRegisterCards((prev) => [
+      ...prev,
+      {
+        key: nextCardKey++,
+        card,
+        afterSn,
+        status: 'pending',
+        resultText: null,
+        resultMsgSn: null,
+      },
+    ]);
   };
 
-  const runRegister = (params) =>
-    answerRegister.mutate(
-      { ...params, petSn: selectedPet?.petSn },
-      { onSuccess: applyRegister },
-    );
-
-  /** 서버 판정별 화면 처리: 검색 답변은 말풍선이 맡는다 */
-  const handleResult = (result, cnvrsCn) => {
+  /** 서버 판정별 화면 처리: 검색 답변은 말풍선이 맡는다, 등록이 아니면 초안을 버린다 */
+  const handleResult = (result, afterSn) => {
     if (!result) return;
     const { aiCnvrsRoomSn, intent } = result;
+    setDraft(intent.kind === 'REGISTER' ? result.card : null);
     if (intent.kind === 'ROUTE') {
       const nextRoute = toRoute(intent);
       if (nextRoute) {
@@ -169,48 +173,46 @@ export default function AiChatPage() {
     if (intent.kind === 'FALLBACK') {
       setFallbackCount(increaseFallbackCount(aiCnvrsRoomSn));
     }
-    if (intent.kind === 'REGISTER' && cnvrsCn) {
-      runRegister({ aiCnvrsRoomSn, cnvrsCn, isFollowUp: false });
+    if (intent.kind === 'REGISTER') {
+      applyRegister(aiCnvrsRoomSn, result.card, afterSn);
     }
     if (intent.kind === 'RECEIPT') setNotice('receipt');
   };
 
-  /** 메시지 전송: 되묻기 대답·카드 수정은 서버 판정 없이 등록 가짜로 */
+  /** 메시지 전송: 가장 최근 카드를 초안으로 함께 보낸다 */
   const handleSend = async (cnvrsCn) => {
     setFirstMessage(null);
     setRoute(null);
     setNotice(null);
     setPetChoices(null);
     receipt.reset();
-    answerRegister.reset();
-    if (selectedRoomSn != null && isRegisterFollowUp(selectedRoomSn, cnvrsCn)) {
-      answer.reset();
-      runRegister({ aiCnvrsRoomSn: selectedRoomSn, cnvrsCn, isFollowUp: true });
-      return;
-    }
-    setPendingAfterSn(lastServerSn(conversation?.messages ?? []));
+    const afterSn = lastServerSn(conversation?.messages ?? []);
+    setPendingAfterSn(afterSn);
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
       cnvrsCn,
+      draft,
       onRoom: setSelectedRoomSn,
     });
-    handleResult(result, cnvrsCn);
+    handleResult(result, afterSn);
   };
 
   /** [다시 시도]·[다시 생성]: 방의 마지막 사용자 메시지에 다시 답한다 */
   const handleAnswerAgain = async (replaceMsgSn) => {
     setRoute(null);
     setNotice(null);
-    answerRegister.reset();
-    /** 등록 판정이 다시 오면 해석할 질문 */
-    const question = conversation?.messages.findLast(
-      (message) => message.roleCd === AI_ROLE.USER,
-    )?.cnvrsCn;
+    setPetChoices(null);
+    /** 카드가 오면 마지막 사용자 메시지 뒤에 붙인다 */
+    const lastUserSn =
+      conversation?.messages.findLast(
+        (message) => message.roleCd === AI_ROLE.USER,
+      )?.aiCnvrsMsgSn ?? 0;
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
+      draft,
       replaceMsgSn,
     });
-    handleResult(result, question);
+    handleResult(result, lastUserSn - 1);
   };
 
   /** 이미지 첨부 전송: 의도 분기 없이 영수증 분석, 1마리면 자동 선택 */
@@ -233,20 +235,28 @@ export default function AiChatPage() {
     fileInputRef.current.click();
   };
 
-  /** 등록·취소 결과를 카드에 반영 */
-  const settleRegisterCard = (mutation, status, aiCnvrsMsgSn) => {
+  /** 등록·취소 결과를 카드에 반영: 결과 요약 메시지 자리로 옮기고 초안을 버린다 */
+  const settleRegisterCard = (mutation, status, key) => {
+    const target = registerCards.find(
+      (registerCard) => registerCard.key === key,
+    );
     mutation.mutate(
-      { aiCnvrsRoomSn: selectedRoomSn, aiCnvrsMsgSn },
+      { aiCnvrsRoomSn: selectedRoomSn, card: target.card },
       {
-        onSuccess: ({ cnvrsCn }) => {
-          setRegisterCards((prev) => ({
-            ...prev,
-            [aiCnvrsMsgSn]: {
-              ...prev[aiCnvrsMsgSn],
-              status,
-              resultText: cnvrsCn,
-            },
-          }));
+        onSuccess: ({ aiCnvrsMsgSn, cnvrsCn }) => {
+          setDraft(null);
+          setRegisterCards((prev) =>
+            prev.map((registerCard) =>
+              registerCard.key === key
+                ? {
+                    ...registerCard,
+                    status,
+                    resultText: cnvrsCn,
+                    resultMsgSn: aiCnvrsMsgSn,
+                  }
+                : registerCard,
+            ),
+          );
         },
       },
     );
@@ -395,7 +405,7 @@ export default function AiChatPage() {
               ]}
               fallbackCount={fallbackCount}
               registerCards={registerCards}
-              latestCardSn={latestCardSn}
+              latestCardKey={latestCardKey}
               isRegisterBusy={
                 confirmRegister.isPending || cancelRegister.isPending
               }
@@ -405,11 +415,11 @@ export default function AiChatPage() {
               onRegenerate={(message) =>
                 handleAnswerAgain(message.aiCnvrsMsgSn)
               }
-              onConfirmRegister={(aiCnvrsMsgSn) =>
-                settleRegisterCard(confirmRegister, 'registered', aiCnvrsMsgSn)
+              onConfirmRegister={(key) =>
+                settleRegisterCard(confirmRegister, 'registered', key)
               }
-              onCancelRegister={(aiCnvrsMsgSn) =>
-                settleRegisterCard(cancelRegister, 'cancelled', aiCnvrsMsgSn)
+              onCancelRegister={(key) =>
+                settleRegisterCard(cancelRegister, 'cancelled', key)
               }
             >
               {hasAnswerBubble && (
@@ -436,7 +446,7 @@ export default function AiChatPage() {
               {petChoices && (
                 <PetChoiceChips
                   pets={petChoices}
-                  isDisabled={answerRegister.isPending || isAnswering}
+                  isDisabled={isAnswering}
                   onSelect={handleSend}
                 />
               )}
@@ -482,14 +492,14 @@ export default function AiChatPage() {
               </div>
             )}
         </div>
-        {(answer.status === 'failed' || answerRegister.isError) && (
+        {answer.status === 'failed' && (
           <p role="alert" className="pb-2 text-center text-sm text-[#b42318]">
             메시지를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요
           </p>
         )}
         <ChatInput
           petNm={selectedPet?.petNm}
-          isDisabled={answerRegister.isPending || isAnswering || receipt.isBusy}
+          isDisabled={isAnswering || receipt.isBusy}
           fileInputRef={fileInputRef}
           onSubmit={handleSend}
           onSubmitReceipt={handleSendReceipt}

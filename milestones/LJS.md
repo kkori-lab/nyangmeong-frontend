@@ -278,6 +278,13 @@
 - 추가 요청: 추가-1 메인 입력값 첫 메시지(StrictMode)·추가-2 대화 생성 중 헤더 스켈레톤·추가-3 열린 AI 창에 메인 입력값 (검증 통과 2026-10-29)
 - 연결 남음: REGISTER·RECEIPT 판정 뒤 처리 (서버 이어 가기 API, SCR-AIM-012·013 마일스톤, LJS)
 
+## SCR-AIM-012 등록 카드 서버 연결 — 끝
+- 기능: (연결 작업, 명세 기능 ID 추가 없음) B-01 메시지 Body `draft`, FN-AIM-012-04·05 되물음·반려동물 칩, 012-06·07·08 서버 카드 표시, 012-09·10 최근 카드만 활성·카드 수정, 012-11·12·15·16 등록·취소 결과 저장을 가짜(`fakeRegisterParser`)에서 Python AI 서버 messages(`draft`·`done.card`)·register-result로
+- 기다리는 것: ai 저장소 `docs/api/chat.md` 커밋(지금은 작업 사본, AI_MODE=mock으로 확인 가능)
+- 완료 조건: 되물음 대답·"4시로 바꿔줘"가 `draft`로 서버에서 새 카드가 된다 / [등록]·[취소] 결과 요약이 새로고침 뒤에도 남는다 / 최근 카드 외의 버튼은 비활성이다
+- 결정: 처리 안 한 카드는 새로고침하면 사라진다(명세 012-11·16대로, 2026-10-29), Java 등록은 가짜 `registerToHealth`
+- 완료 조건 결과: 검증 `통과`(2026-10-29, 1회차), 사람 확인 2026-10-29
+- 연결 남음: FN-AIM-012-13·14 (Java 일정·케어 항목 등록 API, JAJ)
 
 ## 공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 대기
 - 기능: (연결 작업, 명세 기능 ID 추가 없음) 공개 이미지는 `/api/files/public/{atchFileSn}` 주소로 바로 보여 주고, 비공개 이미지는 도메인 API(`/api/receipts/{recptSn}/image`·`/api/pets/{petSn}/character-image`·`/api/items/{itemSn}/image`)를 `api.get(..., { responseType: 'blob' })`로 받아 보여 주는 공통 코드를 `components/`·`hooks/`에 만든다. 화면 담당(KSJ 게시글·SJM 캐릭터 등)이 가져다 쓴다
