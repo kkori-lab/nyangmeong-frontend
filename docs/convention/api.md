@@ -29,8 +29,9 @@
 
 - 인터셉터가 `data`만 꺼내서 돌려준다. `api.js`의 함수는 `data` 안의 값을 받는다(axios 응답 객체가 아니므로 `res.data`를 또 꺼내지 않는다). 삭제·상태 변경처럼 `data`가 없는 성공은 `undefined`가 온다.
 - 보호 파일 다운로드만 예외다. JSON이 아니라 파일 자체가 오므로 이 모양이 아니다. `api.get(url, { responseType: 'blob' })`로 요청하면 인터셉터가 Blob을 그대로 돌려준다.
-- 오류는 `status`가 `"error"`이고 최상위에 `code`·`message`가 있다. `code`(백엔드 `ErrorCode` 상수 이름)로 분기하고 `message`를 그대로 화면에 표시한다. 같은 오류의 문구를 프론트에서 새로 쓰지 않는다. 인터셉터는 `{ code, message, fields }`로 정리해 거부(reject)하므로 화면 코드는 그 모양만 본다.
+- 오류는 `status`가 `"error"`이고 최상위에 `code`·`message`가 있다. `code`(백엔드 `ErrorCode` 상수 이름)로 분기하고 `message`를 그대로 화면에 표시한다. 같은 오류의 문구를 프론트에서 새로 쓰지 않는다. 인터셉터는 `{ code, message, fields, data }`로 정리해 거부(reject)하므로 화면 코드는 그 모양만 본다.
 - `fields`는 입력값 검증 오류(`INVALID_INPUT_VALUE`)일 때만 서버 응답의 `data`에서 꺼낸 `[{ field, message }]`이고 그 밖에는 `null`이다. 입력칸 아래 문구에 쓴다.
+- `data`는 검증 오류가 아닌 오류에서 서버 응답의 `data`를 그대로 담고(없으면 `null`), 검증 오류일 때는 `null`이다. 오류에 딸린 값(예: `EMAIL_CERT_RESEND_NOT_YET`의 `resendAvailableDt`)을 읽을 때만 쓴다.
 - 서버가 이 모양을 주지 않은 경우에도 인터셉터가 같은 모양을 만들어 준다. 응답이 없으면(네트워크 단절) `NETWORK_ERROR`, 응답은 있는데 `code`가 없으면(Nginx 502·504 등) `SERVER_ERROR`다. 화면 코드는 이 경우를 따로 처리하지 않는다.
 
 ## 오류 표시
@@ -75,8 +76,8 @@ let refreshing = null;                                 // 동시에 온 401이 �
 
 // 서버가 error를 주지 않은 경우에도 화면 코드는 같은 모양을 받는다
 const fallbackError = (response) => (response
-  ? { code: 'SERVER_ERROR', message: '일시적인 오류가 발생했어요.', fields: null }
-  : { code: 'NETWORK_ERROR', message: '네트워크 연결을 확인해 주세요.', fields: null });
+  ? { code: 'SERVER_ERROR', message: '일시적인 오류가 발생했어요.', fields: null, data: null }
+  : { code: 'NETWORK_ERROR', message: '네트워크 연결을 확인해 주세요.', fields: null, data: null });
 
 api.interceptors.response.use(
   (res) => (res.config.responseType === 'blob'
@@ -88,9 +89,9 @@ api.interceptors.response.use(
     if (body instanceof Blob) {                        // 파일 요청이 실패하면 오류 JSON도 Blob으로 온다
       body = await body.text().then(JSON.parse).catch(() => null);
     }
-    // 서버 오류 { code, message, data }를 { code, message, fields }로 정리한다. fields는 검증 오류의 data다
+    // 서버 오류 { code, message, data }를 { code, message, fields, data }로 정리한다. fields는 검증 오류의 data, 그 밖의 오류는 data를 그대로 둔다
     const error = body?.code
-      ? { code: body.code, message: body.message, fields: body.code === 'INVALID_INPUT_VALUE' ? body.data : null }
+      ? { code: body.code, message: body.message, fields: body.code === 'INVALID_INPUT_VALUE' ? body.data : null, data: body.code === 'INVALID_INPUT_VALUE' ? null : (body.data ?? null) }
       : fallbackError(response);
     const isRefresh = config?.url === '/auth/refresh';
     if (response?.status === 401 && error.code === 'TOKEN_EXPIRED' && !config._retried && !isRefresh) {

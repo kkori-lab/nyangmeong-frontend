@@ -63,12 +63,21 @@
 - 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-001)의 PR 병합과 공용 DB 마이그레이션
 - 완료 조건: 실제 서버로 약관 → 인증번호 발송·확인 → 번호 중복확인 → 가입 → 닉네임 저장이 되고, 가입 뒤 로그인 쿠키 없이 닉네임 모달이 동작한다. 재전송 제한은 `resendAvailableDt`로 남은 시간을 보여 준다
 
-## SCR-ACC-011 비밀번호 찾기 · 인증번호 API 연결 — 대기
+## SCR-ACC-011 비밀번호 찾기 · 인증번호 API 연결 — 끝
 - 백엔드 끝: `POST /email-certifications`(목적 `USRC0011`), `POST /email-certifications/{emlCertSn}/verify`, `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-011 절의 "프론트 연결")
 - 기능: 명세 기능 ID 추가 없음. FN-ACC-011-02~10에 걸친다
 - 대상: `features/member/password/`와 `features/member/api.js`의 가짜 `sendRecoveryCode`·`verifyRecoveryCode`·`getRecoveryStatus`. 확인 응답의 `certRslt`(`PASSWORD_RESET_READY`·`SNS_ONLY`+`snsOffrCds`·`MEMBER_NOT_FOUND`·`MEMBER_WITHDRAWN`)로 화면을 가르고, 이메일을 다시 입력하면 `invalidate`(본문 `certTrgtEml`)를 부른다
 - 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-011)의 PR 병합. 재설정 토큰(`pswdInitTkn`)을 쓰는 비밀번호 재설정은 백엔드 SCR-ACC-012가 끝난 뒤
 - 완료 조건: 실제 서버로 발송 → 확인에서 계정 종류별 화면으로 가고, 재전송 제한은 `resendAvailableDt`로 남은 시간을 보여 준다
+- 끝남: 승인 2026-10-29, 검증 통과, 사람 확인 2026-10-29. 추가-1(인증 화면 제목 잘림 방지·AI 안내 서서히 표시), 추가-2(폼 위 알림 서서히 표시)
+- 연결 남음: 없음(재설정 API는 아래 SCR-ACC-012 연결 절)
+
+## SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 대기
+- 백엔드 끝: `POST /email-certifications/{emlCertSn}/password-reset`(`pswdInitTkn`·`pswd`·`pswdCnfrm`, 성공 200 데이터 없음), 취소는 `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-012 절의 "프론트 연결")
+- 기능: 명세 기능 ID 추가 없음. FN-ACC-012-01~06에 걸친다
+- 대상: `features/member/password/`와 `features/member/api.js`의 가짜 `resetPassword`. 인증 확인 응답의 `emlCertSn`·`pswdInitTkn`·`initAuthrtExpryDt`를 메모리로 넘기고(URL에 넣지 않는다), 토큰이 없거나 `initAuthrtExpryDt`가 지났거나 400 `PASSWORD_RESET_NOT_AVAILABLE`이면 만료 화면, 400 `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 입력칸 오류, 취소는 `invalidate`(본문 `certTrgtEml`). 성공해도 자동 로그인하지 않는다
+- 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-012)의 PR 병합과 공유 `application.properties`의 열린 경로 추가
+- 완료 조건: 실제 서버로 인증 확인 → 새 비밀번호 저장 → 로그인 화면으로 가고, 같은 토큰 재사용·만료·취소 뒤에는 만료 화면이 나온다
 
 ## 제외
 - 없음. 외부인증창 참고 행 6개(네이버·카카오·구글 외부 로그인·동의 창)는 명세에 기능 ID가 없다
