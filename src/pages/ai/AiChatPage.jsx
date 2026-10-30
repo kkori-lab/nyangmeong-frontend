@@ -12,7 +12,6 @@ import FallbackBubble from '@/features/ai/chat/FallbackBubble';
 import ConversationSidebar from '@/features/ai/chat/ConversationSidebar';
 import ReceiptAnalysisBubble from '@/features/ai/chat/ReceiptAnalysisBubble';
 import { AI_ROLE } from '@/features/ai/shared/aiCodes';
-import { fakePets } from '@/features/ai/chat/fakePets';
 import {
   FALLBACK_MESSAGE,
   getFallbackCount,
@@ -33,12 +32,9 @@ import useChatReceipt from '@/features/ai/chat/useChatReceipt';
 import RouteGuideBubble from '@/features/ai/chat/RouteGuideBubble';
 import WelcomeMessage from '@/features/ai/chat/WelcomeMessage';
 import { useMemberSummary } from '@/features/member/queries';
+import { usePets } from '@/features/pet/queries';
 import useChatWindow from '@/hooks/useChatWindow';
 import { PATHS } from '@/routes/paths';
-
-/** 임시 반려동물 목록 */
-const pets = fakePets;
-const representativePet = pets.find((pet) => pet.rprsPetYn === 'Y');
 
 /** 서버 메시지 중 가장 큰 번호(가짜 메시지는 음수) */
 const lastServerSn = (messages) =>
@@ -75,9 +71,17 @@ export default function AiChatPage() {
   /** 1100px 미만 대화 목록 drawer */
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const closeDrawer = useCallback(() => setIsDrawerOpen(false), []);
-  const [selectedPetSn, setSelectedPetSn] = useState(
-    representativePet?.petSn ?? null,
-  );
+  const petsQuery = usePets();
+  /** 반려동물 목록: 받기 전 undefined, 못 받으면 빈 목록([전체]만) */
+  const pets = petsQuery.data ?? (petsQuery.isError ? [] : undefined);
+  const isPetsReady = pets !== undefined;
+  /** 고른 칩: undefined면 아직 안 고름 */
+  const [pickedPetSn, setPickedPetSn] = useState(undefined);
+  /** 선택한 칩: 고르기 전에는 대표 반려동물, 없으면 [전체](null), 목록 받기 전 undefined */
+  const selectedPetSn =
+    pickedPetSn !== undefined
+      ? pickedPetSn
+      : pets && (pets.find((pet) => pet.rprsPetYn)?.petSn ?? null);
   /** 선택된 대화 번호 */
   const [selectedRoomSn, setSelectedRoomSn] = useState(null);
   /** 첫 메시지 */
@@ -139,7 +143,7 @@ export default function AiChatPage() {
     receipt.reset();
   };
 
-  const selectedPet = pets.find((pet) => pet.petSn === selectedPetSn);
+  const selectedPet = pets?.find((pet) => pet.petSn === selectedPetSn);
 
   /** 등록 판정의 카드: 되물음은 칩, 미리보기는 카드로 */
   const applyRegister = (aiCnvrsRoomSn, card, afterSn) => {
@@ -196,6 +200,7 @@ export default function AiChatPage() {
     setPendingAfterSn(afterSn);
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
+      petSn: selectedPetSn ?? null,
       cnvrsCn,
       draft,
       onRoom: setSelectedRoomSn,
@@ -232,7 +237,8 @@ export default function AiChatPage() {
       text,
       aiCnvrsRoomSn: selectedRoomSn,
       afterMsgSn: lastServerSn(conversation?.messages ?? []),
-      pet: selectedPet ?? (pets.length === 1 ? pets[0] : null),
+      petSn: selectedPetSn ?? null,
+      pet: selectedPet ?? (pets?.length === 1 ? pets[0] : null),
     });
   };
 
@@ -292,11 +298,11 @@ export default function AiChatPage() {
 
   /** 첫 메시지 전송: StrictMode가 effect를 정리했다 다시 돌리면(그때 답변 스트림도 취소) 예약을 지우고 새로 잡아 한 번만 전송 */
   useEffect(() => {
-    if (!firstMessage) return;
+    if (!firstMessage || !isPetsReady) return;
     const timer = setTimeout(() => handleSend(firstMessage.slice(0, 1000)));
     return () => clearTimeout(timer);
-    /* eslint-disable-next-line react-hooks/exhaustive-deps -- 창을 연 직후 한 번만 전송 */
-  }, []);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps -- 창을 열고 반려동물 목록을 받은 뒤 한 번만 전송 */
+  }, [isPetsReady]);
 
   /** 설정은 본창에서 열기 */
   const handleOpenSettings = () => {
@@ -345,7 +351,7 @@ export default function AiChatPage() {
         onTogglePanel={() => setIsCollapsed((prev) => !prev)}
         onOpenDrawer={openDrawer}
         onCloseDrawer={closeDrawer}
-        onSelectPet={setSelectedPetSn}
+        onSelectPet={setPickedPetSn}
         onSelectRoom={handleSelectRoom}
         onNewChat={handleNewChat}
         onOpenSettings={handleOpenSettings}
@@ -459,7 +465,7 @@ export default function AiChatPage() {
               {receipt.receipt && (
                 <ReceiptAnalysisBubble
                   receipt={receipt.receipt}
-                  pets={pets}
+                  pets={pets ?? []}
                   onChoosePet={receipt.choosePet}
                   onCancel={receipt.cancel}
                   onConfirm={() =>

@@ -49,9 +49,10 @@ export default function useAnswerStream() {
    * 전송 시작: 끝나면 { aiCnvrsRoomSn, intent, message, shortcut, card }, 실패·중단이면 null
    * - cnvrsCn 없음: [다시 시도]·[다시 생성], replaceMsgSn은 새 답변으로 바꿀 미완료 메시지
    * - draft: 가장 최근 등록 카드
+   * - petSn: 새 방의 펫 태그(선택한 반려동물 칩, [전체]면 null)
    */
   const start = useCallback(
-    async ({ aiCnvrsRoomSn, cnvrsCn, draft, replaceMsgSn, onRoom }) => {
+    async ({ aiCnvrsRoomSn, petSn, cnvrsCn, draft, replaceMsgSn, onRoom }) => {
       runIdRef.current += 1;
       const runId = runIdRef.current;
       abortRef.current?.abort();
@@ -83,6 +84,7 @@ export default function useAnswerStream() {
       try {
         const result = await sendMessage({
           aiCnvrsRoomSn,
+          petSn,
           cnvrsCn,
           draft,
           signal: controller.signal,

@@ -163,21 +163,23 @@ function SidebarPanel({
         </button>
         <p className="mt-4 text-xs text-[#667374]">반려동물</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {[{ petSn: null, petNm: '전체' }, ...pets].map((pet) => (
-            <button
-              key={pet.petSn ?? 'all'}
-              type="button"
-              aria-pressed={selectedPetSn === pet.petSn}
-              className={`h-9 rounded-full px-4 text-sm ${
-                selectedPetSn === pet.petSn
-                  ? 'bg-[#285a5c] font-medium text-white'
-                  : 'border border-[#e2e7e7] text-[#3d4a4b] hover:bg-[#f4f6f6]'
-              }`}
-              onClick={() => onSelectPet(pet.petSn)}
-            >
-              {pet.petNm}
-            </button>
-          ))}
+          {/* 반려동물 목록을 받기 전에는 칩 자리를 비움 */}
+          {pets &&
+            [{ petSn: null, petNm: '전체' }, ...pets].map((pet) => (
+              <button
+                key={pet.petSn ?? 'all'}
+                type="button"
+                aria-pressed={selectedPetSn === pet.petSn}
+                className={`h-9 rounded-full px-4 text-sm ${
+                  selectedPetSn === pet.petSn
+                    ? 'bg-[#285a5c] font-medium text-white'
+                    : 'border border-[#e2e7e7] text-[#3d4a4b] hover:bg-[#f4f6f6]'
+                }`}
+                onClick={() => onSelectPet(pet.petSn)}
+              >
+                {pet.petNm}
+              </button>
+            ))}
         </div>
       </div>
 
