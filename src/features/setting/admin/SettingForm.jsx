@@ -10,7 +10,11 @@ import { SETTING_GROUPS, toBody, toDraft } from '../shared/settingFields';
  * [운영 설정 수정 폼]
  * - 묶음 5개 카드 + 되돌리기·저장: 바뀐 값이 있을 때만 켜짐
  * - 저장은 바뀐 항목만 전송, 서버 입력값 오류는 해당 항목 아래에 표시
+ * - 760px 이하: 하단 바텀 네비로 고른 묶음 카드만 보임 (입력값은 묶음을 바꿔도 유지)
  */
+
+/** 묶음을 하나씩 보여 주는 폭 */
+const NARROW_QUERY = '(max-width: 760px)';
 
 const inputClass =
   'block h-10 w-full rounded-md border bg-white px-3 hover:border-line-strong focus:border-brand-500 focus:ring-focus focus:outline-none';
@@ -134,9 +138,40 @@ function SettingRow({ row, draft, fieldErrors, onChange }) {
   );
 }
 
+/** 760px 이하 묶음 전환 바텀 네비 (layouts/BottomNav와 같은 모양, 경로 이동이 없어 버튼) */
+function SettingSectionNav({ activeTitle, onSelect }) {
+  return (
+    <nav
+      aria-label="운영 설정 묶음"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e2e7e7] bg-white pb-[env(safe-area-inset-bottom)] min-[761px]:hidden"
+    >
+      <ul className="flex h-[60px]">
+        {SETTING_GROUPS.map((group) => {
+          const isActive = group.title === activeTitle;
+          return (
+            <li key={group.title} className="min-w-0 flex-1">
+              <button
+                type="button"
+                aria-current={isActive ? 'true' : undefined}
+                className={`flex size-full items-center justify-center px-1 text-center text-[15px] ${
+                  isActive ? 'font-bold text-[#285a5c]' : 'text-[#566465]'
+                }`}
+                onClick={() => onSelect(group.title)}
+              >
+                {group.title}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
 export default function SettingForm({ settings }) {
   const base = toDraft(settings);
   const [draft, setDraft] = useState(base);
+  const [activeTitle, setActiveTitle] = useState(SETTING_GROUPS[0].title);
   const save = useUpdateAdminSettings();
 
   const body = toBody(draft, base);
@@ -155,16 +190,45 @@ export default function SettingForm({ settings }) {
     save.reset();
   };
 
+  /** 묶음을 바꾸면 그 묶음 맨 위부터 보이게 */
+  const handleSectionSelect = (title) => {
+    setActiveTitle(title);
+    if (window.matchMedia(NARROW_QUERY).matches) window.scrollTo(0, 0);
+  };
+
+  /** 오류 항목이 숨은 묶음에 있으면 그 묶음으로 이동 */
+  const handleSaveError = (error) => {
+    const errorKeys = (error.fields ?? []).map((item) => item.field);
+    const errorGroup = SETTING_GROUPS.find((group) =>
+      group.rows.some((row) =>
+        row.fields.some((field) => errorKeys.includes(field.key)),
+      ),
+    );
+    if (errorGroup && errorGroup.title !== activeTitle) {
+      handleSectionSelect(errorGroup.title);
+    }
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!isDirty) return;
-    save.mutate(body, { onSuccess: () => showToast('저장했어요') });
+    save.mutate(body, {
+      onSuccess: () => showToast('저장했어요'),
+      onError: handleSaveError,
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-5 max-[761px]:pb-[calc(60px+env(safe-area-inset-bottom))]"
+    >
       {SETTING_GROUPS.map((group) => (
-        <Card key={group.title} title={group.title}>
+        <Card
+          key={group.title}
+          title={group.title}
+          className={group.title === activeTitle ? '' : 'max-[761px]:hidden'}
+        >
           <div className="space-y-5">
             {group.rows.map((row) => (
               <SettingRow
@@ -201,6 +265,10 @@ export default function SettingForm({ settings }) {
           저장
         </button>
       </div>
+      <SettingSectionNav
+        activeTitle={activeTitle}
+        onSelect={handleSectionSelect}
+      />
     </form>
   );
 }

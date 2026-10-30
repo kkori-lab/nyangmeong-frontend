@@ -90,6 +90,7 @@ function CalendarSkeleton() {
 - 항목은 그 화면이 속한 메뉴의 서브 메뉴다. 글자만 쓴다.
 - AI 플로팅 버튼은 바텀 네비 위에 둔다.
 - `layouts/bottomNavMenus.js`의 `paths`는 하위 경로까지 포함한다(`/mypage`면 `/mypage/pets`도). 새 메뉴 영역을 만들면 `{ label, paths, items }`를 추가한다. `UserLayout`이 이 목록으로 푸터를 숨기고 바텀 네비를 둔다.
+- 관리자 화면에는 공통 바텀 네비가 없다. 예외로 운영 설정(`features/setting/admin/SettingForm.jsx`)은 760px 이하에서 묶음을 하단 버튼으로 나눠 고른 묶음만 보인다.
 
 ## html/ 디자인 파일
 

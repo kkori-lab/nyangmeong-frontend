@@ -6,15 +6,15 @@ import { isForbiddenError } from '@/utils/isForbiddenError';
 import { getHmOf, getYmdOf } from '@/utils/formatDate';
 import AdminForbidden from './AdminForbidden';
 
-/** 묶음 5개 카드 자리: 회원·반려동물 5 / 커뮤니티 7 / 알림 1 / AI 2 / 파일 1 항목 */
+/** 묶음 5개 카드 자리: 회원·반려동물 5 / 커뮤니티 7 / 알림 1 / AI 2 / 파일 1 항목. 760px 이하는 첫 묶음만 */
 function SettingSkeleton() {
   return (
     <div className="space-y-5" aria-busy="true">
       <SkeletonCard className="h-[383px]" />
-      <SkeletonCard className="h-[503px]" />
-      <SkeletonCard className="h-[143px]" />
-      <SkeletonCard className="h-[203px]" />
-      <SkeletonCard className="h-[143px]" />
+      <SkeletonCard className="h-[503px] max-[761px]:hidden" />
+      <SkeletonCard className="h-[143px] max-[761px]:hidden" />
+      <SkeletonCard className="h-[203px] max-[761px]:hidden" />
+      <SkeletonCard className="h-[143px] max-[761px]:hidden" />
     </div>
   );
 }

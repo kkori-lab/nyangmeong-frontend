@@ -2,10 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-ADM-110 운영 설정 · 관리자 공통 레이아웃 — 끝 (2026-10-30, 검증 `확인 못 함 있음`(회차 1 실패 뒤 수정, 남은 것은 연결뿐)·사람 확인). 기획·완료 조건은 `milestones/LJS.md`와 이 커밋 이력에 있다
+SCR-ADM-110 운영 설정 · 모바일 묶음 바텀 네비 — 끝 (2026-10-30, 검증 `통과`(1회차 760px 경계 실패 뒤 수정)·사람 확인). 760px 이하에서 묶음 5개를 하단 버튼으로 나눠 고른 묶음만 보인다
 
 ## 다음에 할 것
 
+- 관리자 390px 잔여(2026-10-30 검증 참고, 범위 밖): 상단 바에서 "관리자"와 닉네임이 겹친다(`AdminLayout`). 운영 설정 저장 토스트가 바텀 네비 윗선과 겹친다(`ToastContainer` `bottom-6`). 네비의 "회원·반려동물"이 "회원·반려동/물"로 꺾인다(칸은 안 넘음)
+- 사람이 고치는 문서(운영 설정 모바일 네비): 관리자 화면설계서 SCR-ADM-001 처리 조건을 "1100px 이하: 사이드바를 숨기고 상단 바 왼쪽 [≡]로 연다(덮는 서랍). 관리자 화면은 PC 사용 기준이라 공통 모바일 전용 배치는 두지 않음. 예외로 운영 설정(SCR-ADM-110)은 760px 이하에서 묶음 5개를 하단 바텀 네비로 나눠 고른 묶음만 표시"로 고친다
+- 운영 설정 연결 때 확인: 묶음 바텀 네비의 저장 포함은 가짜 API에서 다시 불러온 값으로만 확인했다. 스켈레톤 카드 1장도 화면으로 보지 못했다
 - SCR-ADM-110 프론트 연결 남음(FN-ADM-110-01~04): 백엔드는 이미 있다(`global/setting/AdminSystemSettingController`, 문서 `docs/api/global.md`). 가짜(`features/setting/api.js`)와 다른 점: 수정이 PUT이 아니라 `PATCH`, 응답이 묶음별 중첩(`memberPet`·`community`·`notification`·`ai`·`file`), `lowstHrwgAplcnYr`가 문자열, 응답에 `dshbdCareMaxExpsrCnt`가 있음(화면에는 두지 않음). 실제 항목별 오류 모양과 허용 범위를 맞춘다
 - SCR-ADM-110 스켈레톤 높이는 계산값이다(`AdminSettingsPage.jsx`, 383·503·143·203·143px). 실제 API 연결 때 1440px·390px로 잰다(`docs/convention/ui.md`)
 - `AdminLayout`의 `AdminLogoutConfirm`은 `ProfileDropdown`의 `LogoutConfirm`과 달리 AI 창·채팅 창을 닫지 않는다(관리자 화면에 여는 버튼이 없음). 이동 대상도 `/login`으로 다르다. 공통화할지 정한다
