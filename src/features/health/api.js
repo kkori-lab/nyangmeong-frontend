@@ -295,16 +295,30 @@ export const getFakeScheduleList = () =>
  * 반려동물들의 일정 목록(FN-HLT-003-29·31·40)
  * - 서버가 반려동물 단위 조회라 반려동물 수만큼 요청 후 합침
  * - size: 반려동물마다의 최대 건수
+ * - 볼 수 없는 반려동물(없음·권한 없음)은 빼고 나머지만 합침. 모두 실패하면 첫 오류
  */
+const SKIPPED_PET_CODES = ['PET_NOT_FOUND', 'PET_ACCESS_DENIED'];
+
 export const getSchedules = async ({ petSns, fromYmd, toYmd, size }) => {
-  const lists = await Promise.all(
+  const results = await Promise.allSettled(
     petSns.map((petSn) =>
       api.get(`/pets/${petSn}/care-schedules`, {
         params: { fromYmd, toYmd, size },
       }),
     ),
   );
-  return lists.flat().sort(compareSchedules);
+  const failed = results.filter((result) => result.status === 'rejected');
+  const unexpected = failed.find(
+    (result) => !SKIPPED_PET_CODES.includes(result.reason?.code),
+  );
+  if (unexpected) throw unexpected.reason;
+  if (failed.length > 0 && failed.length === results.length) {
+    throw failed[0].reason;
+  }
+  return results
+    .filter((result) => result.status === 'fulfilled')
+    .flatMap((result) => result.value)
+    .sort(compareSchedules);
 };
 
 export const createSchedule = ({ petSn, body }) =>

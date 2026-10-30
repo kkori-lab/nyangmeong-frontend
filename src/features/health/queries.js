@@ -98,7 +98,10 @@ const useScheduleMutation = (mutationFn) => {
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
       queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
     },
-    onError: showErrorToast,
+    // 입력값 검증 오류는 모달 입력칸 아래에 표시
+    onError: (error) => {
+      if (!error.fields) showErrorToast(error);
+    },
   });
 };
 
