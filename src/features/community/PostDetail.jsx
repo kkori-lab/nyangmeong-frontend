@@ -8,7 +8,7 @@ import SharePanel from '@/components/SharePanel';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { formatDateTime, formatMonthDayDot } from '@/utils/formatDate';
-import { getPostImageUrl } from './api';
+import { publicFileUrl } from '@/utils/fileUrl';
 import CommentSection from './CommentSection';
 import PostBadges from './PostBadges';
 import {
@@ -89,7 +89,7 @@ export default function PostDetail({ post }) {
                 {post.imgs.map((img, index) => (
                   <img
                     key={img.atchFileSn}
-                    src={getPostImageUrl(img.atchFileSn)}
+                    src={publicFileUrl(img.atchFileSn)}
                     alt={`첨부 이미지 ${index + 1}`}
                     className="h-auto max-w-full rounded-[10px]"
                   />

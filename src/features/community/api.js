@@ -7,12 +7,8 @@ import { REPORT_REASON_CODES } from './postCodes';
  *   작성·수정은 multipart/form-data(bbsCd·pstTtl·pstCn·images, 수정은 남길 사진 keepAtchFileSns)
  * - 좋아요 POST·DELETE /posts/{pstSn}/likes, 댓글 /posts/{pstSn}/comments, 신고 POST /reports
  * - 레일 GET /community-ai-commentaries, /posts/popular-photo, /posts/health-tips
- * - 사진은 공개 파일이라 주소로 바로 그린다: getPostImageUrl
+ * - 사진은 공개 파일이라 주소로 바로 표시: @/utils/fileUrl publicFileUrl
  */
-
-/** 게시글 사진 주소: 공개 파일이라 로그인 없이 조회 */
-export const getPostImageUrl = (atchFileSn) =>
-  `/api/files/public/${atchFileSn}`;
 
 /** 화면의 정렬 값(new·hot)을 서버 값으로 */
 const SORT_PARAMS = { new: 'latest', hot: 'popular' };

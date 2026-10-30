@@ -4,7 +4,7 @@ import AutoTextarea from '@/components/AutoTextarea';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import ImageAttach from '@/components/ImageAttach';
 import { PATHS } from '@/routes/paths';
-import { getPostImageUrl } from './api';
+import { publicFileUrl } from '@/utils/fileUrl';
 import PostWriteGuide from './PostWriteGuide';
 import { POST_BOARDS } from './postCodes';
 
@@ -17,7 +17,7 @@ const toImageItems = (imgs) =>
     id: `file-${atchFileSn}`,
     atchFileSn,
     name: `첨부 이미지 ${index + 1}`,
-    url: getPostImageUrl(atchFileSn),
+    url: publicFileUrl(atchFileSn),
   }));
 
 const INPUT_CLASS =
