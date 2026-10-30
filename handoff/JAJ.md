@@ -2,9 +2,15 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-003 케어 캘린더 · 반려동물 목록 연결 (2026-10-31). 케어 캘린더(캘린더·케어리스트 탭·일정 모달)의 반려동물 목록이 실제 `GET /pets`(`useMyPets`, 키 `['health', 'my-pets']`)로 동작. 건강 일지·검진상세·종합 건강기록은 가짜 `usePets` 그대로(각 API 연결 마일스톤의 "함께 바꿀 것"). 검증 통과(2회차), 사람 확인 완료
+없음 (SCR-HLT-002 검진기록 API 연결은 URL 규칙 결정 대기로 대기로 되돌림)
 
 ## 다음에 할 것
+
+- 알릴 것(URL 규칙 담당, `docs/routes.md`): 상위 키가 필요한 상세 화면 주소 규칙이 없다. 검진상세 `/health/checkups/:ckupRcdSn`·검사 수치 입력 `/health/checkups/:ckupRcdSn/inspections`는 실제 API가 `/pets/{petSn}/checkups/{ckupRcdSn}`라 `petSn`이 필요하다. `?petSn=` 쿼리(지금 규칙의 쿼리는 탭·필터용)와 경로 `/health/pets/:petSn/checkups/:ckupRcdSn` 중 무엇을 규칙으로 할지 정해 `routes.md` 0장에 적어 달라고 요청한다. 규칙이 정해져야 SCR-HLT-002 검진기록 연결(질문 1)을 승인·구현한다. 임시 주소는 쓰지 않는다
+- 참고(SCR-HLT-002 검진기록 API 연결, 기획 승인 전 대기):
+  - 실제 응답과 가짜의 차이: 병원명 `hospNm`→`hsptlNm`, 영수증 `rcptSn`→`recptSn`, 목록 행(`CheckupSummary`)에 `ckupCn`·`ckupMemoCn`·`petSn` 없음, "연결된 일정 삭제됨"은 `schdlDelYn`, 목록은 `PageResponse`(`content`·`totalElements`·`totalPages`, size 최대 50), 연도 목록·`hasAnyCheckup`은 서버가 주지 않음
+  - 질문 1. 검진상세 주소 `/health/checkups/:ckupRcdSn`에 반려동물 번호가 없는데 실제 상세·수정 API는 `/pets/{petSn}/checkups/{ckupRcdSn}`이다. 목록이 실제 번호가 되면 가짜 검진상세는 "찾을 수 없음"이 된다. (가) 검진상세 주소에 `?petSn=`을 붙여 기본정보 조회·[검진기록 수정]만 실제 API로, 검진상세 반려동물 목록도 `useMyPets`로 바꾸고 나머지 탭(검사·첨부·처방·반복 예방)은 가짜 그대로 / (나) 검진상세는 SCR-HLT-005 연결 때로 미루고 이번 완료 조건에서 수정을 뺀다 / (다) 백엔드에 반려동물 번호 없는 상세 조회를 요청한다(`백엔드 연결`). (추천: 가)
+  - 질문 2. 건강 일지 반려동물을 실제 목록으로 바꾸면 일상 기록·지속 관찰 탭은 가짜 데이터가 가짜 반려동물 번호에 묶여 빈 상태로 보인다. 그대로 둘까요? (추천: 그대로 둔다. 각 API 연결 마일스톤에서 채운다)
 
 - 참고(반려동물 실제 응답): 건강 일지·종합 건강기록은 다른 담당 작업 뒤에 바꾼다(실제 응답에 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`, 체중 정상범위·목표·캐릭터 상태 없음)
 - 연결 남음(공용 · PetFace 올리기): 캐릭터 얼굴 이미지 실제 응답 `GET /pets/{petSn}/character-image?part=face` (LJS 백엔드, 지금은 502라 기본 아이콘)

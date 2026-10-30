@@ -103,7 +103,7 @@
 
 - 함께 바꿀 것(반려동물 목록): 건강 일지는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다(건강 일지의 다른 연결에서 이미 바꿨으면 넘어간다). 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 건강 일지 검진기록 탭의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-002-05·06·14·26~31·46에 걸침). 목록 `GET /pets/{petSn}/checkups?year=&ckupTypeCd=&page=&size=`(`year` 생략 시 전체 연도, 건수는 `totalElements`), 등록 `POST`(선택 `schdlSn` = 옮겨 연결하기), 수정 `PATCH`, 삭제 `DELETE`. 46 확인 창 후보는 `GET /pets/{petSn}/care-schedules`를 검진일 앞뒤 7일·`schdlKndCd=HLTC0057`로 불러 `ckupRcdCnt == 0`인 행 중 가장 가까운 1건을 고른다
-- 기다리는 것: 백엔드 검진기록 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전)
+- 기다리는 것: 백엔드 검진기록 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전), URL 규칙 담당의 상위 키 상세 주소 규칙(docs/routes.md 0장)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진기록 탭에서 API로 등록한 검진기록이 연도·종류 칩에 맞게 최신순으로 나오고, 등록·수정·삭제가 서버에 반영되며 삭제 뒤 캘린더 일정은 남는다
 - 그대로 두는 것: 영수증 [직접 입력] 경로의 영수증 연결(LJS와 맞춘 뒤)
 
