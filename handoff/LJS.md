@@ -2,27 +2,15 @@
 
 ## 지금 하는 것
 
-SCR-ADM-110 운영 설정 · 관리자 공통 레이아웃 — 진행(시작 2026-10-30 16:26). 기획 승인 전
-
-기준: DMS `관리자_기능명세서_v0.2_20261030`, `관리자_화면설계서_v0.1_20261030`(SCR-ADM-001 공통 레이아웃 프레임·SCR-ADM-110 프레임, 2026-10-30 LJS 작성·업로드), IA 구조도 v0.3 '총관리자'(사이드바), 백엔드 develop `docs/admin/implementation-plan.md`(백엔드 첫 마일스톤도 SCR-ADM-110). 디자인: 화면설계서 기준(Figma·html 없음)
-
-기획:
-- 담당 표(PR 대상, 이미 고침): `docs/convention/milestone.md` 담당 기준 문단 "2026-10-30 조정: 관리자(ADM) 화면·API 전부를 LJS가 맡는다", LJS 화면 칸에 "관리자(ADM)"(백엔드 PR #79와 같은 내용, CMU-005는 그대로). 명령: `git diff docs/convention/milestone.md`가 두 줄만 바뀐다
-- URL(이미 고침): `docs/routes.md` 1장에 관리자 32개 행, "나중" 9번 닫음. 이번에 `routes/paths.js`에 `ADMIN_SETTINGS: '/admin/settings'`만 넣는다(나머지는 각 마일스톤). 명령: `grep ADMIN_SETTINGS src/routes/paths.js`
-- 공통 레이아웃(함께 만드는 것, 설계서 SCR-ADM-001 공통 레이아웃 ①~⑤): `layouts/AdminLayout.jsx`를 상단 바 + 왼쪽 사이드바 + 본문(`<Outlet/>`)으로 바꾼다. ① 로고·"관리자" → `/admin` ② 관리자 닉네임(`useMe` `mbrNcnm`)·[로그아웃](`useLogout`, 성공 뒤 로그인 화면 — `ProfileDropdown`과 같은 처리) ③ 사이드바 메뉴 데이터 `layouts/adminMenus.js`에 IA 1차 12개·2차 메뉴를 화면 ID와 함께 두고, `PATHS`에 경로가 있는 메뉴만 그린다(지금은 대시보드·시스템 > 운영 설정). 현재 경로 메뉴 강조(왼쪽 굵은 선 + 회색 바탕), 1차 묶음 제목은 클릭 없음 ④ 본문 H1. 1100px 이하는 사이드바를 숨기고 상단 바 왼쪽 [≡]로 여는 덮는 서랍. 사용자 헤더·푸터·플로팅 [AI]·바텀 네비 없음. 화면: 관리자로 `/admin`·`/admin/settings`에 사이드바가 보이고 현재 메뉴가 강조된다 / [로그아웃]하면 로그인 화면으로 간다 / 1100px 이하에서 [≡]로 사이드바가 열린다
-- FN-ADM-001-01 관리자 접근 제어(화면은 SCR-ADM-001, 설계서 ⑤): 역할 분기·관리자 로그인 → `/admin`은 이미 있다(`ProtectedRoute allowedRoles`, `getRoleHome`). 이번에 할 것은 관리자 API 403 안내: `pages/admin/`에서 쓰는 작은 컴포넌트로 본문 자리에 "관리자 권한이 없어요"(서버 `message`가 있으면 그 문구)·"관리자 계정으로 다시 로그인해 주세요."·[메인으로]. `AdminHomePage`는 제목만 둔 자리(대시보드 본문은 SCR-ADM-001 마일스톤). 화면: 검증 계정(일반 회원)으로 `/admin`·`/admin/settings`에 가면 `/main`으로 간다 / 가짜 `?fake=forbidden`이면 403 안내가 보인다
-- FN-ADM-110-01 설정 조회(설계서 ①~⑦): `features/setting/api.js`(`getAdminSettings` GET `/api/admin/settings`), `queries.js`(`settingKeys`, `useAdminSettings`), `pages/admin/AdminSettingsPage.jsx`, `features/setting/admin/SettingForm.jsx`. ① 마지막 수정 `mdfcnDt`·`mdfrId`. 묶음 5개: 회원·반려동물(`petMaxCnt`·`jntBrupMaxNope`·`invtnVldDayCnt`·`lgnFailLmtNmtm`·`whdwlMbrKpngDayCnt`), 커뮤니티(`pstImgMaxCnt`·`blindDclrAcmlCnt`·`lostTpofExpryCrtrDayCnt`·`mtchNoRspnsEndCrtrDayCnt`·최저시급·`dscvAutoCmntCn`·`aiCmtryBscCn`), 알림(`notiHideCrtrDayCnt`), AI(`aiCnvrsTurnCnt`·`aiTknUplmtCnt`), 파일(`fileMaxSz`, MB로 보여 주고 바이트로 보냄). `dshbdCareMaxExpsrCnt`는 화면에 두지 않음(2026-10-30 결정). 항목 이름·단위는 설계서 그대로. 키는 `SYS_STNG` 컬럼 camelCase(백엔드 `SystemSetting`과 같음). 가짜 응답으로 먼저 만들고 나중에 연결(가짜는 `features/setting/api.js`, 값은 DDL 기본값). 백엔드 연결: `GET /api/admin/settings` (백엔드 저장소에서 /start). 화면: 묶음 5개 제목 아래 항목·현재 값·단위가 보이고 로딩 중 스켈레톤
-- FN-ADM-110-02 설정 수정(설계서 ⑧): `updateAdminSettings` PUT `/api/admin/settings`(바뀐 항목만 보냄). [되돌리기]·[저장]은 바뀐 값이 있을 때만 켜짐. 성공하면 토스트 "저장했어요"와 조회 캐시 갱신(① 갱신). 실패(400)면 저장하지 않고 해당 항목 아래 오류 문구(서버 `message`), 나머지 입력 유지. [되돌리기]는 불러온 값으로. 허용 범위는 서버가 검사하고, 가짜는 설계서 제안 범위(숫자 1 이상 정수·자릿수 이내, 일수 2자리 항목 99, 최저시급 금액 0 이상, 연도 4자리, 문구 빈칸 불가·1,000자 이내)를 400 `VALIDATION_ERROR`로 거절한다(항목 키를 응답에 담는 모양은 가정 — 백엔드 연결 때 맞춤). 저장하지 않고 나가면 입력 버림(확인 없음). 감사 로그는 서버 몫. 백엔드 연결: `PUT /api/admin/settings` 요청·오류 응답 모양·허용 범위 (백엔드 저장소에서 /start). 화면: 값을 바꿔 저장하면 토스트와 함께 마지막 수정이 바뀌고 다시 들어와도(같은 탭, 가짜 메모리) 바뀐 값이 보인다 / 파일 최대 크기에 0을 넣고 저장하면 그 항목 아래 오류 문구가 뜨고 저장되지 않는다 / [되돌리기]로 입력이 돌아간다
-- FN-ADM-110-03 최저시급 설정(설계서 ④): 커뮤니티 묶음에 `lowstHrwgAplcnYr`(4자리)·`lowstHrwgAmt`(원, `components/AmountInput` 재사용). 화면: 연도·금액을 바꿔 저장하면 반영된다
-- FN-ADM-110-04 AI 대화 설정(설계서 ⑥): AI 묶음의 턴 수·토큰 상한. 화면: 바꿔 저장하면 반영된다
-- 명령: `yarn -s lint`, `yarn -s build`
-
-질문: 없음(관리자의 회원 화면 접근은 다음에 할 것으로, 2026-10-30)
-
-새 의존성: 없음
+SCR-ADM-110 운영 설정 · 관리자 공통 레이아웃 — 끝 (2026-10-30, 검증 `확인 못 함 있음`(회차 1 실패 뒤 수정, 남은 것은 연결뿐)·사람 확인). 기획·완료 조건은 `milestones/LJS.md`와 이 커밋 이력에 있다
 
 ## 다음에 할 것
 
+- SCR-ADM-110 프론트 연결 남음(FN-ADM-110-01~04): 백엔드는 이미 있다(`global/setting/AdminSystemSettingController`, 문서 `docs/api/global.md`). 가짜(`features/setting/api.js`)와 다른 점: 수정이 PUT이 아니라 `PATCH`, 응답이 묶음별 중첩(`memberPet`·`community`·`notification`·`ai`·`file`), `lowstHrwgAplcnYr`가 문자열, 응답에 `dshbdCareMaxExpsrCnt`가 있음(화면에는 두지 않음). 실제 항목별 오류 모양과 허용 범위를 맞춘다
+- SCR-ADM-110 스켈레톤 높이는 계산값이다(`AdminSettingsPage.jsx`, 383·503·143·203·143px). 실제 API 연결 때 1440px·390px로 잰다(`docs/convention/ui.md`)
+- `AdminLayout`의 `AdminLogoutConfirm`은 `ProfileDropdown`의 `LogoutConfirm`과 달리 AI 창·채팅 창을 닫지 않는다(관리자 화면에 여는 버튼이 없음). 이동 대상도 `/login`으로 다르다. 공통화할지 정한다
+- YAY에게 알릴 것(PR 전): 로그인 성공 뒤 이동을 `LoginPage.jsx`에서 바꿨다. 관리자는 `?redirect=`와 상관없이 `/admin`, 이동 전 `/auth/me`를 새로 받는다
+- 공용 하네스: 검증 스킬의 기준 사본 비교 명령이 `scripts/verify-loop.sh:99` 가드에 막혀 검증 에이전트가 비교하지 못한다(2026-10-30, 사람이 직접 실행해 확인). 가드나 스킬을 PR로 고친다
 - 관리자가 회원 화면(`/main` 등 user 레이아웃)에 들어오면 지금은 열린다(2026-10-30 SCR-ADM-110 기획에서 범위 밖으로 넘김). FN-COM-002-02 "역할이 맞지 않는 화면 → 역할별 홈"대로 `AppRoutes.jsx` member 묶음의 `ProtectedRoute`에 회원 역할만 허용할지 정한다(관리자도 회원 화면을 봐야 하는지 사람 결정)
 - 팀에 알릴 것(관리자, PR 전): `docs/routes.md` 1장에 관리자 화면 URL 32개를 넣었다(`/admin/...`, 관리자 화면설계서 v0.1). 담당 표에 관리자(ADM) LJS 추가(백엔드 PR #79와 같음). DMS에 `관리자_화면설계서_v0.1_20261030`(새 문서)·`관리자_기능명세서` v0.2(FN-ADM-050-07 추가, 110 케어 노출 수 제외)를 올렸다. 기능명세서 DMS 설명 문구는 v0.1 그대로(134건·화면설계서 없음)라 DMS 화면에서 고친다(사람)
 - 공통 이미지 연결 남음(2026-10-30): KSJ에게 커뮤니티 사진 주소를 `getPostImageUrl`에서 `@/utils/fileUrl` `publicFileUrl`로 바꿨고(7곳, 주소 같음) `@/components/FileImage`를 쓸 수 있다고 알린다. 문의 첨부 `useInquiryImageUrls`는 object URL 방식 그대로(한 화면 전용·큰 사진). SJM에게 `PetFace`가 받는 동안 스켈레톤을 보여 주고 `fallback`은 실패 때만 나온다고 알린다(`PetProfileCard`). JAJ 영수증 원본(`/receipts/{recptSn}/image`)·SJM 아이템(`/items/{itemSn}/image`)은 `useFileImage` + `FileImage`로 붙인다. 공개·비공개 분류는 가정이고 공동양육자 한정 여부는 SJM 확인 전. 팀 공지 문구는 2026-10-30 세션에서 사용자에게 전달함

@@ -71,4 +71,5 @@ export const PATHS = {
 
   /** admin */
   ADMIN: '/admin',
+  ADMIN_SETTINGS: '/admin/settings',
 };

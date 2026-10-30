@@ -1,3 +1,3 @@
 export default function AdminHomePage() {
-  return <h1 className="p-6 text-2xl font-bold">관리자</h1>;
+  return <h1 className="text-2xl font-bold text-ink">대시보드</h1>;
 }
