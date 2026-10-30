@@ -17,5 +17,4 @@ export const PASSWORD_MESSAGES = {
   confirmMatch: '비밀번호가 일치합니다.',
   saveFailed: '비밀번호를 변경하지 못했습니다. 다시 시도해 주세요.',
   needVerify: '본인확인이 필요합니다. 이메일 인증을 다시 진행해 주세요.',
-  notReady: '준비 중이에요',
 };

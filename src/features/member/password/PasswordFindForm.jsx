@@ -1,5 +1,4 @@
 import { Mail, ShieldCheck } from 'lucide-react';
-import { showToast } from '@/components/toastStore';
 import AuthCard from '../shared/AuthCard';
 import AuthField from '../shared/AuthField';
 import AuthHeading from '../shared/AuthHeading';
@@ -15,6 +14,7 @@ export default function PasswordFindForm({
   onVerified,
   onBackToLogin,
   onGoLogin,
+  onRecover,
 }) {
   const form = usePasswordFind(onVerified);
   const target = form.guideTarget;
@@ -102,7 +102,7 @@ export default function PasswordFindForm({
           {form.notice?.isWithdrawn && (
             <button
               type="button"
-              onClick={() => showToast(MSG.notReady)}
+              onClick={() => onRecover(form.email)}
               className={OUTLINE_BTN}
             >
               재가입 복구 절차
