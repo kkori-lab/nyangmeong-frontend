@@ -8,19 +8,16 @@ import { useNotices } from './queries';
 const LATEST_SIZE = 5;
 
 export default function NoticeDetail({ notice }) {
-  const { data: latest } = useNotices({ page: 1, size: LATEST_SIZE });
-  /** 최신 공지: 고정 공지 제외 */
-  const latestNotices = latest?.content.filter((item) => !item.fixYn);
+  const { data: latest } = useNotices({
+    page: 1,
+    size: LATEST_SIZE,
+    latestYn: true,
+  });
 
   return (
     <div className="flex flex-col gap-4">
       <article className="rounded-[14px] border border-[#e2e7e7] bg-white px-9 pt-8 pb-10 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-8">
-        {notice.fixYn && (
-          <span className="flex h-6 w-[42px] items-center justify-center rounded-xl bg-[#e9f2f2] text-[13px] leading-none font-medium text-[#1e4a4c]">
-            공지
-          </span>
-        )}
-        <h2 className="mt-[10px] text-2xl leading-[1.35] font-bold tracking-[-0.24px] text-[#1a3234] max-[760px]:text-xl">
+        <h2 className="text-2xl leading-[1.35] font-bold tracking-[-0.24px] text-[#1a3234] max-[760px]:text-xl">
           {notice.ntcMttrTtl}
         </h2>
         <div className="mt-4 flex flex-wrap items-center gap-2 border-b border-[#e2e7e7] pb-6">
@@ -32,10 +29,8 @@ export default function NoticeDetail({ notice }) {
           </b>
           <i className="text-sm text-[#b9c4c4] not-italic">·</i>
           <time className="text-sm text-[#667374]">
-            {formatDate(notice.crtDt)}
+            {formatDate(notice.regDt)}
           </time>
-          <i className="text-sm text-[#b9c4c4] not-italic">·</i>
-          <span className="text-sm text-[#667374]">조회 {notice.vwCnt}</span>
         </div>
 
         <PostBody content={notice.ntcMttrCn} />
@@ -56,7 +51,7 @@ export default function NoticeDetail({ notice }) {
           최신 공지
         </h3>
         <ul className="mt-5">
-          {latestNotices?.map((item) => (
+          {latest?.content.map((item) => (
             <li
               key={item.ntcMttrSn}
               className="border-t border-[#e2e7e7] py-[13px] first:border-t-0 first:pt-0 last:pb-0"
@@ -71,7 +66,7 @@ export default function NoticeDetail({ notice }) {
                   {item.ntcMttrTtl}
                 </span>
                 <span className="shrink-0 text-sm text-[#667374]">
-                  {formatDate(item.crtDt)}
+                  {formatDate(item.regDt)}
                 </span>
               </Link>
             </li>
