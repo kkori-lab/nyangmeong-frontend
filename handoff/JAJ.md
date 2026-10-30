@@ -2,10 +2,11 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-003 케어 캘린더 · 결함 정리 (2026-10-26). 390px 날짜 상세 머리 ＋ 버튼, 주소 `#`로 탭 열기, 추가-1~18(달력 88px 칸·모바일 점 달력, 케어리스트 셀렉트를 카드 제목 왼쪽으로, 두 열 줄 높이·처방약 연동 배지 정렬, 모바일 둥근 칸·더보기, 스켈레톤 높이). 검증 통과, 사람 확인 완료
+끝남: SCR-HLT-003 케어 캘린더 · 일정 API 연결 (2026-10-30). 일정 조회·등록·수정·삭제가 실제 `/pets/{petSn}/care-schedules`로 동작, 볼 수 없는 반려동물(PET_NOT_FOUND·PET_ACCESS_DENIED)만 빼고 합침, 서버 입력값 검증 문구를 모달 입력칸 아래 표시, 일정명 최대 40자. 검증 통과(2회차), 사람 확인 완료
 
 ## 다음에 할 것
 
+- 할 일(SCR-HLT-003 반려동물 목록 실제 연결): 백엔드 develop에 SJM `GET /api/pets`(`PetSummary`)가 이미 있다(기획의 "백엔드에 없다"는 잘못 확인한 것). 지금 케어 캘린더는 일정은 DB, 이름은 가짜 `fakePets`(1 나비·2 초코·3 두리)라 DB 이름(1 까미·2 탄이·3 루루)과 다르다. 케어 캘린더만 실제 목록으로 바꾼다: `features/health/api.js` 호출 추가, `queries.js` 별도 키(`['health', 'pets']`는 다른 건강 화면이 가짜 필드로 쓰므로 섞지 않는다), `pages/health/CareCalendarPage.jsx`. 케어리스트 탭도 실제 목록으로 할지(a, 추천)·가짜로 둘지(b, 탭마다 이름이 달라짐)는 아직 정하지 않았다. 건강 일지·종합 건강기록은 다른 담당 작업 뒤에 바꾼다(실제 응답에 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`, 체중 정상범위·목표·캐릭터 상태 없음)
 - 연결 남음(공용 · PetFace 올리기): 캐릭터 얼굴 이미지 실제 응답 `GET /pets/{petSn}/character-image?part=face` (LJS 백엔드, 지금은 502라 기본 아이콘)
 - 연결 남음(공용 · 영수증 사용처 키): 가계부 지출 생성·중복 확인 실제 호출 (SJM, `receiptApi.js` 가짜는 `expndYmd`·`expndAmt`·`dtlMttr: ''`·`expndPlcusNm`). `expsCtgrCd`·`inputMthdCd`는 담당자 답변에 없어 그대로 둠
 - 참고(SCR-HLT-002, 실패 아님): 최근 건강기록 모바일 한 줄 요약은 기록 있는 종류만 잇는다. 390px 그래프 x축 날짜 글자가 붙는다(이전부터). 폭이 정확히 760px이면 `isLarge` 모달이 `max-[760px]`·`min-[761px]` 어느 쪽에도 걸리지 않아 기본 크기로 열린다(이전부터)
