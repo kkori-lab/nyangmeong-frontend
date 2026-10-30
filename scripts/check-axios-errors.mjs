@@ -235,4 +235,119 @@ check(
   ['EXTERNAL_API_ERROR', ''],
 );
 
+/** aiStream(SSE): fetch 가짜 응답. 스트림은 조각 배열, 오류는 JSON 본문 */
+const { aiStream } = await import('../src/api/axios.js');
+let streamReplies = [];
+globalThis.fetch = async (url) => {
+  calls.push(`fetch:${url}`);
+  const reply = streamReplies.shift();
+  if (reply.chunks) {
+    const encoder = new TextEncoder();
+    const body = new ReadableStream({
+      start(controller) {
+        reply.chunks.forEach((chunk) =>
+          controller.enqueue(encoder.encode(chunk)),
+        );
+        controller.close();
+      },
+    });
+    return new Response(body, {
+      headers: { 'content-type': 'text/event-stream' },
+    });
+  }
+  return new Response(JSON.stringify(reply.data), {
+    status: reply.status,
+    headers: { 'content-type': 'application/json' },
+  });
+};
+const runStream = async () => {
+  const events = [];
+  const rejected = await aiStream(
+    '/conversations/1/messages',
+    {},
+    { onEvent: (name, data) => events.push([name, data]) },
+  ).then(
+    () => null,
+    (e) => e,
+  );
+  return { events, rejected };
+};
+
+reset({});
+streamReplies = [
+  {
+    chunks: [
+      'event: intent\ndata: {"kind":"SEARCH"}\n\nevent: del',
+      'ta\ndata: {"text":"안녕"}\n',
+      '\nevent: done\ndata: {"message":null,"shortcut":null}\n\n',
+    ],
+  },
+];
+check('aiStream 이벤트 파싱(블록 중간에서 끊긴 조각)', await runStream(), {
+  events: [
+    ['intent', { kind: 'SEARCH' }],
+    ['delta', { text: '안녕' }],
+    ['done', { message: null, shortcut: null }],
+  ],
+  rejected: null,
+});
+
+reset({ '/auth/refresh': ok(null) });
+streamReplies = [
+  {
+    status: 401,
+    data: errorBody(401, 'TOKEN_EXPIRED', '로그인이 만료되었습니다.'),
+  },
+  { chunks: ['event: done\ndata: {"message":null,"shortcut":null}\n\n'] },
+];
+const refreshed = await runStream();
+check(
+  'aiStream TOKEN_EXPIRED → 재발급 후 재시도 성공',
+  [refreshed.rejected, refreshed.events.length, calls],
+  [
+    null,
+    1,
+    [
+      'fetch:/ai/conversations/1/messages',
+      '/auth/refresh',
+      'fetch:/ai/conversations/1/messages',
+    ],
+  ],
+);
+
+reset({ '/auth/refresh': ok(null) });
+streamReplies = [
+  { status: 401, data: errorBody(401, 'UNAUTHORIZED', '로그인이 필요합니다.') },
+];
+const unauthorized = await runStream();
+check(
+  'aiStream UNAUTHORIZED → 재발급 없이 로그인 이동',
+  [unauthorized.rejected?.code, calls, globalThis.location.href],
+  [
+    'UNAUTHORIZED',
+    ['fetch:/ai/conversations/1/messages'],
+    '/login?redirect=%2Fhealth%3Ftab%3D1',
+  ],
+);
+
+reset({});
+streamReplies = [
+  {
+    status: 400,
+    data: errorBody(400, 'INVALID_REQUEST', '메시지를 입력해 주세요.'),
+  },
+];
+check(
+  'aiStream 400 → 그 코드로 실패·이동 없음',
+  [(await runStream()).rejected, globalThis.location.href],
+  [
+    {
+      code: 'INVALID_REQUEST',
+      message: '메시지를 입력해 주세요.',
+      fields: null,
+    },
+    '',
+  ],
+);
+
 process.exit(failed ? 1 : 0);

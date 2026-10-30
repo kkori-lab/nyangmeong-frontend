@@ -5,7 +5,7 @@ import { toYmd } from '@/utils/formatDate';
 import { useCareMissions } from '../queries';
 import { getPercent } from '../shared/pointFormat';
 
-/** 서버가 주양육 동물의 미션만 주는 것으로 보고 그대로 센다 */
+/** 서버가 주양육 동물의 미션만 주는 것으로 보고 그대로 집계 */
 export default function MissionSummaryCard() {
   const [todayYmd] = useState(() => toYmd(new Date()));
   const { data: missions, isError } = useCareMissions(todayYmd);

@@ -8,6 +8,7 @@ import EmptyResult from '@/components/EmptyResult';
 import SearchInput from '@/components/SearchInput';
 import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import PostBadges from './PostBadges';
 import { POST_BOARDS } from './postCodes';
 
@@ -104,7 +105,7 @@ export default function PostList({
                   pstSn: item.pstSn,
                 })}
                 state={{ listSearch: search }}
-                className={`group grid gap-x-8 gap-y-3.5 rounded-[14px] border border-[#e2e7e7] bg-white px-7 py-6 shadow-[0_1px_2px_rgba(26,50,52,0.06)] transition hover:border-[#cfe2e2] hover:shadow-[0_4px_12px_rgba(26,50,52,0.1)] max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-[18px] ${item.thmbUrlPath ? 'grid-cols-[minmax(0,1fr)_200px]' : 'grid-cols-1'}`}
+                className={`group grid gap-x-8 gap-y-3.5 rounded-[14px] border border-[#e2e7e7] bg-white px-7 py-6 shadow-[0_1px_2px_rgba(26,50,52,0.06)] transition hover:border-[#cfe2e2] hover:shadow-[0_4px_12px_rgba(26,50,52,0.1)] max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-[18px] ${item.thumbAtchFileSn ? 'grid-cols-[minmax(0,1fr)_200px]' : 'grid-cols-1'}`}
               >
                 <div className="min-w-0 max-[760px]:order-2">
                   <PostBadges post={item} showPopular={sort !== 'hot'} />
@@ -112,18 +113,18 @@ export default function PostList({
                     {item.pstTtl}
                   </h3>
                   <p
-                    className={`mt-2.5 line-clamp-2 text-base leading-[1.6] text-[#3d4a4b] max-[760px]:text-sm ${item.thmbUrlPath ? 'min-h-[3.2em]' : ''}`}
+                    className={`mt-2.5 line-clamp-2 text-base leading-[1.6] text-[#3d4a4b] max-[760px]:text-sm ${item.thumbAtchFileSn ? 'min-h-[3.2em]' : ''}`}
                   >
                     {item.pstCn}
                   </p>
                 </div>
-                {item.thmbUrlPath && (
+                {item.thumbAtchFileSn && (
                   <span
                     aria-hidden="true"
                     className="relative col-start-2 row-span-2 row-start-1 min-h-[124px] self-stretch overflow-hidden rounded-[10px] bg-[#f4f6f6] max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
                   >
                     <img
-                      src={item.thmbUrlPath}
+                      src={publicFileUrl(item.thumbAtchFileSn)}
                       alt=""
                       loading="lazy"
                       className="absolute inset-0 size-full object-cover"
@@ -139,7 +140,7 @@ export default function PostList({
                       <User size={14} />
                     </span>
                     <span className="truncate font-medium text-[#3d4a4b]">
-                      {item.wrtrNcknm}
+                      {item.mbrNcnm}
                     </span>
                     <i className="text-[#b9c4c4] not-italic">·</i>
                     <time className="shrink-0">

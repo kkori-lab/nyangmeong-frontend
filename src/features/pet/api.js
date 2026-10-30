@@ -466,7 +466,7 @@ export const getShopItems = () => fakeDelay(SHOP_ITEMS);
 
 /**
  * 아이템 구매 POST /pets/{petSn}/character/items (LJS, itemSn 목록)
- * - 산 아이템은 그 캐릭터의 보관함으로 들어간다. 포인트 차감은 서버 일이라 가짜는 잔액을 줄이지 않는다
+ * - 산 아이템은 그 캐릭터의 보관함으로 이동. 포인트 차감은 서버 일이라 가짜는 잔액을 줄이지 않음
  */
 export const purchaseCharacterItems = ({ petSn, itemSns }) => {
   const owned = fakeItems[petSn] ?? defaultItems();
@@ -563,7 +563,7 @@ const todayYmd = () => {
 const isExpired = (invitation, invtSttsCd) =>
   invtSttsCd === INVT_STTS.WAIT && invitation.expryDt < todayYmd();
 
-/** 초대 상태는 동물별(sent: pets[].invtSttsCd), 받은 초대는 초대 전체 상태도 함께 둔다 */
+/** 초대 상태는 동물별(sent: pets[].invtSttsCd), 받은 초대는 초대 전체 상태도 함께 보관 */
 const withExpiry = (invitation) => ({
   ...invitation,
   ...(invitation.invtSttsCd && {

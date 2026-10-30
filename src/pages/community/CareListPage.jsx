@@ -39,7 +39,7 @@ export default function CareListPage() {
   const from = pickDate(searchParams.get('from'));
   const to = pickDate(searchParams.get('to'));
   const pet = pick(searchParams.get('pet'), PET_FILTERS);
-  /** 고양이는 반려견 크기를 고를 수 없다 */
+  /** 고양이는 반려견 크기를 선택 불가 */
   const size =
     pet === 'cat' ? '' : pick(searchParams.get('size'), SIZE_FILTERS);
   const filters = { stts, mine, region, dong, from, to, pet, size };

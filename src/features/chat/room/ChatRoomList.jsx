@@ -1,7 +1,7 @@
 /**
  * [채팅 목록]
  * - 전체·내 글·지원한 글 탭, 안 읽음만, 글별 보기 (FN-COM-009-05~08, FN-CMU-005-02)
- * - 방을 열어도 마운트를 유지해 탭·체크·스크롤 위치를 지킨다
+ * - 방을 열어도 마운트를 유지해 탭·체크·스크롤 위치 보존
  */
 import { useEffect, useRef, useState } from 'react';
 import CountBadge from '@/components/CountBadge';

@@ -9,41 +9,58 @@ import aiCharacter from '@/assets/ai-character.png';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { openInMainWindow } from './openInMainWindow';
+import {
+  CARD_TYPE,
+  CARE_CYCLE_NAMES,
+  CARE_ZONE_NAMES,
+  CHECKUP_TYPE_NAMES,
+  HOSPITAL_KIND,
+  PERIODIC_ZONE,
+  SCHEDULE_KIND_NAMES,
+} from '../shared/registerCodes';
 
 const EMPTY_MARK = '—';
-const REPEAT_LABELS = {
-  DAILY: '매일 (일상관리)',
-  CYCLE: '주기 (정기관리)',
-};
 
 const buttonClass =
   'h-8 w-[54px] rounded-md text-base font-semibold disabled:cursor-not-allowed disabled:border-0 disabled:bg-[#ebf0f0] disabled:text-[#b9c4c4]';
 
+/** 주기: 직접입력은 n일마다 */
+const cycleLabel = (card) =>
+  CARE_CYCLE_NAMES[card.careCycleCd] ?? `${card.cycleDays}일마다`;
+
 /** 카드 종류별 표시 칸 */
 const buildRows = (card) => {
-  if (card.cardTypeCd === 'CARE') {
+  if (card.cardType === CARD_TYPE.CARE_ITEM) {
     return [
       ['반려동물', card.petNm],
       ['항목명', card.careArtclNm],
-      ['반복 유형', REPEAT_LABELS[card.careRpttTypeCd]],
-      ...(card.careCycleNm ? [['주기', card.careCycleNm]] : []),
-      ['마지막으로 한 날', formatDate(card.careLastYmd)],
-      ['다음 예정일', formatDate(card.careNextYmd)],
+      ['반복 유형', CARE_ZONE_NAMES[card.careZoneCd]],
+      ...(card.careZoneCd === PERIODIC_ZONE
+        ? [['주기', cycleLabel(card)]]
+        : []),
+      [
+        '마지막으로 한 날',
+        card.lastCmptnYmd ? formatDate(card.lastCmptnYmd) : '등록일',
+      ],
+      [
+        '다음 예정일',
+        card.nxtmPrnmntYmd ? formatDate(card.nxtmPrnmntYmd) : EMPTY_MARK,
+      ],
     ];
   }
-  const isHospital = card.schdlKndNm === '병원';
+  const isHospital = card.schdlKndCd === HOSPITAL_KIND;
   return [
     ['반려동물', card.petNm],
-    ['종류', card.schdlKndNm],
+    ['종류', SCHEDULE_KIND_NAMES[card.schdlKndCd]],
     ...(isHospital
       ? [
-          ['검진유형', card.schdlCkupTypeCd],
-          ['병원명', card.schdlHsptlNm],
+          ['검진유형', CHECKUP_TYPE_NAMES[card.ckupTypeCd]],
+          ['병원명', card.hsptlNm],
         ]
       : [['일정명', card.schdlNm]]),
     ['날짜', formatDate(card.schdlYmd, { weekday: true })],
     ['시간', card.schdlTm ?? EMPTY_MARK],
-    ['메모', card.schdlMemo ?? EMPTY_MARK],
+    ['메모', card.memoCn ?? EMPTY_MARK],
   ];
 };
 
@@ -63,7 +80,7 @@ export default function RegisterCard({
   onConfirm,
   onCancel,
 }) {
-  const isCare = card.cardTypeCd === 'CARE';
+  const isCare = card.cardType === CARD_TYPE.CARE_ITEM;
   const HeaderIcon = isCare ? ListChecks : CalendarDays;
   const isEnabled = isActive && status === 'pending' && !isBusy;
   const isRegistered = status === 'registered';
@@ -99,11 +116,8 @@ export default function RegisterCard({
           ))}
         </dl>
 
-        {isCare && card.isDuplicate && status === 'pending' && (
-          <p className="mt-3 text-[15px] text-[#3d4a4b]">
-            {card.petNm}에게 '{card.careArtclNm}' 항목이 이미 있어요. 그래도
-            새로 등록할까요?
-          </p>
+        {isCare && card.duplicateName && status === 'pending' && (
+          <p className="mt-3 text-[15px] text-[#3d4a4b]">{card.notice}</p>
         )}
 
         {status !== 'cancelled' && (

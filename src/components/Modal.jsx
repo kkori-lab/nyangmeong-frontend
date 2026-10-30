@@ -9,8 +9,8 @@ import { useEffect, useId, useRef } from 'react';
  * isCloseIconHidden: 제목 줄 오른쪽 위 ✕를 숨긴다. 배경 클릭·ESC 닫기는 그대로
  * isSheet: 760px 이하에서만 아래에서 올라오는 시트(손잡이 막대 포함), 그 위 폭은 가운데 모달 그대로
  * isWide: 가로 688px(본문 640px) 입력 모달. 제목 줄 위아래 8px, 푸터 버튼은 내용 너비로 오른쪽 정렬
- * isTop: 가운데 대신 화면 위에서 80px 떨어져 고정. 내용 높이가 바뀌어도(검색 결과 등) 위치가 움직이지 않는다.
- *        dialog를 화면 전체 투명 스크롤 영역으로 두고 흰 판을 그 안에 놓아, 길어지면 모달 안이 아니라 화면 전체가 스크롤된다
+ * isTop: 가운데 대신 화면 위에서 80px 떨어져 고정. 내용 높이가 바뀌어도(검색 결과 등) 위치가 고정.
+ *        dialog를 화면 전체 투명 스크롤 영역으로 두고 흰 판을 그 안에 놓아, 길어지면 모달 안이 아니라 화면 전체 스크롤
  */
 export default function Modal({
   title,
@@ -42,7 +42,7 @@ export default function Modal({
     if (!isPending) onClose();
   };
 
-  /** 배경(backdrop) 클릭 판별. isTop은 dialog의 스크롤바를 잡는 것도 dialog 클릭이라 그 영역은 뺀다 */
+  /** 배경(backdrop) 클릭 판별. isTop은 dialog의 스크롤바를 잡는 것도 dialog 클릭이라 그 영역은 제외 */
   const handleMouseDown = (event) => {
     if (event.target !== event.currentTarget || isPending) return;
     const dialog = event.currentTarget;

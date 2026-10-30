@@ -28,7 +28,7 @@ export default function PasswordChangeCard({ isEditing, onEdit, onClose }) {
   );
 }
 
-/** 펼쳐졌을 때만 그려진다. 닫히면 입력이 함께 사라진다 */
+/** 펼쳐졌을 때만 렌더. 닫히면 입력이 함께 사라짐 */
 function PasswordEdit({ onClose }) {
   const curId = useId();
   const newId = useId();

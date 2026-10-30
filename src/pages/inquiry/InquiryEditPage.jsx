@@ -7,28 +7,36 @@ import {
 } from 'react-router-dom';
 import PageSkeleton from '@/components/PageSkeleton';
 import SkeletonCard from '@/components/SkeletonCard';
+import { isAnswered } from '@/features/inquiry/api';
 import InquiryForm from '@/features/inquiry/InquiryForm';
-import { useInquiry, useUpdateInquiry } from '@/features/inquiry/queries';
+import {
+  useInquiry,
+  useInquiryTypes,
+  useUpdateInquiry,
+} from '@/features/inquiry/queries';
 import { PATHS } from '@/routes/paths';
 
 export default function InquiryEditPage() {
   const navigate = useNavigate();
   const otoInqrySn = Number(useParams().otoInqrySn);
-  const { data: inquiry, isPending, isError } = useInquiry(otoInqrySn);
+  const inquiryQuery = useInquiry(otoInqrySn);
+  const types = useInquiryTypes();
+  const { data: inquiry } = inquiryQuery;
   const update = useUpdateInquiry();
+  const loadError = inquiryQuery.error ?? types.error;
   const detailPath = generatePath(PATHS.INQUIRY_DETAIL, { otoInqrySn });
 
-  if (isPending) {
+  if (inquiryQuery.isPending || types.isPending) {
     return (
       <PageSkeleton>
         <SkeletonCard className="h-[986px]" />
       </PageSkeleton>
     );
   }
-  if (isError) {
+  if (loadError) {
     return (
       <div role="alert" className="text-[#566465]">
-        <p>문의를 찾지 못했어요</p>
+        <p>{loadError.message}</p>
         <Link
           to={PATHS.INQUIRIES}
           className="mt-3 inline-block font-medium underline"
@@ -40,7 +48,7 @@ export default function InquiryEditPage() {
   }
 
   /** 답변이 등록된 문의는 수정할 수 없다: 상세로 */
-  if (inquiry.ansCn) return <Navigate to={detailPath} replace />;
+  if (isAnswered(inquiry)) return <Navigate to={detailPath} replace />;
 
   const handleSubmit = (values) =>
     update.mutate(
@@ -52,12 +60,12 @@ export default function InquiryEditPage() {
     <InquiryForm
       key={otoInqrySn}
       mode="edit"
+      types={types.data}
       initial={inquiry}
       cancelTo={detailPath}
       isPending={update.isPending}
-      errorMessage={
-        update.isError && '문의를 저장하지 못했어요. 잠시 뒤 다시 시도해 주세요'
-      }
+      errorMessage={update.error?.message}
+      fieldErrors={update.error?.fields}
       onSubmit={handleSubmit}
     />
   );

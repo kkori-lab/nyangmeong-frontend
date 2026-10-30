@@ -7,14 +7,19 @@ import ConfirmModal from '@/components/ConfirmModal';
 import DropdownSelect from '@/components/DropdownSelect';
 import ImageAttach from '@/components/ImageAttach';
 import { PATHS } from '@/routes/paths';
-import { INQUIRY_TYPES } from './api';
+import { useInquiryImageUrls } from './queries';
 
 const TITLE_MAX = 50;
 const BODY_MAX = 2000;
-const TYPE_OPTIONS = INQUIRY_TYPES.map((name) => ({
-  value: name,
-  label: name,
-}));
+
+/** 서버가 준 첨부 [{ atchFileSn, sortSeq, orgnlFileNm }]를 ImageAttach 항목으로: 이미지 주소는 렌더 시 채움 */
+const toAttachItems = (imgs = []) =>
+  imgs.map(({ atchFileSn, orgnlFileNm }, index) => ({
+    id: `file-${atchFileSn}`,
+    atchFileSn,
+    name: orgnlFileNm || `첨부 이미지 ${index + 1}`,
+    url: null,
+  }));
 
 const INPUT_CLASS =
   'block w-full rounded-md border bg-white px-3 text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-2 focus:ring-[#285a5c]/20';
@@ -32,32 +37,43 @@ function FieldError({ message }) {
 /**
  * 문의 작성·수정 공용 폼
  * - 입력한 것이 있으면(처음 값과 다르면) 목록·취소로 나갈 때 확인 모달, 새로고침·닫기는 브라우저 확인창
- * - 고객센터 사이드 메뉴 이동은 틀의 onLeave가 이 확인으로 넘긴다. 앱이 BrowserRouter라 헤더(GNB) 링크 이동은 막지 못한다
+ * - 고객센터 사이드 메뉴 이동은 틀의 onLeave가 이 확인으로 연결. 앱이 BrowserRouter라 헤더(GNB) 링크 이동은 차단 불가
+ * - initial: { inqryTypeCd, inqryTtl, inqryCn, imgs }. 수정은 서버 상세 응답을 그대로 전달
+ * - types: 문의 유형 공통코드 [{ comCd, comCdNm }]
+ * - errorMessage·fieldErrors: 서버 오류의 message와 입력값 검증 오류 fields([{ field, message }])
+ * - onSubmit({ inqryTypeCd, inqryTtl, inqryCn, images(새 File들), keepAtchFileSns(남길 기존 첨부) })
  */
 export default function InquiryForm({
   initial,
+  types,
   mode,
   cancelTo,
   isPending,
   errorMessage,
+  fieldErrors,
   onSubmit,
 }) {
   const navigate = useNavigate();
   const { leaveRef } = useOutletContext() ?? {};
-  const [type, setType] = useState(initial.inqryTyNm);
+  const [type, setType] = useState(initial.inqryTypeCd);
   const [title, setTitle] = useState(initial.inqryTtl);
   const [body, setBody] = useState(initial.inqryCn);
-  const [images, setImages] = useState(initial.atchFiles);
+  const [initialImages] = useState(() => toAttachItems(initial.imgs));
+  const [images, setImages] = useState(initialImages);
+  const existingUrls = useInquiryImageUrls(
+    initial.otoInqrySn,
+    initial.imgs ?? [],
+  );
   const [errors, setErrors] = useState({});
   const [leaveTo, setLeaveTo] = useState(null);
 
   const isEdit = mode === 'edit';
   const isDirty =
-    type !== initial.inqryTyNm ||
+    type !== initial.inqryTypeCd ||
     title !== initial.inqryTtl ||
     body !== initial.inqryCn ||
-    images.length !== initial.atchFiles.length ||
-    images.some((image, i) => image.id !== initial.atchFiles[i]?.id);
+    images.length !== initialImages.length ||
+    images.some((image, i) => image.id !== initialImages[i]?.id);
 
   useEffect(() => {
     if (!isDirty) return undefined;
@@ -66,13 +82,13 @@ export default function InquiryForm({
     return () => window.removeEventListener('beforeunload', warn);
   }, [isDirty]);
 
-  /** 목록으로·취소: 고친 것이 있으면 먼저 묻는다 */
+  /** 목록으로·취소: 고친 것이 있으면 먼저 확인 */
   const handleLeave = (target) => {
     if (isDirty) setLeaveTo(target);
     else navigate(target);
   };
 
-  /** 고객센터 틀의 사이드 메뉴·머리 이동도 같은 확인을 거치게 건다 */
+  /** 고객센터 틀의 사이드 메뉴·머리 이동도 같은 확인을 거치도록 설정 */
   useEffect(() => {
     if (!leaveRef) return undefined;
     leaveRef.current = handleLeave;
@@ -90,12 +106,22 @@ export default function InquiryForm({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0 || isPending) return;
     onSubmit({
-      inqryTyNm: type,
+      inqryTypeCd: type,
       inqryTtl: title.trim(),
       inqryCn: body.trim(),
-      atchFiles: images,
+      images: images.filter((image) => image.file).map((image) => image.file),
+      keepAtchFileSns: images
+        .filter((image) => !image.file)
+        .map((image) => image.atchFileSn),
     });
   };
+
+  const typeOptions = types.map(({ comCd, comCdNm }) => ({
+    value: comCd,
+    label: comCdNm,
+  }));
+  const serverFieldError = (field) =>
+    fieldErrors?.find((item) => item.field === field)?.message;
 
   const clearError = (name) => setErrors((prev) => ({ ...prev, [name]: '' }));
 
@@ -142,14 +168,16 @@ export default function InquiryForm({
             label="문의 유형"
             placeholder="선택해 주세요"
             value={type}
-            options={TYPE_OPTIONS}
+            options={typeOptions}
             onChange={(value) => {
               setType(value);
               clearError('type');
             }}
             className="max-w-[320px] max-[760px]:max-w-none"
           />
-          <FieldError message={errors.type} />
+          <FieldError
+            message={errors.type || serverFieldError('inqryTypeCd')}
+          />
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -188,7 +216,7 @@ export default function InquiryForm({
             }}
             className={`${INPUT_CLASS} min-h-10 resize-none overflow-hidden py-[7px] leading-6 max-[760px]:min-h-11 max-[760px]:py-[9px] ${errors.title ? 'border-[#b4473a]' : 'border-[#d3dae2]'}`}
           />
-          <FieldError message={errors.title} />
+          <FieldError message={errors.title || serverFieldError('inqryTtl')} />
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -218,7 +246,7 @@ export default function InquiryForm({
             className={`${INPUT_CLASS} max-h-[600px] min-h-[300px] resize-y py-3 leading-[1.7] max-[760px]:min-h-[240px] ${errors.body ? 'border-[#b4473a]' : 'border-[#d3dae2]'}`}
           />
           <div className="flex items-start justify-between gap-3">
-            <FieldError message={errors.body} />
+            <FieldError message={errors.body || serverFieldError('inqryCn')} />
             <span className="ml-auto shrink-0 text-sm text-[#667374]">
               {body.length.toLocaleString()} / {BODY_MAX.toLocaleString()}
             </span>
@@ -226,7 +254,11 @@ export default function InquiryForm({
         </div>
 
         <ImageAttach
-          images={images}
+          images={images.map((image) =>
+            image.atchFileSn
+              ? { ...image, url: existingUrls[image.atchFileSn] ?? null }
+              : image,
+          )}
           onChange={setImages}
           hint="화면 캡처를 함께 올려 주시면 확인이 빨라요."
         />

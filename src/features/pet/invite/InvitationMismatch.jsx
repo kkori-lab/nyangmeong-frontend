@@ -6,7 +6,7 @@ import { PATHS } from '@/routes/paths';
 /**
  * [초대 이메일 불일치 안내]
  * - 로그인한 계정의 이메일이 초대받은 이메일과 다를 때 수락 화면 대신 보인다 (FN-MYP-005-09)
- * - [초대받은 계정으로 로그인]: 로그아웃과 이동은 상위(pages)가 onLogin으로 넘긴다
+ * - [초대받은 계정으로 로그인]: 로그아웃과 이동은 상위(pages)가 onLogin으로 전달
  * - 앱(≤760px)은 두 버튼을 세로로 쌓고 로그인 버튼이 위
  */
 export default function InvitationMismatch({

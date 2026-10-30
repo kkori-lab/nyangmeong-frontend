@@ -33,7 +33,7 @@ export const SIGNUP_MESSAGES = {
   notReady: '준비 중이에요',
 };
 
-/** 약관 동의 항목. 만 14세 확인은 별도 전문이 없어 내용보기가 없다. 약관 전문은 연결 전이라 내용보기는 준비 중 안내만 한다 */
+/** 약관 동의 항목. 만 14세 확인은 별도 전문이 없어 내용보기 없음. 약관 전문은 연결 전이라 내용보기는 준비 중 안내만 표시 */
 export const SIGNUP_TERMS = [
   { key: 'service', label: '서비스 이용약관', required: true, hasView: true },
   {

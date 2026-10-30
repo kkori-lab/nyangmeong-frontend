@@ -17,7 +17,7 @@ export default function PostBadges({ post, showPopular = true }) {
       {name && (
         <span className={`${BADGE_CLASS} ${BOARD_TONES[name]}`}>{name}</span>
       )}
-      {showPopular && post.popYn === 'Y' && (
+      {showPopular && post.popular && (
         <span className={`${BADGE_CLASS} bg-[#fde8ea] text-[#c0394b]`}>
           <Flame size={13} aria-hidden="true" />
           인기

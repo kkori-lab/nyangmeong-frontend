@@ -11,7 +11,7 @@ export const NOTI_TYPE = {
   INQRY_ANSWR: 'AIMC0030',
 };
 
-/** 알림 행의 [유형] 라벨 (서버는 라벨을 주지 않는다) */
+/** 알림 행의 [유형] 라벨 (서버는 라벨 미제공) */
 export const NOTI_TYPE_LABEL = {
   [NOTI_TYPE.CARE_SCHDL]: '케어 일정',
   [NOTI_TYPE.MTCH_DLNG]: '펫돌봄',

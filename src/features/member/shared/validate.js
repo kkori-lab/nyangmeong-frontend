@@ -1,4 +1,4 @@
-/** 입력 중에는 한글 자모(ㄱ, ㅏ)도 허용한다. 조합 중인 글자를 지우면 한글을 칠 수 없다 */
+/** 입력 중에는 한글 자모(ㄱ, ㅏ)도 허용. 조합 중인 글자를 지우면 한글을 칠 수 없음 */
 const NICKNAME_TYPING_EXCLUDE = /[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]/g;
 const NICKNAME_COMPLETE = /^[가-힣a-zA-Z0-9]+$/;
 const PHONE_TYPING_EXCLUDE = /[^\d+\-\s]/g;

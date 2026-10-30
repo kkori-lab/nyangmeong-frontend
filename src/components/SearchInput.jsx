@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react';
 
-/** 검색창: 입력값은 부모가 들고, 제출할 때만 onSubmit을 부른다 */
+/** 검색창: 입력값은 부모 보관, 제출할 때만 onSubmit 호출 */
 export default function SearchInput({
   value,
   onChange,

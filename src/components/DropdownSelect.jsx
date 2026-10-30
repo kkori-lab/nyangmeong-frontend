@@ -6,9 +6,9 @@ const LIST_MAX_HEIGHT = 256;
 
 /**
  * 목록을 직접 그리는 셀렉트 (디자인의 custom select)
- * - options: [{ value, label }], 고르지 않았을 때는 placeholder를 보여 준다
- * - isPill: 알약형 버튼에 종합 건강기록 히어로와 같은 색(초록 바탕·흰 글자). 목록은 버튼보다 좁아지지 않고 긴 이름만큼 넓어진다
- * - 키보드: ↑↓ 이동, Enter·Space 선택, Esc·Tab 닫기. 아래 공간이 모자라면 위로 연다
+ * - options: [{ value, label }], 고르지 않았을 때는 placeholder 표시
+ * - isPill: 알약형 버튼에 종합 건강기록 히어로와 같은 색(초록 바탕·흰 글자). 목록은 버튼보다 좁아지지 않고 긴 이름만큼 넓어짐
+ * - 키보드: ↑↓ 이동, Enter·Space 선택, Esc·Tab 닫기. 아래 공간이 모자라면 위로 열림
  */
 export default function DropdownSelect({
   value,
@@ -48,7 +48,7 @@ export default function DropdownSelect({
     buttonRef.current.focus();
   };
 
-  /** 바깥을 누르면 닫는다 */
+  /** 바깥을 누르면 닫힘 */
   useEffect(() => {
     if (!isOpen) return undefined;
     const handleMouseDown = (event) => {

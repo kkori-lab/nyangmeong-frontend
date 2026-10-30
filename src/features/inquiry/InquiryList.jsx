@@ -5,7 +5,7 @@ import { BTN_PRIMARY } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
-import { INQUIRY_STATUS } from './api';
+import { INQUIRY_STATUS, isAnswered } from './api';
 import InquiryStatusBadge from './InquiryStatusBadge';
 
 const STATUS_TABS = ['', INQUIRY_STATUS.OPEN, INQUIRY_STATUS.DONE];
@@ -75,16 +75,16 @@ export default function InquiryList({
                   className="group grid min-h-16 grid-cols-[168px_minmax(0,1fr)_112px_128px] items-center px-10 hover:bg-[#f4f6f6] max-[760px]:min-h-0 max-[760px]:grid-cols-[minmax(0,1fr)_auto] max-[760px]:gap-x-3 max-[760px]:gap-y-2 max-[760px]:px-[18px] max-[760px]:py-4"
                 >
                   <span className="min-w-0 truncate pr-4 text-base text-[#3d4a4b] max-[760px]:order-1 max-[760px]:pr-0">
-                    {inquiry.inqryTyNm}
+                    {inquiry.inqryTypeCdNm}
                   </span>
                   <span className="min-w-0 truncate pr-6 pl-4 text-base leading-[1.3] font-medium text-[#1a3234] group-hover:text-[#1e4a4c] max-[760px]:order-3 max-[760px]:col-span-2 max-[760px]:line-clamp-2 max-[760px]:p-0 max-[760px]:whitespace-normal">
                     {inquiry.inqryTtl}
                   </span>
                   <span className="text-center max-[760px]:order-2 max-[760px]:text-right">
-                    <InquiryStatusBadge isAnswered={Boolean(inquiry.ansCn)} />
+                    <InquiryStatusBadge isAnswered={isAnswered(inquiry)} />
                   </span>
                   <time className="text-center text-sm text-[#667374] tabular-nums max-[760px]:order-4 max-[760px]:col-span-2 max-[760px]:-mt-1 max-[760px]:text-left">
-                    {formatDate(inquiry.crtDt)}
+                    {formatDate(inquiry.regDt)}
                   </time>
                 </Link>
               </li>
@@ -93,7 +93,7 @@ export default function InquiryList({
         </div>
       )}
 
-      {/** 새 문의 작성: 상태 필터 결과와 관계없이 항상 보인다 */}
+      {/** 새 문의 작성: 상태 필터 결과와 관계없이 항상 표시 */}
       <div className="mt-5 flex justify-end max-[760px]:mt-5">
         <Link
           to={PATHS.INQUIRY_NEW}

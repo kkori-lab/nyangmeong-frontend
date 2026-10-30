@@ -327,7 +327,7 @@ export const analyzeLabPdf = async ({ ckupRcdSn, atchSn }) => {
 
 /** 검사 결과 */
 
-/** 혈액검사 여러 건 저장(수동 추가 1건 또는 PDF 분석 결과). 서버가 한 번에 처리한다고 보고 전체 성공·실패로 다룬다 */
+/** 혈액검사 여러 건 저장(수동 추가 1건 또는 PDF 분석 결과). 서버가 한 번에 처리한다고 보고 전체 성공·실패로 처리 */
 export const createInspections = async ({ ckupRcdSn, items }) => {
   const store = getStore(ckupRcdSn);
   const created = items.map((item) => ({ inspSn: nextInspSn++, ...item }));

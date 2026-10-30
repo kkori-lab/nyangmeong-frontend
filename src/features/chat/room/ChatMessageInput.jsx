@@ -2,7 +2,7 @@
  * [채팅 입력]
  * - 사진 첨부·주소 공유·메시지 입력·전송 한 줄 (FN-COM-009-19, FN-CMU-005-04·05)
  * - Enter 전송·Shift+Enter 줄바꿈(한글 조합 중에는 보내지 않음), 공백 전송 금지
- * - 전송이 실패하면 입력을 그대로 두고 같은 요청 ID로 다시 보낸다
+ * - 전송이 실패하면 입력 유지 후 같은 요청 ID로 재전송
  */
 import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/Icon';

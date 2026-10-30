@@ -5,9 +5,7 @@ import {
   STATUS_TABS,
   PET_FILTERS,
   PERIOD_FILTERS,
-  REGION_OPTIONS,
-  hasDong,
-  DONG_BY_REGION,
+  WTNS_PRD_BY_PERIOD,
 } from '@/features/community/missingCodes';
 import { useMissingList } from '@/features/community/missingQueries';
 import MissingList from '@/features/community/missing/MissingList';
@@ -26,16 +24,19 @@ export default function MissingListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
   const stts = pick(searchParams.get('stts'), STATUS_TABS);
-  const region = pick(searchParams.get('rgn'), REGION_OPTIONS);
-  const dongParam = searchParams.get('dong') ?? '';
+  /** 지역은 지역 번호(rgnSn). 숫자가 아니면 전체 */
+  const region = /^\d+$/.test(searchParams.get('rgn') ?? '')
+    ? searchParams.get('rgn')
+    : '';
   const dong =
-    hasDong(region) && DONG_BY_REGION[region].includes(dongParam)
-      ? dongParam
+    region && /^\d+$/.test(searchParams.get('dong') ?? '')
+      ? searchParams.get('dong')
       : '';
   const pet = pick(searchParams.get('pet'), PET_FILTERS);
   const period = pick(searchParams.get('period'), PERIOD_FILTERS);
   const keyword = searchParams.get('q') ?? '';
-  const filters = { stts, region, dong, pet, period, keyword };
+  const mine = searchParams.get('mine') === '1';
+  const filters = { stts, mine, region, dong, pet, period, keyword };
 
   const {
     data: posts,
@@ -45,11 +46,11 @@ export default function MissingListPage() {
     page,
     size: PAGE_SIZE,
     lostTpofSttsCd: STTS_BY_TAB[stts] ?? '',
-    sggNm: region,
-    emdNm: dong,
+    rgnSn: dong || region,
     petSeCd: PET_SE_BY_FILTER[pet] ?? '',
-    period,
+    wtnsPrd: WTNS_PRD_BY_PERIOD[period] ?? '',
     keyword,
+    mineYn: mine,
   });
 
   /** 빈 값은 URL에 남기지 않는다. 조건이 바뀌면 첫 쪽부터 */
@@ -59,6 +60,7 @@ export default function MissingListPage() {
       Object.fromEntries(
         Object.entries({
           stts: merged.stts,
+          mine: merged.mine ? '1' : '',
           rgn: merged.region,
           dong: merged.dong,
           pet: merged.pet,
