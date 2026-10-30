@@ -192,26 +192,23 @@ export default function RecoveryForm({
 }) {
   const form = useRecovery(email, { onCancel });
 
-  // 완료 화면은 폼 칸 전체 높이를 써서 체크 표시를 가운데, 버튼을 맨 아래에 둔다
   if (form.step === 'complete') {
     return (
-      <section className="flex w-full flex-1 flex-col">
-        <StepMotion stepKey="complete-head" direction={form.direction}>
+      <AuthCard>
+        <StepMotion stepKey="complete" direction={form.direction}>
           <AuthHeading title={MSG.done} subtitle={MSG.doneHelp} />
-        </StepMotion>
-        <div className="grid flex-1 place-items-center py-10">
-          <StepMotion stepKey="complete-mark" direction={form.direction}>
-            <div className="grid size-16 place-items-center rounded-full bg-tone-green-bg text-tone-green-fg">
-              <Check className="size-8" />
-            </div>
-          </StepMotion>
-        </div>
-        <StepMotion stepKey="complete-action" direction={form.direction}>
-          <button type="button" onClick={onGoLogin} className={PRIMARY_BTN}>
+          <div className="mx-auto grid size-16 place-items-center rounded-full bg-tone-green-bg text-tone-green-fg">
+            <Check className="size-8" />
+          </div>
+          <button
+            type="button"
+            onClick={onGoLogin}
+            className={`${PRIMARY_BTN} mt-8`}
+          >
             로그인 방법 선택으로
           </button>
         </StepMotion>
-      </section>
+      </AuthCard>
     );
   }
 

@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-ACC-001 재가입 복구 · 화면과 복구 API 연결 — 끝남 (승인 2026-10-30, 검증 통과(재시작 1회차, 이전 루프는 탈퇴 보관 계정·인증번호 로그가 없어 2회 실패 뒤 버림), 사람 확인 2026-10-30, PR #116). FN-ACC-001-40~48. 비밀번호 찾기 탈퇴 알림의 "재가입 복구 절차" → `/signup` 복구 본인확인(`USRC0012`) → 복구 확인(`recovery-info`, 빠진 약관·`GET /terms/{trmsSn}` 레이어, 기존 번호 유지 또는 입력·중복확인) → 복구 → 완료 → `/login`. 복구 권한 토큰은 훅 state에만. 결정: `Auth*` 디자인, 진입은 비밀번호 찾기(가입 409는 코드만), 실제 `missingTrms` 사용(레이어는 `recovery/RecoveryTermsModal.jsx` 새로). 추가-1: 완료 화면 체크 가운데·버튼 아래. 확인 환경: 백엔드 로그 `../nyangmeong-backend/backend.log`(UTF-16)의 `[Mail]` 줄. 보관 번호가 없는 계정의 번호 입력칸은 코드로만 확인
+SCR-ACC-001 재가입 복구 · 화면과 복구 API 연결 — 끝남 (승인 2026-10-30, 검증 통과(재시작 1회차, 이전 루프는 탈퇴 보관 계정·인증번호 로그가 없어 2회 실패 뒤 버림), 사람 확인 2026-10-30, PR #116). FN-ACC-001-40~48. 비밀번호 찾기 탈퇴 알림의 "재가입 복구 절차" → `/signup` 복구 본인확인(`USRC0012`) → 복구 확인(`recovery-info`, 빠진 약관·`GET /terms/{trmsSn}` 레이어, 기존 번호 유지 또는 입력·중복확인) → 복구 → 완료 → `/login`. 복구 권한 토큰은 훅 state에만. 결정: `Auth*` 디자인, 진입은 비밀번호 찾기(가입 409는 코드만), 실제 `missingTrms` 사용(레이어는 `recovery/RecoveryTermsModal.jsx` 새로). 추가-1: 완료 화면 체크 가운데·버튼 아래. 추가-2(요청 2026-10-30 "본인확인과 완료 화면의 배치가 달라 완료 화면을 원래대로"): 추가-1을 되돌려 다른 단계처럼 제목 아래에 체크·버튼을 이어 둔다(`features/member/recovery/RecoveryForm.jsx`, 명령: lint·build, 화면: 완료 화면이 사람 확인 때의 첫 배치와 같다). 확인 환경: 백엔드 로그 `../nyangmeong-backend/backend.log`(UTF-16)의 `[Mail]` 줄. 보관 번호가 없는 계정의 번호 입력칸은 코드로만 확인
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
