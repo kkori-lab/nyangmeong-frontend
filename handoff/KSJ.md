@@ -2,15 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-CMU-002 실종센터 · API 연결 (2026-10-30) — 상태: 끝 (검증 `확인 못 함 있음`(내 것 없음, 연결 남음만), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-10-30)
+SCR-CSC-001 공지사항 · API 연결 (2026-10-30) — 상태: 끝 (검증 `통과`(1회차 실패는 검증 브라우저 미로그인), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-10-30)
 
-- 바꾼 것: `missingApi.js` 가짜를 `/lost-reports`·`/breeds`·`/regions` 호출로(댓글·좋아요·신고는 펫이야기 `./api` 재사용), 화면 키를 서버 키로(`mbrNcnm`·`thumbAtchFileSn`·`imgs`·`liked`·`owner`·`rgnNm`), 상태 `CMUC0006·0007·0008`, 지역 필터는 `/regions` 전북 아래, 남은 일수는 `expryCrtrDt`로 계산(`missingUtils.js`)
-- 추가 요청: 추가-1 실종 「내 글만 보기」(`mineYn`), 추가-2 펫돌봄 「내 글만 보기」를 필터 맨 아래 줄로, 추가-3 만료 「기간 만료」 배지와 작성자 상세 [삭제]만, 추가-4 카드 「내 글」 배지(`owner`)
-- 결정: 레일은 레일 API 없이 목록 API로(실종 4·찾았어요 2). 글 삭제는 목록·레일만 무효화. 「전북 밖 장소 서버 문구」 조건은 장소 찾기가 전북만 보여 「고를 수 없다」로 바꿈(사람 결정, 루프를 버리고 다시 기획). 펫돌봄 필터용 지역 상수는 `missingCodes.js`에 남김
-- 확인 방법: 백엔드(8080, KSJ d3aeaca 이상) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`
+- 바꾼 것: `features/notice/api.js` 가짜를 `GET /notices`(`page`·`size`·`keyword`·`latestYn`)·`GET /notices/{ntcMttrSn}`로, 화면 키 `fixYn`→`upendFixYn`·`crtDt`→`regDt`, 최신 공지 5건은 `latestYn: true`
+- 결정: 상세 응답에 고정 여부·조회수가 없어 상세의 「공지」 배지와 「조회 N」을 뺐다(사람 결정)
+- 추가 요청: 추가-1·2 공용 `PostBody` 아래 80px 여백 삭제(모든 상세), 추가-3 공지 검색 결과 없음을 FAQ와 같은 모양으로
+- 확인 방법: 백엔드(8080) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`
 
 ## 다음에 할 것
 
+- 커뮤니티 작성자 프로필 사진(사람 요청 2026-10-30): 지금은 닉네임 왼쪽이 모두 기본 아이콘. 백엔드 저장소에서 /start로 커뮤니티(펫이야기·실종센터·펫돌봄) 목록·상세·댓글 응답에 작성자 `MBR.ATCH_FILE_SN`을 넣고(공개 파일 주소로 줄지도 정함) → 이 저장소에서 /start로 `components/`에 공용 아바타(사진 없으면 지금 아이콘)를 만들어 `PostList`·`PostDetail`·`MissingDetail`·`CommentSection`·`StoryRail`에 적용. 시드 회원 1은 사진 있음(`ATCH_FILE_SN` 25), 회원 2·3은 없음. 회원 프로필 사진 등록 API보다 먼저 해도 된다
 - 시드 이미지 묶음이 시드 SQL(`db/seed/20261028_seed_data.sql`, 백엔드)과 다른 생성본이다. 게시글 사진 3481~3529가 없고(번호가 49씩 밀림), 채팅·펫돌봄·1:1 문의·뉴스 시드 사진도 빠지거나 어긋난다. LJS에게 같은 생성본을 `public/seed/...` 구조로 받아 백엔드 `uploads/seed`·`uploads/public/seed`를 바꾼다(지금 `uploads/public/seed`의 `post`·`character`는 임시 복사본)
 - 실종센터 검증 때 만든 데이터(실종 글 110~114와 첨부 4219~4247, 글 57·21·9 신고, 112 종료일 연장)는 DB에서 아직 안 지웠으면 직접 지운다(사람)
 - 펫이야기 검증·확인 때 만든 데이터(글 1001~1006과 그 댓글·신고·좋아요·첨부)는 DB에서 아직 안 지웠으면 직접 지운다(사람, 업로드 파일은 지움)
@@ -33,10 +34,10 @@ SCR-CMU-002 실종센터 · API 연결 (2026-10-30) — 상태: 끝 (검증 `확
 - 고객센터(`CustomerCenterLayout`, KSJ)도 `SubPageLayout`(`section="support"`)으로 옮긴다(LJS 핸드오프). 옮기면 `SideMenu`의 `menuLabel` 호환과 `/dev/sub-page`를 지운다
 - SCR-CSC-003 사람이 고치는 문서: 기능명세서 FN-CSC-003-13의 「[문의 수정] 비활성」을 「버튼 숨김 + 안내 문구」로, 화면설계서 SCR-CSC-003-03 ③의 같은 문구
 - SCR-CSC-002 연결 남음: FAQ API(KSJ 백엔드)로 가짜(`features/faq/api.js`) 교체, 응답 키(`faqSn`·`faqClsfNm`·`qstnCn`·`ansCn`)와 분류 값 확인, 로그인 연결 후 `ProtectedRoute`로 감싸기
-- SCR-CSC-001 연결 남음: 공지 API(KSJ 백엔드)로 가짜 교체(제목·내용 `keyword` 검색, 고정 공지가 쪽 크기에 들어가는지, 응답 키 확인), 본문 이미지 표시(응답 모양을 본 뒤), 로그인 연결 후 `ProtectedRoute`로 감싸기
+- SCR-CSC-001 연결 남음: FN-CSC-001-05 본문 이미지 표시(ERD에 공지 첨부 테이블이 없음, 사람이 정할 것)
 - 375px 페이지 가로 스크롤은 공용 푸터가 원인(`UserFooter.jsx`, LJS). develop의 LJS 반응형 작업이 들어오면 다시 본다(FN 추가-4 연결 남음). 푸터 일러스트와 내용 사이 여백도 LJS가 푸터 공통 레이아웃에서 정하고, 그 전까지 고객센터 화면은 내용이 띠에 붙어 보인다
-- 사람이 고치는 문서: 기능명세서 FN-CSC-001-03 「공지 제목 검색」→ 제목·내용 검색, FN-CSC-001-01 「제목·작성일만 노출」→ 번호 포함, 화면설계서 SCR-CSC-001-01 ② 검색 문구
-- 본문 영역은 `components/PostBody`(최소 200px은 사진과 글을 합친 영역 기준 + 아래 80px 여백)로 맞춘다. 펫이야기·공지·펫뉴스·실종센터·펫돌봄은 적용됨. 남음: 1:1 문의 상세(CSC-003, 사람이 적용 예정). 「‹ 목록으로」와 구분선은 `PostBody` 안에 없고 각 상세가 둔다
+- 사람이 고치는 문서: 기능명세서 FN-CSC-001-03 「공지 제목 검색」→ 제목·내용 검색, FN-CSC-001-01 「제목·작성일만 노출」→ 번호 포함, 화면설계서 SCR-CSC-001-01 ② 검색 문구. FN-CSC-001-05 「작성자·작성일·조회수」에서 조회수 삭제(상세에 조회수를 보이지 않기로 함, 2026-10-30)
+- 본문 영역은 `components/PostBody`(최소 200px은 사진과 글을 합친 영역 기준, 아래 여백 없음 2026-10-30)로 맞춘다. 펫이야기·공지·펫뉴스·실종센터·펫돌봄은 적용됨. 남음: 1:1 문의 상세(CSC-003, 사람이 적용 예정). 「‹ 목록으로」와 구분선은 `PostBody` 안에 없고 각 상세가 둔다
 - 마일스톤 순서: CMU-001 → CMU-002(끝) → CMU-004(끝) (`milestones/KSJ.md`). COM-009·CMU-005 화면은 2026-10-21 LJS로 이관(채팅 API는 KSJ). 고객센터 겉틀(`CustomerCenterLayout`)의 메뉴·헤더는 FAQ·1:1 문의가 같이 쓴다. 부제는 그 화면 Figma 문구를 `MENUS`에 넣는다
 - (2026-10-21 화면은 LJS로 이관, 채팅 API는 KSJ. 목록·대화·읽음·소켓 이벤트의 요청·응답 모양을 LJS와 먼저 맞춘다) SCR-COM-009 연결 남음(LJS 핸드오프에서 넘어옴): `ChatModalPlaceholder.jsx`를 실제 셸로 교체하고 `ChatModal.jsx`의 DEV 조건 제거, 헤더 안 읽은 수 배지(002-11), 004-09 펫돌봄 알림이 채팅방을 열게 하는 방 식별자(`otoChatRoomSn`, YAY), 마지막에 본 방을 새로고침 뒤에도 기억할지
 - 다른 PC에서 이어 갈 때: `.env.local`에 `DMS_MCP_URL`·`FIGMA_FILE_URL`을 디스코드 최신 파일로 채운다(`FIGMA_TOKEN`은 비어도 됨). `.cache/`는 git 제외라 화면설계서는 `/start`가 DMS에서 다시 받고 Figma PNG는 노드를 Figma MCP로 다시 받는다
