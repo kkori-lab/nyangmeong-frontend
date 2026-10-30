@@ -1,10 +1,11 @@
-import { aiApi, aiStream } from '@/api/axios';
+import { aiApi, aiStream, api } from '@/api/axios';
 import { IS_DEV } from '@/api/env';
 
 /**
  * 대화 생성·목록·상세·삭제와 메시지 전송(판정·답변 SSE)은 Python AI 서버(/ai/conversations, ai 저장소 docs/api/chat.md)
  * 일정 등록 카드는 messages(draft·done.card)·register-result로 AI 서버, 일정·케어 항목 저장(Java, JAJ)은 아직 없어 가짜
  * 영수증 분석은 AI 서버 /ai/receipts(docs/api/ocr.md), 대화창 결과 이력은 receipt-result
+ * 본창이 다시 여는 인식 결과는 Spring /api/receipts/{recptSn}
  * 펫 태그: 반려동물 목록(pet, SJM) 연결 전이라 서버에는 petSn을 보내지 않고 목록도 petSn 없이 조회
  */
 
@@ -206,30 +207,9 @@ export const saveReceiptResult = async ({
   return { aiCnvrsRoomSn: roomSn, messages };
 };
 
-/** 본창에 넘길 분석 결과: 서버에 영수증 번호로 다시 조회하는 API가 없어 두 창이 같이 보는 localStorage로 전달 */
-const chatReceiptKey = (recptSn) => `chatReceipt:${recptSn}`;
-
-/** [확인 후 저장] 전에 대화창이 받은 { recptSn, petSn, ocr } 보관 */
-export const keepChatReceiptResult = (result) => {
-  try {
-    localStorage.setItem(chatReceiptKey(result.recptSn), JSON.stringify(result));
-  } catch {
-    /** 저장소를 못 쓰면 본창 조회 실패로 처리 */
-  }
-};
-
 /**
- * 대화창에서 분석한 영수증 인식 결과 (본창 건강 일지 결과 확인 모달용)
- * 검진 영수증 분석 응답과 같은 { recptSn, petSn, ocr }, 한 번 읽으면 삭제
+ * 대화창에서 분석한 영수증 인식 결과 (GET /api/receipts/{recptSn}?petSn=, Spring)
+ * 본창 건강 일지 결과 확인 모달용 { recptSn, petSn, ocrPrcsSttsCd, failRsn, ocr }
  */
-export const getChatReceiptResult = async (recptSn) => {
-  let saved = null;
-  try {
-    saved = localStorage.getItem(chatReceiptKey(recptSn));
-    localStorage.removeItem(chatReceiptKey(recptSn));
-  } catch {
-    saved = null;
-  }
-  if (!saved) throw new Error('not found');
-  return JSON.parse(saved);
-};
+export const getChatReceiptResult = ({ recptSn, petSn }) =>
+  api.get(`/receipts/${recptSn}`, { params: { petSn } });

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { keepChatReceiptResult } from '../api';
 import { useAnalyzeChatReceipt, useSaveReceiptResult } from '../queries';
 import {
   SERVER_ANALYZE_GUARD_MS,
@@ -156,9 +155,6 @@ export default function useChatReceipt({ onSaved }) {
   /** 결과 카드 [취소]: 저장 없이 '취소됨' 표시 */
   const dismiss = () => update(receipt.id, { status: 'dismissed' });
 
-  /** [확인 후 저장]: 본창 결과 확인 모달이 읽을 분석 결과 보관 */
-  const keepResult = () => keepChatReceiptResult(receipt.result);
-
   const reset = () => {
     clearTimeout(timerRef.current);
     idRef.current += 1;
@@ -174,7 +170,6 @@ export default function useChatReceipt({ onSaved }) {
     choosePet,
     cancel,
     dismiss,
-    keepResult,
     reset,
   };
 }

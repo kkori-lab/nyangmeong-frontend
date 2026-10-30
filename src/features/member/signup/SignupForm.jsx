@@ -40,8 +40,8 @@ const STEPS = {
 
 // 이메일 가입(약관 → 이메일 인증 → 휴대전화번호 → 비밀번호). 가입은 마지막 단계에서만 일어나고,
 // 성공하면 닉네임 설정 모달이 열린 가입 완료 화면으로 간다. 가입만으로 로그인하지 않는다
-export default function SignupForm({ onBackToLogin, onGoLogin }) {
-  const form = useSignup({ onBackToLogin });
+export default function SignupForm({ onBackToLogin, onGoLogin, onRecover }) {
+  const form = useSignup({ onBackToLogin, onRecover });
 
   if (form.step === 'complete') {
     return (

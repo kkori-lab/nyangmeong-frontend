@@ -295,11 +295,14 @@
 - 완료 조건 결과: 검증 `통과`(2026-10-29, 추가-1 포함 재검증), 사람 확인 2026-10-29
 - 연결 남음: FN-AIM-013-06·08·09 (Java 영수증 저장·인식 결과 조회 API, LJS 백엔드), 013-03 (반려동물 목록 API, SJM)
 
-## SCR-AIM-013 영수증 인식 결과 조회 API 연결 — 대기
-- 기능: (연결 작업, 명세 기능 ID 추가 없음) FN-AIM-013-06 [확인 후 저장] 본창 전달을 `localStorage`에서 Java 결과 조회 API로, 013-09 다시 연 대화의 결과 카드 다시 불러오기(미결, 함께 검토)
-- 기다리는 것: 백엔드 ① Python → Java 영수증 내부 저장 API ② React → Java 결과 조회 API(`{ recptSn, petSn, ocr }`, LJS 백엔드 — 2026-10-29 흐름 확정, 아직 없음)
-- 완료 조건: [확인 후 저장] → 본창 결과 확인 모달이 조회 API 응답으로 열리고 `localStorage`를 쓰지 않는다 / 남의·없는 영수증(404)일 때 정한 안내가 나온다
-- 연결 남음: 없음(시작 전)
+## SCR-AIM-013 대화창 · 영수증 분석 · 결과 조회 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-AIM-013-06 확인 후 저장(본창 "인식 결과 확인" 모달)
+- 기다리는 것: 백엔드 SCR-AIM-013 Python 중심 작업(끝, 2026-10-29), 모달 열기 파라미터(`recptSn`·`petSn`을 건강 일지에 넘기는 방식, JAJ 협의)
+- 완료 조건: `getChatReceiptResult`가 `GET /api/receipts/{recptSn}?petSn=`의 `{recptSn, petSn, ocrPrcsSttsCd, failRsn, ocr}`로 모달을 연다. 일시 오류는 `failRsn`으로 문구를 고르고, `ocr`이 null이면 결과 없음으로 처리한다
+- API(정본 백엔드 `docs/api/receipt.md` ReceiptResultResponse, backend-36 2026-10-29): `failRsn`은 일시 오류 `AIMC0005`일 때만 `TIMEOUT`·`API_ERROR`, `ocr`은 `AIMC0002`·`AIMC0003`·`AIMC0007`일 때만(모양은 `/ai/receipts` 응답 `ocr`과 같음). 남의·없는 영수증 404 `RECEIPT_NOT_FOUND`, 양육하지 않는 `petSn` 403 `PET_ACCESS_DENIED`, 올린 회원 본인만(공동양육자 불가)
+- 결정: 본창 쿼리는 `?recptSn=&petSn=`(JAJ에 알림), 저장 완료(`AIMC0007`)도 `ocr`이 있으면 모달을 연다(2026-10-30)
+- 완료 조건 결과: 검증 `통과`(2026-10-30, 1회차, 가짜 응답), 사람 확인 2026-10-30. ai 894ccb6과 붙인 실제 흐름도 확인(실제 recptSn으로 모달이 응답 값으로 열림)
+- 연결 남음: FN-AIM-013-06 (대화창 반려동물 목록 API로 실제 `petSn` 넘기기, SJM), FN-AIM-013-09 (다시 연 대화의 결과 카드, 명세 미결)
 
 ## 공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 대기
 - 기능: (연결 작업, 명세 기능 ID 추가 없음) 공개 이미지는 `/api/files/public/{atchFileSn}` 주소로 바로 보여 주고, 비공개 이미지는 도메인 API(`/api/receipts/{recptSn}/image`·`/api/pets/{petSn}/character-image`·`/api/items/{itemSn}/image`)를 `api.get(..., { responseType: 'blob' })`로 받아 보여 주는 공통 코드를 `components/`·`hooks/`에 만든다. 화면 담당(KSJ 게시글·SJM 캐릭터 등)이 가져다 쓴다

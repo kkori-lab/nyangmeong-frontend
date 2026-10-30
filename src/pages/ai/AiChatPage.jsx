@@ -57,8 +57,8 @@ const isReceiptSaved = (receipt, message) =>
   message.aiCnvrsMsgSn <= receipt.savedUntilSn;
 
 /** 본창 건강 일지 결과 확인 모달: 파라미터 이름은 건강기록(JAJ)과 협의 전 제안값 */
-const receiptResultPath = (recptSn) =>
-  `${PATHS.HEALTH_DIARY}?recptSn=${recptSn}`;
+const receiptResultPath = ({ recptSn, petSn }) =>
+  `${PATHS.HEALTH_DIARY}?${new URLSearchParams({ recptSn, petSn })}`;
 /** 본창 건강 일지 검진기록 탭 + 검진기록 등록 모달 빈 폼 */
 const manualCheckupPath = (recptSn) => {
   const params = new URLSearchParams({ checkup: 'manual' });
@@ -462,12 +462,9 @@ export default function AiChatPage() {
                   pets={pets}
                   onChoosePet={receipt.choosePet}
                   onCancel={receipt.cancel}
-                  onConfirm={() => {
-                    receipt.keepResult();
-                    openInMainWindow(
-                      receiptResultPath(receipt.receipt.result.recptSn),
-                    );
-                  }}
+                  onConfirm={() =>
+                    openInMainWindow(receiptResultPath(receipt.receipt.result))
+                  }
                   onDismiss={receipt.dismiss}
                   onRetry={handleRetryReceipt}
                   onManualInput={() =>
