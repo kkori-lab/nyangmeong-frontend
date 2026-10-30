@@ -379,6 +379,7 @@ export default function AiChatPage() {
         {conversation && (
           <ConversationHeader
             conversation={conversation}
+            pets={pets}
             onOpenDrawer={openDrawer}
             onNewChat={handleNewChat}
             onDeleted={() => {
