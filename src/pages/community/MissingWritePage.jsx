@@ -11,7 +11,7 @@ import { PATHS } from '@/routes/paths';
 
 export default function MissingWritePage() {
   const navigate = useNavigate();
-  const { mutate, isPending, isError } = useCreateMissing();
+  const { mutate, isPending, isError, error } = useCreateMissing();
   const { setDirty, onLeave, leaveModal } = useLeaveGuard();
   const [createdSn, setCreatedSn] = useState(null);
 
@@ -37,9 +37,7 @@ export default function MissingWritePage() {
         initial={EMPTY_FORM}
         cancelTo={PATHS.COMMUNITY_MISSING}
         isPending={isPending}
-        errorMessage={
-          isError && '게시글을 등록하지 못했어요. 잠시 뒤 다시 시도해 주세요'
-        }
+        errorMessage={isError && error.message}
         onSubmit={handleSubmit}
         onLeave={onLeave}
         onDirtyChange={setDirty}

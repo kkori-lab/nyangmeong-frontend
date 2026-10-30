@@ -97,7 +97,7 @@ const snapshot = (values) =>
 /**
  * 실종 글쓰기·글수정 공용 폼
  * - 고친 것이 있으면(처음 값과 다르면) onDirtyChange(true). 나갈 때 확인은 부모(페이지)가 한다: onLeave(to)
- * - 실종 지역은 입력받지 않는다: 고른 장소의 시·군·구와 동에서 정해진다(서버는 좌표를 역지오코딩)
+ * - 실종 지역은 입력받지 않는다: 서버가 목격 좌표로 계산(전북 밖이면 서버가 등록 거절)
  */
 export default function MissingForm({
   initial,
@@ -193,25 +193,25 @@ export default function MissingForm({
       return;
     }
     if (isPending) return;
-    const { breed, place } = values;
+    const { breed, place, images } = values;
     onSubmit({
       petSeCd: values.petSeCd,
       petNm: values.petNm.trim(),
-      vrtyNm: breed.vrtyNm,
+      vrtySn: breeds.find((row) => row.vrtyNm === breed.vrtyNm)?.vrtySn ?? null,
       vrtyDrctInptNm: breed.vrtyDrctInptNm?.trim() ?? null,
       colrNm: values.colrNm.trim(),
       chrcCn: values.chrcCn.trim(),
-      lastWtnsDt: `${values.seenDate} ${values.seenTime}:00`,
+      lastWtnsDt: `${values.seenDate}T${values.seenTime}:00`,
       wtnsPlcNm: place.wtnsPlcNm,
-      wtnsPlcAddr: place.wtnsPlcAddr,
       wtnsPlcLat: place.wtnsPlcLat,
       wtnsPlcLot: place.wtnsPlcLot,
-      sggNm: place.sggNm,
-      emdNm: place.emdNm,
       pstTtl: values.title.trim(),
       pstCn: values.body.trim(),
       cnpl: values.cnpl,
-      atchFiles: values.images,
+      images: images.filter((image) => image.file).map((image) => image.file),
+      keepAtchFileSns: images
+        .filter((image) => !image.file)
+        .map((image) => image.atchFileSn),
     });
   };
 
@@ -316,7 +316,7 @@ export default function MissingForm({
             <BreedCombobox
               key={values.petSeCd}
               label={`${values.petSeCd === PET_SE.CAT ? '고양이' : '강아지'} 품종`}
-              breeds={breeds}
+              breeds={breeds.map((row) => row.vrtyNm)}
               value={values.breed}
               error={errors.breed}
               onChange={(breed) => set({ breed }, ['breed'])}
@@ -424,7 +424,7 @@ export default function MissingForm({
                     />
                     실종 지역{' '}
                     <b className="font-bold text-ink">
-                      전북 {values.place.sggNm}
+                      {values.place.rgnNm ?? `전북 ${values.place.sggNm}`}
                     </b>
                     <span className="text-subtle">· 목록 필터에 쓰여요</span>
                   </p>

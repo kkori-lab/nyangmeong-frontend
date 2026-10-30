@@ -1,11 +1,12 @@
 import { CalendarDays, MapPin, MessageCircle, PartyPopper } from 'lucide-react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDate } from '@/utils/formatDate';
-import { EXTEND_BEFORE_DAYS, isFound } from '../missingCodes';
+import { EXTEND_BEFORE_DAYS, isExpired, isFound } from '../missingCodes';
 import CheckList from './CheckList';
 import {
   formatArea,
   formatSeenAtShort,
+  getRemainDays,
   MISSING_COMMENT_INPUT_ID,
 } from './missingUtils';
 
@@ -70,7 +71,10 @@ export function VisitorSide({ post }) {
               aria-hidden="true"
               className="shrink-0 text-subtle"
             />
-            {formatArea(post)} {post.wtnsPlcNm}
+            {/* 장소 이름이 지역으로 시작하면(「전주시 근린공원」) 지역을 다시 붙이지 않음 */}
+            {post.wtnsPlcNm?.startsWith(formatArea(post))
+              ? post.wtnsPlcNm
+              : `${formatArea(post)} ${post.wtnsPlcNm}`}
           </li>
         </ul>
         <button
@@ -96,7 +100,9 @@ export function VisitorSide({ post }) {
  */
 export function OwnerSide({ post, onFound, onExtend }) {
   const found = isFound(post);
-  const canExtend = !found && post.rmndDayCnt <= EXTEND_BEFORE_DAYS;
+  const expired = isExpired(post);
+  const remainDays = found || expired ? null : getRemainDays(post);
+  const canExtend = remainDays !== null && remainDays <= EXTEND_BEFORE_DAYS;
 
   return (
     <>
@@ -116,12 +122,19 @@ export function OwnerSide({ post, onFound, onExtend }) {
               관심 가져 주셔서 감사해요
             </p>
           </div>
+        ) : expired ? (
+          <div className="flex flex-col items-center gap-1.5 py-2 text-center font-semibold">
+            게시 기간이 끝났어요
+            <p className="text-sm font-normal text-ink-2">
+              다른 사용자에게는 이 글이 보이지 않아요
+            </p>
+          </div>
         ) : (
           <>
             <p className="text-sm text-muted">{post.petNm}를 찾으셨나요?</p>
             <p className="mt-2 text-sm text-muted">
               게시 종료 {formatDate(post.expryCrtrDt)} ·{' '}
-              <b className="font-bold text-warn">{post.rmndDayCnt}일 남음</b>
+              <b className="font-bold text-warn">{remainDays}일 남음</b>
             </p>
             <button
               type="button"
