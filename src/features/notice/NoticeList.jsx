@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react';
+import { SearchX } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link } from 'react-router-dom';
 import BoardPagination from '@/components/BoardPagination';
@@ -38,15 +38,16 @@ export default function NoticeList({
 
       {content.length === 0 ? (
         <EmptyResult
+          icon={keyword && <SearchX size={32} aria-hidden="true" />}
           title={keyword ? '검색한 공지가 없어요' : '등록된 공지가 없어요'}
+          description={keyword && '검색어를 바꿔 보세요'}
         >
           {keyword && (
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex cursor-pointer items-center gap-1.5 text-base leading-normal font-medium text-[#566465] hover:underline"
+              className="inline-flex h-9 cursor-pointer items-center rounded-md border border-[#e2e7e7] bg-white px-3 text-base font-semibold text-[#1a3234] hover:border-[#b9c4c4] hover:bg-[#f4f6f6]"
             >
-              <ChevronLeft size={14} />
               전체 공지 보기
             </button>
           )}
@@ -67,12 +68,12 @@ export default function NoticeList({
                   to={generatePath(PATHS.NOTICE_DETAIL, {
                     ntcMttrSn: notice.ntcMttrSn,
                   })}
-                  className={`flex h-full items-center hover:bg-[#f1f7f7] max-[760px]:flex-wrap max-[760px]:gap-x-3 max-[760px]:gap-y-1.5 max-[760px]:px-4 max-[760px]:py-3 ${notice.fixYn ? 'bg-[#e9f2f2] hover:bg-[#e9f2f2]' : ''}`}
+                  className={`flex h-full items-center hover:bg-[#f1f7f7] max-[760px]:flex-wrap max-[760px]:gap-x-3 max-[760px]:gap-y-1.5 max-[760px]:px-4 max-[760px]:py-3 ${notice.upendFixYn ? 'bg-[#e9f2f2] hover:bg-[#e9f2f2]' : ''}`}
                 >
                   <span
-                    className={`flex w-[104px] shrink-0 justify-center pl-4 text-sm text-[#667374] max-[760px]:order-2 max-[760px]:w-auto max-[760px]:pl-0 ${notice.fixYn ? '' : 'max-[760px]:hidden'}`}
+                    className={`flex w-[104px] shrink-0 justify-center pl-4 text-sm text-[#667374] max-[760px]:order-2 max-[760px]:w-auto max-[760px]:pl-0 ${notice.upendFixYn ? '' : 'max-[760px]:hidden'}`}
                   >
-                    {notice.fixYn ? (
+                    {notice.upendFixYn ? (
                       <span className="flex h-6 w-[42px] items-center justify-center rounded-xl bg-[#285a5c] text-[13px] leading-none font-medium text-white">
                         공지
                       </span>
@@ -84,7 +85,7 @@ export default function NoticeList({
                     {notice.ntcMttrTtl}
                   </span>
                   <span className="w-[100px] shrink-0 text-center text-sm text-[#667374] max-[760px]:order-3 max-[760px]:w-auto">
-                    {formatDate(notice.crtDt)}
+                    {formatDate(notice.regDt)}
                   </span>
                   <span className="w-9 shrink-0 max-[760px]:hidden" />
                 </Link>
