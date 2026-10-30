@@ -7,7 +7,6 @@ SCR-AIM-013 대화창 영수증 분석 결과 조회 API 연결 — 끝(2026-10-
 ## 다음에 할 것
 
 - SCR-AIM-013 연결 남음: 대화창 반려동물이 아직 `fakePets`라 본창에 넘기는 `petSn`이 실제 반려동물과 다를 수 있다(2026-10-30 확인 때 `petSn=1`이 대화창 "초코", 본창 "나비"). 반려동물 목록 API(SJM)가 붙으면 맞춰진다. 다시 연 대화에서 결과 카드 다시 불러오기는 명세 FN-AIM-013-09 미결
-- SCR-AIM-013 PR 전: ai 저장소 894ccb6(영수증 원본·상태를 Java 내부 API로 저장)이 develop에 들어가야 [확인 후 저장]이 실제로 동작한다. 그 전에는 Python 가짜 번호가 Java DB의 다른 영수증과 겹쳐 엉뚱한 결과가 뜬다
 - SCR-AIM-013 병합 순서: ai 저장소 SCR-AIM-013(`receipt-result`·`AIMC0031`, 작업 사본 커밋 전)·백엔드 공통코드 AIMC0031 PR과 같은 때 병합한다. 공통코드는 알림 코드가 그대로라 `notiTabs.js` `INQRY_ANSWR`='AIMC0030' 유지
 - SCR-AIM-013 사람이 볼 것(검증 판정 밖): 클라이언트 안전망은 20초(`SERVER_ANALYZE_GUARD_MS`, 기획 문구는 15초 — 서버 504가 15초라 동작 같음). 시간 초과·일시 오류, 결과 카드 [취소] 무저장, 할인 0 "없음"·결제 금액 없음 총금액 —은 코드로만 확인. 총금액은 결제 금액 + 할인 합계로 만든 값이라 영수증 할인이 하단·구역 할인으로 안 잡히면 실제 총액과 다를 수 있다
 - 전달(SCR-AIM-008, PR 전): JAJ에게 "건강 일지 영수증 결과 확인 모달(`features/health/diary/Receipt*`·`receiptUtils.js`)이 이제 AI 서버 분석 응답 `{ recptSn, petSn, ocr: { hsptlNm, ckupYmd, recptAmt, btmDscntAmt, sections:[{ sectionNm, sbttlAmt, dscntAmt, items:[{ itemNm, itemAmt }], drugs:[{ mdcnNm, mdcnDays, mdcnUsage, mdcnAmt }] }] } }`를 그대로 읽어요. `receiptApi.js` `getReceiptDetail`·`useReceiptDetail`·`healthKeys.receiptDetail`과 `?fakeReceipt=`는 지웠고, `saveReceiptCheckups` 인자는 `recptSn`이에요. 검진 종류는 응답에 없어 회원이 골라요". ai-23에게 "프론트 연결 끝(검진 영수증·결과 확인 모달). 실제 청구서 확인함. 아조딜 `mdcnUsage`가 null로 와서 1일 횟수 칸이 비어요(회원 입력)"
