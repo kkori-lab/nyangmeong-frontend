@@ -49,3 +49,17 @@ export const FAILURE = {
     noteStyle: 'border-warn-line bg-warn-soft text-warn',
   },
 };
+
+/** Java 영수증 상태(AIMG01) 인식 실패 */
+const RECEIPT_NOT_RECOGNIZED = 'AIMC0004';
+
+/** 본창에서 다시 연 결과를 받지 못했거나 보여 줄 상태가 아닐 때 */
+export const CHAT_RECEIPT_LOAD_ERROR = '영수증 분석 결과를 불러오지 못했어요';
+
+/** 본창에서 다시 연 결과(GET /api/receipts/{recptSn})에 ocr이 없을 때 안내 */
+export const getChatReceiptFailure = ({ ocrPrcsSttsCd, failRsn }) => {
+  if (failRsn === 'TIMEOUT') return FAILURE.timeout.title;
+  if (failRsn === 'API_ERROR') return FAILURE.error.title;
+  if (ocrPrcsSttsCd === RECEIPT_NOT_RECOGNIZED) return FAILURE.empty.title;
+  return CHAT_RECEIPT_LOAD_ERROR;
+};
