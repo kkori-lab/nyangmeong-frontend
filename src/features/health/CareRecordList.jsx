@@ -6,10 +6,11 @@ const PAGE_SIZE = 10;
 
 // 기록 내용(FN-HLT-003-12). 토탈 케어리스트 카드 안에 놓는다. 아이콘을 누르면 그날 완료 기록이 취소되고, 마우스를 올리면 아이콘이 ✕로 바뀐다
 // 날짜 10줄씩 페이지로 나눠 보여 준다. 기록을 취소해 줄어들면 마지막 페이지로 당겨 온다
-export default function CareRecordList({ records, onCancel }) {
+// regularSns: 정기관리 항목 번호(완료 기록 응답에 구역이 없어 R 표시에 쓴다)
+export default function CareRecordList({ records, regularSns, onCancel }) {
   const [page, setPage] = useState(1);
   const todayYmd = getTodayYmd();
-  const dates = [...new Set(records.map((record) => record.careYmd))]
+  const dates = [...new Set(records.map((record) => record.cmptnYmd))]
     .sort()
     .reverse();
   const pageCount = Math.max(1, Math.ceil(dates.length / PAGE_SIZE));
@@ -25,9 +26,7 @@ export default function CareRecordList({ records, onCancel }) {
     <div className="mt-8">
       <div className="mb-2 flex items-baseline gap-3 border-b-2 border-[#b9c4c4] pb-2">
         <h3 className="text-lg font-semibold text-[#1a3234]">기록 내용</h3>
-        <span className="text-[#667374]">
-          일상관리·정기관리 완료 기록 통합
-        </span>
+        <span className="text-[#667374]">일상관리·정기관리 완료 기록 통합</span>
       </div>
       {dates.length === 0 ? (
         <div className="rounded-[10px] border border-dashed border-[#b9c4c4]">
@@ -57,25 +56,25 @@ export default function CareRecordList({ records, onCancel }) {
               </span>
               <span className="flex flex-wrap gap-x-3 gap-y-2">
                 {records
-                  .filter((record) => record.careYmd === ymd)
+                  .filter((record) => record.cmptnYmd === ymd)
                   .map((record) => (
                     <button
-                      key={record.careRcdSn}
+                      key={record.careCmptnHstrySn}
                       type="button"
-                      aria-label={`${formatMonthDayDot(ymd)} ${record.careItemNm} 완료 기록 취소`}
+                      aria-label={`${formatMonthDayDot(ymd)} ${record.careArtclNm} 완료 기록 취소`}
                       className="group inline-flex items-center gap-1 text-[#1a3234]"
                       onClick={() => onCancel(record)}
                     >
                       <span className="relative grid size-7 place-items-center rounded-full bg-[#ebf0f0] text-[#566465] group-hover:bg-[#fbeeec] group-hover:text-[#b4473a]">
                         <Icon
-                          name={record.careIconCn}
+                          name={record.rprsIconId}
                           className="text-[18px] group-hover:hidden"
                         />
                         <Icon
                           name="close"
                           className="hidden text-[18px] group-hover:inline-flex"
                         />
-                        {record.rptTypeCd === 'REGULAR' && (
+                        {regularSns.has(record.careArtclSn) && (
                           <span
                             aria-hidden="true"
                             className="absolute -top-1 -left-1 grid size-4 place-items-center rounded-full bg-[#5f49b0] text-[13px] leading-none font-semibold text-white"
@@ -84,7 +83,7 @@ export default function CareRecordList({ records, onCancel }) {
                           </span>
                         )}
                       </span>
-                      {record.careItemNm}
+                      {record.careArtclNm}
                     </button>
                   ))}
               </span>

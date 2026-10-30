@@ -11,12 +11,14 @@ import {
   checkCareItem,
   createCareItem,
   createSchedule,
+  deleteCareItem,
   deleteSchedule,
   getCareItems,
   getMyPets,
   getPets,
   getSchedules,
-  toggleCareMain,
+  saveCareMain,
+  updateCareItem,
   updateSchedule,
 } from './api';
 import {
@@ -141,9 +143,14 @@ export const useCancelLastDose = () => useCareMutation(cancelLastDose);
 
 export const useCancelCareRecord = () => useCareMutation(cancelCareRecord);
 
-export const useToggleCareMain = () => useCareMutation(toggleCareMain);
+export const useSaveCareMain = () => useCareMutation(saveCareMain);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
+
+/** 수정·삭제 UI는 화면설계서 갱신 뒤 따로 만든다 */
+export const useUpdateCareItem = () => useCareMutation(updateCareItem);
+
+export const useDeleteCareItem = () => useCareMutation(deleteCareItem);
 
 export const useDailyRecords = (petSn) =>
   useQuery({
