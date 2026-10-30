@@ -83,16 +83,28 @@ export default function MissingRail() {
           {data?.found.map((item) => (
             <li
               key={item.lostTpofSn}
-              className="flex items-start gap-2 border-t border-line py-3 text-sm leading-[1.6] text-ink-2 first:border-t-0 first:pt-0.5"
+              className="border-t border-line first:border-t-0"
             >
-              <Heart
-                size={20}
-                aria-hidden="true"
-                className="shrink-0 text-tone-green-fg"
-              />
-              <span>
-                <b>{item.petNm}</b>가 무사히 가족의 품으로 돌아갔어요
-              </span>
+              <Link
+                to={generatePath(PATHS.COMMUNITY_MISSING_DETAIL, {
+                  lostTpofSn: item.lostTpofSn,
+                })}
+                className="group flex items-start gap-2 py-3 text-sm leading-[1.6] text-ink-2 hover:text-brand-600"
+              >
+                <Heart
+                  size={20}
+                  aria-hidden="true"
+                  className="shrink-0 text-tone-green-fg"
+                />
+                {/* 남의 찾았어요 글은 이름이 null이라 제목으로 */}
+                {item.petNm ? (
+                  <span>
+                    <b>{item.petNm}</b>가 무사히 가족의 품으로 돌아갔어요
+                  </span>
+                ) : (
+                  <span>{item.pstTtl}</span>
+                )}
+              </Link>
             </li>
           ))}
         </ul>

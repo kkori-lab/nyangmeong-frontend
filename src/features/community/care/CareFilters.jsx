@@ -63,7 +63,8 @@ function Chips({ name, label, options, value, onChange }) {
   );
 }
 
-const countActive = ({ region, from, to, pet, size }) =>
+const countActive = ({ mine, region, from, to, pet, size }) =>
+  Number(mine) +
   Number(region !== ALL_REGION) +
   Number(from !== '' || to !== '') +
   Number(pet !== '') +
@@ -76,7 +77,7 @@ const countActive = ({ region, from, to, pet, size }) =>
  */
 export default function CareFilters({ filters, onChange, onReset }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { region, dong, from, to, pet, size } = filters;
+  const { mine, region, dong, from, to, pet, size } = filters;
   const activeCount = countActive(filters);
   const dongOptions = [
     { value: '', label: '읍·면·동 전체' },
@@ -183,7 +184,16 @@ export default function CareFilters({ filters, onChange, onReset }) {
             />
           </fieldset>
         </Row>
-        <div className="col-span-full flex justify-end border-t border-line pt-1 pb-2.5">
+        <div className="col-span-full flex items-center justify-between gap-3 border-t border-line pt-1 pb-2.5">
+          <label className="flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium text-ink-2">
+            <input
+              type="checkbox"
+              checked={mine}
+              onChange={(event) => onChange({ mine: event.target.checked })}
+              className="size-4 accent-brand-500"
+            />
+            내 글만 보기
+          </label>
           <button
             type="button"
             onClick={onReset}
