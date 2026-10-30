@@ -192,7 +192,7 @@ export default function SummaryHero({
   );
 }
 
-/** 캐릭터가 없으면 종별 기본 캐릭터. 테두리는 캐릭터가 있을 때와 같다 */
+/** 캐릭터가 없으면 종별 기본 캐릭터. 테두리는 캐릭터가 있을 때와 같음 */
 function PetImage({ pet, className, isLarge = false }) {
   const hasCharacter = pet.chrcSttsCd === CHRC_STTS.DONE && pet.chrctrImgPath;
   const DefaultCharacter = pet.petSeCd === PET_SE.DOG ? Dog : Cat;

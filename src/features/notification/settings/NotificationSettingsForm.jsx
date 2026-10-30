@@ -15,15 +15,12 @@ import Toggle from '@/components/Toggle';
 import { PATHS } from '@/routes/paths';
 import { useSaveNotificationSettings } from '../queries';
 
-/** 저장 요청 키 (acntEml·expndLimSetYn은 서버 표시용이라 제외) */
+/** 저장 요청 키 (maskedAcntEml·expndLimSetYn은 서버 표시용이라 제외) */
 const SAVE_KEYS = [
   'emlNotiRcptnYn',
   'inappNotiRcptnYn',
   'careSchdlNotiRcptnYn',
-  'thdyBfhdNotiYn',
-  'd1BfhdNotiYn',
-  'd3BfhdNotiYn',
-  'd7BfhdNotiYn',
+  'leadTimes',
   'mtchDlngNotiRcptnYn',
   'cmntNotiRcptnYn',
   'lostExpryNotiRcptnYn',
@@ -31,10 +28,10 @@ const SAVE_KEYS = [
 ];
 
 const BEFORE_DAYS = [
-  { key: 'thdyBfhdNotiYn', label: '당일' },
-  { key: 'd1BfhdNotiYn', label: '1일 전' },
-  { key: 'd3BfhdNotiYn', label: '3일 전' },
-  { key: 'd7BfhdNotiYn', label: '7일 전' },
+  { key: 'TODAY', label: '당일' },
+  { key: 'D1', label: '1일 전' },
+  { key: 'D3', label: '3일 전' },
+  { key: 'D7', label: '7일 전' },
 ];
 
 const ALWAYS_ON = [
@@ -43,6 +40,10 @@ const ALWAYS_ON = [
   '1:1 문의 답변',
   '공지사항',
 ];
+
+/** 사전 알림 시점은 선택 순서와 상관없이 같은 집합이면 동일 */
+const isSameLeadTimes = (a, b) =>
+  a.length === b.length && a.every((item) => b.includes(item));
 
 function SettingRow({ title, description, children }) {
   return (
@@ -63,11 +64,23 @@ export default function NotificationSettingsForm({ settings }) {
   const [draft, setDraft] = useState(settings);
   const { mutate: save, isPending } = useSaveNotificationSettings();
 
-  const isChanged = SAVE_KEYS.some((key) => draft[key] !== settings[key]);
+  const isChanged = SAVE_KEYS.some((key) =>
+    key === 'leadTimes'
+      ? !isSameLeadTimes(draft.leadTimes, settings.leadTimes)
+      : draft[key] !== settings[key],
+  );
   const needsLimit = draft.expndLimNotiRcptnYn && !settings.expndLimSetYn;
 
   const handleChange = (key) => (value) =>
     setDraft((prev) => ({ ...prev, [key]: value }));
+
+  const toggleLeadTime = (key) =>
+    setDraft((prev) => ({
+      ...prev,
+      leadTimes: prev.leadTimes.includes(key)
+        ? prev.leadTimes.filter((item) => item !== key)
+        : [...prev.leadTimes, key],
+    }));
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -80,7 +93,7 @@ export default function NotificationSettingsForm({ settings }) {
       <SettingsCard icon={Bell} title="알림 채널">
         <SettingRow
           title="이메일로 받기"
-          description={`${settings.acntEml} (가입 이메일 · 변경할 수 없어요)`}
+          description={`${settings.maskedAcntEml} (가입 이메일 · 변경할 수 없어요)`}
         >
           <Toggle
             label="이메일로 받기"
@@ -123,13 +136,13 @@ export default function NotificationSettingsForm({ settings }) {
               <button
                 key={key}
                 type="button"
-                aria-pressed={draft[key]}
+                aria-pressed={draft.leadTimes.includes(key)}
                 className={`h-9 rounded-full border px-4 text-sm ${
-                  draft[key]
+                  draft.leadTimes.includes(key)
                     ? 'border-[#285a5c] bg-[#285a5c] text-white'
                     : 'border-[#d5dcdc] bg-white text-[#3d4a4b]'
                 }`}
-                onClick={() => handleChange(key)(!draft[key])}
+                onClick={() => toggleLeadTime(key)}
               >
                 {label}
               </button>

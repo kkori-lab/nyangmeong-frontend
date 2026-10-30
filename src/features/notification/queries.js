@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { showToast } from '@/components/toastStore';
 import {
   getNotificationSettings,
@@ -26,7 +31,8 @@ export const useUnreadCount = () =>
 export const useNotifications = (tab) =>
   useQuery({
     queryKey: [...notificationKeys.list, tab.key],
-    queryFn: () => getNotifications({ notiTypeCd: tab.types, size: 5 }),
+    queryFn: () => getNotifications({ tab: tab.tab }),
+    placeholderData: keepPreviousData,
   });
 
 export const useReadNotification = () => {
@@ -56,6 +62,11 @@ export const useSaveNotificationSettings = () => {
       queryClient.setQueryData(notificationKeys.settings, saved);
       showToast('저장했어요');
     },
-    onError: () => showToast('저장하지 못했어요. 잠시 뒤 다시 시도해 주세요'),
+    onError: (error) =>
+      showToast(
+        error.code === 'INVALID_INPUT_VALUE'
+          ? '미리 알림 시점을 하나 이상 골라 주세요'
+          : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요',
+      ),
   });
 };

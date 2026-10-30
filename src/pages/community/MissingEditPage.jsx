@@ -26,8 +26,8 @@ export default function MissingEditPage() {
   const detailPath = generatePath(PATHS.COMMUNITY_MISSING_DETAIL, {
     lostTpofSn,
   });
-  /** 본인 글이 아니면 안내 후 상세로 보낸다 */
-  const isDenied = Boolean(post) && post.mineYn !== 'Y';
+  /** 본인 글이 아니면 안내 후 상세로 이동 */
+  const isDenied = Boolean(post) && !post.owner;
 
   useEffect(() => {
     if (isDenied) showToast('수정 권한이 없어요');
@@ -35,7 +35,7 @@ export default function MissingEditPage() {
 
   if (isDenied) return <Navigate to={detailPath} replace />;
 
-  /** 저장하면 별도 완료 모달 없이 상세로 가서 바뀐 내용을 바로 본다 */
+  /** 저장하면 별도 완료 모달 없이 상세로 이동해 바뀐 내용 바로 확인 */
   const handleSubmit = (values) =>
     update.mutate(
       { lostTpofSn, ...values },
@@ -71,10 +71,7 @@ export default function MissingEditPage() {
         initial={toFormValues(post)}
         cancelTo={detailPath}
         isPending={update.isPending}
-        errorMessage={
-          update.isError &&
-          '게시글을 저장하지 못했어요. 잠시 뒤 다시 시도해 주세요'
-        }
+        errorMessage={update.isError && update.error.message}
         onSubmit={handleSubmit}
         onLeave={onLeave}
         onDirtyChange={setDirty}

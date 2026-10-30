@@ -16,7 +16,7 @@ const DATE_CLASS =
 /**
  * 한 줄: 라벨 + 입력. 1280px 초과에서는 두 줄이 한 행에 나란히(라벨·입력 열을 가장 긴 라벨에 맞춘다),
  * 1280px 이하는 한 줄씩, 760px 이하는 라벨 위·입력 아래
- * - index 1 이상은 위에 구분선, 1280px 초과의 첫 행 오른쪽 칸(index 1)만 선이 없다
+ * - index 1 이상은 위에 구분선, 1280px 초과의 첫 행 오른쪽 칸(index 1)만 선 없음
  */
 function Row({ label, index, children }) {
   const border =
@@ -63,7 +63,8 @@ function Chips({ name, label, options, value, onChange }) {
   );
 }
 
-const countActive = ({ region, from, to, pet, size }) =>
+const countActive = ({ mine, region, from, to, pet, size }) =>
+  Number(mine) +
   Number(region !== ALL_REGION) +
   Number(from !== '' || to !== '') +
   Number(pet !== '') +
@@ -72,11 +73,11 @@ const countActive = ({ region, from, to, pet, size }) =>
 /**
  * 상세 필터: 지역(시·군·구 → 읍·면·동) · 돌봄 날짜 · 반려동물 · 반려견 크기. 바꾸면 바로 적용(AND)
  * - filters: { region, dong, from, to, pet, size }, onChange(바뀐 값만), onReset
- * - 고양이를 고르면 반려견 크기는 비활성(값은 비운다). 760px 이하에서는 [상세 필터] 버튼으로 열고 닫는다
+ * - 고양이를 고르면 반려견 크기는 비활성(값은 비움). 760px 이하에서는 [상세 필터] 버튼으로 열고 닫음
  */
 export default function CareFilters({ filters, onChange, onReset }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { region, dong, from, to, pet, size } = filters;
+  const { mine, region, dong, from, to, pet, size } = filters;
   const activeCount = countActive(filters);
   const dongOptions = [
     { value: '', label: '읍·면·동 전체' },
@@ -183,7 +184,16 @@ export default function CareFilters({ filters, onChange, onReset }) {
             />
           </fieldset>
         </Row>
-        <div className="col-span-full flex justify-end border-t border-line pt-1 pb-2.5">
+        <div className="col-span-full flex items-center justify-between gap-3 border-t border-line pt-1 pb-2.5">
+          <label className="flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium text-ink-2">
+            <input
+              type="checkbox"
+              checked={mine}
+              onChange={(event) => onChange({ mine: event.target.checked })}
+              className="size-4 accent-brand-500"
+            />
+            내 글만 보기
+          </label>
           <button
             type="button"
             onClick={onReset}

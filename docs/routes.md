@@ -16,6 +16,7 @@
 | 상세·작성·수정 | `/:<PK>`(API 경로 변수와 같은 이름), `/new`, `/:<PK>/edit` |
 | 탭·필터 | 쿼리(`?category=hospital`) (AIM-004-10) |
 | 로그인 복귀 | `?redirect=` (COM-003-02) |
+| 서버 경로와 겹침 | 화면 URL은 `/ai`·`/api`로 시작하지 않는다. 같은 오리진에서 Nginx·Vite 프록시가 `/ai/`는 Python, `/api/`는 Spring으로 보낸다(2026-10-30, 화면 `/ai`가 Nginx 301 → `/ai/`로 Python Not Found) |
 | AI 대상 | AI 서버가 쓰는 URL. 바꾸면 AI 매핑도 같이 고친다 (AIM-004-09) |
 
 근거: 기능명세서 9종(10-16, 화면 54개), AI매니저 「부록_라우팅매핑표」, 현재 `paths.js`(기존 16개 경로 유지). 괄호 안은 근거 기능 ID(`FN-` 생략) 또는 매핑표 행 번호다.
@@ -32,7 +33,7 @@
 | ACC-012 | 비밀번호 재설정 | `/password/reset`. 비밀번호를 URL에 노출하지 않음 (ACC-012-08) | YAY | |
 | ACC-020 | 회원탈퇴 | `/mypage/withdraw` | YAY | |
 | COM-008 | 알림 설정 | `/settings/notifications` | LJS | ✓ |
-| AIM-011 | AI 대화창(새 창) | `/ai` (COM-007 런처가 엶) | LJS | |
+| AIM-011 | AI 대화창(새 창) | `/ai-chat` (COM-007 런처가 엶) | LJS | |
 | COM-009 · CMU-005 | 채팅(새 창) | `/chat` (`?otoChatRoomSn=`). 새 창 확정 (기능 분배 3.1절 20번) | LJS | |
 | HLT-011 | 종합 건강기록 | `/health` | JAJ | ✓ |
 | HLT-002 | 건강 일지 | `/health/diary` (매핑표 13행) | JAJ | ✓ |
@@ -65,8 +66,8 @@
 | --- | --- |
 | 레이아웃·흐름 | COM-002(레이아웃), COM-003(인증 진입) |
 | 드롭다운 | COM-004(알림), COM-005(프로필), COM-006(GNB 2차 메뉴) |
-| 버튼 | COM-007(AI 런처 → `/ai` 새 창) |
-| `/ai` 안의 상태 | AIM-001·002·004·005·012 |
+| 버튼 | COM-007(AI 런처 → `/ai-chat` 새 창) |
+| `/ai-chat` 안의 상태 | AIM-001·002·004·005·012 |
 | 발송물 | AIM-006(사전 알림 메일·인앱) |
 | 모달 | AIM-008·009·010(영수증, 건강 일지에서), MYP-011(아이템 상점) |
 | 모달 추정 | MYP-003·005(5-1·5-2·5-4)·006·031 |
@@ -76,7 +77,7 @@
 
 | 보내는 곳 | 대상 → URL |
 | --- | --- |
-| 알림 클릭 (COM-004-07) | 케어 일정 → `/health/calendar` · 공동양육 → `/mypage/caregivers` · 실종 만료 → `/community/missing` · 가계부 → `/mypage/expenses` · 캐릭터 → `/mypage/characters` · 공지 → `/notices` · 문의 답변 → `/inquiries/:otoInqrySn` · 펫돌봄 거래 → `/chat?otoChatRoomSn=` |
+| 알림 클릭 (COM-004-07) | 케어 일정 → `/health/calendar` · 공동양육 초대 수신 → `/mypage/invitations/:invitationToken` · 공동양육 초대 결과·연동 해제 → `/mypage/pets` · 실종 만료 → `/community/missing` · 가계부 → `/mypage/expenses` · 캐릭터 → `/mypage/characters` · 공지 → `/notices` · 문의 답변 → `/inquiries/:otoInqrySn` · 펫돌봄 거래 → `/chat?otoChatRoomSn=` |
 | AI 라우팅 (AIM-004) | 1장의 ✓ 행 |
 | 로그인 복귀 (COM-003-02·05·06) | `/?redirect=<경로>` → 로그인 후 그 경로, 없으면 `/main` |
 

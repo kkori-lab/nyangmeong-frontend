@@ -12,7 +12,7 @@ export default [
   },
   {
     layout: 'user',
-    auth: 'public',
+    auth: 'member',
     routes: [{ path: PATHS.MAIN, Component: MainPage }],
   },
 ];

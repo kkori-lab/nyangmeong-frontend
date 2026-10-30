@@ -7,7 +7,7 @@ import { PATHS } from '@/routes/paths';
 
 export default function InquiryDetailPage() {
   const otoInqrySn = Number(useParams().otoInqrySn);
-  const { data: inquiry, isPending, isError } = useInquiry(otoInqrySn);
+  const { data: inquiry, isPending, error } = useInquiry(otoInqrySn);
 
   if (isPending) {
     return (
@@ -16,10 +16,10 @@ export default function InquiryDetailPage() {
       </PageSkeleton>
     );
   }
-  if (isError) {
+  if (error) {
     return (
       <div role="alert" className="text-[#566465]">
-        <p>문의를 찾지 못했어요</p>
+        <p>{error.message}</p>
         <Link
           to={PATHS.INQUIRIES}
           className="mt-3 inline-block font-medium underline"

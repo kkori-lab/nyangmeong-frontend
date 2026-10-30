@@ -23,7 +23,7 @@ export default function CareEditPage() {
   const detailPath = generatePath(PATHS.COMMUNITY_PETCARE_DETAIL, {
     petPrtcRcrtSn,
   });
-  /** 본인 글이 아니면 안내 후 상세로 보낸다 */
+  /** 본인 글이 아니면 안내 후 상세로 이동 */
   const isDenied = Boolean(post) && post.mineYn !== 'Y';
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function CareEditPage() {
 
   if (isDenied) return <Navigate to={detailPath} replace />;
 
-  /** 저장하면 별도 완료 모달 없이 상세로 가서 바뀐 내용을 바로 본다 */
+  /** 저장하면 별도 완료 모달 없이 상세로 이동해 바뀐 내용 바로 확인 */
   const handleSubmit = (values) =>
     update.mutate(
       { petPrtcRcrtSn, ...values },

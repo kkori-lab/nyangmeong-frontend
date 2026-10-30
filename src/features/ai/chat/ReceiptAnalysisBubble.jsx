@@ -20,17 +20,37 @@ const secondaryClass = `${buttonClass} border border-[#e2e7e7] bg-white text-[#1
 const formatAmount = (amount) =>
   amount == null ? EMPTY_MARK : `${amount.toLocaleString()}원`;
 
-/** 카드 표시 칸: 반려동물 구역별 금액은 이름을 칸 제목으로 */
-const buildRows = (result) => [
-  ['병원명', result.hsptlNm ?? EMPTY_MARK],
-  ['검진일', result.ckupYmd ? formatDate(result.ckupYmd) : EMPTY_MARK],
-  ['영수증 금액', formatAmount(result.recptAmt)],
-  [
-    '처방 약품',
-    result.prscrptnCnt == null ? EMPTY_MARK : `${result.prscrptnCnt}건`,
-  ],
-  ...result.petAmts.map((petAmt) => [petAmt.petNm, formatAmount(petAmt.amt)]),
-];
+/** 할인 합계: 하단 할인 + 구역 안 할인 */
+const sumDiscount = (ocr) =>
+  (ocr.btmDscntAmt ?? 0) +
+  ocr.sections.reduce((sum, section) => sum + (section.dscntAmt ?? 0), 0);
+
+/**
+ * 카드 표시 칸: 분석 응답 ocr 그대로
+ * 결제 금액은 recptAmt(할인 후), 총금액은 결제 금액 + 할인 합계(할인 전)
+ * 반려동물 구역별 금액은 구역 이름(없으면 고른 반려동물 이름)을 칸 제목으로, 처방 약품은 구역별 약품 수 합
+ */
+const buildRows = (ocr, pet) => {
+  const discount = sumDiscount(ocr);
+  return [
+    ['병원명', ocr.hsptlNm ?? EMPTY_MARK],
+    ['검진일', ocr.ckupYmd ? formatDate(ocr.ckupYmd) : EMPTY_MARK],
+    [
+      '총금액',
+      formatAmount(ocr.recptAmt == null ? null : ocr.recptAmt + discount),
+    ],
+    ['할인', discount ? `-${discount.toLocaleString()}원` : '없음'],
+    ['결제 금액', formatAmount(ocr.recptAmt)],
+    [
+      '처방 약품',
+      `${ocr.sections.reduce((sum, section) => sum + section.drugs.length, 0)}건`,
+    ],
+    ...ocr.sections.map((section) => [
+      section.sectionNm ?? pet.petNm,
+      formatAmount(section.sbttlAmt),
+    ]),
+  ];
+};
 
 /** AI 아바타 + 내용 */
 function AiRow({ children }) {
@@ -51,7 +71,7 @@ function AiRow({ children }) {
 }
 
 /** 결과 미리보기 카드 */
-function ResultCard({ result, isDismissed, onConfirm, onDismiss }) {
+function ResultCard({ result, pet, isDismissed, onConfirm, onDismiss }) {
   return (
     <section
       aria-label="영수증 분석 결과"
@@ -63,8 +83,8 @@ function ResultCard({ result, isDismissed, onConfirm, onDismiss }) {
       </h2>
 
       <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 rounded-[10px] bg-[#f4f6f6] p-4">
-        {buildRows(result).map(([label, value]) => (
-          <div key={label} className="min-w-0">
+        {buildRows(result.ocr, pet).map(([label, value], index) => (
+          <div key={index} className="min-w-0">
             <dt className="text-sm text-[#667374]">{label}</dt>
             <dd className="break-words text-base font-semibold text-[#1a3234]">
               {value}
@@ -158,6 +178,7 @@ export default function ReceiptAnalysisBubble({
         <AiRow>
           <ResultCard
             result={result}
+            pet={pet}
             isDismissed={status === 'dismissed'}
             onConfirm={onConfirm}
             onDismiss={onDismiss}

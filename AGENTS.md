@@ -12,7 +12,7 @@
 어기면 되돌리기 어렵거나 오류 없이 조용히 잘못되는 것만 모았다. 나머지는 필요할 때 찾아본다.
 
 1. **비밀값을 커밋하지 않고, `VITE_` 변수에도 넣지 않는다.** 이 저장소는 공개다. `VITE_`로 시작하는 환경변수는 빌드 결과에 그대로 들어가 브라우저에서 누구나 볼 수 있다. (`docs/convention/config.md`)
-2. **토큰을 `localStorage`나 변수에 저장하지 않는다.** 로그인은 서버가 심는 쿠키로 유지되고 브라우저가 알아서 붙인다. 로그인 여부와 역할은 `features/member`의 `useMe`로만 확인한다. 단, 로그인을 구현하기 전(백엔드 마지막 작업)에는 화면을 `ProtectedRoute`로 감싸지 않고 `useMe`로 화면을 가르지 않는다. 로그인 화면이 아직 쿠키를 심지 못해 `/auth/me`가 항상 401로 실패하고, 화면이 랜딩으로 튕긴다. (`docs/convention/api.md`, `docs/convention/pages.md`)
+2. **토큰을 `localStorage`나 변수에 저장하지 않는다.** 로그인은 서버가 심는 쿠키로 유지되고 브라우저가 알아서 붙인다. 로그인 여부와 역할은 `features/member`의 `useMe`로만 확인한다. 로그인이 필요한 화면은 `ProtectedRoute`로 감싸므로, 화면을 만들 때는 백엔드를 띄우고 로그인해서 확인한다. (`docs/convention/api.md`, `docs/convention/pages.md`)
 3. **401은 "토큰 없음·만료"에만 온다.** 재발급은 `api/axios.js`가 한 번만 시도한다. 화면 코드에서 401을 따로 처리하거나 재발급을 부르지 않는다. (`docs/convention/api.md`)
 4. **`features/A`는 `features/B`를 import 하지 않는다.** 같이 쓰는 코드는 `components/`·`hooks/`·`utils/`로 올린다. queryKey 객체만 예외다. (의존 방향)
 5. **필드 이름을 새로 짓지 않는다.** 서버가 준 JSON 키(`pstSn`, `mdfcnDt`)를 그대로 쓴다. 읽기 좋게 바꾸는 변환 함수를 만들지 않는다. (`docs/convention/common.md` 이름 짓기)

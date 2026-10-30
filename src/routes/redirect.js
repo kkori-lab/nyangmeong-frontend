@@ -1,4 +1,10 @@
+import { MEMBER_ROLE } from '@/constants/memberRole';
 import { PATHS } from './paths';
+
+/** 역할별 홈(관리자는 관리자 홈, 그 밖은 메인) */
+export function getRoleHome(mbrAuthrtCd) {
+  return mbrAuthrtCd === MEMBER_ROLE.ADMIN ? PATHS.ADMIN : PATHS.MAIN;
+}
 
 const BASE = 'http://redirect.invalid';
 

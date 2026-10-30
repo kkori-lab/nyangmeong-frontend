@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import userAvatar from '@/assets/user.svg';
 import ConfirmModal from '@/components/ConfirmModal';
+import Skeleton from '@/components/Skeleton';
 import { useLogout, useMemberSummary } from '@/features/member/queries';
 import { useChatModal } from '@/context/chatModal';
 import { closeAiWindow } from '@/hooks/useAiWindow';
@@ -29,12 +30,16 @@ function ProfileMenuPanel({ onClose, onLogout }) {
     >
       {/** 요약 로딩 중 상자 크기 고정(min-h) */}
       <div className="mb-1 min-h-[71px] border-b border-[#edf1f1] px-3 pb-2 pt-3.5">
-        <p className="text-base font-bold leading-[26px] text-[#1a3234]">
-          {summary?.mbrNcnm}
-        </p>
-        <p className="text-sm leading-[23px] text-[#667374]">
-          {summary?.maskedAcntEml}
-        </p>
+        <div className="flex h-[26px] items-center text-base font-bold leading-[26px] text-[#1a3234]">
+          {summary ? summary.mbrNcnm : <Skeleton className="h-4 w-24" />}
+        </div>
+        <div className="flex h-[23px] items-center text-sm leading-[23px] text-[#667374]">
+          {summary ? (
+            summary.maskedAcntEml
+          ) : (
+            <Skeleton className="h-[17px] w-40" />
+          )}
+        </div>
       </div>
       {MENU_LINKS.map((item) => (
         <Link

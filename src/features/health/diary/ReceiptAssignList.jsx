@@ -1,10 +1,16 @@
 import { SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
-import { SKIP, formatAmount, toAmount } from './receiptUtils';
+import {
+  SKIP,
+  formatAmount,
+  getLineAmount,
+  getLineName,
+  toAmount,
+} from './receiptUtils';
 
 /**
  * ["배정 필요" 목록] (FN-HLT-002-43)
- * - 구역이 없는 영수증이 [＋ 반려동물 추가]로 2마리 이상이 되면 품목·처방 약품을 모아 보여 준다
- * - 품목마다 [반려동물 ▾]로 따로 지정하고, [전부 ○○에게]는 한 번에 채우는 단축 버튼이다
+ * - 구역이 없는 영수증이 [＋ 반려동물 추가]로 2마리 이상이 되면 품목·처방 약품을 모아 표시
+ * - 품목마다 [반려동물 ▾]로 따로 지정하고, [전부 ○○에게]는 한 번에 채우는 단축 버튼
  * - 모두 배정해야 저장할 수 있다. 탭 금액은 배정된 품목의 합
  */
 export default function ReceiptAssignList({
@@ -46,13 +52,15 @@ export default function ReceiptAssignList({
         <tbody>
           {lines.map((line) => (
             <tr key={line.lineSn}>
-              <td className="p-1">{line.nm}</td>
+              <td className="p-1">{getLineName(line)}</td>
               <td className="p-1 text-right tabular-nums">
-                {line.amt == null ? '-' : line.amt.toLocaleString('ko-KR')}
+                {getLineAmount(line) == null
+                  ? '-'
+                  : getLineAmount(line).toLocaleString('ko-KR')}
               </td>
               <td className="p-1">
                 <select
-                  aria-label={`${line.nm} 반려동물`}
+                  aria-label={`${getLineName(line)} 반려동물`}
                   value={
                     targetIds.has(assign[line.lineSn])
                       ? assign[line.lineSn]

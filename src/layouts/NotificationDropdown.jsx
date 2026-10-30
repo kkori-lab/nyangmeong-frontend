@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CountBadge from '@/components/CountBadge';
 import Icon from '@/components/Icon';
+import Skeleton from '@/components/Skeleton';
 import NotificationItem from '@/features/notification/shared/NotificationItem';
 import { NOTI_TABS, NOTI_TYPE } from '@/features/notification/shared/notiTabs';
 import {
@@ -15,7 +16,7 @@ import { HEADER_ICON_CLASS } from './headerStyles';
 /** 열릴 때만 마운트: 알림 목록 요청과 탭 상태를 열 때마다 초기화 */
 function NotificationPanel({ unreadCount, onClose }) {
   const [tab, setTab] = useState(NOTI_TABS[0]);
-  const { data } = useNotifications(tab);
+  const { data, isPending } = useNotifications(tab);
   const readNotification = useReadNotification();
   const navigate = useNavigate();
   const { open: openChatModal } = useChatModal();
@@ -75,12 +76,24 @@ function NotificationPanel({ unreadCount, onClose }) {
           </button>
         ))}
       </div>
-      {data?.content.length === 0 && (
+      {isPending && (
+        <div aria-busy="true">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div
+              key={index}
+              className="border-b border-[#edf1f1] px-[18px] py-4 last:border-b-0"
+            >
+              <Skeleton className="my-[5px] h-4 w-4/5" />
+            </div>
+          ))}
+        </div>
+      )}
+      {data?.length === 0 && (
         <p className="px-[18px] py-10 text-center text-base text-[#667374]">
           새 알림이 없어요
         </p>
       )}
-      {data?.content.map((notification) => (
+      {data?.map((notification) => (
         <NotificationItem
           key={notification.inappNotiSn}
           notification={notification}
@@ -136,15 +149,12 @@ export default function NotificationDropdown({
       >
         <Icon name="notifications" className={HEADER_ICON_CLASS} />
         <CountBadge
-          count={unread?.unreadCount}
+          count={unread?.count}
           className="absolute left-6 top-[5px]"
         />
       </button>
       {isOpen && (
-        <NotificationPanel
-          unreadCount={unread?.unreadCount ?? 0}
-          onClose={onClose}
-        />
+        <NotificationPanel unreadCount={unread?.count ?? 0} onClose={onClose} />
       )}
     </div>
   );

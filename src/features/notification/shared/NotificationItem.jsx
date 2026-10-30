@@ -1,3 +1,5 @@
+import { NOTI_TYPE_LABEL } from './notiTabs';
+
 /**
  * [알림 행]
  * - 미읽음(prslDt null)은 배경·점으로 구분
@@ -20,7 +22,7 @@ export default function NotificationItem({ notification, onClick }) {
         />
       )}
       <span className="text-base leading-[26px] text-[#1a3234]">
-        [{notification.notiTypeCdNm}] {notification.notiTtl}
+        [{NOTI_TYPE_LABEL[notification.notiTypeCd]}] {notification.notiTtl}
       </span>
     </button>
   );

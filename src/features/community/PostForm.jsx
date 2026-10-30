@@ -4,11 +4,21 @@ import AutoTextarea from '@/components/AutoTextarea';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import ImageAttach from '@/components/ImageAttach';
 import { PATHS } from '@/routes/paths';
+import { getPostImageUrl } from './api';
 import PostWriteGuide from './PostWriteGuide';
 import { POST_BOARDS } from './postCodes';
 
 const TITLE_MAX = 50;
 const BODY_MAX = 2000;
+
+/** 서버가 준 사진 [{ atchFileSn, sortSeq }]를 ImageAttach 항목으로: 공개 파일이라 주소를 바로 사용 */
+const toImageItems = (imgs) =>
+  imgs.map(({ atchFileSn }, index) => ({
+    id: `file-${atchFileSn}`,
+    atchFileSn,
+    name: `첨부 이미지 ${index + 1}`,
+    url: getPostImageUrl(atchFileSn),
+  }));
 
 const INPUT_CLASS =
   'block w-full rounded-md border bg-white px-3 text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-2 focus:ring-[#285a5c]/20';
@@ -52,7 +62,8 @@ export default function PostForm({
   const [bbsCd, setBbsCd] = useState(initial.bbsCd);
   const [title, setTitle] = useState(initial.pstTtl);
   const [body, setBody] = useState(initial.pstCn);
-  const [images, setImages] = useState(initial.atchFiles);
+  const [initialImages] = useState(() => toImageItems(initial.imgs));
+  const [images, setImages] = useState(initialImages);
   const [errors, setErrors] = useState({});
 
   const isEdit = mode === 'edit';
@@ -60,8 +71,8 @@ export default function PostForm({
     bbsCd !== initial.bbsCd ||
     title !== initial.pstTtl ||
     body !== initial.pstCn ||
-    images.length !== initial.atchFiles.length ||
-    images.some((image, i) => image.id !== initial.atchFiles[i]?.id);
+    images.length !== initialImages.length ||
+    images.some((image, i) => image.id !== initialImages[i]?.id);
 
   useEffect(() => {
     onDirtyChange(isDirty);
@@ -88,7 +99,10 @@ export default function PostForm({
       bbsCd,
       pstTtl: title.trim(),
       pstCn: body.trim(),
-      atchFiles: images,
+      images: images.filter((image) => image.file).map((image) => image.file),
+      keepAtchFileSns: images
+        .filter((image) => !image.file)
+        .map((image) => image.atchFileSn),
     });
   };
 

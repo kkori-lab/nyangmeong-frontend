@@ -31,7 +31,7 @@ export default function NicknameField({ mbrNcnm, isEditing, onEdit, onClose }) {
   );
 }
 
-/** 펼쳐졌을 때만 그려진다. 닫히면 입력과 확인 결과가 함께 사라진다 */
+/** 펼쳐졌을 때만 렌더. 닫히면 입력과 확인 결과가 함께 사라짐 */
 function NicknameEdit({ mbrNcnm, onClose }) {
   const inputId = useId();
   const [value, setValue] = useState(mbrNcnm);

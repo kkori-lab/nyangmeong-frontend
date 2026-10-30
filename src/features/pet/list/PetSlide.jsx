@@ -33,7 +33,7 @@ const SWIPE_DISTANCE = 50;
 
 /**
  * 슬라이드는 반려동물 + 마지막 등록 슬라이드(index === pets.length)
- * 양 끝에서 이동하면 반대쪽 끝으로 돈다
+ * 양 끝에서 이동하면 반대쪽 끝으로 순환
  */
 export default function PetSlide({
   pets,

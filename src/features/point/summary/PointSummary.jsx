@@ -26,7 +26,7 @@ function Stat({ icon, label, value, unit, sub, onClick }) {
   );
 }
 
-/** 화면 이동은 페이지에서 정해 넘긴다 */
+/** 화면 이동은 페이지에서 정해 전달 */
 export default function PointSummary({
   todayYmd,
   onScrollTo,

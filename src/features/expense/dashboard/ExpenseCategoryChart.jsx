@@ -9,7 +9,7 @@ import { formatWon } from '../shared/expenseFormat';
 /** 조각 사이 흰 간격(%) */
 const GAP = 0.6;
 
-/** 누적 비율 conic-gradient. 조각마다 앞에 흰 간격을 둔다 */
+/** 누적 비율 conic-gradient. 조각마다 앞에 흰 간격 */
 const buildGradient = (stats) => {
   let acc = 0;
   const total = stats.reduce((sum, stat) => sum + stat.totalAmt, 0);
