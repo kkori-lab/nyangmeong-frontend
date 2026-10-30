@@ -1,14 +1,8 @@
 import { RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import Select from '@/components/Select';
-import {
-  ALL_REGION,
-  DONG_BY_REGION,
-  hasDong,
-  PERIOD_FILTERS,
-  PET_FILTERS,
-  REGION_OPTIONS,
-} from '../missingCodes';
+import { ALL_REGION, PERIOD_FILTERS, PET_FILTERS } from '../missingCodes';
+import { useJeonbukRegions, useSubRegions } from '../missingQueries';
 
 /**
  * 한 줄: 라벨 + 입력. 1280px 초과에서는 두 줄이 한 행에 나란히(라벨·입력 열을 가장 긴 라벨에 맞춘다),
@@ -69,24 +63,32 @@ function Chips({ label, name, options, value, onChange, canClear = false }) {
   );
 }
 
-const countActive = ({ region, pet, period }) =>
-  Number(region !== ALL_REGION) + Number(pet !== '') + Number(period !== '');
+const countActive = ({ mine, region, pet, period }) =>
+  Number(mine) +
+  Number(region !== ALL_REGION) +
+  Number(pet !== '') +
+  Number(period !== '');
 
 /**
  * 빠른 필터: 지역(시·군·구 → 읍·면·동) · 반려동물 · 실종 기간. 바꾸면 바로 적용(AND)
- * - filters: { region, dong, pet, period }, onChange(바뀐 값만), onReset
+ * - filters: { mine, region, dong, pet, period }, onChange(바뀐 값만), onReset
+ * - 맨 아래 줄: 왼쪽 「내 글만 보기」, 오른쪽 「필터 초기화」
+ * - 지역은 서버 지역 목록(전북 아래 시·군·구 → 그 아래 읍·면·동). region·dong은 지역 번호(rgnSn) 문자열
  * - 760px 이하에서는 [상세 필터] 버튼으로 열고 닫음
  */
 export default function MissingFilters({ filters, onChange, onReset }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { region, dong, pet, period } = filters;
+  const { mine, region, dong, pet, period } = filters;
   const activeCount = countActive(filters);
+  const { data: sggs = [] } = useJeonbukRegions();
+  const { data: dongs = [] } = useSubRegions(region);
+  const regionOptions = [
+    { value: ALL_REGION, label: '전북 전체' },
+    ...sggs.map((row) => ({ value: String(row.rgnSn), label: row.sggNm })),
+  ];
   const dongOptions = [
     { value: '', label: '읍·면·동 전체' },
-    ...(DONG_BY_REGION[region] ?? []).map((name) => ({
-      value: name,
-      label: name,
-    })),
+    ...dongs.map((row) => ({ value: String(row.rgnSn), label: row.emdNm })),
   ];
 
   return (
@@ -120,13 +122,13 @@ export default function MissingFilters({ filters, onChange, onReset }) {
             <Select
               label="시·군·구"
               value={region}
-              options={REGION_OPTIONS}
+              options={regionOptions}
               onChange={(next) => onChange({ region: next, dong: '' })}
               className="min-w-0 flex-[0_1_168px]"
             />
-            {/* 전북 전체·전주시 전체는 읍·면·동을 고를 수 없다: fieldset disabled로 select를 함께 잠근다 */}
+            {/* 전북 전체이거나 하위 읍·면·동이 없으면 고를 수 없다: fieldset disabled로 select를 함께 잠근다 */}
             <fieldset
-              disabled={!hasDong(region)}
+              disabled={dongs.length === 0}
               className="m-0 min-w-[140px] flex-[0_1_200px] border-0 p-0 disabled:opacity-45"
             >
               <Select
@@ -157,7 +159,16 @@ export default function MissingFilters({ filters, onChange, onReset }) {
             onChange={(next) => onChange({ period: next })}
           />
         </Row>
-        <div className="col-span-full flex justify-end border-t border-line pt-1 pb-2.5">
+        <div className="col-span-full flex items-center justify-between gap-3 border-t border-line pt-1 pb-2.5">
+          <label className="flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium text-ink-2">
+            <input
+              type="checkbox"
+              checked={mine}
+              onChange={(event) => onChange({ mine: event.target.checked })}
+              className="size-4 accent-brand-500"
+            />
+            내 글만 보기
+          </label>
           <button
             type="button"
             onClick={onReset}

@@ -27,7 +27,7 @@ export default function MissingEditPage() {
     lostTpofSn,
   });
   /** 본인 글이 아니면 안내 후 상세로 이동 */
-  const isDenied = Boolean(post) && post.mineYn !== 'Y';
+  const isDenied = Boolean(post) && !post.owner;
 
   useEffect(() => {
     if (isDenied) showToast('수정 권한이 없어요');
@@ -71,10 +71,7 @@ export default function MissingEditPage() {
         initial={toFormValues(post)}
         cancelTo={detailPath}
         isPending={update.isPending}
-        errorMessage={
-          update.isError &&
-          '게시글을 저장하지 못했어요. 잠시 뒤 다시 시도해 주세요'
-        }
+        errorMessage={update.isError && update.error.message}
         onSubmit={handleSubmit}
         onLeave={onLeave}
         onDirtyChange={setDirty}
