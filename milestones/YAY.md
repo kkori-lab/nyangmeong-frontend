@@ -34,7 +34,7 @@
 - 기다리는 것: SNS 로그인 흐름 결정(백엔드 `docs/api/issues.md` 로그인 2번), 제공자 앱 키(팀)
 - 완료 조건: 기존 연결 계정은 로그인되고, 처음 보는 SNS 계정은 SNS 가입 확인 화면으로 간다
 
-## SCR-ACC-001 재가입 복구 — 대기
+## SCR-ACC-001 재가입 복구 — 끝
 - 기능: FN-ACC-001-40 복구 대상 이메일 확인, FN-ACC-001-41 복구 인증번호 발송·재전송, FN-ACC-001-42 복구 인증번호 입력, FN-ACC-001-43 복구 본인확인, FN-ACC-001-44 기존 정보 복구 안내, FN-ACC-001-45 기존 정보 복구 실행, FN-ACC-001-46 복구 취소, FN-ACC-001-47 기존 정보 복구 완료, FN-ACC-001-48 복구 후 로그인으로
 - 기다리는 것: 없음
 - 완료 조건: 본인확인 뒤에만 복구 안내가 나오고, 복구 완료 뒤 로그인 방법 선택으로 간다(자동 로그인 없음)
@@ -62,6 +62,7 @@
 - 대상: `features/member/signup/`의 가짜 약관·이메일 인증·번호/닉네임 중복확인·가입·닉네임 저장 API
 - 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-001)의 PR 병합과 공용 DB 마이그레이션
 - 완료 조건: 실제 서버로 약관 → 인증번호 발송·확인 → 번호 중복확인 → 가입 → 닉네임 저장이 되고, 가입 뒤 로그인 쿠키 없이 닉네임 모달이 동작한다. 재전송 제한은 `resendAvailableDt`로 남은 시간을 보여 준다
+- 이어받은 확인: 가입 발송이 409 `MEMBER_RECOVERY_AVAILABLE`(탈퇴 보관 이메일)이면 재가입 복구 화면으로 바뀌는지 화면으로 확인한다(코드는 SCR-ACC-001 재가입 복구에서 넣음)
 
 ## SCR-ACC-011 비밀번호 찾기 · 인증번호 API 연결 — 끝
 - 백엔드 끝: `POST /email-certifications`(목적 `USRC0011`), `POST /email-certifications/{emlCertSn}/verify`, `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-011 절의 "프론트 연결")
@@ -78,6 +79,14 @@
 - 대상: `features/member/password/`와 `features/member/api.js`의 가짜 `resetPassword`. 인증 확인 응답의 `emlCertSn`·`pswdInitTkn`·`initAuthrtExpryDt`를 메모리로 넘기고(URL에 넣지 않는다), 토큰이 없거나 `initAuthrtExpryDt`가 지났거나 400 `PASSWORD_RESET_NOT_AVAILABLE`이면 만료 화면, 400 `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 입력칸 오류, 취소는 `invalidate`(본문 `certTrgtEml`). 성공해도 자동 로그인하지 않는다
 - 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-012)의 PR 병합과 공유 `application.properties`의 열린 경로 추가
 - 완료 조건: 실제 서버로 인증 확인 → 새 비밀번호 저장 → 로그인 화면으로 가고, 같은 토큰 재사용·만료·취소 뒤에는 만료 화면이 나온다
+
+## SCR-ACC-001 재가입 복구 · 복구 API 연결 — 끝
+- 백엔드 끝: 복구 목적 발송 `POST /email-certifications`(`emlCertPrpsCd=USRC0012`), 확인 `POST /email-certifications/{emlCertSn}/verify`(`certRslt=RECOVERY_READY`·`rcvryAuthrtTkn`·`initAuthrtExpryDt`), 안내 `POST /members/recovery-info`(`emlCertSn`·`rcvryAuthrtTkn` → `acntEml`·`mbrNcnm`·`whdwlDt`·`rcvryExpryDt`·`maskedMblTelno`·`missingTrms`), 실행 `POST /members/recovery`(`emlCertSn`·`rcvryAuthrtTkn`·`trmsAgres`·`mblTelno`, 성공 200 데이터 없음), 취소 `POST /email-certifications/{emlCertSn}/invalidate`(본문 `certTrgtEml`) (백엔드 SCR-ACC-001 재가입 복구 절의 "프론트 연결")
+- 기능: 명세 기능 ID 추가 없음. FN-ACC-001-40~48에 걸친다
+- 대상: 가입 화면이 409 `MEMBER_RECOVERY_AVAILABLE`을 받으면 복구 본인확인 화면으로 이동(이메일 읽기 전용). 토큰은 메모리로만 넘기고 URL·저장소에 넣지 않는다. `maskedMblTelno`가 없으면 번호 입력칸, `missingTrms`가 있으면 그 약관만 동의받는다. 400 `MEMBER_RECOVERY_EXPIRED`는 "복구 가능한 기간이 지났습니다. 새로 회원가입해 주세요.", 400 `MEMBER_RECOVERY_NOT_AVAILABLE`은 인증을 다시 하도록 안내. 성공하면 완료 문구 뒤 로그인 방법 선택으로, 자동 로그인하지 않는다
+- 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-001 재가입 복구)의 PR 병합과 공유 `application.properties`의 열린 경로 추가(`/api/members/recovery-info,/api/members/recovery`)
+- 완료 조건: 실제 서버로 탈퇴 보관 계정의 가입 시도 → 복구 인증 → 복구 안내 → 복구 실행 → 로그인 방법 선택으로 가고, 취소하면 회원은 탈퇴 그대로다
+- 넘김: 가입 409 `MEMBER_RECOVERY_AVAILABLE` → 복구 화면 진입의 화면 확인은 "SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결"의 "이어받은 확인"(YAY)
 
 ## 제외
 - 없음. 외부인증창 참고 행 6개(네이버·카카오·구글 외부 로그인·동의 창)는 명세에 기능 ID가 없다

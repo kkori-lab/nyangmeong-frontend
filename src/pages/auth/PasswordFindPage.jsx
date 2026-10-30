@@ -10,6 +10,9 @@ export default function PasswordFindPage() {
       onVerified={(state) => navigate(PATHS.PASSWORD_RESET, { state })}
       onBackToLogin={() => navigate(`${PATHS.LOGIN}?method=email`)}
       onGoLogin={() => navigate(PATHS.LOGIN)}
+      onRecover={(recoveryEmail) =>
+        navigate(PATHS.SIGNUP, { state: { recoveryEmail } })
+      }
     />
   );
 }

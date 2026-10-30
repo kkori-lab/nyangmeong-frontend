@@ -126,6 +126,52 @@ export const invalidateRecoveryCode = ({ emlCertSn, certTrgtEml }) =>
   );
 
 /**
+ * 재가입 복구(탈퇴 후 보관 기간 안의 회원) API. 로그인 전에 부르는 요청이라 모두 skipAuthRedirect.
+ * 인증번호 확인(verifyRecoveryCode)·무효화(invalidateRecoveryCode)는 목적과 상관없이 같은 엔드포인트를 쓴다
+ */
+const MEMBER_RECOVERY_PURPOSE = 'USRC0012';
+
+/** 복구 인증번호 발송·재전송. 응답·오류는 비밀번호 찾기와 같다 */
+export const sendMemberRecoveryCode = ({ certTrgtEml }) =>
+  api.post(
+    '/email-certifications',
+    { emlCertPrpsCd: MEMBER_RECOVERY_PURPOSE, certTrgtEml },
+    { skipAuthRedirect: true },
+  );
+
+/** 복구 안내. 응답 { acntEml, mbrNcnm, whdwlDt, rcvryExpryDt, maskedMblTelno, missingTrms } */
+export const getRecoveryInfo = ({ emlCertSn, rcvryAuthrtTkn }) =>
+  api.post(
+    '/members/recovery-info',
+    { emlCertSn, rcvryAuthrtTkn },
+    { skipAuthRedirect: true },
+  );
+
+/** 복구 실행. 성공해도 로그인 쿠키는 만들어지지 않는다 */
+export const recoverMember = ({
+  emlCertSn,
+  rcvryAuthrtTkn,
+  trmsAgres,
+  mblTelno,
+}) =>
+  api.post(
+    '/members/recovery',
+    { emlCertSn, rcvryAuthrtTkn, trmsAgres, mblTelno },
+    { skipAuthRedirect: true },
+  );
+
+/** 휴대전화번호 정규화·중복확인. 응답 { normalizedMblTelno, available } */
+export const checkRecoveryPhone = ({ mblTelno }) =>
+  api.get('/members/phone-availability', {
+    params: { mblTelno },
+    skipAuthRedirect: true,
+  });
+
+/** 약관 전문 */
+export const getTerms = (trmsSn) =>
+  api.get(`/terms/${trmsSn}`, { skipAuthRedirect: true });
+
+/**
  * [비밀번호 재설정 가짜 API]
  * - 재설정 API(`POST /email-certifications/{emlCertSn}/password-reset`, YAY 백엔드 SCR-ACC-012) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
  * - 새 비밀번호에 fail이 들어가면 저장 실패
