@@ -2,10 +2,17 @@
 
 ## 지금 하는 것
 
-공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 끝(2026-10-30): 검증 `확인 못 함 있음`(1회차, 남은 것은 연결 남음뿐)·사람 확인. `@/utils/fileUrl` `publicFileUrl`, `@/hooks/useFileImage`(blob → data URL), `@/components/FileImage`를 만들고 캐릭터 훅·`PetFace`·커뮤니티 사진 7곳을 옮겼다. 공개 주소는 공용 DB에서 이 PC로 글을 올려 200 확인(글 1021 작성 후 삭제)
+SCR-ADM-110 운영 설정 · 관리자 공통 레이아웃 — 끝 (2026-10-30, 검증 `확인 못 함 있음`(회차 1 실패 뒤 수정, 남은 것은 연결뿐)·사람 확인). 기획·완료 조건은 `milestones/LJS.md`와 이 커밋 이력에 있다
 
 ## 다음에 할 것
 
+- SCR-ADM-110 프론트 연결 남음(FN-ADM-110-01~04): 백엔드는 이미 있다(`global/setting/AdminSystemSettingController`, 문서 `docs/api/global.md`). 가짜(`features/setting/api.js`)와 다른 점: 수정이 PUT이 아니라 `PATCH`, 응답이 묶음별 중첩(`memberPet`·`community`·`notification`·`ai`·`file`), `lowstHrwgAplcnYr`가 문자열, 응답에 `dshbdCareMaxExpsrCnt`가 있음(화면에는 두지 않음). 실제 항목별 오류 모양과 허용 범위를 맞춘다
+- SCR-ADM-110 스켈레톤 높이는 계산값이다(`AdminSettingsPage.jsx`, 383·503·143·203·143px). 실제 API 연결 때 1440px·390px로 잰다(`docs/convention/ui.md`)
+- `AdminLayout`의 `AdminLogoutConfirm`은 `ProfileDropdown`의 `LogoutConfirm`과 달리 AI 창·채팅 창을 닫지 않는다(관리자 화면에 여는 버튼이 없음). 이동 대상도 `/login`으로 다르다. 공통화할지 정한다
+- YAY에게 알릴 것(PR 전): 로그인 성공 뒤 이동을 `LoginPage.jsx`에서 바꿨다. 관리자는 `?redirect=`와 상관없이 `/admin`, 이동 전 `/auth/me`를 새로 받는다
+- 공용 하네스: 검증 스킬의 기준 사본 비교 명령이 `scripts/verify-loop.sh:99` 가드에 막혀 검증 에이전트가 비교하지 못한다(2026-10-30, 사람이 직접 실행해 확인). 가드나 스킬을 PR로 고친다
+- 관리자가 회원 화면(`/main` 등 user 레이아웃)에 들어오면 지금은 열린다(2026-10-30 SCR-ADM-110 기획에서 범위 밖으로 넘김). FN-COM-002-02 "역할이 맞지 않는 화면 → 역할별 홈"대로 `AppRoutes.jsx` member 묶음의 `ProtectedRoute`에 회원 역할만 허용할지 정한다(관리자도 회원 화면을 봐야 하는지 사람 결정)
+- 팀에 알릴 것(관리자, PR 전): `docs/routes.md` 1장에 관리자 화면 URL 32개를 넣었다(`/admin/...`, 관리자 화면설계서 v0.1). 담당 표에 관리자(ADM) LJS 추가(백엔드 PR #79와 같음). DMS에 `관리자_화면설계서_v0.1_20261030`(새 문서)·`관리자_기능명세서` v0.2(FN-ADM-050-07 추가, 110 케어 노출 수 제외)를 올렸다. 기능명세서 DMS 설명 문구는 v0.1 그대로(134건·화면설계서 없음)라 DMS 화면에서 고친다(사람)
 - 공통 이미지 연결 남음(2026-10-30): KSJ에게 커뮤니티 사진 주소를 `getPostImageUrl`에서 `@/utils/fileUrl` `publicFileUrl`로 바꿨고(7곳, 주소 같음) `@/components/FileImage`를 쓸 수 있다고 알린다. 문의 첨부 `useInquiryImageUrls`는 object URL 방식 그대로(한 화면 전용·큰 사진). SJM에게 `PetFace`가 받는 동안 스켈레톤을 보여 주고 `fallback`은 실패 때만 나온다고 알린다(`PetProfileCard`). JAJ 영수증 원본(`/receipts/{recptSn}/image`)·SJM 아이템(`/items/{itemSn}/image`)은 `useFileImage` + `FileImage`로 붙인다. 공개·비공개 분류는 가정이고 공동양육자 한정 여부는 SJM 확인 전. 팀 공지 문구는 2026-10-30 세션에서 사용자에게 전달함
 - 백엔드에 알릴 것(범위 밖, 2026-10-30): ① 파일은 올린 PC 디스크에만 있어 공용 DB의 다른 사람 사진은 이 PC·배포 서버에서 404(`/api/files/public/4247` 등) ② 게시글을 지워도 그 사진 `/api/files/public/{번호}`가 200으로 계속 열린다(글 1021·사진 4251) ③ 브라우저 `fetch`로 직접 보낸 `DELETE /api/posts/1021`은 403, 화면 [삭제]는 성공(원인 안 봄)
 - 대화창 화면 URL `/ai` → `/ai-chat`(2026-10-30, backend-90 요청, 사람이 고침): 배포 Nginx가 `/ai`를 301로 `/ai/`(Python)에 보내 Not Found였다. Nginx는 바꾸지 않았다(임시 `location = /ai` 없음, 사람 확인 2026-10-30). PR #120 병합(2026-10-30) 뒤 `https://pawever.cloud/ai-chat`이 200·SPA로 열림(curl 확인 2026-10-30). 남은 것: 팀에 알림(사람)
