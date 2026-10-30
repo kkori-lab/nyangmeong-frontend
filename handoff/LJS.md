@@ -2,14 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-AIM-011 대화창 반려동물 목록 연결(FN-AIM-011-08·013-06) — 끝(2026-10-30): 검증 `확인 못 함 있음`(1회차, 대표 반려동물 기본 선택만 SJM 연결 대기)·사람 확인. 대화창 칩이 pet 도메인 `usePets`를 쓰고(`fakePets` 삭제), 새 대화·영수증 새 방에 칩 `petSn`을 태그로 보내며 목록을 `?petSn=`으로 거른다. 히어로 첫 메시지는 반려동물 목록을 받은 뒤 보낸다
+SCR-AIM-011 대화 펫 태그 이름 표시 — 끝(2026-10-30): 검증 `통과`(1회차)·사람 확인. 사이드바 대화 항목과 대화 머리 태그가 `petSn`으로 반려동물 목록에서 `petNm`을 찾아 보여 주고, 없거나 null이면 "전체"
 
 ## 다음에 할 것
 
-- 대화창 화면 URL `/ai` → `/ai-chat`(2026-10-30, backend-90 요청, 사람이 고침): 배포 Nginx가 `/ai`를 301로 `/ai/`(Python)에 보내 Not Found였다. Nginx는 바꾸지 않았다(임시 `location = /ai` 없음, 사람 확인 2026-10-30). 프론트 배포(develop → main PR #120)로 해결되며 배포 뒤 `https://pawever.cloud/ai-chat` 확인 남음. 팀에 알림
+- 대화창 화면 URL `/ai` → `/ai-chat`(2026-10-30, backend-90 요청, 사람이 고침): 배포 Nginx가 `/ai`를 301로 `/ai/`(Python)에 보내 Not Found였다. Nginx는 바꾸지 않았다(임시 `location = /ai` 없음, 사람 확인 2026-10-30). PR #120 병합(2026-10-30) 뒤 `https://pawever.cloud/ai-chat`이 200·SPA로 열림(curl 확인 2026-10-30). 남은 것: 팀에 알림(사람)
 - SCR-AIM-011·013 연결 남음: FN-AIM-011-08 대표 반려동물 기본 선택은 SJM이 `features/pet/api.js` `getPets`를 실제 `GET /api/pets`로 붙인 뒤 확인(지금 가짜는 `rprsYn: 'Y'`라 계약 필드 `rprsPetYn`이 없어 기본 [전체]). SJM에게 "pet 가짜 `getPets`의 대표 필드가 `rprsYn: 'Y'`인데 계약은 `rprsPetYn`(boolean)이에요. AI 대화창이 `usePets`로 `rprsPetYn`을 읽어요"라고 알린다. 본창 건강 일지는 `features/health/api.js` 가짜 목록이라 같은 `petSn`이 다른 이름일 수 있다(JAJ 연결 몫). 다시 연 대화에서 결과 카드 다시 불러오기는 명세 FN-AIM-013-09 미결
-- SCR-AIM-011 사람이 정할 것(검증 판정 밖, 2026-10-30 검증에서 나옴): 사이드바 대화 항목·대화 머리 태그가 `conversation.petNm ?? '전체'`를 읽는데 서버 응답에 `petNm`이 없어 태그된 대화도 "전체"로 보인다. 고치려면 반려동물 목록에서 `petSn`으로 이름을 찾아 붙인다(`ConversationSidebar.jsx`·`ConversationHeader.jsx`)
-- 정리(2026-10-30 검증 데이터): 대화 138 "검증 초코 태그"·139 "영수증 분석"(둘 다 `petSn` 1)을 `/ai` 사이드바에서 삭제. 영수증 `recptSn` 531은 백엔드 정리 방법을 따른다
+- 정리(2026-10-30 검증 데이터): 대화 138 "검증 초코 태그"·139 "영수증 분석"(둘 다 `petSn` 1)과 펫 태그 검증 때 만든 "검증 나비 태그"·"검증 전체 태그"를 `/ai-chat` 사이드바에서 삭제. 영수증 `recptSn` 531은 백엔드 정리 방법을 따른다
 - SCR-AIM-013 병합 순서: ai 저장소 SCR-AIM-013(`receipt-result`·`AIMC0031`, 작업 사본 커밋 전)·백엔드 공통코드 AIMC0031 PR과 같은 때 병합한다. 공통코드는 알림 코드가 그대로라 `notiTabs.js` `INQRY_ANSWR`='AIMC0030' 유지
 - SCR-AIM-013 사람이 볼 것(검증 판정 밖): 클라이언트 안전망은 20초(`SERVER_ANALYZE_GUARD_MS`, 기획 문구는 15초 — 서버 504가 15초라 동작 같음). 시간 초과·일시 오류, 결과 카드 [취소] 무저장, 할인 0 "없음"·결제 금액 없음 총금액 —은 코드로만 확인. 총금액은 결제 금액 + 할인 합계로 만든 값이라 영수증 할인이 하단·구역 할인으로 안 잡히면 실제 총액과 다를 수 있다
 - 전달(SCR-AIM-008, PR 전): JAJ에게 "건강 일지 영수증 결과 확인 모달(`features/health/diary/Receipt*`·`receiptUtils.js`)이 이제 AI 서버 분석 응답 `{ recptSn, petSn, ocr: { hsptlNm, ckupYmd, recptAmt, btmDscntAmt, sections:[{ sectionNm, sbttlAmt, dscntAmt, items:[{ itemNm, itemAmt }], drugs:[{ mdcnNm, mdcnDays, mdcnUsage, mdcnAmt }] }] } }`를 그대로 읽어요. `receiptApi.js` `getReceiptDetail`·`useReceiptDetail`·`healthKeys.receiptDetail`과 `?fakeReceipt=`는 지웠고, `saveReceiptCheckups` 인자는 `recptSn`이에요. 검진 종류는 응답에 없어 회원이 골라요". ai-23에게 "프론트 연결 끝(검진 영수증·결과 확인 모달). 실제 청구서 확인함. 아조딜 `mdcnUsage`가 null로 와서 1일 횟수 칸이 비어요(회원 입력)"
