@@ -57,6 +57,38 @@
 | MYP-030 | 가계부 | `/mypage/expenses` | SJM | ✓ |
 | MYP-030 (30-2) | 가계부 전체 내역 | `/mypage/expenses/all` (`?month=YYYY-MM`) | SJM | |
 | MYP-040 | 회원정보 수정 | `/mypage/profile` | SJM | ✓ |
+| ADM-001 | 관리자 대시보드(관리자 홈) | `/admin`. 관리자 로그인 뒤 목적지 (ADM-001-01) | LJS | |
+| ADM-010 | 회원 목록 | `/admin/members` | LJS | |
+| ADM-011 | 회원 상세 | `/admin/members/:mbrSn` (`?tab=`) | LJS | |
+| ADM-012 | 회원 제재 | `/admin/members/suspensions`. 정지·해제는 모달 | LJS | |
+| ADM-013 | 탈퇴 회원 | `/admin/members/withdrawn` | LJS | |
+| ADM-020 | 게시글·댓글 | `/admin/posts` (`?tab=comments`) · `/admin/posts/:pstSn` | LJS | |
+| ADM-021 | 실종제보 | `/admin/lost-reports`. 상세는 모달 | LJS | |
+| ADM-022 | 펫돌봄 거래 | `/admin/care-matches`. 매칭 상세는 모달 | LJS | |
+| ADM-023 | 노출 콘텐츠 | `/admin/exposure` (`?tab=`) | LJS | |
+| ADM-030 | 신고 처리 | `/admin/reports` · `/admin/reports/:dclrSn` | LJS | |
+| ADM-040 | 공지사항 | `/admin/notices` · `/new` · `/:ntcMttrSn/edit` | LJS | |
+| ADM-041 | FAQ | `/admin/faqs`. 등록·수정은 모달 | LJS | |
+| ADM-042 | 1:1 문의 | `/admin/inquiries` · `/admin/inquiries/:otoInqrySn` | LJS | |
+| ADM-050 | 펫뉴스 | `/admin/news` (`?tab=`) | LJS | |
+| ADM-051 | 약관 | `/admin/terms` · `/admin/terms/new` | LJS | |
+| ADM-060 | 장소 | `/admin/places` (`?tab=unmatched`) | LJS | |
+| ADM-070 | 아이템 | `/admin/items` | LJS | |
+| ADM-071 | 케어미션 | `/admin/care-missions` | LJS | |
+| ADM-072 | 포인트 | `/admin/points` (`?mbrSn=`) | LJS | |
+| ADM-073 | 기본 캐릭터 | `/admin/default-characters` | LJS | |
+| ADM-080 | 라우팅 매핑표 | `/admin/ai-routes` | LJS | |
+| ADM-081 | 키워드 사전 | `/admin/ai-keywords` (`?tab=`) | LJS | |
+| ADM-082 | 처리 현황 | `/admin/processing` (`?tab=`) | LJS | |
+| ADM-090 | 알림 템플릿 | `/admin/notification-templates` | LJS | |
+| ADM-091 | 발송 이력 | `/admin/notification-logs` | LJS | |
+| ADM-100 | 공통코드 | `/admin/codes` | LJS | |
+| ADM-101 | 품종·지역 | `/admin/breeds-regions` (`?tab=regions`) | LJS | |
+| ADM-110 | 운영 설정 | `/admin/settings` | LJS | |
+| ADM-111 | 배치 현황 | `/admin/batches` (`?batch=`) | LJS | |
+| ADM-112 | 외부 API 사용량 | `/admin/external-api-usage` | LJS | |
+| ADM-113 | 관리자 계정 | `/admin/admins` | LJS | |
+| ADM-114 | 감사 로그 | `/admin/audit-logs` | LJS | |
 
 화면 ID 앞의 `SCR-`는 생략했다.
 
@@ -106,4 +138,4 @@
 | 6 | 비밀번호 재설정 URL 파라미터(메일 링크로 들어오면 인증 식별값 필요) (ACC-012) | YAY |
 | 7 | PLC-001~004 화면 ID 정리 (매핑표 44행 "보류") | YAY |
 | 8 | 단수·복수 규칙에 어긋난 기존 이름: `/community/missing`(상세가 붙음 → `missing-reports`?) | KSJ |
-| 9 | 관리자 화면 URL(설계서 없음, `paths.js`에 `/admin`만) (매핑표 45행) | 미정 |
+| 9 | ~~관리자 화면 URL~~ — 2026-10-30 1장에 반영(관리자 화면설계서 v0.1, LJS). `paths.js`에는 각 화면 마일스톤에서 넣는다. 공지·문의·신고 경로 변수 이름은 관리자 API 확정 때 맞춘다 | LJS |
