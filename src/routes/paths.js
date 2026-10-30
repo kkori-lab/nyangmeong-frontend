@@ -17,7 +17,7 @@ export const PATHS = {
   SETTINGS_NOTIFICATIONS: '/settings/notifications',
 
   /** ai */
-  AI: '/ai',
+  AI: '/ai-chat',
 
   /** chat */
   CHAT: '/chat',

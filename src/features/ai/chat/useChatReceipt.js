@@ -27,7 +27,7 @@ export default function useChatReceipt({ onSaved }) {
   const isTimedOutRef = useRef(false);
   /** 지금 말풍선의 번호: 지난 분석의 응답이 새 말풍선을 고치지 않게 */
   const idRef = useRef(0);
-  /** { id, file, text, previewUrl, aiCnvrsRoomSn, afterMsgSn, pet, status, result, failure, savedUntilSn } */
+  /** { id, file, text, previewUrl, aiCnvrsRoomSn, petSn, afterMsgSn, pet, status, result, failure, savedUntilSn } */
   const [receipt, setReceipt] = useState(null);
   /** 'choosing' | 'analyzing' | 'result' | 'failed' | 'cancelled' | 'dismissed' */
   const status = receipt?.status ?? null;
@@ -58,6 +58,7 @@ export default function useChatReceipt({ onSaved }) {
     saveResult.mutate(
       {
         aiCnvrsRoomSn: target.aiCnvrsRoomSn,
+        petSn: target.petSn,
         cnvrsCn: target.text,
         result,
         ocr,
@@ -121,8 +122,9 @@ export default function useChatReceipt({ onSaved }) {
   /**
    * 첨부 전송: 반려동물이 정해지면 바로 분석, 아니면 되묻기
    * afterMsgSn: 보내기 전 대화의 마지막 메시지 번호(없으면 0)
+   * petSn: 새 방의 펫 태그(선택한 반려동물 칩), pet: 분석할 반려동물
    */
-  const start = ({ file, text, aiCnvrsRoomSn, afterMsgSn, pet }) => {
+  const start = ({ file, text, aiCnvrsRoomSn, petSn, afterMsgSn, pet }) => {
     if (analyze.isPending) return;
     idRef.current += 1;
     const next = {
@@ -131,6 +133,7 @@ export default function useChatReceipt({ onSaved }) {
       text,
       previewUrl: URL.createObjectURL(file),
       aiCnvrsRoomSn,
+      petSn,
       afterMsgSn,
       pet,
       status: pet ? 'analyzing' : 'choosing',

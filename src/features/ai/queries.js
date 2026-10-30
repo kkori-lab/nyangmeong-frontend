@@ -33,7 +33,9 @@ export const useChatReceiptResult = ({ recptSn, petSn }) =>
 export const useConversations = (petSn) =>
   useQuery({
     queryKey: aiKeys.list(petSn),
-    queryFn: () => getConversations(),
+    queryFn: () => getConversations(petSn),
+    /** 반려동물 목록을 받아 기본 칩(대표 반려동물)이 정해진 뒤 조회 */
+    enabled: petSn !== undefined,
   });
 
 export const useConversation = (aiCnvrsRoomSn) =>

@@ -304,6 +304,15 @@
 - 완료 조건 결과: 검증 `통과`(2026-10-30, 1회차, 가짜 응답), 사람 확인 2026-10-30. ai 894ccb6과 붙인 실제 흐름도 확인(실제 recptSn으로 모달이 응답 값으로 열림)
 - 연결 남음: FN-AIM-013-06 (대화창 반려동물 목록 API로 실제 `petSn` 넘기기, SJM), FN-AIM-013-09 (다시 연 대화의 결과 카드, 명세 미결)
 
+## SCR-AIM-011 대화창 반려동물 목록 연결 — 끝
+- 기능: (연결 작업, 명세 기능 ID 추가 없음) FN-AIM-011-08 반려동물 선택·펫 태그를 pet 도메인 목록·AI 서버 `petSn`으로, FN-AIM-013-06 [확인 후 저장]의 `petSn`을 실제 목록 값으로
+- 기다리는 것: 프론트 `features/pet/api.js` `getPets` 실제 연결(SJM), 본창 건강 일지 반려동물 목록 연결(JAJ)
+- 완료 조건: 대화창 칩이 pet 도메인 목록과 같고 대표 반려동물이 기본 선택 / 칩별로 대화 목록이 걸러진다 / 결과 카드·[확인 후 저장]의 `petSn`이 칩과 같다
+- 결정: 대표 여부는 서버 계약 `rprsPetYn`만 읽는다, 새 대화·영수증 새 방에 칩 `petSn`을 태그로 보낸다(2026-10-30)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-10-30, 1회차. 011-08-b·013-06 통과, 011-08-a 칩 목록 통과·대표 기본 선택 연결 남음), 사람 확인 2026-10-30
+- 연결 남음: FN-AIM-011-08 (대표 반려동물 기본 선택, `features/pet/api.js` `getPets` 실제 연결, SJM)
+- 연결 남음: FN-AIM-013-06 (본창 건강 일지 반려동물 목록 연결, JAJ)
+
 ## 공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 대기
 - 기능: (연결 작업, 명세 기능 ID 추가 없음) 공개 이미지는 `/api/files/public/{atchFileSn}` 주소로 바로 보여 주고, 비공개 이미지는 도메인 API(`/api/receipts/{recptSn}/image`·`/api/pets/{petSn}/character-image`·`/api/items/{itemSn}/image`)를 `api.get(..., { responseType: 'blob' })`로 받아 보여 주는 공통 코드를 `components/`·`hooks/`에 만든다. 화면 담당(KSJ 게시글·SJM 캐릭터 등)이 가져다 쓴다
 - 기다리는 것: 백엔드 파일 저장 외부 디렉토리·서빙(끝, 커밋 3f44aa2, 백엔드 PR 전). 공용 DB는 옛 시드라 공개 이미지가 404이니 로컬 DB(`spring.profiles.active=local`, `seedData -Ptarget=local -Preset`)로 확인

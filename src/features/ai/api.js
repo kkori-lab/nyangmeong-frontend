@@ -6,7 +6,7 @@ import { IS_DEV } from '@/api/env';
  * 일정 등록 카드는 messages(draft·done.card)·register-result로 AI 서버, 일정·케어 항목 저장(Java, JAJ)은 아직 없어 가짜
  * 영수증 분석은 AI 서버 /ai/receipts(docs/api/ocr.md), 대화창 결과 이력은 receipt-result
  * 본창이 다시 여는 인식 결과는 Spring /api/receipts/{recptSn}
- * 펫 태그: 반려동물 목록(pet, SJM) 연결 전이라 서버에는 petSn을 보내지 않고 목록도 petSn 없이 조회
+ * 펫 태그: 새 대화는 선택한 반려동물 칩의 petSn([전체]면 null), 목록은 그 petSn으로 거름([전체]면 전부)
  */
 
 const pad = (value) => String(value).padStart(2, '0');
@@ -25,8 +25,10 @@ const touchConversation = (aiCnvrsRoomSn) =>
   lastActive.set(aiCnvrsRoomSn, nowLocal());
 
 /** 대화 목록: 마지막 활동(lastDt, 없으면 regDt)이 최신인 순 */
-export const getConversations = async () => {
-  const rooms = await aiApi.get('/conversations');
+export const getConversations = async (petSn) => {
+  const rooms = await aiApi.get('/conversations', {
+    params: petSn == null ? undefined : { petSn },
+  });
   return rooms
     .map((room) => ({
       ...room,
@@ -46,21 +48,22 @@ export const deleteConversation = async (aiCnvrsRoomSn) => {
 };
 
 /** 새 대화 저장: 서버가 방과 첫 사용자 메시지 생성, 제목 결정 */
-const createConversation = (cnvrsCn) =>
-  aiApi.post('/conversations', { petSn: null, cnvrsCn });
+const createConversation = ({ petSn, cnvrsCn }) =>
+  aiApi.post('/conversations', { petSn, cnvrsCn });
 
 /** 스트림이 done·error 없이 닫힘 */
 const STREAM_CLOSED = { code: 'STREAM_CLOSED', message: '연결이 끊겼어요' };
 
 /**
  * 메시지 전송: 판정(intent) → 답변 조각(delta) → 끝(done)|오류(error) SSE
- * - 방이 없으면 대화 생성(첫 메시지 저장) 뒤 같은 방에 cnvrsCn 없이 전송
+ * - 방이 없으면 대화 생성(첫 메시지 저장, 펫 태그 petSn) 뒤 같은 방에 cnvrsCn 없이 전송
  * - cnvrsCn이 없으면 저장 없이 방의 마지막 사용자 메시지에 답한다([다시 시도]·[다시 생성])
  * - draft: 가장 최근 등록 카드(done.card 그대로), 새 방에는 없음
  * - error 이벤트는 { code, message }로 실패
  */
 export const sendMessage = async ({
   aiCnvrsRoomSn,
+  petSn,
   cnvrsCn,
   draft,
   signal,
@@ -74,7 +77,7 @@ export const sendMessage = async ({
     ...(draft && { draft }),
   };
   if (roomSn == null) {
-    roomSn = (await createConversation(cnvrsCn)).aiCnvrsRoomSn;
+    roomSn = (await createConversation({ petSn, cnvrsCn })).aiCnvrsRoomSn;
     body = {};
   } else if (cnvrsCn != null) {
     touchConversation(roomSn);
@@ -178,11 +181,12 @@ export const analyzeChatReceipt = ({ file, petSn, signal }) =>
 /**
  * 대화창 영수증 결과 이력 저장 (POST /ai/conversations/{aiCnvrsRoomSn}/receipt-result)
  * - result: RECOGNIZED·FAILED·ERROR·CANCELED, 병원명·검진일·금액은 RECOGNIZED일 때만
- * - 방이 없으면 함께 보낸 글(없으면 '영수증 분석')을 첫 메시지로 방 생성, 글은 재전송 없음
+ * - 방이 없으면 함께 보낸 글(없으면 '영수증 분석')을 첫 메시지로 방 생성(펫 태그 petSn), 글은 재전송 없음
  * - 응답: 저장한 메시지(사용자 메시지(있으면) → AI 요약)
  */
 export const saveReceiptResult = async ({
   aiCnvrsRoomSn,
+  petSn,
   cnvrsCn,
   result,
   ocr,
@@ -191,7 +195,9 @@ export const saveReceiptResult = async ({
   let roomSn = aiCnvrsRoomSn;
   let body = { result, ...(text && { cnvrsCn: text }) };
   if (roomSn == null) {
-    roomSn = (await createConversation(text ?? '영수증 분석')).aiCnvrsRoomSn;
+    roomSn = (
+      await createConversation({ petSn, cnvrsCn: text ?? '영수증 분석' })
+    ).aiCnvrsRoomSn;
     body = { result };
   } else {
     touchConversation(roomSn);
