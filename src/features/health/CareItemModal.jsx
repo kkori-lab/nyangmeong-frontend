@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 import { formatYmdWeekday, getTodayYmd } from '@/utils/formatDate';
-import { CARE_CYCLES, addCycle } from './careDue';
+import { CARE_CYCLES, CARE_ZONE, CUSTOM_CYCLE, addCycle } from './careDue';
 import { useCreateCareItem } from './queries';
 
 // 아이콘 목록과 이름은 퍼블리싱 html/hlt-calendar.html의 관리 항목 추가 모달과 같다
@@ -24,12 +24,12 @@ const MAX_NAME_LENGTH = 30;
 // 관리 항목 추가 모달(FN-HLT-003-21~24·38). 고른 반려동물의 토탈 케어리스트에 추가한다
 export default function CareItemModal({ petSn, onClose }) {
   const dialogRef = useRef(null);
-  const [careItemNm, setCareItemNm] = useState('');
+  const [careArtclNm, setCareArtclNm] = useState('');
   const [iconChoice, setIconChoice] = useState(null);
-  const [rptTypeCd, setRptTypeCd] = useState(null);
-  const [rptCycleCd, setRptCycleCd] = useState(null);
-  const [rptCycleDayCnt, setRptCycleDayCnt] = useState('');
-  const [lastCareYmd, setLastCareYmd] = useState('');
+  const [careZoneCd, setCareZoneCd] = useState(null);
+  const [careCycleCd, setCareCycleCd] = useState(null);
+  const [cycleDrctInptDayCnt, setCycleDrctInptDayCnt] = useState('');
+  const [lastCmptnYmd, setLastCmptnYmd] = useState('');
   const createCareItem = useCreateCareItem();
   const todayYmd = getTodayYmd();
 
@@ -39,20 +39,20 @@ export default function CareItemModal({ petSn, onClose }) {
     return () => dialog.close();
   }, []);
 
-  const isRegular = rptTypeCd === 'REGULAR';
-  const isCustomCycle = rptCycleCd === 'CUSTOM';
+  const isRegular = careZoneCd === CARE_ZONE.REGULAR;
+  const isCustomCycle = careCycleCd === CUSTOM_CYCLE;
   const hasValidCycle =
-    rptCycleCd && (!isCustomCycle || Number(rptCycleDayCnt) >= 1);
+    careCycleCd && (!isCustomCycle || Number(cycleDrctInptDayCnt) >= 1);
   const canSubmit =
-    careItemNm.trim() !== '' &&
-    rptTypeCd !== null &&
+    careArtclNm.trim() !== '' &&
+    careZoneCd !== null &&
     (!isRegular || hasValidCycle) &&
     !createCareItem.isPending;
 
   // 비우면 오늘(등록일)부터 센다
   const nextDueYmd =
     isRegular && hasValidCycle
-      ? addCycle(lastCareYmd || todayYmd, rptCycleCd, rptCycleDayCnt)
+      ? addCycle(lastCmptnYmd || todayYmd, careCycleCd, cycleDrctInptDayCnt)
       : null;
 
   const handleSubmit = (event) => {
@@ -61,13 +61,15 @@ export default function CareItemModal({ petSn, onClose }) {
     createCareItem.mutate(
       {
         petSn,
-        careItemNm: careItemNm.trim(),
-        careIconCn: iconChoice ?? DEFAULT_ICON,
-        rptTypeCd,
-        rptCycleCd: isRegular ? rptCycleCd : null,
-        rptCycleDayCnt:
-          isRegular && isCustomCycle ? Number(rptCycleDayCnt) : null,
-        lastCareYmd: isRegular && lastCareYmd ? lastCareYmd : null,
+        body: {
+          careArtclNm: careArtclNm.trim(),
+          rprsIconId: iconChoice ?? DEFAULT_ICON,
+          careZoneCd,
+          careCycleCd: isRegular ? careCycleCd : null,
+          cycleDrctInptDayCnt:
+            isRegular && isCustomCycle ? Number(cycleDrctInptDayCnt) : null,
+          lastCmptnYmd: isRegular && lastCmptnYmd ? lastCmptnYmd : null,
+        },
       },
       { onSuccess: onClose },
     );
@@ -141,11 +143,11 @@ export default function CareItemModal({ petSn, onClose }) {
           <label className="flex flex-col gap-1.5">
             <span className={labelClass}>항목명{required}</span>
             <input
-              value={careItemNm}
+              value={careArtclNm}
               maxLength={MAX_NAME_LENGTH}
               placeholder="예: 영양제"
               className={inputClass}
-              onChange={(event) => setCareItemNm(event.target.value)}
+              onChange={(event) => setCareArtclNm(event.target.value)}
             />
           </label>
 
@@ -189,11 +191,11 @@ export default function CareItemModal({ petSn, onClose }) {
             </legend>
             {renderSegment(
               [
-                { cd: 'DAILY', nm: '매일' },
-                { cd: 'REGULAR', nm: '주기' },
+                { cd: CARE_ZONE.DAILY, nm: '매일' },
+                { cd: CARE_ZONE.REGULAR, nm: '주기' },
               ],
-              rptTypeCd,
-              setRptTypeCd,
+              careZoneCd,
+              setCareZoneCd,
             )}
           </fieldset>
 
@@ -203,19 +205,19 @@ export default function CareItemModal({ petSn, onClose }) {
                 <legend className={`${labelClass} mb-1.5`}>
                   주기{required}
                 </legend>
-                {renderSegment(CARE_CYCLES, rptCycleCd, setRptCycleCd)}
+                {renderSegment(CARE_CYCLES, careCycleCd, setCareCycleCd)}
                 {isCustomCycle && (
                   <>
                     <div className="relative mt-2">
                       <input
                         type="number"
                         min={1}
-                        value={rptCycleDayCnt}
+                        value={cycleDrctInptDayCnt}
                         placeholder="예: 10"
                         aria-label="반복 일수"
                         className={`${inputClass} pr-16 tabular-nums`}
                         onChange={(event) =>
-                          setRptCycleDayCnt(event.target.value)
+                          setCycleDrctInptDayCnt(event.target.value)
                         }
                       />
                       <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#667374]">
@@ -229,15 +231,13 @@ export default function CareItemModal({ petSn, onClose }) {
 
               <div className="flex flex-col gap-1.5">
                 <label className="flex flex-col gap-1.5">
-                  <span className={labelClass}>
-                    마지막으로 한 날{optional}
-                  </span>
+                  <span className={labelClass}>마지막으로 한 날{optional}</span>
                   <input
                     type="date"
-                    value={lastCareYmd}
+                    value={lastCmptnYmd}
                     max={todayYmd}
                     className={`${inputClass} tabular-nums`}
-                    onChange={(event) => setLastCareYmd(event.target.value)}
+                    onChange={(event) => setLastCmptnYmd(event.target.value)}
                   />
                 </label>
                 <p className={helpClass}>

@@ -107,12 +107,12 @@
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진기록 탭에서 API로 등록한 검진기록이 연도·종류 칩에 맞게 최신순으로 나오고, 등록·수정·삭제가 서버에 반영되며 삭제 뒤 캘린더 일정은 남는다
 - 그대로 두는 것: 영수증 [직접 입력] 경로의 영수증 연결(LJS와 맞춘 뒤)
 
-## SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결 — 대기
+## SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결 — 진행
 
-- 기능: 케어리스트 탭의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-003-01·12·13·21~24·38에 걸침). 목록 `GET /pets/{petSn}/care-items`(정기관리 먼저, 상태 배지는 `nxtmPrnmntYmd`로 화면이 계산, 투약 n/N은 `todayCmptnCnt`/`dayMdcnNmtm`), 기록 내용 `GET /pets/{petSn}/care-completions?fromYmd=&toYmd=`(완료일 내림차순), 완료 체크 `POST /pets/{petSn}/care-completions`(처음 201, 같은 날 다시 200), 취소 `DELETE /pets/{petSn}/care-completions/{careCmptnHstrySn}`, ★ `PUT /pets/{petSn}/care-item-exposures`(최대 6, 7개면 400 `CARE_ITEM_MAIN_LIMIT_EXCEEDED`), 항목 추가 `POST /pets/{petSn}/care-items`(구역 HLTC0036 일상·HLTC0037 정기, 주기 HLTC0038~0042, 직접입력 일수 `cycleDrctInptDayCnt`), 수정 `PATCH`·삭제 `DELETE /pets/{petSn}/care-items/{careArtclSn}`(기본 항목·처방약 연동 항목은 400). 아이콘은 Material Symbols 이름(`task_alt` 기본)
-- 기다리는 것: 백엔드 토탈 케어리스트 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전)
-- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `http://localhost:5173/health/calendar` 케어리스트 탭에서 새 반려동물에 기본 항목 11개(양치·빗질·발톱 관리 ★)가 나오고, 완료 토글·기록 내용 취소·★ 토글·항목 추가가 서버에 반영되며 정기관리 예정일이 완료일 + 주기로 바뀐다
-- 확인할 것: 투약 [마지막 1회 취소]에 쓸 그날 완료 기록 번호가 목록 응답에 없다(완료 체크 응답의 `careCmptnHstrySn`만 있음). 다시 조회한 뒤 취소가 필요하면 백엔드와 응답 필드를 정한다
+- 기능: 케어리스트 탭의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-003-01·12·13·21~24·38에 걸침). 목록 `GET /pets/{petSn}/care-items`(정기관리 먼저, 상태 배지는 `nxtmPrnmntYmd`로 화면이 계산, 투약 n/N은 `todayCmptnCnt`/`dayMdcnNmtm`), 기록 내용 `GET /pets/{petSn}/care-completions?fromYmd=&toYmd=`(완료일 내림차순), 완료 체크 `POST /pets/{petSn}/care-completions`(처음 201, 같은 날 다시 200), 기록 내용 항목 아이콘 취소 `DELETE /pets/{petSn}/care-completions/{careCmptnHstrySn}`(투약도 그날 체크 전부 취소, 한 번만 보낸다), 투약 [마지막 1회 취소] `DELETE /pets/{petSn}/care-items/{careArtclSn}/today-completion/last`(목록 행의 `careArtclSn`만 쓴다, 투약 아니면 400 `INVALID_INPUT_VALUE`, 오늘 기록 없으면 404 `CARE_COMPLETION_NOT_FOUND`). 기록 내용 `GET care-completions`는 투약을 하루 N회 채운 날만 주므로 화면에서 따로 숨기지 않는다. 취소 뒤 목록·기록 내용을 다시 부른다. ★ `PUT /pets/{petSn}/care-item-exposures`(최대 6, 7개면 400 `CARE_ITEM_MAIN_LIMIT_EXCEEDED`), 항목 추가 `POST /pets/{petSn}/care-items`(구역 HLTC0036 일상·HLTC0037 정기, 주기 HLTC0038~0042, 직접입력 일수 `cycleDrctInptDayCnt`), 수정 `PATCH`·삭제 `DELETE /pets/{petSn}/care-items/{careArtclSn}`(기본 항목·처방약 연동 항목은 400)은 `updateCareItem`·`deleteCareItem` API 연결만 하고 UI는 "케어 항목 수정·삭제 UI" 절에서 한다. 아이콘은 Material Symbols 이름(`task_alt` 기본)
+- 기다리는 것: 없음 (백엔드 develop에 있음)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `http://localhost:5173/health/calendar` 케어리스트 탭에서 새 반려동물에 기본 항목 11개(양치·빗질·발톱 관리 ★)가 나오고, 완료 토글·기록 내용 취소·★ 토글·항목 추가가 서버에 반영되며 정기관리 예정일이 완료일 + 주기로 바뀐다. 하루 2회 투약 항목을 1회 누르면 1/2회이고 기록 내용에 없으며, 2회 누르면 기록 내용에 1줄 생긴다. [마지막 1회 취소]는 1회씩 내려가고, 기록 내용 아이콘 취소는 요청 1번으로 그날 기록이 사라지며 0/2회가 된다
+- 확인할 것: 해결됨. 투약 [마지막 1회 취소]는 완료 기록 번호 없이 새 API `DELETE /pets/{petSn}/care-items/{careArtclSn}/today-completion/last`(성공 200 data 없음, 투약 아니면 400, 오늘 기록 없으면 404)를 쓴다(백엔드 develop `b3389a0`)
 
 ## SCR-HLT-005 검진상세 · API 연결 — 대기
 
@@ -151,6 +151,12 @@
 - 기다리는 것: 백엔드 종합 건강기록 전체 조회 (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증·사람 확인 끝, develop 병합 전)
 - 이미지 표시: 첨부(`summary/AttachmentStrip.jsx`·`PhotoModal.jsx`)와 관찰 사진(`summary/ObservationSummaryCard.jsx`)은 비공개 파일이라 `@/hooks/useFileImage` + `@/components/FileImage`로 그린다(공통 이미지 코드가 develop에 올라온 뒤). 캐릭터 이미지(`summary/SummaryHero.jsx` `chrctrImgPath`)는 공개 파일이면 `@/utils/fileUrl`의 `publicFileUrl(atchFileSn)`을 쓴다 — 응답이 경로를 주는지 `atchFileSn`을 주는지 연결 때 확인한다
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 요약 바 몸무게가 최신 일상기록 체중이고 없으면 프로필 체중, 다음 예정일이 오늘 이후 가장 가까운 같은 유형 병원 일정, 타임라인 반복 예방에 출처 병원명이 나오고, 검사 수치 추이가 검진일 순서로 그려진다
+
+## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 대기
+
+- 기능: 토탈 케어리스트에서 사용자가 추가한 항목을 수정·삭제하는 UI (명세 기능 ID 추가 없음, FN-HLT-003-12 "사용자가 추가한 항목만 직접 수정·삭제"·"정기관리 기본 항목은 주기만 변경"에 걸침). API는 "토탈 케어리스트 API 연결" 절에서 연결한 `updateCareItem`(`PATCH /pets/{petSn}/care-items/{careArtclSn}`)·`deleteCareItem`(`DELETE …`)을 쓴다. 지금 화면·시안(`html/hlt-calendar.html`)에 수정·삭제 버튼과 모달이 없다
+- 기다리는 것: 화면설계서 갱신(수정·삭제 진입 위치와 모달), 이 파일의 "SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결"
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 사용자가 추가한 항목은 이름·아이콘·구역·주기를 고치고 지울 수 있고, 기본 정기관리 항목은 주기만 고칠 수 있으며, 기본 항목·처방약 연동 항목에는 삭제가 없다(갱신된 화면설계서 기준으로 다시 맞춘다)
 
 ## 제외
 

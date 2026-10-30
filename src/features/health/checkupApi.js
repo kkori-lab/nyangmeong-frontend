@@ -123,7 +123,7 @@ const buildSeedStore = () => ({
     {
       prvntSn: 1,
       prvntItmCd: 'HW',
-      rptCycleCd: '1M',
+      rptCycleCd: 'HLTC0040',
       rptCycleDayCnt: null,
       startYmd: addDays(today, -16),
     },
@@ -147,7 +147,7 @@ const buildSecondSeedStore = () => ({
     {
       prvntSn: 2,
       prvntItmCd: 'DWM',
-      rptCycleCd: '1M',
+      rptCycleCd: 'HLTC0040',
       rptCycleDayCnt: null,
       startYmd: addDays(today, -20),
     },

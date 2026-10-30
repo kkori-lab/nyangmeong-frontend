@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { getTodayYmd } from '@/utils/formatDate';
-import { CARE_CYCLES } from '../careDue';
+import { CARE_CYCLES, CUSTOM_CYCLE } from '../careDue';
 import FieldError from '../diary/FieldError';
 import {
   INPUT_CLASS,
@@ -15,8 +15,8 @@ import { PREVENTION_ITEMS } from './checkupTypes';
 
 const REQUIRED = <span className="ml-0.5 font-bold text-danger">*</span>;
 
-const CUSTOM_CYCLE = 'CUSTOM';
-const DEFAULT_CYCLE = '1M';
+// 한달(HLTG15)
+const DEFAULT_CYCLE = 'HLTC0040';
 
 /**
  * [반복 예방 입력 영역]
