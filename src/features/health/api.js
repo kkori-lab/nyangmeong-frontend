@@ -14,9 +14,9 @@ import { CHRC_STTS, PET_REL, PET_SE } from '@/utils/petCodes';
 import { MAX_MAIN_CARE, getNextDueYmd } from './careDue';
 import { HOSPITAL, compareSchedules } from './scheduleTypes';
 
-// 케어 캘린더 일정은 실제 API(JAJ 백엔드). 반려동물 목록(SJM)·케어리스트·검진기록 연결용 일정은 아직 가짜 응답
+// 케어 캘린더 일정(JAJ 백엔드)과 반려동물 목록(SJM)은 실제 API. 다른 건강 화면의 반려동물 목록·케어리스트·검진기록 연결용 일정은 아직 가짜 응답
 // 필드 이름은 ERD 약어 기준 가안이다. 메모리 배열이라 새로고침하면 처음 상태로 돌아간다
-// 개발 환경에서만 ?fakePets=1로 반려동물 1마리를, ?fakePets=8로 8마리(캐릭터 미생성·공동양육 포함)를, ?fakeSchedules=0으로 일정 0건을, ?fakeRecords=0으로 완료 기록 0건을 확인할 수 있다
+// 개발 환경에서만 (케어 캘린더 제외) ?fakePets=1로 반려동물 1마리를, ?fakePets=8로 8마리(캐릭터 미생성·공동양육 포함)를, ?fakeSchedules=0으로 일정 0건을, ?fakeRecords=0으로 완료 기록 0건을 확인할 수 있다
 
 export const getQueryParam = (name) =>
   IS_DEV ? new URLSearchParams(window.location.search).get(name) : null;
@@ -97,9 +97,12 @@ const getFakePets = () => {
 
 const findPetNm = (petSn) => fakePets.find((pet) => pet.petSn === petSn)?.petNm;
 
-// 반려동물 목록은 SJM의 pet 도메인 API다. 연결할 때 페이지에서 pet 도메인 훅으로 바꾼다
+// 건강 일지·검진상세·종합 건강기록용 가짜 반려동물 목록. 각 화면 API 연결 때 getMyPets로 바꾼다
 export const getPets = () =>
   Promise.resolve(getFakePets().map((pet) => ({ ...pet })));
+
+/** 내 반려동물 목록 GET /pets (SJM 백엔드, 케어 캘린더) */
+export const getMyPets = () => api.get('/pets');
 
 let nextSchdlSn = 100;
 
