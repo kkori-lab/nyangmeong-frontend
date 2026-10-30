@@ -15,17 +15,17 @@ export const aiKeys = {
   lists: ['ai', 'conversations', 'list'],
   list: (petSn) => ['ai', 'conversations', 'list', petSn],
   detail: (aiCnvrsRoomSn) => ['ai', 'conversations', 'detail', aiCnvrsRoomSn],
-  receipt: (rcptSn) => ['ai', 'receipts', rcptSn],
+  receipt: (recptSn, petSn) => ['ai', 'receipts', recptSn, petSn],
 };
 
 /** 대화창에서 분석한 영수증의 인식 결과: 본창 결과 확인 모달용 */
-export const useChatReceiptResult = (rcptSn) =>
+export const useChatReceiptResult = ({ recptSn, petSn }) =>
   useQuery({
-    queryKey: aiKeys.receipt(rcptSn),
-    queryFn: () => getChatReceiptResult(rcptSn),
-    enabled: rcptSn != null,
+    queryKey: aiKeys.receipt(recptSn, petSn),
+    queryFn: () => getChatReceiptResult({ recptSn, petSn }),
+    enabled: recptSn != null && petSn != null,
     retry: false,
-    /** 한 번 읽으면 지워지므로 재조회 없음 */
+    /** 모달은 진입 때 한 번만 열므로 재조회 없음 */
     staleTime: Infinity,
   });
 
