@@ -35,7 +35,7 @@ export default function ExpenseDashboard({ onViewAll }) {
   /** 등록 모달 날짜·수정 중인 지출 */
   const [addingYmd, setAddingYmd] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
-  /** 앱 지출 상세 시트: 보고 있는 지출 번호(편집 중에는 시트를 잠시 숨기고 저장하면 다시 보인다) */
+  /** 앱 지출 상세 시트: 보고 있는 지출 번호(편집 중에는 시트를 잠시 숨기고 저장하면 다시 표시) */
   const [detailSn, setDetailSn] = useState(null);
 
   /** 지난달 대비용 조회 범위 */

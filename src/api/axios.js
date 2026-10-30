@@ -19,20 +19,23 @@ const fallbackError = (response) =>
         code: 'SERVER_ERROR',
         message: '일시적인 오류가 발생했어요.',
         fields: null,
+        data: null,
       }
     : {
         code: 'NETWORK_ERROR',
         message: '네트워크 연결을 확인해 주세요.',
         fields: null,
+        data: null,
       };
 
-/** 서버 오류 { code, message, data } 정리(fields는 검증 오류의 data) */
+/** 서버 오류 { code, message, data } 정리(검증 오류는 data를 fields로, 그 밖은 data 그대로) */
 const toError = (body, response) =>
   body?.code
     ? {
         code: body.code,
         message: body.message,
         fields: body.code === 'INVALID_INPUT_VALUE' ? body.data : null,
+        data: body.code === 'INVALID_INPUT_VALUE' ? null : (body.data ?? null),
       }
     : fallbackError(response);
 
@@ -50,7 +53,7 @@ const redirectIfLoggedOut = (status, error) => {
   }
 };
 
-/** 두 인스턴스가 같은 응답 처리를 쓴다 */
+/** 두 인스턴스가 공통 응답 처리 */
 const onFulfilled = (res) =>
   /** 응답 data 추출(파일은 Blob 그대로) */
   res.config.responseType === 'blob' ? res.data : res.data.data;
@@ -66,7 +69,7 @@ const onRejected = async (err) => {
       .catch(() => null);
   }
   const error = toError(body, response);
-  /** 재발급은 항상 메인 서버(refresh_token 쿠키가 /api/auth 경로에만 간다) */
+  /** 재발급은 항상 메인 서버(refresh_token 쿠키는 /api/auth 경로에만 전달) */
   const isRefresh =
     config?.baseURL === '/api' && config?.url === '/auth/refresh';
   if (
@@ -79,7 +82,7 @@ const onRejected = async (err) => {
     config._retried = true;
     try {
       await refresh();
-      /** 요청을 보낸 인스턴스로 다시 보낸다 */
+      /** 요청을 보낸 인스턴스로 재전송 */
       return (config.baseURL === aiApi.defaults.baseURL ? aiApi : api)(config);
     } catch {
       /** 재발급 실패 시 로그인 이동으로 진행 */
@@ -107,7 +110,7 @@ const parseEvent = (block) => {
 };
 
 /**
- * AI 서버 스트리밍(SSE) POST: EventSource가 POST를 못 해 fetch로 읽는다
+ * AI 서버 스트리밍(SSE) POST: EventSource가 POST 불가라 fetch로 읽기
  * - 응답이 JSON이면 스트림 전 오류: 인터셉터와 같은 오류 모양·재발급·로그인 이동
  * - 이벤트는 받는 대로 onEvent(name, data), 스트림이 닫히면 끝
  */

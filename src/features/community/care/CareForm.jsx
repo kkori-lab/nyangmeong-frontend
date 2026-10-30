@@ -45,7 +45,7 @@ const snapshot = (values) =>
     images: values.images.map((image) => image.id),
   });
 
-/** 품종 입력 검사: 목록에서 고르거나 [직접 입력]으로 쓴다 */
+/** 품종 입력 검사: 목록 선택 또는 [직접 입력] */
 const breedError = (breed) => {
   if (breed.typed) return BREED_MESSAGE;
   if (breed.vrtyNm === null && breed.vrtyDrctInptNm === null) {
@@ -57,7 +57,7 @@ const breedError = (breed) => {
   return '';
 };
 
-/** 돌봄 기간·시간 검사: 비워 두려면 「일정은 채팅으로 협의할게요」, 일부만 채우면 안 된다 */
+/** 돌봄 기간·시간 검사: 비우려면 「일정은 채팅으로 협의할게요」, 일부만 채우기 불가 */
 const whenError = ({ fromDate, fromTime, toDate, toTime, nego }) => {
   const filled = [fromDate, fromTime, toDate, toTime].filter(Boolean).length;
   if (filled === 0) {
@@ -119,8 +119,8 @@ function RadioOption({ checked, onChange, children, name, value }) {
 /**
  * 펫돌봄 글쓰기·글수정 공용 폼
  * - 고친 것이 있으면(처음 값과 다르면) onDirtyChange(true). 나갈 때 확인은 부모(페이지)가 한다: onLeave(to)
- * - 돌봄 지역은 입력받지 않는다: 고른 장소의 시·군·구와 동에서 정해진다(서버는 좌표를 역지오코딩). 공개 화면에는 동네까지만 보인다
- * - 수정에서는 정확한 좌표를 받지 않아 장소를 다시 고르지 않으면 장소 값은 보내지 않는다(서버가 그대로 둔다)
+ * - 돌봄 지역은 입력 없음: 고른 장소의 시·군·구와 동에서 결정(서버는 좌표를 역지오코딩). 공개 화면에는 동네까지만 표시
+ * - 수정에서는 정확한 좌표가 없어 장소를 다시 고르지 않으면 장소 값 미전송(서버는 유지)
  */
 export default function CareForm({
   initial,

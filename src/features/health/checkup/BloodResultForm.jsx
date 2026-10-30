@@ -21,8 +21,8 @@ const isNumber = (text) => text.trim() !== '' && Number.isFinite(Number(text));
 /**
  * [검사 수치 추가 입력 영역]
  * - 검사 결과 탭에서 [검사 수치 추가]를 누르면 목록 아래에 열리는 입력칸 (FN-HLT-007-01·02·03과 같은 규칙)
- * - 저장하면 검사 결과 목록이 다시 그려지고 영역이 닫힌다
- * - registeredNames: 이미 등록된 항목 이름 (같은 항목은 다시 넣을 수 없다)
+ * - 저장하면 검사 결과 목록 재렌더와 영역 닫힘
+ * - registeredNames: 이미 등록된 항목 이름 (같은 항목 재입력 불가)
  */
 export default function BloodResultForm({
   ckupRcdSn,

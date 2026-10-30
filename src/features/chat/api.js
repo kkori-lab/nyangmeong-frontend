@@ -2,7 +2,7 @@
  * [채팅 가짜 API]
  * - 채팅·매칭 API(KSJ, 백엔드 docs/api/community.md) 전까지 사용, api.get()·api.post()로 교체
  * - 읽음 위치는 localStorage 공유: 채팅 창에서 읽으면 본창 배지에도 반영
- * - 거래 상태는 이 창의 메모리에만 있어 새로고침하면 처음으로 돌아간다
+ * - 거래 상태는 이 창의 메모리에만 있어 새로고침하면 처음으로 복귀
  * - ?fakeChatRooms=0·?fakeChatForbidden=1·?fakeChatSendFail=1·?fakeChatTools=1은 개발 환경 전용
  * - 추정 필드(백엔드 문서에 없음): 목록·방의 myRole·mtchDlngSttsCd·rcrtSummary, 메시지의 sysToneCd·tagCn·photos[].url
  */
@@ -38,7 +38,7 @@ const SEND_FAIL_ERROR = {
 
 const READ_SEQ_STORAGE_KEY = 'fake-chat-read-seq';
 
-/** 내 닉네임: 시스템 메시지에 쓴다 */
+/** 내 닉네임: 시스템 메시지용 */
 const MY_NICKNAME = '토리맘';
 
 const DEFAULT_SUMMARY =
@@ -194,7 +194,7 @@ const SEED_PLAN = {
   10: ['request', 'accept'],
 };
 
-/** 시안의 대화: 방마다 마지막 말만 다르다 */
+/** 시안의 대화: 다른 것은 마지막 말뿐 */
 const SEED_LAST_TEXT = {
   1: '네, 화요일 7시 전에 도착할게요!',
   2: '혹시 하네스는 따로 챙겨 가야 할까요?',
@@ -492,7 +492,7 @@ export const readChatRoom = async ({ otoChatRoomSn, lastPrslMsgSeq }) => {
 
 const failedIds = new Set();
 
-/** 텍스트·사진·주소 공유. 사진은 photoUrls(미리보기 주소)로 대신한다 */
+/** 텍스트·사진·주소 공유. 사진은 photoUrls(미리보기 주소)로 대체 */
 export const createChatMessage = async ({ otoChatRoomSn, ...body }) => {
   const room = findRoom(otoChatRoomSn);
   if (!room) throw FORBIDDEN_ERROR;
@@ -551,7 +551,7 @@ export const requestCareCompletion = makeTransitionApi('doneRequest');
 export const confirmCareCompletion = makeTransitionApi('confirm');
 export const confirmCareReceipt = makeTransitionApi('receive');
 
-/** 채팅방 나가기: 진행 중이면 매칭 취소, 내 목록에서만 숨긴다 */
+/** 채팅방 나가기: 진행 중이면 매칭 취소, 내 목록에서만 숨기기 */
 export const leaveChatRoom = async (otoChatRoomSn) => {
   const room = findRoom(otoChatRoomSn);
   if (!room) throw FORBIDDEN_ERROR;
@@ -603,7 +603,7 @@ export const searchChatPlaces = async ({ keyword }) => {
 
 /**
  * 개발 확인용: 상대가 한 일을 흉내 낸다 (type: accept·doneRequest·confirm·receive·cancel·timeout·leave·say)
- * - 실제로는 서버가 상대의 요청으로 상태를 바꾸고 이 창은 목록·방 조회로 받는다
+ * - 실제로는 서버가 상대의 요청으로 상태 변경, 이 창은 목록·방 조회로 수신
  */
 export const fakePeerAct = async ({ otoChatRoomSn, type }) => {
   const room = findRoom(otoChatRoomSn);

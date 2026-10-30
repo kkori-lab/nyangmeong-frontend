@@ -21,7 +21,7 @@ const ORDER = ['terms', 'email', 'phone', 'password', 'complete'];
 
 // 이메일 가입 4단계(terms, email, phone, password)와 가입 뒤 완료 화면(complete)의 입력·확인 결과를 한곳에서 다룬다.
 // 단계를 오가도 약관·이메일·번호와 확인 결과는 남기고, 비밀번호는 단계를 벗어나면 비운다
-export default function useSignup({ onBackToLogin }) {
+export default function useSignup({ onBackToLogin, onRecover }) {
   const [step, setStep] = useState('terms');
   // 단계 전환 모션의 방향(앞으로 가면 forward, 되돌아가면 back)
   const [direction, setDirection] = useState('forward');
@@ -118,8 +118,7 @@ export default function useSignup({ onBackToLogin }) {
           if (result.result === 'DUPLICATE') {
             setErrors({ email: MSG.emailDuplicate });
           } else if (result.result === 'RESTORE') {
-            // 탈퇴 후 30일 이내 계정의 복구 화면(SCR-ACC-001 36~38)이 생기면 연결한다
-            showToast(MSG.notReady);
+            onRecover(trimmed);
           } else {
             setEmail(trimmed);
             setExpiresAt(result.expiresAt);
@@ -128,7 +127,14 @@ export default function useSignup({ onBackToLogin }) {
             setErrors({});
           }
         },
-        onError: () => setNotice({ type: 'error', message: MSG.sendFailed }),
+        onError: (error) => {
+          // 탈퇴 후 보관 기간 안의 이메일이면 서버가 409로 거절하고 재가입 복구로 보낸다
+          if (error?.code === 'MEMBER_RECOVERY_AVAILABLE') {
+            onRecover(trimmed);
+            return;
+          }
+          setNotice({ type: 'error', message: MSG.sendFailed });
+        },
       },
     );
   };

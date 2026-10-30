@@ -16,7 +16,7 @@ const getColrNm = (pet) => {
 /**
  * [캐릭터 만들기 모달 1~3단계] (FN-MYP-010-08~10·12)
  * - 1 사진 첨부 → 2 생성 중 → 3 결과 확인, 생성 실패면 4 실패 안내
- * - 2단계에서 닫아도 생성은 계속되고(useCreateCharacter), 완료되면 목록 카드에 반영된다
+ * - 2단계에서 닫아도 생성은 계속되고(useCreateCharacter), 완료되면 목록 카드에 반영
  */
 export default function CharacterCreateModal({ pet, onClose }) {
   const [step, setStep] = useState('photo');

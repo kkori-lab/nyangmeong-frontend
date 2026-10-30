@@ -1,10 +1,10 @@
 /**
- * 장소 찾기(전북 한정): 카카오맵 SDK services(장소 검색·주소 검색·좌표→주소)로 브라우저에서 바로 찾는다
+ * 장소 찾기(전북 한정): 카카오맵 SDK services(장소 검색·주소 검색·좌표→주소)로 브라우저에서 바로 검색
  * - kakao는 @/hooks/useKakaoMap이 불러온 SDK
- * - 돌려주는 키는 목격 장소 키(wtnsPlcNm·wtnsPlcAddr·wtnsPlcLat·wtnsPlcLot·sggNm·emdNm). 주소는 「전북 …」으로 맞춘다
+ * - 돌려주는 키는 목격 장소 키(wtnsPlcNm·wtnsPlcAddr·wtnsPlcLat·wtnsPlcLot·sggNm·emdNm). 주소는 「전북 …」으로 통일
  */
 
-/** 전북 전체를 덮는 사각형(경도·위도). 가장자리의 다른 도 결과는 주소로 한 번 더 거른다 */
+/** 전북 전체를 덮는 사각형(경도·위도). 가장자리의 다른 도 결과는 주소로 한 번 더 필터링 */
 const JEONBUK_RECT = '126.35,35.28,127.92,36.16';
 const JEONBUK = /^(전북특별자치도|전라북도|전북)/;
 
@@ -22,8 +22,8 @@ const call = (kakao, run) =>
   });
 
 /**
- * 검색어 하나로 장소 검색과 주소(동·도로명·지번) 검색을 같이 돌려 전북 결과만 합친다
- * - isAddress: 주소·동 결과(장소명 없이 주소만 보여 준다)
+ * 검색어 하나로 장소 검색과 주소(동·도로명·지번) 검색을 같이 돌려 전북 결과만 합침
+ * - isAddress: 주소·동 결과(장소명 없이 주소만 표시)
  */
 export async function searchPlaces(kakao, keyword) {
   const places = new kakao.maps.services.Places();
@@ -60,7 +60,7 @@ export async function searchPlaces(kakao, keyword) {
 
 /**
  * 카카오 동 이름을 목록 읍·면·동 필터 값으로: 「효자동1가」(법정동)·「인후1동」(행정동) → 「효자동」·「인후동」
- * 필터 목록(missingCodes DONG_BY_REGION)은 서버 행정동 코드 목록으로 바뀐다. 그때 맞춤 규칙도 다시 본다
+ * 필터 목록(missingCodes DONG_BY_REGION)은 서버 행정동 코드 목록으로 바뀜. 그때 맞춤 규칙도 재확인
  */
 export const toBaseDong = (name) =>
   name.replace(/\d+가$/, '').replace(/(\D)\d+동$/, '$1동');
@@ -81,7 +81,7 @@ export async function findRegion(kakao, lat, lng) {
 
 /**
  * 시군구·동 이름의 중심 좌표(공개 좌표가 없는 펫돌봄 상세·수정용). 못 찾으면 null
- * - 주소 검색에 없는 동네 이름(예: 서곡동)은 장소 검색 첫 결과(전북)로 대신한다
+ * - 주소 검색에 없는 동네 이름(예: 서곡동)은 장소 검색 첫 결과(전북)로 대체
  */
 export async function findDongCenter(kakao, sggNm, emdNm) {
   const geocoder = new kakao.maps.services.Geocoder();

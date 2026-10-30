@@ -2,7 +2,7 @@ import { ChevronDown } from 'lucide-react';
 
 /**
  * options: [{ value, label }], value는 문자열 비교
- * placeholder: 첫 항목이 선택된 상태(선택 전)에서 닫힌 칸에 보여 줄 문구. 안 넘기면 선택한 항목의 라벨을 그대로 보인다
+ * placeholder: 첫 항목이 선택된 상태(선택 전)에서 닫힌 칸에 보여 줄 문구. 안 넘기면 선택한 항목의 라벨 그대로 표시
  */
 export default function Select({
   value,

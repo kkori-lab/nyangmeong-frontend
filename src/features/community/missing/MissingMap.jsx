@@ -4,17 +4,17 @@ import useKakaoMap from '@/hooks/useKakaoMap';
 import { findPlaceAt } from './placeSearch';
 
 const MAP_LEVEL = 4;
-/** 개인정보 보호: 정확한 좌표 대신 반경 약 250m 원으로 보여 준다 */
+/** 개인정보 보호: 정확한 좌표 대신 반경 약 250m 원으로 표시 */
 const RADIUS_METER = 250;
 
 /**
  * 목격 장소 지도: 카카오맵 SDK(@/hooks/useKakaoMap)로 반경 원 + 장소명 라벨, 키가 없거나 SDK 오류면 안내만
  * - 길찾기: 카카오맵 앱·웹으로 연결
  * - isPreview: 길찾기 링크 없음(글쓰기 미리보기·장소 검색·펫돌봄)
- * - mapLabel·emptyText: 지도 이름(스크린 리더)과 장소가 없을 때 안내(펫돌봄이 바꿔 쓴다)
+ * - mapLabel·emptyText: 지도 이름(스크린 리더)과 장소가 없을 때 안내(펫돌봄이 교체해 사용)
  * - height: 지도 높이 Tailwind 클래스(장소 검색 모달은 낮게)
- * - onMove: 넘기면 지도를 끌어 놓은 가운데로 원을 옮기고 그 자리의 장소(주소·시군구·동·좌표)를 onMove(place)로 넘긴다.
- *   전북 밖이면 안내 후 이전 위치로 되돌린다. 상세는 넘기지 않아 둘러보기만 한다
+ * - onMove: 전달하면 지도를 끌어 놓은 가운데로 원을 옮기고 그 자리의 장소(주소·시군구·동·좌표)를 onMove(place)로 전달.
+ *   전북 밖이면 안내 후 이전 위치로 되돌림. 상세는 미전달로 둘러보기만 가능
  */
 export default function MissingMap({
   place,

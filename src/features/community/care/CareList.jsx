@@ -13,7 +13,7 @@ const tabClass = (selected) =>
   `h-14 shrink-0 cursor-pointer px-4 text-base leading-none whitespace-nowrap max-[760px]:h-12 ${selected ? 'border-b-2 border-brand-500 font-bold text-ink' : 'font-medium text-muted hover:text-ink'}`;
 
 /**
- * 펫돌봄 목록: 상태 탭 · 내 글만 보기 · 건수 · 상세 필터는 콘텐츠 전체 너비, 그 아래 카드 · [돌봄 요청 등록하기] · 페이지(왼쪽)와 안내 레일(오른쪽)
+ * 펫돌봄 목록: 상태 탭 · 건수 · 상세 필터(내 글만 보기 포함)는 콘텐츠 전체 너비, 그 아래 카드 · [돌봄 요청 등록하기] · 페이지(왼쪽)와 안내 레일(오른쪽)
  * - filters: { stts, mine, region, dong, from, to, pet, size }, onChange(바뀐 값만), onReset, onPageChange
  */
 export default function CareList({
@@ -44,15 +44,6 @@ export default function CareList({
             ))}
           </div>
           <div className="flex items-center gap-5 pb-3 max-[760px]:pb-2">
-            <label className="flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium text-ink-2">
-              <input
-                type="checkbox"
-                checked={filters.mine}
-                onChange={(event) => onChange({ mine: event.target.checked })}
-                className="size-4 accent-brand-500"
-              />
-              내 글만 보기
-            </label>
             <p aria-live="polite" className="text-sm text-muted">
               <b className="font-bold text-ink">{totalElements}</b>건
             </p>

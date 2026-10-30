@@ -1,6 +1,6 @@
 /**
  * [거래 카드의 단계별 안내]
- * - 상태 × 역할마다 지금 할 일과 버튼 하나 (FN-CMU-005-11), 문구는 디자인 시안(nyangmung-message.js)과 같다
+ * - 상태 × 역할마다 지금 할 일과 버튼 하나 (FN-CMU-005-11), 문구는 디자인 시안(nyangmung-message.js)과 동일
  */
 import { MTCH_STTS, ROLE, isActiveStage } from '../shared/chatCodes';
 
@@ -14,7 +14,7 @@ export const DEAL_STEPS = [
   '비용 수령',
 ];
 
-/** 진행 위치. 종료 상태(요청 취소·무응답 종료·매칭 취소)는 없다 */
+/** 진행 위치. 종료 상태(요청 취소·무응답 종료·매칭 취소)는 제외 */
 const POSITION = {
   [PRE]: 0,
   [REQUESTED]: 1,

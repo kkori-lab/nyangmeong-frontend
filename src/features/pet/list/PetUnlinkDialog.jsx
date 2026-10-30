@@ -12,7 +12,7 @@ const withTogetherParticle = (name) => {
 export default function PetUnlinkDialog({ pet, onClose }) {
   const leavePet = useLeavePet();
 
-  /** 요청 중에는 닫지 않는다 */
+  /** 요청 중에는 닫기 불가 */
   const close = () => {
     if (!leavePet.isPending) onClose();
   };

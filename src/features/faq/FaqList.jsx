@@ -8,7 +8,7 @@ import { FAQ_CATEGORIES } from './api';
 const MARK_CLASS =
   'flex size-8 shrink-0 items-center justify-center rounded-full text-base leading-none font-bold text-[#1e4a4c] max-[760px]:size-7 max-[760px]:text-sm';
 
-/** 펼침 상태는 항목별로 따로 둔다. 쪽·분류·검색이 바뀌면 부모가 key로 새로 그려 모두 접힌다 */
+/** 펼침 상태는 항목별로 따로 보관. 쪽·분류·검색이 바뀌면 부모가 key로 새로 그려 모두 접힘 */
 function FaqItems({ faqs }) {
   const [openSet, setOpenSet] = useState(() => new Set());
 

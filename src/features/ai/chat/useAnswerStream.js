@@ -22,7 +22,7 @@ const idleState = {
   aiCnvrsRoomSn: null,
   /** 화면이 대신하는 저장 메시지 */
   hiddenMsgSns: [],
-  /** 보낸 메시지: 서버가 저장한 메시지를 불러오기 전까지 화면에 먼저 보인다 */
+  /** 보낸 메시지: 서버가 저장한 메시지를 불러오기 전까지 화면에 먼저 표시 */
   pendingText: null,
 };
 
@@ -46,11 +46,13 @@ export default function useAnswerStream() {
   useEffect(() => reset, [reset]);
 
   /**
-   * 전송 시작: 끝나면 { aiCnvrsRoomSn, intent, message, shortcut }, 실패·중단이면 null
+   * 전송 시작: 끝나면 { aiCnvrsRoomSn, intent, message, shortcut, card }, 실패·중단이면 null
    * - cnvrsCn 없음: [다시 시도]·[다시 생성], replaceMsgSn은 새 답변으로 바꿀 미완료 메시지
+   * - draft: 가장 최근 등록 카드
+   * - petSn: 새 방의 펫 태그(선택한 반려동물 칩, [전체]면 null)
    */
   const start = useCallback(
-    async ({ aiCnvrsRoomSn, cnvrsCn, replaceMsgSn, onRoom }) => {
+    async ({ aiCnvrsRoomSn, petSn, cnvrsCn, draft, replaceMsgSn, onRoom }) => {
       runIdRef.current += 1;
       const runId = runIdRef.current;
       abortRef.current?.abort();
@@ -82,7 +84,9 @@ export default function useAnswerStream() {
       try {
         const result = await sendMessage({
           aiCnvrsRoomSn,
+          petSn,
           cnvrsCn,
+          draft,
           signal: controller.signal,
           onRoom: (nextRoomSn) => {
             if (!isCurrent()) return;
@@ -92,7 +96,7 @@ export default function useAnswerStream() {
           },
           onIntent: ({ kind }) => {
             if (!isCurrent()) return;
-            /** 판정 시점에 서버가 저장한 내 메시지를 바로 보인다 */
+            /** 판정 시점에 서버가 저장한 내 메시지를 바로 표시 */
             queryClient.invalidateQueries({
               queryKey: aiKeys.detail(roomSn),
             });
@@ -111,7 +115,7 @@ export default function useAnswerStream() {
         refresh();
 
         if (result.intent?.kind !== SEARCH) {
-          /** 내 메시지는 다시 불러온 상세에 들어올 때까지 임시 말풍선으로 남긴다 */
+          /** 내 메시지는 다시 불러온 상세에 들어올 때까지 임시 말풍선으로 유지 */
           setState((prev) => ({ ...idleState, pendingText: prev.pendingText }));
           return result;
         }
@@ -141,7 +145,7 @@ export default function useAnswerStream() {
           setState((prev) => ({ ...prev, status: 'error' }));
           return null;
         }
-        /** 글자 뒤 끊김: 서버가 미완료로 저장한 메시지를 다시 불러 보인다 */
+        /** 글자 뒤 끊김: 서버가 미완료로 저장한 메시지를 다시 불러 표시 */
         setState((prev) => ({
           ...idleState,
           hiddenMsgSns: prev.hiddenMsgSns,

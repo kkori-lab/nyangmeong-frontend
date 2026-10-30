@@ -2,11 +2,12 @@ import { PET_SE } from '@/utils/petCodes';
 
 /**
  * [실종센터 코드·목록]
- * - 상태 코드 값은 공통코드가 정해지기 전의 가정이다. 연결 때 백엔드 값으로 바꾼다
+ * - 상태 공통코드(CMUG03): 실종·찾았어요·만료. 만료는 내 글에서만 옴(내 글만 보기, 작성자 상세)
  */
 export const LOST_STTS = {
-  LOST: 'CMUC0030',
-  FOUND: 'CMUC0031',
+  LOST: 'CMUC0006',
+  FOUND: 'CMUC0007',
+  EXPIRED: 'CMUC0008',
 };
 
 export const STATUS_TABS = [
@@ -41,9 +42,17 @@ export const PERIOD_FILTERS = [
   { value: '31', label: '1개월 이상' },
 ];
 
+/** URL ?period= 값 → 서버 실종 기간(wtnsPrd) */
+export const WTNS_PRD_BY_PERIOD = {
+  0: 'TODAY',
+  7: 'WEEK',
+  30: 'MONTH',
+  31: 'OVER_MONTH',
+};
+
 export const ALL_REGION = '';
 
-/** 전북 시·군·구. 전주시 전체는 완산구·덕진구를 함께 묶는다 */
+/** 전북 시·군·구(펫돌봄 필터용). 실종센터 필터는 서버 지역 목록(/regions) 사용 */
 export const REGION_OPTIONS = [
   { value: ALL_REGION, label: '전북 전체' },
   { value: '전주시', label: '전주시 전체' },
@@ -66,7 +75,7 @@ export const REGION_OPTIONS = [
   ].map((name) => ({ value: name, label: name })),
 ];
 
-/** 읍·면·동 목록(가짜). 서버 행정동 코드 목록으로 바뀐다 */
+/** 읍·면·동 목록(가짜, 펫돌봄 필터용). 서버 행정동 코드 목록으로 교체 */
 export const DONG_BY_REGION = {
   '전주시 완산구': [
     '서곡동',
@@ -92,52 +101,13 @@ export const DONG_BY_REGION = {
   부안군: ['부안읍', '변산면'],
 };
 
-/** 전주시 전체와 전북 전체는 읍·면·동을 고를 수 없다 */
+/** 전주시 전체와 전북 전체는 읍·면·동을 선택 불가 */
 export const hasDong = (region) => Boolean(DONG_BY_REGION[region]);
-
-/** 품종 목록(가짜). 품종 마스터 API로 바뀐다 */
-export const BREEDS = {
-  [PET_SE.DOG]: [
-    '골든 리트리버',
-    '닥스훈트',
-    '래브라도 리트리버',
-    '몰티즈',
-    '믹스견',
-    '보더 콜리',
-    '비글',
-    '비숑 프리제',
-    '시바',
-    '시츄',
-    '요크셔 테리어',
-    '웰시 코기 펨브로크',
-    '진돗개',
-    '치와와',
-    '퍼그',
-    '포메라니안',
-    '푸들',
-    '프렌치 불독',
-  ],
-  [PET_SE.CAT]: [
-    '노르웨이 숲',
-    '랙돌',
-    '러시안 블루',
-    '먼치킨',
-    '메인쿤',
-    '벵갈',
-    '브리티시 숏헤어',
-    '샴',
-    '스코티시 폴드',
-    '아비시니안',
-    '코리안 숏헤어',
-    '터키시 앙고라',
-    '페르시안',
-  ],
-};
 
 export const getPetName = (petSeCd) =>
   petSeCd === PET_SE.CAT ? '고양이' : '강아지';
 
-/** 품종 표시: 마스터 품종명이 있으면 그것, 없으면 직접 입력명 */
+/** 품종 표시: 서버는 마스터 품종명과 직접 입력명을 vrtyNm 하나로 줌 */
 export const getBreedName = (post) => post.vrtyNm ?? post.vrtyDrctInptNm ?? '';
 
 /** 「이름 (품종)」, 품종이 없으면 이름만 */
@@ -148,10 +118,12 @@ export const getPetLabel = (post) => {
 
 export const isFound = (post) => post.lostTpofSttsCd === LOST_STTS.FOUND;
 
-/** 게시 종료 7일 전부터 연장할 수 있다 */
+export const isExpired = (post) => post.lostTpofSttsCd === LOST_STTS.EXPIRED;
+
+/** 게시 종료 7일 전부터 연장 가능 */
 export const EXTEND_BEFORE_DAYS = 7;
 export const EXTEND_DAYS = 30;
 
-/** 찾았어요 처리 때 자동으로 만드는 댓글 문구. 사용자가 고칠 수 없다 */
+/** 찾았어요 처리 때 서버가 자동으로 다는 댓글 문구(확인 모달 미리보기용). 사용자가 수정 불가 */
 export const foundCommentText = (petNm) =>
-  `여러분의 제보와 관심 덕분에 ${petNm}가 무사히 가족의 품으로 돌아갔어요. 감사합니다!`;
+  `🎉 여러분의 제보와 관심 덕분에 ${petNm}가 무사히 가족의 품으로 돌아갔어요.`;

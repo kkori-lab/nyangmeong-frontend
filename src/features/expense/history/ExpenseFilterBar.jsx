@@ -38,7 +38,7 @@ const getPetOptions = (pets) => {
 
 /**
  * 선택 전에는 "반려동물 ▾"·"카테고리 ▾"로 보이고 고르면 고른 값으로 바뀐다(목록 첫 항목 [전체]로 해제)
- * 앱: 두 드롭다운을 한 줄 두 칸으로, 정렬·편집은 목록 위 줄(ExpenseHistory)로 옮겨 이 줄에서는 숨긴다
+ * 앱: 두 드롭다운을 한 줄 두 칸으로, 정렬·편집은 목록 위 줄(ExpenseHistory)로 옮겨 이 줄에서는 숨김
  * children: PC 오른쪽 끝 편집 버튼
  */
 export default function ExpenseFilterBar({

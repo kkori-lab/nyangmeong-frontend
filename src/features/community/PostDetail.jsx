@@ -8,6 +8,7 @@ import SharePanel from '@/components/SharePanel';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { formatDateTime, formatMonthDayDot } from '@/utils/formatDate';
+import { getPostImageUrl } from './api';
 import CommentSection from './CommentSection';
 import PostBadges from './PostBadges';
 import {
@@ -34,7 +35,7 @@ export default function PostDetail({ post }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const listTo = `${PATHS.COMMUNITY}${state?.listSearch ?? ''}`;
-  const isLiked = post.likeYn === 'Y';
+  const isLiked = post.liked;
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
@@ -53,14 +54,14 @@ export default function PostDetail({ post }) {
                 <User size={18} />
               </span>
               <b className="text-base leading-normal font-semibold text-[#1a3234]">
-                {post.wrtrNcknm}
+                {post.mbrNcnm}
               </b>
               <i className="text-[#b9c4c4] not-italic">·</i>
               <time>{formatDateTime(post.regDt)}</time>
               <i className="text-[#b9c4c4] not-italic">·</i>
               <span>조회 {post.inqCnt}</span>
             </p>
-            {post.mineYn === 'Y' && (
+            {post.owner && (
               <p className="flex items-center gap-2 text-sm font-medium text-[#566465]">
                 <Link
                   to={generatePath(PATHS.COMMUNITY_POST_EDIT, {
@@ -83,13 +84,13 @@ export default function PostDetail({ post }) {
           </div>
 
           <PostBody content={post.pstCn}>
-            {post.atchFiles.length > 0 && (
+            {post.imgs.length > 0 && (
               <div className="mb-6 flex flex-col gap-3">
-                {post.atchFiles.map((file) => (
+                {post.imgs.map((img, index) => (
                   <img
-                    key={file.id}
-                    src={file.url}
-                    alt={file.name}
+                    key={img.atchFileSn}
+                    src={getPostImageUrl(img.atchFileSn)}
+                    alt={`첨부 이미지 ${index + 1}`}
                     className="h-auto max-w-full rounded-[10px]"
                   />
                 ))}
@@ -113,7 +114,9 @@ export default function PostDetail({ post }) {
                 aria-pressed={isLiked}
                 aria-label="좋아요"
                 disabled={toggleLike.isPending}
-                onClick={() => toggleLike.mutate(post.pstSn)}
+                onClick={() =>
+                  toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
+                }
                 className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-base font-semibold text-[#3d4a4b] ${isLiked ? 'text-[#f44b21]' : '[&_svg]:text-[#b9c4c4]'}`}
               >
                 <Heart size={22} aria-hidden="true" fill="currentColor" />
@@ -139,7 +142,11 @@ export default function PostDetail({ post }) {
           </div>
         </article>
 
-        <CommentSection targetSn={post.pstSn} hooks={postCommentHooks} />
+        <CommentSection
+          targetSn={post.pstSn}
+          authorSn={post.mbrSn}
+          hooks={postCommentHooks}
+        />
       </div>
 
       <aside aria-label="펫이야기 최신글" className="min-w-0">
@@ -210,7 +217,7 @@ export default function PostDetail({ post }) {
           title="게시글 신고하기"
           targetLabel={`대상: 게시글 · "${post.pstTtl}"`}
           isPending={report.isPending}
-          errorMessage={report.isError && '신고를 접수하지 못했어요'}
+          errorMessage={report.isError && report.error.message}
           onSubmit={(values) =>
             report.mutate(
               { pstSn: post.pstSn, ...values },
