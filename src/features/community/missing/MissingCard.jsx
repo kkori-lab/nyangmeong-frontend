@@ -3,7 +3,7 @@ import { generatePath, Link, useLocation } from 'react-router-dom';
 import Badge from '@/components/Badge';
 import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
-import { getPostImageUrl } from '../api';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { getBreedName, isFound } from '../missingCodes';
 import MissingStatusBadge from './MissingStatusBadge';
 import { FOUND_PRIVATE_TEXT, formatArea } from './missingUtils';
@@ -36,7 +36,7 @@ export default function MissingCard({ post }) {
           </span>
         ) : post.thumbAtchFileSn ? (
           <img
-            src={getPostImageUrl(post.thumbAtchFileSn)}
+            src={publicFileUrl(post.thumbAtchFileSn)}
             alt=""
             loading="lazy"
             className="size-full object-cover"

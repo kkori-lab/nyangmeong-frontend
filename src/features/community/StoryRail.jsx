@@ -2,7 +2,7 @@ import { ChevronRight, Heart } from 'lucide-react';
 import { generatePath, Link } from 'react-router-dom';
 import { PATHS } from '@/routes/paths';
 import { formatWeekdayLong, getDay, getMonth } from '@/utils/formatDate';
-import { getPostImageUrl } from './api';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { useHealthTips, usePopularPhoto, useTodayStory } from './queries';
 
 const CARD_CLASS =
@@ -51,7 +51,7 @@ export default function StoryRail() {
           </div>
           <Link to={detailPath(photo.pstSn)} className="group mt-3 block">
             <img
-              src={getPostImageUrl(photo.imgs[0].atchFileSn)}
+              src={publicFileUrl(photo.imgs[0].atchFileSn)}
               alt=""
               className="aspect-[4/3] w-full rounded-[10px] bg-[#f4f6f6] object-cover"
             />

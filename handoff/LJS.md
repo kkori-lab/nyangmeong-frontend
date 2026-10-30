@@ -2,10 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-AIM-011 대화 펫 태그 이름 표시 — 끝(2026-10-30): 검증 `통과`(1회차)·사람 확인. 사이드바 대화 항목과 대화 머리 태그가 `petSn`으로 반려동물 목록에서 `petNm`을 찾아 보여 주고, 없거나 null이면 "전체"
+공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 끝(2026-10-30): 검증 `확인 못 함 있음`(1회차, 남은 것은 연결 남음뿐)·사람 확인. `@/utils/fileUrl` `publicFileUrl`, `@/hooks/useFileImage`(blob → data URL), `@/components/FileImage`를 만들고 캐릭터 훅·`PetFace`·커뮤니티 사진 7곳을 옮겼다. 공개 주소는 공용 DB에서 이 PC로 글을 올려 200 확인(글 1021 작성 후 삭제)
 
 ## 다음에 할 것
 
+- 공통 이미지 연결 남음(2026-10-30): KSJ에게 커뮤니티 사진 주소를 `getPostImageUrl`에서 `@/utils/fileUrl` `publicFileUrl`로 바꿨고(7곳, 주소 같음) `@/components/FileImage`를 쓸 수 있다고 알린다. 문의 첨부 `useInquiryImageUrls`는 object URL 방식 그대로(한 화면 전용·큰 사진). SJM에게 `PetFace`가 받는 동안 스켈레톤을 보여 주고 `fallback`은 실패 때만 나온다고 알린다(`PetProfileCard`). JAJ 영수증 원본(`/receipts/{recptSn}/image`)·SJM 아이템(`/items/{itemSn}/image`)은 `useFileImage` + `FileImage`로 붙인다. 공개·비공개 분류는 가정이고 공동양육자 한정 여부는 SJM 확인 전. 팀 공지 문구는 2026-10-30 세션에서 사용자에게 전달함
+- 백엔드에 알릴 것(범위 밖, 2026-10-30): ① 파일은 올린 PC 디스크에만 있어 공용 DB의 다른 사람 사진은 이 PC·배포 서버에서 404(`/api/files/public/4247` 등) ② 게시글을 지워도 그 사진 `/api/files/public/{번호}`가 200으로 계속 열린다(글 1021·사진 4251) ③ 브라우저 `fetch`로 직접 보낸 `DELETE /api/posts/1021`은 403, 화면 [삭제]는 성공(원인 안 봄)
 - 대화창 화면 URL `/ai` → `/ai-chat`(2026-10-30, backend-90 요청, 사람이 고침): 배포 Nginx가 `/ai`를 301로 `/ai/`(Python)에 보내 Not Found였다. Nginx는 바꾸지 않았다(임시 `location = /ai` 없음, 사람 확인 2026-10-30). PR #120 병합(2026-10-30) 뒤 `https://pawever.cloud/ai-chat`이 200·SPA로 열림(curl 확인 2026-10-30). 남은 것: 팀에 알림(사람)
 - SCR-AIM-011·013 연결 남음: FN-AIM-011-08 대표 반려동물 기본 선택은 SJM이 `features/pet/api.js` `getPets`를 실제 `GET /api/pets`로 붙인 뒤 확인(지금 가짜는 `rprsYn: 'Y'`라 계약 필드 `rprsPetYn`이 없어 기본 [전체]). SJM에게 "pet 가짜 `getPets`의 대표 필드가 `rprsYn: 'Y'`인데 계약은 `rprsPetYn`(boolean)이에요. AI 대화창이 `usePets`로 `rprsPetYn`을 읽어요"라고 알린다. 본창 건강 일지는 `features/health/api.js` 가짜 목록이라 같은 `petSn`이 다른 이름일 수 있다(JAJ 연결 몫). 다시 연 대화에서 결과 카드 다시 불러오기는 명세 FN-AIM-013-09 미결
 - 정리(2026-10-30 검증 데이터): 대화 138 "검증 초코 태그"·139 "영수증 분석"(둘 다 `petSn` 1)과 펫 태그 검증 때 만든 "검증 나비 태그"·"검증 전체 태그"를 `/ai-chat` 사이드바에서 삭제. 영수증 `recptSn` 531은 백엔드 정리 방법을 따른다

@@ -8,7 +8,7 @@ import {
   getYmdOf,
   WEEKDAYS,
 } from '@/utils/formatDate';
-import { getPostImageUrl } from '../api';
+import { publicFileUrl } from '@/utils/fileUrl';
 
 export const FOUND_PRIVATE_TEXT = '게시글 정보는 비공개로 바뀌었어요';
 
@@ -60,7 +60,7 @@ export const toFormValues = (post) => ({
     id: `file-${atchFileSn}`,
     atchFileSn,
     name: `첨부 이미지 ${index + 1}`,
-    url: getPostImageUrl(atchFileSn),
+    url: publicFileUrl(atchFileSn),
   })),
   agree: false,
 });

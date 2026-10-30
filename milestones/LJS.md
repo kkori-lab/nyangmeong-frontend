@@ -319,12 +319,15 @@
 - 결정: 목록에 없는 `petSn`은 "전체"로 둔다(2026-10-30)
 - 완료 조건 결과: 검증 `통과`(2026-10-30, 1회차), 사람 확인 2026-10-30
 
-## 공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 대기
+## 공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 끝
 - 기능: (연결 작업, 명세 기능 ID 추가 없음) 공개 이미지는 `/api/files/public/{atchFileSn}` 주소로 바로 보여 주고, 비공개 이미지는 도메인 API(`/api/receipts/{recptSn}/image`·`/api/pets/{petSn}/character-image`·`/api/items/{itemSn}/image`)를 `api.get(..., { responseType: 'blob' })`로 받아 보여 주는 공통 코드를 `components/`·`hooks/`에 만든다. 화면 담당(KSJ 게시글·SJM 캐릭터 등)이 가져다 쓴다
 - 기다리는 것: 백엔드 파일 저장 외부 디렉토리·서빙(끝, 커밋 3f44aa2, 백엔드 PR 전). 공용 DB는 옛 시드라 공개 이미지가 404이니 로컬 DB(`spring.profiles.active=local`, `seedData -Ptarget=local -Preset`)로 확인
 - 이미지 번호 키(백엔드 확인 2026-10-27, 서버 JSON 그대로): 공개 주소로 만들 수 있는 것은 게시글 `PostSummary.thumbAtchFileSn`(대표 사진)·`PostImageSummary.atchFileSn`(+`sortSeq`) 둘뿐이다. 캐릭터는 번호 없이 `GET /api/pets/{petSn}/character-image?part=full|face`(비공개 blob 대상), 아이템 `HeldItemSummary.atchFileSn`은 비공개라 `GET /api/items/{itemSn}/image`(blob), 영수증 `GET /api/receipts/{recptSn}/image`, 문의 사진 `InquiryImageSummary.atchFileSn`(비공개, 조회 API 없음), `/api/auth/me`의 `atchFileSn`(프로필 이미지)은 공개 여부 미정이라 URL을 만들지 않는다. 캐릭터를 번호 주소로 쓰려면 백엔드 응답에 번호 추가를 따로 요청해야 한다
 - 완료 조건: 쿠키 없이 게시글 사진이 공개 주소로 열리고 캐릭터 이미지는 blob 요청으로 보인다 / 공개가 아니거나 없는 번호(404 `FILE_NOT_FOUND`)와 로딩 중에는 정해진 대체 표시가 나온다 / 비공개 이미지는 blob 요청으로 받고 만료돼도 `api/axios.js` 재발급을 탄다 / 화면 이동 때 blob 주소를 해제한다
 - 연결 남음(화면 담당이 가져다 쓰기): 게시글 사진 KSJ(SCR-CMU, 공개 주소), 캐릭터 이미지 SJM(MYP-001·002·010, blob), 영수증 원본 이미지 JAJ·AI 영수증 화면. 공개·비공개 분류는 가정이고 공동양육자 한정 여부는 SJM 확인 전
+- 결정: 비공개 이미지는 data URL(SJM 캐릭터 방식, 해제할 주소 없음). 커뮤니티 사진 주소를 공통 함수로 옮기고 문의 첨부(object URL)는 그대로(2026-10-30)
+- 연결 남음: 영수증 원본·아이템 이미지 화면 적용 (`useFileImage`·`FileImage`, JAJ·SJM), 커뮤니티·문의 공통 코드 안내 (KSJ), 공개·비공개 분류 확인 (SJM)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-10-30, 1회차, 확인 못 함(내 것) 없음), 공개 주소 200은 공용 DB에 이 PC로 올린 사진으로 확인, 사람 확인 2026-10-30
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
