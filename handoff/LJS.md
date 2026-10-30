@@ -6,7 +6,7 @@ SCR-AIM-011 대화창 반려동물 목록 연결(FN-AIM-011-08·013-06) — 끝(
 
 ## 다음에 할 것
 
-- 대화창 화면 URL `/ai` → `/ai-chat`(2026-10-30, backend-90 요청, 사람이 고침): 배포 Nginx가 `/ai`를 301로 `/ai/`(Python)에 보내 Not Found였다. 프론트가 배포되면 backend-90에 알려 Nginx 임시 `location = /ai`를 지우게 한다. 팀에 알림(아래 메시지)
+- 대화창 화면 URL `/ai` → `/ai-chat`(2026-10-30, backend-90 요청, 사람이 고침): 배포 Nginx가 `/ai`를 301로 `/ai/`(Python)에 보내 Not Found였다. Nginx는 바꾸지 않았다(임시 `location = /ai` 없음, 사람 확인 2026-10-30). 프론트 배포(develop → main PR #120)로 해결되며 배포 뒤 `https://pawever.cloud/ai-chat` 확인 남음. 팀에 알림
 - SCR-AIM-011·013 연결 남음: FN-AIM-011-08 대표 반려동물 기본 선택은 SJM이 `features/pet/api.js` `getPets`를 실제 `GET /api/pets`로 붙인 뒤 확인(지금 가짜는 `rprsYn: 'Y'`라 계약 필드 `rprsPetYn`이 없어 기본 [전체]). SJM에게 "pet 가짜 `getPets`의 대표 필드가 `rprsYn: 'Y'`인데 계약은 `rprsPetYn`(boolean)이에요. AI 대화창이 `usePets`로 `rprsPetYn`을 읽어요"라고 알린다. 본창 건강 일지는 `features/health/api.js` 가짜 목록이라 같은 `petSn`이 다른 이름일 수 있다(JAJ 연결 몫). 다시 연 대화에서 결과 카드 다시 불러오기는 명세 FN-AIM-013-09 미결
 - SCR-AIM-011 사람이 정할 것(검증 판정 밖, 2026-10-30 검증에서 나옴): 사이드바 대화 항목·대화 머리 태그가 `conversation.petNm ?? '전체'`를 읽는데 서버 응답에 `petNm`이 없어 태그된 대화도 "전체"로 보인다. 고치려면 반려동물 목록에서 `petSn`으로 이름을 찾아 붙인다(`ConversationSidebar.jsx`·`ConversationHeader.jsx`)
 - 정리(2026-10-30 검증 데이터): 대화 138 "검증 초코 태그"·139 "영수증 분석"(둘 다 `petSn` 1)을 `/ai` 사이드바에서 삭제. 영수증 `recptSn` 531은 백엔드 정리 방법을 따른다
