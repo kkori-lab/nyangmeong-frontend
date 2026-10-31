@@ -116,7 +116,7 @@
 - 확인할 것: 해결됨. 투약 [마지막 1회 취소]는 완료 기록 번호 없이 새 API `DELETE /pets/{petSn}/care-items/{careArtclSn}/today-completion/last`(성공 200 data 없음, 투약 아니면 400, 오늘 기록 없으면 404)를 쓴다(백엔드 develop `b3389a0`)
 - 연결 남음: 없음
 
-## SCR-HLT-005 검진상세 · API 연결 — 대기
+## SCR-HLT-005 검진상세 · API 연결 — 끝
 
 - 함께 바꿀 것(반려동물 목록): 검진상세(`pages/health/CheckupDetailPage.jsx`)는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다. 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 검진상세 페이지의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-005-01~05·11~15에 걸침). 기본정보 `GET /pets/{petSn}/checkups/{ckupRcdSn}`(인라인 수정은 `PATCH` 그대로), 첨부 `GET /pets/{petSn}/checkup-attachments?ckupRcdSn=&atchTypeCd=&page=&size=`(Page, 영상검사 칩은 `atchTypeCd=HLTC0064`)·`POST`(multipart `ckupRcdSn`·`file`·`atchTypeCd`·영상 사진이면 `imgKndCd`·`shtRegnCd` 필수)·`PATCH`(multipart 교체)·`DELETE`·파일 `GET …/{ckupRcdAtchSn}`, PDF 분석은 Java API 없이 화면이 검사결과지 PDF를 Python `POST /ai/checkups/lab-results`로 직접 보낸다(백엔드 `143956f`에서 Java `…/analyses` 삭제, 응답 모양은 AI 서버 쪽에서 확인), 혈액검사 `GET /pets/{petSn}/inspection-values?ckupRcdSn=`·선택 삭제 `DELETE ?inspNvlSn=&inspNvlSn=`, 기타검사 `GET/POST/PATCH/DELETE /pets/{petSn}/etc-inspections`, 처방약 `GET/POST/PATCH/DELETE /pets/{petSn}/prescriptions`(복용중 우선, `careRfltYn` 미전송은 OFF), 반복 예방 `GET/POST/DELETE /pets/{petSn}/repeat-preventions`. 목록 API는 모두 `ckupRcdSn` 필수. 탭 건수는 각 목록 길이로 센다
@@ -124,6 +124,8 @@
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진상세에서 탭 4개 건수가 API 결과와 맞고, 첨부 등록·교체·삭제와 기타검사·처방약·반복 예방 저장이 서버에 반영되며, 주기 체크 ON 처방약 저장 뒤 케어 캘린더 일상관리에 투약 항목이 생긴다
 - 그대로 두는 것: [＋ 검사 수치 추가] 저장(백엔드 SCR-HLT-007 뒤)
 - 이미지 표시: 첨부·영상 결과(`checkup/ImagingResultList.jsx`)는 비공개 파일이라 `publicFileUrl`이 아니라 `@/hooks/useFileImage` + `@/components/FileImage`로 `GET /pets/{petSn}/checkup-attachments/{ckupRcdAtchSn}`을 그린다(공통 이미지 코드가 develop에 올라온 뒤). 등록 전 로컬 미리보기(`createObjectURL`)는 그대로 둔다
+- 추가 요청: 추가-1 첨부 목록 요청 `page=1&size=50`(서버 페이지는 1부터, 최대 50)
+- 연결 남음: 없음 (검사 수치 저장·수정·PDF 분석은 SCR-HLT-007 · API 연결)
 
 ## SCR-HLT-007 검사 수치 입력 · API 연결 — 대기
 

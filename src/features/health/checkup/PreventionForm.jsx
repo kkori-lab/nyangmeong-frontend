@@ -53,10 +53,10 @@ export default function PreventionForm({ petSn, ckupRcdSn, onClose }) {
       {
         petSn,
         ckupRcdSn,
-        prvntItmCd,
-        rptCycleCd,
-        rptCycleDayCnt: isCustom ? Number(rptCycleDayCnt) : null,
-        startYmd,
+        reptPrvntArtclCd: prvntItmCd,
+        reptCycleCd: rptCycleCd,
+        cycleDrctInptDayCnt: isCustom ? Number(rptCycleDayCnt) : null,
+        bgngYmd: startYmd,
       },
       { onSuccess: onClose },
     );

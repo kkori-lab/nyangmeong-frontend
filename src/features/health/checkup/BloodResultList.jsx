@@ -8,12 +8,17 @@ import { formatDate } from '@/utils/formatDate';
 import { useDeleteInspections } from '../queries';
 import BloodResultForm from './BloodResultForm';
 import { ADD_ROW, BTN_SM, ROW_LINE, TAG, TAG_STRONG } from './checkupStyles';
-import { FUNCTION_TAGS, findName } from './checkupTypes';
+import { findBloodItem } from '../labInput/bloodItems';
+import { FUNCTION_TAGS, findName, getInspectionName } from './checkupTypes';
+
+/** 항목의 기능 태그(혈구·신장·간·당): 서버가 주지 않아 항목 약어로 찾는다. 직접입력은 없음 */
+const getFunctionTag = (item) =>
+  findBloodItem(getInspectionName(item))?.fnctTagCd;
 
 /** 참고범위를 벗어난 방향: 초과 'high', 미만 'low', 범위 안이거나 미입력이면 null */
-const getOutDirection = ({ rsltVal, refMinVal, refMaxVal }) => {
-  if (refMinVal != null && rsltVal < refMinVal) return 'low';
-  if (refMaxVal != null && rsltVal > refMaxVal) return 'high';
+const getOutDirection = ({ rsltNvl, refLlmtNvl, refUplmtNvl }) => {
+  if (refLlmtNvl != null && rsltNvl < refLlmtNvl) return 'low';
+  if (refUplmtNvl != null && rsltNvl > refUplmtNvl) return 'high';
   return null;
 };
 
@@ -37,22 +42,22 @@ export default function BloodResultList({ checkup, items }) {
   });
   const tagCounts = FUNCTION_TAGS.map((tag) => ({
     ...tag,
-    count: items.filter((item) => item.fnctTagCd === tag.cd).length,
+    count: items.filter((item) => getFunctionTag(item) === tag.cd).length,
   })).filter((tag) => tag.count > 0);
   const isAllSelected =
     items.length > 0 &&
-    items.every((item) => selectedSns.includes(item.inspSn));
+    items.every((item) => selectedSns.includes(item.inspNvlSn));
 
-  const toggleItem = (inspSn) =>
+  const toggleItem = (inspNvlSn) =>
     setSelectedSns((prev) =>
-      prev.includes(inspSn)
-        ? prev.filter((sn) => sn !== inspSn)
-        : [...prev, inspSn],
+      prev.includes(inspNvlSn)
+        ? prev.filter((sn) => sn !== inspNvlSn)
+        : [...prev, inspNvlSn],
     );
 
   const handleDelete = () =>
     deleteInspections.mutate(
-      { ckupRcdSn, inspSns: selectedSns },
+      { petSn, ckupRcdSn, inspNvlSns: selectedSns },
       {
         onSuccess: () => {
           setSelectedSns([]);
@@ -62,7 +67,10 @@ export default function BloodResultList({ checkup, items }) {
     );
 
   const goEdit = (item) =>
-    navigate({ pathname: inputPath, search: `?mode=edit&item=${item.inspSn}` });
+    navigate({
+      pathname: inputPath,
+      search: `?mode=edit&item=${item.inspNvlSn}`,
+    });
 
   return (
     <div>
@@ -97,7 +105,7 @@ export default function BloodResultList({ checkup, items }) {
                 onChange={(event) =>
                   setSelectedSns(
                     event.target.checked
-                      ? items.map((item) => item.inspSn)
+                      ? items.map((item) => item.inspNvlSn)
                       : [],
                   )
                 }
@@ -117,10 +125,11 @@ export default function BloodResultList({ checkup, items }) {
           <ul className="max-h-96 overflow-y-auto">
             {items.map((item) => {
               const direction = getOutDirection(item);
-              const hasRange = item.refMinVal != null && item.refMaxVal != null;
+              const hasRange =
+                item.refLlmtNvl != null && item.refUplmtNvl != null;
               return (
                 <li
-                  key={item.inspSn}
+                  key={item.inspNvlSn}
                   className={`flex cursor-pointer items-center gap-3 py-3 hover:bg-surface-2 ${ROW_LINE}`}
                   onClick={() => goEdit(item)}
                 >
@@ -130,40 +139,41 @@ export default function BloodResultList({ checkup, items }) {
                   >
                     <input
                       type="checkbox"
-                      aria-label={`${item.inspItmNm} 선택`}
-                      checked={selectedSns.includes(item.inspSn)}
+                      aria-label={`${getInspectionName(item)} 선택`}
+                      checked={selectedSns.includes(item.inspNvlSn)}
                       className="size-4 accent-brand-500"
-                      onChange={() => toggleItem(item.inspSn)}
+                      onChange={() => toggleItem(item.inspNvlSn)}
                     />
                   </label>
-                  {item.fnctTagCd && (
+                  {getFunctionTag(item) && (
                     <span
                       className={`${TAG} min-w-12 justify-center ${direction ? TAG_STRONG : ''}`}
                     >
-                      {findName(FUNCTION_TAGS, item.fnctTagCd)}
+                      {findName(FUNCTION_TAGS, getFunctionTag(item))}
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
                     <Link
                       to={{
                         pathname: inputPath,
-                        search: `?mode=edit&item=${item.inspSn}`,
+                        search: `?mode=edit&item=${item.inspNvlSn}`,
                       }}
                       className="text-lg/[1.6] font-semibold text-ink underline underline-offset-4 hover:text-brand-600"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      {item.inspItmNm}
+                      {getInspectionName(item)}
                     </Link>
                     {hasRange && (
                       <span className="block text-sm text-subtle tabular-nums">
-                        참고범위 {item.refMinVal}~{item.refMaxVal} {item.unitNm}
+                        참고범위 {item.refLlmtNvl}~{item.refUplmtNvl}{' '}
+                        {item.unitNm}
                       </span>
                     )}
                   </span>
                   <span
                     className={`text-right text-lg/[1.6] font-semibold whitespace-nowrap tabular-nums ${direction ? 'text-danger' : ''}`}
                   >
-                    {item.rsltVal}{' '}
+                    {item.rsltNvl}{' '}
                     <span className="text-sm font-normal text-subtle">
                       {item.unitNm}
                     </span>
@@ -202,7 +212,7 @@ export default function BloodResultList({ checkup, items }) {
       {isFormOpen && (
         <BloodResultForm
           ckupRcdSn={ckupRcdSn}
-          registeredNames={new Set(items.map((item) => item.inspItmNm))}
+          registeredNames={new Set(items.map(getInspectionName))}
           onClose={() => setIsFormOpen(false)}
         />
       )}

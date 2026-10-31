@@ -26,7 +26,7 @@ export default function PrescriptionTab({ petSn, ckupRcdSn, prescriptions }) {
         <ul>
           {prescriptions.map((prescription) => (
             <li
-              key={prescription.rxSn}
+              key={prescription.prscSn}
               className={`flex items-center gap-3.5 py-3.5 ${ROW_LINE}`}
             >
               <span className="grid size-10 shrink-0 place-items-center rounded-[10px] border border-line bg-surface-2 text-ink-2">
@@ -38,17 +38,17 @@ export default function PrescriptionTab({ petSn, ckupRcdSn, prescriptions }) {
                   className="text-left text-lg/[1.6] font-semibold text-ink underline underline-offset-4 hover:text-brand-600"
                   onClick={() => setForm({ prescription, token: Date.now() })}
                 >
-                  {prescription.medNm}
+                  {prescription.mdcnNm}
                 </button>
                 <span className="block text-subtle tabular-nums">
-                  {formatDate(prescription.dosBgnYmd)} ~{' '}
-                  {formatDate(prescription.dosEndYmd)} · 1일{' '}
-                  {prescription.dayDosCnt}회 · 주기 체크{' '}
-                  {prescription.cycleChckYn ? 'ON' : 'OFF'}
+                  {formatDate(prescription.mdcnBgngYmd)} ~{' '}
+                  {formatDate(prescription.mdcnEndYmd)} · 1일{' '}
+                  {prescription.dayMdcnNmtm}회 · 주기 체크{' '}
+                  {prescription.careRfltYn ? 'ON' : 'OFF'}
                 </span>
               </span>
-              <Badge tone={prescription.dosSttsCd === DOSING ? 'ok' : 'gray'}>
-                {prescription.dosSttsCd === DOSING ? '복용중' : '종료'}
+              <Badge tone={prescription.prscSttsCd === DOSING ? 'ok' : 'gray'}>
+                {prescription.prscSttsCd === DOSING ? '복용중' : '종료'}
               </Badge>
             </li>
           ))}

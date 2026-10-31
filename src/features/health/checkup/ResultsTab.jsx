@@ -53,12 +53,14 @@ export default function ResultsTab({ detail, onGoAttachments }) {
       )}
       {kind === 'img' && (
         <ImagingResultList
+          petSn={checkup.petSn}
           attachments={imagingAttachments}
           onGoAttachments={onGoAttachments}
         />
       )}
       {kind === 'etc' && (
         <EtcResultList
+          petSn={checkup.petSn}
           ckupRcdSn={checkup.ckupRcdSn}
           etcInspections={etcInspections}
         />

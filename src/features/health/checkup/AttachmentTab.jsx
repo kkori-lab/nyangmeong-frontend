@@ -6,6 +6,7 @@ import Modal from '@/components/Modal';
 import { BTN_DANGER, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
+import { getAttachmentFile } from '../checkupApi';
 import EmptyBox from '../diary/EmptyBox';
 import {
   useAnalyzeLabPdf,
@@ -27,16 +28,19 @@ import {
   ATTACHMENT_LAB,
   ATTACHMENT_ACCEPT,
   ATTACHMENT_TYPES,
+  FILE_EXT_PDF,
   IMAGING_KINDS,
   IMAGING_PARTS,
   findName,
 } from './checkupTypes';
 
-const PDF_MIME = 'application/pdf';
+/** 새 창에 연 PDF 임시 주소를 해제하기까지의 시간 */
+const PDF_URL_LIFETIME = 60 * 1000;
 
 /**
  * [첨부 자료 탭]
  * - 첨부 목록(유형 태그·파일명·영상 종류·촬영 부위)과 파일별 PDF 분석·다운로드·교체·삭제, [＋ 첨부 추가] (FN-HLT-005-01·04)
+ * - PDF 파일은 [열기](새 창), 이미지는 [다운로드]
  * - PDF 분석은 검사결과지 유형의 PDF 행마다. 성공하면 인식 항목을 들고 검사 수치 입력으로 이동
  * - 영수증 원본은 첨부 자료에 넣지 않음
  */
@@ -58,15 +62,39 @@ export default function AttachmentTab({
 
   const hasLabPdf = attachments.some(isLabPdf);
 
-  const handleDownload = (attachment) => {
-    if (!attachment.fileUrl) {
-      showToast('내려받을 수 있는 파일이 없어요');
-      return;
+  /** 비공개 파일이라 받은 Blob을 임시 주소로 바꿔 내려받는다 */
+  const handleDownload = async (attachment) => {
+    try {
+      const blob = await getAttachmentFile({
+        petSn,
+        ckupRcdAtchSn: attachment.ckupRcdAtchSn,
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = attachment.orgnlFileNm;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      showToast('파일을 내려받지 못했어요. 잠시 뒤 다시 시도해 주세요');
     }
-    const link = document.createElement('a');
-    link.href = attachment.fileUrl;
-    link.download = attachment.fileNm;
-    link.click();
+  };
+
+  /** PDF는 받은 Blob을 새 창으로 연다. 팝업 차단을 피하려고 클릭 순간 빈 창을 먼저 연다 */
+  const handleOpenPdf = async (attachment) => {
+    const win = window.open('', '_blank');
+    try {
+      const blob = await getAttachmentFile({
+        petSn,
+        ckupRcdAtchSn: attachment.ckupRcdAtchSn,
+      });
+      const url = URL.createObjectURL(blob);
+      win.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), PDF_URL_LIFETIME);
+    } catch {
+      win?.close();
+      showToast('파일을 열지 못했어요. 잠시 뒤 다시 시도해 주세요');
+    }
   };
 
   const handleReplaceChange = (event) => {
@@ -78,13 +106,18 @@ export default function AttachmentTab({
       showToast(error);
       return;
     }
-    replaceAttachment.mutate({ ckupRcdSn, atchSn: replaceSn, file });
+    replaceAttachment.mutate({
+      petSn,
+      ckupRcdSn,
+      ckupRcdAtchSn: replaceSn,
+      file,
+    });
   };
 
   const handleAnalyze = (attachment) => {
-    setAnalyzingSn(attachment.atchSn);
+    setAnalyzingSn(attachment.ckupRcdAtchSn);
     analyzeLabPdf.mutate(
-      { ckupRcdSn, atchSn: attachment.atchSn },
+      { ckupRcdSn, atchSn: attachment.ckupRcdAtchSn },
       {
         onSuccess: (result) =>
           navigate(
@@ -93,7 +126,7 @@ export default function AttachmentTab({
                 petSn,
                 ckupRcdSn,
               }),
-              search: `?mode=pdf&atch=${attachment.atchSn}`,
+              search: `?mode=pdf&atch=${attachment.ckupRcdAtchSn}`,
             },
             { state: { analyzedItems: result.items } },
           ),
@@ -104,12 +137,16 @@ export default function AttachmentTab({
 
   const handleDelete = () =>
     deleteAttachment.mutate(
-      { ckupRcdSn, atchSn: deleteSn },
+      { petSn, ckupRcdSn, ckupRcdAtchSn: deleteSn },
       { onSuccess: () => setDeleteSn(null) },
     );
 
   const addForm = isAddOpen && (
-    <AttachmentForm ckupRcdSn={ckupRcdSn} onClose={() => setIsAddOpen(false)} />
+    <AttachmentForm
+      petSn={petSn}
+      ckupRcdSn={ckupRcdSn}
+      onClose={() => setIsAddOpen(false)}
+    />
   );
 
   return (
@@ -137,7 +174,7 @@ export default function AttachmentTab({
           <ul>
             {attachments.map((attachment) => (
               <li
-                key={attachment.atchSn}
+                key={attachment.ckupRcdAtchSn}
                 className={`flex flex-wrap items-center gap-x-3 gap-y-2 py-3 ${ROW_LINE}`}
               >
                 <span className={TAG}>
@@ -146,16 +183,18 @@ export default function AttachmentTab({
                 <span className="inline-flex min-w-0 items-center gap-1">
                   <Icon
                     name={
-                      attachment.mimeType === PDF_MIME ? 'description' : 'image'
+                      attachment.fileExtnCd === FILE_EXT_PDF
+                        ? 'description'
+                        : 'image'
                     }
                     className="text-lg"
                   />
-                  <span className="break-all">{attachment.fileNm}</span>
+                  <span className="break-all">{attachment.orgnlFileNm}</span>
                 </span>
                 {attachment.atchTypeCd === ATTACHMENT_IMAGE && (
                   <span className="text-sm text-subtle">
-                    {findName(IMAGING_KINDS, attachment.imgKindCd)} ·{' '}
-                    {findName(IMAGING_PARTS, attachment.imgPartCd)}
+                    {findName(IMAGING_KINDS, attachment.imgKndCd)} ·{' '}
+                    {findName(IMAGING_PARTS, attachment.shtRegnCd)}
                   </span>
                 )}
                 <span className="flex items-center gap-3 max-sm:w-full sm:ml-auto">
@@ -169,19 +208,29 @@ export default function AttachmentTab({
                       PDF 분석
                     </button>
                   )}
-                  <button
-                    type="button"
-                    className={TEXT_BTN}
-                    onClick={() => handleDownload(attachment)}
-                  >
-                    다운로드
-                  </button>
+                  {attachment.fileExtnCd === FILE_EXT_PDF ? (
+                    <button
+                      type="button"
+                      className={TEXT_BTN}
+                      onClick={() => handleOpenPdf(attachment)}
+                    >
+                      열기
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className={TEXT_BTN}
+                      onClick={() => handleDownload(attachment)}
+                    >
+                      다운로드
+                    </button>
+                  )}
                   <button
                     type="button"
                     className={TEXT_BTN}
                     disabled={replaceAttachment.isPending}
                     onClick={() => {
-                      setReplaceSn(attachment.atchSn);
+                      setReplaceSn(attachment.ckupRcdAtchSn);
                       replaceInputRef.current.click();
                     }}
                   >
@@ -190,7 +239,7 @@ export default function AttachmentTab({
                   <button
                     type="button"
                     className={TEXT_BTN_DEL}
-                    onClick={() => setDeleteSn(attachment.atchSn)}
+                    onClick={() => setDeleteSn(attachment.ckupRcdAtchSn)}
                   >
                     삭제
                   </button>
@@ -266,6 +315,7 @@ export default function AttachmentTab({
 /** 검사결과지 유형의 PDF 파일: [PDF 분석] 대상 */
 function isLabPdf(attachment) {
   return (
-    attachment.atchTypeCd === ATTACHMENT_LAB && attachment.mimeType === PDF_MIME
+    attachment.atchTypeCd === ATTACHMENT_LAB &&
+    attachment.fileExtnCd === FILE_EXT_PDF
   );
 }

@@ -1,27 +1,19 @@
+import { api } from '@/api/axios';
 import { addDays, getTodayYmd } from '@/utils/formatDate';
-import {
-  createLinkedPreventionItem,
-  getLinkedCareItem,
-  getQueryParam,
-  removeLinkedCareItem,
-  saveLinkedDoseItem,
-} from './api';
+import { getLinkedCareItem, getQueryParam, removeLinkedCareItem } from './api';
 import {
   ATTACHMENT_IMAGE,
   ATTACHMENT_LAB,
   DOSE_ENDED,
   DOSING,
-  PREVENTION_ITEMS,
-  findName,
 } from './checkup/checkupTypes';
-import { getCheckup } from './diaryApi';
 
 /**
  * [검진상세 API]
- * - 기본정보는 실제 API(diaryApi getCheckup)
- * - 검사 결과·첨부 자료·처방약·반복 예방 API(JAJ 백엔드)와 PDF 분석(LJS)이 생기기 전까지 쓰는 가짜 응답
- * - 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
- * - 개발 환경에서만 ?fakeCheckupDetail=0으로 검사·첨부·처방약·반복 예방 0건, PDF 분석 실패는 파일 이름에 fail
+ * - 검진상세 조회와 첨부·기타검사·처방약·반복 예방·혈액검사 삭제는 실제 API(JAJ 백엔드)
+ * - 아래 가짜 저장소(getCheckupTabs)는 종합 건강기록(summaryApi)이, 검사 수치 저장·수정·PDF 분석 가짜는 검사 수치 입력이 쓴다
+ * - 가짜 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
+ * - 개발 환경에서만 ?fakeCheckupDetail=0으로 가짜 검사·첨부·처방약·반복 예방 0건, PDF 분석 실패는 파일 이름에 fail
  */
 
 const today = getTodayYmd();
@@ -35,8 +27,6 @@ const SECOND_SEED_CHECKUP_SN = 501;
 let nextInspSn = 1;
 let nextEtcInspSn = 1;
 let nextAtchSn = 1;
-let nextRxSn = 100;
-let nextPrvntSn = 100;
 
 const makeBlood = (fnctTagCd, inspItmNm, rsltVal, unitNm, min, max) => ({
   inspSn: nextInspSn++,
@@ -100,13 +90,13 @@ const buildSeedStore = () => ({
   ],
   attachments: [
     makeAttachment(ATTACHMENT_LAB, '검사결과_20260812.pdf', 'application/pdf'),
-    makeAttachment('VACC', '접종증명서_20260812.jpg', 'image/jpeg'),
+    makeAttachment('HLTC0062', '접종증명서_20260812.jpg', 'image/jpeg'),
     makeAttachment(
       ATTACHMENT_IMAGE,
       '복부초음파_01.png',
       'image/png',
-      'US',
-      'ABDM',
+      'HLTC0069',
+      'HLTC0074',
     ),
   ],
   prescriptions: [
@@ -123,7 +113,7 @@ const buildSeedStore = () => ({
   preventions: [
     {
       prvntSn: 1,
-      prvntItmCd: 'HW',
+      prvntItmCd: 'HLTC0012',
       rptCycleCd: 'HLTC0040',
       rptCycleDayCnt: null,
       startYmd: addDays(today, -16),
@@ -147,7 +137,7 @@ const buildSecondSeedStore = () => ({
   preventions: [
     {
       prvntSn: 2,
-      prvntItmCd: 'DWM',
+      prvntItmCd: 'HLTC0013',
       rptCycleCd: 'HLTC0040',
       rptCycleDayCnt: null,
       startYmd: addDays(today, -20),
@@ -183,23 +173,6 @@ const getStore = (ckupRcdSn) => {
 
 const isExpired = (prescription) => prescription.dosEndYmd < today;
 
-/** 처방약 저장 뒤 투약 케어 항목 맞춤: 주기 체크 ON·복용중이면 추가·갱신, 아니면 삭제(완료 기록은 유지) */
-const syncDoseItem = (checkup, prescription) => {
-  const link = { lnkgTypeCd: 'PRSC', lnkgSn: prescription.rxSn };
-  if (prescription.cycleChckYn && prescription.dosSttsCd === DOSING) {
-    saveLinkedDoseItem({
-      ckupRcdSn: checkup.ckupRcdSn,
-      petSn: checkup.petSn,
-      lnkgSn: prescription.rxSn,
-      careItemNm: prescription.medNm,
-      dayGoalCnt: prescription.dayDosCnt,
-      dosEndYmd: prescription.dosEndYmd,
-    });
-  } else {
-    removeLinkedCareItem(link);
-  }
-};
-
 /** 검사·첨부·처방약·반복 예방 가짜 탭: 복용 종료일이 지난 처방약은 "종료"로 바꾸고 투약 항목을 뺌 */
 export const getCheckupTabs = (ckupRcdSn) => {
   const store = getStore(ckupRcdSn);
@@ -223,56 +196,68 @@ export const getCheckupTabs = (ckupRcdSn) => {
   };
 };
 
-/** 검진상세 한 번에 조회: 기본정보만 실제 API, 나머지 탭은 가짜 */
-export const getCheckupDetail = async ({ petSn, ckupRcdSn }) => {
-  const checkup = await getCheckup({ petSn, ckupRcdSn });
-  return { checkup, ...getCheckupTabs(ckupRcdSn) };
-};
+/** 첨부 목록은 첫 페이지 50건(서버 최대, 페이지는 1부터)만 받고 넘기지 않는다 */
+const ATTACHMENT_PAGE_SIZE = 50;
 
-/** 첨부 자료 */
+/** 검진상세 탭별 조회: 목록 API는 모두 검진기록 번호(ckupRcdSn)가 필요하다 */
 
-export const createAttachment = async ({
+export const getInspectionValues = ({ petSn, ckupRcdSn }) =>
+  api.get(`/pets/${petSn}/inspection-values`, { params: { ckupRcdSn } });
+
+export const getEtcInspections = ({ petSn, ckupRcdSn }) =>
+  api.get(`/pets/${petSn}/etc-inspections`, { params: { ckupRcdSn } });
+
+/** 첨부는 Page 응답이라 content만 쓴다 */
+export const getCheckupAttachments = ({ petSn, ckupRcdSn }) =>
+  api
+    .get(`/pets/${petSn}/checkup-attachments`, {
+      params: { ckupRcdSn, page: 1, size: ATTACHMENT_PAGE_SIZE },
+    })
+    .then((page) => page.content);
+
+/** 복용중이 먼저 오는 서버 순서 그대로 */
+export const getPrescriptions = ({ petSn, ckupRcdSn }) =>
+  api.get(`/pets/${petSn}/prescriptions`, { params: { ckupRcdSn } });
+
+export const getRepeatPreventions = ({ petSn, ckupRcdSn }) =>
+  api.get(`/pets/${petSn}/repeat-preventions`, { params: { ckupRcdSn } });
+
+/** 첨부 자료: 영상 사진이 아니면 영상 종류·촬영 부위는 보내지 않는다 */
+
+export const createAttachment = ({
+  petSn,
   ckupRcdSn,
   atchTypeCd,
   file,
-  imgKindCd,
-  imgPartCd,
+  imgKndCd,
+  shtRegnCd,
 }) => {
-  const attachment = {
-    atchSn: nextAtchSn++,
-    atchTypeCd,
-    fileNm: file.name,
-    mimeType: file.type,
-    fileUrl: URL.createObjectURL(file),
-    imgKindCd: atchTypeCd === ATTACHMENT_IMAGE ? imgKindCd : null,
-    imgPartCd: atchTypeCd === ATTACHMENT_IMAGE ? imgPartCd : null,
-  };
-  getStore(ckupRcdSn).attachments.push(attachment);
-  return { ...attachment };
+  const body = new FormData();
+  body.append('ckupRcdSn', ckupRcdSn);
+  body.append('file', file);
+  body.append('atchTypeCd', atchTypeCd);
+  if (atchTypeCd === ATTACHMENT_IMAGE) {
+    body.append('imgKndCd', imgKndCd);
+    body.append('shtRegnCd', shtRegnCd);
+  }
+  return api.post(`/pets/${petSn}/checkup-attachments`, body);
 };
 
-/** 교체는 해당 파일 1건만 대체: 유형·영상 종류·촬영 부위는 그대로 */
-export const replaceAttachment = async ({ ckupRcdSn, atchSn, file }) => {
-  const target = getStore(ckupRcdSn).attachments.find(
-    (item) => item.atchSn === atchSn,
-  );
-  if (target.fileUrl) URL.revokeObjectURL(target.fileUrl);
-  Object.assign(target, {
-    fileNm: file.name,
-    mimeType: file.type,
-    fileUrl: URL.createObjectURL(file),
+/** 교체는 파일 1건만 대체: 유형·영상 종류·촬영 부위는 보내지 않아 그대로 */
+export const replaceAttachment = ({ petSn, ckupRcdAtchSn, file }) => {
+  const body = new FormData();
+  body.append('file', file);
+  return api.patch(`/pets/${petSn}/checkup-attachments/${ckupRcdAtchSn}`, body);
+};
+
+export const deleteAttachment = ({ petSn, ckupRcdAtchSn }) =>
+  api.delete(`/pets/${petSn}/checkup-attachments/${ckupRcdAtchSn}`);
+
+/** 첨부 원본 파일(Blob): 다운로드·PDF 열기용 */
+export const getAttachmentFile = ({ petSn, ckupRcdAtchSn }) =>
+  api.get(`/pets/${petSn}/checkup-attachments/${ckupRcdAtchSn}`, {
+    responseType: 'blob',
   });
-  return { ...target };
-};
-
-export const deleteAttachment = async ({ ckupRcdSn, atchSn }) => {
-  const store = getStore(ckupRcdSn);
-  const target = store.attachments.find((item) => item.atchSn === atchSn);
-  if (target?.fileUrl) URL.revokeObjectURL(target.fileUrl);
-  store.attachments = store.attachments.filter(
-    (item) => item.atchSn !== atchSn,
-  );
-};
 
 /** 검사결과지 PDF 분석 호출부(LJS)가 생기기 전의 가짜. 인식한 항목을 돌려줌 */
 export const analyzeLabPdf = async ({ ckupRcdSn, atchSn }) => {
@@ -280,7 +265,7 @@ export const analyzeLabPdf = async ({ ckupRcdSn, atchSn }) => {
     (item) => item.atchSn === atchSn,
   );
   await wait(800);
-  if (target.fileNm.includes('fail')) {
+  if (target?.fileNm.includes('fail')) {
     throw {
       code: 'PDF_ANALYSIS_FAILED',
       message: 'PDF를 분석하지 못했어요. 잠시 뒤 다시 시도해 주세요',
@@ -349,88 +334,39 @@ export const updateInspection = async ({ ckupRcdSn, inspSn, ...body }) => {
   return { ...target };
 };
 
-export const deleteInspections = async ({ ckupRcdSn, inspSns }) => {
-  const store = getStore(ckupRcdSn);
-  store.blood = store.blood.filter((item) => !inspSns.includes(item.inspSn));
-};
-
-export const createEtcInspection = async ({ ckupRcdSn, ...body }) => {
-  const etc = makeEtc(body.inspNm, body.rsltCn, body.memoCn);
-  getStore(ckupRcdSn).etc.push(etc);
-  return { ...etc };
-};
-
-export const updateEtcInspection = async ({
-  ckupRcdSn,
-  etcInspSn,
-  ...body
-}) => {
-  const target = getStore(ckupRcdSn).etc.find(
-    (item) => item.etcInspSn === etcInspSn,
-  );
-  Object.assign(target, body);
-  return { ...target };
-};
-
-export const deleteEtcInspection = async ({ ckupRcdSn, etcInspSn }) => {
-  const store = getStore(ckupRcdSn);
-  store.etc = store.etc.filter((item) => item.etcInspSn !== etcInspSn);
-};
-
-/** 처방약 */
-
-export const createPrescription = async ({ petSn, ckupRcdSn, ...body }) => {
-  const prescription = { rxSn: nextRxSn++, ...body };
-  getStore(ckupRcdSn).prescriptions.push(prescription);
-  syncDoseItem({ petSn, ckupRcdSn }, prescription);
-  return { ...prescription };
-};
-
-export const updatePrescription = async ({
-  petSn,
-  ckupRcdSn,
-  rxSn,
-  ...body
-}) => {
-  const target = getStore(ckupRcdSn).prescriptions.find(
-    (item) => item.rxSn === rxSn,
-  );
-  Object.assign(target, body);
-  syncDoseItem({ petSn, ckupRcdSn }, target);
-  return { ...target };
-};
-
-/** 처방약을 지우면 자동 추가된 투약 항목도 삭제 */
-export const deletePrescription = async ({ ckupRcdSn, rxSn }) => {
-  const store = getStore(ckupRcdSn);
-  removeLinkedCareItem({ lnkgTypeCd: 'PRSC', lnkgSn: rxSn });
-  store.prescriptions = store.prescriptions.filter(
-    (item) => item.rxSn !== rxSn,
-  );
-};
-
-/** 반복 예방 */
-
-export const createPrevention = async ({ petSn, ckupRcdSn, ...body }) => {
-  const prevention = { prvntSn: nextPrvntSn++, ...body };
-  getStore(ckupRcdSn).preventions.push(prevention);
-  createLinkedPreventionItem({
-    ckupRcdSn,
-    petSn,
-    lnkgSn: prevention.prvntSn,
-    careItemNm: findName(PREVENTION_ITEMS, prevention.prvntItmCd),
-    rptCycleCd: prevention.rptCycleCd,
-    rptCycleDayCnt: prevention.rptCycleDayCnt,
-    startYmd: prevention.startYmd,
+/** 선택한 혈액검사 행 삭제: inspNvlSn=1&inspNvlSn=2 형태로 보낸다 */
+export const deleteInspections = ({ petSn, inspNvlSns }) =>
+  api.delete(`/pets/${petSn}/inspection-values`, {
+    params: { inspNvlSn: inspNvlSns },
+    paramsSerializer: { indexes: null },
   });
-  return { ...prevention };
-};
 
-/** 해지하면 자동 추가된 정기관리 항목을 삭제하고 완료 기록은 유지 */
-export const cancelPrevention = async ({ ckupRcdSn, prvntSn }) => {
-  const store = getStore(ckupRcdSn);
-  removeLinkedCareItem({ lnkgTypeCd: 'PRVNT', lnkgSn: prvntSn });
-  store.preventions = store.preventions.filter(
-    (item) => item.prvntSn !== prvntSn,
-  );
-};
+/** 기타검사 */
+
+export const createEtcInspection = ({ petSn, ...body }) =>
+  api.post(`/pets/${petSn}/etc-inspections`, body);
+
+export const updateEtcInspection = ({ petSn, etcInspSn, ...body }) =>
+  api.patch(`/pets/${petSn}/etc-inspections/${etcInspSn}`, body);
+
+export const deleteEtcInspection = ({ petSn, etcInspSn }) =>
+  api.delete(`/pets/${petSn}/etc-inspections/${etcInspSn}`);
+
+/** 처방약: 투약 케어 항목은 서버가 주기 체크(careRfltYn)·복용 상태에 맞춰 만들고 지운다 */
+
+export const createPrescription = ({ petSn, ...body }) =>
+  api.post(`/pets/${petSn}/prescriptions`, body);
+
+export const updatePrescription = ({ petSn, prscSn, ...body }) =>
+  api.patch(`/pets/${petSn}/prescriptions/${prscSn}`, body);
+
+export const deletePrescription = ({ petSn, prscSn }) =>
+  api.delete(`/pets/${petSn}/prescriptions/${prscSn}`);
+
+/** 반복 예방: 정기관리 케어 항목은 서버가 만들고 지운다 */
+
+export const createPrevention = ({ petSn, ...body }) =>
+  api.post(`/pets/${petSn}/repeat-preventions`, body);
+
+export const cancelPrevention = ({ petSn, reptPrvntMngSn }) =>
+  api.delete(`/pets/${petSn}/repeat-preventions/${reptPrvntMngSn}`);

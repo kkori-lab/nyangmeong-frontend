@@ -1,6 +1,7 @@
 import {
   keepPreviousData,
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
@@ -33,7 +34,11 @@ import {
   deleteEtcInspection,
   deleteInspections,
   deletePrescription,
-  getCheckupDetail,
+  getCheckupAttachments,
+  getEtcInspections,
+  getInspectionValues,
+  getPrescriptions,
+  getRepeatPreventions,
   replaceAttachment,
   updateEtcInspection,
   updateInspection,
@@ -49,6 +54,7 @@ import {
   deleteObservationRound,
   endObservation,
   findNearSchedule,
+  getCheckup,
   getCheckupYears,
   getCheckups,
   getDailyRecords,
@@ -252,12 +258,48 @@ export const useDeleteCheckup = () => useCheckupMutation(deleteCheckup);
 
 export const useUpdateCheckup = () => useCheckupMutation(updateCheckup);
 
-/** 검진상세 한 번에: 검진기록·검사 결과·첨부 자료·처방약·반복 예방 */
-/** 반려동물을 옮기면 같은 검진기록도 주소의 petSn이 바뀌므로 키에 petSn을 넣는다. 무효화는 ckupRcdSn까지의 앞부분으로 */
+/** 검진상세 조회: 기본정보와 탭 목록 5개를 각각 조회 */
+const CHECKUP_DETAIL_QUERIES = [
+  ['checkup', getCheckup],
+  ['bloodInspections', getInspectionValues],
+  ['etcInspections', getEtcInspections],
+  ['attachments', getCheckupAttachments],
+  ['prescriptions', getPrescriptions],
+  ['preventions', getRepeatPreventions],
+];
+
+/** 탭별 결과를 한 객체로: 바깥에 둬 결과가 그대로면 다시 만들지 않는다 */
+const combineCheckupDetail = (results) => {
+  const failed = results.find((result) => result.isError);
+  const isPending = results.some((result) => result.isPending);
+  return {
+    data:
+      isPending || failed
+        ? undefined
+        : Object.fromEntries(
+            CHECKUP_DETAIL_QUERIES.map(([name], index) => [
+              name,
+              results[index].data,
+            ]),
+          ),
+    isPending: !failed && isPending,
+    isError: Boolean(failed),
+    error: failed?.error ?? null,
+  };
+};
+
+/**
+ * 검진상세 한 번에: { checkup, bloodInspections, etcInspections, attachments, prescriptions, preventions }
+ * - 탭 건수를 함께 보여 주므로 모두 받은 뒤 data를 채우고, 하나라도 실패하면 isError
+ * - 반려동물을 옮기면 같은 검진기록도 주소의 petSn이 바뀌므로 키에 petSn을 넣는다. 무효화는 ckupRcdSn까지의 앞부분으로
+ */
 export const useCheckupDetail = ({ petSn, ckupRcdSn }) =>
-  useQuery({
-    queryKey: [...healthKeys.checkupDetail(ckupRcdSn), petSn],
-    queryFn: () => getCheckupDetail({ petSn, ckupRcdSn }),
+  useQueries({
+    queries: CHECKUP_DETAIL_QUERIES.map(([name, queryFn]) => ({
+      queryKey: [...healthKeys.checkupDetail(ckupRcdSn), petSn, name],
+      queryFn: () => queryFn({ petSn, ckupRcdSn }),
+    })),
+    combine: combineCheckupDetail,
   });
 
 /** 검진상세 변경: 변수의 ckupRcdSn 상세를 다시 읽고, 케어 항목이 바뀌는 변경은 케어리스트도 재조회 */
