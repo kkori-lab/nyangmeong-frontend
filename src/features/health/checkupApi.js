@@ -10,8 +10,8 @@ import {
 
 /**
  * [검진상세 API]
- * - 검진상세 조회와 첨부·기타검사·처방약·반복 예방·혈액검사 삭제는 실제 API(JAJ 백엔드)
- * - 아래 가짜 저장소(getCheckupTabs)는 종합 건강기록(summaryApi)이, 검사 수치 저장·수정·PDF 분석 가짜는 검사 수치 입력이 쓴다
+ * - 검진상세 조회와 첨부·기타검사·처방약·반복 예방·혈액검사 저장·수정·삭제는 실제 API(JAJ 백엔드)
+ * - 아래 가짜 저장소(getCheckupTabs)는 종합 건강기록(summaryApi)이, PDF 분석 가짜는 검사 수치 입력이 쓴다
  * - 가짜 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
  * - 개발 환경에서만 ?fakeCheckupDetail=0으로 가짜 검사·첨부·처방약·반복 예방 0건, PDF 분석 실패는 파일 이름에 fail
  */
@@ -317,22 +317,30 @@ export const analyzeLabPdf = async ({ ckupRcdSn, atchSn }) => {
 
 /** 검사 결과 */
 
-/** 혈액검사 여러 건 저장(수동 추가 1건 또는 PDF 분석 결과). 서버가 한 번에 처리한다고 보고 전체 성공·실패로 처리 */
-export const createInspections = async ({ ckupRcdSn, items }) => {
-  const store = getStore(ckupRcdSn);
-  const created = items.map((item) => ({ inspSn: nextInspSn++, ...item }));
-  store.blood.push(...created);
-  return created.map((item) => ({ ...item }));
-};
+/** 혈액검사 여러 건 저장(수동 추가 1건 또는 PDF 분석 결과). 같은 검진기록에 이미 있는 항목은 서버가 빼고, 실제 저장된 행만 돌려준다 */
+export const createInspections = ({ petSn, ckupRcdSn, values }) =>
+  api.post(`/pets/${petSn}/inspection-values`, { ckupRcdSn, values });
 
-/** 저장된 행을 갱신: 검사 항목은 바꾸지 않고 결과값·단위·참고범위·메모만 */
-export const updateInspection = async ({ ckupRcdSn, inspSn, ...body }) => {
-  const target = getStore(ckupRcdSn).blood.find(
-    (item) => item.inspSn === inspSn,
-  );
-  Object.assign(target, body);
-  return { ...target };
-};
+/**
+ * 저장된 행을 갱신: 검사 항목은 바꾸지 않고 결과값·단위·참고범위·메모만. null인 필드는 서버가 바꾸지 않는다
+ * - 함께 넘어오는 ckupRcdSn은 캐시 무효화용이라 본문에 넣지 않는다
+ */
+export const updateInspection = ({
+  petSn,
+  inspNvlSn,
+  rsltNvl,
+  unitNm,
+  refLlmtNvl,
+  refUplmtNvl,
+  memoCn,
+}) =>
+  api.patch(`/pets/${petSn}/inspection-values/${inspNvlSn}`, {
+    rsltNvl,
+    unitNm,
+    refLlmtNvl,
+    refUplmtNvl,
+    memoCn,
+  });
 
 /** 선택한 혈액검사 행 삭제: inspNvlSn=1&inspNvlSn=2 형태로 보낸다 */
 export const deleteInspections = ({ petSn, inspNvlSns }) =>

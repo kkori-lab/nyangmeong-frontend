@@ -127,11 +127,14 @@
 - 추가 요청: 추가-1 첨부 목록 요청 `page=1&size=50`(서버 페이지는 1부터, 최대 50)
 - 연결 남음: 없음 (검사 수치 저장·수정·PDF 분석은 SCR-HLT-007 · API 연결)
 
-## SCR-HLT-007 검사 수치 입력 · API 연결 — 대기
+## SCR-HLT-007 검사 수치 입력 · API 연결 — 끝
 
 - 기능: 검사 수치 입력 페이지와 검진상세 [＋ 검사 수치 추가]의 가짜 저장을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-007-01~06에 걸침). 저장 `POST /pets/{petSn}/inspection-values`(본문 `ckupRcdSn`·`values[]`: `inspArtclCd`(HLTG12) 또는 `inspArtclDrctInptNm`(직접입력), `rsltNvl`·`unitNm` 필수, 참고범위 하한·상한은 둘 다 또는 둘 다 비움, 201, `data`는 실제 저장·복구된 행만 — 보낸 항목 중 빠진 것으로 "이미 등록된 항목입니다: …" 안내), 수정 `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}`(보낸 필드만, 항목 변경 불가). 분석 검수는 Python `POST /ai/checkups/lab-results` 결과로 하고, 이미 등록된 항목 표시는 화면이 `GET /pets/{petSn}/inspection-values?ckupRcdSn=`와 비교한다(Java `…/analyses`의 `registered`·`excludedArtclNms`는 없어짐, 저장 때도 서버가 중복을 빼고 응답 `data`에 남은 행만 준다). SDMA는 공통코드 `HLTC0078`(HLTG12)로 보낸다
-- 기다리는 것: 백엔드 검사 수치 저장·수정 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전)
+- 기다리는 것: 없음 (백엔드 검사 수치 저장·수정 API는 develop에 머지됨, PR #83)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검사 수치 입력에서 저장하면 검진상세 혈액검사 탭에 반영되고, 이미 있는 항목은 안내 후 빠지며, 항목명 클릭 수정 진입 시 저장하면 새 행 없이 그 행이 바뀐다
+- 결정: 수정 화면에서 기존 참고범위를 둘 다 비우면 "참고범위는 수정에서 지울 수 없어요"로 막는다(서버 PATCH가 `null`을 "안 바꿈"으로 받음). SDMA는 `HLTC0078`
+- 연결 남음: FN-HLT-007-02·03 수정 (백엔드 연결 `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}` 참고범위 비우기, 백엔드 저장소에서 /start)
+- 연결 남음: FN-HLT-007-04·06 (검사결과지 PDF 분석 호출부, LJS. `checkupApi.js` `analyzeLabPdf` 가짜)
 
 ## SCR-HLT-002 건강 일지 · 일상 기록 API 연결 — 대기
 
