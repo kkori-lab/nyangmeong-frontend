@@ -17,7 +17,7 @@ import { PREVENTION_ITEMS, findName } from './checkupTypes';
  * - 목록 행: 예방 항목·반복 주기·다음 예정일·연동 뱃지·[해지] (FN-HLT-005-05)
  * - [해지]는 확인 뒤 반복 주기를 해지하고 자동 추가된 케어 항목을 삭제(완료 기록은 유지)
  */
-export default function PreventionTab({ ckupRcdSn, preventions }) {
+export default function PreventionTab({ petSn, ckupRcdSn, preventions }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [cancelSn, setCancelSn] = useState(null);
   const cancelPrevention = useCancelPrevention();
@@ -84,6 +84,7 @@ export default function PreventionTab({ ckupRcdSn, preventions }) {
       )}
       {isFormOpen && (
         <PreventionForm
+          petSn={petSn}
           ckupRcdSn={ckupRcdSn}
           onClose={() => setIsFormOpen(false)}
         />

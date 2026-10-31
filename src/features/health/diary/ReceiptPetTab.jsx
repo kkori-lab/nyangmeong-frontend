@@ -11,9 +11,9 @@ const chipClass = (isActive) =>
 
 /**
  * [반려동물별 기록 탭] (FN-HLT-002-36)
- * - 구역 이름이 등록된 이름과 같으면 "○○ · 자동 연결" 탭, 다르거나 추가한 탭은 [반려동물 선택 ▾]로 고른다
- * - 같은 반려동물은 두 탭에 둘 수 없어 다른 탭에서 고른 반려동물은 고를 수 없다
- * - 탭이 1개이고 자동 연결됐으면 탭 머리를 숨기고, 구역이 없는 영수증이라 더 추가할 수 있을 때만 [＋ 반려동물 추가]를 보인다
+ * - 구역 이름이 등록된 이름과 같으면 "○○ · 자동 연결" 탭, 다르거나 추가한 탭은 [반려동물 선택 ▾]로 선택
+ * - 같은 반려동물은 두 탭에 둘 수 없어 다른 탭에서 고른 반려동물은 선택 불가
+ * - 탭이 1개이고 자동 연결됐으면 탭 머리를 숨김, 구역이 없는 영수증이라 더 추가할 수 있을 때만 [＋ 반려동물 추가] 표시
  */
 export default function ReceiptPetTab({
   tabs,
@@ -24,7 +24,7 @@ export default function ReceiptPetTab({
   onPetChange,
   onAdd,
 }) {
-  /** 탭이 1개여도 반려동물을 직접 골라야 하면(자동 연결 실패) 선택칸은 보인다 */
+  /** 탭이 1개여도 반려동물을 직접 골라야 하면(자동 연결 실패) 선택칸 표시 */
   const hasTabHead = tabs.length > 1 || !tabs[0].isAutoLinked;
   if (!hasTabHead && !canAdd) return null;
 
@@ -57,11 +57,11 @@ export default function ReceiptPetTab({
           );
           return (
             <span key={tab.id} className={chipClass(isActive)}>
-              {tab.zoneNm && <span>영수증 &apos;{tab.zoneNm}&apos; →</span>}
+              {tab.sectionNm && <span>영수증 &apos;{tab.sectionNm}&apos; →</span>}
               <select
                 aria-label={
-                  tab.zoneNm
-                    ? `영수증 '${tab.zoneNm}' 반려동물 선택`
+                  tab.sectionNm
+                    ? `영수증 '${tab.sectionNm}' 반려동물 선택`
                     : '반려동물 선택'
                 }
                 value={tab.petSn ?? ''}

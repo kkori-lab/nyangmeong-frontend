@@ -15,12 +15,23 @@ import { PATHS } from '@/routes/paths';
 const TITLE = '검사 수치 입력';
 const DESCRIPTION = '혈액검사 결과지의 수치를 확인하고 저장해요';
 
+/** 없는 검진기록·반려동물, 양육하지 않는 반려동물은 모두 "찾을 수 없어요" */
+const NOT_FOUND_CODES = [
+  'CHECKUP_NOT_FOUND',
+  'PET_NOT_FOUND',
+  'PET_ACCESS_DENIED',
+];
+
 export default function LabInputPage() {
-  const { ckupRcdSn } = useParams();
+  const params = useParams();
   const [searchParams] = useSearchParams();
   const { state } = useLocation();
-  const sn = Number(ckupRcdSn);
-  const { data: detail, isPending, isError, error } = useCheckupDetail(sn);
+  const petSn = Number(params.petSn);
+  const sn = Number(params.ckupRcdSn);
+  const { data: detail, isPending, isError, error } = useCheckupDetail({
+    petSn,
+    ckupRcdSn: sn,
+  });
 
   const requestedMode = searchParams.get('mode');
   const itemSn = Number(searchParams.get('item'));
@@ -47,7 +58,7 @@ export default function LabInputPage() {
     return (
       <SubPageLayout {...layoutProps}>
         <p role="alert" className="text-muted">
-          {error?.code === 'NOT_FOUND'
+          {NOT_FOUND_CODES.includes(error?.code)
             ? '검진기록을 찾을 수 없어요'
             : '검진기록을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요'}
         </p>
@@ -66,7 +77,10 @@ export default function LabInputPage() {
           수정할 검사 항목을 찾을 수 없어요
         </p>
         <Link
-          to={generatePath(PATHS.HEALTH_CHECKUP_DETAIL, { ckupRcdSn: sn })}
+          to={generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+            petSn,
+            ckupRcdSn: sn,
+          })}
           className="mt-3 font-semibold text-brand-600 hover:underline hover:underline-offset-3"
         >
           검진상세로 돌아가기
@@ -85,7 +99,8 @@ export default function LabInputPage() {
   return (
     <SubPageLayout {...layoutProps}>
       <LabInput
-        key={`${sn}-${mode}-${itemSn}`}
+        key={`${petSn}-${sn}-${mode}-${itemSn}`}
+        petSn={petSn}
         ckupRcdSn={sn}
         mode={mode}
         detail={detail}

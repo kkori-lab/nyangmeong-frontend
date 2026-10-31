@@ -6,7 +6,7 @@ import { formatAmount } from './receiptUtils';
 /**
  * [가계부 중복 확인 창] (FN-HLT-002-44)
  * - rows: [{ key, petNm, amt }] 가계부에 같은 지출이 이미 있는 반려동물
- * - [가계부에도 기록하기]는 겹쳐도 기록, [가계부 기록 건너뛰기]는 겹친 반려동물의 가계부 기록만 건너뛴다
+ * - [가계부에도 기록하기]는 겹쳐도 기록, [가계부 기록 건너뛰기]는 겹친 반려동물의 가계부 기록만 건너뜀
  */
 export default function LedgerDupModal({
   rows,

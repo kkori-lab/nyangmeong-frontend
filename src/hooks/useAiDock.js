@@ -5,10 +5,10 @@ const BUBBLE_SEEN_KEY = 'nyangmeong-ai-bubble-seen';
 const MOBILE_QUERY = '(max-width: 760px)';
 /** 이 거리(px)보다 오른쪽으로 끌고 놓으면 접힘 */
 const FOLD_DISTANCE = 40;
-/** 이 거리(px) 안의 움직임은 클릭으로 본다 */
+/** 이 거리(px) 안의 움직임은 클릭으로 간주 */
 const DRAG_THRESHOLD = 4;
 
-/** 저장소가 막혀 있어도 화면이 깨지지 않게 감싼다 */
+/** 저장소가 막혀 있어도 화면이 깨지지 않게 감싸기 */
 function readStorage(key) {
   try {
     return localStorage.getItem(key);
@@ -21,11 +21,11 @@ function writeStorage(key, value) {
   try {
     localStorage.setItem(key, value);
   } catch {
-    /** 저장 못 해도 이번 방문에서는 동작한다 */
+    /** 저장 못 해도 이번 방문에서는 동작 */
   }
 }
 
-/** 저장소를 못 읽으면 본 것으로 쳐서 말풍선을 매번 띄우지 않는다 */
+/** 저장소를 못 읽으면 본 것으로 처리해 말풍선 매번 표시 방지 */
 function hasSeenBubble() {
   try {
     return localStorage.getItem(BUBBLE_SEEN_KEY) !== null;
@@ -85,7 +85,7 @@ export default function useAiDock() {
       drag.current.moved = true;
       setDragging(true);
     }
-    /** 우측으로만 끈다 */
+    /** 우측으로만 끌기 */
     setOffset(Math.max(0, dx));
   };
 
@@ -97,7 +97,7 @@ export default function useAiDock() {
     setDragging(false);
     setOffset(0);
     if (moved) {
-      /** 끈 직후 따라오는 click은 AI 창을 열지 않게 막는다 */
+      /** 끈 직후 따라오는 click은 AI 창 열림 차단 */
       suppressClick.current = true;
       setTimeout(() => {
         suppressClick.current = false;

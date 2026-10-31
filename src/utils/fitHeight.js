@@ -1,4 +1,4 @@
-/** 글 길이에 맞춰 높이를 맞춘다. 높이를 비우는 동안 문서가 짧아져 스크롤이 튀는 것을 되돌린다 */
+/** 글 길이에 맞춰 높이 조정. 높이를 비우는 동안 문서가 짧아져 튀는 스크롤 복원 */
 export const fitHeight = (textarea) => {
   const scrollY = window.scrollY;
   textarea.style.height = 'auto';

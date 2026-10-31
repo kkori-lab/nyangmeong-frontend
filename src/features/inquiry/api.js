@@ -2,20 +2,21 @@ import { api } from '@/api/axios';
 
 /**
  * [1:1 문의 API]
- * - 목록 GET /inquiries, 상세 GET /inquiries/{otoInqrySn}, 작성 POST /inquiries, 수정 PATCH /inquiries/{otoInqrySn}
+ * - 목록 GET /inquiries, 상세 GET /inquiries/{otoInqrySn}, 작성 POST /inquiries, 수정 PATCH /inquiries/{otoInqrySn},
+ *   삭제 DELETE /inquiries/{otoInqrySn}(미답변만, data 없음. 서버는 숨김 처리)
  *   작성·수정은 multipart/form-data(inqryTypeCd·inqryTtl·inqryCn·images, 수정은 남길 첨부 keepAtchFileSns)
  * - 응답: 목록 {content[{otoInqrySn, inqryTypeCd, inqryTypeCdNm, inqryTtl, inqryPrcsSttsCd, inqryPrcsSttsCdNm, regDt}], page, size, totalElements, totalPages, hasNext},
- *   상세·작성·수정 {…, inqryCn, imgs[{atchFileSn, sortSeq}], ansCn, ansDt}
- * - 첨부 이미지는 서버가 atchFileSn만 준다(이미지 조회 API가 생기면 imgs로 표시한다)
+ *   상세·작성·수정 {…, inqryCn, imgs[{atchFileSn, sortSeq, orgnlFileNm}], ansCn, ansDt}
+ * - 첨부 이미지는 GET /inquiries/{otoInqrySn}/images/{atchFileSn}(본인 문의만, 이미지 Blob)로 수신
  */
 
 /** 문의 유형 공통코드 그룹(CSCG02): 코드 CSCC0005~0011 */
 const INQUIRY_TYPE_GROUP = 'CSCG02';
 
-/** 픽셀 캐릭터 문의 유형 코드: 캐릭터 화면에서 오면 미리 고른다 */
+/** 픽셀 캐릭터 문의 유형 코드: 캐릭터 화면에서 오면 미리 선택 */
 export const INQUIRY_TYPE_PIXEL_CHARACTER = 'CSCC0006';
 
-/** 화면에 쓰는 처리 상태 문구. 서버 이름 「접수」는 쓰지 않는다 */
+/** 화면에 쓰는 처리 상태 문구. 서버 이름 「접수」는 사용 안 함 */
 export const INQUIRY_STATUS = { OPEN: '미답변', DONE: '답변 완료' };
 
 /** 처리 상태 코드(CSCG03) */
@@ -36,6 +37,12 @@ export const getInquiries = ({ page = 1, size = 10, status = '' } = {}) =>
 
 export const getInquiry = (otoInqrySn) => api.get(`/inquiries/${otoInqrySn}`);
 
+/** 첨부 이미지 Blob. 쿠키 만료 때 재발급을 타도록 <img src>에 주소 직접 사용 금지 */
+export const getInquiryImage = (otoInqrySn, atchFileSn) =>
+  api.get(`/inquiries/${otoInqrySn}/images/${atchFileSn}`, {
+    responseType: 'blob',
+  });
+
 /** 문의 유형 목록: [{ comCd, comCdNm, sortSeq }] */
 export const getInquiryTypes = () =>
   api.get('/common-codes', { params: { prntComCd: INQUIRY_TYPE_GROUP } });
@@ -43,7 +50,7 @@ export const getInquiryTypes = () =>
 /**
  * 작성·수정 multipart 본문
  * - images: 새로 올릴 File 배열
- * - keepAtchFileSns: 수정에서만. 이 목록에 없는 기존 첨부는 서버가 지운다(빈 배열이면 모두 지움: 값 없는 항목 하나로 보낸다)
+ * - keepAtchFileSns: 수정에서만. 이 목록에 없는 기존 첨부는 서버가 삭제(빈 배열이면 모두 지움: 값 없는 항목 하나로 전송)
  */
 const toFormData = ({
   inqryTypeCd,
@@ -82,3 +89,6 @@ export const updateInquiry = ({
     `/inquiries/${otoInqrySn}`,
     toFormData({ inqryTypeCd, inqryTtl, inqryCn, images, keepAtchFileSns }),
   );
+
+export const deleteInquiry = (otoInqrySn) =>
+  api.delete(`/inquiries/${otoInqrySn}`);

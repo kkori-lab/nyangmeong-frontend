@@ -19,7 +19,7 @@ export default function PrescriptionHistoryCard({ prescriptions }) {
       action={
         prescriptions.length > 0 && (
           <MoreLink
-            to={getCheckupDetailPath(prescriptions[0].ckupRcdSn, 'prescription')}
+            to={getCheckupDetailPath(prescriptions[0], 'prescription')}
           />
         )
       }
@@ -41,7 +41,7 @@ export default function PrescriptionHistoryCard({ prescriptions }) {
             return (
               <li key={prescription.rxSn} className="border-b border-line-soft last:border-b-0">
                 <Link
-                  to={getCheckupDetailPath(prescription.ckupRcdSn)}
+                  to={getCheckupDetailPath(prescription)}
                   className="flex items-center gap-3.5 px-[18px] py-3.5 hover:bg-surface-2 sm:px-[22px]"
                 >
                   <span className="grid size-10 shrink-0 place-items-center rounded-[10px] border border-line bg-surface-2 text-ink-2">

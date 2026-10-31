@@ -3,7 +3,7 @@ import Badge from '@/components/Badge';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import userIcon from '@/assets/user.svg';
-import { addDays, formatDate } from '@/utils/formatDate';
+import { addDays, formatDate, getYmdOf } from '@/utils/formatDate';
 import { EXTEND_DAYS, foundCommentText } from '../missingCodes';
 
 /** 「찾았어요」 확인: 자동으로 등록될 댓글을 미리 보여 준다(입력칸 없음) */
@@ -48,7 +48,7 @@ export function FoundConfirmModal({
             style={{ backgroundImage: `url(${userIcon})` }}
             className="block size-8 shrink-0 rounded-full border border-line bg-white bg-cover bg-center"
           />
-          <b className="text-base font-semibold text-ink">{post.wrtrNcknm}</b>
+          <b className="text-base font-semibold text-ink">{post.mbrNcnm}</b>
           <Badge tone="ok">찾았어요</Badge>
         </p>
         <p className="mt-1.5 text-base leading-[1.6] text-ink">
@@ -71,7 +71,7 @@ export function FoundConfirmModal({
   );
 }
 
-/** 「30일 더 게시」 확인: 새 종료일을 알려 준다 */
+/** 「30일 더 게시」 확인: 새 종료일을 안내 */
 export function ExtendConfirmModal({
   post,
   isPending,
@@ -79,7 +79,7 @@ export function ExtendConfirmModal({
   onConfirm,
   onClose,
 }) {
-  const nextEnd = formatDate(addDays(post.expryCrtrDt, EXTEND_DAYS));
+  const nextEnd = formatDate(addDays(getYmdOf(post.expryCrtrDt), EXTEND_DAYS));
   return (
     <Modal
       isConfirm

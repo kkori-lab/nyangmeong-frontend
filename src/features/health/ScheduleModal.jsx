@@ -18,7 +18,7 @@ const SELECT_ARROW_STYLE = {
 };
 
 const MAX_HOSPITAL_NAME_LENGTH = 50;
-const MAX_SCHEDULE_NAME_LENGTH = 50;
+const MAX_SCHEDULE_NAME_LENGTH = 40;
 const MAX_MEMO_LENGTH = 200;
 
 const toForm = (schedule, defaultPetSn, defaultYmd) => ({
@@ -31,6 +31,16 @@ const toForm = (schedule, defaultPetSn, defaultYmd) => ({
   scheduleTime: schedule?.hrInptYn ? getHmOf(schedule.schdlDt) : '',
   memoCn: schedule?.memoCn ?? '',
 });
+
+// 서버 입력값 검증 오류 문구
+function FieldError({ message }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="text-sm leading-[1.4] text-[#b4473a]">
+      {message}
+    </p>
+  );
+}
 
 // 일정 등록·수정 모달(FN-HLT-003-32~37). schedule이 있으면 수정, 없으면 등록이다
 export default function ScheduleModal({
@@ -55,6 +65,9 @@ export default function ScheduleModal({
     createSchedule.isPending ||
     updateSchedule.isPending ||
     deleteSchedule.isPending;
+  const saveError = isEdit ? updateSchedule.error : createSchedule.error;
+  const fieldError = (field) =>
+    saveError?.fields?.find((item) => item.field === field)?.message;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -199,6 +212,7 @@ export default function ScheduleModal({
                   </option>
                 ))}
               </select>
+              <FieldError message={fieldError('petSn')} />
             </label>
           )}
 
@@ -226,6 +240,7 @@ export default function ScheduleModal({
                 );
               })}
             </div>
+            <FieldError message={fieldError('schdlKndCd')} />
           </fieldset>
 
           <div className="grid grid-cols-2 gap-x-8">
@@ -240,6 +255,7 @@ export default function ScheduleModal({
                   setField('scheduleDate', event.target.value)
                 }
               />
+              <FieldError message={fieldError('schdlDt')} />
             </label>
             <label className="flex flex-col gap-1.5">
               <span className={labelClass}>시간{optional}</span>
@@ -251,6 +267,7 @@ export default function ScheduleModal({
                   setField('scheduleTime', event.target.value)
                 }
               />
+              <FieldError message={fieldError('hrInptYn')} />
             </label>
           </div>
 
@@ -274,6 +291,7 @@ export default function ScheduleModal({
                       </option>
                     ))}
                   </select>
+                  <FieldError message={fieldError('ckupTypeCd')} />
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className={labelClass}>병원명{required}</span>
@@ -285,6 +303,7 @@ export default function ScheduleModal({
                       setField('hsptlNm', event.target.value)
                     }
                   />
+                  <FieldError message={fieldError('hsptlNm')} />
                 </label>
               </div>
             </div>
@@ -299,6 +318,7 @@ export default function ScheduleModal({
                 className={inputClass}
                 onChange={(event) => setField('schdlNm', event.target.value)}
               />
+              <FieldError message={fieldError('schdlNm')} />
             </label>
           )}
 
@@ -310,6 +330,7 @@ export default function ScheduleModal({
               className={inputClass}
               onChange={(event) => setField('memoCn', event.target.value)}
             />
+            <FieldError message={fieldError('memoCn')} />
           </label>
 
           {/** 캘린더 뱃지 색상: 공통코드(HLTG21) 확정 전까지 미노출 */}

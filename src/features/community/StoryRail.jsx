@@ -2,6 +2,7 @@ import { ChevronRight, Heart } from 'lucide-react';
 import { generatePath, Link } from 'react-router-dom';
 import { PATHS } from '@/routes/paths';
 import { formatWeekdayLong, getDay, getMonth } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { useHealthTips, usePopularPhoto, useTodayStory } from './queries';
 
 const CARD_CLASS =
@@ -29,15 +30,15 @@ export default function StoryRail() {
         <div className="rounded-[14px] bg-[#e9f2f2] px-5 py-5 max-[1100px]:order-first max-[1100px]:col-span-full max-[1100px]:mb-6">
           <p className="text-sm font-semibold text-[#285a5c]">오늘의 한마디</p>
           <q className="mt-2 block text-base leading-[1.6] text-[#1a3234] [quotes:none]">
-            {story.text}
+            {story.cmtryCn}
           </q>
           <small className="mt-3 block text-sm text-[#667374]">
-            {formatStoryDate(story.date)}
+            {formatStoryDate(story.cmtryCrtrYmd)}
           </small>
         </div>
       )}
 
-      {photo && (
+      {photo?.imgs.length > 0 && (
         <section aria-labelledby="post-photo-title" className={CARD_CLASS}>
           <div className="flex items-baseline justify-between">
             <h2
@@ -50,7 +51,7 @@ export default function StoryRail() {
           </div>
           <Link to={detailPath(photo.pstSn)} className="group mt-3 block">
             <img
-              src={photo.thmbUrlPath}
+              src={publicFileUrl(photo.imgs[0].atchFileSn)}
               alt=""
               className="aspect-[4/3] w-full rounded-[10px] bg-[#f4f6f6] object-cover"
             />
@@ -58,7 +59,7 @@ export default function StoryRail() {
               {photo.pstTtl}
             </span>
             <span className="mt-1 flex items-center justify-between text-sm text-[#667374]">
-              <span>{photo.wrtrNcknm}</span>
+              <span>{photo.mbrNcnm}</span>
               <span className="inline-flex items-center gap-1">
                 <Heart size={14} aria-hidden="true" />
                 <span className="sr-only">좋아요</span>
@@ -84,7 +85,7 @@ export default function StoryRail() {
                   {tip.pstTtl}
                 </span>
                 <span className="mt-0.5 line-clamp-2 text-sm leading-normal text-[#566465]">
-                  {tip.summary}
+                  {tip.pstCn.split('\n')[0]}
                 </span>
               </Link>
             </li>

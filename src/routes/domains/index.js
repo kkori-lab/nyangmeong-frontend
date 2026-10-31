@@ -11,7 +11,7 @@ import placeRoutes from './place/placeRoutes';
 import settingsRoutes from './settings/settingsRoutes';
 import supportRoutes from './support/supportRoutes';
 
-/** 도메인 목록 고정: 라우트는 각 도메인의 <도메인>Routes.js에 쓴다 */
+/** 도메인 목록 고정: 라우트는 각 도메인의 <도메인>Routes.js에 작성 */
 export default [
   ...mainRoutes,
   ...accountRoutes,

@@ -31,7 +31,12 @@ const REQUIRED = <span className="ml-0.5 font-bold text-danger">*</span>;
  * - 주기 체크 ON으로 저장하면 케어 캘린더 일상관리에 투약 항목이 생김
  * - prescription이 있으면 기존 값이 채워진 수정 상태이고 [삭제] 제공
  */
-export default function PrescriptionForm({ ckupRcdSn, prescription, onClose }) {
+export default function PrescriptionForm({
+  petSn,
+  ckupRcdSn,
+  prescription,
+  onClose,
+}) {
   const formRef = useRef(null);
   const [medNm, setMedNm] = useState(prescription?.medNm ?? '');
   const [dosBgnYmd, setDosBgnYmd] = useState(prescription?.dosBgnYmd ?? '');
@@ -70,6 +75,7 @@ export default function PrescriptionForm({ ckupRcdSn, prescription, onClose }) {
     setIsSubmitted(true);
     if (Object.values(errors).some(Boolean)) return;
     const body = {
+      petSn,
       ckupRcdSn,
       medNm: medNm.trim(),
       dosBgnYmd,

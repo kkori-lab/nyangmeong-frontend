@@ -1,13 +1,20 @@
 import { ChevronLeft, Clock, Headset, ImageIcon, Lock } from 'lucide-react';
-import { generatePath, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { generatePath, Link, useNavigate } from 'react-router-dom';
 import Badge from '@/components/Badge';
+import ConfirmModal from '@/components/ConfirmModal';
+import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { isAnswered } from './api';
+import InquiryImageViewer from './InquiryImageViewer';
 import InquiryStatusBadge from './InquiryStatusBadge';
+import { useDeleteInquiry, useInquiryImageUrls } from './queries';
 
-const EDIT_BUTTON_CLASS =
-  'inline-flex h-10 min-w-[120px] items-center justify-center gap-1.5 rounded-md bg-[#e9f2f2] px-4 font-semibold text-[#1e4a4c] max-[760px]:h-12 max-[760px]:min-w-0 max-[760px]:flex-1';
+const ACTION_BUTTON_CLASS =
+  'inline-flex h-10 min-w-[120px] items-center justify-center gap-1.5 rounded-md px-4 font-semibold max-[760px]:h-12 max-[760px]:min-w-0 max-[760px]:flex-1';
+const EDIT_BUTTON_CLASS = `${ACTION_BUTTON_CLASS} bg-[#e9f2f2] text-[#1e4a4c]`;
+const DELETE_BUTTON_CLASS = `${ACTION_BUTTON_CLASS} border border-[#d5dddd] bg-white text-[#566465] hover:bg-[#f4f7f7]`;
 
 /** '2026-09-18T14:32:00' → '2026.09.18 14:32' */
 const formatDateTime = (value) => `${formatDate(value)} ${value.slice(11, 16)}`;
@@ -15,6 +22,11 @@ const formatDateTime = (value) => `${formatDate(value)} ${value.slice(11, 16)}`;
 export default function InquiryDetail({ inquiry }) {
   const answered = isAnswered(inquiry);
   const { imgs } = inquiry;
+  const urls = useInquiryImageUrls(inquiry.otoInqrySn, imgs);
+  const [viewerIndex, setViewerIndex] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const remove = useDeleteInquiry();
+  const navigate = useNavigate();
 
   return (
     <article className="rounded-[14px] border border-[#e2e7e7] bg-white px-9 pt-8 pb-8 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-5">
@@ -38,20 +50,38 @@ export default function InquiryDetail({ inquiry }) {
           <p className="mt-6 text-sm font-semibold text-[#566465]">
             첨부 이미지 {imgs.length}
           </p>
-          {/* 서버가 atchFileSn만 줘서(이미지 조회 API 전) 이미지 자리만 보여 준다 */}
           <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(120px,148px))] gap-3 max-[760px]:grid-cols-3 max-[760px]:gap-2">
             {imgs.map((img, index) => (
-              <li
-                key={img.atchFileSn}
-                role="img"
-                aria-label={`첨부 이미지 ${index + 1}`}
-                className="grid aspect-square place-items-center overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#f4f6f6] text-[#b9c4c4]"
-              >
-                <ImageIcon size={32} aria-hidden="true" />
+              <li key={img.atchFileSn}>
+                <button
+                  type="button"
+                  aria-label={`첨부 이미지 ${index + 1} 크게 보기`}
+                  onClick={() => setViewerIndex(index)}
+                  className="grid aspect-square w-full cursor-pointer place-items-center overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#f4f6f6] text-[#b9c4c4]"
+                >
+                  {urls[img.atchFileSn] ? (
+                    <img
+                      src={urls[img.atchFileSn]}
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <ImageIcon size={32} aria-hidden="true" />
+                  )}
+                </button>
               </li>
             ))}
           </ul>
         </>
+      )}
+      {viewerIndex !== null && (
+        <InquiryImageViewer
+          imgs={imgs}
+          urls={urls}
+          index={viewerIndex}
+          onChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
       )}
 
       <section
@@ -111,16 +141,46 @@ export default function InquiryDetail({ inquiry }) {
             답변이 등록된 문의는 수정할 수 없어요
           </p>
         ) : (
-          <Link
-            to={generatePath(PATHS.INQUIRY_EDIT, {
-              otoInqrySn: inquiry.otoInqrySn,
-            })}
-            className={`${EDIT_BUTTON_CLASS} hover:bg-[#cde0e0]`}
-          >
-            문의 수정
-          </Link>
+          <div className="flex gap-2 max-[760px]:w-full">
+            <button
+              type="button"
+              onClick={() => setIsDeleting(true)}
+              className={DELETE_BUTTON_CLASS}
+            >
+              삭제
+            </button>
+            <Link
+              to={generatePath(PATHS.INQUIRY_EDIT, {
+                otoInqrySn: inquiry.otoInqrySn,
+              })}
+              className={`${EDIT_BUTTON_CLASS} hover:bg-[#cde0e0]`}
+            >
+              문의 수정
+            </Link>
+          </div>
         )}
       </div>
+
+      {isDeleting && (
+        <ConfirmModal
+          title="문의를 삭제할까요? 삭제한 문의는 되돌릴 수 없어요"
+          confirmLabel="삭제"
+          isPending={remove.isPending}
+          errorMessage={remove.error?.message}
+          onConfirm={() =>
+            remove.mutate(inquiry.otoInqrySn, {
+              onSuccess: () => {
+                showToast('문의를 삭제했어요');
+                navigate(PATHS.INQUIRIES, { replace: true });
+              },
+            })
+          }
+          onCancel={() => {
+            remove.reset();
+            setIsDeleting(false);
+          }}
+        />
+      )}
     </article>
   );
 }

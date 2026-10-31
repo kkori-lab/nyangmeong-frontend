@@ -11,7 +11,7 @@ import ScheduleDayDetail from '@/features/health/ScheduleDayDetail';
 import ScheduleModal from '@/features/health/ScheduleModal';
 import UpcomingSchedules from '@/features/health/UpcomingSchedules';
 import SubPageLayout from '@/layouts/SubPageLayout';
-import { usePets, useSchedules } from '@/features/health/queries';
+import { useMyPets, useSchedules } from '@/features/health/queries';
 import {
   addMonths,
   getDaysInMonth,
@@ -59,7 +59,7 @@ export default function CareCalendarPage() {
     data: pets,
     isPending: isPetsPending,
     isError: isPetsError,
-  } = usePets();
+  } = useMyPets();
   const year = getYear(viewMonthYmd);
   const month = getMonth(viewMonthYmd);
   const allPetSns = pets?.map((pet) => pet.petSn);
@@ -226,8 +226,8 @@ export default function CareCalendarPage() {
 }
 
 /**
- * 로딩 자리: 탭 막대(48px) + 처음 열릴 탭의 모양. 높이는 불러온 뒤 실측값이다
- * - 캘린더: 달력(5줄 달, 760px 이하는 점 표시 달력) + 날짜 상세·다가오는 일정. 1101px 이상은 오른쪽 두 장의 합이 달력과 같다
+ * 로딩 자리: 탭 막대(48px) + 처음 열릴 탭의 모양. 높이는 불러온 뒤 실측값
+ * - 캘린더: 달력(5줄 달, 760px 이하는 점 표시 달력) + 날짜 상세·다가오는 일정. 1101px 이상은 오른쪽 두 장의 합이 달력과 같음
  * - 케어리스트: 토탈 케어리스트 카드 한 장(CareList 로딩 자리와 같은 높이)
  */
 function CalendarSkeleton({ sectionId }) {

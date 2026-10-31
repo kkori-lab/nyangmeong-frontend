@@ -7,9 +7,12 @@ export default function PasswordFindPage() {
 
   return (
     <PasswordFindForm
-      onVerified={() => navigate(PATHS.PASSWORD_RESET)}
+      onVerified={(state) => navigate(PATHS.PASSWORD_RESET, { state })}
       onBackToLogin={() => navigate(`${PATHS.LOGIN}?method=email`)}
       onGoLogin={() => navigate(PATHS.LOGIN)}
+      onRecover={(recoveryEmail) =>
+        navigate(PATHS.SIGNUP, { state: { recoveryEmail } })
+      }
     />
   );
 }

@@ -41,6 +41,7 @@ const PDF_MIME = 'application/pdf';
  * - 영수증 원본은 첨부 자료에 넣지 않음
  */
 export default function AttachmentTab({
+  petSn,
   ckupRcdSn,
   attachments,
   isAddOpenInitially,
@@ -89,6 +90,7 @@ export default function AttachmentTab({
           navigate(
             {
               pathname: generatePath(PATHS.HEALTH_CHECKUP_INSPECTIONS, {
+                petSn,
                 ckupRcdSn,
               }),
               search: `?mode=pdf&atch=${attachment.atchSn}`,

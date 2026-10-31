@@ -10,7 +10,7 @@ export default function ProtectedRoute({ allowedRoles }) {
   const { pathname, search } = useLocation();
 
   if (isPending) return <PageLoading />;
-  /** Navigate는 아무것도 그리지 않아 이동한 화면 코드를 읽는 동안 흰 화면이 되므로 로딩을 같이 그린다 */
+  /** Navigate는 아무것도 그리지 않아 이동한 화면 코드를 읽는 동안 흰 화면이 되므로 로딩 동시 표시 */
   if (isError) {
     return (
       <>

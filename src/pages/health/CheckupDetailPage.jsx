@@ -21,7 +21,7 @@ import {
   getPanelId,
   getTabId,
 } from '@/features/health/checkup/checkupTypes';
-import { useCheckupDetail, usePets } from '@/features/health/queries';
+import { useCheckupDetail, useMyPets } from '@/features/health/queries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 
@@ -37,13 +37,26 @@ const LAYOUT_PROPS = {
 
 const DEFAULT_TAB = 'result';
 
-export default function CheckupDetailPage() {
-  const { ckupRcdSn } = useParams();
+/** 없는 검진기록·반려동물, 양육하지 않는 반려동물은 모두 "찾을 수 없어요" */
+const NOT_FOUND_CODES = [
+  'CHECKUP_NOT_FOUND',
+  'PET_NOT_FOUND',
+  'PET_ACCESS_DENIED',
+];
 
-  return <CheckupDetail key={ckupRcdSn} ckupRcdSn={Number(ckupRcdSn)} />;
+export default function CheckupDetailPage() {
+  const { petSn, ckupRcdSn } = useParams();
+
+  return (
+    <CheckupDetail
+      key={`${petSn}-${ckupRcdSn}`}
+      petSn={Number(petSn)}
+      ckupRcdSn={Number(ckupRcdSn)}
+    />
+  );
 }
 
-function CheckupDetail({ ckupRcdSn }) {
+function CheckupDetail({ petSn, ckupRcdSn }) {
   const [searchParams] = useSearchParams();
   const { state } = useLocation();
   const requestedTab = searchParams.get('tab');
@@ -52,15 +65,15 @@ function CheckupDetail({ ckupRcdSn }) {
       ? requestedTab
       : DEFAULT_TAB,
   );
-  /** 영상검사 칩의 [첨부 자료 탭에서 등록하기]로 들어오면 첨부 추가 영역을 펼친 채 연다 */
+  /** 영상검사 칩의 [첨부 자료 탭에서 등록하기]로 들어오면 첨부 추가 영역을 펼친 채 열림 */
   const [isAddOpenOnEnter, setIsAddOpenOnEnter] = useState(false);
   const {
     data: detail,
     isPending,
     isError,
     error,
-  } = useCheckupDetail(ckupRcdSn);
-  const { data: pets, isPending: isPetsPending } = usePets();
+  } = useCheckupDetail({ petSn, ckupRcdSn });
+  const { data: pets, isPending: isPetsPending } = useMyPets();
 
   if (isPending || isPetsPending) {
     return (
@@ -75,7 +88,7 @@ function CheckupDetail({ ckupRcdSn }) {
     return (
       <SubPageLayout {...LAYOUT_PROPS}>
         <p role="alert" className="text-[#566465]">
-          {error?.code === 'NOT_FOUND'
+          {NOT_FOUND_CODES.includes(error?.code)
             ? '검진기록을 찾을 수 없어요'
             : '검진기록을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요'}
         </p>
@@ -119,6 +132,7 @@ function CheckupDetail({ ckupRcdSn }) {
             <Link
               key={saved.ckupRcdSn}
               to={generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+                petSn: saved.petSn,
                 ckupRcdSn: saved.ckupRcdSn,
               })}
               state={state}
@@ -146,6 +160,7 @@ function CheckupDetail({ ckupRcdSn }) {
           )}
           {tabKey === 'attachments' && (
             <AttachmentTab
+              petSn={petSn}
               ckupRcdSn={ckupRcdSn}
               attachments={detail.attachments}
               isAddOpenInitially={isAddOpenOnEnter}
@@ -153,12 +168,14 @@ function CheckupDetail({ ckupRcdSn }) {
           )}
           {tabKey === 'prescription' && (
             <PrescriptionTab
+              petSn={petSn}
               ckupRcdSn={ckupRcdSn}
               prescriptions={detail.prescriptions}
             />
           )}
           {tabKey === 'prevention' && (
             <PreventionTab
+              petSn={petSn}
               ckupRcdSn={ckupRcdSn}
               preventions={detail.preventions}
             />

@@ -16,15 +16,14 @@ export default function useAiWindow() {
     const aiWindow = window.open('', AI_WINDOW_NAME);
     if (!aiWindow) return false;
 
-    if (aiWindow.location.href === 'about:blank') {
-      /** 새 창 채팅 페이지 이동 */
+    if (aiWindow.location.href === 'about:blank' || firstMessage) {
+      /** 새 창이거나 첫 메시지가 있으면 채팅 페이지로 이동: 열린 창도 그 메시지로 새 대화 */
       const query = firstMessage
         ? `?q=${encodeURIComponent(firstMessage)}`
         : '';
       aiWindow.location.href = `${PATHS.AI}${query}`;
-    } else {
-      aiWindow.focus();
     }
+    aiWindow.focus();
     return true;
   }, []);
 }

@@ -12,8 +12,8 @@ import { PATHS } from '@/routes/paths';
  * [공동양육 초대 수락]
  * - 경로 변수 invitationToken: 백엔드 확정 전 가정 (라우트 연결은 별도 PR)
  * - 보여 줄 화면 판단 순서: ① 만료·처리됨 안내(5-6) → ② 이메일 불일치 안내(5-5) → ③ 수락 화면(5-3)
- * - ①·②에는 시안대로 "목록으로" 링크를 두지 않는다(같은 캐시를 InvitationAccept도 쓴다)
- * - 이메일 불일치 안내의 [초대받은 계정으로 로그인]: 로그아웃한 뒤 이 초대 주소를 복귀 목적지로 넘겨 로그인으로 보낸다
+ * - ①·②에는 시안대로 "목록으로" 링크를 두지 않음(같은 캐시를 InvitationAccept도 사용)
+ * - 이메일 불일치 안내의 [초대받은 계정으로 로그인]: 로그아웃한 뒤 이 초대 주소를 복귀 목적지로 넘겨 로그인으로 이동
  */
 export default function InvitationPage() {
   const { invitationToken } = useParams();

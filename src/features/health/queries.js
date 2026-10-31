@@ -11,11 +11,14 @@ import {
   checkCareItem,
   createCareItem,
   createSchedule,
+  deleteCareItem,
   deleteSchedule,
   getCareItems,
+  getMyPets,
   getPets,
   getSchedules,
-  toggleCareMain,
+  saveCareMain,
+  updateCareItem,
   updateSchedule,
 } from './api';
 import {
@@ -46,6 +49,7 @@ import {
   deleteObservationRound,
   endObservation,
   findNearSchedule,
+  getCheckupYears,
   getCheckups,
   getDailyRecords,
   getObservations,
@@ -53,16 +57,13 @@ import {
   updateDailyRecord,
   updateObservationRound,
 } from './diaryApi';
-import {
-  getReceiptDetail,
-  prepareReceiptSave,
-  saveReceiptCheckups,
-} from './receiptApi';
+import { prepareReceiptSave, saveReceiptCheckups } from './receiptApi';
 import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
   all: ['health'],
   pets: ['health', 'pets'],
+  myPets: ['health', 'my-pets'],
   schedules: ['health', 'schedules'],
   scheduleList: (params) => ['health', 'schedules', params],
   careItems: ['health', 'care-items'],
@@ -73,8 +74,8 @@ export const healthKeys = {
   observationList: (petSn) => ['health', 'observations', petSn],
   checkups: ['health', 'checkups'],
   checkupList: (params) => ['health', 'checkups', params],
+  checkupYears: (petSn) => ['health', 'checkups', 'years', petSn],
   checkupDetail: (ckupRcdSn) => ['health', 'checkups', 'detail', ckupRcdSn],
-  receiptDetail: (rcptSn) => ['health', 'receipt-detail', rcptSn],
   summary: (petSn) => ['health', 'summary', petSn],
 };
 
@@ -82,6 +83,10 @@ const showErrorToast = (error) => showToast(error.message);
 
 export const usePets = () =>
   useQuery({ queryKey: healthKeys.pets, queryFn: getPets });
+
+/** 실제 반려동물 목록(케어 캘린더). 다른 건강 화면은 API 연결 때 usePets에서 옮긴다 */
+export const useMyPets = () =>
+  useQuery({ queryKey: healthKeys.myPets, queryFn: getMyPets });
 
 /** params: { petSns, fromYmd, toYmd, size } */
 export const useSchedules = (params) =>
@@ -103,7 +108,10 @@ const useScheduleMutation = (mutationFn) => {
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
       queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
     },
-    onError: showErrorToast,
+    // 입력값 검증 오류는 모달 입력칸 아래에 표시
+    onError: (error) => {
+      if (!error.fields) showErrorToast(error);
+    },
   });
 };
 
@@ -137,9 +145,14 @@ export const useCancelLastDose = () => useCareMutation(cancelLastDose);
 
 export const useCancelCareRecord = () => useCareMutation(cancelCareRecord);
 
-export const useToggleCareMain = () => useCareMutation(toggleCareMain);
+export const useSaveCareMain = () => useCareMutation(saveCareMain);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
+
+/** 수정·삭제 UI는 화면설계서 갱신 뒤 따로 만든다 */
+export const useUpdateCareItem = () => useCareMutation(updateCareItem);
+
+export const useDeleteCareItem = () => useCareMutation(deleteCareItem);
 
 export const useDailyRecords = (petSn) =>
   useQuery({
@@ -202,7 +215,7 @@ export const useDeleteObservationRound = () =>
 
 export const useEndObservation = () => useObservationMutation(endObservation);
 
-/** params: { petSn, year } */
+/** params: { petSn, year, ckupTypeCd, page, size } */
 export const useCheckups = (params) =>
   useQuery({
     queryKey: healthKeys.checkupList(params),
@@ -211,7 +224,14 @@ export const useCheckups = (params) =>
     placeholderData: keepPreviousData,
   });
 
-/** 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어진다 */
+export const useCheckupYears = (petSn) =>
+  useQuery({
+    queryKey: healthKeys.checkupYears(petSn),
+    queryFn: () => getCheckupYears(petSn),
+    enabled: petSn != null,
+  });
+
+/** 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐 */
 const useCheckupMutation = (mutationFn) => {
   const queryClient = useQueryClient();
 
@@ -233,13 +253,14 @@ export const useDeleteCheckup = () => useCheckupMutation(deleteCheckup);
 export const useUpdateCheckup = () => useCheckupMutation(updateCheckup);
 
 /** 검진상세 한 번에: 검진기록·검사 결과·첨부 자료·처방약·반복 예방 */
-export const useCheckupDetail = (ckupRcdSn) =>
+/** 반려동물을 옮기면 같은 검진기록도 주소의 petSn이 바뀌므로 키에 petSn을 넣는다. 무효화는 ckupRcdSn까지의 앞부분으로 */
+export const useCheckupDetail = ({ petSn, ckupRcdSn }) =>
   useQuery({
-    queryKey: healthKeys.checkupDetail(ckupRcdSn),
-    queryFn: () => getCheckupDetail(ckupRcdSn),
+    queryKey: [...healthKeys.checkupDetail(ckupRcdSn), petSn],
+    queryFn: () => getCheckupDetail({ petSn, ckupRcdSn }),
   });
 
-/** 검진상세 변경: 변수의 ckupRcdSn 상세를 다시 읽고, 케어 항목이 바뀌는 변경은 케어리스트도 다시 읽는다 */
+/** 검진상세 변경: 변수의 ckupRcdSn 상세를 다시 읽고, 케어 항목이 바뀌는 변경은 케어리스트도 재조회 */
 const useCheckupDetailMutation = (
   mutationFn,
   { hasCareItems = false } = {},
@@ -269,7 +290,7 @@ export const useReplaceAttachment = () =>
 export const useDeleteAttachment = () =>
   useCheckupDetailMutation(deleteAttachment);
 
-/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 돌려준다 */
+/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 반환 */
 export const useAnalyzeLabPdf = () =>
   useMutation({ mutationFn: analyzeLabPdf, onError: showErrorToast });
 
@@ -318,19 +339,11 @@ export const useHealthSummary = (petSn) =>
     enabled: petSn != null,
   });
 
-/** 영수증 인식 결과의 나머지 칸. 같은 영수증은 다시 불러오지 않는다 */
-export const useReceiptDetail = (result) =>
-  useQuery({
-    queryKey: healthKeys.receiptDetail(result.rcptSn),
-    queryFn: () => getReceiptDetail(result),
-    staleTime: Infinity,
-  });
-
-/** 저장 전 가계부 중복·가까운 예정 일정 확인. 실패 안내는 모달 안에서 한다 */
+/** 저장 전 가계부 중복·가까운 예정 일정 확인. 실패 안내는 모달 안에서 처리 */
 export const usePrepareReceiptSave = () =>
   useMutation({ mutationFn: prepareReceiptSave });
 
-/** 영수증으로 검진기록 저장. 실패하면 입력값을 유지한 채 모달 안에서 다시 시도하게 한다 */
+/** 영수증으로 검진기록 저장. 실패하면 입력값을 유지한 채 모달 안에서 재시도 */
 export const useSaveReceiptCheckups = () => {
   const queryClient = useQueryClient();
 

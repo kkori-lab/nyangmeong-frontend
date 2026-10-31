@@ -42,6 +42,7 @@ export default function LabResultCard({ lab, selectedNm, onSelect }) {
         lab && (
           <MoreLink
             to={generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+              petSn: lab.petSn,
               ckupRcdSn: lab.ckupRcdSn,
             })}
           />

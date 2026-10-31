@@ -81,7 +81,7 @@ export default function ConversationSidebar({
         </div>
       </aside>
 
-      {/** 항상 그려 두고 폭(761~1099px, 본문을 밀어냄)·이동(760px 이하, 전체 폭으로 덮음)으로 미끄러지게 한다. 닫힌 동안은 invisible이라 초점이 가지 않는다 */}
+      {/** 항상 그려 두고 폭(761~1099px, 본문을 밀어냄)·이동(760px 이하, 전체 폭으로 덮음)으로 미끄러지게 처리. 닫힌 동안은 invisible이라 초점 이동 없음 */}
       <div
         className={`flex shrink-0 justify-end overflow-hidden border-r border-[#e2e7e7] transition-[width,visibility] duration-200 ease-out motion-reduce:transition-none min-[1100px]:hidden max-[760px]:fixed max-[760px]:inset-0 max-[760px]:z-40 max-[760px]:block max-[760px]:w-auto max-[760px]:overflow-visible max-[760px]:border-0 ${
           isDrawerOpen ? 'w-[320px]' : 'invisible w-0 border-r-0'
@@ -163,21 +163,23 @@ function SidebarPanel({
         </button>
         <p className="mt-4 text-xs text-[#667374]">반려동물</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {[{ petSn: null, petNm: '전체' }, ...pets].map((pet) => (
-            <button
-              key={pet.petSn ?? 'all'}
-              type="button"
-              aria-pressed={selectedPetSn === pet.petSn}
-              className={`h-9 rounded-full px-4 text-sm ${
-                selectedPetSn === pet.petSn
-                  ? 'bg-[#285a5c] font-medium text-white'
-                  : 'border border-[#e2e7e7] text-[#3d4a4b] hover:bg-[#f4f6f6]'
-              }`}
-              onClick={() => onSelectPet(pet.petSn)}
-            >
-              {pet.petNm}
-            </button>
-          ))}
+          {/* 반려동물 목록을 받기 전에는 칩 자리를 비움 */}
+          {pets &&
+            [{ petSn: null, petNm: '전체' }, ...pets].map((pet) => (
+              <button
+                key={pet.petSn ?? 'all'}
+                type="button"
+                aria-pressed={selectedPetSn === pet.petSn}
+                className={`h-9 rounded-full px-4 text-sm ${
+                  selectedPetSn === pet.petSn
+                    ? 'bg-[#285a5c] font-medium text-white'
+                    : 'border border-[#e2e7e7] text-[#3d4a4b] hover:bg-[#f4f6f6]'
+                }`}
+                onClick={() => onSelectPet(pet.petSn)}
+              >
+                {pet.petNm}
+              </button>
+            ))}
         </div>
       </div>
 
@@ -226,7 +228,8 @@ function SidebarPanel({
                       onClick={() => onSelectRoom(conversation.aiCnvrsRoomSn)}
                     >
                       <span className="shrink-0 rounded-full bg-[#edf1f1] px-2 py-0.5 text-xs text-[#3d4a4b]">
-                        {conversation.petNm ?? '전체'}
+                        {pets?.find((pet) => pet.petSn === conversation.petSn)
+                          ?.petNm ?? '전체'}
                       </span>
                       <span className="truncate">{conversation.cnvrsTtl}</span>
                     </button>

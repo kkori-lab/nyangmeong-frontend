@@ -15,7 +15,7 @@ const aiClass = (isAi) => (isAi ? 'border-dashed' : '');
 /**
  * ["영수증에서 읽은 정보" 블록] (FN-HLT-002-39·40·41·42)
  * - 금액(탭 금액 = 구역 소계 − 할인), 처방 약품 행, 가계부에도 기록 체크
- * - 인식한 값은 점선, 사람이 고친 값은 실선. 약품 금액은 대조용이라 저장하지 않는다
+ * - 인식한 값은 점선, 사람이 고친 값은 실선. 약품 금액은 대조용이라 저장 안 함
  * - errors: { drugs: { [rowId]: { drugNm, startYmd, endYmd, perDay } } }
  */
 export default function ReceiptInfoBlock({

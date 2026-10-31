@@ -6,7 +6,7 @@ import PetFace from '@/components/PetFace';
 import { CHRC_STTS, PET_REL } from '@/utils/petCodes';
 import { formatAge, getVrtyName } from '@/utils/petFormat';
 
-/** 캐릭터를 만든 동물의 얼굴 바탕색 (순서대로 돌려 쓴다) */
+/** 캐릭터를 만든 동물의 얼굴 바탕색 (순서대로 순환 사용) */
 const TONES = [
   'bg-tone-blue-bg',
   'bg-tone-rose-bg',

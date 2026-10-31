@@ -7,6 +7,7 @@
 - 서버는 둘이다. 메인 서버(Spring Boot)와 AI 서버(Python)이다.
 - 메인 서버 요청은 `/api`로 시작하는 상대 경로다. 호스트와 포트를 코드에 적지 않는다. 개발 환경은 Vite 프록시가, 운영은 Nginx가 같은 오리진으로 만들어 준다.
 - AI 서버 요청은 `api/axios.js`의 `aiApi` 인스턴스로 보낸다. 주소는 메인 서버처럼 같은 오리진의 `/ai` 상대 경로다(개발은 Vite 프록시 `^/ai/`, 운영은 Nginx `/ai/`가 Python으로 보낸다). 둘 다 접두사를 자르지 않는다. 호스트와 포트를 코드에 적지 않고 환경변수로도 두지 않는다. 같은 오리진이라 CORS와 `withCredentials`가 필요 없다. 오류 모양과 401 처리는 `api`와 같은 응답 인터셉터를 쓴다.
+- AI 서버 스트리밍(SSE) 응답은 `api/axios.js`의 `aiStream`으로 받는다. 오류 모양·401 재발급·로그인 이동이 인터셉터와 같다. 화면 코드에서 `fetch`를 직접 쓰지 않는다.
 - AI 서버도 로그인한 사용자만 쓴다. 메인 서버가 심은 같은 로그인 쿠키로 확인한다. 401이 오면 `api`와 같이 메인 서버의 재발급을 한 번 거쳐 다시 보낸다.
 - 인증은 서버가 심는 HttpOnly 쿠키다. 코드에서 토큰을 읽거나 저장하지 않는다.
 - 로그인 여부와 역할은 `features/member`의 `useMe`(`GET /auth/me`: 회원 번호·권한·닉네임·프로필 사진·마스킹 이메일)로만 확인한다. 쿠키가 HttpOnly라 코드에서 읽을 수 없으므로 서버에 묻는 것이 유일한 방법이다. 헤더와 `ProtectedRoute`가 같은 훅을 쓴다.
@@ -28,8 +29,9 @@
 
 - 인터셉터가 `data`만 꺼내서 돌려준다. `api.js`의 함수는 `data` 안의 값을 받는다(axios 응답 객체가 아니므로 `res.data`를 또 꺼내지 않는다). 삭제·상태 변경처럼 `data`가 없는 성공은 `undefined`가 온다.
 - 보호 파일 다운로드만 예외다. JSON이 아니라 파일 자체가 오므로 이 모양이 아니다. `api.get(url, { responseType: 'blob' })`로 요청하면 인터셉터가 Blob을 그대로 돌려준다.
-- 오류는 `status`가 `"error"`이고 최상위에 `code`·`message`가 있다. `code`(백엔드 `ErrorCode` 상수 이름)로 분기하고 `message`를 그대로 화면에 표시한다. 같은 오류의 문구를 프론트에서 새로 쓰지 않는다. 인터셉터는 `{ code, message, fields }`로 정리해 거부(reject)하므로 화면 코드는 그 모양만 본다.
+- 오류는 `status`가 `"error"`이고 최상위에 `code`·`message`가 있다. `code`(백엔드 `ErrorCode` 상수 이름)로 분기하고 `message`를 그대로 화면에 표시한다. 같은 오류의 문구를 프론트에서 새로 쓰지 않는다. 인터셉터는 `{ code, message, fields, data }`로 정리해 거부(reject)하므로 화면 코드는 그 모양만 본다.
 - `fields`는 입력값 검증 오류(`INVALID_INPUT_VALUE`)일 때만 서버 응답의 `data`에서 꺼낸 `[{ field, message }]`이고 그 밖에는 `null`이다. 입력칸 아래 문구에 쓴다.
+- `data`는 검증 오류가 아닌 오류에서 서버 응답의 `data`를 그대로 담고(없으면 `null`), 검증 오류일 때는 `null`이다. 오류에 딸린 값(예: `EMAIL_CERT_RESEND_NOT_YET`의 `resendAvailableDt`)을 읽을 때만 쓴다.
 - 서버가 이 모양을 주지 않은 경우에도 인터셉터가 같은 모양을 만들어 준다. 응답이 없으면(네트워크 단절) `NETWORK_ERROR`, 응답은 있는데 `code`가 없으면(Nginx 502·504 등) `SERVER_ERROR`다. 화면 코드는 이 경우를 따로 처리하지 않는다.
 
 ## 오류 표시
@@ -45,20 +47,25 @@
 | 코드 | 뜻 | 프론트가 하는 일 |
 | --- | --- | --- |
 | 400 | 입력값이 틀렸거나 업무 규칙에 어긋남 | `error.message`, `error.fields` 표시 |
-| 401 | 토큰 없음·틀림(`UNAUTHORIZED`)·만료(`TOKEN_EXPIRED`) | `TOKEN_EXPIRED`면 인터셉터가 재발급을 1회 시도. 실패하거나 `UNAUTHORIZED`면 랜딩으로 이동 |
-| 403 | 권한 없음. `MEMBER_INACTIVE`는 정지·탈퇴 회원 | `MEMBER_INACTIVE`는 재발급 없이 랜딩으로 이동. 그 밖은 `error.message` 표시 |
+| 401 | 토큰 없음·틀림(`UNAUTHORIZED`)·만료(`TOKEN_EXPIRED`) | `TOKEN_EXPIRED`면 인터셉터가 재발급을 1회 시도. 실패하거나 `UNAUTHORIZED`면 로그인 화면으로 이동 |
+| 403 | 권한 없음. `MEMBER_INACTIVE`는 정지·탈퇴 회원 | `MEMBER_INACTIVE`는 재발급 없이 로그인 화면으로 이동. 그 밖은 `error.message` 표시 |
 | 404 | 대상이 없음 | `error.message` 표시 |
 | 409 | 이미 있음 | `error.message` 표시 |
 | 429 | 로그인에 보안코드 필요 | 로그인 화면이 처리 |
 
 - 재발급은 1회만 한다. 다시 보낸 요청이 또 401이거나 `/auth/refresh` 자신이 401이면 더 시도하지 않는다.
-- 여러 요청이 동시에 401을 받아도 재발급 요청은 하나만 보내고 나머지는 그 결과를 같이 기다린다. 서버는 재발급할 때마다 Refresh Token을 바꾸므로, 재발급을 두 번 보내면 두 번째가 실패해 로그인한 사용자가 랜딩으로 튕긴다.
-- 랜딩으로 보낼 때는 현재 경로를 `redirect` 파라미터에 담는다.
-- `getMe`와 `login`(`POST /auth/login`) 요청에만 `skipAuthRedirect: true`를 붙인다. 이 요청은 실패해도 인터셉터가 랜딩으로 보내지 않는다. `getMe`에 붙이지 않으면 랜딩·로그인 화면에서 비로그인 사용자가 401을 받을 때마다 페이지를 다시 불러온다. `login`에 붙이지 않으면 정지 회원(`MEMBER_INACTIVE`)이 로그인 화면의 안내 문구 대신 랜딩으로 튕긴다. 다른 요청에는 붙이지 않는다.
+- 여러 요청이 동시에 401을 받아도 재발급 요청은 하나만 보내고 나머지는 그 결과를 같이 기다린다. 서버는 재발급할 때마다 Refresh Token을 바꾸므로, 재발급을 두 번 보내면 두 번째가 실패해 로그인한 사용자가 로그인 화면으로 튕긴다.
+- 로그인 화면으로 보낼 때는 현재 경로를 `redirect` 파라미터에 담는다(`utils/loginRedirect.js`의 `toLoginPath`). 랜딩·로그인 화면에서 보낼 때는 새로 담지 않고 지금 주소의 `redirect`를 넘긴다.
+- 이미 로그인 화면(`/login`)에 있으면 이동하지 않는다. 이동하면 같은 화면을 다시 불러오기만 한다.
+- `skipAuthRedirect: true`는 로그인하지 않은 상태에서도 부르는 요청에만 붙인다. 이 요청은 실패해도 인터셉터가 로그인 화면으로 보내지 않고, 실패를 그 화면이 직접 안내한다. 로그인이 필요한 화면의 요청에는 붙이지 않는다.
+  - 로그인 여부 확인: `getMe`. 붙이지 않으면 랜딩에서 비로그인 사용자가 401을 받을 때마다 로그인 화면으로 끌려간다
+  - 로그인 화면의 요청: `login`, `getLoginStatus`, `getCaptcha`. 붙이지 않으면 정지 회원(`MEMBER_INACTIVE`) 안내 문구 대신 화면이 이동한다
+  - 로그인 전 화면의 이미지: `hooks/useCharacterImage.js`
 
 ```js
 // src/api/axios.js
 import axios from 'axios';
+import { toLoginPath } from '@/utils/loginRedirect';
 
 export const api = axios.create({
   baseURL: '/api',                                  // 상대 경로만
@@ -69,8 +76,8 @@ let refreshing = null;                                 // 동시에 온 401이 �
 
 // 서버가 error를 주지 않은 경우에도 화면 코드는 같은 모양을 받는다
 const fallbackError = (response) => (response
-  ? { code: 'SERVER_ERROR', message: '일시적인 오류가 발생했어요.', fields: null }
-  : { code: 'NETWORK_ERROR', message: '네트워크 연결을 확인해 주세요.', fields: null });
+  ? { code: 'SERVER_ERROR', message: '일시적인 오류가 발생했어요.', fields: null, data: null }
+  : { code: 'NETWORK_ERROR', message: '네트워크 연결을 확인해 주세요.', fields: null, data: null });
 
 api.interceptors.response.use(
   (res) => (res.config.responseType === 'blob'
@@ -82,9 +89,9 @@ api.interceptors.response.use(
     if (body instanceof Blob) {                        // 파일 요청이 실패하면 오류 JSON도 Blob으로 온다
       body = await body.text().then(JSON.parse).catch(() => null);
     }
-    // 서버 오류 { code, message, data }를 { code, message, fields }로 정리한다. fields는 검증 오류의 data다
+    // 서버 오류 { code, message, data }를 { code, message, fields, data }로 정리한다. fields는 검증 오류의 data, 그 밖의 오류는 data를 그대로 둔다
     const error = body?.code
-      ? { code: body.code, message: body.message, fields: body.code === 'INVALID_INPUT_VALUE' ? body.data : null }
+      ? { code: body.code, message: body.message, fields: body.code === 'INVALID_INPUT_VALUE' ? body.data : null, data: body.code === 'INVALID_INPUT_VALUE' ? null : (body.data ?? null) }
       : fallbackError(response);
     const isRefresh = config?.url === '/auth/refresh';
     if (response?.status === 401 && error.code === 'TOKEN_EXPIRED' && !config._retried && !isRefresh) {
@@ -93,12 +100,12 @@ api.interceptors.response.use(
         refreshing ??= api.post('/auth/refresh').finally(() => { refreshing = null; });
         await refreshing;
         return api(config);
-      } catch { /* 아래 랜딩 이동으로 넘어간다 */ }
+      } catch { /* 아래 로그인 화면 이동으로 넘어간다 */ }
     }
     const loggedOut = response?.status === 401 || error.code === 'MEMBER_INACTIVE';
-    // 재발급 요청 자신은 이동하지 않는다. 이동 여부는 원래 요청의 skipAuthRedirect로 정한다
-    if (loggedOut && !isRefresh && !config?.skipAuthRedirect) {
-      location.href = `/?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+    // 재발급 요청 자신과 로그인 화면은 이동하지 않는다. 이동 여부는 원래 요청의 skipAuthRedirect로 정한다
+    if (loggedOut && !isRefresh && !config?.skipAuthRedirect && location.pathname !== '/login') {
+      location.href = toLoginPath(location.pathname, location.search);
     }
     return Promise.reject(error);
   },

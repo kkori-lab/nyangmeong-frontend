@@ -8,8 +8,8 @@ const norm = (text) => text.replace(/\s/g, '').toLowerCase();
  * 품종 콤보박스: 입력해서 찾거나 목록에서 고르고, 맨 아래 [직접 입력]으로 직접 쓴다(최대 20자)
  * - value: { vrtyNm, vrtyDrctInptNm, typed } (목록 품종이면 vrtyNm, 직접 입력이면 vrtyDrctInptNm, 둘 다 null이면 미선택,
  *   목록에 없는 글자를 쳐 둔 채면 typed에 그 글자)
- * - breeds: 반려동물 구분에 맞는 품종명 배열. 구분이 바뀌면 부모가 value를 비운다
- * - 직접 입력값은 품종 마스터에 올리지 않고 그 글에만 저장된다
+ * - breeds: 반려동물 구분에 맞는 품종명 배열. 구분이 바뀌면 부모가 value 초기화
+ * - 직접 입력값은 품종 마스터에 올리지 않고 그 글에만 저장
  */
 export default function BreedCombobox({
   label,

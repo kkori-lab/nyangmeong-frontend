@@ -71,14 +71,14 @@ export default function ExpenseHistory({ initialYm }) {
   const [selected, setSelected] = useState(() => new Set());
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
-  /** 앱 지출 상세 시트: 보고 있는 지출 번호(편집 중에는 시트를 잠시 숨기고 저장하면 다시 보인다) */
+  /** 앱 지출 상세 시트: 보고 있는 지출 번호(편집 중에는 시트를 잠시 숨기고 저장하면 다시 표시) */
   const [detailSn, setDetailSn] = useState(null);
   const [deletingExpense, setDeletingExpense] = useState(null);
   /** 앱 무한 스크롤: 지금까지 불러온 건수·불러오기 상태 */
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loadStatus, setLoadStatus] = useState(LOAD.IDLE);
   const loadTokenRef = useRef(0);
-  /** 개발 전용 ?fake=more-fail: 첫 이어 불러오기만 실패해 ↻ 상태를 확인한다 */
+  /** 개발 전용 ?fake=more-fail: 첫 이어 불러오기만 실패해 ↻ 상태 확인 */
   const failOnceRef = useRef(
     new URLSearchParams(window.location.search).get('fake') === 'more-fail',
   );
@@ -136,7 +136,7 @@ export default function ExpenseHistory({ initialYm }) {
       ? '전체 카테고리'
       : EXPND_CLSF[categoryFilter].name;
 
-  /** 앱: 처음부터 다시 불러오기 (진행 중이던 불러오기는 버린다) */
+  /** 앱: 처음부터 다시 불러오기 (진행 중이던 불러오기는 폐기) */
   const resetLoaded = () => {
     loadTokenRef.current += 1;
     setVisibleCount(PAGE_SIZE);

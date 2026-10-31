@@ -13,7 +13,7 @@ export {
 
 /**
  * [우리동네 펫돌봄 코드·목록]
- * - 공통코드 값(PCAG01 모집상태·PCAG02 비용단위·PCAG03 돌봄형태)과 반려견 크기 구간 값은 공통코드가 정해지기 전의 가정이다. 연결 때 백엔드 값으로 바꾼다
+ * - 공통코드 값(PCAG01 모집상태·PCAG02 비용단위·PCAG03 돌봄형태)과 반려견 크기 구간 값은 공통코드가 정해지기 전의 가정. 연결 때 백엔드 값으로 교체
  */
 export const RCRT_STTS = {
   OPEN: 'PCAC0001',
@@ -51,7 +51,7 @@ export const PRTC_SHP_OPTIONS = [
   { code: 'PCAC0026', name: '그 외' },
 ];
 
-/** 강아지 몸무게 구간(petSizeCd). 고양이는 비운다 */
+/** 강아지 몸무게 구간(petSizeCd). 고양이는 비움 */
 export const PET_SIZE_OPTIONS = [
   { code: 'PETC0101', name: '소형견', range: '10kg 미만', filter: 's' },
   { code: 'PETC0102', name: '중형견', range: '10 ~ 25kg', filter: 'm' },
@@ -69,7 +69,7 @@ export const SIZE_BY_FILTER = Object.fromEntries(
   PET_SIZE_OPTIONS.map((option) => [option.filter, option.code]),
 );
 
-/** 시급 최저 기준. 연 1회 관리자가 갱신하는 설정값이라 연결 때 서버 값으로 바꾼다 */
+/** 시급 최저 기준. 연 1회 관리자가 갱신하는 설정값이라 연결 때 서버 값으로 교체 */
 export const MIN_HOURLY_WAGE = 10320;
 export const MIN_WAGE_YEAR = 2026;
 export const MIN_WAGE_MESSAGE = `최저임금을 준수해 주세요. ${MIN_WAGE_YEAR}년 최저 시급은 ${MIN_HOURLY_WAGE.toLocaleString()}원이에요.`;

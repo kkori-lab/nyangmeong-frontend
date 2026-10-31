@@ -25,13 +25,14 @@ const getOutDirection = ({ rsltVal, refMinVal, refMaxVal }) => {
  */
 export default function BloodResultList({ checkup, items }) {
   const navigate = useNavigate();
-  const { ckupRcdSn } = checkup;
+  const { petSn, ckupRcdSn } = checkup;
   const [selectedSns, setSelectedSns] = useState([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const deleteInspections = useDeleteInspections();
 
   const inputPath = generatePath(PATHS.HEALTH_CHECKUP_INSPECTIONS, {
+    petSn,
     ckupRcdSn,
   });
   const tagCounts = FUNCTION_TAGS.map((tag) => ({
@@ -72,7 +73,7 @@ export default function BloodResultList({ checkup, items }) {
           <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-2">
             <h3 className="text-lg/[1.6] font-semibold">혈액검사</h3>
             <span className="text-subtle tabular-nums">
-              검사일 {formatDate(checkup.ckupYmd)} · {checkup.hospNm} ·{' '}
+              검사일 {formatDate(checkup.ckupYmd)} · {checkup.hsptlNm} ·{' '}
               {items.length}건
             </span>
           </div>

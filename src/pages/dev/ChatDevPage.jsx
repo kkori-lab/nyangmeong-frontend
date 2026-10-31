@@ -8,7 +8,7 @@ import { PATHS } from '@/routes/paths';
 const buttonClass =
   'h-10 rounded-lg border border-[#e2e7e7] bg-white px-4 text-sm text-[#3d4a4b] hover:bg-[#f4f6f6]';
 
-/** 방마다 거래 상태·역할이 달라 한 번에 확인한다 */
+/** 방마다 거래 상태·역할이 달라 한 번에 확인용 */
 const ROOM_LINKS = [
   [1, '수락 대기 · 보호자(내가 올린 글)'],
   [2, '매칭 전 · 보호자'],

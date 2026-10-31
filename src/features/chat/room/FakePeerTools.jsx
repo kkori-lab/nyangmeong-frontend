@@ -1,7 +1,7 @@
 /**
  * [상대 동작 흉내: 개발 확인용]
- * - /chat?fakeChatTools=1 에서만 보인다. 상대의 수락·완료 요청 같은 서버 반영을 가짜로 일으킨다
- * - 채팅 API(KSJ)를 붙일 때 이 파일과 api.js의 fakePeerAct를 지운다
+ * - /chat?fakeChatTools=1 에서만 표시. 상대의 수락·완료 요청 같은 서버 반영을 가짜로 발생
+ * - 채팅 API(KSJ)를 붙일 때 이 파일과 api.js의 fakePeerAct 삭제
  */
 import { useQueryClient } from '@tanstack/react-query';
 import { showToast } from '@/components/toastStore';

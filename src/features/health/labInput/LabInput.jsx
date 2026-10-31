@@ -56,11 +56,12 @@ const getItemName = (form) =>
 
 /**
  * [검사 수치 입력] (SCR-HLT-007)
- * - mode 'pdf': 분석 결과 확인 + 입력칸(추가로 넣을 항목이 있을 때만 쓴다), 'manual': 입력칸만, 'edit': 저장된 행을 고친다
- * - 저장하면 검진상세로 돌아간다. 취소는 입력값을 버리고 돌아간다
- * - analyzedItems가 없으면(새로고침 등) atchSn의 첨부 파일을 다시 분석한다
+ * - mode 'pdf': 분석 결과 확인 + 입력칸(추가로 넣을 항목이 있을 때만 사용), 'manual': 입력칸만, 'edit': 저장된 행 수정
+ * - 저장하면 검진상세로 복귀. 취소는 입력값을 버리고 복귀
+ * - analyzedItems가 없으면(새로고침 등) atchSn의 첨부 파일을 다시 분석
  */
 export default function LabInput({
+  petSn,
   ckupRcdSn,
   mode,
   detail,
@@ -69,7 +70,10 @@ export default function LabInput({
   atchSn,
 }) {
   const navigate = useNavigate();
-  const detailPath = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, { ckupRcdSn });
+  const detailPath = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+    petSn,
+    ckupRcdSn,
+  });
   const analyzeLabPdf = useAnalyzeLabPdf();
   const createInspections = useCreateInspections();
   const updateInspection = useUpdateInspection();
@@ -113,7 +117,7 @@ export default function LabInput({
         .map((row) => row.inspItmNm)
     : [];
 
-  /** PDF 분석 중에는 입력칸이 선택이다: 아무것도 넣지 않았으면 검사하지 않는다 */
+  /** PDF 분석 중에는 입력칸이 선택 사항: 아무것도 넣지 않았으면 검사 생략 */
   const isFormUsed =
     !isReviewOpen ||
     form.item !== '' ||

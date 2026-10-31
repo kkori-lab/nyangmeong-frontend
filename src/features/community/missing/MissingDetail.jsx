@@ -23,15 +23,20 @@ import SharePanel from '@/components/SharePanel';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import {
+  addDays,
   formatDate,
   formatDateTime,
   formatRelativeTime,
+  getYmdOf,
 } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import CommentSection from '../CommentSection';
 import {
+  EXTEND_DAYS,
   getBreedName,
   getPetLabel,
   getPetName,
+  isExpired,
   isFound,
 } from '../missingCodes';
 import {
@@ -47,7 +52,11 @@ import MissingMap from './MissingMap';
 import { ExtendConfirmModal, FoundConfirmModal } from './MissingOwnerModals';
 import MissingStatusBadge from './MissingStatusBadge';
 import { OwnerSide, VisitorSide } from './MissingSideBox';
-import { formatSeenAt, MISSING_COMMENT_INPUT_ID } from './missingUtils';
+import {
+  formatSeenAt,
+  getRemainDays,
+  MISSING_COMMENT_INPUT_ID,
+} from './missingUtils';
 
 const ARTICLE_CLASS =
   'rounded-[14px] border border-line bg-white px-9 pt-8 pb-7 max-[760px]:px-5 max-[760px]:pt-[22px] max-[760px]:pb-5';
@@ -72,7 +81,9 @@ function PostHead({ post, children }) {
     <>
       <div className="flex flex-wrap gap-1.5">
         <MissingStatusBadge post={post} />
-        <Badge tone="outline">{getPetName(post.petSeCd)}</Badge>
+        {post.petSeCd && (
+          <Badge tone="outline">{getPetName(post.petSeCd)}</Badge>
+        )}
       </div>
       <h2
         id="missing-title"
@@ -88,9 +99,11 @@ function PostHead({ post, children }) {
           >
             <User size={18} />
           </span>
-          <b className="text-base leading-normal font-semibold text-ink">
-            {post.wrtrNcknm}
-          </b>
+          {post.mbrNcnm && (
+            <b className="text-base leading-normal font-semibold text-ink">
+              {post.mbrNcnm}
+            </b>
+          )}
           {children}
         </p>
       </div>
@@ -100,16 +113,16 @@ function PostHead({ post, children }) {
 
 const Dot = () => <i className="text-line-strong not-italic">·</i>;
 
-/** 찾았어요로 바뀐 글을 작성자가 아닌 사람이 볼 때: 제목 · 상태 · 처리 시각과 완료 안내만 */
+/**
+ * 찾았어요로 바뀐 글을 작성자가 아닌 사람이 볼 때: 제목 · 상태 · 처리 시각과 완료 안내만
+ * - 서버가 제목·상태·처리 시각 외에는 null로 줌(작성자·등록일·이름 없음)
+ */
 function FoundPublicView({ post, listTo }) {
   const { data: rail } = useMissingRail();
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
       <article className={ARTICLE_CLASS} aria-labelledby="missing-title">
         <PostHead post={post}>
-          <Dot />
-          <time>{formatDate(post.regDt)} 등록</time>
-          <Dot />
           <span>{formatDate(post.dscvSwtcDt)} 찾음</span>
         </PostHead>
         <div
@@ -122,7 +135,8 @@ function FoundPublicView({ post, listTo }) {
             className="text-tone-green-fg"
           />
           <h3 className="text-xl font-bold text-ink">
-            {post.petNm}가 무사히 가족의 품으로 돌아갔어요
+            {post.petNm ? `${post.petNm}가 ` : ''}무사히 가족의 품으로
+            돌아갔어요
           </h3>
           <p className="text-ink-2">
             여러분의 제보와 관심 덕분이에요. 감사합니다!
@@ -205,11 +219,14 @@ export default function MissingDetail({ post }) {
   const extend = useExtendMissing();
   const [modal, setModal] = useState('');
   const listTo = `${PATHS.COMMUNITY_MISSING}${state?.listSearch ?? ''}`;
-  const isMine = post.mineYn === 'Y';
+  const isMine = post.owner;
   const found = isFound(post);
-  const isLiked = post.likeYn === 'Y';
+  /** 만료는 작성자에게만 옴. 서버가 수정·찾았어요·연장을 받지 않아 삭제만 남김 */
+  const expired = isExpired(post);
+  const isLiked = post.liked;
   const breed = getBreedName(post);
-  const expiringSoon = isMine && !found && post.rmndDayCnt <= 7;
+  const remainDays = isMine && !found && !expired ? getRemainDays(post) : null;
+  const expiringSoon = remainDays !== null && remainDays <= 7;
 
   if (found && !isMine) return <FoundPublicView post={post} listTo={listTo} />;
 
@@ -225,9 +242,11 @@ export default function MissingDetail({ post }) {
 
   const handleExtend = () =>
     extend.mutate(post.lostTpofSn, {
-      onSuccess: ({ expryCrtrDt }) => {
+      onSuccess: () => {
         closeModal();
-        showToast(`게시 기간이 ${formatDate(expryCrtrDt)}까지 연장됐어요.`);
+        showToast(
+          `게시 기간이 ${formatDate(addDays(getYmdOf(post.expryCrtrDt), EXTEND_DAYS))}까지 연장됐어요.`,
+        );
       },
     });
 
@@ -243,15 +262,19 @@ export default function MissingDetail({ post }) {
           </PostHead>
           {isMine && (
             <p className="mt-1 flex items-center gap-2 text-sm font-medium text-muted">
-              <Link
-                to={generatePath(PATHS.COMMUNITY_MISSING_EDIT, {
-                  lostTpofSn: post.lostTpofSn,
-                })}
-                className="hover:text-ink"
-              >
-                수정
-              </Link>
-              <i className="text-input-line not-italic">·</i>
+              {!expired && (
+                <>
+                  <Link
+                    to={generatePath(PATHS.COMMUNITY_MISSING_EDIT, {
+                      lostTpofSn: post.lostTpofSn,
+                    })}
+                    className="hover:text-ink"
+                  >
+                    수정
+                  </Link>
+                  <i className="text-input-line not-italic">·</i>
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => setModal('delete')}
@@ -268,8 +291,8 @@ export default function MissingDetail({ post }) {
             >
               <Clock size={18} aria-hidden="true" className="mt-0.5 shrink-0" />
               <span>
-                게시 종료까지 <b>{post.rmndDayCnt}일</b> 남았어요. 아직 찾고
-                계시면 오른쪽에서 <b>30일 더 게시</b>할 수 있어요.
+                게시 종료까지 <b>{remainDays}일</b> 남았어요. 아직 찾고 계시면
+                오른쪽에서 <b>30일 더 게시</b>할 수 있어요.
               </span>
             </p>
           )}
@@ -290,13 +313,13 @@ export default function MissingDetail({ post }) {
           )}
 
           <PostBody content={post.pstCn}>
-            {post.atchFiles.length > 0 && (
+            {post.imgs.length > 0 && (
               <div className="mb-6 flex flex-col gap-3">
-                {post.atchFiles.map((file) => (
+                {post.imgs.map((img, index) => (
                   <img
-                    key={file.id}
-                    src={file.url}
-                    alt={file.name}
+                    key={img.atchFileSn}
+                    src={publicFileUrl(img.atchFileSn)}
+                    alt={`첨부 이미지 ${index + 1}`}
                     className="h-auto max-w-full rounded-[10px]"
                   />
                 ))}
@@ -385,9 +408,9 @@ export default function MissingDetail({ post }) {
                   }
                   label="목격 장소"
                 >
-                  {post.wtnsPlcAddr}
+                  {post.wtnsPlcNm}
                   <span className="mt-0.5 block text-sm text-muted">
-                    실종 지역: 전북 {post.sggNm}
+                    실종 지역: {post.rgnNm}
                   </span>
                 </InfoRow>
               </dl>
@@ -395,8 +418,8 @@ export default function MissingDetail({ post }) {
                 <MissingMap
                   place={{
                     wtnsPlcNm: post.wtnsPlcNm,
-                    wtnsPlcLat: post.wtnsPlcLat,
-                    wtnsPlcLot: post.wtnsPlcLot,
+                    wtnsPlcLat: Number(post.wtnsPlcLat),
+                    wtnsPlcLot: Number(post.wtnsPlcLot),
                   }}
                 />
               </div>
@@ -419,7 +442,9 @@ export default function MissingDetail({ post }) {
                 aria-pressed={isLiked}
                 aria-label="좋아요"
                 disabled={toggleLike.isPending}
-                onClick={() => toggleLike.mutate(post.pstSn)}
+                onClick={() =>
+                  toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
+                }
                 className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-base font-semibold text-ink-2 ${isLiked ? 'text-[#f44b21]' : '[&_svg]:text-line-strong'}`}
               >
                 <Heart size={22} aria-hidden="true" fill="currentColor" />
@@ -457,6 +482,7 @@ export default function MissingDetail({ post }) {
 
         <CommentSection
           targetSn={post.pstSn}
+          authorSn={post.mbrSn}
           hooks={missingCommentHooks}
           title="제보 · 댓글"
           placeholder="목격한 장소와 시간을 자세히 알려 주시면 큰 도움이 돼요"

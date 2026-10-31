@@ -2,14 +2,9 @@ import { useState } from 'react';
 import ConfirmModal from '@/components/ConfirmModal';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
-import Skeleton from '@/components/Skeleton';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { getTodayYmd } from '@/utils/formatDate';
-import {
-  usePrepareReceiptSave,
-  useReceiptDetail,
-  useSaveReceiptCheckups,
-} from '../queries';
+import { usePrepareReceiptSave, useSaveReceiptCheckups } from '../queries';
 import { CHECKUP_TYPES } from '../scheduleTypes';
 import FieldError from './FieldError';
 import FormModal from './FormModal';
@@ -27,10 +22,13 @@ import {
 import {
   SKIP,
   applyLineAssignment,
-  buildNoZoneTabs,
+  buildLines,
+  buildNoSectionTabs,
   buildSaveEntries,
-  buildZoneTabs,
+  buildSectionTabs,
   formatAmount,
+  getSplitDiscount,
+  isNoSectionReceipt,
   makeAddedTab,
   makeEmptyDrugRow,
   toAmount,
@@ -46,11 +44,14 @@ const OPTIONAL = (
 
 const aiClass = (isAi) => (isAi ? 'border-dashed' : '');
 
+/** 영수증 원본 주소는 아직 분석 응답에 없어 아이콘으로 대체 */
+const imgUrl = null;
+
 /**
  * [영수증 인식 결과 확인] (FN-HLT-002-34~46)
- * - LJS의 영수증 업로드 모달(SCR-AIM-008)이 인식한 result를 받아 나머지 칸을 불러와 확인·수정한다
- * - result: { rcptSn, petSn, items }, onSaved(saved): [{ petSn, petNm, ckupRcdSn }]
- * - onRetake: 입력을 버리고 업로드로 돌아간다
+ * - LJS의 영수증 업로드 모달(SCR-AIM-008)이 받은 AI 서버 분석 응답을 그대로 받아 확인·수정
+ * - result: { recptSn, petSn(업로드 때 고른 반려동물), ocr }, onSaved(saved): [{ petSn, petNm, ckupRcdSn }]
+ * - onRetake: 입력을 버리고 업로드로 복귀
  */
 export default function ReceiptResultStep({
   result,
@@ -59,71 +60,24 @@ export default function ReceiptResultStep({
   onSaved,
   onClose,
 }) {
-  const { data: detail, isPending } = useReceiptDetail(result);
-
-  if (detail) {
-    return (
-      <ReceiptResultForm
-        detail={detail}
-        uploadPetSn={result.petSn}
-        pets={pets}
-        onRetake={onRetake}
-        onSaved={onSaved}
-        onClose={onClose}
-      />
-    );
-  }
-  return (
-    <FormModal
-      icon="receipt_long"
-      title="인식 결과 확인"
-      hasFooter={false}
-      widthClassName={WIDTH}
-      onSubmit={() => {}}
-      onClose={onClose}
-    >
-      {isPending ? (
-        <div aria-busy="true">
-          <Skeleton lines={4} />
-        </div>
-      ) : (
-        <div className="flex flex-col items-start gap-3">
-          <p role="alert" className="text-muted">
-            인식 결과를 불러오지 못했어요
-          </p>
-          <button type="button" className={BTN_SECONDARY} onClick={onRetake}>
-            다시 촬영하기
-          </button>
-        </div>
-      )}
-    </FormModal>
-  );
-}
-
-function ReceiptResultForm({
-  detail,
-  uploadPetSn,
-  pets,
-  onRetake,
-  onSaved,
-  onClose,
-}) {
+  const { ocr } = result;
   const todayYmd = getTodayYmd();
-  const isNoZone = detail.zones.length === 0;
-  const lines = detail.lines;
-  const [ckupYmd, setCkupYmd] = useState(detail.ckupYmd);
-  const [hospNm, setHospNm] = useState(detail.hospNm);
+  const isNoSection = isNoSectionReceipt(ocr);
+  const splitDiscountAmt = getSplitDiscount(ocr);
+  const [lines] = useState(() => (isNoSection ? buildLines(ocr) : []));
+  const [ckupYmd, setCkupYmd] = useState(ocr.ckupYmd ?? '');
+  const [hospNm, setHospNm] = useState(ocr.hsptlNm ?? '');
   const [isCommonEdited, setIsCommonEdited] = useState({
     ckupYmd: false,
     hospNm: false,
   });
   const [tabs, setTabs] = useState(() =>
-    isNoZone
-      ? buildNoZoneTabs({ detail, petSn: uploadPetSn, todayYmd })
-      : buildZoneTabs({ detail, pets, todayYmd }),
+    isNoSection
+      ? buildNoSectionTabs({ ocr, lines, petSn: result.petSn, todayYmd })
+      : buildSectionTabs({ ocr, pets, todayYmd }),
   );
   const [activeId, setActiveId] = useState(() => tabs[0].id);
-  /** { [lineSn]: tabId } 구역이 없는 영수증에서 탭이 2개 이상일 때 품목을 나눈다 */
+  /** { [lineSn]: tabId } 구역이 없는 영수증에서 탭이 2개 이상일 때 품목 분배 */
   const [assign, setAssign] = useState({});
   /** 저장 전 확인 단계: { type: 'dup' | 'near', entries, dupTabIds?, nears } */
   const [phase, setPhase] = useState(null);
@@ -140,14 +94,14 @@ function ReceiptResultForm({
     tabs,
     lines,
     assign,
-    isNoZone,
+    isNoSection,
   });
   const activeTab = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
   const activeErrors = validation.tabErrors[activeTab.id] ?? {};
   const isActiveSkipped = activeTab.petSn === SKIP;
-  const canAddTab = isNoZone && tabs.length < pets.length;
+  const canAddTab = isNoSection && tabs.length < pets.length;
   const findPetNm = (petSn) => pets.find((pet) => pet.petSn === petSn)?.petNm;
-  const getTabNm = (tab) => findPetNm(tab.petSn) ?? tab.zoneNm ?? '반려동물';
+  const getTabNm = (tab) => findPetNm(tab.petSn) ?? tab.sectionNm ?? '반려동물';
 
   const editTab = (id, key, patch) =>
     setTabs((prev) =>
@@ -175,7 +129,7 @@ function ReceiptResultForm({
         tabs: nextTabs,
         lines,
         assign: nextAssign,
-        discountAmt: detail.discountAmt,
+        discountAmt: splitDiscountAmt,
         ckupYmd,
         todayYmd,
       }),
@@ -209,7 +163,7 @@ function ReceiptResultForm({
     });
     save.mutate(
       {
-        rcptSn: detail.rcptSn,
+        recptSn: result.recptSn,
         ckupYmd,
         hospNm: hospNm.trim(),
         entries: payload,
@@ -251,9 +205,9 @@ function ReceiptResultForm({
 
   const totalAmount = tabs.reduce((sum, tab) => sum + toAmount(tab.amt), 0);
   const hasTotalGap =
-    detail.totalAmt != null &&
+    ocr.recptAmt != null &&
     validation.unassignedCount === 0 &&
-    totalAmount !== detail.totalAmt;
+    totalAmount !== ocr.recptAmt;
   const discountedTabs = tabs.filter((tab) => tab.discount > 0);
 
   return (
@@ -278,12 +232,8 @@ function ReceiptResultForm({
             className="grid aspect-[3/4] w-16 shrink-0 cursor-zoom-in place-items-center overflow-hidden rounded-[8px] border border-line bg-surface-2 text-subtle"
             onClick={() => setIsOriginalOpen(true)}
           >
-            {detail.imgUrl ? (
-              <img
-                src={detail.imgUrl}
-                alt=""
-                className="size-full object-cover"
-              />
+            {imgUrl ? (
+              <img src={imgUrl} alt="" className="size-full object-cover" />
             ) : (
               <Icon name="receipt_long" className="text-3xl" />
             )}
@@ -455,7 +405,7 @@ function ReceiptResultForm({
           </div>
         </div>
 
-        {isNoZone && tabs.length >= 2 && (
+        {isNoSection && tabs.length >= 2 && (
           <ReceiptAssignList
             lines={lines}
             tabs={tabs}
@@ -470,12 +420,12 @@ function ReceiptResultForm({
         <div className="rounded-xl bg-surface-2 px-4 py-3 tabular-nums">
           <p>
             영수증 금액{' '}
-            {detail.totalAmt == null ? '-' : formatAmount(detail.totalAmt)} ·
-            나눈 합계 {formatAmount(totalAmount)}
+            {ocr.recptAmt == null ? '-' : formatAmount(ocr.recptAmt)} · 나눈
+            합계 {formatAmount(totalAmount)}
           </p>
-          {detail.discountAmt > 0 && (
+          {splitDiscountAmt > 0 && (
             <p className="text-sm text-subtle">
-              할인 {formatAmount(detail.discountAmt)}을 금액 비율로 나눴어요
+              할인 {formatAmount(splitDiscountAmt)}을 금액 비율로 나눴어요
               {discountedTabs.length > 1 &&
                 ` (${discountedTabs
                   .map(
@@ -529,8 +479,8 @@ function ReceiptResultForm({
             </button>
           }
         >
-          {detail.imgUrl ? (
-            <img src={detail.imgUrl} alt="영수증 원본" className="w-full" />
+          {imgUrl ? (
+            <img src={imgUrl} alt="영수증 원본" className="w-full" />
           ) : (
             <div className="grid aspect-[3/4] place-items-center rounded-[8px] bg-surface-2 text-subtle">
               <Icon name="receipt_long" className="text-6xl" />
@@ -580,6 +530,7 @@ function ReceiptResultForm({
           rows={phase.nears.map((row) => ({
             key: row.tabId,
             schedule: row.schedule,
+            petNm: pets.find((pet) => pet.petSn === row.schedule.petSn)?.petNm,
           }))}
           ckupYmd={ckupYmd}
           isPending={isPending}
