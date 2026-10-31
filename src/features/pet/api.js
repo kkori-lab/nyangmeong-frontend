@@ -1,3 +1,4 @@
+import { api } from '@/api/axios';
 import {
   CGVR_ROLE,
   CHRC_STTS,
@@ -7,9 +8,9 @@ import {
 } from './shared/petCodes';
 
 /**
- * [반려동물 가짜 API]
- * - 반려동물 API(SJM)·품종 마스터(KSJ) 전까지 쓰는 가짜 응답, 나오면 본문만 api 요청으로 교체
- * - 미정 키: lastBdwgRcd, vrtyNm, rprsYn, petRelCd
+ * [반려동물 API]
+ * - 목록·상세·등록·수정·대표 지정·품종은 실제 API, 그 밖(삭제·양육관계·초대·캐릭터·상점)은 아직 가짜 응답
+ * - 가짜 응답은 나오면 본문만 api 요청으로 교체
  * - 캐릭터 미정 키: chrcSttsCd, chrcImgUrl, inqryRcptYn
  * - 양육관계 미정 키: rltnSn, mbrNcnm, cgvrRoleCd, authrtNm, lnkDt, myYn
  */
@@ -199,24 +200,6 @@ let fakePets = [
   },
 ];
 
-const fakeVarieties = {
-  [PET_SE.DOG]: [
-    { vrtySn: 1, vrtyNm: '골든리트리버' },
-    { vrtySn: 2, vrtyNm: '말티즈' },
-    { vrtySn: 3, vrtyNm: '푸들' },
-    { vrtySn: 4, vrtyNm: '포메라니안' },
-  ],
-  [PET_SE.CAT]: [
-    { vrtySn: 101, vrtyNm: '코리안 숏헤어' },
-    { vrtySn: 102, vrtyNm: '러시안 블루' },
-    { vrtySn: 103, vrtyNm: '페르시안' },
-  ],
-};
-
-const findVrtyNm = (petSeCd, vrtySn) =>
-  fakeVarieties[petSeCd]?.find((vrty) => vrty.vrtySn === vrtySn)?.vrtyNm ??
-  null;
-
 const fakeDelay = (data) =>
   new Promise((resolve) => setTimeout(() => resolve(data), 200));
 
@@ -225,44 +208,18 @@ const getQueryParam = (name) =>
     ? new URLSearchParams(window.location.search).get(name)
     : null;
 
-/** 목록 조회 GET /pets (개발 전용 ?fake=empty·owner로 0마리·공동양육 없음 확인) */
-export const getPets = () => {
-  const fake = getQueryParam('fake');
-  if (fake === 'empty') return fakeDelay([]);
-  if (fake === 'owner') {
-    return fakeDelay(fakePets.filter((pet) => pet.petRelCd === PET_REL.OWNER));
-  }
-  return fakeDelay(fakePets);
-};
+/** 목록 조회 GET /pets */
+export const getPets = () => api.get('/pets');
 
 /** 상세 조회 GET /pets/{petSn} */
-export const getPet = (petSn) =>
-  fakeDelay(fakePets.find((pet) => pet.petSn === petSn));
+export const getPet = (petSn) => api.get(`/pets/${petSn}`);
 
 /** 등록 POST /pets */
-export const createPet = (body) => {
-  const pet = {
-    ...basePet,
-    ...body,
-    petSn: Math.max(0, ...fakePets.map((p) => p.petSn)) + 1,
-    vrtyNm: findVrtyNm(body.petSeCd, body.vrtySn),
-  };
-  fakePets = [...fakePets, pet];
-  return fakeDelay(pet);
-};
+export const createPet = (body) => api.post('/pets', body);
 
-/** 수정 PUT /pets/{petSn} */
-export const updatePet = ({ petSn, ...body }) => {
-  const prev = fakePets.find((pet) => pet.petSn === petSn);
-  const pet = {
-    ...prev,
-    ...body,
-    petBdwg: prev.lastBdwgRcd ? prev.petBdwg : body.petBdwg,
-    vrtyNm: findVrtyNm(body.petSeCd, body.vrtySn),
-  };
-  fakePets = fakePets.map((p) => (p.petSn === petSn ? pet : p));
-  return fakeDelay(pet);
-};
+/** 수정 PATCH /pets/{petSn} (보낸 필드만 수정, 문자열 ""는 비움) */
+export const updatePet = ({ petSn, ...body }) =>
+  api.patch(`/pets/${petSn}`, body);
 
 /** 삭제 DELETE /pets/{petSn} */
 export const deletePet = (petSn) => {
@@ -270,9 +227,9 @@ export const deletePet = (petSn) => {
   return fakeDelay(null);
 };
 
-/** 품종 목록 조회 GET /varieties?petSeCd= (KSJ) */
+/** 품종 목록 조회 GET /breeds?petSeCd= (KSJ) */
 export const getVarieties = (petSeCd) =>
-  fakeDelay(fakeVarieties[petSeCd] ?? []);
+  api.get('/breeds', { params: { petSeCd } });
 
 /**
  * 양육관계 가짜 데이터 (petSn별)
@@ -491,15 +448,9 @@ export const updateCharacterWear = ({ petSn, itemSns }) => {
   return fakeDelay(null);
 };
 
-/** 대표 반려동물 지정 PUT /pets/{petSn}/representative (SJM 백엔드, 주양육 동물만) */
-export const setRepresentativePet = (petSn) => {
-  fakePets = fakePets.map((pet) =>
-    pet.petRelCd === PET_REL.OWNER
-      ? { ...pet, rprsYn: pet.petSn === petSn ? 'Y' : 'N' }
-      : pet,
-  );
-  return fakeDelay(null);
-};
+/** 대표 반려동물 지정 POST /pets/{petSn}/representative (주양육 동물만) */
+export const setRepresentativePet = (petSn) =>
+  api.post(`/pets/${petSn}/representative`);
 
 const FAKE_CREATE_MS = 3000;
 

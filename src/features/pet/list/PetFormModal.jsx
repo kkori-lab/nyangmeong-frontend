@@ -42,6 +42,7 @@ const toForm = (pet) => ({
     Object.keys(EMPTY_FORM).map((key) => [key, toText(pet[key])]),
   ),
   vrtySn: pet.vrtySn == null ? VRTY_DRCT_INPT : String(pet.vrtySn),
+  nutrYn: pet.nutrYn ? 'Y' : 'N',
 });
 
 /** 체중 입력 형식 (DB decimal(8,3) 기준) */
@@ -264,25 +265,33 @@ function PetForm({ pet, onClose }) {
       });
       return;
     }
+    /** 수정(PATCH)은 null이면 안 바꾸고 ""이면 비우므로 빈 값을 ""로 보냄 */
+    const blank = isEdit ? '' : null;
     const body = {
       petNm: form.petNm.trim(),
       petSeCd: form.petSeCd,
       vrtySn: isVrtyDrctInpt ? null : Number(form.vrtySn),
-      vrtyDrctInptNm: isVrtyDrctInpt ? form.vrtyDrctInptNm.trim() : null,
+      vrtyDrctInptNm: isVrtyDrctInpt ? form.vrtyDrctInptNm.trim() : blank,
       petBrdt: form.petBrdt,
-      chipNo: form.chipNo || null,
+      chipNo: form.chipNo || blank,
       petGndrCd: form.petGndrCd,
-      nutrYn: form.nutrYn,
-      petBdwg: Number(form.petBdwg),
-      goalBdwg: toNumberOrNull(form.goalBdwg),
+      nutrYn: form.nutrYn === 'Y',
       minBdwg: Number(form.minBdwg),
       maxBdwg: Number(form.maxBdwg),
       colrCd: form.colrCd,
-      colrDrctInptNm: isColrDrctInpt ? form.colrDrctInptNm.trim() : null,
-      chrcCn: toTextOrNull(form.chrcCn),
-      algyCn: normalizeList(form.algyCn),
-      dssCn: normalizeList(form.dssCn),
+      colrDrctInptNm: isColrDrctInpt ? form.colrDrctInptNm.trim() : blank,
+      chrcCn: toTextOrNull(form.chrcCn) ?? blank,
+      algyCn: normalizeList(form.algyCn) ?? blank,
+      dssCn: normalizeList(form.dssCn) ?? blank,
     };
+    /** 목표체중: 수정에서 있던 값을 비우면 goalBdwgReset만 보냄(둘을 같이 보내면 서버가 400) */
+    const goalBdwg = toNumberOrNull(form.goalBdwg);
+    if (goalBdwg != null || !isEdit) body.goalBdwg = goalBdwg;
+    else if (pet.goalBdwg != null) body.goalBdwgReset = true;
+    /** 수정은 체중이 바뀐 경우에만 보냄 */
+    if (!isEdit || Number(form.petBdwg) !== Number(pet.petBdwg)) {
+      body.petBdwg = Number(form.petBdwg);
+    }
     const options = {
       onSuccess: () => {
         showToast(
