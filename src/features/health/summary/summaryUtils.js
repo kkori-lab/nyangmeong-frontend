@@ -33,8 +33,8 @@ export const formatRange = (refMinVal, refMaxVal, separator = ' ~ ') => {
   return `${refMinVal}${separator}${refMaxVal}`;
 };
 
-export const getCheckupDetailPath = (ckupRcdSn, tab) => {
-  const path = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, { ckupRcdSn });
+export const getCheckupDetailPath = ({ petSn, ckupRcdSn }, tab) => {
+  const path = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, { petSn, ckupRcdSn });
   return tab ? `${path}?tab=${tab}` : path;
 };
 

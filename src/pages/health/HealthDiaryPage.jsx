@@ -25,8 +25,8 @@ import TodayRecordForm from '@/features/health/diary/TodayRecordForm';
 import { MEAL } from '@/features/health/diaryTypes';
 import {
   useDailyRecords,
+  useMyPets,
   useObservations,
-  usePets,
 } from '@/features/health/queries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { showToast } from '@/components/toastStore';
@@ -161,7 +161,7 @@ export default function HealthDiaryPage() {
     data: pets,
     isPending: isPetsPending,
     isError: isPetsError,
-  } = usePets();
+  } = useMyPets();
   const selectedPetSn = tabPetSn ?? pets?.[0]?.petSn ?? null;
   const { data: recordData, isPending: isRecordsPending } =
     useDailyRecords(selectedPetSn);
@@ -217,6 +217,7 @@ export default function HealthDiaryPage() {
     }
     navigate(
       generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+        petSn: target.petSn,
         ckupRcdSn: target.ckupRcdSn,
       }),
       { state: { savedCheckups: saved } },
@@ -316,7 +317,6 @@ export default function HealthDiaryPage() {
           pets={pets}
           defaultPetSn={selectedPetSn}
           initialStep="form"
-          rcptSn={receiptFlow.rcptSn}
           onClose={() => setReceiptFlow(null)}
         />
       )}

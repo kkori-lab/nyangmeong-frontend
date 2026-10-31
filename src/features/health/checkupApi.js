@@ -17,7 +17,8 @@ import {
 import { getCheckup } from './diaryApi';
 
 /**
- * [검진상세 API 가짜 응답]
+ * [검진상세 API]
+ * - 기본정보는 실제 API(diaryApi getCheckup)
  * - 검사 결과·첨부 자료·처방약·반복 예방 API(JAJ 백엔드)와 PDF 분석(LJS)이 생기기 전까지 쓰는 가짜 응답
  * - 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
  * - 개발 환경에서만 ?fakeCheckupDetail=0으로 검사·첨부·처방약·반복 예방 0건, PDF 분석 실패는 파일 이름에 fail
@@ -199,9 +200,8 @@ const syncDoseItem = (checkup, prescription) => {
   }
 };
 
-/** 검진상세 한 번에 조회: 복용 종료일이 지난 처방약은 "종료"로 바꾸고 투약 항목을 뺌 */
-export const getCheckupDetail = async (ckupRcdSn) => {
-  const checkup = await getCheckup(ckupRcdSn);
+/** 검사·첨부·처방약·반복 예방 가짜 탭: 복용 종료일이 지난 처방약은 "종료"로 바꾸고 투약 항목을 뺌 */
+export const getCheckupTabs = (ckupRcdSn) => {
   const store = getStore(ckupRcdSn);
   store.prescriptions.forEach((prescription) => {
     if (prescription.dosSttsCd === DOSING && isExpired(prescription)) {
@@ -210,7 +210,6 @@ export const getCheckupDetail = async (ckupRcdSn) => {
     }
   });
   return {
-    checkup,
     bloodInspections: store.blood.map((item) => ({ ...item })),
     etcInspections: store.etc.map((item) => ({ ...item })),
     attachments: store.attachments.map((item) => ({ ...item })),
@@ -222,6 +221,12 @@ export const getCheckupDetail = async (ckupRcdSn) => {
           ?.nextSchdYmd ?? null,
     })),
   };
+};
+
+/** 검진상세 한 번에 조회: 기본정보만 실제 API, 나머지 탭은 가짜 */
+export const getCheckupDetail = async ({ petSn, ckupRcdSn }) => {
+  const checkup = await getCheckup({ petSn, ckupRcdSn });
+  return { checkup, ...getCheckupTabs(ckupRcdSn) };
 };
 
 /** 첨부 자료 */
@@ -374,21 +379,24 @@ export const deleteEtcInspection = async ({ ckupRcdSn, etcInspSn }) => {
 
 /** 처방약 */
 
-export const createPrescription = async ({ ckupRcdSn, ...body }) => {
-  const checkup = await getCheckup(ckupRcdSn);
+export const createPrescription = async ({ petSn, ckupRcdSn, ...body }) => {
   const prescription = { rxSn: nextRxSn++, ...body };
   getStore(ckupRcdSn).prescriptions.push(prescription);
-  syncDoseItem(checkup, prescription);
+  syncDoseItem({ petSn, ckupRcdSn }, prescription);
   return { ...prescription };
 };
 
-export const updatePrescription = async ({ ckupRcdSn, rxSn, ...body }) => {
-  const checkup = await getCheckup(ckupRcdSn);
+export const updatePrescription = async ({
+  petSn,
+  ckupRcdSn,
+  rxSn,
+  ...body
+}) => {
   const target = getStore(ckupRcdSn).prescriptions.find(
     (item) => item.rxSn === rxSn,
   );
   Object.assign(target, body);
-  syncDoseItem(checkup, target);
+  syncDoseItem({ petSn, ckupRcdSn }, target);
   return { ...target };
 };
 
@@ -403,13 +411,12 @@ export const deletePrescription = async ({ ckupRcdSn, rxSn }) => {
 
 /** 반복 예방 */
 
-export const createPrevention = async ({ ckupRcdSn, ...body }) => {
-  const checkup = await getCheckup(ckupRcdSn);
+export const createPrevention = async ({ petSn, ckupRcdSn, ...body }) => {
   const prevention = { prvntSn: nextPrvntSn++, ...body };
   getStore(ckupRcdSn).preventions.push(prevention);
   createLinkedPreventionItem({
     ckupRcdSn,
-    petSn: checkup.petSn,
+    petSn,
     lnkgSn: prevention.prvntSn,
     careItemNm: findName(PREVENTION_ITEMS, prevention.prvntItmCd),
     rptCycleCd: prevention.rptCycleCd,

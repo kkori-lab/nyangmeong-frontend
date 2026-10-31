@@ -1,8 +1,8 @@
 import { addDays, getTodayYmd, getYear, getYmdOf } from '@/utils/formatDate';
 import { getFakeScheduleList, getQueryParam } from './api';
 import { DOSING } from './checkup/checkupTypes';
-import { getCheckupDetail } from './checkupApi';
-import { getCheckups, getDailyRecords, getObservations } from './diaryApi';
+import { getCheckupTabs } from './checkupApi';
+import { getDailyRecords, getFakeCheckups, getObservations } from './diaryApi';
 import { WEIGHT } from './diaryTypes';
 import { HOSPITAL } from './scheduleTypes';
 
@@ -57,9 +57,9 @@ const compareDesc = (a, b) => (a === b ? 0 : a < b ? 1 : -1);
 
 /** 반려동물의 검진기록 전체(최신순) */
 const getAllCheckups = async (petSn) => {
-  const { years } = await getCheckups({ petSn, year: getYear(today) });
+  const { years } = await getFakeCheckups({ petSn, year: getYear(today) });
   const lists = await Promise.all(
-    years.map((year) => getCheckups({ petSn, year })),
+    years.map((year) => getFakeCheckups({ petSn, year })),
   );
   return lists
     .flatMap((list) => list.content)
@@ -114,7 +114,7 @@ export const getHealthSummary = async (petSn) => {
   const detailsByCheckup = await Promise.all(
     checkups.map(async (checkup) => ({
       checkup,
-      ...(await getCheckupDetail(checkup.ckupRcdSn)),
+      ...getCheckupTabs(checkup.ckupRcdSn),
     })),
   );
 
@@ -144,6 +144,7 @@ export const getHealthSummary = async (petSn) => {
   );
   const lab = latestLabDetail
     ? {
+        petSn: latestLabDetail.checkup.petSn,
         ckupRcdSn: latestLabDetail.checkup.ckupRcdSn,
         ckupYmd: latestLabDetail.checkup.ckupYmd,
         items: latestLabDetail.bloodInspections,
@@ -159,6 +160,7 @@ export const getHealthSummary = async (petSn) => {
     .flatMap(({ checkup, prescriptions: list }) =>
       list.map((prescription) => ({
         ...prescription,
+        petSn: checkup.petSn,
         ckupRcdSn: checkup.ckupRcdSn,
       })),
     )
@@ -214,6 +216,7 @@ export const getHealthSummary = async (petSn) => {
       tlKey: `ckup-${checkup.ckupRcdSn}`,
       tlTypeCd: TIMELINE_CHECKUP,
       ymd: checkup.ckupYmd,
+      petSn: checkup.petSn,
       ckupRcdSn: checkup.ckupRcdSn,
       ckupTypeCd: checkup.ckupTypeCd,
       hospNm: checkup.hospNm,
@@ -226,6 +229,7 @@ export const getHealthSummary = async (petSn) => {
           tlKey: `prvnt-${prevention.prvntSn}`,
           tlTypeCd: TIMELINE_PREVENTION,
           ymd: prevention.startYmd,
+          petSn: checkup.petSn,
           ckupRcdSn: checkup.ckupRcdSn,
           hospNm: checkup.hospNm,
           prvntItmCd: prevention.prvntItmCd,

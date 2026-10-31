@@ -49,6 +49,7 @@ import {
   deleteObservationRound,
   endObservation,
   findNearSchedule,
+  getCheckupYears,
   getCheckups,
   getDailyRecords,
   getObservations,
@@ -73,6 +74,7 @@ export const healthKeys = {
   observationList: (petSn) => ['health', 'observations', petSn],
   checkups: ['health', 'checkups'],
   checkupList: (params) => ['health', 'checkups', params],
+  checkupYears: (petSn) => ['health', 'checkups', 'years', petSn],
   checkupDetail: (ckupRcdSn) => ['health', 'checkups', 'detail', ckupRcdSn],
   summary: (petSn) => ['health', 'summary', petSn],
 };
@@ -213,13 +215,20 @@ export const useDeleteObservationRound = () =>
 
 export const useEndObservation = () => useObservationMutation(endObservation);
 
-/** params: { petSn, year } */
+/** params: { petSn, year, ckupTypeCd, page, size } */
 export const useCheckups = (params) =>
   useQuery({
     queryKey: healthKeys.checkupList(params),
     queryFn: () => getCheckups(params),
     enabled: params.petSn != null,
     placeholderData: keepPreviousData,
+  });
+
+export const useCheckupYears = (petSn) =>
+  useQuery({
+    queryKey: healthKeys.checkupYears(petSn),
+    queryFn: () => getCheckupYears(petSn),
+    enabled: petSn != null,
   });
 
 /** 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐 */
@@ -244,10 +253,11 @@ export const useDeleteCheckup = () => useCheckupMutation(deleteCheckup);
 export const useUpdateCheckup = () => useCheckupMutation(updateCheckup);
 
 /** 검진상세 한 번에: 검진기록·검사 결과·첨부 자료·처방약·반복 예방 */
-export const useCheckupDetail = (ckupRcdSn) =>
+/** 반려동물을 옮기면 같은 검진기록도 주소의 petSn이 바뀌므로 키에 petSn을 넣는다. 무효화는 ckupRcdSn까지의 앞부분으로 */
+export const useCheckupDetail = ({ petSn, ckupRcdSn }) =>
   useQuery({
-    queryKey: healthKeys.checkupDetail(ckupRcdSn),
-    queryFn: () => getCheckupDetail(ckupRcdSn),
+    queryKey: [...healthKeys.checkupDetail(ckupRcdSn), petSn],
+    queryFn: () => getCheckupDetail({ petSn, ckupRcdSn }),
   });
 
 /** 검진상세 변경: 변수의 ckupRcdSn 상세를 다시 읽고, 케어 항목이 바뀌는 변경은 케어리스트도 재조회 */

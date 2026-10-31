@@ -12,8 +12,7 @@ import {
 } from '@/components/buttonStyles';
 import { PATHS } from '@/routes/paths';
 import { formatDate, getTodayYmd, getYear } from '@/utils/formatDate';
-import { useCheckups, useDeleteCheckup } from '../queries';
-import { CHECKUP_TYPES } from '../scheduleTypes';
+import { useCheckupYears, useCheckups, useDeleteCheckup } from '../queries';
 import CheckupModal from './CheckupModal';
 import EmptyBox from './EmptyBox';
 import { SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
@@ -24,12 +23,10 @@ const PAGE_SIZE = 10;
 /** 필터 칩으로 따로 세는 검진 종류(예방접종) */
 const VACCINATION = 'HLTC0002';
 
-const findCheckupTypeNm = (cd) =>
-  CHECKUP_TYPES.find((type) => type.cd === cd)?.nm;
-
 /**
  * [검진기록 카드]
  * - 조회 연도 드롭다운·검진 건수 필터 칩 2종·검진기록 리스트·[검진기록 등록] (FN-HLT-002-05·06·14)
+ * - 리스트는 서버 페이지(10건), 칩 건수는 그해 전체·예방접종 건수를 따로 받는다
  * - 병원명을 누르면 검진상세로 이동하고, [삭제]는 확인 후 검진기록만 삭제
  * - 등록 방법 선택에서 영수증을 고르면 이 모달 닫힘, onReceipt로 페이지가 영수증 등록 이어받음
  */
@@ -41,10 +38,30 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteSn, setDeleteSn] = useState(null);
-  const { data, isPending } = useCheckups({ petSn: pet.petSn, year });
+  const { petSn } = pet;
+  const list = useCheckups({
+    petSn,
+    year,
+    ckupTypeCd: chipFilter === VACCINATION ? VACCINATION : undefined,
+    page,
+    size: PAGE_SIZE,
+  });
+  const yearCount = useCheckups({ petSn, year, size: 1 });
+  const vaccinationCount = useCheckups({
+    petSn,
+    year,
+    ckupTypeCd: VACCINATION,
+    size: 1,
+  });
+  const years = useCheckupYears(petSn);
   const deleteCheckup = useDeleteCheckup();
 
-  if (isPending) {
+  if (
+    list.isPending ||
+    yearCount.isPending ||
+    vaccinationCount.isPending ||
+    years.isPending
+  ) {
     return (
       <div aria-busy="true">
         <SkeletonCard className="h-[1145px] max-[760px]:h-[1437px]" />
@@ -52,21 +69,10 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
     );
   }
 
-  const checkups = data.content;
-  const vaccinationCount = checkups.filter(
-    (checkup) => checkup.ckupTypeCd === VACCINATION,
-  ).length;
-  const visibleCheckups =
-    chipFilter === VACCINATION
-      ? checkups.filter((checkup) => checkup.ckupTypeCd === VACCINATION)
-      : checkups;
-  const pageCount = Math.max(1, Math.ceil(visibleCheckups.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const pageCheckups = visibleCheckups.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-  const yearOptions = [...new Set([currentYear, year, ...data.years])].sort(
+  const pageCheckups = list.data.content;
+  const pageCount = Math.max(1, list.data.totalPages);
+  const hasAnyCheckup = years.data.length > 0;
+  const yearOptions = [...new Set([currentYear, year, ...years.data])].sort(
     (a, b) => b - a,
   );
   const yearLabel = year === currentYear ? '올해' : `${year}년`;
@@ -77,8 +83,17 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
     setPage(1);
   };
 
+  // 페이지의 마지막 1건을 지우면 앞 페이지로
   const handleDelete = () =>
-    deleteCheckup.mutate(deleteSn, { onSuccess: () => setDeleteSn(null) });
+    deleteCheckup.mutate(
+      { petSn, ckupRcdSn: deleteSn },
+      {
+        onSuccess: () => {
+          setDeleteSn(null);
+          if (pageCheckups.length === 1 && page > 1) setPage(page - 1);
+        },
+      },
+    );
 
   const chipClass = (isActive) =>
     `inline-flex h-9 items-center rounded-full border px-3.5 ${
@@ -92,7 +107,7 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
     <select
       aria-label="조회 연도"
       value={year}
-      disabled={!data.hasAnyCheckup}
+      disabled={!hasAnyCheckup}
       className={`${SELECT_CLASS} w-30!`}
       style={SELECT_ARROW_STYLE}
       onChange={(event) => {
@@ -137,7 +152,7 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
           className={chipClass(chipFilter === 'ALL')}
           onClick={() => toggleChip('ALL')}
         >
-          {yearLabel} 검진 {checkups.length}
+          {yearLabel} 검진 {yearCount.data.totalElements}
         </button>
         <button
           type="button"
@@ -145,11 +160,11 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
           className={chipClass(chipFilter === VACCINATION)}
           onClick={() => toggleChip(VACCINATION)}
         >
-          예방접종 {vaccinationCount}
+          예방접종 {vaccinationCount.data.totalElements}
         </button>
       </div>
 
-      {checkups.length === 0 ? (
+      {pageCheckups.length === 0 ? (
         <EmptyBox
           icon="local_hospital"
           title="등록된 검진기록이 없어요"
@@ -167,23 +182,20 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
                   <div className="flex flex-wrap items-baseline gap-x-3">
                     <Link
                       to={generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+                        petSn,
                         ckupRcdSn: checkup.ckupRcdSn,
                       })}
                       className="text-lg/[1.6] font-semibold text-ink underline-offset-4 hover:text-brand-600 hover:underline"
                     >
-                      {checkup.hospNm}
+                      {checkup.hsptlNm}
                     </Link>
                     <span className="text-subtle tabular-nums">
-                      {formatDate(checkup.ckupYmd)} ·{' '}
-                      {findCheckupTypeNm(checkup.ckupTypeCd)}
+                      {formatDate(checkup.ckupYmd)} · {checkup.ckupTypeCdNm}
                     </span>
-                    {checkup.schdlSn === null && (
+                    {checkup.schdlDelYn && (
                       <Badge tone="gray">연결된 일정 삭제됨</Badge>
                     )}
                   </div>
-                  {checkup.ckupCn && (
-                    <p className="mt-1 text-subtle">{checkup.ckupCn}</p>
-                  )}
                 </div>
                 <button
                   type="button"
@@ -197,7 +209,7 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
           </ul>
           <div className="mt-7">
             <Pagination
-              page={currentPage}
+              page={page}
               pageCount={pageCount}
               onChange={setPage}
             />

@@ -61,6 +61,7 @@ const getItemName = (form) =>
  * - analyzedItems가 없으면(새로고침 등) atchSn의 첨부 파일을 다시 분석
  */
 export default function LabInput({
+  petSn,
   ckupRcdSn,
   mode,
   detail,
@@ -69,7 +70,10 @@ export default function LabInput({
   atchSn,
 }) {
   const navigate = useNavigate();
-  const detailPath = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, { ckupRcdSn });
+  const detailPath = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+    petSn,
+    ckupRcdSn,
+  });
   const analyzeLabPdf = useAnalyzeLabPdf();
   const createInspections = useCreateInspections();
   const updateInspection = useUpdateInspection();

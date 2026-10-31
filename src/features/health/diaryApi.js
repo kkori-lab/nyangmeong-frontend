@@ -1,17 +1,16 @@
+import { api } from '@/api/axios';
 import { addDays, getTodayYmd, getYear } from '@/utils/formatDate';
 import {
   findNearHospitalSchedule,
   getQueryParam,
-  linkCheckupToSchedule,
   moveLinkedCareItems,
-  onScheduleDeleted,
-  unlinkCheckupFromSchedule,
 } from './api';
 import { MEAL, STOOL, WALK, WATER, WEIGHT } from './diaryTypes';
 
 /**
- * [건강 일지 API 가짜 응답]
- * - 일상 기록·지속 관찰·검진기록 API(JAJ 백엔드)가 생기기 전까지 쓰는 가짜 응답
+ * [건강 일지 API]
+ * - 검진기록은 실제 API(JAJ 백엔드). 종합 건강기록은 아직 아래 가짜 검진기록(getFakeCheckups)을 쓴다
+ * - 일상 기록·지속 관찰 API(JAJ 백엔드)가 생기기 전까지 쓰는 가짜 응답
  * - 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
  * - 개발 환경에서만 ?fakeDaily=0(일상 기록 0건), ?fakeDaily=1(종류마다 1건)
  */
@@ -329,7 +328,7 @@ export const endObservation = (obsvItmSn) => {
   return Promise.resolve();
 };
 
-/** 검진기록 */
+/** 종합 건강기록용 가짜 검진기록: SCR-HLT-011 API 연결 때 지운다 */
 
 let nextCkupRcdSn = 500;
 
@@ -412,17 +411,10 @@ const buildFakeCheckups = () => {
   ];
 };
 
-let fakeCheckups = buildFakeCheckups();
+const fakeCheckups = buildFakeCheckups();
 
-/** 연결된 병원 일정이 지워지면 검진기록의 일정 번호만 비움 */
-onScheduleDeleted((schdlSn) => {
-  fakeCheckups = fakeCheckups.map((checkup) =>
-    checkup.schdlSn === schdlSn ? { ...checkup, schdlSn: null } : checkup,
-  );
-});
-
-/** 조회 연도의 검진기록(최신 순)과 그 반려동물의 검진기록이 있는 연도 목록 */
-export const getCheckups = ({ petSn, year }) => {
+/** 종합 건강기록용: 조회 연도의 가짜 검진기록(최신 순)과 그 반려동물의 검진기록이 있는 연도 목록 */
+export const getFakeCheckups = ({ petSn, year }) => {
   const petCheckups = fakeCheckups.filter((checkup) => checkup.petSn === petSn);
   const content = petCheckups
     .filter((checkup) => getYear(checkup.ckupYmd) === year)
@@ -440,82 +432,62 @@ export const getCheckups = ({ petSn, year }) => {
   return Promise.resolve({ content, years, hasAnyCheckup: years.length > 0 });
 };
 
+/** 검진기록(FN-HLT-002-05·06·14·26~31·46) */
+
+/** 검진기록 목록(최신 순 PageResponse). year를 빼면 전체 연도 */
+export const getCheckups = ({ petSn, year, ckupTypeCd, page, size }) =>
+  api.get(`/pets/${petSn}/checkups`, {
+    params: { year, ckupTypeCd, page, size },
+  });
+
+/**
+ * 검진기록이 있는 연도 범위(최신 순). 0건이면 빈 배열
+ * - 서버가 연도 목록을 주지 않아 가장 최근 기록부터 가장 오래된 기록까지의 연도를 모두 넣는다
+ */
+export const getCheckupYears = async (petSn) => {
+  const newest = await getCheckups({ petSn, size: 1 });
+  if (newest.totalElements === 0) return [];
+  const oldest = await getCheckups({
+    petSn,
+    size: 1,
+    page: newest.totalElements,
+  });
+  const newestYear = getYear(newest.content[0].ckupYmd);
+  const oldestYear = getYear(
+    (oldest.content[0] ?? newest.content[0]).ckupYmd,
+  );
+  return Array.from(
+    { length: newestYear - oldestYear + 1 },
+    (_, index) => newestYear - index,
+  );
+};
+
 export const findNearSchedule = findNearHospitalSchedule;
 
-/** nearSchdlSn이 있으면 그 일정을 검진일로 옮겨 연결 */
-export const createCheckup = ({ nearSchdlSn, ...body }) => {
-  const schdlSn = linkCheckupToSchedule({
-    petSn: body.petSn,
-    ckupYmd: body.ckupYmd,
-    hospNm: body.hospNm,
-    ckupTypeCd: body.ckupTypeCd,
-    nearSchdlSn,
-  });
-  const checkup = {
-    ckupRcdSn: nextCkupRcdSn++,
-    petSn: body.petSn,
-    schdlSn,
-    ckupYmd: body.ckupYmd,
-    hospNm: body.hospNm,
-    ckupTypeCd: body.ckupTypeCd,
-    ckupCn: body.ckupCn,
-    ckupMemoCn: body.ckupMemoCn,
-    rcptSn: body.rcptSn ?? null,
-  };
-  fakeCheckups = [...fakeCheckups, checkup];
-  return Promise.resolve({ ...checkup });
-};
+/** 같은 날 병원 일정 연결·새 일정 생성은 서버가 한다. body.schdlSn이 있으면 그 일정을 검진일로 옮겨 연결 */
+export const createCheckup = ({ petSn, body }) =>
+  api.post(`/pets/${petSn}/checkups`, body);
 
-export const deleteCheckup = (ckupRcdSn) => {
-  const target = fakeCheckups.find(
-    (checkup) => checkup.ckupRcdSn === ckupRcdSn,
+/** 연결된 병원 일정은 남는다 */
+export const deleteCheckup = ({ petSn, ckupRcdSn }) =>
+  api.delete(`/pets/${petSn}/checkups/${ckupRcdSn}`);
+
+/** 검진기록 1건: 없으면 CHECKUP_NOT_FOUND */
+export const getCheckup = ({ petSn, ckupRcdSn }) =>
+  api.get(`/pets/${petSn}/checkups/${ckupRcdSn}`);
+
+/**
+ * 경로는 원래 반려동물, body.petSn은 옮길 반려동물
+ * - 검진일·반려동물이 바뀌면 서버가 이 검진기록만 바뀐 날짜의 병원 일정에 다시 연결한다
+ * - 검진상세 가짜 연동 케어 항목도 함께 옮긴다
+ */
+export const updateCheckup = async ({ petSn, ckupRcdSn, body }) => {
+  const checkup = await api.patch(
+    `/pets/${petSn}/checkups/${ckupRcdSn}`,
+    body,
   );
-  fakeCheckups = fakeCheckups.filter(
-    (checkup) => checkup.ckupRcdSn !== ckupRcdSn,
-  );
-  if (target?.schdlSn != null) unlinkCheckupFromSchedule(target.schdlSn);
-  return Promise.resolve();
-};
-
-/** 검진기록 1건: 없으면 NOT_FOUND */
-export const getCheckup = (ckupRcdSn) => {
-  const checkup = fakeCheckups.find((item) => item.ckupRcdSn === ckupRcdSn);
-  if (!checkup) {
-    return Promise.reject({
-      code: 'NOT_FOUND',
-      message: '검진기록을 찾을 수 없어요',
-      fields: null,
-    });
+  if (checkup.petSn !== petSn) {
+    moveLinkedCareItems({ ckupRcdSn, petSn: checkup.petSn });
   }
-  return Promise.resolve({ ...checkup });
-};
-
-/** 검진일·반려동물이 바뀌면 이 검진기록만 바뀐 날짜의 병원 일정에 다시 연결(같은 날 일정 없으면 새 일정) */
-export const updateCheckup = ({ ckupRcdSn, ...body }) => {
-  const checkup = fakeCheckups.find((item) => item.ckupRcdSn === ckupRcdSn);
-  const isRelinked =
-    checkup.ckupYmd !== body.ckupYmd || checkup.petSn !== body.petSn;
-  let { schdlSn } = checkup;
-  if (isRelinked) {
-    if (schdlSn != null) unlinkCheckupFromSchedule(schdlSn);
-    schdlSn = linkCheckupToSchedule({
-      petSn: body.petSn,
-      ckupYmd: body.ckupYmd,
-      hospNm: body.hospNm,
-      ckupTypeCd: body.ckupTypeCd,
-    });
-  }
-  if (checkup.petSn !== body.petSn) {
-    moveLinkedCareItems({ ckupRcdSn, petSn: body.petSn });
-  }
-  Object.assign(checkup, {
-    petSn: body.petSn,
-    schdlSn,
-    ckupYmd: body.ckupYmd,
-    hospNm: body.hospNm,
-    ckupTypeCd: body.ckupTypeCd,
-    ckupCn: body.ckupCn,
-    ckupMemoCn: body.ckupMemoCn,
-  });
-  return Promise.resolve({ ...checkup });
+  return checkup;
 };
