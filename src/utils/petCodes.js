@@ -75,6 +75,12 @@ export const PET_REL = {
   CO_PARENT: 'CO_PARENT',
 };
 
+/** PETG05 양육 역할 (반려동물 API의 brupRoleCd) */
+export const BRUP_ROLE = {
+  PRIMARY: 'PETC0018',
+  CO_PARENT: 'PETC0019',
+};
+
 /** 반려동물 1마리에 연동할 수 있는 공동양육자 최대 인원 */
 export const MAX_CAREGIVERS = 5;
 

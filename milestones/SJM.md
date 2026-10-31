@@ -105,11 +105,14 @@
 - 기다리는 것: 백엔드 `DELETE /pets/{petSn}/caregivers/{brupRelSn}` (SJM 백엔드, 끝남)
 - 완료 조건: 확인하면 실제 해제를 부르고 `GET /pets`를 다시 읽어 그 동물이 목록에서 빠진다. 403 `PET_PRIMARY_ONLY`·404 `CAREGIVER_NOT_FOUND`를 처리한다
 
-## SCR-MYP-003 반려동물 등록/수정 · 반려동물 조회·등록·수정·대표 지정을 실제 API로 — 대기
+## SCR-MYP-003 반려동물 등록/수정 · 반려동물 조회·등록·수정·대표 지정을 실제 API로 — 끝
 
 - 기능: 명세 기능 ID 추가 없음. FN-MYP-001-01, FN-MYP-002-02·04, FN-MYP-003-01~07, FN-MYP-010-05와 걸친다
 - 기다리는 것: 백엔드 `GET·POST /pets`, `GET·PATCH /pets/{petSn}`, `POST /pets/{petSn}/representative` (SJM 백엔드, 끝남)
 - 완료 조건: `features/pet/api.js`의 `getPets`·`getPet`·`createPet`·`updatePet`·`setRepresentativePet`이 실제 요청을 부르고 응답 키(`brupRoleCd`·`rprsPetYn`·`caregiverCount`·`bscCharSbstYn`)에 맞춰 화면이 그대로 보인다
+- 연결 남음: FN-MYP-002-02 (백엔드 연결 `PetSummary`에 `nutrYn`·`minBdwg`·`maxBdwg` 추가, 백엔드 저장소에서 /start)
+- 연결 남음: FN-MYP-003-01 (체중 입력 잠금 판단용 건강기록 체중 조회, JAJ)
+- 연결 남음: FN-MYP-001-01 (메인 대표 반려동물 칩 `rprsYn` → `rprsPetYn`, YAY)
 
 ## SCR-MYP-002 반려동물 프로필 목록 · 반려동물 삭제를 실제 API로 — 대기
 

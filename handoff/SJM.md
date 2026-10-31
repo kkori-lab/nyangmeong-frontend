@@ -2,27 +2,36 @@
 
 ## 지금 하는 것
 
-끝남(모두 푸시됨): 마이페이지 시안 v0.1(86dd406)·초대 v0.2·5-6(bd0bd2e·7efaec6)·가계부 v0.3(12b2746~b3e5e37)과 이어서 요청한 것(시트 편집 취소 복귀·카드 ⋮·포인트 앱 [캐릭터 꾸미기] 숨김). lint·build 종료 코드 0(2026-10-25 확인)
+이전 작업(마이페이지 시안 v0.1~v0.3 반영, SCR-MYP-001 PetFace 연결과 추가-1~10)은 끝나 푸시됨. 결정·연결 남은 것은 아래 "다음에 할 것"과 `milestones/SJM.md`에 있다
 
-SCR-MYP-001 연결: 캐릭터 얼굴 이미지 API 연결과 공용 `PetFace` — 끝(검증 `통과` 1회차, 사람 확인 2026-10-25, 승인 2026-10-25, 기준 기능명세서 v0.4_20261025). `GET /pets/{petSn}/character-image?part=face`(LJS)를 Blob→data URL로 받아 `features/pet/shared/PetFace.jsx`가 그린다. 실패·로딩 중에는 종별 기본 얼굴, 오류 확인 중 동물은 흑백, `pixelated`. `PetMiniCard`·`PetSlide`·`PetProfileCard`·`InvitationAccept`가 쓴다. lint·build 종료 코드 0
-결정(사람, 2026-10-25): 반려동물 관리 카드는 얼굴(`part=face`)·지금 모양 그대로 확정, 전신으로 바꾸지 않는다. 메인 반려동물 칩(`pages/main/MainPage.jsx`, YAY)은 고치지 않고 "다음에 할 것"에 남겼다. 범위 밖: 전신(`part=full`) 이미지는 SCR-MYP-010 연결과 같이 한다
+SCR-MYP-003 반려동물 등록/수정 · 반려동물 조회·등록·수정·대표 지정을 실제 API로 — 끝(검증 `통과`(첫 시도는 로그인 계정이 없어 `실패`, 시드 계정으로 재검증), 사람 확인 2026-10-31, 승인 2026-10-31 19:20), 시작 2026-10-31 18:59. lint·build 종료 코드 0. 직접 확인한 것: 목록(10마리·더보기)·대표 배지·등록·수정(user0006)·목표체중 비우기(`goalBdwgReset: true`만 전송, 다시 열면 칸 비어 있음)
+고른 이유: 대기 맨 위(SCR-MYP-002 가족 영역)와 006·002 삭제·005는 모두 실제 `GET /pets`의 `petSn`이 있어야 실제 요청을 확인할 수 있어 이 절을 먼저 한다
+기준: 마이페이지_기능명세서_v0.4_20261025(FN-MYP-003-01~07), 백엔드 `PetController`·`PetSummary`·`PetResponse`·`PetCreateRequest`·`PetUpdateRequest`(2026-10-31 develop). 화면은 바뀌지 않는 연결 작업이다
+디자인: 해당 없음(기존 화면 그대로)
+
+- FN-MYP-001-01·002-02 목록: `features/pet/api.js` `getPets` → `api.get('/pets')`, 개발 전용 `?fake=empty|owner` 분기 삭제. 응답 키에 맞춰 `petRelCd`·`PET_REL` → `brupRoleCd`·`BRUP_ROLE`(`utils/petCodes.js`에 PETG05 `PRIMARY: 'PETC0018'`, `CO_PARENT: 'PETC0019'` 추가, 공용 파일이라 알림. `PET_REL`은 health 가짜가 써서 남김), `rprsYn === 'Y'` → `rprsPetYn`(불리언, `=== 'Y'` 비교 금지), 오류 확인 중 배지·흑백 판단은 `bscCharSbstYn`. 바꿀 파일: `list/PetSlide.jsx`, `home/PetMiniCard.jsx`, `list/InviteModal.jsx`, `character/CharacterCard.jsx`, `pages/mypage/PetListPage.jsx`, `pages/mypage/CharacterPage.jsx`. 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: 로그인 후 `/mypage`·`/mypage/pets`에 내 계정의 실제 반려동물이 보이고, 대표 동물에 대표 표시, 공동양육 동물에 [공동양육] 배지가 보인다. 네트워크에 `GET /api/pets`가 200
+- FN-MYP-002-02 슬라이드 상세 줄: 목록 응답(`PetSummary`)에 `nutrYn`·`minBdwg`·`maxBdwg`가 없어 `PetSlide.jsx`가 현재 슬라이드 동물만 `usePet(petSn)`(상세)으로 중성화·정상범위를 채운다. 완료 조건 — 화면: 슬라이드를 넘기면 그 동물의 "(중성화 완료)"와 "정상 a~bkg"가 상세 응답대로 보인다
+- FN-MYP-003-01·04~07 상세·등록·수정: `getPet` → `GET /pets/{petSn}`, `createPet` → `POST /pets`, `updatePet` → `PATCH /pets/{petSn}`(주석의 PUT도 고침). `list/PetFormModal.jsx`의 `nutrYn`을 서버처럼 불리언으로, 수정 때 `petBdwg`는 바뀐 경우에만 보낸다. 오류: `error.fields`는 해당 입력칸 아래, 그 밖(`PET_LIMIT_EXCEEDED` 등)은 토스트 `error.message`. `PET_WEIGHT_LOCKED`는 처리하지 않는다(사람 결정 2026-10-31: 서버가 체중 PATCH를 막지 않기로 해 이 오류를 던지지 않는다). 체중 읽기 전용(`lastBdwgRcd`)은 응답에 없어 이번에는 항상 입력 가능, 체중 잠금은 나중에 JAJ 건강기록 API로 프론트에서 판단한다("다음에 할 것"에 남김). 성공 뒤 `petKeys` 목록·상세 무효화(`queries.js`). 완료 조건 — 명령: lint·build. 화면: 등록 모달로 필수값을 채워 [등록하기]하면 `POST /api/pets` 201 뒤 슬라이드에 새 동물이 생긴다. 수정으로 열면 상세 값이 채워지고 [저장]하면 `PATCH` 200 뒤 슬라이드에 반영. 필수값 비움 오류(기존 프론트 검사)는 그대로 동작
+- FN-MYP-003-02 품종: `getVarieties` → `api.get('/breeds', { params: { petSeCd } })`(KSJ, 이미 있음. `features/community/missingApi.js`와 같은 주소지만 import 하지 않고 pet `api.js`에 따로 둔다), 가짜 `fakeVarieties`·`findVrtyNm` 삭제. 완료 조건 — 화면: 종류를 바꾸면 품종 목록이 서버 목록으로 바뀌고, 고른 품종으로 등록한 동물의 품종 이름이 슬라이드에 보인다
+- FN-MYP-010-05 대표 지정: `setRepresentativePet` → `POST /pets/{petSn}/representative`, 성공 뒤 목록 무효화. 완료 조건 — 화면: `/mypage/characters`에서 [대표 지정]하면 200 뒤 대표 표시가 그 동물로 옮겨지고 `/mypage` 홈 카드에도 반영된다
+- 이번에 하지 않음(다음 대기 절): `deletePet`·`getCaregivers`·`deleteCaregiver`·`leavePet`·초대·캐릭터·상점 가짜는 그대로 둔다. 이들은 실제 목록과 따로 노는 가짜 `fakePets`를 계속 쓰므로 삭제·해제를 눌러도 실제 목록은 안 바뀐다. 캐릭터 상태(`chrcSttsCd`·`chrcImgUrl`)는 실제 목록에 없어 꾸미기·캐릭터 카드가 "캐릭터 없음"처럼 보일 수 있다(SCR-MYP-010 연결 때)
+결정(사람, 2026-10-31): (1) `pages/main/MainPage.jsx`(YAY)는 건드리지 않는다. YAY에게 알린다 — `rprsYn === 'Y'` → `rprsPetYn === true`(실제 목록에는 `rprsYn`이 없어 지금은 대표 대신 첫 동물이 보인다). (2) 슬라이드 중성화·정상범위는 이번엔 상세 조회로 채운다. `PetSummary` 필드 추가는 "다음에 할 것"에 남김
 새 의존성: 없음
 
 ### 추가 요청
-| 추가-1 | `features/pet/list/InviteModal.jsx` | 명령: lint·build. 화면: [확인] 버튼 없이 안내 문구, 형식 오류는 입력란을 벗어날 때·보낼 때 안내 | 요청 2026-10-25 "v0.2 초대 모달 반영, 검증은 추천안대로" |
-| 추가-2 | `features/pet/invite/InvitationAccept.jsx`, `api.js`, `queries.js` | 화면: 카드별 체크 선택 수락, 0개면 [수락] 비활성, 거절은 전체 | 요청 2026-10-25 "반려동물별 선택 수락" |
-| 추가-3 | `features/pet/invite/InvitationMismatch.jsx`(새), `pages/mypage/InvitationPage.jsx`, `api.js` | 화면: 이메일 불일치 안내, [초대받은 계정으로 로그인]은 로그아웃 뒤 `/login?redirect=`, 앱은 세로·로그인 버튼이 위 | 요청 2026-10-25 "FN-MYP-005-09대로" |
-| 추가-4 | `features/pet/list/SentInvitations.jsx`, `api.js` | 화면: 반려동물마다 한 줄·상태도 반려동물별(일부 수락이면 수락/거절) | 요청 2026-10-25 "패치에 없지만 FN-MYP-005-03 예외로 반영" |
-| 추가-5 | `features/pet/invite/InvitationClosed.jsx`(새), `pages/mypage/InvitationPage.jsx`, `InvitationAccept.jsx`(닫힌 초대 분기 삭제), `api.js` | 명령: lint·build. 화면: `/mypage/invitations/demo-expired`·`demo-done`에서 시계 아이콘·제목·[마이페이지 홈으로] 하나만(카드·초대한 사람·목록으로 없음), 판단 순서 만료·처리 → 불일치 → 수락 | 요청 2026-10-25 "기능명세서 v0.4_20261025 FN-MYP-005-10 기준 5-6 구현" |
-| 추가-6 | `features/pet/list/FamilySection.jsx` | 화면: 가족 카드 이름 → 뱃지 → 권한·연동일 세로 배치, 1180·1440·390에서 뱃지가 카드 밖으로 안 나감 | 요청 2026-10-25 "좁은 폭에서 뱃지가 카드 밖으로 나가 이름 아래로" |
-| 추가-7 | `features/expense/**`, `components/Select.jsx`(공용, 선택 전 표시 문구 옵션만 추가) | 가계부 v0.3 시안·명세 v0.4_20261025: ①사용처 ②지출 상세 시트·날짜별 상세 ⋮ 메뉴 ③전체 내역(필터 문구·앱 정렬 줄·색 막대·무한 스크롤) ④대시보드 앱 정리·중복·삭제 모달. 명령: lint·build. 화면: PC 1440·앱 390 | 요청 2026-10-25 "가계부(SCR-MYP-030·031) v0.3 구현, 단계별 커밋, 푸시 안 함" |
-추가-7에 이어서 같은 날 요청: 지출 상세 시트에서 편집을 취소해도 시트로 복귀, 반려동물 카드 메뉴 ⋮(세로)(`PetSlide.jsx`), 포인트 앱 상단 [캐릭터 꾸미기] 숨김(`PointSummary.jsx`). 영수증 확인 폼(사용처=상호, 내용 빈칸)은 가짜 OCR로 PC·앱 확인 공용 파일 변경(LJS에 알림): `components/Select.jsx`에 `placeholder` prop 추가(안 넘기면 기존과 동일), `hooks/useMediaQuery.js` 새로 추가. 개발 전용 `?fake=more-fail`(전체 내역 앱에서 첫 이어 불러오기 실패, ↻ 확인)
-| 추가-8 | `features/pet/shared/PetFace.jsx`, `home/PetMiniCard.jsx`, `invite/InvitationAccept.jsx` | 명령: lint·build. 화면: 오류 상태 동물은 서버 이미지여도 흑백(반려동물 상태 기준), 이미지에 pixelated, 초대 수락 카드 얼굴도 PetFace, 파일 맨 위에 사용법 주석(건강기록·건강일지·메인에서도 공용). 캡처로 확인하고 커밋, 푸시 안 함 | 요청 2026-10-25 "오류 흑백을 상태 기준으로, PetFace 공용 props·주석·pixelated, 빠진 얼굴 교체, 캡처 확인 후 커밋" |
-| 추가-9 | `features/expense/shared/ExpenseForm.jsx`(수정일 때만), `components/Modal.jsx`(공용, 앱에서 아래 시트로 뜨는 옵션 `isSheet` 추가) | 명령: lint·build. 화면: 앱(≤760px) 지출 수정 폼이 지출 상세 시트처럼 아래에서 올라온다. PC·직접 입력(등록) 모달은 그대로. 캡처로 확인하고 커밋, 푸시 안 함 | 요청 2026-10-25 "앱에서 지출 수정 폼을 상세 시트처럼 아래에서 올라오는 시트로" |
-| 추가-10 | `features/expense/dashboard/ExpenseAddModal.jsx`·`ExpenseReceiptUpload.jsx`·`ExpenseReceiptReview.jsx`, `shared/ExpenseForm.jsx`(등록도 시트) | 명령: lint·build. 화면: 앱(≤760px) 지출 등록 방법 선택·직접 입력·영수증 업로드·인식 결과 확인이 아래에서 올라오는 시트로 뜬다. PC는 그대로. 영수증 원본 확대·확인 팝업은 가운데 그대로. 캡처로 확인하고 커밋, 푸시 안 함 | 요청 2026-10-25 "지출 등록 쪽 모달도 isSheet로 아래 시트에 맞춰" |
-사람 확인: 추가-1~6은 사람이 화면을 확인했다고 답했다(2026-10-25). 추가-7과 이어서 요청한 것도 사람이 확인했다고 답했다(2026-10-25). PetFace 묶음(SCR-MYP-001)의 화면도 사람이 확인했다고 답했다. 회원정보 수정 간격은 사람이 그대로 두기로 했다
+| 추가-1 | `features/pet/list/PetFormModal.jsx` | 명령: lint·build. 화면: 수정에서 목표체중이 있던 동물의 칸을 비우고 [저장]하면 요청 본문에 `goalBdwgReset: true`만 가고 `goalBdwg`는 없다. 원래 비어 있고 지금도 비면 둘 다 안 간다. 값을 입력·변경하면 `goalBdwg`만 간다. 둘이 같이 가는 경우는 없다(서버 400) | 요청 2026-10-31 "수정 PATCH에서 목표체중 비우기를 goalBdwgReset으로 처리(백엔드에 추가됨)" |
 
 ## 다음에 할 것
+- SCR-MYP-003 연결 후 남음: (a) 백엔드 연결: `PetSummary`에 `nutrYn`·`minBdwg`·`maxBdwg` 추가(백엔드 저장소에서 /start, 백엔드 마일스톤에 절을 넣었다). 지금은 슬라이드가 동물마다 `GET /pets/{petSn}` 상세를 불러 채운다(5마리면 5건). (b) 체중 입력 잠금: 서버는 체중 PATCH를 막지 않는다. 건강기록 API(JAJ)로 프론트에서 판단해 `PetFormModal`의 체중 읽기 전용·`lastBdwgRcd` 표시를 연결한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
+- [SCR-MYP-005 초대 연결 시] POST /caregiver-invitations 409 처리
+  - 백엔드 응답 변경 완료: data = { linkedPets: [{petSn, petNm}], pendingPets: [{petSn, petNm, invtnExpryDt}] }, 없으면 []
+  - code: linkedPets 있으면 CAREGIVER_ALREADY_LINKED, pendingPets만 있으면 CAREGIVER_INVITATION_DUPLICATED
+  - 문구는 서버 message 대신 두 목록으로 조합
+    - linked: "이미 뭉치, 모리의 가족이에요"
+    - pending: "이미 초대를 보냈어요: 콩이(11-06 만료), 보리(11-07 만료)" / 만료일 null이면 이름만
+    - 둘 다 있으면 두 줄, 두 목록 다 비면 서버 message 그대로
+  - 충돌 동물 자동 체크 해제 + 옆에 "이미 가족" / "초대 대기 · MM-DD 만료" 표시, 체크 비활성화
+  - 남은 선택 0마리면 [초대 보내기] 비활성화, 이메일 바뀌면 표시·비활성화 초기화
 - 마이페이지 10-24 시안 반영 중 공통 모바일 여백 2건은 공용 레이아웃(LJS)이라 손대지 않았다. LJS에 요청 보냄(2026-10-25): (1) 하단 여백: 앱에서 `SubPageLayout`의 `pb-[126px]`이 `UserLayout` main의 앱 여백(`144px+safe-area`)과 겹친다. 시안은 마이페이지 앱에서 콘텐츠 끝과 하단 여백을 줄이고 푸터 위 여백을 56px로 둔다. (2) 상단 여백: 앱에서 헤더와 제목 사이를 약 40→20으로 줄인다. `contentClassName`은 본문 래퍼에만 걸려 제목 위 여백에는 쓸 수 없다 연결 남음: 포인트 내역 날짜 키 `pntHstYmd`는 가짜 API의 추정 키다. 백엔드 키가 정해지면 `features/point/api.js`와 `PointHistory.jsx`를 맞춘다. `index.css`에 `--color-cat-*` 토큰을 더했으니 공용 파일 변경으로 LJS에 알린다
 - 가계부 사용처 연결 남음: 지출 API·DB에 사용처 필드가 생기면 `features/expense/api.js`의 `EXPND_PLACE_KEY`(추정 `expndPlcNm`)를 확정하고 `toRequestItem`이 요청에서 빼는 부분을 풀어 등록·수정 요청에 넣는다. 영수증 인식 응답의 상호 키(`EXPND_PLACE_KEY`로 받는다)와 80자 자르기도 서버와 맞춘다. 개발 전용 `?fake=more-fail`은 서버 연결 때 지운다
 - SCR-MYP-001 연결 남음: 얼굴 실제 이미지는 로그인(AIC)이 나온 뒤 화면으로 확인한다(지금은 401이라 기본 얼굴만 보임, 가로채기로만 확인). 초대 수락 카드(`InvitationAccept`)는 초대받는 사람이 아직 양육자가 아니라 서버가 얼굴을 막으면(403) 기본 아이콘이 계속 보인다. 백엔드(LJS)에 확인한다. 공용 파일 변경 알림(LJS): `components/Modal.jsx`에 `isSheet`(앱에서 아래 시트), `PetFace`가 공용이라 건강기록(JAJ)·건강일지·메인(YAY)에서 쓸 수 있다. SCR-MYP-001 남음: 메인 반려동물 칩(`pages/main/MainPage.jsx`, YAY)이 `chrcFaceUrl`을 따로 그린다. `PetFace`가 생기면 YAY에게 알리고 한 줄 교체를 부탁한다(캐시를 같이 쓴다) SCR-MYP-001 팀에 확인: 홈 반려동물 영역은 불러오는 동안 아무것도 그리지 않는다(기획의 로딩 자리표시보다 약함). 0마리 안내 버튼은 등록 모달을 바로 열지 않고 `/mypage/pets`로 이동만 한다. `?fake=empty`는 이동하면 사라져 가짜 데이터에서는 관리 화면이 10마리로 뜨는데 서버 연결 뒤에는 생기지 않는다. 로그인(AIC)이 나오면 `/mypage`도 `ProtectedRoute` 아래로 옮긴다
