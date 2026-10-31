@@ -99,13 +99,14 @@
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `http://localhost:5173/health/calendar`의 필터 칩·날짜 상세·다가오는 일정·일정 모달·케어리스트 셀렉트 이름이 DB 이름으로 나온다
 - 연결 남음: 없음
 
-## SCR-HLT-002 건강 일지 · 검진기록 API 연결 — 대기
+## SCR-HLT-002 건강 일지 · 검진기록 API 연결 — 끝
 
 - 함께 바꿀 것(반려동물 목록): 건강 일지는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다(건강 일지의 다른 연결에서 이미 바꿨으면 넘어간다). 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 건강 일지 검진기록 탭의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-002-05·06·14·26~31·46에 걸침). 목록 `GET /pets/{petSn}/checkups?year=&ckupTypeCd=&page=&size=`(`year` 생략 시 전체 연도, 건수는 `totalElements`), 등록 `POST`(선택 `schdlSn` = 옮겨 연결하기), 수정 `PATCH`, 삭제 `DELETE`. 46 확인 창 후보는 `GET /pets/{petSn}/care-schedules`를 검진일 앞뒤 7일·`schdlKndCd=HLTC0057`로 불러 `ckupRcdCnt == 0`인 행 중 가장 가까운 1건을 고른다
 - 기다리는 것: 백엔드 검진기록 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전). 상위 키 상세 주소는 경로 방식으로 정해짐(2026-10-31, 핸드오프 "결정")
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진기록 탭에서 API로 등록한 검진기록이 연도·종류 칩에 맞게 최신순으로 나오고, 등록·수정·삭제가 서버에 반영되며 삭제 뒤 캘린더 일정은 남는다
 - 그대로 두는 것: 영수증 [직접 입력] 경로의 영수증 연결(LJS와 맞춘 뒤)
+- 연결 남음: 없음 (영수증 번호 연결은 "그대로 두는 것", 영수증 저장의 처방 약품·가계부는 SJM 가계부 연결에 남음)
 
 ## SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결 — 끝
 

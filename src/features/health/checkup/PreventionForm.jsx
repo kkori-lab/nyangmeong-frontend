@@ -23,7 +23,7 @@ const DEFAULT_CYCLE = 'HLTC0040';
  * - 예방 항목·반복 주기(직접입력이면 일수)·시작일 모두 필수, 시작일 기본값은 오늘 (FN-HLT-005-05)
  * - 입력한 시작일이 케어 캘린더 정기관리 항목의 첫 예정일
  */
-export default function PreventionForm({ ckupRcdSn, onClose }) {
+export default function PreventionForm({ petSn, ckupRcdSn, onClose }) {
   const formRef = useRef(null);
   const [prvntItmCd, setPrvntItmCd] = useState(PREVENTION_ITEMS[0].cd);
   const [rptCycleCd, setRptCycleCd] = useState(DEFAULT_CYCLE);
@@ -51,6 +51,7 @@ export default function PreventionForm({ ckupRcdSn, onClose }) {
     if (Object.values(errors).some(Boolean)) return;
     createPrevention.mutate(
       {
+        petSn,
         ckupRcdSn,
         prvntItmCd,
         rptCycleCd,

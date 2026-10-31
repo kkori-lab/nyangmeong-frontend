@@ -14,7 +14,7 @@ import { CHRC_STTS, PET_REL, PET_SE } from '@/utils/petCodes';
 import { CARE_ZONE, CUSTOM_CYCLE } from './careDue';
 import { HOSPITAL, compareSchedules } from './scheduleTypes';
 
-// 케어 캘린더 일정·토탈 케어리스트(JAJ 백엔드)와 반려동물 목록(SJM)은 실제 API. 다른 건강 화면의 반려동물 목록·검진기록 연결용 일정·검진상세 연동 케어 항목은 아직 가짜 응답
+// 케어 캘린더 일정·토탈 케어리스트(JAJ 백엔드)와 반려동물 목록(SJM)은 실제 API. 종합 건강기록의 반려동물 목록·일정과 검진상세 연동 케어 항목은 아직 가짜 응답
 // 필드 이름은 ERD 약어 기준 가안이다. 메모리 배열이라 새로고침하면 처음 상태로 돌아간다
 // 개발 환경에서만 (케어 캘린더 제외) ?fakePets=1로 반려동물 1마리를, ?fakePets=8로 8마리(캐릭터 미생성·공동양육 포함)를, ?fakeSchedules=0으로 일정 0건을 확인할 수 있다
 
@@ -103,8 +103,6 @@ export const getPets = () =>
 
 /** 내 반려동물 목록 GET /pets (SJM 백엔드, 케어 캘린더) */
 export const getMyPets = () => api.get('/pets');
-
-let nextSchdlSn = 100;
 
 const fakeSchedules = [
   {
@@ -331,86 +329,33 @@ export const createSchedule = ({ petSn, body }) =>
 export const updateSchedule = ({ petSn, schdlSn, body }) =>
   api.patch(`/pets/${petSn}/care-schedules/${schdlSn}`, body);
 
-/** 일정 삭제 알림을 받을 곳: 검진기록의 연결 일정 해제용(diaryApi) */
-const scheduleDeletedListeners = [];
-
-export const onScheduleDeleted = (listener) =>
-  scheduleDeletedListeners.push(listener);
-
-export const deleteSchedule = async ({ petSn, schdlSn }) => {
-  await api.delete(`/pets/${petSn}/care-schedules/${schdlSn}`);
-  scheduleDeletedListeners.forEach((listener) => listener(schdlSn));
-};
+export const deleteSchedule = ({ petSn, schdlSn }) =>
+  api.delete(`/pets/${petSn}/care-schedules/${schdlSn}`);
 
 const NEAR_SCHEDULE_DAYS = 7;
 
-const isFakeHospital = (schedule) => schedule.schdlKndCd === HOSPITAL;
-
-const findSameDayHospital = (petSn, ymd) =>
-  fakeSchedules
-    .filter(
-      (schedule) =>
-        schedule.petSn === petSn &&
-        isFakeHospital(schedule) &&
-        getYmdOf(schedule.schdlDt) === ymd,
-    )
-    .sort((a, b) => a.schdlSn - b.schdlSn)[0];
-
-/** 가까운 예정 병원 일정 1건: 같은 날 병원 일정이 없고 앞뒤 7일 안에 검진기록 없는 일정(FN-HLT-002-46) */
-export const findNearHospitalSchedule = ({ petSn, ckupYmd }) => {
-  if (findSameDayHospital(petSn, ckupYmd)) return Promise.resolve(null);
+/**
+ * 가까운 예정 병원 일정 1건(FN-HLT-002-46)
+ * - 같은 날 병원 일정이 있으면 서버가 그 일정에 연결하므로 null
+ * - 없으면 앞뒤 7일 안의 검진기록 없는 병원 일정 중 가장 가까운 것(거리가 같으면 먼저 등록된 일정)
+ */
+export const findNearHospitalSchedule = async ({ petSn, ckupYmd }) => {
+  const schedules = await api.get(`/pets/${petSn}/care-schedules`, {
+    params: {
+      fromYmd: addDays(ckupYmd, -NEAR_SCHEDULE_DAYS),
+      toYmd: addDays(ckupYmd, NEAR_SCHEDULE_DAYS),
+      schdlKndCd: HOSPITAL,
+    },
+  });
   const distance = (schedule) =>
     Math.abs(diffDays(ckupYmd, getYmdOf(schedule.schdlDt)));
-  const near = fakeSchedules
-    .filter(
-      (schedule) =>
-        schedule.petSn === petSn &&
-        isFakeHospital(schedule) &&
-        schedule.ckupRcdCnt === 0 &&
-        distance(schedule) <= NEAR_SCHEDULE_DAYS,
-    )
-    .sort((a, b) => distance(a) - distance(b) || a.schdlSn - b.schdlSn)[0];
-  return Promise.resolve(near ? toScheduleResponse(near) : null);
-};
-
-/** 검진기록의 병원 일정 연결: 같은 날 일정 → 옮겨 연결(nearSchdlSn) → 새 일정 순, 연결한 일정 번호 반환 */
-export const linkCheckupToSchedule = ({
-  petSn,
-  ckupYmd,
-  hospNm,
-  ckupTypeCd,
-  nearSchdlSn,
-}) => {
-  let target = findSameDayHospital(petSn, ckupYmd);
-  if (!target && nearSchdlSn != null) {
-    target = fakeSchedules.find((schedule) => schedule.schdlSn === nearSchdlSn);
-    target.schdlDt = makeDateTime(ckupYmd, null);
-    target.hrInptYn = false;
-  }
-  if (!target) {
-    target = {
-      schdlSn: nextSchdlSn++,
-      petSn,
-      schdlKndCd: HOSPITAL,
-      ckupTypeCd,
-      hsptlNm: hospNm,
-      schdlNm: null,
-      schdlDt: makeDateTime(ckupYmd, null),
-      hrInptYn: false,
-      memoCn: '',
-      cldrBadgeColrCd: null,
-      ckupRcdCnt: 0,
-    };
-    fakeSchedules.push(target);
-  }
-  target.ckupRcdCnt += 1;
-  return target.schdlSn;
-};
-
-/** 검진기록 삭제 시 연결 일정은 남기고 검진기록 수만 감소 */
-export const unlinkCheckupFromSchedule = (schdlSn) => {
-  const target = fakeSchedules.find((schedule) => schedule.schdlSn === schdlSn);
-  if (target) target.ckupRcdCnt = Math.max(0, target.ckupRcdCnt - 1);
+  if (schedules.some((schedule) => distance(schedule) === 0)) return null;
+  return (
+    schedules
+      .filter((schedule) => schedule.ckupRcdCnt === 0)
+      .sort((a, b) => distance(a) - distance(b) || a.schdlSn - b.schdlSn)[0] ??
+    null
+  );
 };
 
 // 토탈 케어리스트(FN-HLT-003-12·13·21~24·38)는 실제 API. 서버가 기본 항목 11개를 처음 조회 때 만든다

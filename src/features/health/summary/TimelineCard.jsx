@@ -60,7 +60,7 @@ function TimelineItem({ entry, isFirst }) {
   return (
     <Link
       to={getCheckupDetailPath(
-        entry.ckupRcdSn,
+        entry,
         isPrevention ? 'prevention' : undefined,
       )}
       className="relative grid grid-cols-[40px_minmax(0,1fr)_18px] items-start gap-3.5 py-3"
