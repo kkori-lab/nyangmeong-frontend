@@ -7,7 +7,7 @@ import CharacterGrid from '@/features/pet/character/CharacterGrid';
 import CharacterTabs from '@/features/pet/character/CharacterTabs';
 import { usePets, useSetRepresentativePet } from '@/features/pet/queries';
 import { usePointBalance } from '@/features/point/queries';
-import { CHRC_STTS, PET_REL } from '@/features/pet/shared/petCodes';
+import { BRUP_ROLE, CHRC_STTS } from '@/features/pet/shared/petCodes';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 
@@ -21,8 +21,8 @@ export default function CharacterPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [creatingPet, setCreatingPet] = useState(null);
 
-  const ownPets = pets.filter((pet) => pet.petRelCd === PET_REL.OWNER);
-  const sharedPets = pets.filter((pet) => pet.petRelCd !== PET_REL.OWNER);
+  const ownPets = pets.filter((pet) => pet.brupRoleCd === BRUP_ROLE.PRIMARY);
+  const sharedPets = pets.filter((pet) => pet.brupRoleCd !== BRUP_ROLE.PRIMARY);
   const decoratingPetSn = Number(searchParams.get('petSn'));
 
   if (isPending) {

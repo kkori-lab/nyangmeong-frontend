@@ -2,7 +2,7 @@ import { CircleAlert, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { showToast } from '@/components/toastStore';
 import { useCaregiversOf, useCreateInvitation } from '../queries';
-import { CGVR_ROLE, MAX_CAREGIVERS, PET_REL } from '@/utils/petCodes';
+import { BRUP_ROLE, CGVR_ROLE, MAX_CAREGIVERS } from '@/utils/petCodes';
 
 /**
  * [가족 초대하기 모달]
@@ -18,7 +18,7 @@ const LABEL = 'leading-[1.4] font-semibold';
 
 export default function InviteModal({ pets, initialPetSn, onClose }) {
   const createInvitation = useCreateInvitation();
-  const ownPets = pets.filter((pet) => pet.petRelCd === PET_REL.OWNER);
+  const ownPets = pets.filter((pet) => pet.brupRoleCd === BRUP_ROLE.PRIMARY);
   const caregiverResults = useCaregiversOf(ownPets.map((pet) => pet.petSn));
 
   const [invtEml, setInvtEml] = useState('');
