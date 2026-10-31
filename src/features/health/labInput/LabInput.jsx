@@ -13,7 +13,11 @@ import AnalysisReview from './AnalysisReview';
 import { findBloodItem } from './bloodItems';
 import { DIRECT } from './ItemSelect';
 import LabItemForm from './LabItemForm';
-import { getExcludeReason } from './labRows';
+import {
+  getExcludeReason,
+  getSkippedNames,
+  toInspectionValue,
+} from './labRows';
 
 const EMPTY_FORM = {
   item: '',
@@ -134,6 +138,8 @@ export default function LabInput({
   const itemName = getItemName(form);
   const hasOneSideRange =
     (form.rangeMin.trim() === '') !== (form.rangeMax.trim() === '');
+  /** 서버 수정은 null을 "안 바꿈"으로 받아, 저장된 참고범위는 비워서 지울 수 없다 */
+  const hasSavedRange = editItem?.refLlmtNvl != null;
   const takenNames = new Set([
     ...registeredNames,
     ...savableRows.map((row) => row.inspItmNm),
@@ -150,6 +156,8 @@ export default function LabInput({
     if (form.unit.trim() === '') errors.unit = '단위를 입력해 주세요';
     if (hasOneSideRange) {
       errors.range = '참고범위는 최소·최대를 함께 입력하거나 둘 다 비워 주세요';
+    } else if (isEdit && hasSavedRange && form.rangeMin.trim() === '') {
+      errors.range = '참고범위는 수정에서 지울 수 없어요';
     } else if (
       form.rangeMin.trim() !== '' &&
       !(isNumber(form.rangeMin) && isNumber(form.rangeMax))
@@ -186,16 +194,17 @@ export default function LabInput({
     if (hasFormError || hasRowError || hasRowNumberError) return;
 
     const rangeOf = (min, max) => ({
-      refMinVal: min.trim() === '' ? null : Number(min),
-      refMaxVal: max.trim() === '' ? null : Number(max),
+      refLlmtNvl: min.trim() === '' ? null : Number(min),
+      refUplmtNvl: max.trim() === '' ? null : Number(max),
     });
 
     if (isEdit) {
       updateInspection.mutate(
         {
+          petSn,
           ckupRcdSn,
-          inspSn: editItem.inspNvlSn,
-          rsltVal: Number(form.val),
+          inspNvlSn: editItem.inspNvlSn,
+          rsltNvl: Number(form.val),
           unitNm: form.unit.trim(),
           ...rangeOf(form.rangeMin, form.rangeMax),
           memoCn: form.memo.trim(),
@@ -205,32 +214,42 @@ export default function LabInput({
       return;
     }
 
-    const items = savableRows.map((row) => ({
-      fnctTagCd: findBloodItem(row.inspItmNm)?.fnctTagCd ?? null,
-      inspItmNm: row.inspItmNm,
-      rsltVal: Number(row.rsltVal),
-      unitNm: row.unitNm.trim(),
-      refMinVal: row.refMinVal,
-      refMaxVal: row.refMaxVal,
-      memoCn: '',
-    }));
+    const names = savableRows.map((row) => row.inspItmNm);
+    const values = savableRows.map((row) =>
+      toInspectionValue(row.inspItmNm, {
+        rsltNvl: Number(row.rsltVal),
+        unitNm: row.unitNm.trim(),
+        refLlmtNvl: row.refMinVal,
+        refUplmtNvl: row.refMaxVal,
+        memoCn: '',
+      }),
+    );
     if (isFormUsed) {
-      items.push({
-        fnctTagCd: findBloodItem(itemName)?.fnctTagCd ?? null,
-        inspItmNm: itemName,
-        rsltVal: Number(form.val),
-        unitNm: form.unit.trim(),
-        ...rangeOf(form.rangeMin, form.rangeMax),
-        memoCn: form.memo.trim(),
-      });
+      names.push(itemName);
+      values.push(
+        toInspectionValue(itemName, {
+          rsltNvl: Number(form.val),
+          unitNm: form.unit.trim(),
+          ...rangeOf(form.rangeMin, form.rangeMax),
+          memoCn: form.memo.trim(),
+        }),
+      );
     }
-    if (items.length === 0) {
+    if (values.length === 0) {
       showToast('저장할 검사 수치가 없어요');
       return;
     }
     createInspections.mutate(
-      { ckupRcdSn, items },
-      { onSuccess: () => navigate(detailPath) },
+      { petSn, ckupRcdSn, values },
+      {
+        onSuccess: (savedValues) => {
+          const skippedNames = getSkippedNames(names, values, savedValues);
+          if (skippedNames.length > 0) {
+            showToast(`이미 등록된 항목입니다: ${skippedNames.join(', ')}`);
+          }
+          navigate(detailPath);
+        },
+      },
     );
   };
 

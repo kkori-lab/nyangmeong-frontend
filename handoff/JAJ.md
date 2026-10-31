@@ -2,12 +2,13 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-005 검진상세 · API 연결 (2026-10-31). 검증 4회차 통과, 사람 확인 끝. 검진상세 조회(useQueries 6개)·첨부·기타검사·혈액검사 선택 삭제·처방약·반복 예방이 실제 API, 추가-1 첨부 목록 page=1&size=50
+끝남: SCR-HLT-007 검사 수치 입력 · API 연결 (2026-11-01). 검증 5회차 통과, 사람 확인 끝. 검사 수치 저장(`POST inspection-values`)·수정(`PATCH`)이 실제 API, 수정에서 기존 참고범위 비우기는 화면이 막음, SDMA `HLTC0078`
 
 ## 다음에 할 것
 
-- 다음 작업: `milestones/JAJ.md`의 `대기` 맨 위(SCR-HLT-007 검사 수치 입력 · API 연결)
-- 참고(SCR-HLT-005): 검진상세의 혈액검사 목록은 실제 API인데 검사 수치 저장·수정(`createInspections`·`updateInspection`)과 PDF 분석(`analyzeLabPdf`)은 가짜다. 그래서 검사 수치를 추가해도 목록에 안 나오고, 실제 행을 수정해 저장하면 가짜 저장소에 그 번호가 없어 반영되지 않는다(007 연결 때 해결). 첨부 목록은 서버 최대 50건만 받는다. 기능 태그(혈구·신장·간·당)는 서버가 주지 않아 `labInput/bloodItems.js`에서 항목 약어로 찾는다. 반복 예방 행의 "처방약 연동" 배지는 이전부터 있던 문구라 그대로다. PR 캡처는 세션 만료로 남지 않아 다시 찍어야 한다
+- 연결 남음(SCR-HLT-007): FN-HLT-007-02·03 수정 화면의 참고범위 비우기 (백엔드 연결 `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}`가 `null`을 "안 바꿈"으로 받음, 백엔드 저장소에서 /start. 지금은 화면이 "참고범위는 수정에서 지울 수 없어요"로 막음), FN-HLT-007-04·06 검사결과지 PDF 분석 호출부 (LJS, `checkupApi.js` `analyzeLabPdf` 가짜, 응답의 `bloodYn`은 가정)
+- 알릴 것(백엔드 기준 데이터): SDMA `HLTC0078`이 백엔드 `db/20261030_insert_base_data_v0.11.sql` HLTG12에 없다. 공용 DB에는 사람이 넣었다. 새로 DB를 만들면 SDMA 저장이 500이 난다
+- 참고(SCR-HLT-005): 검진상세 PDF 분석(`analyzeLabPdf`)만 가짜다(검사 수치 저장·수정은 SCR-HLT-007에서 실제 API로 바꿈). 첨부 목록은 서버 최대 50건만 받는다. 기능 태그(혈구·신장·간·당)는 서버가 주지 않아 `labInput/bloodItems.js`에서 항목 약어로 찾는다. 반복 예방 행의 "처방약 연동" 배지는 이전부터 있던 문구라 그대로다. PR 캡처는 세션 만료로 남지 않아 다시 찍어야 한다
 - 알릴 것(팀): 검진상세·검사 수치 입력 주소가 `/health/pets/:petSn/checkups/:ckupRcdSn`(`/inspections`)로 바뀌었다(`routes/paths.js`, `docs/routes.md` HLT-005·007). `docs/routes.md` 0장 규칙은 JAJ가 직접 고치고 팀에 공유한다
 - 참고(SCR-HLT-002 검진기록): 목록 행에 서버가 `ckupCn`을 주지 않아 검진 내용 줄이 없어졌다. 연도 목록은 `size=1` 두 번(최신·가장 오래된 기록)으로 만든다. 영수증 저장은 반려동물마다 실제 `POST checkups`를 따로 보내 중간 실패 때 앞 기록이 남고, 영수증 번호(`recptSn`)·처방 약품·가계부는 가짜 그대로다. 일상 기록·지속 관찰 탭은 실제 반려동물 번호와 가짜 데이터가 맞지 않아 "기록 없음"이다(각 API 연결 때 채움). 종합 건강기록의 검진상세 링크는 가짜 번호라 "찾을 수 없어요"(011 연결 때 해결)
 - 검증용 데이터(공용 DB): 반려동물 "구름"(petSn 17)에 검진기록 1001·처방약 443("검증용 투약", 하루 2회, 2026-10-31~11-07) → 케어 항목 3272. 투약 확인에 다시 쓴다. 계정은 저장소에 적지 않는다. 사람 확인 때 만든 검진기록 1026("ff", 일정 4915에 연결)과 다른 반려동물로 옮겼을 수 있는 1016은 지우지 않고 남아 있다
@@ -36,7 +37,6 @@
 
 - 결정 필요(SCR-HLT-007 추가-1): 검사 결과 행을 어디나 누르면 수정 화면으로 가게 바꾸면서(`BloodResultList.jsx`) 검진상세에서 종합 건강기록 검사 수치 추이(`/health?inspection=<항목>`)로 가는 길이 없어졌다. 기능명세서 FN-HLT-005-02를 고칠지, 추이로 가는 다른 길을 둘지 정한다
 - SCR-HLT-007 참고(실패 아님): [직접 입력하기] 뒤에도 주소가 `?mode=pdf&atch=<번호>`에 남아 새로고침하면 분석이 다시 뜬다(기획은 `?mode=manual`로 바꾸는 것). `labInput/ItemSelect.jsx` 목록에서 묶음 행과 항목 행 key가 `GLU`로 겹쳐 콘솔 경고. PDF 진입 때 아래 입력칸은 선택(비우면 분석 행만 저장)으로 구현했다
-- 연결 남음(SCR-HLT-007): 검사결과지 PDF 분석 호출부 (LJS, `checkupApi.js` `analyzeLabPdf` 가짜, 응답의 `bloodYn`은 가정), 검사 결과 생성·수정 API (JAJ 백엔드, `createInspections`·`updateInspection` 가짜)
 
 - 영수증 등록 가짜 확인용 쿼리(개발 환경만): `?fakeReceipt=zones`·`nozone`, `?fakeLedgerDup=1`, `?fakeReceiptSave=fail`. 인식 실패·15초 초과는 업로드 파일 이름에 `fail`·`slow`
 - 알릴 것(LJS): `routes/domains/devRoutes.js`의 영수증 DEV 화면은 "건강 일지가 영수증 모달을 열면 지움"이라 지워도 된다

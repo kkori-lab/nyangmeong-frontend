@@ -211,6 +211,7 @@ export default function BloodResultList({ checkup, items }) {
       )}
       {isFormOpen && (
         <BloodResultForm
+          petSn={petSn}
           ckupRcdSn={ckupRcdSn}
           registeredNames={new Set(items.map(getInspectionName))}
           onClose={() => setIsFormOpen(false)}
