@@ -24,7 +24,7 @@ const REQUIRED = <span className="ml-0.5 font-bold text-danger">*</span>;
  * [첨부 추가 입력 영역]
  * - 파일 유형·파일, "영상 사진"이면 영상 종류·촬영 부위 둘 다 필수 (FN-HLT-005-01)
  */
-export default function AttachmentForm({ ckupRcdSn, onClose }) {
+export default function AttachmentForm({ petSn, ckupRcdSn, onClose }) {
   const formRef = useRef(null);
   const [atchTypeCd, setAtchTypeCd] = useState('');
   const [file, setFile] = useState(null);
@@ -51,7 +51,14 @@ export default function AttachmentForm({ ckupRcdSn, onClose }) {
     setIsSubmitted(true);
     if (Object.values(errors).some(Boolean)) return;
     createAttachment.mutate(
-      { ckupRcdSn, atchTypeCd, file, imgKindCd, imgPartCd },
+      {
+        petSn,
+        ckupRcdSn,
+        atchTypeCd,
+        file,
+        imgKndCd: imgKindCd,
+        shtRegnCd: imgPartCd,
+      },
       { onSuccess: onClose },
     );
   };

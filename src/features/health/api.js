@@ -11,7 +11,6 @@ import {
   makeDateTime,
 } from '@/utils/formatDate';
 import { CHRC_STTS, PET_REL, PET_SE } from '@/utils/petCodes';
-import { CARE_ZONE, CUSTOM_CYCLE } from './careDue';
 import { HOSPITAL, compareSchedules } from './scheduleTypes';
 
 // 케어 캘린더 일정·토탈 케어리스트(JAJ 백엔드)와 반려동물 목록(SJM)은 실제 API. 종합 건강기록의 반려동물 목록·일정과 검진상세 연동 케어 항목은 아직 가짜 응답
@@ -395,7 +394,7 @@ export const updateCareItem = ({ petSn, careArtclSn, body }) =>
 export const deleteCareItem = ({ petSn, careArtclSn }) =>
   api.delete(`/pets/${petSn}/care-items/${careArtclSn}`);
 
-/** 검진상세 처방약·반복 예방과 이어진 케어 항목: 검진상세 가짜 응답이 쓰는 동안만 남긴 가짜(토탈 케어리스트에는 안 보인다) */
+/** 처방약·반복 예방과 이어진 케어 항목: 종합 건강기록 가짜 응답(checkupApi getCheckupTabs)이 쓰는 동안만 남긴 가짜(토탈 케어리스트에는 안 보인다) */
 
 const fakeLinkedItems = [];
 
@@ -413,55 +412,6 @@ export const getLinkedCareItem = (link) => {
 export const removeLinkedCareItem = (link) => {
   const item = findLinkedItem(link);
   if (item) fakeLinkedItems.splice(fakeLinkedItems.indexOf(item), 1);
-};
-
-/** 처방약 투약 항목 추가·갱신 */
-export const saveLinkedDoseItem = ({
-  ckupRcdSn,
-  petSn,
-  lnkgSn,
-  careItemNm,
-  dayGoalCnt,
-  dosEndYmd,
-}) => {
-  const item = findLinkedItem({ lnkgTypeCd: 'PRSC', lnkgSn });
-  if (item) {
-    Object.assign(item, { careItemNm, dayGoalCnt, dosEndYmd });
-    return;
-  }
-  fakeLinkedItems.push({
-    lnkgTypeCd: 'PRSC',
-    lnkgSn,
-    ckupRcdSn,
-    petSn,
-    careItemNm,
-    careZoneCd: CARE_ZONE.DAILY,
-    dayGoalCnt,
-    dosEndYmd,
-  });
-};
-
-/** 반복 예방 정기관리 항목 추가: 시작일이 첫 예정일 */
-export const createLinkedPreventionItem = ({
-  ckupRcdSn,
-  petSn,
-  lnkgSn,
-  careItemNm,
-  rptCycleCd,
-  rptCycleDayCnt,
-  startYmd,
-}) => {
-  fakeLinkedItems.push({
-    lnkgTypeCd: 'PRVNT',
-    lnkgSn,
-    ckupRcdSn,
-    petSn,
-    careItemNm,
-    careZoneCd: CARE_ZONE.REGULAR,
-    rptCycleCd,
-    rptCycleDayCnt: rptCycleCd === CUSTOM_CYCLE ? Number(rptCycleDayCnt) : null,
-    firstDueYmd: startYmd,
-  });
 };
 
 /** 검진기록의 반려동물이 바뀌면 연동 케어 항목도 함께 옮김 */

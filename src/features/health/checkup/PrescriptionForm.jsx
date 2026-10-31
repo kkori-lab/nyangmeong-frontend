@@ -38,15 +38,17 @@ export default function PrescriptionForm({
   onClose,
 }) {
   const formRef = useRef(null);
-  const [medNm, setMedNm] = useState(prescription?.medNm ?? '');
-  const [dosBgnYmd, setDosBgnYmd] = useState(prescription?.dosBgnYmd ?? '');
-  const [dosEndYmd, setDosEndYmd] = useState(prescription?.dosEndYmd ?? '');
+  const [medNm, setMedNm] = useState(prescription?.mdcnNm ?? '');
+  const [dosBgnYmd, setDosBgnYmd] = useState(prescription?.mdcnBgngYmd ?? '');
+  const [dosEndYmd, setDosEndYmd] = useState(prescription?.mdcnEndYmd ?? '');
   const [dayDosCnt, setDayDosCnt] = useState(
-    prescription ? String(prescription.dayDosCnt) : '',
+    prescription ? String(prescription.dayMdcnNmtm) : '',
   );
-  const [dosSttsCd, setDosSttsCd] = useState(prescription?.dosSttsCd ?? DOSING);
+  const [dosSttsCd, setDosSttsCd] = useState(
+    prescription?.prscSttsCd ?? DOSING,
+  );
   const [cycleChckYn, setCycleChckYn] = useState(
-    prescription?.cycleChckYn ?? false,
+    prescription?.careRfltYn ?? false,
   );
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -77,16 +79,16 @@ export default function PrescriptionForm({
     const body = {
       petSn,
       ckupRcdSn,
-      medNm: medNm.trim(),
-      dosBgnYmd,
-      dosEndYmd,
-      dayDosCnt: Number(dayDosCnt),
-      dosSttsCd,
-      cycleChckYn,
+      mdcnNm: medNm.trim(),
+      mdcnBgngYmd: dosBgnYmd,
+      mdcnEndYmd: dosEndYmd,
+      dayMdcnNmtm: Number(dayDosCnt),
+      prscSttsCd: dosSttsCd,
+      careRfltYn: cycleChckYn,
     };
     if (prescription) {
       updatePrescription.mutate(
-        { ...body, rxSn: prescription.rxSn },
+        { ...body, prscSn: prescription.prscSn },
         { onSuccess: onClose },
       );
     } else {
@@ -96,7 +98,7 @@ export default function PrescriptionForm({
 
   const handleDelete = () =>
     deletePrescription.mutate(
-      { ckupRcdSn, rxSn: prescription.rxSn },
+      { petSn, ckupRcdSn, prscSn: prescription.prscSn },
       { onSuccess: onClose },
     );
 

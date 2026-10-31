@@ -8,6 +8,7 @@ import {
   useCreateInspections,
   useUpdateInspection,
 } from '../queries';
+import { getInspectionName } from '../checkup/checkupTypes';
 import AnalysisReview from './AnalysisReview';
 import { findBloodItem } from './bloodItems';
 import { DIRECT } from './ItemSelect';
@@ -41,15 +42,18 @@ const toRows = (items) =>
   }));
 
 /** 수정 진입: 저장된 행으로 입력칸을 채운다. 목록에 없는 항목 이름은 직접입력으로 */
-const toEditForm = (item) => ({
-  item: findBloodItem(item.inspItmNm) ? item.inspItmNm : DIRECT,
-  directNm: findBloodItem(item.inspItmNm) ? '' : item.inspItmNm,
-  val: toText(item.rsltVal),
-  unit: toText(item.unitNm),
-  rangeMin: toText(item.refMinVal),
-  rangeMax: toText(item.refMaxVal),
-  memo: toText(item.memoCn),
-});
+const toEditForm = (item) => {
+  const name = getInspectionName(item);
+  return {
+    item: findBloodItem(name) ? name : DIRECT,
+    directNm: findBloodItem(name) ? '' : name,
+    val: toText(item.rsltNvl),
+    unit: toText(item.unitNm),
+    rangeMin: toText(item.refLlmtNvl),
+    rangeMax: toText(item.refUplmtNvl),
+    memo: toText(item.memoCn),
+  };
+};
 
 const getItemName = (form) =>
   form.item === DIRECT ? form.directNm.trim() : form.item;
@@ -86,7 +90,9 @@ export default function LabInput({
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const isEdit = mode === 'edit';
-  const attachment = detail.attachments.find((item) => item.atchSn === atchSn);
+  const attachment = detail.attachments.find(
+    (item) => item.ckupRcdAtchSn === atchSn,
+  );
   const isPending = createInspections.isPending || updateInspection.isPending;
 
   const runAnalysis = () =>
@@ -102,7 +108,7 @@ export default function LabInput({
   }, []);
 
   const registeredNames = new Set(
-    detail.bloodInspections.map((item) => item.inspItmNm),
+    detail.bloodInspections.map(getInspectionName),
   );
   const savableRows = isReviewOpen
     ? rows.filter(
@@ -188,7 +194,7 @@ export default function LabInput({
       updateInspection.mutate(
         {
           ckupRcdSn,
-          inspSn: editItem.inspSn,
+          inspSn: editItem.inspNvlSn,
           rsltVal: Number(form.val),
           unitNm: form.unit.trim(),
           ...rangeOf(form.rangeMin, form.rangeMax),
@@ -232,7 +238,7 @@ export default function LabInput({
     <form noValidate className="flex flex-col gap-7" onSubmit={handleSubmit}>
       {isReviewOpen && (
         <AnalysisReview
-          fileName={attachment?.fileNm}
+          fileName={attachment?.orgnlFileNm}
           rows={rows}
           registeredNames={registeredNames}
           unitErrorNames={unitErrorNames}

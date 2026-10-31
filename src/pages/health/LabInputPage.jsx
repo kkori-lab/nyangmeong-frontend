@@ -28,7 +28,12 @@ export default function LabInputPage() {
   const { state } = useLocation();
   const petSn = Number(params.petSn);
   const sn = Number(params.ckupRcdSn);
-  const { data: detail, isPending, isError, error } = useCheckupDetail({
+  const {
+    data: detail,
+    isPending,
+    isError,
+    error,
+  } = useCheckupDetail({
     petSn,
     ckupRcdSn: sn,
   });
@@ -68,7 +73,7 @@ export default function LabInputPage() {
 
   const editItem =
     requestedMode === 'edit'
-      ? detail.bloodInspections.find((item) => item.inspSn === itemSn)
+      ? detail.bloodInspections.find((item) => item.inspNvlSn === itemSn)
       : null;
   if (requestedMode === 'edit' && !editItem) {
     return (
