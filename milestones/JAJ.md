@@ -103,16 +103,17 @@
 
 - 함께 바꿀 것(반려동물 목록): 건강 일지는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다(건강 일지의 다른 연결에서 이미 바꿨으면 넘어간다). 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 건강 일지 검진기록 탭의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-002-05·06·14·26~31·46에 걸침). 목록 `GET /pets/{petSn}/checkups?year=&ckupTypeCd=&page=&size=`(`year` 생략 시 전체 연도, 건수는 `totalElements`), 등록 `POST`(선택 `schdlSn` = 옮겨 연결하기), 수정 `PATCH`, 삭제 `DELETE`. 46 확인 창 후보는 `GET /pets/{petSn}/care-schedules`를 검진일 앞뒤 7일·`schdlKndCd=HLTC0057`로 불러 `ckupRcdCnt == 0`인 행 중 가장 가까운 1건을 고른다
-- 기다리는 것: 백엔드 검진기록 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전), URL 규칙 담당의 상위 키 상세 주소 규칙(docs/routes.md 0장)
+- 기다리는 것: 백엔드 검진기록 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전). 상위 키 상세 주소는 경로 방식으로 정해짐(2026-10-31, 핸드오프 "결정")
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진기록 탭에서 API로 등록한 검진기록이 연도·종류 칩에 맞게 최신순으로 나오고, 등록·수정·삭제가 서버에 반영되며 삭제 뒤 캘린더 일정은 남는다
 - 그대로 두는 것: 영수증 [직접 입력] 경로의 영수증 연결(LJS와 맞춘 뒤)
 
-## SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결 — 진행
+## SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결 — 끝
 
 - 기능: 케어리스트 탭의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-003-01·12·13·21~24·38에 걸침). 목록 `GET /pets/{petSn}/care-items`(정기관리 먼저, 상태 배지는 `nxtmPrnmntYmd`로 화면이 계산, 투약 n/N은 `todayCmptnCnt`/`dayMdcnNmtm`), 기록 내용 `GET /pets/{petSn}/care-completions?fromYmd=&toYmd=`(완료일 내림차순), 완료 체크 `POST /pets/{petSn}/care-completions`(처음 201, 같은 날 다시 200), 기록 내용 항목 아이콘 취소 `DELETE /pets/{petSn}/care-completions/{careCmptnHstrySn}`(투약도 그날 체크 전부 취소, 한 번만 보낸다), 투약 [마지막 1회 취소] `DELETE /pets/{petSn}/care-items/{careArtclSn}/today-completion/last`(목록 행의 `careArtclSn`만 쓴다, 투약 아니면 400 `INVALID_INPUT_VALUE`, 오늘 기록 없으면 404 `CARE_COMPLETION_NOT_FOUND`). 기록 내용 `GET care-completions`는 투약을 하루 N회 채운 날만 주므로 화면에서 따로 숨기지 않는다. 취소 뒤 목록·기록 내용을 다시 부른다. ★ `PUT /pets/{petSn}/care-item-exposures`(최대 6, 7개면 400 `CARE_ITEM_MAIN_LIMIT_EXCEEDED`), 항목 추가 `POST /pets/{petSn}/care-items`(구역 HLTC0036 일상·HLTC0037 정기, 주기 HLTC0038~0042, 직접입력 일수 `cycleDrctInptDayCnt`), 수정 `PATCH`·삭제 `DELETE /pets/{petSn}/care-items/{careArtclSn}`(기본 항목·처방약 연동 항목은 400)은 `updateCareItem`·`deleteCareItem` API 연결만 하고 UI는 "케어 항목 수정·삭제 UI" 절에서 한다. 아이콘은 Material Symbols 이름(`task_alt` 기본)
 - 기다리는 것: 없음 (백엔드 develop에 있음)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `http://localhost:5173/health/calendar` 케어리스트 탭에서 새 반려동물에 기본 항목 11개(양치·빗질·발톱 관리 ★)가 나오고, 완료 토글·기록 내용 취소·★ 토글·항목 추가가 서버에 반영되며 정기관리 예정일이 완료일 + 주기로 바뀐다. 하루 2회 투약 항목을 1회 누르면 1/2회이고 기록 내용에 없으며, 2회 누르면 기록 내용에 1줄 생긴다. [마지막 1회 취소]는 1회씩 내려가고, 기록 내용 아이콘 취소는 요청 1번으로 그날 기록이 사라지며 0/2회가 된다
 - 확인할 것: 해결됨. 투약 [마지막 1회 취소]는 완료 기록 번호 없이 새 API `DELETE /pets/{petSn}/care-items/{careArtclSn}/today-completion/last`(성공 200 data 없음, 투약 아니면 400, 오늘 기록 없으면 404)를 쓴다(백엔드 develop `b3389a0`)
+- 연결 남음: 없음
 
 ## SCR-HLT-005 검진상세 · API 연결 — 대기
 
