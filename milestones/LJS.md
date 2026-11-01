@@ -368,10 +368,13 @@
 - 연결 남음: FN-ADM-111-01·02·03 (백엔드 연결 `GET /api/admin/batches`·실행 이력·수동 실행, 백엔드 저장소 작업 중)
 - 연결 남음: FN-ADM-111-02 (실패 건수 칸 제거, 백엔드 결정으로 응답에 없음. 명세·설계서 수정은 사람)
 
-## SCR-ADM-112 외부 API 사용량 — 대기
+## SCR-ADM-112 외부 API 사용량 — 끝
 - 기능: FN-ADM-112-01 사용량 조회, FN-ADM-112-02 AI 토큰 사용량, FN-ADM-112-03 실패 목록 조회, FN-ADM-112-04 로그 보관
 - 기다리는 것: `/api/admin/external-api-usage` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 종류별 일별 호출 수·실패율·AI 토큰이 기간에 따라 바뀐다
+- 결정: 디자인 파일이 없어 기존 관리자 부품 재사용, 종류는 명세 7종이고 공통코드 SYSG05를 명세에 맞게 고친다, 막대는 새 의존성 없이 Tailwind(2026-11-01)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-01, 재검증 없음, 확인 못 함(내 것) 없음), 사람 확인 2026-11-01
+- 연결 남음: FN-ADM-112-01·02·03 (백엔드 연결 사용량 조회 API 3종·필드 이름, SYSG05 코드 수정, 호출 로그 기록(Python 통지 포함), 백엔드 저장소에서 /start)
 
 ## SCR-ADM-100 공통코드 — 대기
 - 기능: FN-ADM-100-01 코드 그룹 조회, FN-ADM-100-02 코드 수정, FN-ADM-100-03 코드 추가, FN-ADM-100-04 기준정보 관리 범위
@@ -512,6 +515,12 @@
 - 기능: FN-ADM-001-02 운영 현황 조회, FN-ADM-001-03 처리 대기 건수, FN-ADM-001-04 이용 통계 조회, FN-ADM-001-05 통계 기간 선택
 - 기다리는 것: `/api/admin/dashboard` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 운영 현황·처리 대기 건수·이용 통계가 보이고 처리 대기 건수를 누르면 필터를 건 관리 화면으로 간다
+
+## SCR-ADM-111 배치 현황 · 배치 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(연결 작업). 걸치는 기능 FN-ADM-111-01 배치 목록 조회, FN-ADM-111-02 실행 이력 조회, FN-ADM-111-03 수동 실행
+- 기다리는 것: 백엔드 SCR-ADM-111 PR 병합. `GET /api/admin/batches`, `GET /api/admin/batches/{btchSeCd}/executions`, `POST /api/admin/batches/{btchSeCd}/run`(`docs/api/global.md`)
+- 완료 조건: 가짜 응답 대신 실제 API로 목록·이력이 나오고, `runnableYn=false`·`runningYn=true`면 수동 실행 버튼이 비활성이며, 409 `BATCH_ALREADY_RUNNING`·`BATCH_NOT_AVAILABLE` 문구가 보인다. 수동 실행은 비동기라 200 뒤 이력을 다시 조회한다
+- 이미 바뀐 것: 배치 현황 화면과 가짜 응답(SCR-ADM-111 끝)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
