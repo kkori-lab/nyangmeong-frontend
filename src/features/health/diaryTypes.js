@@ -57,25 +57,29 @@ export const STOOL_STATES = [
 
 export const NORMAL_STOOL = 'HLTC0019';
 
-/** 관찰 부위 대분류 */
+/** 관찰 부위 대분류(공통코드 HLTG16) */
 export const OBSERVATION_PARTS = [
-  { cd: 'HEAD', nm: '머리' },
-  { cd: 'FACE', nm: '얼굴' },
-  { cd: 'NECK', nm: '목' },
-  { cd: 'BACK', nm: '등' },
-  { cd: 'BELY', nm: '배' },
-  { cd: 'FRLG', nm: '앞다리' },
-  { cd: 'HDLG', nm: '뒷다리' },
-  { cd: 'TAIL', nm: '꼬리' },
-  { cd: 'ETC', nm: '기타' },
+  { cd: 'HLTC0043', nm: '머리' },
+  { cd: 'HLTC0044', nm: '얼굴' },
+  { cd: 'HLTC0045', nm: '목' },
+  { cd: 'HLTC0046', nm: '등' },
+  { cd: 'HLTC0047', nm: '배' },
+  { cd: 'HLTC0048', nm: '앞다리' },
+  { cd: 'HLTC0049', nm: '뒷다리' },
+  { cd: 'HLTC0050', nm: '꼬리' },
+  { cd: 'HLTC0051', nm: '기타' },
 ];
 
-/** 관찰 변화 3단계 */
+/** 관찰 변화 3단계(공통코드 HLTG17) */
 export const OBSERVATION_CHANGES = [
-  { cd: 'SHRK', nm: '작아짐' },
-  { cd: 'SAME', nm: '그대로' },
-  { cd: 'GROW', nm: '커짐' },
+  { cd: 'HLTC0052', nm: '작아짐' },
+  { cd: 'HLTC0053', nm: '그대로' },
+  { cd: 'HLTC0054', nm: '커짐' },
 ];
+
+/** 관찰 상태(공통코드 HLTG18) */
+export const OBSERVATION_ONGOING = 'HLTC0055';
+export const OBSERVATION_ENDED = 'HLTC0056';
 
 /** 관찰 사진 규격. 공통 파일 업로드 규칙(REQ-NFR-003) */
 export const PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];

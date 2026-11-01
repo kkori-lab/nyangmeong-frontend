@@ -2,15 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import { diffDays, formatDate } from '@/utils/formatDate';
-import { findObservationChange } from '../diaryTypes';
-import {
-  formatDiff,
-  formatPart,
-  formatSize,
-} from '../diary/observationUtils';
+import { findObservationChange, findObservationPart } from '../diaryTypes';
+import { formatDiff, formatSize } from '../diary/observationUtils';
 import PhotoModal from './PhotoModal';
 import { CardTitle, MoreLink, SummaryEmpty } from './SummaryParts';
 import { DIARY_OBS_PATH } from './summaryUtils';
+
+/** 가짜 항목의 "등 · 오른쪽 어깨": 종합 건강기록을 실제 API로 바꿀 때 서버 이름 필드로 바꾼다 */
+const formatFakePart = (item) => {
+  const partNm = findObservationPart(item.obsvPrtCd).nm;
+  return item.obsvPrtDtlNm ? `${partNm} · ${item.obsvPrtDtlNm}` : partNm;
+};
 
 /**
  * [관찰 기록] (FN-HLT-011-10)
@@ -82,7 +84,9 @@ export default function ObservationSummaryCard({ observations }) {
                     onClick={() => setSelectedSn(candidate.obsvItmSn)}
                   >
                     {candidate.obsvItmNm}
-                    <span className="opacity-80">{formatPart(candidate)}</span>
+                    <span className="opacity-80">
+                      {formatFakePart(candidate)}
+                    </span>
                   </button>
                 );
               })}
@@ -111,12 +115,7 @@ function Compare({ item, onView }) {
       <div
         className={`grid gap-4 max-sm:grid-cols-2 max-sm:gap-5 ${hasCompare ? 'sm:grid-cols-2' : 'sm:grid-cols-[minmax(0,1fr)]'}`}
       >
-        <Photo
-          label="첫 기록 사진"
-          round={first}
-          roundNo={1}
-          onView={onView}
-        />
+        <Photo label="첫 기록 사진" round={first} roundNo={1} onView={onView} />
         {hasCompare && (
           <Photo
             label="최근 사진"

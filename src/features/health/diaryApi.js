@@ -10,10 +10,9 @@ import { MEAL, NORMAL_STOOL, STOOL, WALK, WATER, WEIGHT } from './diaryTypes';
 
 /**
  * [건강 일지 API]
- * - 일상 기록·검진기록은 실제 API(JAJ 백엔드)
- * - 종합 건강기록은 아직 아래 가짜 일상 기록(getFakeDailyRecords)·가짜 검진기록(getFakeCheckups)을 쓴다
- * - 지속 관찰 API(JAJ 백엔드)가 생기기 전까지 쓰는 가짜 응답
- * - 가짜 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
+ * - 일상 기록·검진기록·지속 관찰은 실제 API(JAJ 백엔드)
+ * - 종합 건강기록은 아직 아래 가짜 일상 기록(getFakeDailyRecords)·가짜 지속 관찰(getFakeObservations)·가짜 검진기록(getFakeCheckups)을 쓴다
+ * - 가짜 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감(코드 값만 공통코드)
  * - 개발 환경에서만 ?fakeDaily=0(지속 관찰·가짜 검진기록 0건), ?fakeDaily=1(종류마다 1건)
  */
 
@@ -160,7 +159,95 @@ export const deleteDailyRecord = ({ petSn, dailyHlthRcdSn }) =>
 
 /** 지속 관찰 */
 
-let nextObsvItmSn = 10;
+/** 관찰일 'YYYY-MM-DD'를 서버 일시로: 시각은 쓰지 않아 0시 */
+const toObservationDt = (ymd) => `${ymd}T00:00:00`;
+
+/** 관찰 항목 목록(관찰중 먼저). 항목마다 첫·마지막 회차 요약과 직전 대비 크기 차이를 준다 */
+export const getObservationItems = ({ petSn }) =>
+  api.get(`/pets/${petSn}/observation-items`);
+
+/** 한 항목의 회차 목록(관찰일 오름차순) */
+export const getObservationCycles = ({ petSn, obsrvArtclSn }) =>
+  api.get(`/pets/${petSn}/observation-cycles`, { params: { obsrvArtclSn } });
+
+/** 비어 있는 선택 값은 보내지 않는다 */
+const appendIfFilled = (body, key, value) => {
+  if (value !== '' && value != null) body.append(key, value);
+};
+
+/** 새 항목과 1회차를 함께 저장 -> { obsrvArtclSn, obsrvCyclSn, ... } */
+export const createObservationItem = ({
+  petSn,
+  obsrvArtclNm,
+  obsrvRegnCd,
+  obsrvRegnDtlNm,
+  file,
+  obsrvYmd,
+  obsrvSz,
+  memoCn,
+}) => {
+  const body = new FormData();
+  body.append('obsrvArtclNm', obsrvArtclNm);
+  body.append('obsrvRegnCd', obsrvRegnCd);
+  appendIfFilled(body, 'obsrvRegnDtlNm', obsrvRegnDtlNm);
+  body.append('file', file);
+  body.append('obsrvDt', toObservationDt(obsrvYmd));
+  appendIfFilled(body, 'obsrvSz', obsrvSz);
+  appendIfFilled(body, 'memoCn', memoCn);
+  return api.post(`/pets/${petSn}/observation-items`, body);
+};
+
+/** 종료한 항목은 서버가 400 OBSERVATION_ITEM_ENDED로 막는다 */
+export const createObservationCycle = ({
+  petSn,
+  obsrvArtclSn,
+  file,
+  obsrvYmd,
+  obsrvSz,
+  obsrvChgCd,
+  memoCn,
+}) => {
+  const body = new FormData();
+  body.append('obsrvArtclSn', obsrvArtclSn);
+  body.append('file', file);
+  body.append('obsrvDt', toObservationDt(obsrvYmd));
+  appendIfFilled(body, 'obsrvSz', obsrvSz);
+  appendIfFilled(body, 'obsrvChgCd', obsrvChgCd);
+  appendIfFilled(body, 'memoCn', memoCn);
+  return api.post(`/pets/${petSn}/observation-cycles`, body);
+};
+
+/**
+ * 회차 수정: 보낸 값만 바뀐다
+ * - 사진은 새로 고른 때만(file), 크기·변화·메모는 비워 보내면 바뀌지 않으므로 값이 있을 때만 보낸다
+ */
+export const updateObservationCycle = ({
+  petSn,
+  obsrvCyclSn,
+  file,
+  obsrvYmd,
+  obsrvSz,
+  obsrvChgCd,
+  memoCn,
+}) => {
+  const body = new FormData();
+  if (file) body.append('file', file);
+  body.append('obsrvDt', toObservationDt(obsrvYmd));
+  appendIfFilled(body, 'obsrvSz', obsrvSz);
+  appendIfFilled(body, 'obsrvChgCd', obsrvChgCd);
+  appendIfFilled(body, 'memoCn', memoCn);
+  return api.patch(`/pets/${petSn}/observation-cycles/${obsrvCyclSn}`, body);
+};
+
+/** 마지막 회차를 지우면 항목도 함께 사라진다 */
+export const deleteObservationCycle = ({ petSn, obsrvCyclSn }) =>
+  api.delete(`/pets/${petSn}/observation-cycles/${obsrvCyclSn}`);
+
+export const endObservationItem = ({ petSn, obsrvArtclSn }) =>
+  api.post(`/pets/${petSn}/observation-items/${obsrvArtclSn}/end`);
+
+/** 종합 건강기록용 가짜 지속 관찰: SCR-HLT-011 API 연결 때 지운다 */
+
 let nextObsvRndSn = 100;
 
 const makeRound = (obsvItmSn, dayOffset, extra = {}) => ({
@@ -183,7 +270,7 @@ const buildFakeObservations = () => {
           obsvItmSn: 1,
           petSn: 1,
           obsvItmNm: '피부 점',
-          obsvPrtCd: 'BACK',
+          obsvPrtCd: 'HLTC0046',
           obsvPrtDtlNm: '오른쪽 어깨',
           obsvEndYmd: null,
         },
@@ -197,7 +284,7 @@ const buildFakeObservations = () => {
         obsvItmSn: 1,
         petSn: 1,
         obsvItmNm: '피부 점',
-        obsvPrtCd: 'BACK',
+        obsvPrtCd: 'HLTC0046',
         obsvPrtDtlNm: '오른쪽 어깨',
         obsvEndYmd: null,
       },
@@ -205,7 +292,7 @@ const buildFakeObservations = () => {
         obsvItmSn: 2,
         petSn: 1,
         obsvItmNm: '눈 분비물',
-        obsvPrtCd: 'FACE',
+        obsvPrtCd: 'HLTC0044',
         obsvPrtDtlNm: '왼쪽 눈',
         obsvEndYmd: null,
       },
@@ -213,7 +300,7 @@ const buildFakeObservations = () => {
         obsvItmSn: 3,
         petSn: 1,
         obsvItmNm: '피부 발진',
-        obsvPrtCd: 'BELY',
+        obsvPrtCd: 'HLTC0047',
         obsvPrtDtlNm: '아랫배',
         obsvEndYmd: null,
       },
@@ -221,7 +308,7 @@ const buildFakeObservations = () => {
         obsvItmSn: 4,
         petSn: 1,
         obsvItmNm: '발바닥 상처',
-        obsvPrtCd: 'FRLG',
+        obsvPrtCd: 'HLTC0048',
         obsvPrtDtlNm: '왼쪽 앞발',
         obsvEndYmd: addDays(today, -40),
       },
@@ -232,11 +319,11 @@ const buildFakeObservations = () => {
       makeRound(1, -36),
       makeRound(1, -30, {
         obsvSizeMm: 3.5,
-        obsvChgCd: 'GROW',
+        obsvChgCd: 'HLTC0054',
         obsvMemoCn: '색이 조금 진해진 듯함',
       }),
       makeRound(2, -41),
-      makeRound(3, -35, { obsvChgCd: 'SHRK' }),
+      makeRound(3, -35, { obsvChgCd: 'HLTC0052' }),
       makeRound(4, -80),
       makeRound(4, -40),
     ],
@@ -244,8 +331,8 @@ const buildFakeObservations = () => {
 };
 
 const fakeObservation = buildFakeObservations();
-let fakeObsvItems = fakeObservation.items;
-let fakeObsvRounds = fakeObservation.rounds;
+const fakeObsvItems = fakeObservation.items;
+const fakeObsvRounds = fakeObservation.rounds;
 
 const compareRounds = (a, b) =>
   a.obsvYmd === b.obsvYmd
@@ -255,7 +342,7 @@ const compareRounds = (a, b) =>
       : 1;
 
 /** 관찰 중인 항목이 앞, 종료한 항목이 뒤 */
-export const getObservations = ({ petSn }) => {
+export const getFakeObservations = ({ petSn }) => {
   const items = fakeObsvItems
     .filter((item) => item.petSn === petSn)
     .map((item) => ({
@@ -271,88 +358,6 @@ export const getObservations = ({ petSn }) => {
         a.obsvItmSn - b.obsvItmSn,
     );
   return Promise.resolve({ content: items });
-};
-
-const pickRoundFields = (body) => ({
-  obsvYmd: body.obsvYmd,
-  photoPath: body.photoPath,
-  obsvSizeMm: body.obsvSizeMm === '' ? null : Number(body.obsvSizeMm),
-  obsvChgCd: body.obsvChgCd || null,
-  obsvMemoCn: body.obsvMemoCn ?? '',
-});
-
-/** 새 항목과 1회차를 함께 저장 */
-export const createObservation = (body) => {
-  const item = {
-    obsvItmSn: nextObsvItmSn++,
-    petSn: body.petSn,
-    obsvItmNm: body.obsvItmNm,
-    obsvPrtCd: body.obsvPrtCd,
-    obsvPrtDtlNm: body.obsvPrtDtlNm,
-    obsvEndYmd: null,
-  };
-  const round = {
-    obsvRndSn: nextObsvRndSn++,
-    obsvItmSn: item.obsvItmSn,
-    ...pickRoundFields({ ...body, obsvChgCd: null }),
-  };
-  fakeObsvItems = [...fakeObsvItems, item];
-  fakeObsvRounds = [...fakeObsvRounds, round];
-  return Promise.resolve({
-    obsvItmSn: item.obsvItmSn,
-    obsvRndSn: round.obsvRndSn,
-  });
-};
-
-export const createObservationRound = ({ obsvItmSn, ...body }) => {
-  const item = fakeObsvItems.find((target) => target.obsvItmSn === obsvItmSn);
-  if (item.obsvEndYmd !== null) {
-    return Promise.reject(
-      new Error('종료한 관찰 항목에는 기록을 추가할 수 없어요'),
-    );
-  }
-  const round = {
-    obsvRndSn: nextObsvRndSn++,
-    obsvItmSn,
-    ...pickRoundFields(body),
-  };
-  fakeObsvRounds = [...fakeObsvRounds, round];
-  return Promise.resolve({ obsvItmSn, obsvRndSn: round.obsvRndSn });
-};
-
-export const updateObservationRound = ({ obsvRndSn, ...body }) => {
-  const target = fakeObsvRounds.find((round) => round.obsvRndSn === obsvRndSn);
-  Object.assign(target, pickRoundFields(body));
-  return Promise.resolve({
-    obsvItmSn: target.obsvItmSn,
-    obsvRndSn: target.obsvRndSn,
-  });
-};
-
-/** 회차가 하나뿐이면 항목까지 삭제 */
-export const deleteObservationRound = (obsvRndSn) => {
-  const target = fakeObsvRounds.find((round) => round.obsvRndSn === obsvRndSn);
-  fakeObsvRounds = fakeObsvRounds.filter(
-    (round) => round.obsvRndSn !== obsvRndSn,
-  );
-  const hasMore = fakeObsvRounds.some(
-    (round) => round.obsvItmSn === target.obsvItmSn,
-  );
-  if (!hasMore) {
-    fakeObsvItems = fakeObsvItems.filter(
-      (item) => item.obsvItmSn !== target.obsvItmSn,
-    );
-  }
-  return Promise.resolve({
-    obsvItmSn: target.obsvItmSn,
-    isItemDeleted: !hasMore,
-  });
-};
-
-export const endObservation = (obsvItmSn) => {
-  const target = fakeObsvItems.find((item) => item.obsvItmSn === obsvItmSn);
-  target.obsvEndYmd = today;
-  return Promise.resolve();
 };
 
 /** 종합 건강기록용 가짜 검진기록: SCR-HLT-011 API 연결 때 지운다 */

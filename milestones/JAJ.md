@@ -145,13 +145,15 @@
 - 결정: 반려동물 목록은 이미 실제 `useMyPets`였다. 일상 기록 가짜는 `getFakeDailyRecords`로 종합 건강기록 전용으로 남김(011 연결 때 지움), `?fakeDaily=`는 다른 가짜가 써서 남김
 - 연결 남음: 없음
 
-## SCR-HLT-002 건강 일지 · 지속 관찰 API 연결 — 대기
+## SCR-HLT-002 건강 일지 · 지속 관찰 API 연결 — 끝
 
 - 함께 바꿀 것(반려동물 목록): 건강 일지는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다(건강 일지의 다른 연결에서 이미 바꿨으면 넘어간다). 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 지속 관찰 탭의 관찰 항목 목록·선택 항목 헤더·[관찰 종료]·회차별 사진 필름스트립·크기 변화 그래프·선택 회차 상세(수정·삭제)·관찰 기록 등록 모달 A(새 항목)/B(회차 추가)를 실제 API로 연결 (명세 기능 ID 추가 없음, FN-HLT-002-15~25·32에 걸침). 목록 `GET /pets/{petSn}/observation-items?obsrvSttsCd=`(firstCycle·lastCycle·cyclCnt·lastSzDiff, 관찰중 먼저), 종료 `POST …/observation-items/{obsrvArtclSn}/end`, 회차 `GET /pets/{petSn}/observation-cycles?obsrvArtclSn=`(관찰일 오름차순, cyclNo는 서버가 매김), 사진 `GET …/observation-cycles/{obsrvCyclSn}/photo`(원본, 썸네일 없음), 모달 A `POST /pets/{petSn}/observation-items`(multipart, 201), 모달 B `POST /pets/{petSn}/observation-cycles`(multipart, 종료 항목은 400 OBSERVATION_ITEM_ENDED), 수정 `PATCH …/observation-cycles/{obsrvCyclSn}`(multipart, 보낸 값만), 삭제 `DELETE …/observation-cycles/{obsrvCyclSn}`(마지막 회차를 지우면 항목도 사라짐). 그래프·증감은 화면이 계산
 - 기다리는 것: 백엔드 지속 관찰 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증·사람 확인 끝, develop 병합 전)
 - 이미지 표시: 회차 사진(`diary/ObservationCard.jsx`·`ObservationDetail.jsx`·`ObservationMobile.jsx`)은 비공개 파일이라 `@/hooks/useFileImage` + `@/components/FileImage`로 `GET …/observation-cycles/{obsrvCyclSn}/photo`를 그린다(공통 이미지 코드가 develop에 올라온 뒤). 모달의 로컬 미리보기(`ObservationModal.jsx` `createObjectURL`)는 그대로 둔다
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 모달 A로 항목을 등록하면 목록과 필름스트립에 1회차가 나오고, 모달 B로 회차를 추가·삭제하면 필름스트립·그래프·회차 번호가 함께 바뀌며, [관찰 종료] 뒤 항목이 목록 끝으로 가고 회차 추가가 막힌다
+- 결정: 백엔드 API는 develop에 머지돼 있었다. 반려동물 목록은 이미 실제 `useMyPets`. 부위·변화·상태는 공통코드 HLTC0043~0056. 관찰 가짜는 `getFakeObservations`로 종합 건강기록 전용으로 남김(011 연결 때 지움). 추가-1 모바일 회차 사진도 오래된 회차부터 왼→오른쪽(처음엔 오른쪽 끝), 추가-2 삭제·등록·종료 때 사진은 다시 받지 않고 사진을 바꾼 수정만 다시 받음(지운 직후 404 없앰)
+- 연결 남음: FN-HLT-002-19·23·24 회차 수정에서 크기·메모·변화 비우기 (백엔드 연결 `PATCH /pets/{petSn}/observation-cycles/{obsrvCyclSn}`가 빈 값을 "안 바꿈"으로 받음, 백엔드 저장소에서 /start)
 
 ## SCR-HLT-011 종합 건강기록 · API 연결 — 대기
 
