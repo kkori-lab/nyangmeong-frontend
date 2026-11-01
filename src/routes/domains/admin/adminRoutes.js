@@ -9,6 +9,10 @@ const AdminExternalApiUsagePage = lazy(
   () => import('@/pages/admin/AdminExternalApiUsagePage'),
 );
 const AdminHomePage = lazy(() => import('@/pages/admin/AdminHomePage'));
+const AdminMemberDetailPage = lazy(
+  () => import('@/pages/admin/AdminMemberDetailPage'),
+);
+const AdminMembersPage = lazy(() => import('@/pages/admin/AdminMembersPage'));
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 
 export default [
@@ -17,6 +21,8 @@ export default [
     auth: 'admin',
     routes: [
       { path: PATHS.ADMIN, Component: AdminHomePage },
+      { path: PATHS.ADMIN_MEMBERS, Component: AdminMembersPage },
+      { path: PATHS.ADMIN_MEMBER_DETAIL, Component: AdminMemberDetailPage },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
       {
