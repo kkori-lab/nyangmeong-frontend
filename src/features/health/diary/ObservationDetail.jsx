@@ -1,13 +1,14 @@
 import Icon from '@/components/Icon';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
-import { formatDate, formatMonthDayDot } from '@/utils/formatDate';
-import { findObservationChange } from '../diaryTypes';
+import { formatDate, formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
 import LineChart from './LineChart';
+import ObservationPhoto from './ObservationPhoto';
 import {
   formatDiff,
   formatPart,
   formatSize,
   getSizeDiff,
+  isEndedItem,
 } from './observationUtils';
 
 /**
@@ -16,29 +17,30 @@ import {
  * - 종료한 항목은 [관찰 기록 추가]·[관찰 종료]를 보이지 않음
  */
 export default function ObservationDetail({
+  petSn,
   item,
+  cycles,
   selectedIndex,
-  onSelectRound,
-  onEditRound,
-  onDeleteRound,
-  onAddRound,
+  onSelectCycle,
+  onEditCycle,
+  onDeleteCycle,
+  onAddCycle,
   onEnd,
   onViewPhoto,
 }) {
-  const { rounds } = item;
-  const round = rounds[selectedIndex];
-  const isEnded = item.obsvEndYmd !== null;
-  const sizedRounds = rounds.filter((target) => target.obsvSizeMm !== null);
-  const sizeDiff = getSizeDiff(rounds, selectedIndex);
+  const cycle = cycles[selectedIndex];
+  const isEnded = isEndedItem(item);
+  const sizedCycles = cycles.filter((target) => target.obsrvSz != null);
+  const sizeDiff = getSizeDiff(cycles, selectedIndex);
 
   return (
     <div aria-live="polite" className="min-w-0">
       <div className="mb-4 flex flex-wrap items-baseline gap-2 border-b border-line pb-3">
         <h3 className="text-lg/[1.6] font-semibold text-ink">
-          {item.obsvItmNm}
+          {item.obsrvArtclNm}
         </h3>
         <span className="text-subtle tabular-nums">
-          {formatPart(item)} · {rounds.length}회차
+          {formatPart(item)} · {cycles.length}회차
         </span>
       </div>
 
@@ -47,14 +49,14 @@ export default function ObservationDetail({
         aria-label="회차별 사진"
         className="mb-4 flex gap-2 overflow-x-auto pb-1"
       >
-        {rounds.map((target, index) => (
+        {cycles.map((target, index) => (
           <button
-            key={target.obsvRndSn}
+            key={target.obsrvCyclSn}
             type="button"
             aria-pressed={index === selectedIndex}
-            aria-label={`${index + 1}회차 ${formatDate(target.obsvYmd)}`}
+            aria-label={`${target.cyclNo}회차 ${formatDate(getYmdOf(target.obsrvDt))}`}
             className="flex w-[88px] shrink-0 flex-col text-center"
-            onClick={() => onSelectRound(target.obsvRndSn)}
+            onClick={() => onSelectCycle(target.obsrvCyclSn)}
           >
             <span
               className={`relative grid aspect-square w-full place-content-center place-items-center gap-0 overflow-hidden rounded-[10px] border bg-surface-2 text-subtle ${
@@ -63,56 +65,50 @@ export default function ObservationDetail({
                   : 'border-dashed border-line-strong'
               }`}
             >
-              {target.photoPath ? (
-                <>
-                  <img
-                    src={target.photoPath}
-                    alt=""
-                    className="size-full object-cover"
-                  />
-                  <span className="absolute bottom-1 left-1 rounded bg-black/55 px-1.5 text-[12px] leading-5 text-white">
-                    {index + 1}회차
-                  </span>
-                </>
-              ) : (
-                <>
+              <ObservationPhoto
+                petSn={petSn}
+                obsrvCyclSn={target.obsrvCyclSn}
+                className="size-full object-cover"
+                fallback={
                   <Icon
                     name="image"
                     className="text-[52px] text-line-strong [font-variation-settings:'FILL'_0,'wght'_500,'GRAD'_0,'opsz'_24]"
                   />
-                  {index + 1}회차
-                </>
-              )}
+                }
+              />
+              <span className="absolute bottom-1 left-1 rounded bg-black/55 px-1.5 text-[12px] leading-5 text-white">
+                {target.cyclNo}회차
+              </span>
             </span>
             <span className="mt-1 text-sm/[1.6] text-subtle tabular-nums">
-              {formatMonthDayDot(target.obsvYmd)}
+              {formatMonthDayDot(getYmdOf(target.obsrvDt))}
             </span>
-            {target.obsvSizeMm !== null && (
+            {target.obsrvSz != null && (
               <span className="text-sm/[1.6] tabular-nums">
-                {formatSize(target.obsvSizeMm)}
+                {formatSize(target.obsrvSz)}
               </span>
             )}
           </button>
         ))}
       </div>
 
-      {sizedRounds.length >= 2 && (
+      {sizedCycles.length >= 2 && (
         <div className="mb-4">
           <LineChart
-            points={sizedRounds.map((target) => ({
-              label: formatMonthDayDot(target.obsvYmd),
-              value: target.obsvSizeMm,
+            points={sizedCycles.map((target) => ({
+              label: formatMonthDayDot(getYmdOf(target.obsrvDt)),
+              value: target.obsrvSz,
             }))}
             formatValue={formatSize}
             formatTag={(value) => value.toFixed(1)}
             height={200}
-            ariaLabel={`크기 변화 선그래프 · ${sizedRounds
-              .map((target) => formatSize(target.obsvSizeMm))
+            ariaLabel={`크기 변화 선그래프 · ${sizedCycles
+              .map((target) => formatSize(target.obsrvSz))
               .join(' → ')} (크기 없는 회차는 건너뜀)`}
           />
         </div>
       )}
-      {rounds.length === 1 && (
+      {cycles.length === 1 && (
         <p className="mb-4 text-sm/[1.6] text-subtle">
           회차가 2개 이상 쌓이면 크기 변화 그래프로 보여요
         </p>
@@ -120,54 +116,47 @@ export default function ObservationDetail({
 
       <div className="rounded-[10px] bg-surface-2 p-4">
         <p className="text-sm/[1.6] text-subtle tabular-nums">
-          선택 회차 · {selectedIndex + 1}회차 {formatDate(round.obsvYmd)}
+          선택 회차 · {cycle.cyclNo}회차 {formatDate(getYmdOf(cycle.obsrvDt))}
         </p>
         <dl className="mt-2">
-          {round.obsvSizeMm !== null && (
+          {cycle.obsrvSz != null && (
             <DetailRow label="크기">
-              <span className="tabular-nums">
-                {formatSize(round.obsvSizeMm)}
-              </span>
+              <span className="tabular-nums">{formatSize(cycle.obsrvSz)}</span>
               {sizeDiff && (
                 <span className="text-subtle tabular-nums">
                   {' '}
-                  ({sizeDiff.prevIndex + 1}회차{' '}
-                  {formatSize(sizeDiff.prevSizeMm)} 대비{' '}
+                  ({cycles[sizeDiff.prevIndex].cyclNo}회차{' '}
+                  {formatSize(sizeDiff.prevSize)} 대비{' '}
                   {formatDiff(sizeDiff.diff) || '변화 없음'}
                   {formatDiff(sizeDiff.diff) && 'mm'})
                 </span>
               )}
             </DetailRow>
           )}
-          {round.obsvChgCd && (
-            <DetailRow label="변화">
-              {findObservationChange(round.obsvChgCd).nm}
-            </DetailRow>
+          {cycle.obsrvChgCd && (
+            <DetailRow label="변화">{cycle.obsrvChgCdNm}</DetailRow>
           )}
-          {round.obsvMemoCn && (
-            <DetailRow label="메모">{round.obsvMemoCn}</DetailRow>
-          )}
+          {cycle.memoCn && <DetailRow label="메모">{cycle.memoCn}</DetailRow>}
         </dl>
         <div className="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
           <button
             type="button"
-            disabled={!round.photoPath}
             className={`${BTN_SECONDARY} h-8! px-3!`}
-            onClick={() => onViewPhoto(round.photoPath)}
+            onClick={() => onViewPhoto(cycle)}
           >
             사진 원본 보기
           </button>
           <button
             type="button"
             className={`${BTN_SECONDARY} h-8! px-3!`}
-            onClick={() => onEditRound(round)}
+            onClick={() => onEditCycle(cycle)}
           >
             이 회차 수정
           </button>
           <button
             type="button"
             className={`${BTN_SECONDARY} h-8! px-3!`}
-            onClick={() => onDeleteRound(round)}
+            onClick={() => onDeleteCycle(cycle)}
           >
             삭제
           </button>
@@ -179,9 +168,9 @@ export default function ObservationDetail({
           <button
             type="button"
             className={`${BTN_SECONDARY} mt-4 w-full`}
-            onClick={onAddRound}
+            onClick={onAddCycle}
           >
-            관찰 기록 추가 · {rounds.length + 1}회차
+            관찰 기록 추가 · {cycles.length + 1}회차
           </button>
           <div className="mt-2 flex justify-end">
             <button
