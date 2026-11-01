@@ -2,10 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-114 감사 로그 — 끝 (2026-11-01, 검증 `통과`(1회차 관리자 로그인 없음 실패 뒤 재검증)·사람 확인). 목록·필터·상세 모달을 실제 API에 붙였다
+SCR-ADM-111 배치 현황 — 끝 (2026-11-01, 검증 `확인 못 함 있음`(1회차 실패 뒤 재검증, 내 것 없음)·사람 확인). 목록·실행 이력·수동 실행을 가짜 응답으로 만들었다
 
 ## 다음에 할 것
 
+- SCR-ADM-111 연결 남음: 백엔드 세션이 작업 사본에서 API를 만드는 중이다(커밋 전, 정본 백엔드 `docs/api/global.md`). 병합되면 `/start`로 `features/batch/api.js` 가짜를 바꾼다. 가짜와 다른 점(백엔드 기획·문서 기준 2026-11-01): 이력 경로가 `/history`가 아니라 `GET /api/admin/batches/{btchSeCd}/executions`, 목록 필드가 `btchNm`·`lastBgngDt`·`lastEndDt`·`lastRsltCd`·`prcsCnt`·`failRsn`·`runningYn`·`runnableYn`, 수동 실행 응답 `{ btchExcnHstrySn }`, `BATCH_NOT_AVAILABLE`(409) 추가
+- SCR-ADM-111 실패 건수: 백엔드 기획에서 컬럼을 추가하지 않고 응답에서 빼기로 했다(사람 결정 2026-11-01). 연결 때 `BatchHistoryTable.jsx`의 실패 칸과 가짜 `failCnt`를 지운다. 기능명세서 FN-ADM-111-02·화면설계서 SCR-ADM-111 수정은 사람 몫
+- SCR-ADM-111 스켈레톤 높이는 계산값이다(`AdminBatchesPage.jsx`). 실제 API 연결 때 1440px·390px로 잰다(`docs/convention/ui.md`)
+- SCR-ADM-111 배치 범위: 가짜는 공통코드 SYSG02 4종이다. 명세 10종·설계서 9종과 차이는 문서를 고치거나 배치가 늘 때 정한다
 - SCR-ADM-114 연결 남음: 감사 로그 API(`38f930a`)가 백엔드 `origin/LJS`에만 있어 develop 병합 전에는 배포에서 안 열린다. 백엔드 저장소에서 `/start`
 - SCR-ADM-114 관리자 화면을 붙일 때: 새 `trgtTblNm`은 `features/audit/auditLabels.js` `TARGET_OPTIONS`에 한 줄 더한다(지금 `SYS_STNG`·`MBR`). 없으면 표에는 서버 값이 보이고 필터에는 없다
 - SCR-ADM-114 실제 확인이 남은 것: 쪽 이동은 로그가 8건뿐이라 응답 조작으로만 봤다(서버 페이징은 직접 호출로 확인). 스켈레톤 높이는 계산값이다(`AdminAuditLogsPage.jsx`). 로그가 20건을 넘으면 1440px·390px로 잰다(`docs/convention/ui.md`). 대상 필터 [회원]은 로그인 행을 주지만 그 행의 대상 칸은 "—"다(결정, 그대로 둠). 요약·상세 항목은 서버 필드 이름 그대로다. 한글 요약은 서버에서 고칠 일이다
