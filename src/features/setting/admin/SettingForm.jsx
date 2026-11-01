@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import AmountInput from '@/components/AmountInput';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Card from '@/components/Card';
@@ -158,7 +158,19 @@ function SettingSectionNav({ activeTitle, onSelect }) {
                 }`}
                 onClick={() => onSelect(group.title)}
               >
-                {group.title}
+                {/** flex 자식이 되면 <wbr>이 안 먹어 span으로 묶는다. "·" 뒤에서만 꺾는다 */}
+                <span className="break-keep">
+                  {group.title.split('·').map((part, index) => (
+                    <Fragment key={part}>
+                      {index > 0 && (
+                        <>
+                          ·<wbr />
+                        </>
+                      )}
+                      {part}
+                    </Fragment>
+                  ))}
+                </span>
               </button>
             </li>
           );
