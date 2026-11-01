@@ -72,6 +72,8 @@ export const PATHS = {
 
   /** admin */
   ADMIN: '/admin',
+  ADMIN_MEMBERS: '/admin/members',
+  ADMIN_MEMBER_DETAIL: '/admin/members/:mbrSn',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_BATCHES: '/admin/batches',
   ADMIN_EXTERNAL_API_USAGE: '/admin/external-api-usage',
