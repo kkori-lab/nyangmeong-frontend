@@ -10,7 +10,7 @@ import { CHECKUP_TYPES, TONES } from '../scheduleTypes';
 
 /** 쉼표로 나눈 항목 수. 비어 있으면 0 */
 export const countItems = (text) =>
-  text
+  (text ?? '')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean).length;

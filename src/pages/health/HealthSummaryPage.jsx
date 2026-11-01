@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import PageSkeleton from '@/components/PageSkeleton';
 import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
-import { useHealthSummary, usePets } from '@/features/health/queries';
+import { useHealthSummary, useMyPets } from '@/features/health/queries';
 import AttachmentStrip from '@/features/health/summary/AttachmentStrip';
 import ConditionCard from '@/features/health/summary/ConditionCard';
 import LabSection from '@/features/health/summary/LabSection';
@@ -47,7 +47,7 @@ export default function HealthSummaryPage() {
     data: pets,
     isPending: isPetsPending,
     isError: isPetsError,
-  } = usePets();
+  } = useMyPets();
   const selectedPet =
     pets?.find((pet) => pet.petSn === tabPetSn) ?? pets?.[0] ?? null;
   const { data: summary, isError: isSummaryError } = useHealthSummary(
@@ -117,10 +117,7 @@ export default function HealthSummaryPage() {
             <TimelineCard timeline={summary.timeline} />
             <div className="flex flex-col gap-5">
               <PreventionHistoryCard prevention={summary.prevention} />
-              <ConditionCard
-                profile={summary.profile}
-                petSn={selectedPet.petSn}
-              />
+              <ConditionCard pet={summary.pet} />
             </div>
           </div>
         </Panel>
@@ -159,9 +156,13 @@ export default function HealthSummaryPage() {
           />
           <ObservationSummaryCard
             key={`obs-${selectedPet.petSn}`}
+            petSn={selectedPet.petSn}
             observations={summary.observations}
           />
-          <AttachmentStrip attachments={summary.attachments} />
+          <AttachmentStrip
+            petSn={selectedPet.petSn}
+            attachments={summary.attachments}
+          />
         </Panel>
       )}
     </SubPageLayout>

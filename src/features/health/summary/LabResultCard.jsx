@@ -2,6 +2,8 @@ import { generatePath } from 'react-router-dom';
 import Card from '@/components/Card';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
+import { findBloodItem } from '../labInput/bloodItems';
+import { getInspectionName } from '../summaryApi';
 import { CardTitle, MoreLink, SummaryEmpty } from './SummaryParts';
 import {
   DIARY_EXAM_PATH,
@@ -75,11 +77,12 @@ export default function LabResultCard({ lab, selectedNm, onSelect }) {
           </thead>
           <tbody>
             {lab.items.map((item) => {
-              const isSelected = item.inspItmNm === selectedNm;
-              const select = () => onSelect(item.inspItmNm);
+              const itemNm = getInspectionName(item);
+              const isSelected = itemNm === selectedNm;
+              const select = () => onSelect(itemNm);
               return (
                 <tr
-                  key={item.inspSn}
+                  key={item.inspNvlSn}
                   tabIndex={0}
                   aria-selected={isSelected}
                   className={`h-12 cursor-pointer border-b border-line-soft last:border-b-0 hover:bg-surface-2 focus-visible:bg-brand-50 ${
@@ -94,20 +97,20 @@ export default function LabResultCard({ lab, selectedNm, onSelect }) {
                 >
                   <td className="px-4 whitespace-nowrap max-sm:py-2">
                     <span className="mr-2 inline-flex h-6 items-center rounded-full border border-line bg-surface-2 px-2 text-[13px] text-ink-2">
-                      {getFunctionTagName(item.fnctTagCd)}
+                      {getFunctionTagName(findBloodItem(itemNm)?.fnctTagCd)}
                     </span>
-                    {item.inspItmNm}
+                    {itemNm}
                   </td>
                   <td className="px-4 whitespace-nowrap max-sm:py-2 max-sm:text-right">
                     <span className="max-sm:block">
-                      {item.rsltVal} {item.unitNm}
+                      {item.rsltNvl} {item.unitNm}
                     </span>
                     <span className="block text-sm/[1.6] text-subtle sm:hidden">
-                      {formatRange(item.refMinVal, item.refMaxVal)}
+                      {formatRange(item.refLlmtNvl, item.refUplmtNvl)}
                     </span>
                   </td>
                   <td className="px-4 max-sm:hidden">
-                    {formatRange(item.refMinVal, item.refMaxVal)}
+                    {formatRange(item.refLlmtNvl, item.refUplmtNvl)}
                   </td>
                 </tr>
               );
