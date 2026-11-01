@@ -1,6 +1,6 @@
 import { api } from '@/api/axios';
 import { addDays, getTodayYmd } from '@/utils/formatDate';
-import { getLinkedCareItem, getQueryParam, removeLinkedCareItem } from './api';
+import { getQueryParam } from './api';
 import {
   ATTACHMENT_IMAGE,
   ATTACHMENT_LAB,
@@ -11,7 +11,7 @@ import {
 /**
  * [검진상세 API]
  * - 검진상세 조회와 첨부·기타검사·처방약·반복 예방·혈액검사 저장·수정·삭제는 실제 API(JAJ 백엔드)
- * - 아래 가짜 저장소(getCheckupTabs)는 종합 건강기록(summaryApi)이, PDF 분석 가짜는 검사 수치 입력이 쓴다
+ * - 아래 가짜 저장소는 검사 수치 입력의 PDF 분석 가짜(analyzeLabPdf)만 쓴다
  * - 가짜 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
  * - 개발 환경에서만 ?fakeCheckupDetail=0으로 가짜 검사·첨부·처방약·반복 예방 0건, PDF 분석 실패는 파일 이름에 fail
  */
@@ -171,30 +171,6 @@ const getStore = (ckupRcdSn) => {
   return stores.get(ckupRcdSn);
 };
 
-const isExpired = (prescription) => prescription.dosEndYmd < today;
-
-/** 검사·첨부·처방약·반복 예방 가짜 탭: 복용 종료일이 지난 처방약은 "종료"로 바꾸고 투약 항목을 뺌 */
-export const getCheckupTabs = (ckupRcdSn) => {
-  const store = getStore(ckupRcdSn);
-  store.prescriptions.forEach((prescription) => {
-    if (prescription.dosSttsCd === DOSING && isExpired(prescription)) {
-      prescription.dosSttsCd = DOSE_ENDED;
-      removeLinkedCareItem({ lnkgTypeCd: 'PRSC', lnkgSn: prescription.rxSn });
-    }
-  });
-  return {
-    bloodInspections: store.blood.map((item) => ({ ...item })),
-    etcInspections: store.etc.map((item) => ({ ...item })),
-    attachments: store.attachments.map((item) => ({ ...item })),
-    prescriptions: store.prescriptions.map((item) => ({ ...item })),
-    preventions: store.preventions.map((item) => ({
-      ...item,
-      nextSchdYmd:
-        getLinkedCareItem({ lnkgTypeCd: 'PRVNT', lnkgSn: item.prvntSn })
-          ?.nextSchdYmd ?? null,
-    })),
-  };
-};
 
 /** 첨부 목록은 첫 페이지 50건(서버 최대, 페이지는 1부터)만 받고 넘기지 않는다 */
 const ATTACHMENT_PAGE_SIZE = 50;
@@ -208,10 +184,14 @@ export const getEtcInspections = ({ petSn, ckupRcdSn }) =>
   api.get(`/pets/${petSn}/etc-inspections`, { params: { ckupRcdSn } });
 
 /** 첨부는 Page 응답이라 content만 쓴다 */
-export const getCheckupAttachments = ({ petSn, ckupRcdSn }) =>
+export const getCheckupAttachments = ({
+  petSn,
+  ckupRcdSn,
+  size = ATTACHMENT_PAGE_SIZE,
+}) =>
   api
     .get(`/pets/${petSn}/checkup-attachments`, {
-      params: { ckupRcdSn, page: 1, size: ATTACHMENT_PAGE_SIZE },
+      params: { ckupRcdSn, page: 1, size },
     })
     .then((page) => page.content);
 

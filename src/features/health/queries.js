@@ -16,7 +16,6 @@ import {
   deleteSchedule,
   getCareItems,
   getMyPets,
-  getPets,
   getSchedules,
   saveCareMain,
   updateCareItem,
@@ -70,7 +69,6 @@ import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
   all: ['health'],
-  pets: ['health', 'pets'],
   myPets: ['health', 'my-pets'],
   schedules: ['health', 'schedules'],
   scheduleList: (params) => ['health', 'schedules', params],
@@ -110,10 +108,7 @@ export const healthKeys = {
 
 const showErrorToast = (error) => showToast(error.message);
 
-export const usePets = () =>
-  useQuery({ queryKey: healthKeys.pets, queryFn: getPets });
-
-/** 실제 반려동물 목록(케어 캘린더). 다른 건강 화면은 API 연결 때 usePets에서 옮긴다 */
+/** 내 반려동물 목록(GET /pets) */
 export const useMyPets = () =>
   useQuery({ queryKey: healthKeys.myPets, queryFn: getMyPets });
 

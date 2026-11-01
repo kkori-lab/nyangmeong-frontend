@@ -155,13 +155,15 @@
 - 결정: 백엔드 API는 develop에 머지돼 있었다. 반려동물 목록은 이미 실제 `useMyPets`. 부위·변화·상태는 공통코드 HLTC0043~0056. 관찰 가짜는 `getFakeObservations`로 종합 건강기록 전용으로 남김(011 연결 때 지움). 추가-1 모바일 회차 사진도 오래된 회차부터 왼→오른쪽(처음엔 오른쪽 끝), 추가-2 삭제·등록·종료 때 사진은 다시 받지 않고 사진을 바꾼 수정만 다시 받음(지운 직후 404 없앰)
 - 연결 남음: FN-HLT-002-19·23·24 회차 수정에서 크기·메모·변화 비우기 (백엔드 연결 `PATCH /pets/{petSn}/observation-cycles/{obsrvCyclSn}`가 빈 값을 "안 바꿈"으로 받음, 백엔드 저장소에서 /start)
 
-## SCR-HLT-011 종합 건강기록 · API 연결 — 대기
+## SCR-HLT-011 종합 건강기록 · API 연결 — 끝
 
 - 함께 바꿀 것(반려동물 목록): 종합 건강기록은 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다. 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 종합 건강기록 화면 전체를 실제 API로 연결 (명세 기능 ID 추가 없음, FN-HLT-011-01~10에 걸침). 반려동물 탭 `GET /pets`, 요약 바·알레르기·기저질환 `GET /pets/{petSn}`(`petBdwg`·`algyCn`·`dssCn`) + 최신 체중 `GET /pets/{petSn}/daily-health-records?dailyRcdIdctCd=<체중>&size=1`(없으면 `petBdwg`) + 최근 검진 `GET /pets/{petSn}/checkups?size=1`, 타임라인 `GET /pets/{petSn}/checkups?size=5` + `GET /pets/{petSn}/repeat-preventions`(`ckupRcdSn` 생략 → 반려동물 전체, 시작일 최신순, `hsptlNm` 포함. 시작일이 오늘 이후인 것 제외·5건 병합·같은 날짜면 검진기록 먼저는 화면), 예방·정기검진 `GET …/checkups?ckupTypeCd=` + `GET …/care-schedules?fromYmd=<오늘>&schdlKndCd=<병원>&ckupTypeCd=&size=1`, 검사 결과·추이 `GET /pets/{petSn}/inspection-values`(`ckupRcdSn` 생략 → 전체, 검진일 오름차순·`schdlDt` 채움. 최근 1회차·기본 항목은 화면), 처방 `GET /pets/{petSn}/prescriptions`(`ckupRcdSn` 생략 → 전체, 복용중 우선·최신순), 첨부 `GET /pets/{petSn}/checkup-attachments?size=4`(`ckupRcdSn` 생략 → 전체, 최신순), 관찰 `GET …/observation-items?obsrvSttsCd=<관찰중>` + 사진 `GET …/observation-cycles/{obsrvCyclSn}/photo`
 - 기다리는 것: 백엔드 종합 건강기록 전체 조회 (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증·사람 확인 끝, develop 병합 전)
 - 이미지 표시: 첨부(`summary/AttachmentStrip.jsx`·`PhotoModal.jsx`)와 관찰 사진(`summary/ObservationSummaryCard.jsx`)은 비공개 파일이라 `@/hooks/useFileImage` + `@/components/FileImage`로 그린다(공통 이미지 코드가 develop에 올라온 뒤). 캐릭터 이미지(`summary/SummaryHero.jsx` `chrctrImgPath`)는 공개 파일이면 `@/utils/fileUrl`의 `publicFileUrl(atchFileSn)`을 쓴다 — 응답이 경로를 주는지 `atchFileSn`을 주는지 연결 때 확인한다
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 요약 바 몸무게가 최신 일상기록 체중이고 없으면 프로필 체중, 다음 예정일이 오늘 이후 가장 가까운 같은 유형 병원 일정, 타임라인 반복 예방에 출처 병원명이 나오고, 검사 수치 추이가 검진일 순서로 그려진다
+- 결정: 백엔드 API는 develop에 머지돼 있었다. 디자인은 `html/hlt-summary.html` 그대로(모양은 바꾸지 않고 서버 키로만 바꿈). `GET /pets`에 캐릭터 상태가 없어 "캐릭터 만들기" 점선 카드를 빼고 `PetFace`로 둠(사람 결정). 건강기록 가짜 반려동물·일상기록·관찰·검진기록·일정·연동 케어 항목 저장소를 지움(PDF 분석·영수증 가짜는 남김)
+- 연결 남음: FN-HLT-011-01·02 캐릭터 상태 (`GET /pets`의 `chrcSttsCd`, LJS)
 
 ## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 대기
 

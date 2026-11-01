@@ -33,7 +33,7 @@ export default function PreventionHistoryCard({ prevention }) {
         <div className="grid gap-3 sm:grid-cols-2">
           <Box icon="vaccines" title="예방접종">
             {vaccinations.map((checkup) => (
-              <Row key={checkup.ckupRcdSn} name={checkup.ckupCn || '예방접종'}>
+              <Row key={checkup.ckupRcdSn} name={checkup.ckupTypeCdNm}>
                 {formatDate(checkup.ckupYmd)}{' '}
                 <span className="text-subtle">(완료)</span>
               </Row>

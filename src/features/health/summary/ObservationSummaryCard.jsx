@@ -1,31 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
-import { diffDays, formatDate } from '@/utils/formatDate';
-import { findObservationChange, findObservationPart } from '../diaryTypes';
-import { formatDiff, formatSize } from '../diary/observationUtils';
+import { diffDays, formatDate, getYmdOf } from '@/utils/formatDate';
+import ObservationPhoto from '../diary/ObservationPhoto';
+import { formatDiff, formatPart, formatSize } from '../diary/observationUtils';
 import PhotoModal from './PhotoModal';
 import { CardTitle, MoreLink, SummaryEmpty } from './SummaryParts';
 import { DIARY_OBS_PATH } from './summaryUtils';
 
-/** 가짜 항목의 "등 · 오른쪽 어깨": 종합 건강기록을 실제 API로 바꿀 때 서버 이름 필드로 바꾼다 */
-const formatFakePart = (item) => {
-  const partNm = findObservationPart(item.obsvPrtCd).nm;
-  return item.obsvPrtDtlNm ? `${partNm} · ${item.obsvPrtDtlNm}` : partNm;
-};
-
 /**
  * [관찰 기록] (FN-HLT-011-10)
  * - 관찰중 항목을 탭으로(1개면 탭 없음), 선택 항목의 첫 기록 사진과 최근 사진을 나란히 비교
+ * - 항목 목록 응답의 firstCycle·lastCycle·cyclCnt만 쓰고 사진은 회차마다 원본을 받는다
  * - 사진 아래는 관찰일·회차 1줄, 크기(증감) 1줄. 요약 줄은 크기 변화량 → 변화 단계 → 없음 순
  * - 조회 전용: 등록·사진 추가·종료는 건강 일지에서만
  * - 모바일(640px 미만): 칩은 한 줄 가로 스크롤, 사진은 정사각형 2장 좌우, 요약 링크는 "회차별" (추가 요청)
  */
-export default function ObservationSummaryCard({ observations }) {
+export default function ObservationSummaryCard({ petSn, observations }) {
   const [selectedSn, setSelectedSn] = useState(null);
-  const [photoUrl, setPhotoUrl] = useState(null);
+  const [photoCyclSn, setPhotoCyclSn] = useState(null);
   const item =
-    observations.find((candidate) => candidate.obsvItmSn === selectedSn) ??
+    observations.find((candidate) => candidate.obsrvArtclSn === selectedSn) ??
     observations[0];
   const chipsRef = useRef(null);
 
@@ -44,7 +39,7 @@ export default function ObservationSummaryCard({ observations }) {
     } else if (right > list.scrollLeft + list.clientWidth) {
       list.scrollTo({ left: right - list.clientWidth, behavior: 'smooth' });
     }
-  }, [item?.obsvItmSn]);
+  }, [item?.obsrvArtclSn]);
 
   return (
     <Card
@@ -69,10 +64,10 @@ export default function ObservationSummaryCard({ observations }) {
               className="mb-4 flex flex-wrap gap-2 [scrollbar-width:none] max-sm:flex-nowrap max-sm:overflow-x-auto"
             >
               {observations.map((candidate) => {
-                const isSelected = candidate.obsvItmSn === item.obsvItmSn;
+                const isSelected = candidate.obsrvArtclSn === item.obsrvArtclSn;
                 return (
                   <button
-                    key={candidate.obsvItmSn}
+                    key={candidate.obsrvArtclSn}
                     type="button"
                     role="radio"
                     aria-checked={isSelected}
@@ -81,46 +76,59 @@ export default function ObservationSummaryCard({ observations }) {
                         ? 'border-brand-500 bg-brand-500 text-white'
                         : 'border-line bg-white text-ink hover:bg-surface-2'
                     }`}
-                    onClick={() => setSelectedSn(candidate.obsvItmSn)}
+                    onClick={() => setSelectedSn(candidate.obsrvArtclSn)}
                   >
-                    {candidate.obsvItmNm}
-                    <span className="opacity-80">
-                      {formatFakePart(candidate)}
-                    </span>
+                    {candidate.obsrvArtclNm}
+                    <span className="opacity-80">{formatPart(candidate)}</span>
                   </button>
                 );
               })}
             </div>
           )}
-          <Compare key={item.obsvItmSn} item={item} onView={setPhotoUrl} />
+          <Compare
+            key={item.obsrvArtclSn}
+            petSn={petSn}
+            item={item}
+            onView={setPhotoCyclSn}
+          />
         </>
       )}
-      {photoUrl && (
-        <PhotoModal src={photoUrl} onClose={() => setPhotoUrl(null)} />
+      {photoCyclSn && (
+        <PhotoModal onClose={() => setPhotoCyclSn(null)}>
+          <ObservationPhoto
+            petSn={petSn}
+            obsrvCyclSn={photoCyclSn}
+            className="w-full rounded-[10px]"
+          />
+        </PhotoModal>
       )}
     </Card>
   );
 }
 
-function Compare({ item, onView }) {
-  const { rounds } = item;
-  const first = rounds[0];
-  const lastIndex = rounds.length - 1;
-  const last = rounds[lastIndex];
-  const hasCompare = rounds.length > 1;
-  const summaryText = hasCompare ? getSummaryText(rounds) : '';
+function Compare({ petSn, item, onView }) {
+  const { firstCycle: first, lastCycle: last, cyclCnt } = item;
+  const hasCompare = cyclCnt > 1;
+  const summaryText = hasCompare ? getSummaryText(first, last) : '';
 
   return (
     <>
       <div
         className={`grid gap-4 max-sm:grid-cols-2 max-sm:gap-5 ${hasCompare ? 'sm:grid-cols-2' : 'sm:grid-cols-[minmax(0,1fr)]'}`}
       >
-        <Photo label="첫 기록 사진" round={first} roundNo={1} onView={onView} />
+        <Photo
+          label="첫 기록 사진"
+          petSn={petSn}
+          cycle={first}
+          cycleNo={1}
+          onView={onView}
+        />
         {hasCompare && (
           <Photo
             label="최근 사진"
-            round={last}
-            roundNo={lastIndex + 1}
+            petSn={petSn}
+            cycle={last}
+            cycleNo={cyclCnt}
             diffFrom={first}
             isRecent
             onView={onView}
@@ -140,10 +148,18 @@ function Compare({ item, onView }) {
   );
 }
 
-function Photo({ label, round, roundNo, diffFrom, isRecent = false, onView }) {
+function Photo({
+  label,
+  petSn,
+  cycle,
+  cycleNo,
+  diffFrom,
+  isRecent = false,
+  onView,
+}) {
   const diff =
-    diffFrom && round.obsvSizeMm !== null && diffFrom.obsvSizeMm !== null
-      ? formatDiff(round.obsvSizeMm - diffFrom.obsvSizeMm)
+    diffFrom && cycle.obsrvSz != null && diffFrom.obsrvSz != null
+      ? formatDiff(cycle.obsrvSz - diffFrom.obsrvSz)
       : '';
 
   return (
@@ -159,38 +175,38 @@ function Photo({ label, round, roundNo, diffFrom, isRecent = false, onView }) {
         )}
         <button
           type="button"
-          disabled={!round.photoPath}
           aria-label={`${label} 원본 보기`}
           className={`grid h-48 w-full cursor-zoom-in max-sm:aspect-square max-sm:h-auto place-items-center overflow-hidden rounded-[10px] border border-dashed bg-surface-2 text-subtle disabled:cursor-default ${
             isRecent ? 'border-solid border-brand-500' : 'border-line-strong'
           }`}
-          onClick={() => onView(round.photoPath)}
+          onClick={() => onView(cycle.obsrvCyclSn)}
         >
-          {round.photoPath ? (
-            <img
-              src={round.photoPath}
-              alt=""
-              className="size-full object-cover"
-            />
-          ) : (
-            <span className="flex flex-col items-center gap-1.5">
-              <Icon name="image" className="text-[52px] text-line-strong" />
-              {label}
-            </span>
-          )}
+          <ObservationPhoto
+            petSn={petSn}
+            obsrvCyclSn={cycle.obsrvCyclSn}
+            className="size-full object-cover"
+            fallback={
+              <span className="flex flex-col items-center gap-1.5">
+                <Icon name="image" className="text-[52px] text-line-strong" />
+                {label}
+              </span>
+            }
+          />
         </button>
       </div>
       <div className="mt-2 text-center">
         <p className="text-sm/[1.6] whitespace-nowrap text-subtle">
-          <span className="max-sm:hidden">{formatDate(round.obsvYmd)}</span>
+          <span className="max-sm:hidden">
+            {formatDate(getYmdOf(cycle.obsrvDt))}
+          </span>
           <span className="sm:hidden">
-            {formatDate(round.obsvYmd, { hasYear: false })}
+            {formatDate(getYmdOf(cycle.obsrvDt), { hasYear: false })}
           </span>{' '}
-          · {roundNo}회차
+          · {cycleNo}회차
         </p>
-        {round.obsvSizeMm !== null && (
+        {cycle.obsrvSz != null && (
           <p className="text-lg/[1.6] font-semibold whitespace-nowrap max-sm:text-base/[1.6]">
-            {formatSize(round.obsvSizeMm)}
+            {formatSize(cycle.obsrvSz)}
             {diff && (
               <span className="ml-1 text-sm/[1.6] font-normal text-muted">
                 {diff}
@@ -204,18 +220,13 @@ function Photo({ label, round, roundNo, diffFrom, isRecent = false, onView }) {
 }
 
 /** "16일 동안 ▲0.5mm 커짐" / 크기가 없으면 "16일 동안 커짐" / 둘 다 없으면 빈 문자열 */
-function getSummaryText(rounds) {
-  const first = rounds[0];
-  const last = rounds[rounds.length - 1];
-  const days = diffDays(first.obsvYmd, last.obsvYmd);
-  if (first.obsvSizeMm !== null && last.obsvSizeMm !== null) {
-    const diff = last.obsvSizeMm - first.obsvSizeMm;
+function getSummaryText(first, last) {
+  const days = diffDays(getYmdOf(first.obsrvDt), getYmdOf(last.obsrvDt));
+  if (first.obsrvSz != null && last.obsrvSz != null) {
+    const diff = last.obsrvSz - first.obsrvSz;
     const diffText = formatDiff(diff);
     if (!diffText) return `${days}일 동안 변화 없음`;
     return `${days}일 동안 ${diffText}mm ${diff > 0 ? '커짐' : '작아짐'}`;
   }
-  const changeRound = [...rounds].reverse().find((round) => round.obsvChgCd);
-  return changeRound
-    ? `${days}일 동안 ${findObservationChange(changeRound.obsvChgCd).nm}`
-    : '';
+  return last.obsrvChgCdNm ? `${days}일 동안 ${last.obsrvChgCdNm}` : '';
 }
