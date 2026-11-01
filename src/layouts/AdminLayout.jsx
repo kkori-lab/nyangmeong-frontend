@@ -175,7 +175,7 @@ export default function AdminLayout() {
       <ScrollToTop />
       {/** 상단 바 */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-white px-4">
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             aria-label="메뉴 열기"
