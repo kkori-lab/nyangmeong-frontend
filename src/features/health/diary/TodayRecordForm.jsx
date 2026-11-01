@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
-import { getNowHm, getTodayYmd } from '@/utils/formatDate';
+import { getNowHm, getTodayYmd, makeDateTime } from '@/utils/formatDate';
 import {
   NORMAL_STOOL,
   RECORD_TYPES,
@@ -33,7 +33,7 @@ export default function TodayRecordForm({ petSn, initialTypeCd }) {
   const [typeCd, setTypeCd] = useState(initialTypeCd);
   const [rcdTm, setRcdTm] = useState(getNowHm);
   const [value, setValue] = useState('');
-  const [stlSttsCd, setStlSttsCd] = useState(NORMAL_STOOL);
+  const [crsdSttsCd, setCrsdSttsCd] = useState(NORMAL_STOOL);
   const createRecord = useCreateDailyRecord();
 
   useEffect(() => {
@@ -57,11 +57,11 @@ export default function TodayRecordForm({ petSn, initialTypeCd }) {
     createRecord.mutate(
       {
         petSn,
-        rcdTypeCd: typeCd,
-        rcdYmd: getTodayYmd(),
-        rcdTm,
-        rcdVal: value,
-        stlSttsCd,
+        body: {
+          dailyRcdIdctCd: typeCd,
+          rcdDt: makeDateTime(getTodayYmd(), rcdTm),
+          ...(isStool ? { crsdSttsCd } : { rcdNvl: Number(value) }),
+        },
       },
       {
         onSuccess: () => {
@@ -133,10 +133,10 @@ export default function TodayRecordForm({ petSn, initialTypeCd }) {
                 <span className={LABEL_CLASS}>{type.valueLabel}</span>
                 <select
                   ref={stoolRef}
-                  value={stlSttsCd}
+                  value={crsdSttsCd}
                   className={SELECT_CLASS}
                   style={SELECT_ARROW_STYLE}
-                  onChange={(event) => setStlSttsCd(event.target.value)}
+                  onChange={(event) => setCrsdSttsCd(event.target.value)}
                 >
                   {STOOL_STATES.map((state) => (
                     <option key={state.cd} value={state.cd}>

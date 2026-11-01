@@ -58,6 +58,7 @@ import {
   getCheckupYears,
   getCheckups,
   getDailyRecords,
+  getDailyTrend,
   getObservations,
   updateCheckup,
   updateDailyRecord,
@@ -76,6 +77,13 @@ export const healthKeys = {
   careItemList: (petSn) => ['health', 'care-items', petSn],
   dailyRecords: ['health', 'daily-records'],
   dailyRecordList: (petSn) => ['health', 'daily-records', petSn],
+  dailyTrend: (petSn, dailyRcdIdctCd) => [
+    'health',
+    'daily-records',
+    petSn,
+    'trend',
+    dailyRcdIdctCd,
+  ],
   observations: ['health', 'observations'],
   observationList: (petSn) => ['health', 'observations', petSn],
   checkups: ['health', 'checkups'],
@@ -166,6 +174,14 @@ export const useDailyRecords = (petSn) =>
     queryFn: () => getDailyRecords({ petSn }),
     enabled: petSn != null,
     placeholderData: keepPreviousData,
+  });
+
+/** 건강기록 변화 그래프용 한 지표의 최근 기록 */
+export const useDailyTrend = (petSn, dailyRcdIdctCd) =>
+  useQuery({
+    queryKey: healthKeys.dailyTrend(petSn, dailyRcdIdctCd),
+    queryFn: () => getDailyTrend({ petSn, dailyRcdIdctCd }),
+    enabled: petSn != null,
   });
 
 const useDailyRecordMutation = (mutationFn) => {
