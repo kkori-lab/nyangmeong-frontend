@@ -16,6 +16,9 @@ export const getQueryParam = (name) =>
 /** 내 반려동물 목록 GET /pets (SJM 백엔드, 케어 캘린더) */
 export const getMyPets = () => api.get('/pets');
 
+/** 내 반려동물별 캐릭터 목록 GET /pixel-characters (LJS 백엔드, 캐릭터 없는 반려동물은 pixelCharSn 없음) */
+export const getPixelCharacters = () => api.get('/pixel-characters');
+
 /**
  * 반려동물들의 일정 목록(FN-HLT-003-29·31·40)
  * - 서버가 반려동물 단위 조회라 반려동물 수만큼 요청 후 합침

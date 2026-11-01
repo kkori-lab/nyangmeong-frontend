@@ -2,11 +2,11 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-011 종합 건강기록 · API 연결 (2026-11-01). 검증 통과(2회차), 사람 확인 끝. 반려동물 탭·요약 바·타임라인·예방/정기검진·알레르기/기저질환·검사 결과/추이·처방·첨부·관찰 기록이 실제 API(`GET /pets`·`/pets/{petSn}` 외 `checkups`·`repeat-preventions`·`inspection-values`·`prescriptions`·`checkup-attachments`·`observation-items`·`care-schedules`·`daily-health-records`), 건강기록의 가짜 반려동물·일상기록·관찰·검진기록·일정·연동 케어 항목 저장소를 지움
+끝남: SCR-HLT-011 종합 건강기록 · 캐릭터 상태 연결 (2026-11-01). 검증 통과, 사람 확인 끝. `GET /pixel-characters`(LJS)로 주양육·캐릭터 미생성(`pixelCharSn` 없음) 반려동물의 히어로 큰 이미지 자리에 "캐릭터 만들기" 카드를 되살림. 생성 중·실패·공동양육·조회 실패는 `PetFace`(사람 결정)
 
 ## 다음에 할 것
 
-- 연결 남음(SCR-HLT-011): FN-HLT-011-01·02 캐릭터 상태 (LJS). `GET /pets` 응답에 캐릭터 상태(`chrcSttsCd`)가 없어 히어로의 "캐릭터 만들기" 점선 카드를 빼고 칩·큰 이미지 모두 `PetFace`(없으면 종별 아이콘, `bscCharSbstYn`이면 흑백)로 둠(사람 결정). 상태가 응답에 생기면 미생성(주양육)일 때 카드를 되살릴지 다시 정한다. 공동양육 판정(`brupRoleCd`)도 그때 쓴다
+- 참고(SCR-HLT-011 캐릭터 상태): 히어로 큰 이미지는 `GET /pixel-characters`(LJS) 행의 `pixelCharSn`이 없는 주양육 반려동물만 "캐릭터 만들기" 카드, 행이 없거나 조회 실패면 `PetFace`. 칩은 그대로. 생성 중(`CHRC0001`·`0002`)·실패(`CHRC0004`)는 백엔드 `character-image`가 종별 기본 캐릭터를 주므로 따로 표시하지 않는다(사람 결정)
 - 연결 남음: FN-HLT-002-19·23·24 회차 수정 비우기 (백엔드 연결 `PATCH …/observation-cycles/{obsrvCyclSn}`, 백엔드 저장소에서 /start, 백엔드 `milestones/JAJ.md`에 대기 절 있음): 보내지 않은 값과 빈 값을 모두 "안 바꿈"으로 받아 크기(`obsrvSz`)·메모(`memoCn`)·변화(`obsrvChgCd`)를 지울 수 없다. 백엔드가 바뀐 뒤 `diaryApi.js` `updateObservationCycle`이 빈 칸도 보내게 바꾸고(지금은 `appendIfFilled`), 비워 저장하면 상세에서 그 줄이 사라지는지 확인한다
 - 연결 남음(SCR-HLT-007): FN-HLT-007-02·03 수정 화면의 참고범위 비우기 (백엔드 연결 `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}`가 `null`을 "안 바꿈"으로 받음, 백엔드 저장소에서 /start. 지금은 화면이 막음), FN-HLT-007-04·06 검사결과지 PDF 분석 호출부 (LJS, `checkupApi.js` `analyzeLabPdf` 가짜, 응답의 `bloodYn`은 가정)
 - 참고(SCR-HLT-011): 타임라인 검진기록 행의 내용 줄은 목록 응답에 `ckupCn`이 없어 비어 있다. 예방접종 이력 이름은 `ckupTypeCdNm`. 예방접종은 `size=2`, 타임라인 검진기록은 `size=5`로 받은 뒤 오늘 이전만 거르므로 미래 날짜 검진기록이 있으면 표시 건수가 줄 수 있다. 첨부 썸네일·미리보기는 `summary/AttachmentImage.jsx`(검진상세 영상검사와 같은 캐시 키), PDF는 Blob으로 내려받는다. `PhotoModal`은 비공개 이미지를 `children`으로 받는다. 캐릭터가 없는 반려동물은 `character-image` 404가 콘솔에 남는다
@@ -22,7 +22,7 @@
 - 알릴 것(공용 파일 담당): `components/Modal.jsx` `isAutoHeight`·`isCloseIconHidden`, `components/DropdownSelect.jsx` `isPill`, `components/Card.jsx` `leading`을 더했다(모두 기본값 꺼짐). `Card.jsx`는 `aria-labelledby` id를 제목 `<span>`으로 옮겼다. `features/health/PetTabs.jsx`는 지웠다
 - 연결 남음(SCR-HLT-002·003): 002-01·003 캐릭터 이미지 (LJS), 003 케어미션·포인트 반영 (SJM), 반려동물 프로필 체중 정상범위·목표 (SJM), 영수증 번호를 검진기록에 연결(검진기록 API에 `recptSn` 없음, LJS·JAJ 백엔드와 맞춘 뒤), 영수증 인식 결과 전체(YAY, 지금은 LJS 인식 응답 + `receiptApi.js` `getReceiptDetail` 가짜)
 
-- 결정 필요(SCR-HLT-011, 디자인 담당): 명세와 디자인이 다르다. 사람이 디자인 파일이 맞다고 했다. 명세를 디자인에 맞게 고칠지 정한다. (1) FN-HLT-011-02 "캐릭터 없으면 예시 그림" vs 지금 기본 아이콘(캐릭터 만들기 카드는 캐릭터 상태가 없어 뺌), (2) FN-HLT-011-07 "이탈 판정 없음" vs 범위를 벗어난 구간·점·마지막 값 빨간색, (3) 모바일 히어로·묶음 탭·검사 수치·관찰 기록 배치(추가-11~18)와 그래프 최대·최소 왼쪽 눈금은 시안·명세에 없다
+- 결정 필요(SCR-HLT-011, 디자인 담당): 명세와 디자인이 다르다. 사람이 디자인 파일이 맞다고 했다. 명세를 디자인에 맞게 고칠지 정한다. (1) FN-HLT-011-02 "캐릭터 없으면 예시 그림" vs 지금 디자인의 "캐릭터 만들기" 카드(주양육·미생성, 2026-11-01 되살림), (2) FN-HLT-011-07 "이탈 판정 없음" vs 범위를 벗어난 구간·점·마지막 값 빨간색, (3) 모바일 히어로·묶음 탭·검사 수치·관찰 기록 배치(추가-11~18)와 그래프 최대·최소 왼쪽 눈금은 시안·명세에 없다
 - 참고(SCR-HLT-011): 칩 줄이 여러 줄로 꺾이면 세로 구분선·등록 버튼이 마지막 줄 맨 앞으로 내려간다(10마리 계정에서 보임). 390px에서는 칩 줄이 가로로 밀려 등록 버튼이 화면 밖에 있다. `ConditionCard` 목록 key가 같은 항목이 두 번이면 겹칠 수 있다. `diary/LineChart.jsx` 선택 속성: `bandLabelSide`, `isLeftColumn`, `activeIndex`. 모바일 프로필 태그는 긴 값이면 넘칠 수 있다
 - 결정 필요(LJS): 히어로 색 `#f9eaa6`(선택 칩·기준일 점)·`#dbe8e8`(글자)은 토큰이 없다. 공용 `assets/index.css`에 토큰을 더할지 정한다
 - 결정 필요(SCR-HLT-003 추가 요청): 명세 v1.1·시안과 달라졌다. 한 화면 세로 배치 → 탭 둘(추가-6), [새 일정 등록]이 날짜 상세 카드 오른쪽 위(추가-1), 카드 머리·빈 상태 버튼이 채운 주 버튼 색(추가-2·5), 오른쪽 열 높이 배분(추가-3), 굵은 구분선(추가-7·8)을 고칠지 정한다. 시안은 퍼블리싱 담당에게 알린다

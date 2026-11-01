@@ -5,9 +5,10 @@ import Icon from '@/components/Icon';
 import PetFace from '@/components/PetFace';
 import { PATHS } from '@/routes/paths';
 import { diffDays, formatDate } from '@/utils/formatDate';
-import { CHRC_STTS } from '@/utils/petCodes';
+import { BRUP_ROLE, CHRC_STTS } from '@/utils/petCodes';
 import { formatAge, getGndrName, getVrtyName } from '@/utils/petFormat';
 import { DOSING } from '../checkup/checkupTypes';
+import { usePixelCharacters } from '../queries';
 import { getInspectionName } from '../summaryApi';
 import { countItems, formatRange } from './summaryUtils';
 
@@ -19,7 +20,8 @@ const REGISTER_PATH = `${PATHS.MYPAGE_PETS}?register=1`;
  * - 탭은 반려동물이 2마리 이상일 때만. 칩마다 캐릭터 그림(없으면 종별 기본 이미지) 원 + 이름(등록 순서 그대로), 선택한 칩만 노란색
  * - 탭 뒤 세로 구분선과 점선 [+ 반려동물 등록] 버튼, 항상 보임
  * - 칩과 큰 이미지 모두 공용 PetFace(캐릭터 얼굴). 이미지가 없거나 못 받으면 종별 기본 아이콘, 캐릭터 오류 확인 중(bscCharSbstYn)이면 흑백
- * - 반려동물 목록 응답에 캐릭터 상태가 없어 "캐릭터 만들기" 빈 자리 카드는 두지 않는다
+ * - 큰 이미지 자리: 주양육이고 캐릭터가 없으면(GET /pixel-characters 행에 pixelCharSn 없음) "캐릭터 만들기" 빈 자리 카드
+ * - 공동양육·캐릭터 있음(생성 중·실패 포함)·캐릭터 목록 조회 중·실패는 PetFace
  */
 export default function SummaryHero({
   pets,
@@ -32,6 +34,14 @@ export default function SummaryHero({
   const firstDosing = prescriptions.find((item) => item.prscSttsCd === DOSING);
   const allergyCount = countItems(profile.algyCn);
   const diseaseCount = countItems(profile.dssCn);
+  const { data: pixelCharacters } = usePixelCharacters();
+  const pixelCharacter = pixelCharacters?.find(
+    (item) => item.petSn === pet.petSn,
+  );
+  const isCharacterSlot =
+    pet.brupRoleCd === BRUP_ROLE.PRIMARY &&
+    pixelCharacter != null &&
+    pixelCharacter.pixelCharSn == null;
   const petRowRef = useRef(null);
   const [hasMoreRight, setHasMoreRight] = useState(false);
 
@@ -117,7 +127,11 @@ export default function SummaryHero({
 
       <div className="mt-7 grid gap-4 max-sm:mt-4 max-sm:gap-3 min-[1101px]:grid-cols-[minmax(280px,370px)_minmax(0,1fr)]">
         <div className="flex items-center gap-4 rounded-[14px] border border-white/16 bg-[rgba(9,32,34,0.28)] p-5 max-sm:gap-3 max-sm:p-3.5">
-          <PetImage pet={pet} className="size-28 max-sm:size-20" isLarge />
+          {isCharacterSlot ? (
+            <CharacterSlot />
+          ) : (
+            <PetImage pet={pet} className="size-28 max-sm:size-20" isLarge />
+          )}
           <div className="min-w-0">
             <p className="text-lg leading-none font-bold">{pet.petNm}</p>
             <p className="mt-1 text-[#dbe8e8] max-sm:text-sm">
@@ -206,6 +220,31 @@ function PetImage({ pet, className, isLarge = false }) {
       } ${className}`}
       iconClassName="size-3/5"
     />
+  );
+}
+
+/**
+ * 캐릭터 미생성(주양육)일 때 큰 이미지 자리의 빈 자리 카드
+ * - 큰 이미지와 같은 크기, 전체가 마이페이지 캐릭터 목록으로 가는 링크 (모달은 열지 않음)
+ * - 겉은 반투명 흰 점선(반려동물 등록 버튼과 같음), "+" 뒤 빛번짐은 2초 주기로 밝아졌다 흐려짐. 움직임 줄이기 설정이면 멈춤
+ */
+function CharacterSlot() {
+  return (
+    <Link
+      to={PATHS.MYPAGE_CHARACTERS}
+      className="group flex size-28 shrink-0 flex-col items-center justify-center gap-2 rounded-modal border border-dashed border-white/50 bg-white/12 text-center text-badge leading-tight font-semibold hover:border-white hover:bg-white/20 focus-visible:border-white max-sm:size-20 max-sm:gap-1"
+    >
+      <span
+        aria-hidden="true"
+        className="relative grid size-9 place-items-center max-sm:size-7"
+      >
+        <span className="absolute inset-0 animate-pulse rounded-full bg-white/40 blur-sm motion-reduce:animate-none" />
+        <span className="relative grid size-full place-items-center rounded-full border border-white/80 text-white">
+          <Plus className="size-5 max-sm:size-4" />
+        </span>
+      </span>
+      <span>캐릭터 만들기</span>
+    </Link>
   );
 }
 
