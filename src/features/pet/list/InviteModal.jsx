@@ -2,7 +2,7 @@ import { CircleAlert, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { showToast } from '@/components/toastStore';
 import { useCaregiversOf, useCreateInvitation } from '../queries';
-import { BRUP_ROLE, CGVR_ROLE, MAX_CAREGIVERS } from '@/utils/petCodes';
+import { BRUP_ROLE, MAX_CAREGIVERS } from '@/utils/petCodes';
 
 /**
  * [가족 초대하기 모달]
@@ -35,7 +35,8 @@ export default function InviteModal({ pets, initialPetSn, onClose }) {
       return [
         pet.petSn,
         caregivers
-          ? caregivers.filter((c) => c.cgvrRoleCd === CGVR_ROLE.CCG).length
+          ? caregivers.filter((c) => c.brupRoleCd === BRUP_ROLE.CO_PARENT)
+              .length
           : null,
       ];
     }),

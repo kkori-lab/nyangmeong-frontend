@@ -4,24 +4,27 @@ import Badge from '@/components/Badge';
 import Skeleton from '@/components/Skeleton';
 import { showToast } from '@/components/toastStore';
 import { useCaregivers, useDeleteCaregiver } from '../queries';
-import { CGVR_ROLE, MAX_CAREGIVERS } from '@/utils/petCodes';
+import { BRUP_ROLE, MAX_CAREGIVERS } from '@/utils/petCodes';
 
 /** 'YYYY-MM-DD' → 'MM-DD' */
-const formatLinkDate = (lnkDt) => lnkDt.slice(5);
+const formatLinkDate = (linkYmd) => linkYmd.slice(5);
 
 function CaregiverDeleteDialog({ pet, caregiver, onClose }) {
   const deleteCaregiver = useDeleteCaregiver();
 
   const handleDelete = () =>
     deleteCaregiver.mutate(
-      { petSn: pet.petSn, rltnSn: caregiver.rltnSn },
+      { petSn: pet.petSn, brupRelSn: caregiver.brupRelSn },
       {
         onSuccess: () => {
           onClose();
           showToast('연동을 해제했어요');
         },
-        onError: () =>
-          showToast('해제하지 못했어요. 잠시 후 다시 시도해 주세요'),
+        onError: (error) => {
+          /** 이미 해제된 연동이면 목록은 다시 읽히므로 창을 닫는다 */
+          if (error.code === 'CAREGIVER_NOT_FOUND') onClose();
+          showToast(error.message);
+        },
       },
     );
 
@@ -113,7 +116,7 @@ function MemberCard({ name, badge, lines, onRemove, removeLabel }) {
 const GRID =
   'grid grid-cols-2 gap-3 min-[761px]:grid-cols-3 min-[1101px]:grid-cols-5';
 
-/** 슬라이드 카드 안 가족 영역: 주양육자는 연동 전원, 공동양육자는 주양육자와 본인 연동 1건 */
+/** 슬라이드 카드 안 가족 영역: 주양육자는 공동양육자 전원, 공동양육자는 주양육자와 본인 연동 1건 */
 export default function FamilySection({ pet, onInvite }) {
   const { data: caregivers = [], isPending } = useCaregivers(pet.petSn);
   const [deletingCaregiver, setDeletingCaregiver] = useState(null);
@@ -127,15 +130,15 @@ export default function FamilySection({ pet, onInvite }) {
   }
 
   const owner = caregivers.find(
-    (caregiver) => caregiver.cgvrRoleCd === CGVR_ROLE.PCG,
+    (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.PRIMARY,
   );
   const coParents = caregivers.filter(
-    (caregiver) => caregiver.cgvrRoleCd === CGVR_ROLE.CCG,
+    (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.CO_PARENT,
   );
 
-  /** 공동양육자 시점: 주양육자와 나만, 삭제·초대 없음 */
-  if (owner) {
-    const mine = coParents.find((caregiver) => caregiver.myYn === 'Y');
+  /** 공동양육자 시점: 주양육자와 나만, 삭제·초대 없음 (서버가 공동양육자에게는 본인 1건만 준다) */
+  if (pet.brupRoleCd === BRUP_ROLE.CO_PARENT) {
+    const mine = coParents[0];
     return (
       <section
         aria-labelledby="family-title"
@@ -146,7 +149,7 @@ export default function FamilySection({ pet, onInvite }) {
         </h3>
         <ul className={GRID}>
           <MemberCard
-            name={owner.mbrNcnm}
+            name={owner?.mbrNcnm ?? ''}
             badge={
               <Badge className="bg-tone-green-bg text-tone-green-fg">
                 주양육
@@ -162,7 +165,7 @@ export default function FamilySection({ pet, onInvite }) {
                   공동양육
                 </Badge>
               }
-              lines={[mine.authrtNm, `${formatLinkDate(mine.lnkDt)} 연동`]}
+              lines={[`${formatLinkDate(mine.linkYmd)} 연동`]}
             />
           )}
         </ul>
@@ -191,12 +194,9 @@ export default function FamilySection({ pet, onInvite }) {
       <ul className={GRID}>
         {coParents.map((caregiver) => (
           <MemberCard
-            key={caregiver.rltnSn}
+            key={caregiver.brupRelSn}
             name={caregiver.mbrNcnm}
-            lines={[
-              caregiver.authrtNm,
-              `${formatLinkDate(caregiver.lnkDt)} 연동`,
-            ]}
+            lines={[`${formatLinkDate(caregiver.linkYmd)} 연동`]}
             onRemove={() => setDeletingCaregiver(caregiver)}
             removeLabel={`${caregiver.mbrNcnm} 가족에서 삭제`}
           />
