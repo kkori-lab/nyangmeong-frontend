@@ -136,12 +136,14 @@
 - 연결 남음: FN-HLT-007-02·03 수정 (백엔드 연결 `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}` 참고범위 비우기, 백엔드 저장소에서 /start)
 - 연결 남음: FN-HLT-007-04·06 (검사결과지 PDF 분석 호출부, LJS. `checkupApi.js` `analyzeLabPdf` 가짜)
 
-## SCR-HLT-002 건강 일지 · 일상 기록 API 연결 — 대기
+## SCR-HLT-002 건강 일지 · 일상 기록 API 연결 — 끝
 
 - 함께 바꿀 것(반려동물 목록): 건강 일지는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다(건강 일지의 다른 연결에서 이미 바꿨으면 넘어간다). 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 건강기록 변화 탭의 반려동물 드롭다운·그래프·오늘의 기록 카드·[오늘 기록추가] 입력 영역·최근 건강기록 표·상세 기록 모달 인라인 수정·삭제를 실제 API로 연결 (명세 기능 ID 추가 없음, FN-HLT-002-01·09~13에 걸침). 목록 `GET /pets/{petSn}/daily-health-records?dailyRcdIdctCd=&fromYmd=&toYmd=&size=`(size 1~100이면 최신 N건, 결과는 항상 `rcdDt` 오름차순, 서버는 날짜별로 묶지 않음 — 그래프는 `size=14`로 받은 뒤 가장 이른 날짜를 `fromYmd`로 한 번 더 불러 하루 합계를 맞춘다), 등록 `POST`(배변상태 HLTC0017은 `crsdSttsCd`(HLTG10)만, 그 밖은 `rcdNvl`만, 201), 수정 `PATCH …/{dailyHlthRcdSn}`(보낸 값만, 지표와 안 맞는 필드는 400), 삭제 `DELETE …/{dailyHlthRcdSn}`. 반려동물 목록은 `GET /pets`
-- 기다리는 것: 백엔드 일상 건강기록 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증·사람 확인 끝, develop 병합 전)
+- 기다리는 것: 없음 (백엔드 일상 건강기록 API는 develop에 머지됨, `2294375`)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 오늘 기록추가로 저장하면 오늘의 기록 카드·그래프·최근 건강기록 표에 바로 반영되고, 상세 기록 모달에서 한 줄을 고치거나 지우면 세 곳이 함께 바뀐다
+- 결정: 반려동물 목록은 이미 실제 `useMyPets`였다. 일상 기록 가짜는 `getFakeDailyRecords`로 종합 건강기록 전용으로 남김(011 연결 때 지움), `?fakeDaily=`는 다른 가짜가 써서 남김
+- 연결 남음: 없음
 
 ## SCR-HLT-002 건강 일지 · 지속 관찰 API 연결 — 대기
 
