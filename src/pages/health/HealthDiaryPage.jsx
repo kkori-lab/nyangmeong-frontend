@@ -196,7 +196,7 @@ export default function HealthDiaryPage() {
   }
 
   const selectedPet = pets.find((pet) => pet.petSn === selectedPetSn);
-  const records = recordData?.content ?? [];
+  const records = recordData ?? [];
 
   const openRecordForm = (typeCd) =>
     setRecordForm({ typeCd, token: Date.now() });
@@ -243,11 +243,7 @@ export default function HealthDiaryPage() {
           className="flex min-w-0 flex-col gap-7"
         >
           <div className="grid items-stretch gap-5 min-[1101px]:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-            <DailyTrendCard
-              pet={selectedPet}
-              records={records}
-              onAddRecord={openRecordForm}
-            />
+            <DailyTrendCard pet={selectedPet} onAddRecord={openRecordForm} />
             <TodayRecordCard
               records={records}
               todayYmd={todayYmd}
@@ -266,7 +262,11 @@ export default function HealthDiaryPage() {
             />
           )}
 
-          <RecentRecordTable records={records} todayYmd={todayYmd} />
+          <RecentRecordTable
+            petSn={selectedPet.petSn}
+            records={records}
+            todayYmd={todayYmd}
+          />
         </div>
       )}
 

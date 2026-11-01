@@ -1,23 +1,28 @@
 import { api } from '@/api/axios';
-import { addDays, getTodayYmd, getYear } from '@/utils/formatDate';
+import { addDays, getTodayYmd, getYear, getYmdOf } from '@/utils/formatDate';
 import {
   findNearHospitalSchedule,
   getQueryParam,
   moveLinkedCareItems,
 } from './api';
-import { MEAL, STOOL, WALK, WATER, WEIGHT } from './diaryTypes';
+import { RECENT_RECORD_COUNT } from './diary/recordUtils';
+import { MEAL, NORMAL_STOOL, STOOL, WALK, WATER, WEIGHT } from './diaryTypes';
 
 /**
  * [건강 일지 API]
- * - 검진기록은 실제 API(JAJ 백엔드). 종합 건강기록은 아직 아래 가짜 검진기록(getFakeCheckups)을 쓴다
- * - 일상 기록·지속 관찰 API(JAJ 백엔드)가 생기기 전까지 쓰는 가짜 응답
- * - 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
- * - 개발 환경에서만 ?fakeDaily=0(일상 기록 0건), ?fakeDaily=1(종류마다 1건)
+ * - 일상 기록·검진기록은 실제 API(JAJ 백엔드)
+ * - 종합 건강기록은 아직 아래 가짜 일상 기록(getFakeDailyRecords)·가짜 검진기록(getFakeCheckups)을 쓴다
+ * - 지속 관찰 API(JAJ 백엔드)가 생기기 전까지 쓰는 가짜 응답
+ * - 가짜 필드 이름은 ERD 약어 기준 가안이고 메모리 배열이라 새로고침하면 처음 상태로 돌아감
+ * - 개발 환경에서만 ?fakeDaily=0(지속 관찰·가짜 검진기록 0건), ?fakeDaily=1(종류마다 1건)
  */
 
 const today = getTodayYmd();
 
-/** 일상 기록 */
+/** 최근 건강기록 표의 가장 긴 조회기간(일) */
+const RECENT_DAYS = 14;
+
+/** 일상 기록 가짜(종합 건강기록 전용) */
 
 let nextDlyRcdSn = 1000;
 
@@ -39,7 +44,7 @@ const buildFakeRecords = () => {
       makeRecord(1, WEIGHT, -1, '08:15', 3.8),
       makeRecord(1, MEAL, -1, '09:10', 180),
       makeRecord(1, WATER, -1, '10:20', 150),
-      makeRecord(1, STOOL, -1, '11:00', 'NRML'),
+      makeRecord(1, STOOL, -1, '11:00', NORMAL_STOOL),
       makeRecord(1, WALK, -1, '12:30', 15),
     ];
   }
@@ -75,7 +80,13 @@ const buildFakeRecords = () => {
       makeRecord(1, WATER, offset, '10:00', 120 + ((offset * -3) % 4) * 15),
       makeRecord(1, WATER, offset, '20:00', 110 + ((offset * -5) % 3) * 20),
       makeRecord(1, WALK, offset, '17:30', 20 + ((offset * -7) % 5) * 5),
-      makeRecord(1, STOOL, offset, '08:40', offset === -4 ? 'SOFT' : 'NRML'),
+      makeRecord(
+        1,
+        STOOL,
+        offset,
+        '08:40',
+        offset === -4 ? 'HLTC0021' : NORMAL_STOOL,
+      ),
     );
   }
   records.push(
@@ -91,45 +102,61 @@ const buildFakeRecords = () => {
 
 let fakeRecords = buildFakeRecords();
 
-export const getDailyRecords = ({ petSn }) =>
+export const getFakeDailyRecords = ({ petSn }) =>
   Promise.resolve({
     content: fakeRecords
       .filter((record) => record.petSn === petSn)
       .map((record) => ({ ...record })),
   });
 
-const pickRecordFields = (body) => ({
-  rcdTm: body.rcdTm,
-  rcdVal: body.rcdTypeCd === STOOL ? null : Number(body.rcdVal),
-  stlSttsCd: body.rcdTypeCd === STOOL ? body.stlSttsCd : null,
-});
+/**
+ * 일상 기록 목록(기록일시 오름차순). 날짜 범위만 주면 그 기간 전체, size를 주면 지표별 최신 N건
+ * - 서버는 날짜별로 묶지 않는다
+ */
+const searchDailyRecords = ({ petSn, ...params }) =>
+  api.get(`/pets/${petSn}/daily-health-records`, { params });
 
-export const createDailyRecord = (body) => {
-  const record = {
-    dlyRcdSn: nextDlyRcdSn++,
-    petSn: body.petSn,
-    rcdTypeCd: body.rcdTypeCd,
-    rcdYmd: body.rcdYmd,
-    ...pickRecordFields(body),
-  };
-  fakeRecords = [...fakeRecords, record];
-  return Promise.resolve({ ...record });
+/** 오늘의 기록·최근 건강기록 표: 오늘을 포함한 최근 14일 전부 */
+export const getDailyRecords = ({ petSn }) =>
+  searchDailyRecords({
+    petSn,
+    fromYmd: addDays(getTodayYmd(), -(RECENT_DAYS - 1)),
+    toYmd: getTodayYmd(),
+  });
+
+/**
+ * 그래프용 한 지표의 최근 기록 14개
+ * - 식사량·음수량·산책은 하루 합계로 그리므로 받은 기록 중 가장 이른 날짜의 기록을 모두 받아 합친다
+ */
+export const getDailyTrend = async ({ petSn, dailyRcdIdctCd }) => {
+  const recent = await searchDailyRecords({
+    petSn,
+    dailyRcdIdctCd,
+    size: RECENT_RECORD_COUNT,
+  });
+  if (
+    recent.length === 0 ||
+    dailyRcdIdctCd === WEIGHT ||
+    dailyRcdIdctCd === STOOL
+  ) {
+    return recent;
+  }
+  return searchDailyRecords({
+    petSn,
+    dailyRcdIdctCd,
+    fromYmd: getYmdOf(recent[0].rcdDt),
+  });
 };
 
-/** 종류·날짜는 바꾸지 않고 시각과 값만 수정 */
-export const updateDailyRecord = ({ dlyRcdSn, ...body }) => {
-  const target = fakeRecords.find((record) => record.dlyRcdSn === dlyRcdSn);
-  Object.assign(
-    target,
-    pickRecordFields({ ...body, rcdTypeCd: target.rcdTypeCd }),
-  );
-  return Promise.resolve({ ...target });
-};
+export const createDailyRecord = ({ petSn, body }) =>
+  api.post(`/pets/${petSn}/daily-health-records`, body);
 
-export const deleteDailyRecord = (dlyRcdSn) => {
-  fakeRecords = fakeRecords.filter((record) => record.dlyRcdSn !== dlyRcdSn);
-  return Promise.resolve();
-};
+/** 지표·반려동물은 바꾸지 않고 시각과 값만 수정 */
+export const updateDailyRecord = ({ petSn, dailyHlthRcdSn, body }) =>
+  api.patch(`/pets/${petSn}/daily-health-records/${dailyHlthRcdSn}`, body);
+
+export const deleteDailyRecord = ({ petSn, dailyHlthRcdSn }) =>
+  api.delete(`/pets/${petSn}/daily-health-records/${dailyHlthRcdSn}`);
 
 /** 지속 관찰 */
 
@@ -453,9 +480,7 @@ export const getCheckupYears = async (petSn) => {
     page: newest.totalElements,
   });
   const newestYear = getYear(newest.content[0].ckupYmd);
-  const oldestYear = getYear(
-    (oldest.content[0] ?? newest.content[0]).ckupYmd,
-  );
+  const oldestYear = getYear((oldest.content[0] ?? newest.content[0]).ckupYmd);
   return Array.from(
     { length: newestYear - oldestYear + 1 },
     (_, index) => newestYear - index,
@@ -482,10 +507,7 @@ export const getCheckup = ({ petSn, ckupRcdSn }) =>
  * - 검진상세 가짜 연동 케어 항목도 함께 옮긴다
  */
 export const updateCheckup = async ({ petSn, ckupRcdSn, body }) => {
-  const checkup = await api.patch(
-    `/pets/${petSn}/checkups/${ckupRcdSn}`,
-    body,
-  );
+  const checkup = await api.patch(`/pets/${petSn}/checkups/${ckupRcdSn}`, body);
   if (checkup.petSn !== petSn) {
     moveLinkedCareItems({ ckupRcdSn, petSn: checkup.petSn });
   }

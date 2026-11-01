@@ -1,23 +1,35 @@
 /**
  * [건강 일지 코드값]
- * - 코드값은 공통코드가 정해지기 전의 가안, 백엔드 코드값이 나오면 맞춤
+ * - 코드값은 백엔드 공통코드(HLTG09 지표·HLTG10 배변상태)
  * - 일상 기록 종류·배변 상태·관찰 부위·관찰 변화
  */
 
 /** 일상 기록 종류. tabNm은 건강기록 변화 지표 탭 이름 */
 export const RECORD_TYPES = [
-  { cd: 'WGT', nm: '체중', tabNm: '체중', unit: 'kg', valueLabel: '무게' },
-  { cd: 'MEAL', nm: '식사량', tabNm: '식사량', unit: 'g', valueLabel: '양' },
-  { cd: 'WATR', nm: '음수량', tabNm: '음수량', unit: 'ml', valueLabel: '양' },
+  { cd: 'HLTC0014', nm: '체중', tabNm: '체중', unit: 'kg', valueLabel: '무게' },
   {
-    cd: 'STL',
+    cd: 'HLTC0015',
+    nm: '식사량',
+    tabNm: '식사량',
+    unit: 'g',
+    valueLabel: '양',
+  },
+  {
+    cd: 'HLTC0016',
+    nm: '음수량',
+    tabNm: '음수량',
+    unit: 'ml',
+    valueLabel: '양',
+  },
+  {
+    cd: 'HLTC0017',
     nm: '배변상태',
     tabNm: '배변 상태',
     unit: '',
     valueLabel: '상태',
   },
   {
-    cd: 'WALK',
+    cd: 'HLTC0018',
     nm: '산책',
     tabNm: '산책',
     unit: '분',
@@ -25,25 +37,25 @@ export const RECORD_TYPES = [
   },
 ];
 
-export const WEIGHT = 'WGT';
-export const MEAL = 'MEAL';
-export const WATER = 'WATR';
-export const STOOL = 'STL';
-export const WALK = 'WALK';
+export const WEIGHT = 'HLTC0014';
+export const MEAL = 'HLTC0015';
+export const WATER = 'HLTC0016';
+export const STOOL = 'HLTC0017';
+export const WALK = 'HLTC0018';
 
 /** 오늘의 기록 줄 순서 */
 export const TODAY_RECORD_ORDER = [MEAL, WATER, WALK, WEIGHT, STOOL];
 
 /** 배변 상태. 막대 그래프의 고정 순서이며 첫 항목만 정상 */
 export const STOOL_STATES = [
-  { cd: 'NRML', nm: '정상' },
-  { cd: 'HARD', nm: '딱딱함' },
-  { cd: 'SOFT', nm: '무름' },
-  { cd: 'DIAR', nm: '설사' },
-  { cd: 'CNST', nm: '변비' },
+  { cd: 'HLTC0019', nm: '정상' },
+  { cd: 'HLTC0020', nm: '딱딱함' },
+  { cd: 'HLTC0021', nm: '무름' },
+  { cd: 'HLTC0022', nm: '설사' },
+  { cd: 'HLTC0023', nm: '변비' },
 ];
 
-export const NORMAL_STOOL = 'NRML';
+export const NORMAL_STOOL = 'HLTC0019';
 
 /** 관찰 부위 대분류 */
 export const OBSERVATION_PARTS = [

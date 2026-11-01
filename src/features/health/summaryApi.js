@@ -2,7 +2,11 @@ import { addDays, getTodayYmd, getYear, getYmdOf } from '@/utils/formatDate';
 import { getFakeScheduleList, getQueryParam } from './api';
 import { DOSING } from './checkup/checkupTypes';
 import { getCheckupTabs } from './checkupApi';
-import { getDailyRecords, getFakeCheckups, getObservations } from './diaryApi';
+import {
+  getFakeCheckups,
+  getFakeDailyRecords,
+  getObservations,
+} from './diaryApi';
 import { WEIGHT } from './diaryTypes';
 import { HOSPITAL } from './scheduleTypes';
 
@@ -121,7 +125,10 @@ export const getHealthSummary = async (petSn) => {
   // ?fakePets=8로 늘어난 반려동물은 앞 세 마리 프로필을 돌려 쓴다
   const profile = fakeProfiles[petSn] ?? fakeProfiles[((petSn - 1) % 3) + 1];
   const [{ content: dailyRecords }, { content: observationItems }] =
-    await Promise.all([getDailyRecords({ petSn }), getObservations({ petSn })]);
+    await Promise.all([
+      getFakeDailyRecords({ petSn }),
+      getObservations({ petSn }),
+    ]);
   const endYmd = addDays(today, 730);
   const schedules = (await getFakeScheduleList()).filter((schedule) => {
     const ymd = getYmdOf(schedule.schdlDt);
