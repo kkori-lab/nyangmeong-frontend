@@ -2,16 +2,19 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-002 건강 일지 · 일상 기록 API 연결 (2026-11-01). 검증 1회차 통과, 사람 확인 끝. 그래프·오늘의 기록·최근 건강기록 표·오늘 기록하기·상세 기록 모달 수정·삭제가 실제 `daily-health-records` API, 지표·배변 코드는 공통코드 HLTC0014~0023
+끝남: SCR-HLT-002 건강 일지 · 지속 관찰 API 연결 (2026-11-01). 검증 통과(추가-1·2 반영 후 재검증), 사람 확인 끝. 관찰 항목 목록·회차 필름스트립·그래프·회차 상세·모달 A/B·회차 수정·삭제·관찰 종료가 실제 `observation-items`·`observation-cycles` API, 회차 사진은 `diary/ObservationPhoto.jsx`(useFileImage), 부위·변화·상태는 공통코드 HLTC0043~0056
 
 ## 다음에 할 것
 
-- 참고(SCR-HLT-002 일상 기록): 그래프는 선택한 지표만 `size=14`로 받고 식사량·음수량·산책은 가장 이른 날짜를 `fromYmd`로 한 번 더 받는다. 오늘의 기록·표는 최근 14일을 한 번에 받는다. 일상 기록 가짜는 `getFakeDailyRecords`로 이름을 바꿔 종합 건강기록만 쓴다. `?fakeDaily=`는 종합 건강기록 가짜·지속 관찰·가짜 검진기록에 아직 쓰여 남겨 뒀다(각 연결 때 지움)
+- 연결 남음: FN-HLT-002-19·23·24 회차 수정 비우기 (백엔드 연결 `PATCH …/observation-cycles/{obsrvCyclSn}`, 백엔드 저장소에서 /start, 백엔드 `milestones/JAJ.md`에 대기 절 넣음): `PATCH /pets/{petSn}/observation-cycles/{obsrvCyclSn}`(`ObservationCycleUpdateRequest`)가 보내지 않은 값과 빈 값을 모두 "안 바꿈"으로 받아, 수정에서 크기(`obsrvSz`)·메모(`memoCn`)를 지울 수 없다(변화 `obsrvChgCd`도 같음). 빈 문자열을 보내면 NULL로 비우는 등 "비우기"를 받을 수 있게 고친다. 백엔드가 바뀐 뒤 프론트 `diaryApi.js` `updateObservationCycle`이 빈 칸도 보내게 바꾸고(지금은 `appendIfFilled`로 값이 있을 때만 보냄), 수정 모달에서 크기·메모를 비워 저장하면 상세에서 그 줄이 사라지는지 확인한다
+- 알릴 것(공용 `api/axios.js`·백엔드 인증 담당): 지속 관찰 검증 중 액세스 쿠키가 만료되자 POST가 `TOKEN_EXPIRED`가 아닌 401을 받아 재발급 없이 로그인 화면으로 갔다(뒤에 `/auth/refresh`는 200). 이번 변경과 관계없음
+- 참고(SCR-HLT-002 지속 관찰): 관찰 사진 캐시 키는 `healthKeys.observationPhoto`. 등록·삭제·종료 때 사진은 다시 받지 않고 사진을 바꾼 수정만 다시 받는다. 검증 데이터(탄이 petSn 2의 관찰 항목 201~208)는 DB에서 지웠고 사진 첨부 행 `ATCH_FILE_SN` 4191~4194·4197~4211과 파일은 남아 있다. 종합 건강기록 관찰 카드는 가짜 필드용 `formatFakePart`를 쓴다(011 연결 때 지움)
+- 참고(SCR-HLT-002 일상 기록): 그래프는 선택한 지표만 `size=14`로 받고 식사량·음수량·산책은 가장 이른 날짜를 `fromYmd`로 한 번 더 받는다. 오늘의 기록·표는 최근 14일을 한 번에 받는다. 일상 기록 가짜는 `getFakeDailyRecords`로 이름을 바꿔 종합 건강기록만 쓴다. `?fakeDaily=`는 종합 건강기록 가짜(일상 기록·지속 관찰·검진기록)에 아직 쓰여 남겨 뒀다(011 연결 때 지움)
 - 연결 남음(SCR-HLT-007): FN-HLT-007-02·03 수정 화면의 참고범위 비우기 (백엔드 연결 `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}`가 `null`을 "안 바꿈"으로 받음, 백엔드 저장소에서 /start. 지금은 화면이 "참고범위는 수정에서 지울 수 없어요"로 막음), FN-HLT-007-04·06 검사결과지 PDF 분석 호출부 (LJS, `checkupApi.js` `analyzeLabPdf` 가짜, 응답의 `bloodYn`은 가정)
 - 알릴 것(백엔드 기준 데이터): SDMA `HLTC0078`이 백엔드 `db/20261030_insert_base_data_v0.11.sql` HLTG12에 없다. 공용 DB에는 사람이 넣었다. 새로 DB를 만들면 SDMA 저장이 500이 난다
 - 참고(SCR-HLT-005): 검진상세 PDF 분석(`analyzeLabPdf`)만 가짜다(검사 수치 저장·수정은 SCR-HLT-007에서 실제 API로 바꿈). 첨부 목록은 서버 최대 50건만 받는다. 기능 태그(혈구·신장·간·당)는 서버가 주지 않아 `labInput/bloodItems.js`에서 항목 약어로 찾는다. 반복 예방 행의 "처방약 연동" 배지는 이전부터 있던 문구라 그대로다. PR 캡처는 세션 만료로 남지 않아 다시 찍어야 한다
 - 알릴 것(팀): 검진상세·검사 수치 입력 주소가 `/health/pets/:petSn/checkups/:ckupRcdSn`(`/inspections`)로 바뀌었다(`routes/paths.js`, `docs/routes.md` HLT-005·007). `docs/routes.md` 0장 규칙은 JAJ가 직접 고치고 팀에 공유한다
-- 참고(SCR-HLT-002 검진기록): 목록 행에 서버가 `ckupCn`을 주지 않아 검진 내용 줄이 없어졌다. 연도 목록은 `size=1` 두 번(최신·가장 오래된 기록)으로 만든다. 영수증 저장은 반려동물마다 실제 `POST checkups`를 따로 보내 중간 실패 때 앞 기록이 남고, 영수증 번호(`recptSn`)·처방 약품·가계부는 가짜 그대로다. 지속 관찰 탭은 실제 반려동물 번호와 가짜 데이터가 맞지 않아 "기록 없음"이다(관찰 API 연결 때 채움). 종합 건강기록의 검진상세 링크는 가짜 번호라 "찾을 수 없어요"(011 연결 때 해결)
+- 참고(SCR-HLT-002 검진기록): 목록 행에 서버가 `ckupCn`을 주지 않아 검진 내용 줄이 없어졌다. 연도 목록은 `size=1` 두 번(최신·가장 오래된 기록)으로 만든다. 영수증 저장은 반려동물마다 실제 `POST checkups`를 따로 보내 중간 실패 때 앞 기록이 남고, 영수증 번호(`recptSn`)·처방 약품·가계부는 가짜 그대로다. 종합 건강기록의 검진상세 링크는 가짜 번호라 "찾을 수 없어요"(011 연결 때 해결)
 - 검증용 데이터(공용 DB): 반려동물 "구름"(petSn 17)에 검진기록 1001·처방약 443("검증용 투약", 하루 2회, 2026-10-31~11-07) → 케어 항목 3272. 투약 확인에 다시 쓴다. 계정은 저장소에 적지 않는다. 사람 확인 때 만든 검진기록 1026("ff", 일정 4915에 연결)과 다른 반려동물로 옮겼을 수 있는 1016은 지우지 않고 남아 있다
 
 - 연결 남음(공용 · PetFace 올리기): 캐릭터 얼굴 이미지 실제 응답 `GET /pets/{petSn}/character-image?part=face` (LJS 백엔드, 지금은 502라 기본 아이콘)
@@ -19,7 +22,7 @@
 - 참고(SCR-HLT-002, 실패 아님): 최근 건강기록 모바일 한 줄 요약은 기록 있는 종류만 잇는다. 390px 그래프 x축 날짜 글자가 붙는다(이전부터). 폭이 정확히 760px이면 `isLarge` 모달이 `max-[760px]`·`min-[761px]` 어느 쪽에도 걸리지 않아 기본 크기로 열린다(이전부터)
 - 알릴 것(시안 담당): 건강 일지 반려동물 선택이 칩 막대 → 초록 알약형 셀렉트(히어로 `bg-brand-500`·흰 글자, 이름 칸 세 글자 폭, 넘치면 말줄임)로 바뀌었다(추가-1~3). 오늘 기록하기 한 줄, 검진기록 제목 옆 연도 선택, 모바일 지속 관찰 목록→상세, 관찰 0건에도 카드 머리 등록 버튼, 상세 기록 모달 높이 맞춤·✕ 없음, 검진상세 [건강 일지로 돌아가기] 삭제(추가-4)가 시안(`html/hlt-diary.html`)과 다르다. 사람이 시안을 갱신하기로 함. 페이지 바탕색 `#faf8f5`는 토큰이 없어 `DiaryPetBar.jsx`에 직접 값으로 썼다(토큰이 생기면 바꿈)
 - 알릴 것(공용 파일 담당): `components/Modal.jsx`에 선택 속성 `isAutoHeight`(높이를 내용에 맞춤)·`isCloseIconHidden`(✕ 숨김), `components/DropdownSelect.jsx`에 `isPill`(알약형·히어로 색, 목록은 `min-w-max`)을 더했다. 모두 기본값 꺼짐이라 기존 화면은 그대로다. `components/Card.jsx`는 섹션 이름(`aria-labelledby`)이 제목 글자만 가리키게 id를 제목 `<span>`으로 옮겼다(모양 변화 없음)
-- 연결 남음(SCR-HLT-002): 002-01 캐릭터 이미지 (LJS), 002-15~25·32·33 관찰 API (JAJ 백엔드)
+- 연결 남음(SCR-HLT-002): 002-01 캐릭터 이미지 (LJS)
 
 - 결정 필요(SCR-HLT-011, 디자인 담당): 명세와 디자인이 다르다. 사람이 디자인 파일이 맞다고 했다. 명세를 디자인에 맞게 고칠지 정한다. (1) FN-HLT-011-02 "캐릭터 없으면 예시 그림" vs 지금 "캐릭터 만들기" 점선 카드(추가-5·14), (2) FN-HLT-011-07 "이탈 판정 없음" vs 범위를 벗어난 구간·점·마지막 값 빨간색, (3) 모바일 히어로·묶음 탭·검사 수치·관찰 기록 배치(추가-11~18)와 그래프 최대·최소 왼쪽 눈금은 시안·명세에 없다
 - 참고(SCR-HLT-011): 칩 줄이 여러 줄로 꺾이면(`?fakePets=8`) 세로 구분선·등록 버튼이 마지막 줄 맨 앞으로 내려간다. 390px에서는 칩 줄이 가로로 밀려 등록 버튼이 화면 밖에 있다. 기준안에 없어 그대로 뒀다. `ConditionCard` 목록 key가 같은 항목이 두 번이면 겹칠 수 있다
@@ -41,7 +44,7 @@
 
 - 영수증 등록 가짜 확인용 쿼리(개발 환경만): `?fakeReceipt=zones`·`nozone`, `?fakeLedgerDup=1`, `?fakeReceiptSave=fail`. 인식 실패·15초 초과는 업로드 파일 이름에 `fail`·`slow`
 - 알릴 것(LJS): `routes/domains/devRoutes.js`의 영수증 DEV 화면은 "건강 일지가 영수증 모달을 열면 지움"이라 지워도 된다
-- 연결 남음: 반려동물 프로필(체중 정상범위·목표) (SJM), 캐릭터 이미지 조회 (LJS), 케어 완료의 케어미션·포인트 반영 (SJM), 관찰 API `diaryApi.js` 가짜 응답을 실제 호출로 교체 (JAJ 백엔드), 영수증 번호를 검진기록에 연결(검진기록 API에 `recptSn` 없음, LJS·JAJ 백엔드와 맞춘 뒤)
+- 연결 남음: 반려동물 프로필(체중 정상범위·목표) (SJM), 캐릭터 이미지 조회 (LJS), 케어 완료의 케어미션·포인트 반영 (SJM), 영수증 번호를 검진기록에 연결(검진기록 API에 `recptSn` 없음, LJS·JAJ 백엔드와 맞춘 뒤)
 - 결정 필요: 공용 `ConfirmModal`을 시안 스타일로 맞출지, 우측 아래 플로팅 버튼(시안은 고양이 이미지)을 맞출지(LJS 파일). 앱 전체 본문 줄 높이를 시안 1.6으로 할지(지금은 건강 일지 안에서만 맞춤). 식사량·음수량·산책 그래프의 "최근 14개"를 기록 14건이 걸친 날의 합계로 그렸는데 14일로 바꿀지
 - 영수증 등록 연결 남음: 영수증 인식 결과 전체(YAY, 지금은 LJS 인식 응답 + `receiptApi.js` `getReceiptDetail` 가짜)
 - 알릴 것(LJS): 공용 `layouts/UserHeader.jsx`·`NotificationDropdown.jsx`·`ProfileDropdown.jsx`를 시안 기준으로 수정(Material 아이콘, 새 `headerStyles.js`·`assets/user.svg`), `Card`·`buttonStyles`·`SideMenu`·`PetTabs`(SCR-HLT-003에서 삭제) 줄 높이·색·비활성 스타일 수정, 로컬 Pretendard 글꼴 추가(`assets/fonts/PretendardVariable.woff2` 약 2MB, `index.css` `@font-face`), `eslint.config.js`에 `html` 제외

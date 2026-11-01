@@ -26,7 +26,7 @@ import { MEAL } from '@/features/health/diaryTypes';
 import {
   useDailyRecords,
   useMyPets,
-  useObservations,
+  useObservationItems,
 } from '@/features/health/queries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { showToast } from '@/components/toastStore';
@@ -58,11 +58,11 @@ export default function HealthDiaryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   /** 지속 관찰 모바일 상세 화면으로 연 항목. 주소에 남겨 브라우저 뒤로 가기로 목록에 복귀 */
   const openObsvSn = Number(searchParams.get('obsv')) || null;
-  const openObservation = (obsvItmSn) =>
+  const openObservation = (obsrvArtclSn) =>
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
-        next.set('obsv', String(obsvItmSn));
+        next.set('obsv', String(obsrvArtclSn));
         return next;
       },
       { state: { isObsvFromList: true } },
@@ -165,7 +165,8 @@ export default function HealthDiaryPage() {
   const selectedPetSn = tabPetSn ?? pets?.[0]?.petSn ?? null;
   const { data: recordData, isPending: isRecordsPending } =
     useDailyRecords(selectedPetSn);
-  const { isPending: isObservationsPending } = useObservations(selectedPetSn);
+  const { isPending: isObservationsPending } =
+    useObservationItems(selectedPetSn);
 
   /** 첫 진입: 칩·탭까지 대시보드 틀 스켈레톤 */
   const isFirstLoading =
@@ -275,7 +276,7 @@ export default function HealthDiaryPage() {
           <ObservationCard
             key={selectedPet.petSn}
             petSn={selectedPet.petSn}
-            openItmSn={openObsvSn}
+            openArtclSn={openObsvSn}
             onOpenItem={openObservation}
             onCloseItem={closeObservation}
           />

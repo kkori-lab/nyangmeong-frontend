@@ -5,7 +5,7 @@ import { getCheckupTabs } from './checkupApi';
 import {
   getFakeCheckups,
   getFakeDailyRecords,
-  getObservations,
+  getFakeObservations,
 } from './diaryApi';
 import { WEIGHT } from './diaryTypes';
 import { HOSPITAL } from './scheduleTypes';
@@ -127,7 +127,7 @@ export const getHealthSummary = async (petSn) => {
   const [{ content: dailyRecords }, { content: observationItems }] =
     await Promise.all([
       getFakeDailyRecords({ petSn }),
-      getObservations({ petSn }),
+      getFakeObservations({ petSn }),
     ]);
   const endYmd = addDays(today, 730);
   const schedules = (await getFakeScheduleList()).filter((schedule) => {

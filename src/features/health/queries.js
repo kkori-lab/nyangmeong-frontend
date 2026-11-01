@@ -47,22 +47,23 @@ import {
 import {
   createCheckup,
   createDailyRecord,
-  createObservation,
-  createObservationRound,
+  createObservationCycle,
+  createObservationItem,
   deleteCheckup,
   deleteDailyRecord,
-  deleteObservationRound,
-  endObservation,
+  deleteObservationCycle,
+  endObservationItem,
   findNearSchedule,
   getCheckup,
   getCheckupYears,
   getCheckups,
   getDailyRecords,
   getDailyTrend,
-  getObservations,
+  getObservationCycles,
+  getObservationItems,
   updateCheckup,
   updateDailyRecord,
-  updateObservationRound,
+  updateObservationCycle,
 } from './diaryApi';
 import { prepareReceiptSave, saveReceiptCheckups } from './receiptApi';
 import { getHealthSummary } from './summaryApi';
@@ -86,6 +87,20 @@ export const healthKeys = {
   ],
   observations: ['health', 'observations'],
   observationList: (petSn) => ['health', 'observations', petSn],
+  observationCycles: (petSn, obsrvArtclSn) => [
+    'health',
+    'observations',
+    petSn,
+    'cycles',
+    obsrvArtclSn,
+  ],
+  observationPhoto: (petSn, obsrvCyclSn) => [
+    'health',
+    'observations',
+    petSn,
+    'photo',
+    obsrvCyclSn,
+  ],
   checkups: ['health', 'checkups'],
   checkupList: (params) => ['health', 'checkups', params],
   checkupYears: (petSn) => ['health', 'checkups', 'years', petSn],
@@ -204,12 +219,30 @@ export const useUpdateDailyRecord = () =>
 export const useDeleteDailyRecord = () =>
   useDailyRecordMutation(deleteDailyRecord);
 
-export const useObservations = (petSn) =>
+/** 관찰 항목 목록. 회차는 선택한 항목만 useObservationCycles로 받는다 */
+export const useObservationItems = (petSn) =>
   useQuery({
     queryKey: healthKeys.observationList(petSn),
-    queryFn: () => getObservations({ petSn }),
+    queryFn: () => getObservationItems({ petSn }),
     enabled: petSn != null,
     placeholderData: keepPreviousData,
+  });
+
+export const useObservationCycles = (petSn, obsrvArtclSn) =>
+  useQuery({
+    queryKey: healthKeys.observationCycles(petSn, obsrvArtclSn),
+    queryFn: () => getObservationCycles({ petSn, obsrvArtclSn }),
+    enabled: petSn != null && obsrvArtclSn != null,
+  });
+
+/** 사진은 회차 번호마다 바뀌지 않으므로 다시 받지 않는다(지운 회차 사진을 다시 받아 404가 나는 것도 막음) */
+const isPhotoQuery = (query) => query.queryKey[3] === 'photo';
+
+/** 항목·회차 목록을 다시 받는다. 사진은 사진을 바꾼 수정만 따로 다시 받는다 */
+const invalidateObservations = (queryClient, isSkipped = () => false) =>
+  queryClient.invalidateQueries({
+    queryKey: healthKeys.observations,
+    predicate: (query) => !isPhotoQuery(query) && !isSkipped(query),
   });
 
 const useObservationMutation = (mutationFn) => {
@@ -217,25 +250,65 @@ const useObservationMutation = (mutationFn) => {
 
   return useMutation({
     mutationFn,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: healthKeys.observations }),
+    onSuccess: () => invalidateObservations(queryClient),
     onError: showErrorToast,
   });
 };
 
-export const useCreateObservation = () =>
-  useObservationMutation(createObservation);
+export const useCreateObservationItem = () =>
+  useObservationMutation(createObservationItem);
 
-export const useCreateObservationRound = () =>
-  useObservationMutation(createObservationRound);
+export const useCreateObservationCycle = () =>
+  useObservationMutation(createObservationCycle);
 
-export const useUpdateObservationRound = () =>
-  useObservationMutation(updateObservationRound);
+/** 새 사진을 보냈으면 그 회차 사진도 다시 받는다 */
+export const useUpdateObservationCycle = () => {
+  const queryClient = useQueryClient();
 
-export const useDeleteObservationRound = () =>
-  useObservationMutation(deleteObservationRound);
+  return useMutation({
+    mutationFn: updateObservationCycle,
+    onSuccess: (_, { petSn, obsrvCyclSn, file }) => {
+      invalidateObservations(queryClient);
+      if (file) {
+        queryClient.invalidateQueries({
+          queryKey: healthKeys.observationPhoto(petSn, obsrvCyclSn),
+        });
+      }
+    },
+    onError: showErrorToast,
+  });
+};
 
-export const useEndObservation = () => useObservationMutation(endObservation);
+/**
+ * 지운 회차를 회차 목록 캐시에서 먼저 빼고 다시 받는다
+ * - 마지막 회차였으면 항목도 사라지므로 그 항목의 회차 목록은 다시 받지 않는다(404 방지)
+ * - variables: { petSn, obsrvArtclSn, obsrvCyclSn }
+ */
+export const useDeleteObservationCycle = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteObservationCycle,
+    onSuccess: (_, { petSn, obsrvArtclSn, obsrvCyclSn }) => {
+      const cyclesKey = healthKeys.observationCycles(petSn, obsrvArtclSn);
+      const remaining = queryClient.setQueryData(cyclesKey, (cycles) =>
+        cycles?.filter((cycle) => cycle.obsrvCyclSn !== obsrvCyclSn),
+      );
+      const isItemDeleted = remaining?.length === 0;
+      return invalidateObservations(
+        queryClient,
+        (query) =>
+          isItemDeleted &&
+          query.queryKey[3] === 'cycles' &&
+          query.queryKey[4] === obsrvArtclSn,
+      );
+    },
+    onError: showErrorToast,
+  });
+};
+
+export const useEndObservationItem = () =>
+  useObservationMutation(endObservationItem);
 
 /** params: { petSn, year, ckupTypeCd, page, size } */
 export const useCheckups = (params) =>
