@@ -105,8 +105,15 @@ export const useDeleteCaregiver = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteCaregiver,
-    onSuccess: (_, { petSn }) =>
-      qc.invalidateQueries({ queryKey: petKeys.caregivers(petSn) }),
+    onSuccess: (_, { petSn }) => {
+      qc.invalidateQueries({ queryKey: petKeys.caregivers(petSn) });
+      qc.invalidateQueries({ queryKey: petKeys.list() });
+    },
+    /** 이미 해제된 연동이면 목록을 다시 읽어 맞춘다 */
+    onError: (error, { petSn }) => {
+      if (error.code === 'CAREGIVER_NOT_FOUND')
+        qc.invalidateQueries({ queryKey: petKeys.caregivers(petSn) });
+    },
   });
 };
 

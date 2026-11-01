@@ -1,18 +1,11 @@
 import { api } from '@/api/axios';
-import {
-  CGVR_ROLE,
-  CHRC_STTS,
-  ITEM_PART,
-  PET_REL,
-  PET_SE,
-} from './shared/petCodes';
+import { CHRC_STTS, ITEM_PART, PET_REL, PET_SE } from './shared/petCodes';
 
 /**
  * [반려동물 API]
- * - 목록·상세·등록·수정·대표 지정·품종은 실제 API, 그 밖(삭제·양육관계·초대·캐릭터·상점)은 아직 가짜 응답
+ * - 목록·상세·등록·수정·대표 지정·품종은 실제 API, 그 밖(삭제·자진 해제·초대·캐릭터·상점)은 아직 가짜 응답
  * - 가짜 응답은 나오면 본문만 api 요청으로 교체
  * - 캐릭터 미정 키: chrcSttsCd, chrcImgUrl, inqryRcptYn
- * - 양육관계 미정 키: rltnSn, mbrNcnm, cgvrRoleCd, authrtNm, lnkDt, myYn
  */
 const basePet = {
   vrtySn: null,
@@ -231,115 +224,16 @@ export const deletePet = (petSn) => {
 export const getVarieties = (petSeCd) =>
   api.get('/breeds', { params: { petSeCd } });
 
-/**
- * 양육관계 가짜 데이터 (petSn별)
- * - 주양육자 시점: 연동된 공동양육자(CCG) 전원
- * - 공동양육자 시점: 주양육자(PCG) + 본인 연동 1건(myYn 'Y'), 다른 공동양육자는 서버가 내려주지 않음
- */
-let fakeCaregivers = {
-  1: [
-    {
-      rltnSn: 101,
-      mbrNcnm: '이서연',
-      cgvrRoleCd: CGVR_ROLE.CCG,
-      authrtNm: '조회+수정',
-      lnkDt: '2026-07-02',
-      myYn: 'N',
-    },
-    {
-      rltnSn: 102,
-      mbrNcnm: '최민지',
-      cgvrRoleCd: CGVR_ROLE.CCG,
-      authrtNm: '조회+수정',
-      lnkDt: '2026-08-01',
-      myYn: 'N',
-    },
-  ],
-  3: [
-    {
-      rltnSn: 301,
-      mbrNcnm: '이서연',
-      cgvrRoleCd: CGVR_ROLE.CCG,
-      authrtNm: '조회+수정',
-      lnkDt: '2026-06-11',
-      myYn: 'N',
-    },
-    {
-      rltnSn: 302,
-      mbrNcnm: '최민지',
-      cgvrRoleCd: CGVR_ROLE.CCG,
-      authrtNm: '조회',
-      lnkDt: '2026-06-20',
-      myYn: 'N',
-    },
-    {
-      rltnSn: 303,
-      mbrNcnm: '박지호',
-      cgvrRoleCd: CGVR_ROLE.CCG,
-      authrtNm: '조회+수정',
-      lnkDt: '2026-07-05',
-      myYn: 'N',
-    },
-    {
-      rltnSn: 304,
-      mbrNcnm: '정하늘',
-      cgvrRoleCd: CGVR_ROLE.CCG,
-      authrtNm: '조회',
-      lnkDt: '2026-08-19',
-      myYn: 'N',
-    },
-    {
-      rltnSn: 305,
-      mbrNcnm: '강도윤',
-      cgvrRoleCd: CGVR_ROLE.CCG,
-      authrtNm: '조회+수정',
-      lnkDt: '2026-09-02',
-      myYn: 'N',
-    },
-  ],
-  10: [
-    {
-      rltnSn: 1001,
-      mbrNcnm: '김주인',
-      cgvrRoleCd: CGVR_ROLE.PCG,
-      authrtNm: '조회+수정',
-      lnkDt: '2026-07-02',
-      myYn: 'N',
-    },
-    {
-      rltnSn: 1002,
-      mbrNcnm: '이서연',
-      cgvrRoleCd: CGVR_ROLE.CCG,
-      authrtNm: '조회+수정',
-      lnkDt: '2026-07-02',
-      myYn: 'Y',
-    },
-  ],
-};
+/** 양육자 목록 조회 GET /pets/{petSn}/caregivers (주양육자 첫 줄, 주양육자에게 전원, 공동양육자에게 주양육자와 본인) */
+export const getCaregivers = (petSn) => api.get(`/pets/${petSn}/caregivers`);
 
-/** 양육관계 조회 GET /pets/{petSn}/caregivers (SJM 백엔드, 이메일은 내려주지 않음) */
-export const getCaregivers = (petSn) => fakeDelay(fakeCaregivers[petSn] ?? []);
-
-/** 주양육자의 강제 해제 DELETE /pets/{petSn}/caregivers/{rltnSn} (SJM 백엔드) */
-export const deleteCaregiver = ({ petSn, rltnSn }) => {
-  fakeCaregivers = {
-    ...fakeCaregivers,
-    [petSn]: (fakeCaregivers[petSn] ?? []).filter(
-      (caregiver) => caregiver.rltnSn !== rltnSn,
-    ),
-  };
-  return fakeDelay(null);
-};
+/** 주양육자의 강제 해제 DELETE /pets/{petSn}/caregivers/{brupRelSn} */
+export const deleteCaregiver = ({ petSn, brupRelSn }) =>
+  api.delete(`/pets/${petSn}/caregivers/${brupRelSn}`);
 
 /** 공동양육자 본인의 자진 해제 DELETE /pets/{petSn}/caregivers/me (SJM 백엔드, 본인 연동만 끊고 반려동물 데이터는 그대로) */
 export const leavePet = (petSn) => {
   fakePets = fakePets.filter((pet) => pet.petSn !== petSn);
-  fakeCaregivers = {
-    ...fakeCaregivers,
-    [petSn]: (fakeCaregivers[petSn] ?? []).filter(
-      (caregiver) => caregiver.myYn !== 'Y',
-    ),
-  };
   return fakeDelay(null);
 };
 
@@ -730,29 +624,6 @@ export const acceptInvitation = ({ invitationToken, petSns }) => {
     INVT_STTS.ACPT,
   );
   fakePets = [...fakePets, ...accepted];
-  accepted.forEach((pet) => {
-    fakeCaregivers = {
-      ...fakeCaregivers,
-      [pet.petSn]: [
-        {
-          rltnSn: pet.petSn * 100 + 1,
-          mbrNcnm: invitation.invtrNcnm,
-          cgvrRoleCd: CGVR_ROLE.PCG,
-          authrtNm: '조회+수정',
-          lnkDt: invitation.invtDt,
-          myYn: 'N',
-        },
-        {
-          rltnSn: pet.petSn * 100 + 2,
-          mbrNcnm: '이서연',
-          cgvrRoleCd: CGVR_ROLE.CCG,
-          authrtNm: '조회+수정',
-          lnkDt: todayYmd(),
-          myYn: 'Y',
-        },
-      ],
-    };
-  });
   return fakeDelay(null);
 };
 
