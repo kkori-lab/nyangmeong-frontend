@@ -74,5 +74,6 @@ export const PATHS = {
   ADMIN: '/admin',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_BATCHES: '/admin/batches',
+  ADMIN_EXTERNAL_API_USAGE: '/admin/external-api-usage',
   ADMIN_AUDIT_LOGS: '/admin/audit-logs',
 };

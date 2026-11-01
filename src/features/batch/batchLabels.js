@@ -11,5 +11,6 @@ export const EXCN_RSLT = {
 /** 값 없음 표기 */
 export const EMPTY_LABEL = '—';
 
-/** 실행 중 여부 */
-export const isRunning = ({ excnRsltCd }) => excnRsltCd === EXCN_RSLT.RUNNING;
+/** 실행 중 여부: 서버는 잠금을 푼 뒤 이력을 마감해 그사이 runningYn만 먼저 false가 됨 */
+export const isRunning = ({ runningYn, lastRsltCd }) =>
+  runningYn || lastRsltCd === EXCN_RSLT.RUNNING;

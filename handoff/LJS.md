@@ -2,15 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-ADM-111 배치 현황 — 끝 (2026-11-01, 검증 `확인 못 함 있음`(1회차 실패 뒤 재검증, 내 것 없음)·사람 확인). 목록·실행 이력·수동 실행을 가짜 응답으로 만들었다
+SCR-ADM-111 배치 현황 · 배치 API 연결 — 끝 (2026-11-01, 검증 `통과` 2회차·사람 확인). 가짜 응답을 실제 API로 바꾸고 실패 칸을 지웠다
 
 ## 다음에 할 것
 
-- SCR-ADM-111 연결 남음: 백엔드 세션이 작업 사본에서 API를 만드는 중이다(커밋 전, 정본 백엔드 `docs/api/global.md`). 병합되면 `/start`로 `features/batch/api.js` 가짜를 바꾼다. 가짜와 다른 점(백엔드 기획·문서 기준 2026-11-01): 이력 경로가 `/history`가 아니라 `GET /api/admin/batches/{btchSeCd}/executions`, 목록 필드가 `btchNm`·`lastBgngDt`·`lastEndDt`·`lastRsltCd`·`prcsCnt`·`failRsn`·`runningYn`·`runnableYn`, 수동 실행 응답 `{ btchExcnHstrySn }`, `BATCH_NOT_AVAILABLE`(409) 추가
-- SCR-ADM-111 실패 건수: 백엔드 기획에서 컬럼을 추가하지 않고 응답에서 빼기로 했다(사람 결정 2026-11-01). 연결 때 `BatchHistoryTable.jsx`의 실패 칸과 가짜 `failCnt`를 지운다. 기능명세서 FN-ADM-111-02·화면설계서 SCR-ADM-111 수정은 사람 몫
-- SCR-ADM-111 스켈레톤 높이는 계산값이다(`AdminBatchesPage.jsx`). 실제 API 연결 때 1440px·390px로 잰다(`docs/convention/ui.md`)
+- SCR-ADM-112 연결 남음: FN-ADM-112-01·02·03 백엔드 연결(백엔드 저장소에서 `/start`). 사용량 조회 API 3종·필드 이름, SYSG05를 명세 7종으로 수정, 호출 로그 기록(Python 통지 포함). 연결 때 `features/apiUsage/api.js` 가짜와 `apiUsageLabels.js`의 임시 코드(`TMP00001` AI 분류, `TMP00002` PDF 분석)를 바꾼다. 지금 AI 서버에는 토큰을 읽는 코드와 Java 통지가 없다(2026-11-01 검색)
+- SCR-ADM-112 문서 맞출 것(사람): 명세 7종에 대화 제목 생성(별도 LLM 호출)이 없고, PDF 분석은 AI 저장소 작업 사본에 코드가 없다. SCR-ADM-082도 PDF 실패를 이 로그로 본다고 되어 있다. 공통코드의 장소 공공데이터는 명세 7종에 없다
+- SCR-ADM-112 실제 확인이 남은 것: 스켈레톤 높이는 계산값이다(`AdminExternalApiUsagePage.jsx`). 조회 오류의 [다시 시도]는 화면으로 못 봤다. 390px 날짜 입력 줄 오른쪽 끝이 다른 칸보다 약 9px 더 나간다(`ApiUsageFilter.jsx`, 캡처로 어림, 가로 스크롤은 없음)
+- SCR-ADM-111 문서 맞출 것(사람): 기능명세서 FN-ADM-111-02·화면설계서 SCR-ADM-111에 실패 건수가 남아 있다. 응답에 없어 화면에서 지웠다(사람 결정 2026-11-01)
+- SCR-ADM-111 실제 확인이 남은 것: `실패 · {사유}` 문구는 화면으로 못 봤다. 이력 스켈레톤은 20행 기준(잰 값 306·1026px)이라 이력이 적은 배치를 `?batch=`로 바로 열면 ±20%를 넘는다(1행 +139%, 행 수는 응답 전에 알 수 없음). 실행 직후 결과 칸은 `실행 중`인데 버튼은 활성인 구간이 약 5초 있다(기획대로). 케어미션 출제는 이 서버에서 `runnableYn=false`다
 - SCR-ADM-111 배치 범위: 가짜는 공통코드 SYSG02 4종이다. 명세 10종·설계서 9종과 차이는 문서를 고치거나 배치가 늘 때 정한다
-- SCR-ADM-114 연결 남음: 감사 로그 API(`38f930a`)가 백엔드 `origin/LJS`에만 있어 develop 병합 전에는 배포에서 안 열린다. 백엔드 저장소에서 `/start`
 - SCR-ADM-114 관리자 화면을 붙일 때: 새 `trgtTblNm`은 `features/audit/auditLabels.js` `TARGET_OPTIONS`에 한 줄 더한다(지금 `SYS_STNG`·`MBR`). 없으면 표에는 서버 값이 보이고 필터에는 없다
 - SCR-ADM-114 실제 확인이 남은 것: 쪽 이동은 로그가 8건뿐이라 응답 조작으로만 봤다(서버 페이징은 직접 호출로 확인). 스켈레톤 높이는 계산값이다(`AdminAuditLogsPage.jsx`). 로그가 20건을 넘으면 1440px·390px로 잰다(`docs/convention/ui.md`). 대상 필터 [회원]은 로그인 행을 주지만 그 행의 대상 칸은 "—"다(결정, 그대로 둠). 요약·상세 항목은 서버 필드 이름 그대로다. 한글 요약은 서버에서 고칠 일이다
 - 사람이 고칠 것(2026-11-01 사람 확인 때 "고치고 싶은 부분이 많은데 나중에", 내용은 아직 안 받음, 2026-11-01 사람 결정으로 다른 화면 구현 뒤로 미룸): 그때 목록을 받아 정한다. 검증 때 나온 참고 3가지: ① 390px에서 "관리자"와 닉네임 사이 간격 0px(`AdminLayout`) ② 390px 운영 설정 저장 토스트가 [되돌리기] 버튼과 일부 겹침 ③ 정확히 760px 사용자 화면은 바텀 네비가 없는데 토스트만 76px 위에 뜸(`BottomNav`는 `min-[760px]:hidden`, 운영 설정 네비는 `min-[761px]:hidden`이라 경계가 1px 다름)

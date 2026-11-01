@@ -1,14 +1,16 @@
 import { formatDate, getHmOf } from '@/utils/formatDate';
 import { EMPTY_LABEL, EXCN_SE } from './batchLabels';
 
-const COLUMNS = ['시작', '종료', '처리', '실패', '사유', '구분'];
+const COLUMNS = ['시작', '종료', '처리', '사유', '구분'];
 
 /** 값이 없으면 빈 표기 */
 const formatCount = (count) => count?.toLocaleString() ?? EMPTY_LABEL;
 
 /** 구분 칸 글자 */
-const formatExcnSe = ({ excnSeCd, mbrNcnm }) =>
-  excnSeCd === EXCN_SE.MANUAL ? `수동 · ${mbrNcnm}` : '자동';
+const formatExcnSe = ({ excnSeCd, mbrNcnm }) => {
+  if (excnSeCd !== EXCN_SE.MANUAL) return '자동';
+  return mbrNcnm ? `수동 · ${mbrNcnm}` : '수동';
+};
 
 /**
  * [배치 실행 이력 표]
@@ -45,9 +47,6 @@ export default function BatchHistoryTable({ histories }) {
               </td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
                 {formatCount(history.prcsCnt)}
-              </td>
-              <td className="px-4 py-3 whitespace-nowrap tabular-nums">
-                {formatCount(history.failCnt)}
               </td>
               <td className="px-4 py-3">{history.failRsn ?? EMPTY_LABEL}</td>
               <td className="px-4 py-3 whitespace-nowrap">
