@@ -17,11 +17,11 @@ import AdminForbidden from './AdminForbidden';
 
 const PAGE_SIZE = 20;
 
-/** 실행 이력 표 20행 + 쪽 번호 자리 */
+/** 실행 이력 표 20행 + 쪽 번호 자리: 행 수는 응답 전에 알 수 없어 한 쪽이 다 찬 높이(잰 값)를 씀 */
 function HistorySkeleton() {
   return (
     <div className="space-y-4" aria-busy="true">
-      <SkeletonCard className="h-[1030px]" />
+      <SkeletonCard className="h-[1026px]" />
       <Skeleton className="mx-auto h-9 w-64" />
     </div>
   );
@@ -31,7 +31,7 @@ function HistorySkeleton() {
 function BatchesSkeleton({ hasHistory }) {
   return (
     <div className="space-y-8" aria-busy="true">
-      <SkeletonCard className="h-[270px]" />
+      <SkeletonCard className="h-[306px]" />
       {hasHistory && <HistorySkeleton />}
     </div>
   );
@@ -159,7 +159,7 @@ export default function AdminBatchesPage() {
         {selectedBatch && (
           <section className="mt-8">
             <h2 className="mb-3 text-lg font-bold text-ink">
-              {selectedBatch.btchSeNm} 실행 이력
+              {selectedBatch.btchNm} 실행 이력
             </h2>
             {renderHistory()}
           </section>
@@ -174,7 +174,7 @@ export default function AdminBatchesPage() {
       {renderBody()}
       {runTarget && (
         <ConfirmModal
-          title={`${runTarget.btchSeNm} 수동 실행`}
+          title={`${runTarget.btchNm} 수동 실행`}
           description="지금 배치를 실행할까요?"
           confirmLabel="실행"
           errorMessage={run.error?.message}

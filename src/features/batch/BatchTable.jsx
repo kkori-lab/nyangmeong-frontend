@@ -1,22 +1,24 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDate, getHmOf } from '@/utils/formatDate';
-import { EMPTY_LABEL, EXCN_RSLT, isRunning } from './batchLabels';
+import { EMPTY_LABEL, EXCN_RSLT } from './batchLabels';
 
 const COLUMNS = ['배치', '마지막 실행', '결과'];
 
 /** 마지막 실행 시각 */
-const formatLastRun = ({ excnBgngDt }) =>
-  excnBgngDt
-    ? `${formatDate(excnBgngDt, { hasYear: false, separator: '-' })} ${getHmOf(excnBgngDt)}`
+const formatLastRun = ({ lastBgngDt }) =>
+  lastBgngDt
+    ? `${formatDate(lastBgngDt, { hasYear: false, separator: '-' })} ${getHmOf(lastBgngDt)}`
     : EMPTY_LABEL;
 
-/** 결과 칸 글자 */
-const formatResult = ({ excnRsltCd, prcsCnt, failRsn }) => {
-  if (excnRsltCd === EXCN_RSLT.RUNNING) return '실행 중';
-  if (excnRsltCd === EXCN_RSLT.SUCCESS) {
-    return `성공 · ${prcsCnt.toLocaleString()}건`;
+/** 결과 칸 글자: 처리 건수를 세지 않는 배치는 건수 없음 */
+const formatResult = ({ lastRsltCd, prcsCnt, failRsn }) => {
+  if (lastRsltCd === EXCN_RSLT.RUNNING) return '실행 중';
+  if (lastRsltCd === EXCN_RSLT.SUCCESS) {
+    return prcsCnt === null ? '성공' : `성공 · ${prcsCnt.toLocaleString()}건`;
   }
-  if (excnRsltCd === EXCN_RSLT.FAIL) return `실패 · ${failRsn}`;
+  if (lastRsltCd === EXCN_RSLT.FAIL) {
+    return failRsn ? `실패 · ${failRsn}` : '실패';
+  }
   return EMPTY_LABEL;
 };
 
@@ -65,13 +67,13 @@ export default function BatchTable({
                 }
               }}
             >
-              <td className="px-4 py-3 whitespace-nowrap">{batch.btchSeNm}</td>
+              <td className="px-4 py-3 whitespace-nowrap">{batch.btchNm}</td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
                 {formatLastRun(batch)}
               </td>
               <td
                 className={`px-4 py-3 ${
-                  batch.excnRsltCd === EXCN_RSLT.FAIL ? 'text-danger' : ''
+                  batch.lastRsltCd === EXCN_RSLT.FAIL ? 'text-danger' : ''
                 }`}
               >
                 {formatResult(batch)}
@@ -79,14 +81,14 @@ export default function BatchTable({
               <td className="px-4 py-3 text-right">
                 <button
                   type="button"
-                  disabled={isRunning(batch)}
+                  disabled={batch.runningYn || !batch.runnableYn}
                   className={`${BTN_SECONDARY} whitespace-nowrap`}
                   onClick={(event) => {
                     event.stopPropagation();
                     onRun(batch);
                   }}
                 >
-                  {isRunning(batch) ? '실행 중' : '수동 실행'}
+                  {batch.runningYn ? '실행 중' : '수동 실행'}
                 </button>
               </td>
             </tr>
