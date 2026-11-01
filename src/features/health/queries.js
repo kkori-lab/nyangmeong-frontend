@@ -16,6 +16,7 @@ import {
   deleteSchedule,
   getCareItems,
   getMyPets,
+  getPixelCharacters,
   getSchedules,
   saveCareMain,
   updateCareItem,
@@ -70,6 +71,7 @@ import { getHealthSummary } from './summaryApi';
 export const healthKeys = {
   all: ['health'],
   myPets: ['health', 'my-pets'],
+  pixelCharacters: ['health', 'pixel-characters'],
   schedules: ['health', 'schedules'],
   scheduleList: (params) => ['health', 'schedules', params],
   careItems: ['health', 'care-items'],
@@ -111,6 +113,13 @@ const showErrorToast = (error) => showToast(error.message);
 /** 내 반려동물 목록(GET /pets) */
 export const useMyPets = () =>
   useQuery({ queryKey: healthKeys.myPets, queryFn: getMyPets });
+
+/** 내 반려동물별 캐릭터 목록(GET /pixel-characters), 종합 건강기록 히어로의 캐릭터 유무 판정 */
+export const usePixelCharacters = () =>
+  useQuery({
+    queryKey: healthKeys.pixelCharacters,
+    queryFn: getPixelCharacters,
+  });
 
 /** params: { petSns, fromYmd, toYmd, size } */
 export const useSchedules = (params) =>
