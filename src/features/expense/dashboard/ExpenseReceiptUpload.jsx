@@ -49,11 +49,11 @@ export default function ExpenseReceiptUpload({
       { file: picked.file, signal: controller.signal },
       {
         onSuccess: (result) => {
-          if (isNothingRecognized(result)) setFailed({ rcptSn: result.rcptSn });
+          if (isNothingRecognized(result)) setFailed({ recptSn: result.recptSn });
           else onRecognized(result);
         },
         onError: (error) => {
-          if (error.name !== 'AbortError') setFailed({ rcptSn: null });
+          if (error.name !== 'AbortError') setFailed({ recptSn: null });
         },
       },
     );
@@ -83,7 +83,7 @@ export default function ExpenseReceiptUpload({
             </button>
             <button
               type="button"
-              onClick={() => onDirect(failed.rcptSn)}
+              onClick={() => onDirect(failed.recptSn)}
               className={BTN_PRIMARY}
             >
               직접 입력

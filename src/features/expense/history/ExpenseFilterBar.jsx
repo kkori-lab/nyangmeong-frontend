@@ -3,7 +3,6 @@ import {
   EXPND_CLSF_LIST,
   FILTER_ALL,
   FILTER_SHARED,
-  PET_STTS,
   SORT,
 } from '../shared/expenseCodes';
 import { getPetFilterLabel } from '../shared/expenseFormat';
@@ -20,8 +19,8 @@ const CATEGORY_OPTIONS = [
 
 /** 필터 선택지 (조회·삭제 전용 항목 포함) */
 const getPetOptions = (pets) => {
-  const activePets = pets.filter((pet) => pet.petStts === PET_STTS.ACTIVE);
-  const removedPets = pets.filter((pet) => pet.petStts !== PET_STTS.ACTIVE);
+  const activePets = pets.filter((pet) => pet.petLinked);
+  const removedPets = pets.filter((pet) => !pet.petLinked);
   return [
     { value: FILTER_ALL, label: '전체' },
     ...activePets.map((pet) => ({

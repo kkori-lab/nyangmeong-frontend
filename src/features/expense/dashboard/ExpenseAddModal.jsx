@@ -9,6 +9,8 @@ import ExpenseForm from '../shared/ExpenseForm';
 import { formatFullDayHeader } from '../shared/expenseFormat';
 import ExpenseReceiptReview from './ExpenseReceiptReview';
 import ExpenseReceiptUpload from './ExpenseReceiptUpload';
+import { toCreateRequest } from '../api';
+import { EXPND_INPT_MTH } from '../shared/expenseCodes';
 import { useCreateExpenses, useFindDuplicateExpenses } from '../queries';
 
 const STEP = {
@@ -50,9 +52,9 @@ export default function ExpenseAddModal({ expndYmd, pets, onSaved, onClose }) {
   const [picked, setPicked] = useState(null);
   const [recognized, setRecognized] = useState(null);
   /** 직접 입력 전환 시 연결할 영수증 번호 */
-  const [directRcptSn, setDirectRcptSn] = useState(null);
+  const [directRecptSn, setDirectRecptSn] = useState(null);
   const [isRetakeOpen, setIsRetakeOpen] = useState(false);
-  /** 중복 확인 대기 저장: { items, duplicates } */
+  /** 중복 확인 대기 저장: { request, expndYmd, duplicates } */
   const [pendingSave, setPendingSave] = useState(null);
   const pickedRef = useRef(null);
 
@@ -81,35 +83,48 @@ export default function ExpenseAddModal({ expndYmd, pets, onSaved, onClose }) {
 
   const showSaveError = () =>
     showToast('저장하지 못했어요. 잠시 후 다시 시도해 주세요');
-  const create = (items) =>
-    createExpenses.mutate(items, {
-      onSuccess: () => onSaved(items[0].expndYmd),
+  const create = (request) =>
+    createExpenses.mutate(request, {
+      onSuccess: () => onSaved(request.expndYmd),
       onError: showSaveError,
     });
 
-  /** 중복 지출 조회 */
-  const handleSubmit = (items) =>
-    findDuplicates.mutate(items, {
+  /** 중복 지출 조회: 저장 요청(멱등 ID 포함)을 한 번 만들어 확인 뒤 저장에도 그대로 쓴다 */
+  const handleSubmit = (items) => {
+    const request = toCreateRequest(items);
+    findDuplicates.mutate(request, {
       onSuccess: (duplicates) => {
-        if (duplicates.length > 0) setPendingSave({ items, duplicates });
-        else create(items);
+        if (duplicates.length > 0) setPendingSave({ request, duplicates });
+        else create(request);
       },
       onError: showSaveError,
     });
+  };
 
+  /** 영수증 인식 실패 뒤 직접 입력도 입력방식은 직접입력, 영수증은 연결 */
   const handleSubmitDirect = (item) =>
     handleSubmit([
-      directRcptSn == null ? item : { ...item, rcptSn: directRcptSn },
+      {
+        ...item,
+        expndInptMthCd: EXPND_INPT_MTH.DIRECT,
+        recptSn: directRecptSn,
+      },
     ]);
   const handleSubmitReview = (items) =>
-    handleSubmit(items.map((item) => ({ ...item, rcptSn: recognized.rcptSn })));
+    handleSubmit(
+      items.map((item) => ({
+        ...item,
+        expndInptMthCd: EXPND_INPT_MTH.OCR,
+        recptSn: recognized.recptSn,
+      })),
+    );
 
   const handleRecognized = (result) => {
     setRecognized(result);
     setStep(STEP.REVIEW);
   };
-  const handleDirect = (rcptSn) => {
-    setDirectRcptSn(rcptSn);
+  const handleDirect = (recptSn) => {
+    setDirectRecptSn(recptSn);
     setStep(STEP.DIRECT);
   };
   const handleRetake = () => {
@@ -192,7 +207,7 @@ export default function ExpenseAddModal({ expndYmd, pets, onSaved, onClose }) {
         <ExpenseDuplicateDialog
           duplicates={pendingSave.duplicates}
           isPending={createExpenses.isPending}
-          onConfirm={() => create(pendingSave.items)}
+          onConfirm={() => create(pendingSave.request)}
           onClose={() => setPendingSave(null)}
         />
       )}

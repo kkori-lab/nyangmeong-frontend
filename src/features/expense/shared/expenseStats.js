@@ -1,23 +1,11 @@
-import {
-  EXPND_CLSF,
-  EXPND_CLSF_LIST,
-  ETC_CLSF_CD,
-  FILTER_ALL,
-  FILTER_SHARED,
-  PET_STTS,
-  SORT,
-} from './expenseCodes';
+import { EXPND_CLSF, EXPND_CLSF_LIST } from './expenseCodes';
 import { getPetFilterLabel } from './expenseFormat';
 
-/** 가짜 응답 화면 집계 */
 export const sumAmt = (expenses) =>
   expenses.reduce((sum, expense) => sum + expense.expndAmt, 0);
 
 export const getRatio = (amt, totalAmt) =>
   totalAmt === 0 ? 0 : Math.round((amt / totalAmt) * 100);
-
-export const getMonthExpenses = (expenses, ym) =>
-  expenses.filter((expense) => expense.expndYmd.startsWith(ym));
 
 /** 합계 100 보정 비율 (항목별 반올림 시 99·101 방지) */
 const getRatiosSummingTo100 = (amts) => {
@@ -37,61 +25,56 @@ const getRatiosSummingTo100 = (amts) => {
   return ratios;
 };
 
-export const getCategoryStats = (expenses) => {
-  const stats = EXPND_CLSF_LIST.map((clsf) => ({
-    ...clsf,
-    totalAmt: sumAmt(
-      expenses.filter((expense) => expense.expndClsfCd === clsf.code),
-    ),
-  }))
-    .filter((stat) => stat.totalAmt > 0)
-    .sort((a, b) => b.totalAmt - a.totalAmt);
-  /** 금액 큰 순, 기타는 마지막 */
-  const etcIndex = stats.findIndex((stat) => stat.code === ETC_CLSF_CD);
-  if (etcIndex >= 0) stats.push(...stats.splice(etcIndex, 1));
+/** 서버 카테고리 합계(금액 큰 순, 기타 마지막으로 정렬돼 옴)에 이름·색·비율을 붙임 */
+export const getCategoryStats = (categories) => {
+  const stats = categories
+    .filter((item) => item.totalExpndAmt > 0 && EXPND_CLSF[item.expndClsfCd])
+    .map((item) => ({
+      ...EXPND_CLSF_LIST.find((clsf) => clsf.code === item.expndClsfCd),
+      totalAmt: item.totalExpndAmt,
+    }));
   const ratios = getRatiosSummingTo100(stats.map((stat) => stat.totalAmt));
   return stats.map((stat, index) => ({ ...stat, ratio: ratios[index] }));
 };
 
-/** 반려동물별 지출 집계 */
-export const getPetStats = (expenses, pets) => {
-  const totalAmt = sumAmt(expenses);
-  const toStat = (pet) => {
-    const amt = sumAmt(
-      expenses.filter((expense) => expense.petSn === pet.petSn),
-    );
-    return {
+/**
+ * 반려동물별 지출 집계
+ * 연동 중인 동물은 0원이어도 보이고, 연동 해제·삭제된 동물은 지출이 있을 때만 보인다
+ */
+export const getPetStats = (statistics, pets) => {
+  const { totalExpndAmt, pets: petItems, commonTotalExpndAmt } = statistics;
+  const amtOf = (petSn) =>
+    petItems.find((item) => item.petSn === petSn)?.totalExpndAmt ?? 0;
+  const known = new Set(pets.map((pet) => pet.petSn));
+  /** 옵션에 없는 동물(드문 경우)도 응답 값으로 그린다 */
+  const options = [
+    ...pets,
+    ...petItems
+      .filter((item) => !known.has(item.petSn))
+      .map((item) => ({ ...item, petLinked: false })),
+  ];
+  const stats = options
+    .filter((pet) => pet.petLinked || amtOf(pet.petSn) > 0)
+    .map((pet) => ({
       petSn: pet.petSn,
       label: getPetFilterLabel(pet),
-      totalAmt: amt,
-      ratio: getRatio(amt, totalAmt),
-    };
-  };
-  const stats = pets
-    .map((pet) => ({ pet, stat: toStat(pet) }))
-    .filter(
-      ({ pet, stat }) => pet.petStts === PET_STTS.ACTIVE || stat.totalAmt > 0,
-    )
-    .map(({ stat }) => stat);
-  const sharedAmt = sumAmt(expenses.filter((expense) => expense.petSn == null));
+      totalAmt: amtOf(pet.petSn),
+      ratio: getRatio(amtOf(pet.petSn), totalExpndAmt),
+    }));
   return {
     pets: stats,
     shared:
-      sharedAmt > 0
-        ? { totalAmt: sharedAmt, ratio: getRatio(sharedAmt, totalAmt) }
+      commonTotalExpndAmt > 0
+        ? {
+            totalAmt: commonTotalExpndAmt,
+            ratio: getRatio(commonTotalExpndAmt, totalExpndAmt),
+          }
         : null,
   };
 };
 
-export const getTopExpenses = (expenses, count) =>
-  [...expenses]
-    .sort(
-      (a, b) => b.expndAmt - a.expndAmt || b.expndYmd.localeCompare(a.expndYmd),
-    )
-    .slice(0, count);
-
-/** 6주 42칸 달력 그리드 */
-export const getCalendarCells = (ym, expenses) => {
+/** 6주 42칸 달력 그리드: days는 서버가 준 날짜별 합계·건수(1건인 날만 동물·카테고리) */
+export const getCalendarCells = (ym, days) => {
   const [year, month] = ym.split('-').map(Number);
   const firstWeekday = new Date(year, month - 1, 1).getDay();
   const dayCount = new Date(year, month, 0).getDate();
@@ -99,32 +82,16 @@ export const getCalendarCells = (ym, expenses) => {
     const day = index - firstWeekday + 1;
     if (day < 1 || day > dayCount) return { day: null };
     const expndYmd = `${ym}-${String(day).padStart(2, '0')}`;
-    const items = expenses.filter((expense) => expense.expndYmd === expndYmd);
-    return { day, expndYmd, items, totalAmt: sumAmt(items) };
+    const item = days.find((d) => d.expndYmd === expndYmd);
+    return {
+      day,
+      expndYmd,
+      count: item?.expndCnt ?? 0,
+      totalAmt: item?.totalExpndAmt ?? 0,
+      only: item?.expndCnt === 1 ? item : null,
+    };
   });
 };
-
-export const filterExpenses = (expenses, { petFilter, categoryFilter }) =>
-  expenses.filter((expense) => {
-    if (petFilter === FILTER_SHARED && expense.petSn != null) return false;
-    if (
-      petFilter !== FILTER_ALL &&
-      petFilter !== FILTER_SHARED &&
-      String(expense.petSn) !== petFilter
-    ) {
-      return false;
-    }
-    return (
-      categoryFilter === FILTER_ALL || expense.expndClsfCd === categoryFilter
-    );
-  });
-
-export const sortExpenses = (expenses, sort) =>
-  [...expenses].sort((a, b) =>
-    sort === SORT.AMOUNT
-      ? b.expndAmt - a.expndAmt || b.expndSn - a.expndSn
-      : b.expndYmd.localeCompare(a.expndYmd) || b.expndSn - a.expndSn,
-  );
 
 /** 같은 날짜끼리 묶음 */
 export const groupByDay = (expenses) => {

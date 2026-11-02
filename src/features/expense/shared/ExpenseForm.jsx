@@ -3,7 +3,6 @@ import AmountInput from '@/components/AmountInput';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import Select from '@/components/Select';
-import { EXPND_PLACE_KEY } from '../api';
 import ExpenseCategoryChips from './ExpenseCategoryChips';
 import { FILTER_SHARED, HOSPITAL_CLSF_CD } from './expenseCodes';
 import { PLACE_MAX_LENGTH, getPlace } from './expenseFormat';
@@ -82,7 +81,7 @@ export default function ExpenseForm({
       expndClsfCd,
       expndAmt: Number(digits),
       dtlMttr: dtlMttr.trim(),
-      [EXPND_PLACE_KEY]: place.trim(),
+      expndPlcusNm: place.trim(),
       expndYmd: ymd,
     });
   };

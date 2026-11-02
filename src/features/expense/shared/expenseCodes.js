@@ -55,11 +55,10 @@ export const EXPND_CLSF = Object.fromEntries(
   EXPND_CLSF_LIST.map((clsf) => [clsf.code, clsf]),
 );
 
-/** 지출에 남은 반려동물 상태 */
-export const PET_STTS = {
-  ACTIVE: 'ACTIVE',
-  UNLINKED: 'UNLINKED',
-  DELETED: 'DELETED',
+/** MYPG06 가계부입력방식 */
+export const EXPND_INPT_MTH = {
+  DIRECT: 'MYPC0019',
+  OCR: 'MYPC0020',
 };
 
 export const FILTER_ALL = 'ALL';
