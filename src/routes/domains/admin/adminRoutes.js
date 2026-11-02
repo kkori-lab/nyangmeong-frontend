@@ -13,6 +13,9 @@ const AdminMemberDetailPage = lazy(
   () => import('@/pages/admin/AdminMemberDetailPage'),
 );
 const AdminMembersPage = lazy(() => import('@/pages/admin/AdminMembersPage'));
+const AdminMemberSuspensionsPage = lazy(
+  () => import('@/pages/admin/AdminMemberSuspensionsPage'),
+);
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 
 export default [
@@ -23,6 +26,10 @@ export default [
       { path: PATHS.ADMIN, Component: AdminHomePage },
       { path: PATHS.ADMIN_MEMBERS, Component: AdminMembersPage },
       { path: PATHS.ADMIN_MEMBER_DETAIL, Component: AdminMemberDetailPage },
+      {
+        path: PATHS.ADMIN_MEMBER_SUSPENSIONS,
+        Component: AdminMemberSuspensionsPage,
+      },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
       {
