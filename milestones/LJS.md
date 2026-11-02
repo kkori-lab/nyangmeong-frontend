@@ -407,10 +407,14 @@
 - 완료 조건 결과: 검증 `통과`(2026-11-02, 1회차, 실제 API), 사람 확인 2026-11-02
 - 연결 남음: 없음
 
-## SCR-ADM-011 회원 상세 — 대기
+## SCR-ADM-011 회원 상세 — 끝
 - 기능: FN-ADM-011-01 기본 정보 조회, FN-ADM-011-02 반려동물 탭, FN-ADM-011-03 약관 동의 탭, FN-ADM-011-04 포인트 탭, FN-ADM-011-05 상태 이력 탭, FN-ADM-011-06 민감 데이터 비노출
 - 기다리는 것: `/api/admin/members/{mbrSn}` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 탭마다 반려동물·약관 동의·포인트·상태 이력이 보이고 건강기록·AI 대화·채팅은 없다
+- 결정: 디자인 파일 없이 화면설계서 기준, [포인트 조정]은 SCR-ADM-072까지 비활성(사람 2026-11-02). 관리자·탈퇴 회원은 정지 버튼 없음. `ADMIN_POINTS`는 사이드바 메뉴가 생겨 SCR-ADM-072 때 넣는다
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 가짜 응답), 사람 확인 2026-11-02
+- 연결 남음: FN-ADM-011-01·02·03·04·05 (백엔드 연결 회원 상세·탭 API·필드 이름, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-011-04 ([포인트 조정] 이동, SCR-ADM-072, LJS)
 
 ## SCR-ADM-020 게시글·댓글 — 대기
 - 기능: FN-ADM-020-01 게시글 목록 조회, FN-ADM-020-02 게시글 검색·필터, FN-ADM-020-03 게시글 상세 조회, FN-ADM-020-04 게시글 블라인드, FN-ADM-020-05 블라인드 복구, FN-ADM-020-06 댓글 조회·삭제
@@ -564,6 +568,44 @@
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-113-03
 - 기다리는 것: 백엔드 관리자 계정 API(끝, 2026-11-02)
 - 완료 조건: 확인 모달 뒤 `DELETE /api/admin/admins/{mbrSn}`(본문 없음)로 해제되고 목록에 반영된다. 본인 행(`/auth/me`의 `mbrSn`)과 마지막 관리자(목록 `totalElements` 1)는 버튼이 비활성이다. 409 `ADMIN_NOT_RELEASABLE`·`ALREADY_PROCESSED`를 안내한다
+
+## SCR-ADM-011 회원 상세 · 기본 정보와 정지·해제 모달 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-01
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: 상세가 `GET /api/admin/members/{mbrSn}`(`mbrNcnm`, `maskedAcntEml`, `maskedMblTelno`, `joinPathCd`, `snsLinks`, `regDt`, `lastLgnDt`, `hldPnt`, `mbrSttsCd`, `suspnEndDt`)로 나온다. 404 `MEMBER_NOT_FOUND`면 "회원을 찾을 수 없어요"와 [목록으로]가 나온다. 모달이 이 회원으로 열린다
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 결정: 응답에 권한이 없어 [정지] 조건을 "관리자가 아니고 정상"으로 둠. 그동안 관리자에게도 [정지]가 보임(2026-11-02)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
+- 연결 남음: FN-ADM-011-01 (백엔드 연결 `AdminMemberDetailResponse.mbrAuthrtCd`, 백엔드 저장소에서 /start)
+
+## SCR-ADM-011 회원 상세 · 반려동물 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-02
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: `GET /api/admin/members/{mbrSn}/pets`(`petNm`, `petSeCd`, `vrtyNm`, `vrtyDrctInptNm`, `brupRoleCd`, `caregiverCount`, `delYn`)로 20건씩 나온다. 삭제한 동물도 나온다
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API. 20건 초과 쪽 번호는 조작 응답으로만 확인), 사람 확인 2026-11-02
+
+## SCR-ADM-011 회원 상세 · 약관 동의 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-03
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: `GET /api/admin/members/{mbrSn}/terms-agreements`(`trmsTtl`, `esntlAgreYn`, `trmsVerId`, `agreYn`, `agreDt`)로 나온다. 페이지 없음. 동의 기록이 없으면 버전·일시가 null이다
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 결정: `esntlAgreYn`은 화면설계서 열에 없어 표시하지 않음(2026-11-02)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API. 동의 기록 없는 행은 조작 응답으로만 확인), 사람 확인 2026-11-02
+
+## SCR-ADM-011 회원 상세 · 포인트 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-04
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: `GET /api/admin/members/{mbrSn}/point-ledgers`(`regDt`, `pntDlngTypeCdNm`, `dlngPnt`, `dlngAftrBlncPnt`, `memoCn`)로 최신순 20건씩 나온다. [포인트 조정]은 SCR-ADM-072 전까지 비활성
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
+
+## SCR-ADM-011 회원 상세 · 상태 이력 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-05
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: `GET /api/admin/members/{mbrSn}/status-histories`(`bfrSttsCd`, `aftrSttsCd`, `chgRsn`, `prcsMbrNcnm`, `regDt`)로 최신순 20건씩 나온다. 배치 처리는 처리자가 null이다
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

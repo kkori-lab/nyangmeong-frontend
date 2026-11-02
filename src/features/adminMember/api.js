@@ -17,7 +17,7 @@ import {
  * - 백엔드 /api/admin/members 나오기 전까지 사용 -> 나오면 본문만 api 요청으로 교체
  * - 개발 환경에서 ?fake=forbidden이면 403
  * - 미확정: 조회 조건 이름(q·status·joinPath·role·bgngYmd·endYmd·type), maskedAcntEml, 정지 필드(suspn*), 정지 목록 경로
- * - 탈퇴 회원 목록은 실제 API
+ * - 회원 상세·탭, 탈퇴 회원 목록은 실제 API
  */
 
 /** 가짜 회원 수 */
@@ -97,20 +97,18 @@ const suspensions = members
   .filter(({ mbrSttsCd }) => mbrSttsCd === STATUS_OPTIONS[1].value)
   .map(makeSuspension);
 
-/** 가짜 상태 이력: 회원 상세 상태 이력 탭(SCR-ADM-011)에서 사용 */
-const statusHistories = [];
-
-/** 회원 상태 변경과 상태 이력 추가 */
-const changeMemberStatus = (member, aftrSttsCd, chgRsn) => {
-  statusHistories.unshift({
-    mbrSn: member.mbrSn,
-    bfrSttsCd: member.mbrSttsCd,
-    aftrSttsCd,
-    chgRsn,
-    prcrNcnm: FAKE_ADMIN_NCNM,
-    chgDt: makeDateTime(getTodayYmd(), getNowHm()),
-  });
-  member.mbrSttsCd = aftrSttsCd;
+/** 쪽 나눈 응답: { content, page, size, totalElements, totalPages, hasNext } */
+const toPage = (matched, page, size) => {
+  const start = (page - 1) * size;
+  const totalPages = Math.ceil(matched.length / size);
+  return {
+    content: matched.slice(start, start + size),
+    page,
+    size,
+    totalElements: matched.length,
+    totalPages,
+    hasNext: page < totalPages,
+  };
 };
 
 /** 앞 3자만 남긴 이메일 */
@@ -170,23 +168,33 @@ const matchesSuspensionType = ({ suspnEndDt }, type) => {
 /** 회원 목록: { content, page, size, totalElements, totalPages, hasNext } */
 export const getAdminMembers = async ({ page, size, ...filter }) => {
   throwFakeError();
-  const matched = members.filter((member) => matchesFilter(member, filter));
-  const start = (page - 1) * size;
-  const totalPages = Math.ceil(matched.length / size);
-  return {
-    content: matched
-      .slice(start, start + size)
-      .map(({ acntEml, ...member }) => ({
-        ...member,
-        maskedAcntEml: maskEmail(acntEml),
-      })),
-    page,
-    size,
-    totalElements: matched.length,
-    totalPages,
-    hasNext: page < totalPages,
-  };
+  const matched = members
+    .filter((member) => matchesFilter(member, filter))
+    .map(({ acntEml, ...member }) => ({
+      ...member,
+      maskedAcntEml: maskEmail(acntEml),
+    }));
+  return toPage(matched, page, size);
 };
+
+/** 회원 상세 기본 정보 */
+export const getAdminMember = (mbrSn) => api.get(`/admin/members/${mbrSn}`);
+
+/** 회원의 반려동물: { content, page, size, totalElements, totalPages, hasNext } */
+export const getAdminMemberPets = ({ mbrSn, ...params }) =>
+  api.get(`/admin/members/${mbrSn}/pets`, { params });
+
+/** 회원의 약관 동의 */
+export const getAdminMemberTerms = (mbrSn) =>
+  api.get(`/admin/members/${mbrSn}/terms-agreements`);
+
+/** 회원의 포인트 원장: { content, page, size, totalElements, totalPages, hasNext } */
+export const getAdminMemberPoints = ({ mbrSn, ...params }) =>
+  api.get(`/admin/members/${mbrSn}/point-ledgers`, { params });
+
+/** 회원의 상태 이력: { content, page, size, totalElements, totalPages, hasNext } */
+export const getAdminMemberStatusHistories = ({ mbrSn, ...params }) =>
+  api.get(`/admin/members/${mbrSn}/status-histories`, { params });
 
 /** 정지 회원 목록: { content, page, size, totalElements, totalPages, hasNext } */
 export const getAdminSuspensions = async ({ page, size, q, type }) => {
@@ -196,16 +204,7 @@ export const getAdminSuspensions = async ({ page, size, q, type }) => {
       (!q || suspension.mbrNcnm.includes(q)) &&
       matchesSuspensionType(suspension, type),
   );
-  const start = (page - 1) * size;
-  const totalPages = Math.ceil(matched.length / size);
-  return {
-    content: matched.slice(start, start + size),
-    page,
-    size,
-    totalElements: matched.length,
-    totalPages,
-    hasNext: page < totalPages,
-  };
+  return toPage(matched, page, size);
 };
 
 /** 탈퇴 회원 목록: { content, page, size, totalElements, totalPages, hasNext } */
@@ -220,7 +219,7 @@ export const suspendMember = async ({ mbrSn, suspnDayCnt, suspnRsn }) => {
     member.mbrAuthrtCd === ROLE_OPTIONS[0].value;
   if (isSuspendRejected() || !isSuspendable) throw SUSPEND_REJECTED_ERROR;
 
-  changeMemberStatus(member, STATUS_OPTIONS[1].value, suspnRsn);
+  member.mbrSttsCd = STATUS_OPTIONS[1].value;
   const today = getTodayYmd();
   suspensions.unshift({
     mbrSn,
@@ -235,9 +234,9 @@ export const suspendMember = async ({ mbrSn, suspnDayCnt, suspnRsn }) => {
 };
 
 /** 정지 해제 */
-export const releaseMember = async ({ mbrSn, rlsRsn }) => {
+export const releaseMember = async ({ mbrSn }) => {
   const member = members.find((item) => item.mbrSn === mbrSn);
-  changeMemberStatus(member, STATUS_OPTIONS[0].value, rlsRsn);
+  member.mbrSttsCd = STATUS_OPTIONS[0].value;
   suspensions.splice(
     suspensions.findIndex((item) => item.mbrSn === mbrSn),
     1,
