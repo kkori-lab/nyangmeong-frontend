@@ -119,9 +119,21 @@ export const useDeleteCaregiver = () => {
 
 export const useLeavePet = () => {
   const qc = useQueryClient();
+  /**
+   * 해제된 동물의 상세·양육자·캐릭터 이미지 쿼리는 화면에 붙어 있는 채로 갱신하면 403이 난다.
+   * 목록만 먼저 다시 읽어 슬라이드가 다른 동물로 넘어가게 한 뒤 그 동물의 쿼리를 지운다.
+   */
+  const refreshAfterUnlink = async (petSn) => {
+    await qc.invalidateQueries({ queryKey: petKeys.list() });
+    qc.removeQueries({ queryKey: petKeys.detail(petSn) });
+  };
   return useMutation({
     mutationFn: leavePet,
-    onSuccess: () => qc.invalidateQueries({ queryKey: petKeys.all }),
+    onSuccess: (_, { petSn }) => refreshAfterUnlink(petSn),
+    /** 이미 해제된 연동이면 목록을 다시 읽어 맞춘다 */
+    onError: (error, { petSn }) => {
+      if (error.code === 'CAREGIVER_NOT_FOUND') return refreshAfterUnlink(petSn);
+    },
   });
 };
 

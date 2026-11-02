@@ -2,19 +2,25 @@
 
 ## 지금 하는 것
 
-SCR-MYP-002 반려동물 프로필 목록 · 가족 영역 가짜 응답을 실제 API로 — 끝(검증 `통과`(첫 시도는 로그인 계정이 없어 `실패`, 시드 계정 tester·user0006으로 재검증), 사람 확인 2026-11-01, 승인 2026-11-01 18:30), 시작 2026-11-01 18:10. lint·build 종료 코드 0. 직접 확인한 것: 주양육자·공동양육자 시점 가족 영역(GET caregivers 200), 강제 해제 200·404(사람)
-고른 이유: "다음에 할 것" 맨 위(SCR-MYP-003 연결 후 남음)는 백엔드 저장소·JAJ·YAY 일이라 이 저장소에서 할 수 없어, `milestones/SJM.md`의 `대기` 맨 위를 골랐다
-기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-004-01~04), 백엔드 `PetController`(`GET /pets/{petSn}/caregivers`, `DELETE /pets/{petSn}/caregivers/{brupRelSn}`)·`CaregiverSummary`(`brupRelSn`·`mbrSn`·`mbrNcnm`·`brupRoleCd`·`linkYmd`)·`PetService.unlinkCaregiver`(2026-11-01 origin/develop). 서버 목록은 주양육자 첫 줄, 주양육자에게 전원, 공동양육자에게 주양육자와 본인만 준다. 화면은 그대로 두는 연결 작업이다
-디자인: 해당 없음(기존 화면 그대로)
+SCR-MYP-006 공동양육 연동 해제 · 확인 팝업·토스트를 실제 API로 — 진행 (구현 끝, 검증 `실패` 1회차 보관 중, 승인 2026-11-02 09:10), 시작 2026-11-02 08:58. lint·build 종료 코드 0. 추가-1까지 구현했다. 사람이 실서버로 확인함(DELETE 200, 해제한 petSn 재요청·403 0건, 주양육자 화면 반영, BRUP_REL 1002 복구)
+고른 이유: "다음에 할 것" 맨 위(SCR-MYP-002 가족 영역 후 남음)는 기존 레이아웃 문제·명세 확인·알림이라 마일스톤이 아니고, `milestones/SJM.md`의 `대기` 맨 위를 골랐다
+기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-006-01~05), 마이페이지_화면설계서_v0.6_20261021(SCR-MYP-006), 백엔드 `PetService.unlinkCaregiver`(같은 `DELETE /pets/{petSn}/caregivers/{brupRelSn}`로 공동양육자는 본인 줄만 해제, 남의 줄이면 403 `PET_PRIMARY_ONLY`, 주양육자 줄·없는 줄·이미 해제면 404 `CAREGIVER_NOT_FOUND`). 서버에 `caregivers/me` 경로는 없고, `GET /pets` 목록에 본인 `brupRelSn`이 없어 공동양육자에게 오는 양육자 목록의 공동양육자 줄(본인)에서 얻는다. 확인 팝업 문구·버튼은 이미 화면설계서대로라 화면은 그대로 두는 연결 작업이다
+디자인: 해당 없음(기존 팝업 그대로)
 
-- FN-MYP-004-01·03·04 가족 목록: `features/pet/api.js` `getCaregivers` → `api.get('/pets/{petSn}/caregivers')`, 읽는 곳이 없어지는 가짜 `fakeCaregivers`를 지우고 `leavePet`·`acceptInvitation` 가짜에서 이것을 고치는 부분도 뺀다. `list/FamilySection.jsx`의 키를 응답에 맞춘다: `rltnSn` → `brupRelSn`, `lnkDt` → `linkYmd`, `cgvrRoleCd`·`CGVR_ROLE` → `brupRoleCd`·`BRUP_ROLE`. 서버가 `myYn`을 주지 않으므로 보는 사람이 주양육자인지 공동양육자인지는 슬라이드 동물의 `pet.brupRoleCd`로 가른다. 공동양육자로 볼 때는 목록의 공동양육자 줄이 본인 것이다. `authrtNm`(권한)은 응답에 없어 카드에서 그 줄을 뺀다(질문 1). `list/InviteModal.jsx`의 인원 세기도 `brupRoleCd === BRUP_ROLE.CO_PARENT`로 바꾼다. `utils/petCodes.js`의 `CGVR_ROLE`은 더 쓰는 곳이 없으면 지운다(공용 파일이라 알림). 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: 주양육자 계정으로 `/mypage/pets`에서 공동양육자가 있는 동물로 넘기면 가족 영역에 실제 공동양육자 이름과 "MM-DD 연동"이 보이고 남은 자리 수가 맞다. 공동양육자 계정으로 보면 [주양육] 카드와 "나 (닉네임)" 카드 2장만 보이고 [✕]가 없다. 네트워크에 `GET /api/pets/{petSn}/caregivers`가 200
-- FN-MYP-004-01 강제 해제: `deleteCaregiver` → `api.delete('/pets/{petSn}/caregivers/{brupRelSn}')`(인자 `rltnSn` → `brupRelSn`). `queries.js` `useDeleteCaregiver` 성공 뒤 그 동물의 양육자 목록과 `petKeys` 목록을 무효화한다. 오류는 토스트 `error.message`(403 `PET_PRIMARY_ONLY`, 404 `CAREGIVER_NOT_FOUND`). 404면 이미 빠진 것이라 대화상자를 닫고 양육자 목록도 무효화한다. 완료 조건 — 명령: lint·build. 화면: 주양육자가 [✕] → 확인하면 `DELETE` 200 뒤 그 카드가 빠지고 "N자리 남음"이 1 늘며 토스트 "연동을 해제했어요"가 뜬다
-- 이번에 하지 않음(다음 대기 절): 공동양육자 자진 해제 `leavePet`(SCR-MYP-006), 반려동물 삭제(SCR-MYP-002 삭제), 초대(SCR-MYP-005)는 가짜 그대로 둔다
-- 확인 계정: 시드에 공동양육 관계가 있는 계정이 필요하다. 없으면 초대 API가 가짜라 화면에서 관계를 만들 수 없으니, 그 조건은 이유와 함께 보고한다
-결정(사람, 2026-11-01): (1) 서버에 권한(`authrtNm`)이 없어 카드에서 권한 줄을 뺀다. 명세(FN-MYP-004-01 "이름·권한·연동일")와 어긋나므로 명세 수정은 "다음에 할 것"에 남긴다. (2) 주양육자 시점에는 본인 카드를 넣지 않는다. 서버가 첫 줄로 주는 주양육자 본인 줄(`brupRoleCd`가 PRIMARY)은 화면에서 걸러 공동양육자만 보여 준다. 공동양육자 시점은 [주양육] 카드와 "나 (닉네임)" 카드 그대로
+- FN-MYP-006-02 자진 해제: `features/pet/api.js` 가짜 `leavePet(petSn)`을 `leavePet({ petSn, brupRelSn })` → `api.delete('/pets/{petSn}/caregivers/{brupRelSn}')`로 바꾸고 주석의 `caregivers/me`를 고친다. `list/PetUnlinkDialog.jsx`는 `useCaregivers(pet.petSn)`(가족 영역이 이미 불러 둔 캐시)에서 `brupRoleCd === BRUP_ROLE.CO_PARENT` 줄의 `brupRelSn`을 찾아 넘기고, 목록을 읽는 동안·못 찾으면 [해제]를 비활성화한다. 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: 공동양육자 계정으로 `/mypage/pets`의 공동양육 동물에서 [연동 해제] → [해제]하면 네트워크에 `DELETE /api/pets/{petSn}/caregivers/{brupRelSn}` 200
+- FN-MYP-006-04·05 목록 반영·토스트: `queries.js` `useLeavePet` 성공 뒤 `petKeys.all` 무효화(지금 그대로, 양육자 목록도 함께 무효화됨). 성공하면 팝업을 닫고 토스트 "연동을 해제했어요". 실패 토스트는 고정 문구 대신 `error.message`(403 `PET_PRIMARY_ONLY`). 404 `CAREGIVER_NOT_FOUND`면 이미 해제된 것이라 팝업을 닫고 `petKeys.all`을 무효화한다. 완료 조건 — 명령: lint·build. 화면: 해제 뒤 `GET /api/pets`를 다시 읽어 그 동물이 슬라이드에서 빠지고, 토스트가 뜬다. 주양육자 계정으로 같은 동물을 보면 가족 영역에서 그 공동양육자가 빠져 있다
+- FN-MYP-006-01·03 팝업 노출·취소: 바꾸지 않는다(이미 화면설계서대로). 취소·Esc·바깥 클릭은 요청 중이 아닐 때만 닫힌다
+- 확인 계정: 지난 마일스톤의 시드 공동양육 관계(tester·user0006)를 쓴다. 해제하면 관계가 없어지고 초대 API가 아직 가짜라 화면에서 다시 맺을 수 없으므로, 해제 확인은 마지막에 한 번만 하고 되돌리기는 DB 시드로 한다(질문 1)
+- 이번에 하지 않음(다음 대기 절): 반려동물 삭제(SCR-MYP-002 삭제), 초대(SCR-MYP-005)는 가짜 그대로 둔다. 삭제 가짜가 쓰는 `fakePets`는 남는다
+질문: (1) 해제 확인으로 시드 관계 1건이 없어집니다. 확인 뒤 DB에서 되돌릴 수 있나요, 아니면 다른 계정·관계를 쓸까요? (추천: 시드 관계로 확인하고 다시 시드)
+결정: 추천안대로
 새 의존성: 없음
 
+### 추가 요청
+| 추가-1 | `features/pet/list/PetUnlinkDialog.jsx`, `pages/mypage/PetListPage.jsx`, `features/pet/queries.js` | 명령: lint·build. 화면: 공동양육자 계정으로 [해제] 성공 뒤 `GET /api/pets/{해제한 petSn}`·character-image·caregivers 재요청과 403·콘솔 에러가 없다(선택 동물을 먼저 다른 슬라이드로 옮기고 해제된 petSn 쿼리를 제거) | 요청 2026-11-02 "해제 직후 이미 해제된 pet 1에 상세·캐릭터 이미지·양육자 재요청이 403 3건 나가니, 선택 동물을 먼저 전환하고 해제된 petSn 쿼리를 제거·무효화해 달라" |
+
 ## 다음에 할 것
+- SCR-MYP-006 이어 가기: 검증 루프 1회차 실패로 보관 중(검증 에이전트가 시드 계정 로그인 정보가 없어 실서버 화면 조건을 확인 못 함, 코드 결함 아님). 기획은 고치지 않는다. 사람이 실서버로 확인한 결과(위)는 있어 `/start`로 이어 가면 `/impl`에서 다시 검증한다. 루프를 버리려면 `! sh scripts/verify-loop.sh clear`
 - SCR-MYP-002 가족 영역 후 남음: (a) 화면: 공동양육자 카드에서 [✕]가 이름 글자 위에 겹친다(탄이 "말랑한간식왕", 까미 "수줍은집사", 사람 확인 2026-11-01). 원래 있던 `MemberCard` 레이아웃 문제라 이번엔 고치지 않았다. (b) 명세 확인: 서버에 권한(`authrtNm`)이 없어 카드에서 권한 줄을 뺐다. 기능명세서 FN-MYP-004-01의 "이름·권한·연동일"을 팀에서 고칠지 정한다. (c) 알림: 공용 `utils/petCodes.js`의 `CGVR_ROLE`을 지웠다(`BRUP_ROLE`로 대체). LJS 등에 알린다
 - SCR-MYP-003 연결 후 남음: (a) 백엔드 연결: `PetSummary`에 `nutrYn`·`minBdwg`·`maxBdwg` 추가(백엔드 저장소에서 /start, 백엔드 마일스톤에 절을 넣었다). 지금은 슬라이드가 동물마다 `GET /pets/{petSn}` 상세를 불러 채운다(5마리면 5건). (b) 체중 입력 잠금: 서버는 체중 PATCH를 막지 않는다. 건강기록 API(JAJ)로 프론트에서 판단해 `PetFormModal`의 체중 읽기 전용·`lastBdwgRcd` 표시를 연결한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
 - [SCR-MYP-005 초대 연결 시] POST /caregiver-invitations 409 처리
