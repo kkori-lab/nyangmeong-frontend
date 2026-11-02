@@ -18,13 +18,15 @@ export default function MemberHistoryTab({ mbrSn, page, size, onPageChange }) {
       columns={COLUMNS}
       emptyText="상태 변경 이력이 없어요"
       errorText="상태 이력을 불러오지 못했어요."
-      getRowKey={(_, index) => index}
+      getRowKey={(history) => history.mbrSttsHstrySn}
       renderCells={(history) => [
-        formatDateTime(history.chgDt),
-        getOptionLabel(STATUS_OPTIONS, history.bfrSttsCd),
+        formatDateTime(history.regDt),
+        history.bfrSttsCd
+          ? getOptionLabel(STATUS_OPTIONS, history.bfrSttsCd)
+          : '—',
         getOptionLabel(STATUS_OPTIONS, history.aftrSttsCd),
-        history.chgRsn,
-        history.prcrNcnm ?? '—',
+        history.chgRsn ?? '—',
+        history.prcsMbrNcnm ?? '—',
       ]}
       page={page}
       onPageChange={onPageChange}

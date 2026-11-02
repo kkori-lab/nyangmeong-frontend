@@ -9,11 +9,11 @@ import {
 const SUSPENDED_CD = STATUS_OPTIONS[1].value;
 
 /** 가입 경로 · SNS 표시 */
-const formatJoinPath = ({ joinPathCd, snsOffrCds }) => {
+const formatJoinPath = ({ joinPathCd, snsLinks }) => {
   const joinPath = getOptionLabel(JOIN_PATH_OPTIONS, joinPathCd);
-  if (snsOffrCds.length === 0) return joinPath;
-  const sns = snsOffrCds
-    .map((code) => getOptionLabel(JOIN_PATH_OPTIONS, code))
+  if (snsLinks.length === 0) return joinPath;
+  const sns = snsLinks
+    .map(({ snsOffrCd }) => getOptionLabel(JOIN_PATH_OPTIONS, snsOffrCd))
     .join(', ');
   return `${joinPath} · ${sns} 연동`;
 };
@@ -34,7 +34,10 @@ const formatStatus = ({ mbrSttsCd, suspnEndDt }) => {
 export default function MemberDetailInfo({ member }) {
   const rows = [
     ['닉네임', member.mbrNcnm],
-    ['이메일 · 휴대전화', `${member.maskedAcntEml} · ${member.maskedMblTelno}`],
+    [
+      '이메일 · 휴대전화',
+      `${member.maskedAcntEml} · ${member.maskedMblTelno ?? '—'}`,
+    ],
     ['가입 경로 · SNS', formatJoinPath(member)],
     [
       '가입일 · 최근 로그인',
@@ -42,7 +45,7 @@ export default function MemberDetailInfo({ member }) {
         member.lastLgnDt ? formatDateTime(member.lastLgnDt) : '—'
       }`,
     ],
-    ['보유 포인트', `${member.blncPnt.toLocaleString()}P`],
+    ['보유 포인트', `${member.hldPnt.toLocaleString()}P`],
     ['상태', formatStatus(member)],
   ];
 

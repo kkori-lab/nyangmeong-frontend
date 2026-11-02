@@ -2,13 +2,15 @@
 
 ## 지금 하는 것
 
-SCR-ADM-011 회원 상세 — 끝 (2026-11-02, 검증 `확인 못 함 있음` 1회차·사람 확인). 가짜 응답으로 기본 정보, 탭 4개, 정지·해제 진입을 만들었다
+SCR-ADM-011 회원 상세 · 실제 API 연결 — 끝 (2026-11-02, 검증 `확인 못 함 있음` 1회차·사람 확인). 기본 정보와 탭 4개를 실제 API로 바꿨다
 
 ## 다음에 할 것
 
-- SCR-ADM-011 연결 남음: FN-ADM-011-01~05 실제 API. 백엔드 저장소 SCR-ADM-011이 진행 중이다(작업 사본, 커밋 전). 탭 경로가 `/terms-agreements`·`/point-ledgers`로 가짜 `/terms`·`/points`와 다르다. `features/adminMember/api.js` 가짜(`maskedMblTelno`·`snsOffrCds`·`blncPnt`·`jntBrupCnt`·`petSeNm`·`brupRoleNm`·`trmsNm`·`trmsVerNo`·`agreYn`·`agreDt` 가정)를 그 문서에 맞춘다. 정지·해제 실제 연결은 SCR-ADM-012 연결 절
+- SCR-ADM-011 연결 남음: FN-ADM-011-01 백엔드 연결 `AdminMemberDetailResponse.mbrAuthrtCd`(백엔드 저장소에서 `/start`). 그동안 관리자 회원에게도 [정지]가 보이고 서버가 409로 거절한다. 필드가 들어오면 `AdminMemberDetailPage.jsx` 머리 주석의 해당 줄만 지운다
+- SCR-ADM-011 백엔드 병합 순서: 회원 상세·탭 API는 백엔드 작업 사본(커밋 전)에 있다. 백엔드가 develop에 병합돼야 배포에서 동작한다
+- SCR-ADM-010·012 연결이 다음 순서다: 회원 목록·정지 목록·정지 모달 검색·정지·해제 제출이 아직 가짜라 목록 행이 없는 회원이나 다른 회원으로 가고, 실제 회원의 모달 제출은 거절되거나 오류로 끝날 수 있다
 - SCR-ADM-072 때: `routes/paths.js`에 `ADMIN_POINTS`를 넣고 회원 상세 [포인트 조정]을 켠다(`MemberPointsTab.jsx`, `/admin/points?mbrSn=`). 지금 넣으면 사이드바에 없는 화면 메뉴가 생긴다
-- SCR-ADM-011 실제 확인이 남은 것: 스켈레톤은 화면으로 못 봤고 높이는 계산값이다(`AdminMemberDetailPage.jsx`). 범위를 벗어난 `?page=`는 빈 문구만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 기본 정보 한 줄에 가입일 `2026-10-21`과 최근 로그인 `2026.10.22 14:02` 표기가 섞여 있다(`MemberDetailInfo.jsx`)
+- SCR-ADM-011 실제 확인이 남은 것: 반려동물 20건 초과 쪽 번호와 동의 기록 없는 약관 행은 조작 응답으로만 봤다(로컬 데이터에 없음). 스켈레톤은 화면으로 못 봤고 높이는 계산값이다(`AdminMemberDetailPage.jsx`). 범위를 벗어난 `?page=`는 빈 문구만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 기본 정보 한 줄에 가입일 `2026-10-21`과 최근 로그인 `2026.10.22 14:02` 표기가 섞여 있다(`MemberDetailInfo.jsx`)
 - 원인 안 봄: SCR-ADM-011 검증 중 `/api/auth/me` 401로 로그인 화면으로 한 번 넘어갔고 다시 로그인하니 정상이었다
 - SCR-ADM-113 실제 확인이 남은 것: 스켈레톤은 화면으로 못 봤고 높이 240px는 잰 값이 아니다(`AdminAdminsPage.jsx`). 범위를 벗어난 `?page=`는 "관리자가 없어요"만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 마지막 관리자 [해제] 비활성은 내 행이 아닌 경우를 조작한 응답으로만 봤다
 - SCR-ADM-010 연결 때: `features/adminMember/api.js` `getAppointableMembers`는 `getAdminMembers`와 같은 요청이다. 가짜를 실제로 바꾸면 하나로 합치고 `useAppointableMembers`도 지운다
@@ -22,11 +24,9 @@ SCR-ADM-011 회원 상세 — 끝 (2026-11-02, 검증 `확인 못 함 있음` 1�
 - 공용 하네스: 관리자 화면 검증은 별도 검증 에이전트가 관리자 계정을 받아야 한다. 이번에는 사람이 지시해 프롬프트에 계정을 넣었다(`/impl` 고정 프롬프트 예외). 검증 스킬에 관리자 화면 로그인을 어떻게 둘지 PR로 정한다
 - SCR-ADM-012 연결 남음: 백엔드 연결(백엔드 저장소에서 `/start`). `POST`·`DELETE /api/admin/members/{mbrSn}/suspension` 요청·응답·사유 전달 방식, 정지 회원 목록 API 경로·조회 조건·필드 이름, 정지 종료 일시 필드(가짜 `suspn*`·`prcrNcnm`은 가정), 거절 코드, 로그인 차단·만료 자동 해제 배치·상태 이력 기록. 연결 때 `features/adminMember/api.js` 가짜를 바꾼다
 - SCR-ADM-012 실제 확인이 남은 것: 조회 오류의 [다시 시도]와 로딩 스켈레톤은 화면으로 못 봤다. 스켈레톤 표 높이는 1008px로 실제 1186px보다 15% 작다. 쪽 이동·검색을 하면 주소의 `?fake=`가 사라져 거절 확인은 주소로 바로 열어야 한다
-- SCR-ADM-011 때: 회원 상세 [정지]·[정지 해제]에 `SuspendModal`(`member` prop)·`ReleaseModal`을 붙이고, 상태 이력 탭에서 가짜 `statusHistories`를 보여 준다
 - SCR-ADM-010 가짜 자료 달라짐: `features/adminMember/api.js` 가짜 회원을 57→170명으로 늘렸고 관리자는 항상 정상 상태다
 - SCR-ADM-010 연결 남음: FN-ADM-010-01·02·03·04 백엔드 연결(백엔드 저장소에서 `/start`, 담당 LJS). `GET /api/admin/members`, 필드 이름, 코드 값, 조회 조건 이름. 연결 때 `features/adminMember/api.js` 가짜를 바꾼다. 백엔드 `docs/admin/implementation-plan.md` 담당 표는 YAY이고 필터에 권한이 없어 그 문서도 고친다
 - SCR-ADM-010 실제 확인이 남은 것: 조회 오류의 [다시 시도]는 화면으로 못 봤다. 정지 회원 행의 정지 종료일은 일단 표시하지 않는다(사람 결정 2026-11-01). `?page=99`처럼 범위를 벗어난 쪽은 빈 문구만 나오고 쪽 번호가 없다
-- SCR-ADM-011 때: `pages/admin/AdminMemberDetailPage.jsx` 임시 페이지를 실제 화면으로 바꾼다
 - SCR-ADM-112 연결 남음: FN-ADM-112-01·02·03 백엔드 연결(백엔드 저장소에서 `/start`). 사용량 조회 API 3종·필드 이름, SYSG05를 명세 7종으로 수정, 호출 로그 기록(Python 통지 포함). 연결 때 `features/apiUsage/api.js` 가짜와 `apiUsageLabels.js`의 임시 코드(`TMP00001` AI 분류, `TMP00002` PDF 분석)를 바꾼다. 지금 AI 서버에는 토큰을 읽는 코드와 Java 통지가 없다(2026-11-01 검색)
 - SCR-ADM-112 문서 맞출 것(사람): 명세 7종에 대화 제목 생성(별도 LLM 호출)이 없고, PDF 분석은 AI 저장소 작업 사본에 코드가 없다. SCR-ADM-082도 PDF 실패를 이 로그로 본다고 되어 있다. 공통코드의 장소 공공데이터는 명세 7종에 없다
 - SCR-ADM-112 실제 확인이 남은 것: 스켈레톤 높이는 계산값이다(`AdminExternalApiUsagePage.jsx`). 조회 오류의 [다시 시도]는 화면으로 못 봤다. 390px 날짜 입력 줄 오른쪽 끝이 다른 칸보다 약 9px 더 나간다(`ApiUsageFilter.jsx`, 캡처로 어림, 가로 스크롤은 없음)
