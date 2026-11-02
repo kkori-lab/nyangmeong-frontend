@@ -231,11 +231,9 @@ export const getCaregivers = (petSn) => api.get(`/pets/${petSn}/caregivers`);
 export const deleteCaregiver = ({ petSn, brupRelSn }) =>
   api.delete(`/pets/${petSn}/caregivers/${brupRelSn}`);
 
-/** 공동양육자 본인의 자진 해제 DELETE /pets/{petSn}/caregivers/me (SJM 백엔드, 본인 연동만 끊고 반려동물 데이터는 그대로) */
-export const leavePet = (petSn) => {
-  fakePets = fakePets.filter((pet) => pet.petSn !== petSn);
-  return fakeDelay(null);
-};
+/** 공동양육자 본인의 자진 해제 DELETE /pets/{petSn}/caregivers/{brupRelSn} (본인 줄만 가능, 반려동물 데이터는 그대로) */
+export const leavePet = ({ petSn, brupRelSn }) =>
+  api.delete(`/pets/${petSn}/caregivers/${brupRelSn}`);
 
 /**
  * [캐릭터 가짜 API]
