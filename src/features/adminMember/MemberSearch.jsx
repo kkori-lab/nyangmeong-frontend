@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import Skeleton from '@/components/Skeleton';
 import { ROLE_OPTIONS, STATUS_OPTIONS } from './memberLabels';
+import { useAdminMembers } from './queries';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
@@ -12,19 +13,17 @@ const SEARCH_SIZE = 20;
 /**
  * [회원 검색]
  * - 정상 일반회원만 검색 -> 한 명 선택
- * - useMembers: 화면마다 다른 조회 훅
  */
 export default function MemberSearch({
   selected,
   onSelect,
-  useMembers,
   placeholder,
   emptyText,
 }) {
   const [keyword, setKeyword] = useState('');
   const [q, setQ] = useState('');
 
-  const members = useMembers(
+  const members = useAdminMembers(
     {
       q,
       status: STATUS_OPTIONS[0].value,

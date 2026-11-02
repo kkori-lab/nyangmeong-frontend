@@ -4,7 +4,7 @@ import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
 import MemberSearch from './MemberSearch';
 import { SUSPENSION_DAY_OPTIONS } from './memberLabels';
-import { useAdminMembers, useSuspendMember } from './queries';
+import { useSuspendMember } from './queries';
 
 const TEXTAREA_CLASS =
   'block min-h-24 w-full resize-none rounded-[6px] border border-[#d3dae2] bg-white px-3 py-2 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
@@ -76,7 +76,6 @@ export default function SuspendModal({ member, onClose }) {
             <MemberSearch
               selected={selected}
               onSelect={setSelected}
-              useMembers={useAdminMembers}
               placeholder="닉네임으로 검색"
               emptyText="정지할 수 있는 회원이 없어요"
             />

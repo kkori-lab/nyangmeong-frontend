@@ -13,11 +13,10 @@ import {
 } from './memberLabels';
 
 /**
- * [관리자 회원 가짜 API]
- * - 백엔드 /api/admin/members 나오기 전까지 사용 -> 나오면 본문만 api 요청으로 교체
- * - 개발 환경에서 ?fake=forbidden이면 403
- * - 미확정: 조회 조건 이름(q·status·joinPath·role·bgngYmd·endYmd·type), maskedAcntEml, 정지 필드(suspn*), 정지 목록 경로
- * - 회원 상세·탭, 탈퇴 회원 목록은 실제 API
+ * [관리자 회원 API]
+ * - 회원 목록·상세·탭, 탈퇴 회원, 관리자 계정은 실제 API
+ * - 정지 목록·정지·해제는 가짜 -> 연결 때 본문만 api 요청으로 교체
+ * - 개발 환경에서 정지 목록 ?fake=forbidden이면 403
  */
 
 /** 가짜 회원 수 */
@@ -111,34 +110,6 @@ const toPage = (matched, page, size) => {
   };
 };
 
-/** 앞 3자만 남긴 이메일 */
-const maskEmail = (acntEml) => {
-  const [local, domain] = acntEml.split('@');
-  return `${local.slice(0, 3)}***@${domain}`;
-};
-
-/** 닉네임 부분 일치·이메일 완전 일치 */
-const matchesKeyword = ({ mbrNcnm, acntEml }, q) => {
-  if (!q) return true;
-  return q.includes('@') ? acntEml === q : mbrNcnm.includes(q);
-};
-
-/** 검색·필터 전부 맞는 회원인지 */
-const matchesFilter = (
-  member,
-  { q, status, joinPath, role, bgngYmd, endYmd },
-) => {
-  const regYmd = member.regDt.slice(0, 10);
-  return (
-    matchesKeyword(member, q) &&
-    (!status || member.mbrSttsCd === status) &&
-    (!joinPath || member.joinPathCd === joinPath) &&
-    (!role || member.mbrAuthrtCd === role) &&
-    (!bgngYmd || regYmd >= bgngYmd) &&
-    (!endYmd || regYmd <= endYmd)
-  );
-};
-
 /** ?fake= 값에 따른 가짜 오류 */
 const throwFakeError = () => {
   const fake = IS_DEV
@@ -166,16 +137,8 @@ const matchesSuspensionType = ({ suspnEndDt }, type) => {
 };
 
 /** 회원 목록: { content, page, size, totalElements, totalPages, hasNext } */
-export const getAdminMembers = async ({ page, size, ...filter }) => {
-  throwFakeError();
-  const matched = members
-    .filter((member) => matchesFilter(member, filter))
-    .map(({ acntEml, ...member }) => ({
-      ...member,
-      maskedAcntEml: maskEmail(acntEml),
-    }));
-  return toPage(matched, page, size);
-};
+export const getAdminMembers = (params) =>
+  api.get('/admin/members', { params });
 
 /** 회원 상세 기본 정보 */
 export const getAdminMember = (mbrSn) => api.get(`/admin/members/${mbrSn}`);
@@ -245,10 +208,6 @@ export const releaseMember = async ({ mbrSn }) => {
 
 /** 관리자 목록: { content, page, size, totalElements, totalPages, hasNext } */
 export const getAdmins = (params) => api.get('/admin/admins', { params });
-
-/** 관리자 지정 대상 회원 검색: { content, page, size, totalElements, totalPages, hasNext } */
-export const getAppointableMembers = (params) =>
-  api.get('/admin/members', { params });
 
 /** 관리자 지정 */
 export const appointAdmin = (mbrSn) => api.post(`/admin/admins/${mbrSn}`);
