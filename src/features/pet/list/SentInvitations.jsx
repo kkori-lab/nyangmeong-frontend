@@ -1,6 +1,7 @@
 import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
-import { INVT_STTS } from '../api';
+import { getYmdOf } from '@/utils/formatDate';
+import { INVTN_STTS } from '../shared/petCodes';
 import { useSentInvitations } from '../queries';
 
 /**
@@ -11,19 +12,19 @@ import { useSentInvitations } from '../queries';
  */
 
 const STATUS_BADGES = {
-  [INVT_STTS.WAIT]: {
+  [INVTN_STTS.WAIT]: {
     label: '대기중',
     tone: 'bg-tone-amber-bg text-tone-amber-fg',
   },
-  [INVT_STTS.ACPT]: {
+  [INVTN_STTS.ACPT]: {
     label: '수락',
     tone: 'bg-tone-green-bg text-tone-green-fg',
   },
-  [INVT_STTS.RJCT]: {
+  [INVTN_STTS.RJCT]: {
     label: '거절',
     tone: 'bg-tone-rose-bg text-tone-rose-fg',
   },
-  [INVT_STTS.EXPR]: {
+  [INVTN_STTS.EXPR]: {
     label: '만료됨',
     tone: 'bg-tone-gray-bg text-tone-gray-fg',
   },
@@ -39,8 +40,8 @@ function Badge({ tone, children }) {
   );
 }
 
-/** 'YYYY-MM-DD' → 'MM-DD' */
-const formatMonthDay = (ymd) => ymd.slice(5);
+/** 'YYYY-MM-DDTHH:mm:ss' → 'MM-DD' */
+const formatMonthDay = (dateTime) => getYmdOf(dateTime).slice(5);
 
 export default function SentInvitations() {
   const { data: invitations = [], isPending } = useSentInvitations();
@@ -76,31 +77,31 @@ export default function SentInvitations() {
       ) : (
         <ul className="min-w-0 rounded-card border border-line bg-white shadow-depth-sm">
           {rows.map(({ invitation, pet }) => {
-            const status = STATUS_BADGES[pet.invtSttsCd];
+            const status = STATUS_BADGES[pet.invtnSttsCd];
             const meta = [
-              `${formatMonthDay(invitation.invtDt)} 발송`,
-              invitation.mbrYn === 'Y'
+              `${formatMonthDay(invitation.regDt)} 발송`,
+              invitation.rcvrJoined
                 ? '가입 회원(인앱 알림)'
                 : '미가입 이메일',
             ];
             return (
               <li
-                key={`${invitation.invtSn}-${pet.petSn}`}
+                key={`${invitation.jntBrupInvtnSn}-${pet.petSn}`}
                 className="border-b border-line-soft px-[22px] py-6 last:border-b-0"
               >
                 <p className="flex items-start gap-4 font-semibold">
                   <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-                    {invitation.invtEml}
+                    {invitation.invtnTrgtEml}
                   </span>
                   <Badge tone={status.tone}>{status.label}</Badge>
                 </p>
                 <p className="mt-1 text-sm leading-[1.6] text-subtle">
                   <b className="font-semibold text-ink">{pet.petNm}</b> ·{' '}
                   {meta.join(' · ')}
-                  {pet.invtSttsCd === INVT_STTS.WAIT && (
+                  {pet.invtnSttsCd === INVTN_STTS.WAIT && (
                     <>
                       <br />
-                      {formatMonthDay(invitation.expryDt)}에 만료돼요
+                      {formatMonthDay(invitation.invtnExpryDt)}에 만료돼요
                     </>
                   )}
                 </p>

@@ -3,7 +3,7 @@ import { CHRC_STTS, ITEM_PART, PET_REL, PET_SE } from './shared/petCodes';
 
 /**
  * [반려동물 API]
- * - 목록·상세·등록·수정·대표 지정·품종은 실제 API, 그 밖(삭제·자진 해제·초대·캐릭터·상점)은 아직 가짜 응답
+ * - 목록·상세·등록·수정·대표 지정·품종은 실제 API, 그 밖(캐릭터·상점)은 아직 가짜 응답
  * - 가짜 응답은 나오면 본문만 api 요청으로 교체
  * - 캐릭터 미정 키: chrcSttsCd, chrcImgUrl, inqryRcptYn
  */
@@ -371,259 +371,21 @@ export const createCharacter = ({ petSn, photo, colrCd, colrDrctInptNm }) => {
   });
 };
 
-/**
- * [공동양육 초대 가짜 데이터]
- * - 초대 API(SJM 백엔드) 전까지 쓰는 가짜 응답
- * - 미정 키: invtSn, invitationToken(수락 URL 경로 변수, 확정 필요), invtEml, invtEmlMskd, emlMtchYn, invtSttsCd(보낸 초대는 동물별, 받은 초대는 초대 전체 WAIT·ACPT·RJCT·EXPR. 5-6 안내 판단), invtDt, expryDt, mbrYn, invtrNcnm, pets
- */
-export const INVT_STTS = {
-  WAIT: 'WAIT',
-  ACPT: 'ACPT',
-  RJCT: 'RJCT',
-  EXPR: 'EXPR',
-};
+/** 보낸 초대 조회 GET /caregiver-invitations (SJM 백엔드) */
+export const getSentInvitations = () => api.get('/caregiver-invitations');
 
-/** 초대 유효 기간(일) */
-const INVT_VALID_DAYS = 7;
+/** 초대 발송 POST /caregiver-invitations (SJM 백엔드, 가입 회원은 인앱 알림·미가입은 메일) */
+export const createInvitation = ({ invtnTrgtEml, petSns }) =>
+  api.post('/caregiver-invitations', { invtnTrgtEml, petSns });
 
-const toYmd = (date) => date.toISOString().slice(0, 10);
+/** 받은 초대 조회 GET /caregiver-invitations/{jntBrupInvtnSn} (SJM 백엔드) */
+export const getInvitation = (jntBrupInvtnSn) =>
+  api.get(`/caregiver-invitations/${jntBrupInvtnSn}`);
 
-const addDays = (ymd, days) => {
-  const date = new Date(`${ymd}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return toYmd(date);
-};
+/** 초대 수락 POST /caregiver-invitations/{jntBrupInvtnSn}/accept (SJM 백엔드, 고른 동물만 연동하고 나머지는 거절 처리) */
+export const acceptInvitation = ({ jntBrupInvtnSn, petSns }) =>
+  api.post(`/caregiver-invitations/${jntBrupInvtnSn}/accept`, { petSns });
 
-const todayYmd = () => {
-  const now = new Date();
-  return toYmd(new Date(now.getTime() - now.getTimezoneOffset() * 60000));
-};
-
-/** 기한이 지난 대기 건은 만료로 표시 (실제는 서버 상태) */
-const isExpired = (invitation, invtSttsCd) =>
-  invtSttsCd === INVT_STTS.WAIT && invitation.expryDt < todayYmd();
-
-/** 초대 상태는 동물별(sent: pets[].invtSttsCd), 받은 초대는 초대 전체 상태도 함께 보관 */
-const withExpiry = (invitation) => ({
-  ...invitation,
-  ...(invitation.invtSttsCd && {
-    invtSttsCd: isExpired(invitation, invitation.invtSttsCd)
-      ? INVT_STTS.EXPR
-      : invitation.invtSttsCd,
-  }),
-  pets: invitation.pets.map((pet) =>
-    pet.invtSttsCd && isExpired(invitation, pet.invtSttsCd)
-      ? { ...pet, invtSttsCd: INVT_STTS.EXPR }
-      : pet,
-  ),
-});
-
-/** 내가 보낸 초대 (계정 전체, 최신 발송 순) */
-let fakeSentInvitations = [
-  {
-    invtSn: 4,
-    invtEml: 'sooyoung@example.com',
-    pets: [{ petSn: 1, petNm: '초코', invtSttsCd: INVT_STTS.WAIT }],
-    invtDt: '2026-10-18',
-    expryDt: '2026-10-25',
-    mbrYn: 'N',
-  },
-  {
-    invtSn: 3,
-    invtEml: 'jiho@example.com',
-    pets: [
-      { petSn: 2, petNm: '나비', invtSttsCd: INVT_STTS.WAIT },
-      { petSn: 4, petNm: '두부', invtSttsCd: INVT_STTS.WAIT },
-    ],
-    invtDt: '2026-10-01',
-    expryDt: '2026-10-08',
-    mbrYn: 'Y',
-  },
-  {
-    invtSn: 2,
-    invtEml: 'minji@example.com',
-    pets: [
-      { petSn: 1, petNm: '초코', invtSttsCd: INVT_STTS.ACPT },
-      { petSn: 3, petNm: '보리', invtSttsCd: INVT_STTS.RJCT },
-    ],
-    invtDt: '2026-07-28',
-    expryDt: '2026-08-04',
-    mbrYn: 'Y',
-  },
-  {
-    invtSn: 1,
-    invtEml: 'haneul@example.com',
-    pets: [{ petSn: 3, petNm: '보리', invtSttsCd: INVT_STTS.RJCT }],
-    invtDt: '2026-06-15',
-    expryDt: '2026-06-22',
-    mbrYn: 'N',
-  },
-];
-
-/** 내가 받은 초대 (invitationToken별) */
-let fakeReceivedInvitations = {
-  'demo-wait': {
-    invtSn: 901,
-    invtrNcnm: '김주인',
-    invtDt: '2026-10-20',
-    expryDt: '2026-10-27',
-    invtSttsCd: INVT_STTS.WAIT,
-    pets: [
-      {
-        ...basePet,
-        petSn: 901,
-        petNm: '뭉치',
-        petSeCd: PET_SE.DOG,
-        vrtySn: 1,
-        vrtyNm: '골든리트리버',
-        petBrdt: '2023-05-02',
-        petGndrCd: 'PETC0003',
-        petBdwg: 30.2,
-        minBdwg: 27.0,
-        maxBdwg: 33.0,
-        colrCd: 'PETC0007',
-        petRelCd: PET_REL.CO_PARENT,
-      },
-      {
-        ...basePet,
-        petSn: 902,
-        petNm: '마루',
-        petSeCd: PET_SE.CAT,
-        vrtyNm: '코리안 숏헤어',
-        petBrdt: '2024-03-11',
-        petGndrCd: 'PETC0004',
-        petBdwg: 4.1,
-        minBdwg: 3.5,
-        maxBdwg: 4.8,
-        colrCd: 'PETC0014',
-        petRelCd: PET_REL.CO_PARENT,
-      },
-    ],
-  },
-  /** 초대받은 이메일과 로그인 계정이 다른 경우 (서버가 판정, 마스킹한 이메일을 내려 줌) */
-  'demo-mismatch': {
-    invtSn: 903,
-    invtrNcnm: '김주인',
-    invtEmlMskd: 's***@example.com',
-    emlMtchYn: 'N',
-    invtDt: '2026-10-20',
-    expryDt: '2026-10-27',
-    invtSttsCd: INVT_STTS.WAIT,
-    pets: [],
-  },
-  /** 이미 수락·거절돼 종료된 초대 */
-  'demo-done': {
-    invtSn: 904,
-    invtrNcnm: '최가족',
-    invtDt: '2026-10-20',
-    expryDt: '2026-10-27',
-    invtSttsCd: INVT_STTS.ACPT,
-    pets: [
-      {
-        ...basePet,
-        petSn: 904,
-        petNm: '구름',
-        petSeCd: PET_SE.CAT,
-        vrtyNm: '러시안블루',
-        petBrdt: '2023-01-15',
-        petRelCd: PET_REL.CO_PARENT,
-      },
-    ],
-  },
-  'demo-expired': {
-    invtSn: 902,
-    invtrNcnm: '박보호',
-    invtDt: '2026-10-01',
-    expryDt: '2026-10-08',
-    invtSttsCd: INVT_STTS.WAIT,
-    pets: [
-      {
-        ...basePet,
-        petSn: 903,
-        petNm: '별이',
-        petSeCd: PET_SE.DOG,
-        vrtyNm: '시바견',
-        petBrdt: '2022-08-08',
-        petRelCd: PET_REL.CO_PARENT,
-      },
-    ],
-  },
-};
-
-/** 보낸 초대 조회 GET /invitations/sent (SJM 백엔드) */
-export const getSentInvitations = () =>
-  fakeDelay(fakeSentInvitations.map(withExpiry));
-
-/** 초대 발송 POST /invitations (SJM 백엔드, 가입 회원은 인앱 알림·미가입은 메일) */
-export const createInvitation = ({ invtEml, petSns }) => {
-  const invtDt = todayYmd();
-  const invitation = {
-    invtSn: Math.max(0, ...fakeSentInvitations.map((i) => i.invtSn)) + 1,
-    invtEml,
-    pets: fakePets
-      .filter((pet) => petSns.includes(pet.petSn))
-      .map(({ petSn, petNm }) => ({
-        petSn,
-        petNm,
-        invtSttsCd: INVT_STTS.WAIT,
-      })),
-    invtDt,
-    expryDt: addDays(invtDt, INVT_VALID_DAYS),
-    mbrYn: 'N',
-  };
-  fakeSentInvitations = [invitation, ...fakeSentInvitations];
-  return fakeDelay(invitation);
-};
-
-/** 받은 초대 조회 GET /invitations/{invitationToken} (SJM 백엔드) */
-export const getInvitation = (invitationToken) => {
-  const invitation = fakeReceivedInvitations[invitationToken];
-  if (!invitation) {
-    return new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('NOT_FOUND')), 200),
-    );
-  }
-  return fakeDelay(withExpiry({ ...invitation, invitationToken }));
-};
-
-/** 받은 쪽 처리 결과를 보낸 쪽 목록에도 동물별로 반영 (같은 invtSn) */
-const setReceivedStatus = (invitationToken, statusOf, invtSttsCd) => {
-  const { invtSn } = fakeReceivedInvitations[invitationToken];
-  fakeSentInvitations = fakeSentInvitations.map((invitation) =>
-    invitation.invtSn === invtSn
-      ? {
-          ...invitation,
-          pets: invitation.pets.map((pet) => ({
-            ...pet,
-            invtSttsCd: statusOf(pet.petSn),
-          })),
-        }
-      : invitation,
-  );
-  fakeReceivedInvitations = {
-    ...fakeReceivedInvitations,
-    [invitationToken]: {
-      ...fakeReceivedInvitations[invitationToken],
-      invtSttsCd,
-    },
-  };
-};
-
-/** 초대 수락 POST /invitations/{invitationToken}/accept (SJM 백엔드, 고른 동물만 연동하고 나머지는 거절 처리) */
-export const acceptInvitation = ({ invitationToken, petSns }) => {
-  const invitation = fakeReceivedInvitations[invitationToken];
-  const accepted = invitation.pets.filter((pet) => petSns.includes(pet.petSn));
-  setReceivedStatus(
-    invitationToken,
-    (petSn) => (petSns.includes(petSn) ? INVT_STTS.ACPT : INVT_STTS.RJCT),
-    INVT_STTS.ACPT,
-  );
-  fakePets = [...fakePets, ...accepted];
-  return fakeDelay(null);
-};
-
-/** 초대 거절 POST /invitations/{invitationToken}/reject (SJM 백엔드) */
-export const rejectInvitation = (invitationToken) => {
-  setReceivedStatus(invitationToken, () => INVT_STTS.RJCT, INVT_STTS.RJCT);
-  return fakeDelay(null);
-};
+/** 초대 거절 POST /caregiver-invitations/{jntBrupInvtnSn}/reject (SJM 백엔드) */
+export const rejectInvitation = (jntBrupInvtnSn) =>
+  api.post(`/caregiver-invitations/${jntBrupInvtnSn}/reject`);

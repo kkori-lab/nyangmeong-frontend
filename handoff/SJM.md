@@ -2,33 +2,19 @@
 
 ## 지금 하는 것
 
-SCR-MYP-002 반려동물 프로필 목록 · 슬라이드 중성화·정상 체중을 목록 값으로 — 끝 (2026-11-02, 검증 1회차 통과, 사람 확인 완료). lint·build 종료 코드 0. 슬라이드 상세 조회를 지우고 목록 값을 쓴다. 사람이 상세 조회 0건을 확인했고 수정 반영·null 표시는 검증 결과로 갈음했다. 검증 중 바꾼 루루(petSn 3)는 원래 값으로 되돌렸다
-고른 이유: "다음에 할 것" 맨 위(SCR-MYP-002 삭제 후 남음)는 확인·알림 항목이라 마일스톤이 아니고, `milestones/SJM.md`의 `대기` 맨 위를 골랐다
-기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-002-02 "성별(중성화)", "체중(정상범위 함께 표시)"), 마이페이지_화면설계서_v0.6_20261025(SCR-MYP-002 "수컷(중성화 완료)"), 백엔드 `PetSummary`(`GET /pets`, `nutrYn` boolean·`minBdwg`·`maxBdwg` 숫자, develop 반영 0526065). 화면 모양은 그대로 두고 값의 출처만 바꾸는 작업이다
-디자인: 해당 없음(기존 슬라이드 그대로)
-
-- FN-MYP-002-02 슬라이드 값 출처: `features/pet/list/PetSlide.jsx`의 `PetCard`에서 `usePet(listPet.petSn)` 상세 조회와 `{ ...listPet, ...detail }` 합치기를 지우고 목록 항목(`pet`)을 그대로 쓴다. 이 파일의 `usePet` import와 "목록 응답에 없는…" 주석도 지운다. `usePet`은 `PetFormModal`이 계속 쓰므로 `queries.js`는 그대로 둔다. 부를 API: `GET /api/pets`(SJM 백엔드, 끝남). 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: tester(mbrSn 1)로 `/mypage/pets`를 열면 네트워크에 `GET /api/pets/{petSn}`가 나가지 않고(슬라이드 넘겨도), PC 성별 칸 "수컷(중성화 완료)"·모바일(≤760px) 한 줄 "… · 성별(중성화)"·모바일 체중 "정상 a~bkg"가 `GET /api/pets` 응답의 `nutrYn`·`minBdwg`·`maxBdwg`와 맞는다. 중성화 안 한 동물은 괄호가 없다
-- FN-MYP-003-06 수정 뒤 반영: 수정 모달(SCR-MYP-003)에서 중성화·정상 체중을 바꾸고 저장하면 `useUpdatePet`의 `petKeys.all` 무효화로 목록을 다시 읽어 슬라이드에 바로 반영된다(코드 변경 없음, 확인만). 완료 조건 — 화면: tester로 한 동물의 중성화 체크·정상 체중을 바꿔 저장하면 슬라이드 값이 바뀐다. [반려동물 정보 수정]을 열 때만 `GET /api/pets/{petSn}`이 나간다
-- null 표시 조건(사람 추가 요청 2026-11-02): `nutrYn`·`minBdwg`·`maxBdwg`가 비었을 때 표시가 기존(상세 조회 값 기준)과 같다. 완료 조건 — 화면: `GET /api/pets` 응답을 Playwright로 가로채 (a) `minBdwg`·`maxBdwg` null → 모바일 체중에 "정상 …" 문구 없이 체중만, (b) 둘 중 하나만 null → 마찬가지로 문구 없음, (c) `nutrYn` false·누락 → 성별에 "(중성화…)" 없음이 나오는지 본다. 코드는 `pet.nutrYn ?`와 `!= null` 검사를 그대로 둔다
-- 사전 확인 결과(사람 요청 2026-11-02): `PetCard`가 읽는 `chrcSttsCd`는 `PetSummary`·`PetResponse` 어디에도 없다. (a) 채택, OPEN_ISSUES로 이관 — 이번엔 `chrcSttsCd` 읽기를 건드리지 않는다
-- 이번에 하지 않는 것: 정상 체중 숫자 표기(서버 BigDecimal이 `3.500`처럼 오면 끝 0 정리)는 지금과 같은 값이 나오는지 확인만 하고, 끝 0이 보이면 보고한다(상세 조회 때도 같은 값이었다). 메인·홈(`MyPetsSection`, YAY의 `MainPage`)은 이 값을 쓰지 않아 건드리지 않는다
-- 사람 확인 "정리": 수정 확인에서 바꾼 중성화·정상 체중은 화면에서 원래 값으로 되돌린다(바꾸기 전 값을 보고에 적는다)
+SCR-MYP-005 공동양육자 추가 · 초대 가짜 응답을 실제 API로 — 끝 (2026-11-02, 검증 판정 "확인 못 함 있음"이 사람 확인으로 해소, 사람 확인 완료). lint·build 종료 코드 0. 초대 5개 API(`GET·POST /caregiver-invitations`, `GET /{n}`, `POST /{n}/accept·reject`)를 실제 요청으로 바꾸고 가짜(`demo-*`, `withExpiry`)를 지웠다. 초대 모달은 409(이미 가족·초대 대기)를 `linkedPets`·`pendingPets`로 처리한다. 만료·처리됨·이메일 불일치 오류는 상세를 다시 읽어 안내 화면으로 바꾼다. `INVT_STTS`는 `shared/petCodes.js`의 `INVTN_STTS`(PETC0020~0023)로 옮겼다
+고른 이유: "다음에 할 것" 맨 위가 확인·알림 항목이라 `milestones/SJM.md`의 `대기` 맨 위를 골랐다
+기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-005-01~10), 백엔드 `CaregiverInvitationController`
+사람 확인: 두 탭(거절 후 수락)에서 오류 토스트와 "이미 처리된 초대예요" 전환을 확인했다. 나머지는 검증 결과로 갈음했다
+정리(사람 실행 완료): 탄이·루루 연동 해제(화면), 초대 201~204 삭제
 새 의존성: 없음
 
 ## 다음에 할 것
+- SCR-MYP-005 수락 카드 품종: 백엔드 `CaregiverInvitationPetSummary`에 `vrtyNm`·`vrtyDrctInptNm` 추가(백엔드 저장소에서 /start). 프론트는 직접입력 우선으로 읽는 코드가 이미 있어 값이 오면 줄이 나온다. 나이 줄은 뺐다. 팀에 확인: 설계서 수락 카드에 품종·나이가 필요한지
 - `chrcSttsCd`(PetCard의 PetFace 입력)는 `PetSummary`·`PetResponse`에 없다. 캐릭터 API 실제 연결 때 백엔드 필드 추가 또는 프론트 읽기 제거를 정한다(`docs/OPEN_ISSUES.md`에 적음)
 - SCR-MYP-002 삭제 후 남음: (a) FN-MYP-002-08은 DB 수동 연결로 `USE_YN`·`RPRS_PET_YN`이 'N'이 되는 것까지 확인했다. 공동양육자에게 알림이 실제로 갔는지는 확인하지 못했으니 백엔드 알림 테스트로 확인한다. (b) 초대(SCR-MYP-005) 실연결 때 "초대 → 수락 → 삭제 → 자동 해제" 흐름을 화면으로 확인한다. (c) 삭제 성공 토스트는 설계서에 없는 추가라 팀에 설계서 후속 반영을 알린다. (d) 10마리 보유 때 삭제하면 등록 카드로 바뀌는 것은 데이터가 없어 화면으로 확인하지 못했다
 - SCR-MYP-002 가족 영역 후 남음: (a) 화면: 공동양육자 카드에서 [✕]가 이름 글자 위에 겹친다(탄이 "말랑한간식왕", 까미 "수줍은집사", 사람 확인 2026-11-01). 원래 있던 `MemberCard` 레이아웃 문제라 이번엔 고치지 않았다. (b) 명세 확인: 서버에 권한(`authrtNm`)이 없어 카드에서 권한 줄을 뺐다. 기능명세서 FN-MYP-004-01의 "이름·권한·연동일"을 팀에서 고칠지 정한다. (c) 알림: 공용 `utils/petCodes.js`의 `CGVR_ROLE`을 지웠다(`BRUP_ROLE`로 대체). LJS 등에 알린다
 - SCR-MYP-003 연결 후 남음: (a) 끝: 슬라이드가 `PetSummary` 값을 쓰고 상세 조회는 수정 모달만 한다(2026-11-02). (b) 체중 입력 잠금: 서버는 체중 PATCH를 막지 않는다. 건강기록 API(JAJ)로 프론트에서 판단해 `PetFormModal`의 체중 읽기 전용·`lastBdwgRcd` 표시를 연결한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
-- [SCR-MYP-005 초대 연결 시] POST /caregiver-invitations 409 처리
-  - 백엔드 응답 변경 완료: data = { linkedPets: [{petSn, petNm}], pendingPets: [{petSn, petNm, invtnExpryDt}] }, 없으면 []
-  - code: linkedPets 있으면 CAREGIVER_ALREADY_LINKED, pendingPets만 있으면 CAREGIVER_INVITATION_DUPLICATED
-  - 문구는 서버 message 대신 두 목록으로 조합
-    - linked: "이미 뭉치, 모리의 가족이에요"
-    - pending: "이미 초대를 보냈어요: 콩이(11-06 만료), 보리(11-07 만료)" / 만료일 null이면 이름만
-    - 둘 다 있으면 두 줄, 두 목록 다 비면 서버 message 그대로
-  - 충돌 동물 자동 체크 해제 + 옆에 "이미 가족" / "초대 대기 · MM-DD 만료" 표시, 체크 비활성화
-  - 남은 선택 0마리면 [초대 보내기] 비활성화, 이메일 바뀌면 표시·비활성화 초기화
 - 마이페이지 10-24 시안 반영 중 공통 모바일 여백 2건은 공용 레이아웃(LJS)이라 손대지 않았다. LJS에 요청 보냄(2026-10-25): (1) 하단 여백: 앱에서 `SubPageLayout`의 `pb-[126px]`이 `UserLayout` main의 앱 여백(`144px+safe-area`)과 겹친다. 시안은 마이페이지 앱에서 콘텐츠 끝과 하단 여백을 줄이고 푸터 위 여백을 56px로 둔다. (2) 상단 여백: 앱에서 헤더와 제목 사이를 약 40→20으로 줄인다. `contentClassName`은 본문 래퍼에만 걸려 제목 위 여백에는 쓸 수 없다 연결 남음: 포인트 내역 날짜 키 `pntHstYmd`는 가짜 API의 추정 키다. 백엔드 키가 정해지면 `features/point/api.js`와 `PointHistory.jsx`를 맞춘다. `index.css`에 `--color-cat-*` 토큰을 더했으니 공용 파일 변경으로 LJS에 알린다
 - 가계부 사용처 연결 남음: 지출 API·DB에 사용처 필드가 생기면 `features/expense/api.js`의 `EXPND_PLACE_KEY`(추정 `expndPlcNm`)를 확정하고 `toRequestItem`이 요청에서 빼는 부분을 풀어 등록·수정 요청에 넣는다. 영수증 인식 응답의 상호 키(`EXPND_PLACE_KEY`로 받는다)와 80자 자르기도 서버와 맞춘다. 개발 전용 `?fake=more-fail`은 서버 연결 때 지운다
 - SCR-MYP-001 연결 남음: 얼굴 실제 이미지는 로그인(AIC)이 나온 뒤 화면으로 확인한다(지금은 401이라 기본 얼굴만 보임, 가로채기로만 확인). 초대 수락 카드(`InvitationAccept`)는 초대받는 사람이 아직 양육자가 아니라 서버가 얼굴을 막으면(403) 기본 아이콘이 계속 보인다. 백엔드(LJS)에 확인한다. 공용 파일 변경 알림(LJS): `components/Modal.jsx`에 `isSheet`(앱에서 아래 시트), `PetFace`가 공용이라 건강기록(JAJ)·건강일지·메인(YAY)에서 쓸 수 있다. SCR-MYP-001 남음: 메인 반려동물 칩(`pages/main/MainPage.jsx`, YAY)이 `chrcFaceUrl`을 따로 그린다. `PetFace`가 생기면 YAY에게 알리고 한 줄 교체를 부탁한다(캐시를 같이 쓴다) SCR-MYP-001 팀에 확인: 홈 반려동물 영역은 불러오는 동안 아무것도 그리지 않는다(기획의 로딩 자리표시보다 약함). 0마리 안내 버튼은 등록 모달을 바로 열지 않고 `/mypage/pets`로 이동만 한다. `?fake=empty`는 이동하면 사라져 가짜 데이터에서는 관리 화면이 10마리로 뜨는데 서버 연결 뒤에는 생기지 않는다. 로그인(AIC)이 나오면 `/mypage`도 `ProtectedRoute` 아래로 옮긴다
