@@ -215,10 +215,7 @@ export const updatePet = ({ petSn, ...body }) =>
   api.patch(`/pets/${petSn}`, body);
 
 /** 삭제 DELETE /pets/{petSn} */
-export const deletePet = (petSn) => {
-  fakePets = fakePets.filter((pet) => pet.petSn !== petSn);
-  return fakeDelay(null);
-};
+export const deletePet = (petSn) => api.delete(`/pets/${petSn}`);
 
 /** 품종 목록 조회 GET /breeds?petSeCd= (KSJ) */
 export const getVarieties = (petSeCd) =>

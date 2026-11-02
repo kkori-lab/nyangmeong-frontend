@@ -77,11 +77,28 @@ export const useUpdatePet = () => {
   });
 };
 
+/**
+ * 연동이 끊긴 동물의 상세·양육자·캐릭터 이미지 쿼리는 화면에 붙어 있는 채로 갱신하면 403·404가 난다.
+ * 목록만 먼저 다시 읽어 슬라이드가 다른 동물로 넘어가게 한 뒤 그 동물의 쿼리를 지운다.
+ */
+const refreshAfterPetGone = async (qc, petSn) => {
+  await qc.invalidateQueries({ queryKey: petKeys.list() });
+  qc.removeQueries({ queryKey: petKeys.detail(petSn) });
+};
+
 export const useDeletePet = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deletePet,
-    onSuccess: () => qc.invalidateQueries({ queryKey: petKeys.all }),
+    /** 대표 승계가 다른 동물 상세에도 반영되도록 남은 쿼리도 무효화 */
+    onSuccess: async (_, petSn) => {
+      await refreshAfterPetGone(qc, petSn);
+      qc.invalidateQueries({ queryKey: petKeys.all });
+    },
+    /** 이미 삭제된 동물이면 목록을 다시 읽어 맞춘다 */
+    onError: (error, petSn) => {
+      if (error.code === 'PET_NOT_FOUND') return refreshAfterPetGone(qc, petSn);
+    },
   });
 };
 
@@ -123,10 +140,7 @@ export const useLeavePet = () => {
    * 해제된 동물의 상세·양육자·캐릭터 이미지 쿼리는 화면에 붙어 있는 채로 갱신하면 403이 난다.
    * 목록만 먼저 다시 읽어 슬라이드가 다른 동물로 넘어가게 한 뒤 그 동물의 쿼리를 지운다.
    */
-  const refreshAfterUnlink = async (petSn) => {
-    await qc.invalidateQueries({ queryKey: petKeys.list() });
-    qc.removeQueries({ queryKey: petKeys.detail(petSn) });
-  };
+  const refreshAfterUnlink = (petSn) => refreshAfterPetGone(qc, petSn);
   return useMutation({
     mutationFn: leavePet,
     onSuccess: (_, { petSn }) => refreshAfterUnlink(petSn),
