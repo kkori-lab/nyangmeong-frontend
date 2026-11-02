@@ -16,6 +16,9 @@ const AdminMembersPage = lazy(() => import('@/pages/admin/AdminMembersPage'));
 const AdminMemberSuspensionsPage = lazy(
   () => import('@/pages/admin/AdminMemberSuspensionsPage'),
 );
+const AdminMembersWithdrawnPage = lazy(
+  () => import('@/pages/admin/AdminMembersWithdrawnPage'),
+);
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 
 export default [
@@ -29,6 +32,10 @@ export default [
       {
         path: PATHS.ADMIN_MEMBER_SUSPENSIONS,
         Component: AdminMemberSuspensionsPage,
+      },
+      {
+        path: PATHS.ADMIN_MEMBERS_WITHDRAWN,
+        Component: AdminMembersWithdrawnPage,
       },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
