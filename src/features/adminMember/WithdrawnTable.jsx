@@ -36,7 +36,7 @@ export default function WithdrawnTable({ members }) {
                 {getHmOf(member.whdwlDt)}
               </td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
-                {formatDate(member.prgPrnmntYmd, DATE_OPTIONS)}
+                {formatDate(member.purgeYmd, DATE_OPTIONS)}
               </td>
             </tr>
           ))}
