@@ -539,11 +539,14 @@
 - 완료 조건: `features/adminMember/api.js` `getAdminMembers` 가짜를 실제 호출로 바꾼다. 조회 조건 `q`·`status`·`joinPath`·`role`·`bgngYmd`·`endYmd`, 응답 `maskedAcntEml`은 가짜와 같다. 행 클릭은 응답 `mbrSn`으로 회원 상세로 간다
 - 완료 조건 결과: 검증 `통과`(2026-11-02, 1회차), 사람 확인 2026-11-02
 
-## SCR-ADM-012 회원 제재 · 정지·해제·정지 회원 목록 API 연결 — 대기
+## SCR-ADM-012 회원 제재 · 정지·해제·정지 회원 목록 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-012-01·03·05, 정지 회원 목록(화면설계서 2번)
 - 기다리는 것: 백엔드 `POST`·`DELETE /api/admin/members/{mbrSn}/suspension`, `GET /api/admin/members/suspensions`(끝, 2026-11-02)
 - 완료 조건: `features/adminMember/api.js` `suspendMember`·`releaseMember`·`getAdminSuspensions` 가짜를 실제 호출로 바꾼다. 필드 `suspnDayCnt`·`suspnRsn`·`rlsRsn`·`suspnDt`·`suspnEndDt`·`prcrNcnm`, 조회 `q`·`type`은 가짜와 같다. 해제 사유는 `DELETE` 본문(`data`)으로 보낸다. 거절 `MEMBER_NOT_SUSPENDABLE`은 409, 정지 중이 아닌 회원 해제는 409 `ALREADY_PROCESSED`다. 회원 정지 모달 대상 검색은 관리자·탈퇴를 뺀다
 - 이미 바뀐 것: `features/adminMember/api.js`(가짜), `SuspensionTable.jsx`, `SuspensionFilter.jsx`, `memberLabels.js`
+- 결정: 사람 허용으로 공용 DB에서 검증(기획은 로컬 DB, 2026-11-02). 정지 일시·사유·처리 관리자가 null이면 "—"
+- 완료 조건 결과: 검증 `통과`(2026-11-02, 1회차 쓰기 권한 거부로 실패 뒤 재검증, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
+- 연결 남음: 없음
 
 ## SCR-ADM-013 탈퇴 회원 · 탈퇴 회원 목록 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-013-01, FN-ADM-013-02
@@ -636,6 +639,11 @@
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-020-06
 - 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
 - 완료 조건: `GET /api/admin/comments`(`pstSn`, `mbrSn`, `q`)로 삭제된 댓글도 원문과 `delYn`으로 나온다. `POST /api/admin/comments/{cmntSn}/deletion`(`delRsn` 필수) 뒤 목록이 갱신된다. 409 `ALREADY_PROCESSED`를 안내한다
+
+## SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 대기
+- 기능: 명세 기능 ID 추가 없음. 회원 목록(SCR-ADM-010)처럼 한 쪽 20건을 보여 주는 관리자 목록 화면
+- 기다리는 것: 없음
+- 완료 조건: 390px에서 목록이 20건 때문에 세로로 너무 길어지지 않는다. 방식은 `/start` 기획에서 정한다(요청 2026-11-02)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
