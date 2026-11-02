@@ -126,12 +126,13 @@
 - 기다리는 것: 없음(백엔드 `GET /pets`의 `PetSummary`에 `nutrYn`·`minBdwg`·`maxBdwg` 추가 끝남)
 - 완료 조건: 슬라이드의 "성별(중성화 완료)"와 "정상 a~bkg"를 `GET /pets/{petSn}` 상세 조회 없이 목록 응답 값으로 채운다
 
-## SCR-MYP-005 공동양육자 추가 · 초대 가짜 응답을 실제 API로 — 대기
+## SCR-MYP-005 공동양육자 추가 · 초대 가짜 응답을 실제 API로 — 끝
 
 - 기능: 명세 기능 ID 추가 없음. FN-MYP-005-01~10과 걸친다
 - 기다리는 것: 백엔드 `POST·GET /caregiver-invitations`, `GET /caregiver-invitations/{jntBrupInvtnSn}`, `POST …/accept`(`petSns`)·`…/reject` (SJM 백엔드, 끝남)
 - 완료 조건: 초대 발송·보낸 초대·수락·거절·이메일 불일치·만료 안내가 실제 응답(`jntBrupInvtnSn`·`invtnSttsCd`·`emailMatched`·`invtnTrgtEmlMask`·`rcvrJoined`)으로 동작하고 `withExpiry`·가짜 토큰(`demo-*`)을 지운다. 초대 주소는 `/mypage/invitations/{jntBrupInvtnSn}`
 
+- 연결 남음: FN-MYP-005-05 (백엔드 연결 `CaregiverInvitationPetSummary`에 `vrtyNm`·`vrtyDrctInptNm` 추가, 백엔드 저장소에서 /start)
 ## SCR-MYP-020 포인트 관리/케어미션 · 포인트·케어미션 가짜 응답을 실제 API로 — 대기
 
 - 기능: 명세 기능 ID 추가 없음. FN-MYP-020-01~04·07·09, FN-MYP-001-03·04와 걸친다
