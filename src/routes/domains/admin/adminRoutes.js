@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import { PATHS } from '@/routes/paths';
 
+const AdminAdminsPage = lazy(() => import('@/pages/admin/AdminAdminsPage'));
 const AdminAuditLogsPage = lazy(
   () => import('@/pages/admin/AdminAuditLogsPage'),
 );
@@ -43,6 +44,7 @@ export default [
         path: PATHS.ADMIN_EXTERNAL_API_USAGE,
         Component: AdminExternalApiUsagePage,
       },
+      { path: PATHS.ADMIN_ADMINS, Component: AdminAdminsPage },
       { path: PATHS.ADMIN_AUDIT_LOGS, Component: AdminAuditLogsPage },
     ],
   },

@@ -243,3 +243,16 @@ export const releaseMember = async ({ mbrSn, rlsRsn }) => {
     1,
   );
 };
+
+/** 관리자 목록: { content, page, size, totalElements, totalPages, hasNext } */
+export const getAdmins = (params) => api.get('/admin/admins', { params });
+
+/** 관리자 지정 대상 회원 검색: { content, page, size, totalElements, totalPages, hasNext } */
+export const getAppointableMembers = (params) =>
+  api.get('/admin/members', { params });
+
+/** 관리자 지정 */
+export const appointAdmin = (mbrSn) => api.post(`/admin/admins/${mbrSn}`);
+
+/** 관리자 해제 */
+export const releaseAdmin = (mbrSn) => api.delete(`/admin/admins/${mbrSn}`);
