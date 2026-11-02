@@ -2,30 +2,24 @@
 
 ## 지금 하는 것
 
-SCR-MYP-002 반려동물 프로필 목록 · 반려동물 삭제를 실제 API로 — 끝 (2026-11-02, 검증 1회차 통과, 사람 확인 완료). lint·build 종료 코드 0. 사람이 FN-MYP-002-08을 DB로 연결해 확인했고(테스트 동물 삭제 뒤 공동양육 BRUP_REL USE_YN N), 대표는 까미로 되돌렸다
-고른 이유: "다음에 할 것" 맨 위(SCR-MYP-002 가족 영역 후 남음)는 레이아웃 문제·명세 확인·알림이라 마일스톤이 아니고, `milestones/SJM.md`의 `대기` 맨 위를 골랐다
-기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-002-05·07·08), 마이페이지_화면설계서_v0.6_20261025(SCR-MYP-002 2-3), 백엔드 `PetService.deletePet`(`DELETE /pets/{petSn}`, 주양육자만: 아니면 403 `PET_PRIMARY_ONLY`, 없거나 이미 삭제면 404 `PET_NOT_FOUND`. 공동양육 연동 자동 해제·알림, 대표였으면 남은 주양육 동물 첫 마리로 승계는 서버가 한 트랜잭션에서 한다). 팝업 문구·버튼은 이미 화면설계서대로라 화면은 그대로 두는 연결 작업이다
-디자인: 해당 없음(기존 팝업 그대로)
+SCR-MYP-002 반려동물 프로필 목록 · 슬라이드 중성화·정상 체중을 목록 값으로 — 끝 (2026-11-02, 검증 1회차 통과, 사람 확인 완료). lint·build 종료 코드 0. 슬라이드 상세 조회를 지우고 목록 값을 쓴다. 사람이 상세 조회 0건을 확인했고 수정 반영·null 표시는 검증 결과로 갈음했다. 검증 중 바꾼 루루(petSn 3)는 원래 값으로 되돌렸다
+고른 이유: "다음에 할 것" 맨 위(SCR-MYP-002 삭제 후 남음)는 확인·알림 항목이라 마일스톤이 아니고, `milestones/SJM.md`의 `대기` 맨 위를 골랐다
+기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-002-02 "성별(중성화)", "체중(정상범위 함께 표시)"), 마이페이지_화면설계서_v0.6_20261025(SCR-MYP-002 "수컷(중성화 완료)"), 백엔드 `PetSummary`(`GET /pets`, `nutrYn` boolean·`minBdwg`·`maxBdwg` 숫자, develop 반영 0526065). 화면 모양은 그대로 두고 값의 출처만 바꾸는 작업이다
+디자인: 해당 없음(기존 슬라이드 그대로)
 
-- FN-MYP-002-07 삭제 요청: `features/pet/api.js` 가짜 `deletePet`을 `api.delete('/pets/{petSn}')`로 바꾼다. `fakePets`는 캐릭터·초대 가짜가 계속 쓰므로 남긴다. 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: 주양육자 계정으로 `/mypage/pets`에서 ⋮ → [반려동물 삭제] → [삭제]하면 네트워크에 `DELETE /api/pets/{petSn}` 200
-- FN-MYP-002-05·07 목록 반영(추가-1과 같은 방식): `queries.js` `useDeletePet`을 `useLeavePet`의 `refreshAfterUnlink`와 같은 방식으로 바꾼다(목록 먼저 다시 읽고 → 삭제한 `petKeys.detail(petSn)` 제거 → 남은 `petKeys.all` 무효화). 삭제된 동물의 상세·캐릭터 이미지·양육자 재요청(404/403)이 나가지 않게 한다. 슬라이드는 기존 `currentIndex` 계산대로 같은 자리의 다음 동물(끝이면 등록 카드)로 간다. 완료 조건 — 명령: lint·build. 화면: 삭제 뒤 `GET /api/pets`를 다시 읽어 그 동물이 슬라이드에서 빠지고, 삭제된 petSn으로 가는 요청·콘솔 에러가 없다. 대표 동물을 지우면 등록일시가 빠른 다음 주양육 동물로 대표 표시가 승계된다(서버가 한다, 화면설계서 기준). 주양육 10마리에서 지우면 마지막 슬라이드가 등록 카드로 바뀐다(10마리 데이터가 없으면 확인 생략하고 보고)
-- FN-MYP-002-07 오류·팝업 동작·성공 토스트: `list/PetDeleteDialog.jsx`에서 성공하면 팝업을 닫고 토스트 "반려동물을 삭제했어요"(해제 토스트와 맞춤). 실패 토스트는 고정 문구 대신 `error.message`(403 `PET_PRIMARY_ONLY` 등). 404 `PET_NOT_FOUND`면 이미 삭제된 것이라 팝업을 닫고 목록을 맞춘다. 요청 중에는 [취소]를 비활성화하고 Esc·바깥 클릭으로 닫기를 `PetUnlinkDialog`와 같게 막는다(요청 중이 아닐 때만 닫힘). 완료 조건 — 명령: lint·build. 화면: 삭제하면 토스트 "반려동물을 삭제했어요"가 뜬다. 요청 중 [취소]·Esc가 막힌다. 404·403은 Playwright 가로채기로 응답을 바꿔 토스트 문구와 팝업 닫힘을 확인한다
-- 이번에 하지 않는 것: FN-MYP-002-08(공동양육 자동 해제·알림)은 서버 몫이라 프론트 변경 없음. 가계부 "(삭제됨)" 표기 갱신은 가계부 API가 아직 가짜라 가계부 연결 마일스톤에서 한다. 삭제 성공 토스트는 화면설계서에 없는 추가다(PR Design Decisions에 "설계서 후속 반영"으로 남긴다)
-- 확인 데이터: 반려동물 등록은 이미 실제 API(`POST /pets`, `api.js`)다. tester(mbrSn 1)로 화면에서 테스트 동물을 새로 등록해 쓴다. 삭제 확인은 테스트 동물로, 대표 승계도 테스트 동물을 대표로 지정한 뒤 지워 확인한다
-- 사람 확인 "정리": 대표 승계 확인이 끝나면 tester의 대표를 원래 동물(퍼그 까미)로 되돌린다(화면에서 까미 [대표 지정]). 테스트 동물은 삭제로 사라진다
-- 사람 확인(선택) FN-MYP-002-08 자동 해제: 초대 API가 가짜라 DB로 연결한다. (1) tester로 테스트 동물 등록 → (2) DB에 아래 INSERT로 user0006(mbrSn 6)을 공동양육자로 연결(`<테스트petSn>`은 등록 응답 또는 `GET /api/pets`의 petSn) → (3) tester로 삭제 → (4) user0006으로 `/mypage/pets`에서 그 동물이 빠지고 알림 "<이름>의 기록이 정리되어 공동양육 연동이 해제되었어요"가 오는지 확인 → (5) `SELECT USE_YN FROM BRUP_REL WHERE PET_SN = <테스트petSn> AND MBR_SN = 6;`이 'N'인지 확인
-  ```sql
-  INSERT INTO BRUP_REL (PET_SN, MBR_SN, BRUP_ROLE_CD, RPRS_PET_YN, MDFR_ID)
-  VALUES (<테스트petSn>, 6, 'PETC0019', 'N', '1');
-  ```
-  (`PETC0019` = 공동양육, `USE_YN`은 기본값 'Y'. 삭제하면 서버가 'N'으로 바꾸므로 따로 되돌릴 것은 없다)
-결정: 질문 1·2 사람 답 반영(2026-11-02)
+- FN-MYP-002-02 슬라이드 값 출처: `features/pet/list/PetSlide.jsx`의 `PetCard`에서 `usePet(listPet.petSn)` 상세 조회와 `{ ...listPet, ...detail }` 합치기를 지우고 목록 항목(`pet`)을 그대로 쓴다. 이 파일의 `usePet` import와 "목록 응답에 없는…" 주석도 지운다. `usePet`은 `PetFormModal`이 계속 쓰므로 `queries.js`는 그대로 둔다. 부를 API: `GET /api/pets`(SJM 백엔드, 끝남). 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: tester(mbrSn 1)로 `/mypage/pets`를 열면 네트워크에 `GET /api/pets/{petSn}`가 나가지 않고(슬라이드 넘겨도), PC 성별 칸 "수컷(중성화 완료)"·모바일(≤760px) 한 줄 "… · 성별(중성화)"·모바일 체중 "정상 a~bkg"가 `GET /api/pets` 응답의 `nutrYn`·`minBdwg`·`maxBdwg`와 맞는다. 중성화 안 한 동물은 괄호가 없다
+- FN-MYP-003-06 수정 뒤 반영: 수정 모달(SCR-MYP-003)에서 중성화·정상 체중을 바꾸고 저장하면 `useUpdatePet`의 `petKeys.all` 무효화로 목록을 다시 읽어 슬라이드에 바로 반영된다(코드 변경 없음, 확인만). 완료 조건 — 화면: tester로 한 동물의 중성화 체크·정상 체중을 바꿔 저장하면 슬라이드 값이 바뀐다. [반려동물 정보 수정]을 열 때만 `GET /api/pets/{petSn}`이 나간다
+- null 표시 조건(사람 추가 요청 2026-11-02): `nutrYn`·`minBdwg`·`maxBdwg`가 비었을 때 표시가 기존(상세 조회 값 기준)과 같다. 완료 조건 — 화면: `GET /api/pets` 응답을 Playwright로 가로채 (a) `minBdwg`·`maxBdwg` null → 모바일 체중에 "정상 …" 문구 없이 체중만, (b) 둘 중 하나만 null → 마찬가지로 문구 없음, (c) `nutrYn` false·누락 → 성별에 "(중성화…)" 없음이 나오는지 본다. 코드는 `pet.nutrYn ?`와 `!= null` 검사를 그대로 둔다
+- 사전 확인 결과(사람 요청 2026-11-02): `PetCard`가 읽는 `chrcSttsCd`는 `PetSummary`·`PetResponse` 어디에도 없다. (a) 채택, OPEN_ISSUES로 이관 — 이번엔 `chrcSttsCd` 읽기를 건드리지 않는다
+- 이번에 하지 않는 것: 정상 체중 숫자 표기(서버 BigDecimal이 `3.500`처럼 오면 끝 0 정리)는 지금과 같은 값이 나오는지 확인만 하고, 끝 0이 보이면 보고한다(상세 조회 때도 같은 값이었다). 메인·홈(`MyPetsSection`, YAY의 `MainPage`)은 이 값을 쓰지 않아 건드리지 않는다
+- 사람 확인 "정리": 수정 확인에서 바꾼 중성화·정상 체중은 화면에서 원래 값으로 되돌린다(바꾸기 전 값을 보고에 적는다)
 새 의존성: 없음
 
 ## 다음에 할 것
+- `chrcSttsCd`(PetCard의 PetFace 입력)는 `PetSummary`·`PetResponse`에 없다. 캐릭터 API 실제 연결 때 백엔드 필드 추가 또는 프론트 읽기 제거를 정한다(`docs/OPEN_ISSUES.md`에 적음)
 - SCR-MYP-002 삭제 후 남음: (a) FN-MYP-002-08은 DB 수동 연결로 `USE_YN`·`RPRS_PET_YN`이 'N'이 되는 것까지 확인했다. 공동양육자에게 알림이 실제로 갔는지는 확인하지 못했으니 백엔드 알림 테스트로 확인한다. (b) 초대(SCR-MYP-005) 실연결 때 "초대 → 수락 → 삭제 → 자동 해제" 흐름을 화면으로 확인한다. (c) 삭제 성공 토스트는 설계서에 없는 추가라 팀에 설계서 후속 반영을 알린다. (d) 10마리 보유 때 삭제하면 등록 카드로 바뀌는 것은 데이터가 없어 화면으로 확인하지 못했다
 - SCR-MYP-002 가족 영역 후 남음: (a) 화면: 공동양육자 카드에서 [✕]가 이름 글자 위에 겹친다(탄이 "말랑한간식왕", 까미 "수줍은집사", 사람 확인 2026-11-01). 원래 있던 `MemberCard` 레이아웃 문제라 이번엔 고치지 않았다. (b) 명세 확인: 서버에 권한(`authrtNm`)이 없어 카드에서 권한 줄을 뺐다. 기능명세서 FN-MYP-004-01의 "이름·권한·연동일"을 팀에서 고칠지 정한다. (c) 알림: 공용 `utils/petCodes.js`의 `CGVR_ROLE`을 지웠다(`BRUP_ROLE`로 대체). LJS 등에 알린다
-- SCR-MYP-003 연결 후 남음: (a) 백엔드 연결: `PetSummary`에 `nutrYn`·`minBdwg`·`maxBdwg` 추가(백엔드 저장소에서 /start, 백엔드 마일스톤에 절을 넣었다). 지금은 슬라이드가 동물마다 `GET /pets/{petSn}` 상세를 불러 채운다(5마리면 5건). (b) 체중 입력 잠금: 서버는 체중 PATCH를 막지 않는다. 건강기록 API(JAJ)로 프론트에서 판단해 `PetFormModal`의 체중 읽기 전용·`lastBdwgRcd` 표시를 연결한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
+- SCR-MYP-003 연결 후 남음: (a) 끝: 슬라이드가 `PetSummary` 값을 쓰고 상세 조회는 수정 모달만 한다(2026-11-02). (b) 체중 입력 잠금: 서버는 체중 PATCH를 막지 않는다. 건강기록 API(JAJ)로 프론트에서 판단해 `PetFormModal`의 체중 읽기 전용·`lastBdwgRcd` 표시를 연결한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
 - [SCR-MYP-005 초대 연결 시] POST /caregiver-invitations 409 처리
   - 백엔드 응답 변경 완료: data = { linkedPets: [{petSn, petNm}], pendingPets: [{petSn, petNm, invtnExpryDt}] }, 없으면 []
   - code: linkedPets 있으면 CAREGIVER_ALREADY_LINKED, pendingPets만 있으면 CAREGIVER_INVITATION_DUPLICATED
