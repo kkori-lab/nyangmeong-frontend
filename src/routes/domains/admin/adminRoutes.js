@@ -20,6 +20,10 @@ const AdminMemberSuspensionsPage = lazy(
 const AdminMembersWithdrawnPage = lazy(
   () => import('@/pages/admin/AdminMembersWithdrawnPage'),
 );
+const AdminNoticeFormPage = lazy(
+  () => import('@/pages/admin/AdminNoticeFormPage'),
+);
+const AdminNoticesPage = lazy(() => import('@/pages/admin/AdminNoticesPage'));
 const AdminPostDetailPage = lazy(
   () => import('@/pages/admin/AdminPostDetailPage'),
 );
@@ -50,6 +54,9 @@ export default [
       { path: PATHS.ADMIN_POST_DETAIL, Component: AdminPostDetailPage },
       { path: PATHS.ADMIN_REPORTS, Component: AdminReportsPage },
       { path: PATHS.ADMIN_REPORT_DETAIL, Component: AdminReportDetailPage },
+      { path: PATHS.ADMIN_NOTICES, Component: AdminNoticesPage },
+      { path: PATHS.ADMIN_NOTICE_NEW, Component: AdminNoticeFormPage },
+      { path: PATHS.ADMIN_NOTICE_EDIT, Component: AdminNoticeFormPage },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
       {
