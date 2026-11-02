@@ -6,11 +6,15 @@ import {
 } from '@tanstack/react-query';
 import {
   appointAdmin,
+  getAdminMember,
+  getAdminMemberPets,
+  getAdminMemberPoints,
   getAdminMembers,
+  getAdminMemberStatusHistories,
+  getAdminMemberTerms,
   getAdmins,
   getAdminSuspensions,
   getAdminWithdrawnMembers,
-  getAppointableMembers,
   releaseAdmin,
   releaseMember,
   suspendMember,
@@ -22,7 +26,11 @@ export const adminMemberKeys = {
   suspensions: (params) => ['adminMember', 'suspensions', params],
   withdrawn: (params) => ['adminMember', 'withdrawn', params],
   admins: (params) => ['adminMember', 'admins', params],
-  appointable: (params) => ['adminMember', 'appointable', params],
+  detail: (mbrSn) => ['adminMember', 'detail', mbrSn],
+  pets: (params) => ['adminMember', 'pets', params],
+  terms: (mbrSn) => ['adminMember', 'terms', mbrSn],
+  points: (params) => ['adminMember', 'points', params],
+  histories: (params) => ['adminMember', 'histories', params],
 };
 
 export const useAdminMembers = (params, { enabled = true } = {}) =>
@@ -44,6 +52,39 @@ export const useAdminWithdrawnMembers = (params) =>
   useQuery({
     queryKey: adminMemberKeys.withdrawn(params),
     queryFn: () => getAdminWithdrawnMembers(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useAdminMember = (mbrSn) =>
+  useQuery({
+    queryKey: adminMemberKeys.detail(mbrSn),
+    queryFn: () => getAdminMember(mbrSn),
+  });
+
+export const useAdminMemberPets = (params) =>
+  useQuery({
+    queryKey: adminMemberKeys.pets(params),
+    queryFn: () => getAdminMemberPets(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useAdminMemberTerms = (mbrSn) =>
+  useQuery({
+    queryKey: adminMemberKeys.terms(mbrSn),
+    queryFn: () => getAdminMemberTerms(mbrSn),
+  });
+
+export const useAdminMemberPoints = (params) =>
+  useQuery({
+    queryKey: adminMemberKeys.points(params),
+    queryFn: () => getAdminMemberPoints(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useAdminMemberStatusHistories = (params) =>
+  useQuery({
+    queryKey: adminMemberKeys.histories(params),
+    queryFn: () => getAdminMemberStatusHistories(params),
     placeholderData: keepPreviousData,
   });
 
@@ -69,14 +110,6 @@ export const useAdmins = (params) =>
   useQuery({
     queryKey: adminMemberKeys.admins(params),
     queryFn: () => getAdmins(params),
-    placeholderData: keepPreviousData,
-  });
-
-export const useAppointableMembers = (params, { enabled = true } = {}) =>
-  useQuery({
-    queryKey: adminMemberKeys.appointable(params),
-    queryFn: () => getAppointableMembers(params),
-    enabled,
     placeholderData: keepPreviousData,
   });
 

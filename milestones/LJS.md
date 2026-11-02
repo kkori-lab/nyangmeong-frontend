@@ -380,7 +380,6 @@
 - 완료 조건: 검색·필터를 바꾸면 목록과 페이지(20건)가 바뀌고 행을 누르면 상세로 간다
 - 결정: 디자인 파일이 없어 감사 로그 표·필터 부품 재사용, 필터는 명세 v0.4대로 권한 포함, 정지 종료일은 일단 표시 안 함, 상세는 제목만 있는 임시 페이지(2026-11-01)
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-01, 확인 못 함(내 것) 없음. 로그인은 검증 브라우저에서 응답 대체), 사람 확인 2026-11-01
-- 연결 남음: FN-ADM-010-01·02·03·04 (백엔드 연결 `GET /api/admin/members`·필드 이름·코드 값·조회 조건 이름, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-012 회원 제재 — 끝
 - 기능: FN-ADM-012-01 회원 정지, FN-ADM-012-02 정지 효과, FN-ADM-012-03 정지 해제, FN-ADM-012-04 기간 만료 자동 해제, FN-ADM-012-05 정지 대상 제한, FN-ADM-012-06 강제 탈퇴 제외
@@ -407,15 +406,22 @@
 - 완료 조건 결과: 검증 `통과`(2026-11-02, 1회차, 실제 API), 사람 확인 2026-11-02
 - 연결 남음: 없음
 
-## SCR-ADM-011 회원 상세 — 대기
+## SCR-ADM-011 회원 상세 — 끝
 - 기능: FN-ADM-011-01 기본 정보 조회, FN-ADM-011-02 반려동물 탭, FN-ADM-011-03 약관 동의 탭, FN-ADM-011-04 포인트 탭, FN-ADM-011-05 상태 이력 탭, FN-ADM-011-06 민감 데이터 비노출
 - 기다리는 것: `/api/admin/members/{mbrSn}` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 탭마다 반려동물·약관 동의·포인트·상태 이력이 보이고 건강기록·AI 대화·채팅은 없다
+- 결정: 디자인 파일 없이 화면설계서 기준, [포인트 조정]은 SCR-ADM-072까지 비활성(사람 2026-11-02). 관리자·탈퇴 회원은 정지 버튼 없음. `ADMIN_POINTS`는 사이드바 메뉴가 생겨 SCR-ADM-072 때 넣는다
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 가짜 응답), 사람 확인 2026-11-02
+- 연결 남음: FN-ADM-011-01·02·03·04·05 (백엔드 연결 회원 상세·탭 API·필드 이름, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-011-04 ([포인트 조정] 이동, SCR-ADM-072, LJS)
 
-## SCR-ADM-020 게시글·댓글 — 대기
+## SCR-ADM-020 게시글·댓글 — 끝
 - 기능: FN-ADM-020-01 게시글 목록 조회, FN-ADM-020-02 게시글 검색·필터, FN-ADM-020-03 게시글 상세 조회, FN-ADM-020-04 게시글 블라인드, FN-ADM-020-05 블라인드 복구, FN-ADM-020-06 댓글 조회·삭제
 - 기다리는 것: `/api/admin/posts, /api/admin/comments` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 블라인드·복구가 목록 상태에 반영되고 댓글을 지울 수 있다
+- 결정: 디자인 파일 없이 화면설계서 기준. 펫돌봄은 코드가 없어 게시판 필터에서 뺌. 아래 연결 절 6개도 이번에 같이 끝냄(가짜 없이 실제 API)
+- 완료 조건 결과: 검증 `통과`(2026-11-02, 앞선 1회차는 공용 DB 쓰기 대상 미지정으로 실패, 사람이 올린 글 1001로 재검증, 실제 API), 사람 확인 2026-11-02
+- 연결 남음: 없음
 
 ## SCR-ADM-030 신고 처리 — 대기
 - 기능: FN-ADM-030-01 신고 목록 조회, FN-ADM-030-02 신고 필터, FN-ADM-030-03 신고 상세 조회, FN-ADM-030-04 신고 처리 완료, FN-ADM-030-05 신고 반려, FN-ADM-030-06 처리 결과 통보, FN-ADM-030-07 자동 블라인드 건 확인, FN-ADM-030-08 신고 대상 범위
@@ -530,16 +536,20 @@
 - 결정: 실제 수동 실행 확인은 처방 만료로만, 처리 건수·사유·닉네임 null은 값 없이 표시, 다시 조회는 `runningYn` 또는 결과 실행 중(2026-11-01)
 - 완료 조건 결과: 검증 `통과`(2026-11-01, 1회차 스켈레톤 높이 실패 뒤 수정), 사람 확인 2026-11-01
 
-## SCR-ADM-010 회원 목록 · 회원 목록 API 연결 — 대기
+## SCR-ADM-010 회원 목록 · 회원 목록 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-010-01·04
 - 기다리는 것: 백엔드 `GET /api/admin/members`(끝, 2026-11-02)
 - 완료 조건: `features/adminMember/api.js` `getAdminMembers` 가짜를 실제 호출로 바꾼다. 조회 조건 `q`·`status`·`joinPath`·`role`·`bgngYmd`·`endYmd`, 응답 `maskedAcntEml`은 가짜와 같다. 행 클릭은 응답 `mbrSn`으로 회원 상세로 간다
+- 완료 조건 결과: 검증 `통과`(2026-11-02, 1회차), 사람 확인 2026-11-02
 
-## SCR-ADM-012 회원 제재 · 정지·해제·정지 회원 목록 API 연결 — 대기
+## SCR-ADM-012 회원 제재 · 정지·해제·정지 회원 목록 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-012-01·03·05, 정지 회원 목록(화면설계서 2번)
 - 기다리는 것: 백엔드 `POST`·`DELETE /api/admin/members/{mbrSn}/suspension`, `GET /api/admin/members/suspensions`(끝, 2026-11-02)
 - 완료 조건: `features/adminMember/api.js` `suspendMember`·`releaseMember`·`getAdminSuspensions` 가짜를 실제 호출로 바꾼다. 필드 `suspnDayCnt`·`suspnRsn`·`rlsRsn`·`suspnDt`·`suspnEndDt`·`prcrNcnm`, 조회 `q`·`type`은 가짜와 같다. 해제 사유는 `DELETE` 본문(`data`)으로 보낸다. 거절 `MEMBER_NOT_SUSPENDABLE`은 409, 정지 중이 아닌 회원 해제는 409 `ALREADY_PROCESSED`다. 회원 정지 모달 대상 검색은 관리자·탈퇴를 뺀다
 - 이미 바뀐 것: `features/adminMember/api.js`(가짜), `SuspensionTable.jsx`, `SuspensionFilter.jsx`, `memberLabels.js`
+- 결정: 사람 허용으로 공용 DB에서 검증(기획은 로컬 DB, 2026-11-02). 정지 일시·사유·처리 관리자가 null이면 "—"
+- 완료 조건 결과: 검증 `통과`(2026-11-02, 1회차 쓰기 권한 거부로 실패 뒤 재검증, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
+- 연결 남음: 없음
 
 ## SCR-ADM-013 탈퇴 회원 · 탈퇴 회원 목록 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-013-01, FN-ADM-013-02
@@ -564,6 +574,115 @@
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-113-03
 - 기다리는 것: 백엔드 관리자 계정 API(끝, 2026-11-02)
 - 완료 조건: 확인 모달 뒤 `DELETE /api/admin/admins/{mbrSn}`(본문 없음)로 해제되고 목록에 반영된다. 본인 행(`/auth/me`의 `mbrSn`)과 마지막 관리자(목록 `totalElements` 1)는 버튼이 비활성이다. 409 `ADMIN_NOT_RELEASABLE`·`ALREADY_PROCESSED`를 안내한다
+
+## SCR-ADM-011 회원 상세 · 기본 정보와 정지·해제 모달 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-01
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: 상세가 `GET /api/admin/members/{mbrSn}`(`mbrNcnm`, `maskedAcntEml`, `maskedMblTelno`, `joinPathCd`, `snsLinks`, `regDt`, `lastLgnDt`, `hldPnt`, `mbrSttsCd`, `suspnEndDt`)로 나온다. 404 `MEMBER_NOT_FOUND`면 "회원을 찾을 수 없어요"와 [목록으로]가 나온다. 모달이 이 회원으로 열린다
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 결정: 응답에 권한이 없어 [정지] 조건을 "관리자가 아니고 정상"으로 둠. 그동안 관리자에게도 [정지]가 보임(2026-11-02)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
+- 연결 남음: FN-ADM-011-01 (백엔드 연결 `AdminMemberDetailResponse.mbrAuthrtCd`, 백엔드 저장소에서 /start)
+
+## SCR-ADM-011 회원 상세 · 반려동물 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-02
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: `GET /api/admin/members/{mbrSn}/pets`(`petNm`, `petSeCd`, `vrtyNm`, `vrtyDrctInptNm`, `brupRoleCd`, `caregiverCount`, `delYn`)로 20건씩 나온다. 삭제한 동물도 나온다
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API. 20건 초과 쪽 번호는 조작 응답으로만 확인), 사람 확인 2026-11-02
+
+## SCR-ADM-011 회원 상세 · 약관 동의 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-03
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: `GET /api/admin/members/{mbrSn}/terms-agreements`(`trmsTtl`, `esntlAgreYn`, `trmsVerId`, `agreYn`, `agreDt`)로 나온다. 페이지 없음. 동의 기록이 없으면 버전·일시가 null이다
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 결정: `esntlAgreYn`은 화면설계서 열에 없어 표시하지 않음(2026-11-02)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API. 동의 기록 없는 행은 조작 응답으로만 확인), 사람 확인 2026-11-02
+
+## SCR-ADM-011 회원 상세 · 포인트 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-04
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: `GET /api/admin/members/{mbrSn}/point-ledgers`(`regDt`, `pntDlngTypeCdNm`, `dlngPnt`, `dlngAftrBlncPnt`, `memoCn`)로 최신순 20건씩 나온다. [포인트 조정]은 SCR-ADM-072 전까지 비활성
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
+
+## SCR-ADM-011 회원 상세 · 상태 이력 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-011-05
+- 기다리는 것: 백엔드 회원 상세 API(끝, 2026-11-02)
+- 완료 조건: `GET /api/admin/members/{mbrSn}/status-histories`(`bfrSttsCd`, `aftrSttsCd`, `chgRsn`, `prcsMbrNcnm`, `regDt`)로 최신순 20건씩 나온다. 배치 처리는 처리자가 null이다
+- 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
+
+## SCR-ADM-020 게시글·댓글 · 목록 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-01
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `GET /api/admin/posts`(`pstSn`, `bbsCd`, `pstTtl`, `mbrSn`, `mbrNcnm`, `pstSttsCd`, `dclrCnt`, `regDt`)로 정상·블라인드·삭제 글이 20건씩 나오고 행을 누르면 상세로 간다. 작성자를 누르면 회원 상세로 간다
+- 완료 조건 결과: SCR-ADM-020 게시글·댓글 절과 같은 검증(2026-11-02)
+
+## SCR-ADM-020 게시글·댓글 · 검색·필터 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-02
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `q`, `bbsCd`, `status`, `bgngYmd`, `endYmd`로 목록이 좁혀진다. 게시판 값은 펫정보·펫일상·실종센터 3개다(펫돌봄 코드 없음). 시작일이 종료일보다 늦은 400을 안내한다
+- 완료 조건 결과: SCR-ADM-020 게시글·댓글 절과 같은 검증(2026-11-02)
+
+## SCR-ADM-020 게시글·댓글 · 상세 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-03
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `GET /api/admin/posts/{pstSn}`로 본문, 이미지, 신고·댓글 수, `statusHistories`가 나온다. `prcsMbrSn`이 null이면 시스템으로 보인다. 댓글은 `GET /api/admin/comments?pstSn=`로 받는다. 삭제 글은 [블라인드]·[복구]가 없다
+- 완료 조건 결과: SCR-ADM-020 게시글·댓글 절과 같은 검증(2026-11-02)
+
+## SCR-ADM-020 게시글·댓글 · 블라인드 모달 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-04
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `POST /api/admin/posts/{pstSn}/blind`(`chgRsn` 필수, 1000자 이내)가 성공하면 상세 상태와 이력이 바뀐다. 409 `ALREADY_PROCESSED`를 안내한다
+- 완료 조건 결과: SCR-ADM-020 게시글·댓글 절과 같은 검증(2026-11-02)
+
+## SCR-ADM-020 게시글·댓글 · 복구 모달 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-05
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `POST /api/admin/posts/{pstSn}/restore`(`chgRsn` 필수)가 성공하면 상세 상태와 이력이 바뀐다. 409 `ALREADY_PROCESSED`를 안내한다
+- 완료 조건 결과: SCR-ADM-020 게시글·댓글 절과 같은 검증(2026-11-02)
+
+## SCR-ADM-020 게시글·댓글 · 댓글 탭 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-06
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `GET /api/admin/comments`(`pstSn`, `mbrSn`, `q`)로 삭제된 댓글도 원문과 `delYn`으로 나온다. `POST /api/admin/comments/{cmntSn}/deletion`(`delRsn` 필수) 뒤 목록이 갱신된다. 409 `ALREADY_PROCESSED`를 안내한다
+- 완료 조건 결과: SCR-ADM-020 게시글·댓글 절과 같은 검증(2026-11-02)
+
+## SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 대기
+- 기능: 명세 기능 ID 추가 없음. 회원 목록(SCR-ADM-010)처럼 한 쪽 20건을 보여 주는 관리자 목록 화면
+- 기다리는 것: 없음
+- 완료 조건: 390px에서 목록이 20건 때문에 세로로 너무 길어지지 않는다. 방식은 `/start` 기획에서 정한다(요청 2026-11-02)
+
+## SCR-ADM-030 신고 처리 · 목록 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-030-01 연결 작업)
+- 기다리는 것: `GET /api/admin/reports` (LJS 백엔드, 끝)
+- 완료 조건: 목록에 대상·사유·신고자·같은 대상 신고 수·상태·접수일이 나온다
+
+## SCR-ADM-030 신고 처리 · 상태 탭·필터 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-030-02 연결 작업)
+- 기다리는 것: `GET /api/admin/reports` 조건 (LJS 백엔드, 끝)
+- 완료 조건: 상태·사유·대상·자동 블라인드·접수일로 걸러진다
+
+## SCR-ADM-030 신고 처리 · 상세 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-030-03 연결 작업)
+- 기다리는 것: `GET /api/admin/reports/{dclrSn}` (LJS 백엔드, 끝)
+- 완료 조건: 대상 내용, 같은 대상 신고, 처리 이력이 나온다
+
+## SCR-ADM-030 신고 처리 · 처리 완료 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-030-04 연결 작업)
+- 기다리는 것: `POST /api/admin/reports/{dclrSn}/complete` (LJS 백엔드, 끝)
+- 완료 조건: 조치를 골라 처리하면 같은 대상의 접수 신고가 처리완료된다. 작성자 정지는 정지 입력을 받는다
+
+## SCR-ADM-030 신고 처리 · 반려 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-030-05 연결 작업)
+- 기다리는 것: `POST /api/admin/reports/{dclrSn}/reject` (LJS 백엔드, 끝)
+- 완료 조건: 사유를 넣어 반려하면 그 신고만 반려된다
+
+## SCR-ADM-030 신고 처리 · 자동 블라인드 탭 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-030-07 연결 작업)
+- 기다리는 것: `GET /api/admin/reports/auto-blind`, `POST /api/admin/reports/{dclrSn}/restore` (LJS 백엔드, 끝)
+- 완료 조건: 자동 대상이 대상별로 나오고 복구하면 목록에서 사라진다
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

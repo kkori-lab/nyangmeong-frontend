@@ -41,7 +41,7 @@ export const petKeys = {
 export const invitationKeys = {
   all: ['invitations'],
   sent: () => ['invitations', 'sent'],
-  detail: (invitationToken) => ['invitations', invitationToken],
+  detail: (jntBrupInvtnSn) => ['invitations', jntBrupInvtnSn],
 };
 
 export const usePets = () =>
@@ -214,13 +214,25 @@ export const useCreateInvitation = () => {
   });
 };
 
-export const useInvitation = (invitationToken) =>
+export const useInvitation = (jntBrupInvtnSn) =>
   useQuery({
-    queryKey: invitationKeys.detail(invitationToken),
-    queryFn: () => getInvitation(invitationToken),
-    enabled: !!invitationToken,
+    queryKey: invitationKeys.detail(jntBrupInvtnSn),
+    queryFn: () => getInvitation(jntBrupInvtnSn),
+    enabled: !!jntBrupInvtnSn,
     retry: false,
   });
+
+/** 수락·거절이 만료·처리됨·이메일 불일치로 막히면 초대를 다시 읽어 안내 화면으로 바꾼다 */
+const CLOSED_CODES = [
+  'CAREGIVER_INVITATION_EXPIRED',
+  'CAREGIVER_INVITATION_ALREADY_PROCESSED',
+  'CAREGIVER_INVITATION_EMAIL_MISMATCH',
+];
+const refreshIfClosed = (qc, error) => {
+  if (CLOSED_CODES.includes(error.code)) {
+    qc.invalidateQueries({ queryKey: invitationKeys.all });
+  }
+};
 
 export const useAcceptInvitation = () => {
   const qc = useQueryClient();
@@ -230,6 +242,7 @@ export const useAcceptInvitation = () => {
       qc.invalidateQueries({ queryKey: invitationKeys.all });
       qc.invalidateQueries({ queryKey: petKeys.all });
     },
+    onError: (error) => refreshIfClosed(qc, error),
   });
 };
 
@@ -238,5 +251,6 @@ export const useRejectInvitation = () => {
   return useMutation({
     mutationFn: rejectInvitation,
     onSuccess: () => qc.invalidateQueries({ queryKey: invitationKeys.all }),
+    onError: (error) => refreshIfClosed(qc, error),
   });
 };
