@@ -5,6 +5,7 @@ import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
 import { useAdminWithdrawnMembers } from '@/features/adminMember/queries';
 import WithdrawnTable from '@/features/adminMember/WithdrawnTable';
+import { BATCH_SE } from '@/features/batch/batchLabels';
 import { PATHS } from '@/routes/paths';
 import { isForbiddenError } from '@/utils/isForbiddenError';
 import AdminForbidden from './AdminForbidden';
@@ -77,7 +78,7 @@ export default function AdminMembersWithdrawnPage() {
       <p className="mt-4 text-sm text-subtle">
         파기는 매일 배치가 처리해요. 결과는 배치 현황에서 볼 수 있어요.{' '}
         <Link
-          to={PATHS.ADMIN_BATCHES}
+          to={`${PATHS.ADMIN_BATCHES}?batch=${BATCH_SE.MEMBER_PURGE}`}
           className="font-semibold text-brand-900 hover:underline"
         >
           배치 현황

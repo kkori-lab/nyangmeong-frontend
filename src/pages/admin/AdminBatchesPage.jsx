@@ -27,11 +27,11 @@ function HistorySkeleton() {
   );
 }
 
-/** 배치 표 4행 + 고른 배치의 이력 자리 */
+/** 배치 표 6행 + 고른 배치의 이력 자리 */
 function BatchesSkeleton({ hasHistory }) {
   return (
     <div className="space-y-8" aria-busy="true">
-      <SkeletonCard className="h-[306px]" />
+      <SkeletonCard className="h-[436px]" />
       {hasHistory && <HistorySkeleton />}
     </div>
   );
