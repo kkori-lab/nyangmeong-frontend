@@ -2,10 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-010 회원 목록 — 끝 (2026-11-01, 검증 `확인 못 함 있음`·사람 확인). 목록·검색·필터를 가짜 응답으로 만들고 상세는 제목만 있는 임시 페이지로 두었다
+SCR-ADM-012 회원 제재 — 끝 (2026-11-02, 검증 `확인 못 함 있음`·사람 확인). 정지 회원 목록·정지·해제를 가짜 응답으로 만들었다. 회원 상세 진입은 SCR-ADM-011로 넘겼다
 
 ## 다음에 할 것
 
+- SCR-ADM-012 연결 남음: 백엔드 연결(백엔드 저장소에서 `/start`). `POST`·`DELETE /api/admin/members/{mbrSn}/suspension` 요청·응답·사유 전달 방식, 정지 회원 목록 API 경로·조회 조건·필드 이름, 정지 종료 일시 필드(가짜 `suspn*`·`prcrNcnm`은 가정), 거절 코드, 로그인 차단·만료 자동 해제 배치·상태 이력 기록. 연결 때 `features/adminMember/api.js` 가짜를 바꾼다
+- SCR-ADM-012 실제 확인이 남은 것: 조회 오류의 [다시 시도]와 로딩 스켈레톤은 화면으로 못 봤다. 스켈레톤 표 높이는 1008px로 실제 1186px보다 15% 작다. 쪽 이동·검색을 하면 주소의 `?fake=`가 사라져 거절 확인은 주소로 바로 열어야 한다
+- SCR-ADM-011 때: 회원 상세 [정지]·[정지 해제]에 `SuspendModal`(`member` prop)·`ReleaseModal`을 붙이고, 상태 이력 탭에서 가짜 `statusHistories`를 보여 준다
+- SCR-ADM-010 가짜 자료 달라짐: `features/adminMember/api.js` 가짜 회원을 57→170명으로 늘렸고 관리자는 항상 정상 상태다
 - SCR-ADM-010 연결 남음: FN-ADM-010-01·02·03·04 백엔드 연결(백엔드 저장소에서 `/start`, 담당 LJS). `GET /api/admin/members`, 필드 이름, 코드 값, 조회 조건 이름. 연결 때 `features/adminMember/api.js` 가짜를 바꾼다. 백엔드 `docs/admin/implementation-plan.md` 담당 표는 YAY이고 필터에 권한이 없어 그 문서도 고친다
 - SCR-ADM-010 실제 확인이 남은 것: 조회 오류의 [다시 시도]는 화면으로 못 봤다. 정지 회원 행의 정지 종료일은 일단 표시하지 않는다(사람 결정 2026-11-01). `?page=99`처럼 범위를 벗어난 쪽은 빈 문구만 나오고 쪽 번호가 없다
 - SCR-ADM-011 때: `pages/admin/AdminMemberDetailPage.jsx` 임시 페이지를 실제 화면으로 바꾼다

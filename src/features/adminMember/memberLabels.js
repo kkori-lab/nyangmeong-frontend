@@ -21,6 +21,15 @@ export const ROLE_OPTIONS = [
   { value: MEMBER_ROLE.ADMIN, label: '관리자' },
 ];
 
+/** 정지 종류: 종료 일시가 없으면 영구 */
+export const SUSPENSION_TYPE_OPTIONS = [
+  { value: 'PERIOD', label: '기간' },
+  { value: 'PERMANENT', label: '영구' },
+];
+
+/** 기간 정지 일수 */
+export const SUSPENSION_DAY_OPTIONS = [7, 30];
+
 /** 코드 표시 이름: 없는 코드는 코드 그대로 */
 export const getOptionLabel = (options, code) =>
   options.find(({ value }) => value === code)?.label ?? code;
