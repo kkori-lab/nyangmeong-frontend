@@ -1,6 +1,3 @@
-import { EXPND_PLACE_KEY } from '../api';
-import { PET_STTS } from './expenseCodes';
-
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
 export const formatWon = (amt) => `${amt.toLocaleString('ko-KR')}원`;
@@ -28,21 +25,20 @@ export const formatMonthDay = (expndYmd) => expndYmd.slice(5);
 /** 지출 줄·달력의 반려동물 이름 */
 export const getPetLabel = (expense) => {
   if (expense.petSn == null) return '공용';
-  if (expense.petStts === PET_STTS.DELETED) return `${expense.petNm} (삭제됨)`;
-  return expense.petNm;
+  return expense.petDelYn ? `${expense.petNm}(삭제됨)` : expense.petNm;
 };
 
 /** 필터·반려동물별 지출의 이름 */
 export const getPetFilterLabel = (pet) => {
-  if (pet.petStts === PET_STTS.DELETED) return `${pet.petNm} (삭제됨)`;
-  if (pet.petStts === PET_STTS.UNLINKED) return `${pet.petNm} (연동 해제)`;
+  if (pet.petDelYn) return `${pet.petNm}(삭제됨)`;
+  if (!pet.petLinked) return `${pet.petNm}(연동 해제)`;
   return pet.petNm;
 };
 
 /** 사용처 최대 글자 수 */
 export const PLACE_MAX_LENGTH = 80;
 
-export const getPlace = (expense) => expense[EXPND_PLACE_KEY] ?? '';
+export const getPlace = (expense) => expense.expndPlcusNm ?? '';
 
 /** 설명 줄의 "내용 · 사용처" (빈 값은 생략) */
 export const getExpenseDesc = (expense) =>
