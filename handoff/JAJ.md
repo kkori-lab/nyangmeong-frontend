@@ -2,12 +2,12 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-011 종합 건강기록 · 캐릭터 상태 연결 (2026-11-01). 검증 통과, 사람 확인 끝. `GET /pixel-characters`(LJS)로 주양육·캐릭터 미생성(`pixelCharSn` 없음) 반려동물의 히어로 큰 이미지 자리에 "캐릭터 만들기" 카드를 되살림. 생성 중·실패·공동양육·조회 실패는 `PetFace`(사람 결정)
+끝남: SCR-HLT-002 건강 일지 · 지속 관찰 회차 수정 비우기 연결 (2026-11-02). 검증 2회차 통과, 사람 확인 끝. 회차 수정이 수정 전 값과 비교해 바뀐 값만 보내고 비운 크기·변화·메모는 `clearFields`로 보낸다. 수정 모달에 "사진은 바꿀 수만 있어요"(버튼 두 개는 그대로, 사람 결정)
 
 ## 다음에 할 것
 
 - 참고(SCR-HLT-011 캐릭터 상태): 히어로 큰 이미지는 `GET /pixel-characters`(LJS) 행의 `pixelCharSn`이 없는 주양육 반려동물만 "캐릭터 만들기" 카드, 행이 없거나 조회 실패면 `PetFace`. 칩은 그대로. 생성 중(`CHRC0001`·`0002`)·실패(`CHRC0004`)는 백엔드 `character-image`가 종별 기본 캐릭터를 주므로 따로 표시하지 않는다(사람 결정)
-- 연결 남음: FN-HLT-002-19·23·24 회차 수정 비우기 (백엔드 연결 `PATCH …/observation-cycles/{obsrvCyclSn}`, 백엔드 저장소에서 /start, 백엔드 `milestones/JAJ.md`에 대기 절 있음): 보내지 않은 값과 빈 값을 모두 "안 바꿈"으로 받아 크기(`obsrvSz`)·메모(`memoCn`)·변화(`obsrvChgCd`)를 지울 수 없다. 백엔드가 바뀐 뒤 `diaryApi.js` `updateObservationCycle`이 빈 칸도 보내게 바꾸고(지금은 `appendIfFilled`), 비워 저장하면 상세에서 그 줄이 사라지는지 확인한다
+- 알릴 것(명세 담당): 지속 관찰 회차 수정에서 사진은 바꿀 수만 있고 뺄 수 없다(수정 모달 보조 문구 "사진은 바꿀 수만 있어요"). 기능명세서 FN-HLT-002-22에 반영을 요청한다
 - 연결 남음(SCR-HLT-007): FN-HLT-007-02·03 수정 화면의 참고범위 비우기 (백엔드 연결 `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}`가 `null`을 "안 바꿈"으로 받음, 백엔드 저장소에서 /start. 지금은 화면이 막음), FN-HLT-007-04·06 검사결과지 PDF 분석 호출부 (LJS, `checkupApi.js` `analyzeLabPdf` 가짜, 응답의 `bloodYn`은 가정)
 - 참고(SCR-HLT-011): 타임라인 검진기록 행의 내용 줄은 목록 응답에 `ckupCn`이 없어 비어 있다. 예방접종 이력 이름은 `ckupTypeCdNm`. 예방접종은 `size=2`, 타임라인 검진기록은 `size=5`로 받은 뒤 오늘 이전만 거르므로 미래 날짜 검진기록이 있으면 표시 건수가 줄 수 있다. 첨부 썸네일·미리보기는 `summary/AttachmentImage.jsx`(검진상세 영상검사와 같은 캐시 키), PDF는 Blob으로 내려받는다. `PhotoModal`은 비공개 이미지를 `children`으로 받는다. 캐릭터가 없는 반려동물은 `character-image` 404가 콘솔에 남는다
 - 검증용 데이터(공용 DB): 반려동물 "구름"(petSn 17)에 검진기록 1001·처방약 443("검증용 투약") → 케어 항목 3272. SCR-HLT-011 검증 때 같은 검진기록에 올린 첨부 430(`verify-summary.pdf`)은 사람 확인 뒤 지우기로 했다. 계정은 저장소에 적지 않는다. 검진기록 1026("ff", 일정 4915)·1016은 남아 있다
