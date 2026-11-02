@@ -14,7 +14,7 @@ export default function PointSummaryCard() {
           P
         </b>
       }
-      value={balance?.pntBal.toLocaleString()}
+      value={balance?.hldPnt.toLocaleString()}
       unit="P"
       note={isError ? '불러오지 못했어요' : undefined}
     />

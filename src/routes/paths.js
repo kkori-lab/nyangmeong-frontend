@@ -72,8 +72,20 @@ export const PATHS = {
 
   /** admin */
   ADMIN: '/admin',
+  ADMIN_MEMBERS: '/admin/members',
+  ADMIN_MEMBER_DETAIL: '/admin/members/:mbrSn',
+  ADMIN_MEMBER_SUSPENSIONS: '/admin/members/suspensions',
+  ADMIN_MEMBERS_WITHDRAWN: '/admin/members/withdrawn',
+  ADMIN_POSTS: '/admin/posts',
+  ADMIN_POST_DETAIL: '/admin/posts/:pstSn',
+  ADMIN_REPORTS: '/admin/reports',
+  ADMIN_REPORT_DETAIL: '/admin/reports/:dclrSn',
+  ADMIN_NOTICES: '/admin/notices',
+  ADMIN_NOTICE_NEW: '/admin/notices/new',
+  ADMIN_NOTICE_EDIT: '/admin/notices/:ntcMttrSn/edit',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_BATCHES: '/admin/batches',
   ADMIN_EXTERNAL_API_USAGE: '/admin/external-api-usage',
+  ADMIN_ADMINS: '/admin/admins',
   ADMIN_AUDIT_LOGS: '/admin/audit-logs',
 };

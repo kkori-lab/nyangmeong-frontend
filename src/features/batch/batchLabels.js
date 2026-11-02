@@ -1,3 +1,6 @@
+/** 배치구분 공통코드(SYSG02) */
+export const BATCH_SE = { MEMBER_PURGE: 'SYSC0027' };
+
 /** 실행구분 공통코드(SYSG03) */
 export const EXCN_SE = { AUTO: 'SYSC0010', MANUAL: 'SYSC0011' };
 

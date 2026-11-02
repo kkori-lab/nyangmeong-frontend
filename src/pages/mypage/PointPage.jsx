@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '@/components/toastStore';
 import PetFormModal from '@/features/pet/list/PetFormModal';
+import { usePets } from '@/features/pet/queries';
+import { BRUP_ROLE } from '@/features/pet/shared/petCodes';
 import PointGuide from '@/features/point/guide/PointGuide';
 import PointHistory from '@/features/point/history/PointHistory';
 import CareMission from '@/features/point/mission/CareMission';
@@ -17,6 +19,12 @@ export default function PointPage() {
   const navigate = useNavigate();
   const [todayYmd] = useState(() => toYmd(new Date()));
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);
+  const { data: pets } = usePets();
+
+  /** 케어미션은 내가 주양육자인 동물만 */
+  const ownPets = pets
+    ?.filter((pet) => pet.brupRoleCd === BRUP_ROLE.PRIMARY)
+    .map(({ petSn, petNm }) => ({ petSn, petNm }));
 
   const goCharacter = () => navigate(PATHS.MYPAGE_CHARACTERS);
 
@@ -35,6 +43,7 @@ export default function PointPage() {
         <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
           <CareMission
             todayYmd={todayYmd}
+            ownPets={ownPets}
             onRegister={() => setIsPetModalOpen(true)}
           />
           <PointHistory />

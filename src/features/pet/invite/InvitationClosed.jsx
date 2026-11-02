@@ -2,7 +2,7 @@ import { Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import { PATHS } from '@/routes/paths';
-import { INVT_STTS } from '../api';
+import { INVTN_STTS } from '../shared/petCodes';
 
 /**
  * [초대 만료·종료 안내]
@@ -26,9 +26,9 @@ const MESSAGES = {
   },
 };
 
-export default function InvitationClosed({ invtSttsCd }) {
+export default function InvitationClosed({ invtnSttsCd }) {
   const { title, descriptions } =
-    invtSttsCd === INVT_STTS.EXPR ? MESSAGES.expired : MESSAGES.done;
+    invtnSttsCd === INVTN_STTS.EXPR ? MESSAGES.expired : MESSAGES.done;
 
   return (
     <section

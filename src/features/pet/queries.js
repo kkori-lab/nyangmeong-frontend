@@ -41,7 +41,7 @@ export const petKeys = {
 export const invitationKeys = {
   all: ['invitations'],
   sent: () => ['invitations', 'sent'],
-  detail: (invitationToken) => ['invitations', invitationToken],
+  detail: (jntBrupInvtnSn) => ['invitations', jntBrupInvtnSn],
 };
 
 export const usePets = () =>
@@ -77,11 +77,28 @@ export const useUpdatePet = () => {
   });
 };
 
+/**
+ * 연동이 끊긴 동물의 상세·양육자·캐릭터 이미지 쿼리는 화면에 붙어 있는 채로 갱신하면 403·404가 난다.
+ * 목록만 먼저 다시 읽어 슬라이드가 다른 동물로 넘어가게 한 뒤 그 동물의 쿼리를 지운다.
+ */
+const refreshAfterPetGone = async (qc, petSn) => {
+  await qc.invalidateQueries({ queryKey: petKeys.list() });
+  qc.removeQueries({ queryKey: petKeys.detail(petSn) });
+};
+
 export const useDeletePet = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deletePet,
-    onSuccess: () => qc.invalidateQueries({ queryKey: petKeys.all }),
+    /** 대표 승계가 다른 동물 상세에도 반영되도록 남은 쿼리도 무효화 */
+    onSuccess: async (_, petSn) => {
+      await refreshAfterPetGone(qc, petSn);
+      qc.invalidateQueries({ queryKey: petKeys.all });
+    },
+    /** 이미 삭제된 동물이면 목록을 다시 읽어 맞춘다 */
+    onError: (error, petSn) => {
+      if (error.code === 'PET_NOT_FOUND') return refreshAfterPetGone(qc, petSn);
+    },
   });
 };
 
@@ -105,16 +122,32 @@ export const useDeleteCaregiver = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteCaregiver,
-    onSuccess: (_, { petSn }) =>
-      qc.invalidateQueries({ queryKey: petKeys.caregivers(petSn) }),
+    onSuccess: (_, { petSn }) => {
+      qc.invalidateQueries({ queryKey: petKeys.caregivers(petSn) });
+      qc.invalidateQueries({ queryKey: petKeys.list() });
+    },
+    /** 이미 해제된 연동이면 목록을 다시 읽어 맞춘다 */
+    onError: (error, { petSn }) => {
+      if (error.code === 'CAREGIVER_NOT_FOUND')
+        qc.invalidateQueries({ queryKey: petKeys.caregivers(petSn) });
+    },
   });
 };
 
 export const useLeavePet = () => {
   const qc = useQueryClient();
+  /**
+   * 해제된 동물의 상세·양육자·캐릭터 이미지 쿼리는 화면에 붙어 있는 채로 갱신하면 403이 난다.
+   * 목록만 먼저 다시 읽어 슬라이드가 다른 동물로 넘어가게 한 뒤 그 동물의 쿼리를 지운다.
+   */
+  const refreshAfterUnlink = (petSn) => refreshAfterPetGone(qc, petSn);
   return useMutation({
     mutationFn: leavePet,
-    onSuccess: () => qc.invalidateQueries({ queryKey: petKeys.all }),
+    onSuccess: (_, { petSn }) => refreshAfterUnlink(petSn),
+    /** 이미 해제된 연동이면 목록을 다시 읽어 맞춘다 */
+    onError: (error, { petSn }) => {
+      if (error.code === 'CAREGIVER_NOT_FOUND') return refreshAfterUnlink(petSn);
+    },
   });
 };
 
@@ -181,13 +214,25 @@ export const useCreateInvitation = () => {
   });
 };
 
-export const useInvitation = (invitationToken) =>
+export const useInvitation = (jntBrupInvtnSn) =>
   useQuery({
-    queryKey: invitationKeys.detail(invitationToken),
-    queryFn: () => getInvitation(invitationToken),
-    enabled: !!invitationToken,
+    queryKey: invitationKeys.detail(jntBrupInvtnSn),
+    queryFn: () => getInvitation(jntBrupInvtnSn),
+    enabled: !!jntBrupInvtnSn,
     retry: false,
   });
+
+/** 수락·거절이 만료·처리됨·이메일 불일치로 막히면 초대를 다시 읽어 안내 화면으로 바꾼다 */
+const CLOSED_CODES = [
+  'CAREGIVER_INVITATION_EXPIRED',
+  'CAREGIVER_INVITATION_ALREADY_PROCESSED',
+  'CAREGIVER_INVITATION_EMAIL_MISMATCH',
+];
+const refreshIfClosed = (qc, error) => {
+  if (CLOSED_CODES.includes(error.code)) {
+    qc.invalidateQueries({ queryKey: invitationKeys.all });
+  }
+};
 
 export const useAcceptInvitation = () => {
   const qc = useQueryClient();
@@ -197,6 +242,7 @@ export const useAcceptInvitation = () => {
       qc.invalidateQueries({ queryKey: invitationKeys.all });
       qc.invalidateQueries({ queryKey: petKeys.all });
     },
+    onError: (error) => refreshIfClosed(qc, error),
   });
 };
 
@@ -205,5 +251,6 @@ export const useRejectInvitation = () => {
   return useMutation({
     mutationFn: rejectInvitation,
     onSuccess: () => qc.invalidateQueries({ queryKey: invitationKeys.all }),
+    onError: (error) => refreshIfClosed(qc, error),
   });
 };

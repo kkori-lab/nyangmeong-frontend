@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { showToast } from '@/components/toastStore';
-import { useLeavePet } from '../queries';
+import { BRUP_ROLE } from '@/utils/petCodes';
+import { useCaregivers, useLeavePet } from '../queries';
 
 /** 공동격 조사 선택 (영문·숫자 끝 이름은 "와(과)") */
 const withTogetherParticle = (name) => {
@@ -11,6 +12,12 @@ const withTogetherParticle = (name) => {
 
 export default function PetUnlinkDialog({ pet, onClose }) {
   const leavePet = useLeavePet();
+  const { data: caregivers } = useCaregivers(pet.petSn);
+
+  /** 공동양육자에게 오는 목록에서 공동양육자 줄이 본인 것 */
+  const myRelation = caregivers?.find(
+    (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.CO_PARENT,
+  );
 
   /** 요청 중에는 닫기 불가 */
   const close = () => {
@@ -26,14 +33,19 @@ export default function PetUnlinkDialog({ pet, onClose }) {
   });
 
   const handleLeave = () =>
-    leavePet.mutate(pet.petSn, {
-      onSuccess: () => {
-        onClose();
-        showToast('연동을 해제했어요');
+    leavePet.mutate(
+      { petSn: pet.petSn, brupRelSn: myRelation.brupRelSn },
+      {
+        onSuccess: () => {
+          onClose();
+          showToast('연동을 해제했어요');
+        },
+        onError: (error) => {
+          if (error.code === 'CAREGIVER_NOT_FOUND') onClose();
+          showToast(error.message);
+        },
       },
-      onError: () =>
-        showToast('해제하지 못했어요. 잠시 후 다시 시도해 주세요'),
-    });
+    );
 
   return (
     <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
@@ -75,7 +87,7 @@ export default function PetUnlinkDialog({ pet, onClose }) {
           <button
             type="button"
             onClick={handleLeave}
-            disabled={leavePet.isPending}
+            disabled={leavePet.isPending || !myRelation}
             className="h-11 min-w-0 flex-1 rounded-md bg-danger font-semibold text-white hover:bg-[#983a2f] disabled:bg-surface-3 disabled:text-line-strong"
           >
             해제

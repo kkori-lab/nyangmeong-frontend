@@ -4,7 +4,6 @@ import AmountInput from '@/components/AmountInput';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import Select from '@/components/Select';
-import { EXPND_PLACE_KEY } from '../api';
 import ExpenseCategoryChips from '../shared/ExpenseCategoryChips';
 import { FILTER_SHARED, HOSPITAL_CLSF_CD } from '../shared/expenseCodes';
 import {
@@ -44,7 +43,7 @@ export default function ExpenseReceiptReview({
   const [ymd, setYmd] = useState(result.expndYmd ?? fallbackYmd);
   const [expndClsfCd, setExpndClsfCd] = useState(result.expndClsfCd);
   const [place, setPlace] = useState(() =>
-    (result[EXPND_PLACE_KEY] ?? '').slice(0, PLACE_MAX_LENGTH),
+    (result.expndPlcusNm ?? '').slice(0, PLACE_MAX_LENGTH),
   );
   const [dtlMttr, setDtlMttr] = useState(result.dtlMttr ?? '');
   const [rows, setRows] = useState(() => [
@@ -103,7 +102,7 @@ export default function ExpenseReceiptReview({
         expndClsfCd,
         expndAmt: Number(row.digits),
         dtlMttr: dtlMttr.trim(),
-        [EXPND_PLACE_KEY]: place.trim(),
+        expndPlcusNm: place.trim(),
         expndYmd: ymd,
       })),
     );

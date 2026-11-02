@@ -4,11 +4,16 @@ import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
 import { formatYm } from '@/utils/yearMonth';
 import { formatWon } from '../shared/expenseFormat';
-import { useDeleteExpenses } from '../queries';
+import { useBulkDeleteExpenses, useDeleteExpenses } from '../queries';
 
-/** 두 달 이상 범위 오삭제 방지 안내 */
+/**
+ * 두 달 이상 범위 오삭제 방지 안내
+ * expndSns: 개별 선택한 번호, bulkCond: 조회 결과 전체 선택이면 그 조건(둘 중 하나만 있다)
+ */
 export default function ExpenseBulkDeleteDialog({
   expndSns,
+  bulkCond,
+  count,
   totalAmt,
   fromYm,
   toYm,
@@ -16,35 +21,43 @@ export default function ExpenseBulkDeleteDialog({
   onDeleted,
   onClose,
 }) {
-  const deleteExpenses = useDeleteExpenses();
+  const deleteSelected = useDeleteExpenses();
+  const bulkDelete = useBulkDeleteExpenses();
+  const deletion = bulkCond ? bulkDelete : deleteSelected;
   const isMultiMonth = fromYm !== toYm;
   const rangeText = isMultiMonth
     ? `${formatYm(fromYm)} ~ ${formatYm(toYm)}`
     : formatYm(fromYm);
 
-  const handleDelete = () =>
-    deleteExpenses.mutate(expndSns, {
+  const handleDelete = () => {
+    const callbacks = {
       onSuccess: onDeleted,
       onError: () => showToast('삭제하지 못했어요. 잠시 후 다시 시도해 주세요'),
-    });
+    };
+    if (bulkCond) {
+      bulkDelete.mutate({ ...bulkCond, expectedCnt: count }, callbacks);
+    } else {
+      deleteSelected.mutate(expndSns, callbacks);
+    }
+  };
 
   return (
     <Modal
       isConfirm
-      title={`선택한 지출 ${expndSns.length}건을 삭제할까요?`}
+      title={`선택한 지출 ${count}건을 삭제할까요?`}
       description={
         isMultiMonth
           ? '여러 달에 걸친 내역이에요. 삭제하면 되돌릴 수 없어요'
           : '삭제하면 되돌릴 수 없어요'
       }
-      isPending={deleteExpenses.isPending}
+      isPending={deletion.isPending}
       onClose={onClose}
       footer={
         <>
           <button
             type="button"
             onClick={onClose}
-            disabled={deleteExpenses.isPending}
+            disabled={deletion.isPending}
             className={BTN_SECONDARY}
           >
             취소
@@ -52,7 +65,7 @@ export default function ExpenseBulkDeleteDialog({
           <button
             type="button"
             onClick={handleDelete}
-            disabled={deleteExpenses.isPending}
+            disabled={deletion.isPending}
             className={BTN_DANGER}
           >
             삭제
@@ -66,7 +79,7 @@ export default function ExpenseBulkDeleteDialog({
           {rangeText} · {filterLabel}
           <br />
           <b>
-            {expndSns.length}건 · {formatWon(totalAmt)}
+            {count}건 · {formatWon(totalAmt)}
           </b>
         </span>
       </p>
