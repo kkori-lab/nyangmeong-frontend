@@ -45,6 +45,7 @@ function MemberDetailSkeleton() {
  * [회원 상세]
  * - 탭은 ?tab=pets|terms|points|history, 첫 탭은 pets
  * - 정상 일반 회원은 [정지], 정지 회원은 [정지 해제], 관리자·탈퇴 회원은 버튼 없음
+ * - 상세 응답에 권한이 없는 동안 관리자도 [정지] 표시 -> 서버가 409로 거절
  */
 export default function AdminMemberDetailPage() {
   const { mbrSn: mbrSnParam } = useParams();
@@ -75,7 +76,7 @@ export default function AdminMemberDetailPage() {
     if (tab === 'terms') return <MemberTermsTab mbrSn={mbrSn} />;
     if (tab === 'points') return <MemberPointsTab {...pageProps} />;
     if (tab === 'history') return <MemberHistoryTab {...pageProps} />;
-    return <MemberPetsTab mbrSn={mbrSn} />;
+    return <MemberPetsTab {...pageProps} />;
   };
 
   /** 본문: 로딩 / 403 / 없는 회원 / 그 밖의 오류 / 상세 */
@@ -111,7 +112,7 @@ export default function AdminMemberDetailPage() {
     }
 
     const canSuspend =
-      member.data.mbrAuthrtCd === ROLE_OPTIONS[0].value &&
+      member.data.mbrAuthrtCd !== ROLE_OPTIONS[1].value &&
       member.data.mbrSttsCd === STATUS_OPTIONS[0].value;
     const canRelease = member.data.mbrSttsCd === STATUS_OPTIONS[1].value;
 

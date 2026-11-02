@@ -1,4 +1,5 @@
 import { MEMBER_ROLE } from '@/constants/memberRole';
+import { BRUP_ROLE } from '@/utils/petCodes';
 
 /** 회원 상태(mbrSttsCd) */
 export const STATUS_OPTIONS = [
@@ -30,12 +31,10 @@ export const SUSPENSION_TYPE_OPTIONS = [
 /** 기간 정지 일수 */
 export const SUSPENSION_DAY_OPTIONS = [7, 30];
 
-/** 포인트 거래 유형(pntDlngTypeCd) */
-export const POINT_TYPE_OPTIONS = [
-  { value: 'MYPC0007', label: '미션' },
-  { value: 'MYPC0008', label: '아이템 구매' },
-  { value: 'MYPC0009', label: '관리자 조정' },
-  { value: 'MYPC0021', label: '검진 기록' },
+/** 양육 역할(brupRoleCd) */
+export const BRUP_ROLE_OPTIONS = [
+  { value: BRUP_ROLE.PRIMARY, label: '주양육자' },
+  { value: BRUP_ROLE.CO_PARENT, label: '공동양육자' },
 ];
 
 /** 코드 표시 이름: 없는 코드는 코드 그대로 */

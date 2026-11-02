@@ -29,7 +29,7 @@ export const adminMemberKeys = {
   admins: (params) => ['adminMember', 'admins', params],
   appointable: (params) => ['adminMember', 'appointable', params],
   detail: (mbrSn) => ['adminMember', 'detail', mbrSn],
-  pets: (mbrSn) => ['adminMember', 'pets', mbrSn],
+  pets: (params) => ['adminMember', 'pets', params],
   terms: (mbrSn) => ['adminMember', 'terms', mbrSn],
   points: (params) => ['adminMember', 'points', params],
   histories: (params) => ['adminMember', 'histories', params],
@@ -63,10 +63,11 @@ export const useAdminMember = (mbrSn) =>
     queryFn: () => getAdminMember(mbrSn),
   });
 
-export const useAdminMemberPets = (mbrSn) =>
+export const useAdminMemberPets = (params) =>
   useQuery({
-    queryKey: adminMemberKeys.pets(mbrSn),
-    queryFn: () => getAdminMemberPets(mbrSn),
+    queryKey: adminMemberKeys.pets(params),
+    queryFn: () => getAdminMemberPets(params),
+    placeholderData: keepPreviousData,
   });
 
 export const useAdminMemberTerms = (mbrSn) =>

@@ -1,6 +1,5 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDateTime } from '@/utils/formatDate';
-import { getOptionLabel, POINT_TYPE_OPTIONS } from './memberLabels';
 import MemberTabTable from './MemberTabTable';
 import { useAdminMemberPoints } from './queries';
 
@@ -33,7 +32,7 @@ export default function MemberPointsTab({ mbrSn, page, size, onPageChange }) {
         getRowKey={(point) => point.pntGnlgrSn}
         renderCells={(point) => [
           formatDateTime(point.regDt),
-          getOptionLabel(POINT_TYPE_OPTIONS, point.pntDlngTypeCd),
+          point.pntDlngTypeCdNm,
           formatPointChange(point.dlngPnt),
           `${point.dlngAftrBlncPnt.toLocaleString()}P`,
           point.memoCn ?? '—',

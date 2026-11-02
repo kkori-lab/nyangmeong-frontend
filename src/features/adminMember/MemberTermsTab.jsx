@@ -17,11 +17,11 @@ export default function MemberTermsTab({ mbrSn }) {
       columns={COLUMNS}
       emptyText="약관 동의 내역이 없어요"
       errorText="약관 동의를 불러오지 못했어요."
-      getRowKey={(term) => term.trmsNm}
+      getRowKey={(term) => term.trmsFixIdntfKey}
       renderCells={(term) => [
-        term.trmsNm,
-        term.trmsVerNo,
-        term.agreYn === 'Y' ? '동의' : '미동의',
+        term.trmsTtl,
+        term.trmsVerId ?? '—',
+        term.agreYn ? '동의' : '미동의',
         term.agreDt ? formatDateTime(term.agreDt) : '—',
       ]}
     />
