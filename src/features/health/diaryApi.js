@@ -121,13 +121,28 @@ export const createObservationCycle = ({
   return api.post(`/pets/${petSn}/observation-cycles`, body);
 };
 
+const isBlank = (value) => value === '' || value == null;
+
+/** 수정 전(before)과 견줘 바뀐 값만 보내고, 값이 있던 칸을 비웠으면 이름을 clearFields로 보낸다 */
+const appendChanged = (body, key, value, before) => {
+  if (isBlank(value)) {
+    if (!isBlank(before)) body.append('clearFields', key);
+    return;
+  }
+  if (String(value) !== String(before ?? '')) body.append(key, value);
+};
+
 /**
  * 회차 수정: 보낸 값만 바뀐다
- * - 사진은 새로 고른 때만(file), 크기·변화·메모는 비워 보내면 바뀌지 않으므로 값이 있을 때만 보낸다
+ * - 사진은 새로 고른 때만(file). 비울 수 없고 보내면 교체
+ * - 크기·변화·메모는 cycle(수정 전 회차)과 견줘 손대지 않은 칸은 보내지 않는다
+ * - 1회차는 변화 칸이 없으므로 obsrvChgCd를 보내지 않는다(isFirstCycle)
  */
 export const updateObservationCycle = ({
   petSn,
   obsrvCyclSn,
+  cycle,
+  isFirstCycle,
   file,
   obsrvYmd,
   obsrvSz,
@@ -137,9 +152,10 @@ export const updateObservationCycle = ({
   const body = new FormData();
   if (file) body.append('file', file);
   body.append('obsrvDt', toObservationDt(obsrvYmd));
-  appendIfFilled(body, 'obsrvSz', obsrvSz);
-  appendIfFilled(body, 'obsrvChgCd', obsrvChgCd);
-  appendIfFilled(body, 'memoCn', memoCn);
+  appendChanged(body, 'obsrvSz', obsrvSz, cycle.obsrvSz);
+  if (!isFirstCycle)
+    appendChanged(body, 'obsrvChgCd', obsrvChgCd, cycle.obsrvChgCd);
+  appendChanged(body, 'memoCn', memoCn, cycle.memoCn);
   return api.patch(`/pets/${petSn}/observation-cycles/${obsrvCyclSn}`, body);
 };
 
