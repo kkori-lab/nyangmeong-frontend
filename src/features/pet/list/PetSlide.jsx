@@ -11,7 +11,6 @@ import {
 import { useLayoutEffect, useRef, useState } from 'react';
 import PetFace from '@/components/PetFace';
 import { BRUP_ROLE, CHRC_STTS, MAX_OWN_PETS, PET_SE } from '@/utils/petCodes';
-import { usePet } from '../queries';
 import FamilySection from './FamilySection';
 import {
   formatAge,
@@ -190,17 +189,7 @@ function AddSlide({ isFull, onAdd, children }) {
   );
 }
 
-function PetCard({
-  pet: listPet,
-  onEdit,
-  onDelete,
-  onUnlink,
-  onInvite,
-  children,
-}) {
-  /** 목록 응답에 없는 중성화 여부·정상 체중 범위는 상세 응답으로 채움 */
-  const { data: detail } = usePet(listPet.petSn);
-  const pet = detail ? { ...listPet, ...detail } : listPet;
+function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
   const isCoParent = pet.brupRoleCd === BRUP_ROLE.CO_PARENT;
   const gndrText = `${getGndrName(pet)}${pet.nutrYn ? '(중성화 완료)' : ''}`;
   const metaText = [

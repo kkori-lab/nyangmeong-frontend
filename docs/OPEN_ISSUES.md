@@ -25,6 +25,7 @@
 | 로그인 실패의 상태 코드(400 계열 중 무엇) | 정해지지 않음 |
 | AI 서버의 응답 모양과 오류 코드를 메인 서버(`{success, data, error}`)와 같게 할지 | 같다고 보고 `aiApi`에 같은 인터셉터를 붙인다. 다르면 `aiApi`의 인터셉터를 따로 만든다 |
 | 목록의 `sort` 값: 대소문자(`popular` / `POPULAR`), 목록에 없는 값이 왔을 때(400 / 기본 정렬) | 정해지지 않음. 정렬이 있는 목록을 처음 만드는 사람이 백엔드 담당과 정한다 |
+| `PetCard`(`PetFace`)가 `chrcSttsCd`를 읽지만 `PetSummary`·`PetResponse` 모두에 없음. 캐릭터 가짜 API 추정 키로 보임. 캐릭터 API 실제 연결 시 백엔드 필드 추가 또는 프론트 읽기 제거 결정 필요 | 건드리지 않는다. `bscCharSbstYn`이 오류 표시를 대신하고 `chrcSttsCd`는 `undefined`로 넘어간다 |
 | 로그인(Spring Security) 구현 시점 | 백엔드 구현 중 가장 마지막. 그 전에는 새 화면을 `ProtectedRoute`로 감싸지 않고, 헤더에서 `useMe`로 로그인 여부를 가르지 않는다(로그인 화면이 아직 쿠키를 심지 못해 `/auth/me`가 항상 401로 실패한다). 백엔드는 개발 프로필에서 모든 요청을 허용한다. 로그인을 붙일 때 `routes/domains/<도메인>/<도메인>Routes.js`에서 로그인이 필요한 화면 그룹의 `auth`를 `'member'`로 바꾸고(`AppRoutes.jsx`가 `ProtectedRoute`로 감싼다), 헤더를 `useMe`에 연결한다 |
 
 ## 프론트 담당이 정할 것
