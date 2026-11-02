@@ -11,9 +11,11 @@ const COLUMNS = [
   '해제',
 ];
 
-/** 월-일 시:분 표시 */
+/** 월-일 시:분 표시: 값이 없으면 — */
 const formatMonthDayTime = (dateTime) =>
-  `${formatDate(dateTime, { hasYear: false, separator: '-' })} ${getHmOf(dateTime)}`;
+  dateTime
+    ? `${formatDate(dateTime, { hasYear: false, separator: '-' })} ${getHmOf(dateTime)}`
+    : '—';
 
 /**
  * [정지 회원 표]
@@ -55,13 +57,11 @@ export default function SuspensionTable({ suspensions, onSelect, onRelease }) {
                 {formatMonthDayTime(suspension.suspnDt)}
               </td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
-                {suspension.suspnEndDt
-                  ? formatMonthDayTime(suspension.suspnEndDt)
-                  : '—'}
+                {formatMonthDayTime(suspension.suspnEndDt)}
               </td>
-              <td className="px-4 py-3">{suspension.suspnRsn}</td>
+              <td className="px-4 py-3">{suspension.suspnRsn ?? '—'}</td>
               <td className="px-4 py-3 whitespace-nowrap">
-                {suspension.prcrNcnm}
+                {suspension.prcrNcnm ?? '—'}
               </td>
               <td className="px-4 py-2">
                 <button
