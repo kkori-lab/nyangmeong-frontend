@@ -1,3 +1,4 @@
+import { api } from '@/api/axios';
 import { IS_DEV } from '@/api/env';
 import {
   addDays,
@@ -15,7 +16,8 @@ import {
  * [관리자 회원 가짜 API]
  * - 백엔드 /api/admin/members 나오기 전까지 사용 -> 나오면 본문만 api 요청으로 교체
  * - 개발 환경에서 ?fake=forbidden이면 403
- * - 미확정: 조회 조건 이름(q·status·joinPath·role·bgngYmd·endYmd·type), maskedAcntEml, 정지 필드(suspn*), 정지 목록 경로, 탈퇴 필드(whdwlDt·prgPrnmntYmd)
+ * - 미확정: 조회 조건 이름(q·status·joinPath·role·bgngYmd·endYmd·type), maskedAcntEml, 정지 필드(suspn*), 정지 목록 경로
+ * - 탈퇴 회원 목록은 실제 API
  */
 
 /** 가짜 회원 수 */
@@ -36,10 +38,6 @@ const PERMANENT_CYCLE = 3;
 const FAKE_ADMIN_NCNM = '관리자01';
 /** 가짜 정지 사유 */
 const SUSPENSION_REASONS = ['욕설 반복', '광고 도배', '허위 신고 반복'];
-/** 가짜 탈퇴 시각: 하루 3명 */
-const WITHDRAWN_HMS = ['21:10', '14:25', '09:40'];
-/** 탈퇴 회원 보관일수 */
-const WITHDRAWN_KEEP_DAY_CNT = 30;
 /** 정지 거절 오류 */
 const SUSPEND_REJECTED_ERROR = {
   code: 'MEMBER_NOT_SUSPENDABLE',
@@ -120,29 +118,6 @@ const maskEmail = (acntEml) => {
   const [local, domain] = acntEml.split('@');
   return `${local.slice(0, 3)}***@${domain}`;
 };
-
-/** 가짜 탈퇴 회원 한 줄 */
-const makeWithdrawnMember = ({ mbrSn, mbrNcnm, acntEml }, index) => {
-  const whdwlYmd = addDays(
-    getTodayYmd(),
-    -Math.floor(index / WITHDRAWN_HMS.length),
-  );
-  return {
-    mbrSn,
-    mbrNcnm,
-    maskedAcntEml: maskEmail(acntEml),
-    whdwlDt: makeDateTime(
-      whdwlYmd,
-      WITHDRAWN_HMS[index % WITHDRAWN_HMS.length],
-    ),
-    prgPrnmntYmd: addDays(whdwlYmd, WITHDRAWN_KEEP_DAY_CNT),
-  };
-};
-
-/** 탈퇴 최신순 가짜 탈퇴 회원 */
-const withdrawnMembers = members
-  .filter(({ mbrSttsCd }) => mbrSttsCd === STATUS_OPTIONS[2].value)
-  .map(makeWithdrawnMember);
 
 /** 닉네임 부분 일치·이메일 완전 일치 */
 const matchesKeyword = ({ mbrNcnm, acntEml }, q) => {
@@ -234,19 +209,8 @@ export const getAdminSuspensions = async ({ page, size, q, type }) => {
 };
 
 /** 탈퇴 회원 목록: { content, page, size, totalElements, totalPages, hasNext } */
-export const getAdminWithdrawnMembers = async ({ page, size }) => {
-  throwFakeError();
-  const start = (page - 1) * size;
-  const totalPages = Math.ceil(withdrawnMembers.length / size);
-  return {
-    content: withdrawnMembers.slice(start, start + size),
-    page,
-    size,
-    totalElements: withdrawnMembers.length,
-    totalPages,
-    hasNext: page < totalPages,
-  };
-};
+export const getAdminWithdrawnMembers = (params) =>
+  api.get('/admin/members/withdrawn', { params });
 
 /** 회원 정지: suspnDayCnt가 null이면 영구 */
 export const suspendMember = async ({ mbrSn, suspnDayCnt, suspnRsn }) => {
