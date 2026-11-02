@@ -7,6 +7,7 @@ import {
 import {
   getAdminMembers,
   getAdminSuspensions,
+  getAdminWithdrawnMembers,
   releaseMember,
   suspendMember,
 } from './api';
@@ -15,6 +16,7 @@ export const adminMemberKeys = {
   all: ['adminMember'],
   list: (params) => ['adminMember', 'list', params],
   suspensions: (params) => ['adminMember', 'suspensions', params],
+  withdrawn: (params) => ['adminMember', 'withdrawn', params],
 };
 
 export const useAdminMembers = (params, { enabled = true } = {}) =>
@@ -29,6 +31,13 @@ export const useAdminSuspensions = (params) =>
   useQuery({
     queryKey: adminMemberKeys.suspensions(params),
     queryFn: () => getAdminSuspensions(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useAdminWithdrawnMembers = (params) =>
+  useQuery({
+    queryKey: adminMemberKeys.withdrawn(params),
+    queryFn: () => getAdminWithdrawnMembers(params),
     placeholderData: keepPreviousData,
   });
 

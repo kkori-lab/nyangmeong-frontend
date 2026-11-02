@@ -390,10 +390,13 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음), 실제 관리자 로그인으로 다시 확인, 사람 확인 2026-11-02
 - 연결 남음: FN-ADM-012-01·02·03·04·05 (백엔드 연결 정지·해제·정지 회원 목록 API, 정지 종료 일시 필드, 거절 코드, 로그인 차단, 만료 자동 해제 배치, 상태 이력 기록, 백엔드 저장소에서 /start)
 
-## SCR-ADM-013 탈퇴 회원 — 대기
+## SCR-ADM-013 탈퇴 회원 — 끝
 - 기능: FN-ADM-013-01 탈퇴 회원 목록 조회, FN-ADM-013-02 파기 현황 연결
 - 기다리는 것: `/api/admin/members/withdrawn` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 탈퇴 회원이 마스킹된 채 파기 예정일과 함께 보인다
+- 추가 요청(검증 통과): 추가-1 디자인 파일 없는 관리자 화면 기준을 `docs/convention/ui.md`에 적음
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-02). 파기 안내는 403·조회 오류 화면에도 나온다(코드 그대로, 숨길지 정하지 않음)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 확인 못 함(내 것) 없음, 가짜 응답), 사람 확인 2026-11-02
 
 ## SCR-ADM-113 관리자 계정 — 대기
 - 기능: FN-ADM-113-01 관리자 목록 조회, FN-ADM-113-02 관리자 지정, FN-ADM-113-03 관리자 해제
@@ -527,6 +530,26 @@
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-010-01·04
 - 기다리는 것: 백엔드 `GET /api/admin/members`(끝, 2026-11-02)
 - 완료 조건: `features/adminMember/api.js` `getAdminMembers` 가짜를 실제 호출로 바꾼다. 조회 조건 `q`·`status`·`joinPath`·`role`·`bgngYmd`·`endYmd`, 응답 `maskedAcntEml`은 가짜와 같다. 행 클릭은 응답 `mbrSn`으로 회원 상세로 간다
+
+## SCR-ADM-012 회원 제재 · 정지·해제·정지 회원 목록 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-012-01·03·05, 정지 회원 목록(화면설계서 2번)
+- 기다리는 것: 백엔드 `POST`·`DELETE /api/admin/members/{mbrSn}/suspension`, `GET /api/admin/members/suspensions`(끝, 2026-11-02)
+- 완료 조건: `features/adminMember/api.js` `suspendMember`·`releaseMember`·`getAdminSuspensions` 가짜를 실제 호출로 바꾼다. 필드 `suspnDayCnt`·`suspnRsn`·`rlsRsn`·`suspnDt`·`suspnEndDt`·`prcrNcnm`, 조회 `q`·`type`은 가짜와 같다. 해제 사유는 `DELETE` 본문(`data`)으로 보낸다. 거절 `MEMBER_NOT_SUSPENDABLE`은 409, 정지 중이 아닌 회원 해제는 409 `ALREADY_PROCESSED`다. 회원 정지 모달 대상 검색은 관리자·탈퇴를 뺀다
+- 이미 바뀐 것: `features/adminMember/api.js`(가짜), `SuspensionTable.jsx`, `SuspensionFilter.jsx`, `memberLabels.js`
+
+## SCR-ADM-013 탈퇴 회원 · 탈퇴 회원 목록 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-013-01, FN-ADM-013-02
+- 기다리는 것: 백엔드 `GET /api/admin/members/withdrawn`(끝, 2026-11-02)
+- 완료 조건: `features/adminMember/api.js` `getAdminWithdrawnMembers` 가짜를 실제 호출로 바꾼다. 조회는 `page`·`size`뿐이다. 응답 `mbrSn`·`mbrNcnm`·`maskedAcntEml`·`whdwlDt`·`purgeYmd`. 가짜의 `prgPrnmntYmd`는 `purgeYmd`로 바꾼다. 일반 회원 403 `ADMIN_ONLY`. 안내 문구와 [배치 현황] 이동(SCR-ADM-111)을 둔다
+- 이미 바뀐 것: `features/adminMember/api.js`(가짜), `queries.js`, `WithdrawnTable.jsx`, `routes/paths.js`, `routes/domains/admin/adminRoutes.js`
+- 완료 조건 결과: 검증 `통과`(2026-11-02, 1회차), 사람 확인 2026-11-02
+
+## SCR-ADM-013 탈퇴 회원 · 배치 현황 링크 탈퇴 회원 파기 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-013-02
+- 기다리는 것: 백엔드 탈퇴 회원 파기 배치 SYSC0027(끝, 2026-11-02)
+- 완료 조건: 탈퇴 회원 화면 [배치 현황] 링크가 `?batch=SYSC0027`로 배치 현황(SCR-ADM-111)의 "탈퇴 회원 파기" 이력을 연다
+- 결정: 배치 6종에 맞춰 `BatchesSkeleton`을 436px로 고쳤고, `?batch=` 진입 때 이력 자리 높이는 판정에서 뺀다(행 수를 알 수 없음, 사람 결정 2026-11-02)
+- 완료 조건 결과: 검증 `통과`(2026-11-02, 앞선 1회차 스켈레톤 실패는 사람이 `clear` 뒤 완료 조건을 좁힘), 사람 확인 2026-11-02
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

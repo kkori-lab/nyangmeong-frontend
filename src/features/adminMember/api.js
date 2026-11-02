@@ -1,3 +1,4 @@
+import { api } from '@/api/axios';
 import { IS_DEV } from '@/api/env';
 import {
   addDays,
@@ -16,6 +17,7 @@ import {
  * - 백엔드 /api/admin/members 나오기 전까지 사용 -> 나오면 본문만 api 요청으로 교체
  * - 개발 환경에서 ?fake=forbidden이면 403
  * - 미확정: 조회 조건 이름(q·status·joinPath·role·bgngYmd·endYmd·type), maskedAcntEml, 정지 필드(suspn*), 정지 목록 경로
+ * - 탈퇴 회원 목록은 실제 API
  */
 
 /** 가짜 회원 수 */
@@ -27,7 +29,7 @@ const EMAIL_DOMAINS = ['gmail.com', 'naver.com', 'kakao.com'];
 /** 정지 회원 주기 */
 const SUSPENDED_CYCLE = 7;
 /** 탈퇴 회원 주기 */
-const WITHDRAWN_CYCLE = 11;
+const WITHDRAWN_CYCLE = 4;
 /** 관리자 주기 */
 const ADMIN_CYCLE = 19;
 /** 영구 정지 주기 */
@@ -47,11 +49,11 @@ const SUSPEND_REJECTED_ERROR = {
 /** 번호에 맞는 상태 코드 */
 const getStatusCode = (index) => {
   if (index % ADMIN_CYCLE === 0) return STATUS_OPTIONS[0].value;
-  if (index % WITHDRAWN_CYCLE === WITHDRAWN_CYCLE - 1) {
-    return STATUS_OPTIONS[2].value;
-  }
   if (index % SUSPENDED_CYCLE === SUSPENDED_CYCLE - 1) {
     return STATUS_OPTIONS[1].value;
+  }
+  if (index % WITHDRAWN_CYCLE === WITHDRAWN_CYCLE - 1) {
+    return STATUS_OPTIONS[2].value;
   }
   return STATUS_OPTIONS[0].value;
 };
@@ -205,6 +207,10 @@ export const getAdminSuspensions = async ({ page, size, q, type }) => {
     hasNext: page < totalPages,
   };
 };
+
+/** 탈퇴 회원 목록: { content, page, size, totalElements, totalPages, hasNext } */
+export const getAdminWithdrawnMembers = (params) =>
+  api.get('/admin/members/withdrawn', { params });
 
 /** 회원 정지: suspnDayCnt가 null이면 영구 */
 export const suspendMember = async ({ mbrSn, suspnDayCnt, suspnRsn }) => {
