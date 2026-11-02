@@ -380,7 +380,6 @@
 - 완료 조건: 검색·필터를 바꾸면 목록과 페이지(20건)가 바뀌고 행을 누르면 상세로 간다
 - 결정: 디자인 파일이 없어 감사 로그 표·필터 부품 재사용, 필터는 명세 v0.4대로 권한 포함, 정지 종료일은 일단 표시 안 함, 상세는 제목만 있는 임시 페이지(2026-11-01)
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-01, 확인 못 함(내 것) 없음. 로그인은 검증 브라우저에서 응답 대체), 사람 확인 2026-11-01
-- 연결 남음: FN-ADM-010-01·02·03·04 (백엔드 연결 `GET /api/admin/members`·필드 이름·코드 값·조회 조건 이름, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-012 회원 제재 — 끝
 - 기능: FN-ADM-012-01 회원 정지, FN-ADM-012-02 정지 효과, FN-ADM-012-03 정지 해제, FN-ADM-012-04 기간 만료 자동 해제, FN-ADM-012-05 정지 대상 제한, FN-ADM-012-06 강제 탈퇴 제외
@@ -534,10 +533,11 @@
 - 결정: 실제 수동 실행 확인은 처방 만료로만, 처리 건수·사유·닉네임 null은 값 없이 표시, 다시 조회는 `runningYn` 또는 결과 실행 중(2026-11-01)
 - 완료 조건 결과: 검증 `통과`(2026-11-01, 1회차 스켈레톤 높이 실패 뒤 수정), 사람 확인 2026-11-01
 
-## SCR-ADM-010 회원 목록 · 회원 목록 API 연결 — 대기
+## SCR-ADM-010 회원 목록 · 회원 목록 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-010-01·04
 - 기다리는 것: 백엔드 `GET /api/admin/members`(끝, 2026-11-02)
 - 완료 조건: `features/adminMember/api.js` `getAdminMembers` 가짜를 실제 호출로 바꾼다. 조회 조건 `q`·`status`·`joinPath`·`role`·`bgngYmd`·`endYmd`, 응답 `maskedAcntEml`은 가짜와 같다. 행 클릭은 응답 `mbrSn`으로 회원 상세로 간다
+- 완료 조건 결과: 검증 `통과`(2026-11-02, 1회차), 사람 확인 2026-11-02
 
 ## SCR-ADM-012 회원 제재 · 정지·해제·정지 회원 목록 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-012-01·03·05, 정지 회원 목록(화면설계서 2번)
@@ -606,6 +606,36 @@
 - 완료 조건: `GET /api/admin/members/{mbrSn}/status-histories`(`bfrSttsCd`, `aftrSttsCd`, `chgRsn`, `prcsMbrNcnm`, `regDt`)로 최신순 20건씩 나온다. 배치 처리는 처리자가 null이다
 - 이미 바뀐 것: `features/adminMember/api.js` 가짜 응답
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 실제 API), 사람 확인 2026-11-02
+
+## SCR-ADM-020 게시글·댓글 · 목록 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-01
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `GET /api/admin/posts`(`pstSn`, `bbsCd`, `pstTtl`, `mbrSn`, `mbrNcnm`, `pstSttsCd`, `dclrCnt`, `regDt`)로 정상·블라인드·삭제 글이 20건씩 나오고 행을 누르면 상세로 간다. 작성자를 누르면 회원 상세로 간다
+
+## SCR-ADM-020 게시글·댓글 · 검색·필터 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-02
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `q`, `bbsCd`, `status`, `bgngYmd`, `endYmd`로 목록이 좁혀진다. 게시판 값은 펫정보·펫일상·실종센터 3개다(펫돌봄 코드 없음). 시작일이 종료일보다 늦은 400을 안내한다
+
+## SCR-ADM-020 게시글·댓글 · 상세 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-03
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `GET /api/admin/posts/{pstSn}`로 본문, 이미지, 신고·댓글 수, `statusHistories`가 나온다. `prcsMbrSn`이 null이면 시스템으로 보인다. 댓글은 `GET /api/admin/comments?pstSn=`로 받는다. 삭제 글은 [블라인드]·[복구]가 없다
+
+## SCR-ADM-020 게시글·댓글 · 블라인드 모달 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-04
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `POST /api/admin/posts/{pstSn}/blind`(`chgRsn` 필수, 1000자 이내)가 성공하면 상세 상태와 이력이 바뀐다. 409 `ALREADY_PROCESSED`를 안내한다
+
+## SCR-ADM-020 게시글·댓글 · 복구 모달 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-05
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `POST /api/admin/posts/{pstSn}/restore`(`chgRsn` 필수)가 성공하면 상세 상태와 이력이 바뀐다. 409 `ALREADY_PROCESSED`를 안내한다
+
+## SCR-ADM-020 게시글·댓글 · 댓글 탭 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음. FN-ADM-020-06
+- 기다리는 것: 백엔드 게시글·댓글 관리자 API(끝, 2026-11-02, 필드는 Swagger와 `docs/api/community.md`)
+- 완료 조건: `GET /api/admin/comments`(`pstSn`, `mbrSn`, `q`)로 삭제된 댓글도 원문과 `delYn`으로 나온다. `POST /api/admin/comments/{cmntSn}/deletion`(`delRsn` 필수) 뒤 목록이 갱신된다. 409 `ALREADY_PROCESSED`를 안내한다
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

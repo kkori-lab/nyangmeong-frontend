@@ -15,7 +15,6 @@ import {
   getAdmins,
   getAdminSuspensions,
   getAdminWithdrawnMembers,
-  getAppointableMembers,
   releaseAdmin,
   releaseMember,
   suspendMember,
@@ -27,7 +26,6 @@ export const adminMemberKeys = {
   suspensions: (params) => ['adminMember', 'suspensions', params],
   withdrawn: (params) => ['adminMember', 'withdrawn', params],
   admins: (params) => ['adminMember', 'admins', params],
-  appointable: (params) => ['adminMember', 'appointable', params],
   detail: (mbrSn) => ['adminMember', 'detail', mbrSn],
   pets: (params) => ['adminMember', 'pets', params],
   terms: (mbrSn) => ['adminMember', 'terms', mbrSn],
@@ -112,14 +110,6 @@ export const useAdmins = (params) =>
   useQuery({
     queryKey: adminMemberKeys.admins(params),
     queryFn: () => getAdmins(params),
-    placeholderData: keepPreviousData,
-  });
-
-export const useAppointableMembers = (params, { enabled = true } = {}) =>
-  useQuery({
-    queryKey: adminMemberKeys.appointable(params),
-    queryFn: () => getAppointableMembers(params),
-    enabled,
     placeholderData: keepPreviousData,
   });
 

@@ -3,7 +3,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
 import MemberSearch from './MemberSearch';
-import { useAppointableMembers, useAppointAdmin } from './queries';
+import { useAppointAdmin } from './queries';
 
 /**
  * [관리자 지정 모달]
@@ -53,7 +53,6 @@ export default function AppointAdminModal({ onClose }) {
       <MemberSearch
         selected={selected}
         onSelect={setSelected}
-        useMembers={useAppointableMembers}
         placeholder="닉네임 또는 이메일 전체 주소"
         emptyText="지정할 수 있는 회원이 없어요"
       />
