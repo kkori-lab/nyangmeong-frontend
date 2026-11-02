@@ -2,9 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-ADM-030 신고 처리 — 끝 (2026-11-02, 검증 `통과`, 앞선 루프 4회 실패(데이터 없음·목록 스켈레톤) 뒤 사람이 `clear`하고 로컬 DB로 재검증, 사람 확인). 목록·필터·상세·처리 완료·반려·자동 블라인드 복구를 실제 API로 만들었다(`features/adminReport/`)
+SCR-ADM-040 공지사항 — 끝 (2026-11-02, 검증 `확인 못 함 있음`(연결 남음만), 사람 확인). 목록·검색·등록·알림 발송 확인·수정·비노출·상단 고정을 가짜 응답으로 만들었다(`features/adminNotice/`). 내용은 텍스트만(사람 결정)
 
 ## 다음에 할 것
+
+- SCR-ADM-040 연결 남음: FN-ADM-040-01~05 (백엔드 연결 `/api/admin/notices` 목록·상세·등록·수정, 알림 대상 수, 알림 발송 컬럼, 백엔드 저장소에서 /start). 백엔드 작업 사본(커밋 전, 2026-11-02 확인)에 `AdminNoticeController`가 이미 있고 가짜와 다르다: 발송 필드 `notiSndngDt`·`notiTrgtCnt`(가짜 `ntfctnSndngDt`·`ntfctnTrgtCnt`), 수정은 `PATCH`(가짜 PUT), 대상 수는 `GET /notification-target-count`(가짜 `/notification-targets/count`, 응답 필드 확인 안 함), 없는 공지 코드 확인 안 함. 연결 때 `features/adminNotice/api.js` 본문을 api 요청으로 바꾸고 이름을 서버에 맞춘다. 공지 알림 발송은 `support` 도메인 담당 KSJ와 협의
+- SCR-ADM-040 이미지: 백엔드 작업 사본에 `POST /api/admin/notices/images`(multipart)가 생기고 있다. 텍스트만으로 끝낸 결정(2026-11-02)은 그 API가 없다고 본 때의 것이라, 서버가 병합되면 이미지 마일스톤을 새로 잡을지 사람이 정한다(사용자 공지 상세 표시는 KSJ)
+- SCR-ADM-040 실제 확인이 남은 것: 403·조회 오류 [다시 시도]·빈 목록은 코드로만 봤다(`?fake=forbidden`). 스켈레톤 높이(목록 표 1025px, 폼 카드 600px)는 잰 값이 아니라 계산값이다
 
 - 8080 백엔드를 공용 DB로 되돌릴지: SCR-ADM-030 검증 때 사람이 `local` 프로필(로컬 DB)로 재시작했다. 지금 5173 화면도 로컬 데이터를 본다
 - SCR-ADM-030 백엔드 병합 순서: 신고 관리자 API(백엔드 `origin/LJS`, 조치 코드 커밋 `c96d29a`)가 develop에 병합되고 공용 DB에 `DCLR.DCLR_ACTN_CD`(v0.11 (9))가 적용돼야 배포에서 동작한다
