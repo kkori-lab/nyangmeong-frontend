@@ -1,8 +1,7 @@
 import { CircleCheckBig, ShoppingBag, TrendingUp } from 'lucide-react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDate } from '@/utils/formatDate';
-import { getCurrentYm } from '@/utils/yearMonth';
-import { useCareMissions, usePointBalance, usePointHistory } from '../queries';
+import { usePointBalance } from '../queries';
 import { formatSignedPoint, getPercent } from '../shared/pointFormat';
 
 const STAT =
@@ -33,16 +32,9 @@ export default function PointSummary({
   onGoHealth,
   onGoCharacter,
 }) {
-  const { data: balance } = usePointBalance();
-  const { data: history } = usePointHistory(getCurrentYm());
-  const { data: missions } = useCareMissions(todayYmd);
+  const { data: point } = usePointBalance();
 
-  if (!balance || !history || !missions) return null;
-
-  const allMissions = missions.pets.flatMap((pet) => pet.missions);
-  const doneCount = allMissions.filter(
-    (mission) => mission.cmplYn === 'Y',
-  ).length;
+  if (!point) return null;
 
   return (
     <section
@@ -63,7 +55,7 @@ export default function PointSummary({
           <div>
             <p className="text-muted">보유 포인트</p>
             <p className="mt-1 text-[32px] leading-[1.2] font-bold text-brand-600">
-              {balance.pntBal.toLocaleString()}
+              {point.hldPnt.toLocaleString()}
               <small className="ml-1 text-base text-brand-500">P</small>
             </p>
           </div>
@@ -72,25 +64,29 @@ export default function PointSummary({
           <Stat
             icon={<TrendingUp className="size-4" aria-hidden="true" />}
             label="이번 달 적립"
-            value={formatSignedPoint(history.earnTotAmt).slice(0, -1)}
+            value={formatSignedPoint(point.monthEarnPnt).slice(0, -1)}
             unit="P"
-            sub={`적립 ${history.earnCnt}건`}
+            sub={`적립 ${point.monthEarnCnt}건`}
             onClick={() => onScrollTo('point-history')}
           />
           <Stat
             icon={<ShoppingBag className="size-4" aria-hidden="true" />}
             label="이번 달 사용"
-            value={formatSignedPoint(history.useTotAmt).slice(0, -1)}
+            value={formatSignedPoint(-point.monthUsePnt).slice(0, -1)}
             unit="P"
-            sub={`아이템 구매 ${history.useCnt}건`}
+            sub={`아이템 구매 ${point.monthUseCnt}건`}
             onClick={() => onScrollTo('point-history')}
           />
           <Stat
             icon={<CircleCheckBig className="size-4" aria-hidden="true" />}
             label="오늘 미션"
-            value={doneCount}
-            unit={`/ ${allMissions.length}`}
-            sub={`${missions.pets.length}마리 · ${getPercent(doneCount, allMissions.length)}% 완료`}
+            value={point.todayCmptnMsnCnt}
+            unit={`/ ${point.todayMsnCnt}`}
+            sub={
+              point.todayMsnCnt === 0
+                ? '오늘 출제된 미션이 없어요'
+                : `${point.todayMsnPetCnt}마리 · ${getPercent(point.todayCmptnMsnCnt, point.todayMsnCnt)}% 완료`
+            }
             onClick={() => onScrollTo('care-mission')}
           />
         </div>
