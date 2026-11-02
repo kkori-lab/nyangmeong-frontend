@@ -4,12 +4,18 @@ import {
   CircleCheckBig,
   Info,
   PawPrint,
+  RotateCw,
 } from 'lucide-react';
 import { useState } from 'react';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import { parseYmd, toYmd } from '@/utils/formatDate';
 import { useCareMissions } from '../queries';
-import { formatPoint, getPercent, sumPoint } from '../shared/pointFormat';
+import {
+  formatPoint,
+  getPercent,
+  sumGiven,
+  sumScore,
+} from '../shared/pointFormat';
 import { CARD, CARD_HEAD, CARD_TITLE, NAV_BUTTON } from '../shared/pointStyles';
 
 const shiftYmd = (ymd, delta) => {
@@ -45,9 +51,35 @@ function MissionEmpty({ onRegister }) {
   );
 }
 
+/** 그 동물의 미션이 그날 0건일 때 */
+function MissionNone() {
+  return (
+    <p className="py-12 text-center text-subtle">
+      이 날은 출제된 미션이 없어요
+    </p>
+  );
+}
+
+/** 그 동물의 미션을 못 받았을 때 */
+function MissionError({ onRetry }) {
+  return (
+    <div className="flex flex-col items-center py-12 text-center">
+      <p className="font-bold">미션을 불러오지 못했어요</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className={`${BTN_PRIMARY} mt-4 gap-1.5`}
+      >
+        <RotateCw className="size-4" aria-hidden="true" />
+        다시 시도
+      </button>
+    </div>
+  );
+}
+
 function MissionPanel({ pet }) {
-  const doneList = pet.missions.filter((mission) => mission.cmplYn === 'Y');
-  const restList = pet.missions.filter((mission) => mission.cmplYn !== 'Y');
+  const doneList = pet.missions.filter((mission) => mission.cmptnYn);
+  const restList = pet.missions.filter((mission) => !mission.cmptnYn);
   const percent = getPercent(doneList.length, pet.missions.length);
 
   return (
@@ -79,20 +111,22 @@ function MissionPanel({ pet }) {
         <p className="mt-3 flex flex-wrap gap-2 text-sm text-muted">
           <span>
             오늘 획득{' '}
-            <b className="text-brand-600">+{formatPoint(sumPoint(doneList))}</b>
+            <b className="text-brand-600">
+              +{formatPoint(sumGiven(pet.missions))}
+            </b>
           </span>
           <span aria-hidden="true">·</span>
           <span>
-            남은 미션 {restList.length}개 (+{formatPoint(sumPoint(restList))})
+            남은 미션 {restList.length}개 (+{formatPoint(sumScore(restList))})
           </span>
         </p>
       </div>
       <ul className="mt-2">
         {pet.missions.map((mission) => {
-          const isDone = mission.cmplYn === 'Y';
+          const isDone = mission.cmptnYn;
           return (
             <li
-              key={mission.msnSn}
+              key={mission.dayMsnSn}
               className={`flex min-h-14 items-center gap-3 border-t border-line-soft first:border-t-0 ${isDone ? 'text-ink' : 'text-muted'}`}
             >
               <span className="min-w-0 flex-1 font-semibold">
@@ -101,7 +135,7 @@ function MissionPanel({ pet }) {
               <span
                 className={`text-sm font-medium ${isDone ? 'text-brand-600' : 'text-subtle'}`}
               >
-                +{formatPoint(mission.msnPnt)}
+                +{formatPoint(mission.scorPnt)}
               </span>
               <span
                 className={`inline-flex h-6 min-w-16 items-center justify-center rounded-full px-2.5 text-badge font-semibold ${isDone ? 'bg-tone-green-bg text-tone-green-fg' : 'bg-tone-gray-bg text-tone-gray-fg'}`}
@@ -116,16 +150,17 @@ function MissionPanel({ pet }) {
   );
 }
 
-/** todayYmd: 날짜 이동의 오른쪽 끝(미래는 조회하지 않음) */
-export default function CareMission({ todayYmd, onRegister }) {
+/** todayYmd: 날짜 이동의 오른쪽 끝(미래는 조회하지 않음). ownPets: 주양육 동물 [{ petSn, petNm }], 불러오는 중이면 null */
+export default function CareMission({ todayYmd, ownPets, onRegister }) {
   const [ymd, setYmd] = useState(todayYmd);
   const [selectedPetSn, setSelectedPetSn] = useState(null);
-  const { data } = useCareMissions(ymd);
+  const { data, retry } = useCareMissions(ymd, ownPets ?? []);
 
-  if (!data) return null;
+  if (!ownPets || !data) return null;
 
   const pets = data.pets;
   const pet = pets.find((item) => item.petSn === selectedPetSn) ?? pets[0];
+  const hasOwnPets = ownPets.length > 0;
 
   return (
     <section
@@ -141,7 +176,7 @@ export default function CareMission({ todayYmd, onRegister }) {
           />
           오늘의 케어미션
         </h2>
-        {pet && (
+        {hasOwnPets && (
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -169,7 +204,9 @@ export default function CareMission({ todayYmd, onRegister }) {
           </div>
         )}
       </div>
-      {pet ? (
+      {!hasOwnPets ? (
+        <MissionEmpty onRegister={onRegister} />
+      ) : (
         <div className="px-[22px] pt-5 pb-[22px]">
           <div
             role="group"
@@ -178,8 +215,9 @@ export default function CareMission({ todayYmd, onRegister }) {
           >
             {pets.map((item) => {
               const isSelected = item.petSn === pet.petSn;
-              const doneCount = item.missions.filter(
-                (mission) => mission.cmplYn === 'Y',
+              const missions = item.missions ?? [];
+              const doneCount = missions.filter(
+                (mission) => mission.cmptnYn,
               ).length;
               return (
                 <button
@@ -193,20 +231,24 @@ export default function CareMission({ todayYmd, onRegister }) {
                   <span
                     className={`text-sm ${isSelected ? 'text-brand-100' : 'text-subtle'}`}
                   >
-                    {doneCount}/{item.missions.length}
+                    {item.missions ? `${doneCount}/${missions.length}` : '!'}
                   </span>
                 </button>
               );
             })}
           </div>
-          <MissionPanel pet={pet} />
+          {!pet.missions ? (
+            <MissionError onRetry={() => retry(pet.petSn)} />
+          ) : pet.missions.length === 0 ? (
+            <MissionNone />
+          ) : (
+            <MissionPanel pet={pet} />
+          )}
           <p className="mt-2 flex items-center gap-2 text-sm text-subtle">
             <Info className="size-4 shrink-0" aria-hidden="true" />
             미완료 미션은 자정에 진행률만큼 정산돼요
           </p>
         </div>
-      ) : (
-        <MissionEmpty onRegister={onRegister} />
       )}
     </section>
   );

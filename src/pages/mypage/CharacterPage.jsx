@@ -42,7 +42,7 @@ export default function CharacterPage() {
         description={DESCRIPTION}
         contentClassName="min-[1101px]:pt-6 max-[760px]:grid max-[760px]:grid-cols-[auto_minmax(0,1fr)] max-[760px]:items-center"
       >
-        <CharacterDecorate pet={decoratingPet} pntBal={point?.pntBal ?? 0} />
+        <CharacterDecorate pet={decoratingPet} pntBal={point?.hldPnt ?? 0} />
       </SubPageLayout>
     );
   }
