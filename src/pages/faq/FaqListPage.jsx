@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import PageSkeleton from '@/components/PageSkeleton';
 import Skeleton from '@/components/Skeleton';
+import { FAQ_CATEGORIES } from '@/features/faq/api';
 import FaqList from '@/features/faq/FaqList';
 import { useFaqs } from '@/features/faq/queries';
 
@@ -9,13 +10,19 @@ const PAGE_SIZE = 10;
 export default function FaqListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
-  const category = searchParams.get('category') ?? '';
+  /** 모르는 코드는 서버가 400을 주므로 전체로 본다 */
+  const requestedCategory = searchParams.get('category') ?? '';
+  const category = FAQ_CATEGORIES.some(
+    ({ faqClsfCd }) => faqClsfCd === requestedCategory,
+  )
+    ? requestedCategory
+    : '';
   const keyword = searchParams.get('keyword') ?? '';
   const {
     data: faqs,
     isPending,
     isError,
-  } = useFaqs({ page, size: PAGE_SIZE, category, keyword });
+  } = useFaqs({ page, size: PAGE_SIZE, faqClsfCd: category, keyword });
 
   /** 분류·검색어가 바뀌면 첫 쪽부터 */
   const handleFilterChange = (nextKeyword, nextCategory) =>
