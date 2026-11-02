@@ -2,11 +2,10 @@
 
 ## 지금 하는 것
 
-SCR-CSC-001 공지사항 · API 연결 (2026-10-30) — 상태: 끝 (검증 `통과`(1회차 실패는 검증 브라우저 미로그인), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-10-30)
+SCR-CSC-002 자주 묻는 질문(FAQ) · API 연결 (2026-10-30) — 상태: 끝 (검증 `통과`(1회차 실패는 검증 브라우저 미로그인), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-02)
 
-- 바꾼 것: `features/notice/api.js` 가짜를 `GET /notices`(`page`·`size`·`keyword`·`latestYn`)·`GET /notices/{ntcMttrSn}`로, 화면 키 `fixYn`→`upendFixYn`·`crtDt`→`regDt`, 최신 공지 5건은 `latestYn: true`
-- 결정: 상세 응답에 고정 여부·조회수가 없어 상세의 「공지」 배지와 「조회 N」을 뺐다(사람 결정)
-- 추가 요청: 추가-1·2 공용 `PostBody` 아래 80px 여백 삭제(모든 상세), 추가-3 공지 검색 결과 없음을 FAQ와 같은 모양으로
+- 바꾼 것: `features/faq/api.js` 가짜를 `GET /faqs`(`page`·`size`·`faqClsfCd`·`keyword`)로, 질문 키 `qstnCn`→`qstnTtl`, 분류 칩은 코드 `CSCC0001~0004`와 디자인 문구 짝(`FAQ_CATEGORIES`), URL `?category=`는 이름 그대로 값만 코드, 모르는 코드는 전체로
+- 결정: 질문 옆 카테고리 배지는 넣지 않는다(디자인 기준, 명세 문구는 사람이 고침)
 - 확인 방법: 백엔드(8080) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`
 
 ## 다음에 할 것
@@ -15,6 +14,7 @@ SCR-CSC-001 공지사항 · API 연결 (2026-10-30) — 상태: 끝 (검증 `통
 - 시드 이미지 묶음이 시드 SQL(`db/seed/20261028_seed_data.sql`, 백엔드)과 다른 생성본이다. 게시글 사진 3481~3529가 없고(번호가 49씩 밀림), 채팅·펫돌봄·1:1 문의·뉴스 시드 사진도 빠지거나 어긋난다. LJS에게 같은 생성본을 `public/seed/...` 구조로 받아 백엔드 `uploads/seed`·`uploads/public/seed`를 바꾼다(지금 `uploads/public/seed`의 `post`·`character`는 임시 복사본)
 - 실종센터 검증 때 만든 데이터(실종 글 110~114와 첨부 4219~4247, 글 57·21·9 신고, 112 종료일 연장)는 DB에서 아직 안 지웠으면 직접 지운다(사람)
 - 펫이야기 검증·확인 때 만든 데이터(글 1001~1006과 그 댓글·신고·좋아요·첨부)는 DB에서 아직 안 지웠으면 직접 지운다(사람, 업로드 파일은 지움)
+- 사람이 고치는 문서: 기능명세서 FN-CSC-002-01 「질문 목록에는 카테고리 배지가 함께 표시된다」 삭제(디자인에 배지 없음, 2026-10-30 결정)
 - 사람이 고치는 문서: 기능명세서 FN-CSC-003-18 끝 문구 「표시하고다」 오타, 화면설계서 SCR-CSC-003-03에 [삭제] 버튼·확인 모달 추가
 - LJS 「공통 파일 이미지 컴포넌트」(`hooks/`·`components/`)가 생기면 `features/inquiry/queries.js` `useInquiryImageUrls`를 그것으로 바꾼다
 - 문의를 수정해 저장하면 `inquiryKeys.all` 무효화가 이미지 쿼리까지 다시 받아, 방금 지운 첨부에 404 요청이 한 번 나간다(화면 영향 없음). 거슬리면 무효화 범위를 목록·상세로 좁힌다
@@ -33,7 +33,6 @@ SCR-CSC-001 공지사항 · API 연결 (2026-10-30) — 상태: 끝 (검증 `통
 - CMU 화면은 `SubPageLayout`(`section="community"`)으로 만든다(사람 결정 2026-10-22): 상세는 `title` 없이 제목이 메뉴 이름이고 「목록으로」는 본문 하단, 글쓰기·수정은 `title="글쓰기"`와 `onLeave`로 「작성을 그만둘까요?」 확인, 본문 위 여백은 펫이야기 목록 `min-[1101px]:pt-0`, 펫돌봄·실종센터 목록 `min-[1101px]:pt-[7px]`
 - 고객센터(`CustomerCenterLayout`, KSJ)도 `SubPageLayout`(`section="support"`)으로 옮긴다(LJS 핸드오프). 옮기면 `SideMenu`의 `menuLabel` 호환과 `/dev/sub-page`를 지운다
 - SCR-CSC-003 사람이 고치는 문서: 기능명세서 FN-CSC-003-13의 「[문의 수정] 비활성」을 「버튼 숨김 + 안내 문구」로, 화면설계서 SCR-CSC-003-03 ③의 같은 문구
-- SCR-CSC-002 연결 남음: FAQ API(KSJ 백엔드)로 가짜(`features/faq/api.js`) 교체, 응답 키(`faqSn`·`faqClsfNm`·`qstnCn`·`ansCn`)와 분류 값 확인, 로그인 연결 후 `ProtectedRoute`로 감싸기
 - SCR-CSC-001 연결 남음: FN-CSC-001-05 본문 이미지 표시(ERD에 공지 첨부 테이블이 없음, 사람이 정할 것)
 - 375px 페이지 가로 스크롤은 공용 푸터가 원인(`UserFooter.jsx`, LJS). develop의 LJS 반응형 작업이 들어오면 다시 본다(FN 추가-4 연결 남음). 푸터 일러스트와 내용 사이 여백도 LJS가 푸터 공통 레이아웃에서 정하고, 그 전까지 고객센터 화면은 내용이 띠에 붙어 보인다
 - 사람이 고치는 문서: 기능명세서 FN-CSC-001-03 「공지 제목 검색」→ 제목·내용 검색, FN-CSC-001-01 「제목·작성일만 노출」→ 번호 포함, 화면설계서 SCR-CSC-001-01 ② 검색 문구. FN-CSC-001-05 「작성자·작성일·조회수」에서 조회수 삭제(상세에 조회수를 보이지 않기로 함, 2026-10-30)
