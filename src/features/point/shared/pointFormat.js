@@ -8,5 +8,10 @@ export const formatSignedPoint = (amt) =>
 export const getPercent = (done, total) =>
   total === 0 ? 0 : Math.round((done / total) * 100);
 
-export const sumPoint = (missions) =>
-  missions.reduce((sum, mission) => sum + mission.msnPnt, 0);
+/** 미션 배점 합 */
+export const sumScore = (missions) =>
+  missions.reduce((sum, mission) => sum + mission.scorPnt, 0);
+
+/** 지급된 포인트 합(정산 전이면 null이라 0) */
+export const sumGiven = (missions) =>
+  missions.reduce((sum, mission) => sum + (mission.givePnt ?? 0), 0);

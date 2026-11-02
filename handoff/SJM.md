@@ -2,11 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-MYP-005 공동양육자 추가 · 초대 가짜 응답을 실제 API로 — 끝 (2026-11-02, 검증 판정 "확인 못 함 있음"이 사람 확인으로 해소, 사람 확인 완료). lint·build 종료 코드 0. 초대 5개 API(`GET·POST /caregiver-invitations`, `GET /{n}`, `POST /{n}/accept·reject`)를 실제 요청으로 바꾸고 가짜(`demo-*`, `withExpiry`)를 지웠다. 초대 모달은 409(이미 가족·초대 대기)를 `linkedPets`·`pendingPets`로 처리한다. 만료·처리됨·이메일 불일치 오류는 상세를 다시 읽어 안내 화면으로 바꾼다. `INVT_STTS`는 `shared/petCodes.js`의 `INVTN_STTS`(PETC0020~0023)로 옮겼다
-고른 이유: "다음에 할 것" 맨 위가 확인·알림 항목이라 `milestones/SJM.md`의 `대기` 맨 위를 골랐다
-기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-005-01~10), 백엔드 `CaregiverInvitationController`
-사람 확인: 두 탭(거절 후 수락)에서 오류 토스트와 "이미 처리된 초대예요" 전환을 확인했다. 나머지는 검증 결과로 갈음했다
-정리(사람 실행 완료): 탄이·루루 연동 해제(화면), 초대 201~204 삭제
+SCR-MYP-020 포인트 관리/케어미션 · 포인트·케어미션 가짜 응답을 실제 API로 — 끝 (2026-11-02, 검증 판정 통과(회차 2, 1회차는 로딩 중 빈 값 크래시), 사람 확인 완료). lint·build 종료 코드 0. `GET /members/me/points`·`GET /point-ledgers`·`GET /pets/{petSn}/daily-missions`로 바꾸고 가짜(`?fake=empty` 포함)를 지웠다. 요약(보유·이번 달 적립/사용·오늘 미션)은 포인트 요약 응답 하나로 그리고, 케어미션은 주양육 동물마다 따로 부른다. 포인트 거래유형 코드는 `PNT_DLNG_TYPE`(MYPC0007·0008·0009·0021)
+고른 이유: "다음에 할 것" 맨 위가 백엔드 연결·팀 확인 항목이라 `milestones/SJM.md`의 `대기` 맨 위를 골랐다
+기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-020-01~04·07·09·10), 백엔드 `PointController`·`PointLedgerController`·`CareMissionController`
+추가 요청(사람 확인으로 직접 요청한 것 맞다고 확인, 모두 검증 통과): 추가-1 미션 0건인 동물 탭에 "이 날은 출제된 미션이 없어요", 추가-2 오늘 미션 0건이면 요약에 "오늘 출제된 미션이 없어요", 추가-3 날짜 이동 중 카드 유지(`useQueries`는 새 키에 `keepPreviousData`가 이어지지 않아 `queries.js`가 마지막 값을 직접 들고 있음, 동물 목록이 같을 때만 사용), 추가-4 한 동물 요청이 실패하면 그 탭에 "미션을 불러오지 못했어요"와 [다시 시도](그 요청만 다시 부름)
+사람 확인: 빈 날짜 안내(탭·요약), 10-28 까미 2/3·탄이 안내, 빠른 날짜 이동 중 카드 유지, 루루 차단 시 !·다시 시도 후 복구를 확인했다. 요약·내역·0마리 계정은 검증 결과로 갈음했다
+참고: 공용 DB의 11-02 미션 0건은 원래 상태(시드는 10-28까지, 팀장 로컬 배치가 잠깐 발급했다 지운 것)로 프론트 문제 아님
+정리: 없음(조회만, DB를 바꾸지 않음)
 새 의존성: 없음
 
 ## 다음에 할 것
@@ -24,7 +26,7 @@ SCR-MYP-005 공동양육자 추가 · 초대 가짜 응답을 실제 API로 — 
 - SCR-MYP-004 연결 끝(2026-11-01): 양육관계 조회·강제 해제는 실제 API로 바꿨다. 자진 해제(SCR-MYP-006)도 실제 API로 연결됨
 - SCR-MYP-004 연결 남음: 로그인(AIC)이 나오면 `/mypage/pets`는 `ProtectedRoute` 아래로(기존 항목). 팀에 확인: 슬라이드 정보 영역과 가족 구분선 사이는 시안(56px)보다 좁힌 32px(사람 요청). 모바일 밀어 넘기기는 시안 문구대로 넣었다. 기능명세서 16:00판은 DMS에 아직 14시판만 있다 로그인(AIC)이 나오면 `/mypage/expenses`·`/mypage/expenses/all`도 `ProtectedRoute` 아래로 옮긴다
 - SCR-MYP-040 연결 남음: 회원 조회·수정·검증 API(member, AIC)가 나오면 `features/member/api.js`의 가짜(`getMyProfile`·`verifyPassword`·`checkNickname`·`checkPhone`·`update*`, 추정 키 `acntEml`·`mbrNcnm`·`mbrTelno`·`prflImgUrl`·`snsTyCd`·`dplctYn`·`mbrJoinPathCd`·`mbrRegDt`·`mbrLastLgnDt`)를 실제 요청으로 바꾼다. 사진은 업로드 방식(multipart 여부)을 맞춘다 회원 탈퇴 화면(SCR-ACC-020, YAY) 경로가 생기면 [회원 탈퇴 ›] 토스트를 `/mypage/withdraw` 이동으로 바꾼다. 로그인(AIC)이 나오면 `/mypage/profile`을 `ProtectedRoute` 아래로 옮긴다
-- SCR-MYP-020 연결 남음: 포인트·케어미션 API(SJM 백엔드)가 나오면 `features/point/api.js` 가짜(`getPointBalance`·`getPointHistory`·`getCareMissions`, 추정 키 `pntBal`·`earnTotAmt`·`pntHstTyCd`·`msnNm`·`cmplYn` 등)를 실제 요청으로 바꾸고 `?fake=empty` 분기를 지운다. 미션 출제·정산·검진기록 20P(FN-MYP-020-05·06·08)는 서버 일이다 (health JAJ, 커뮤니티 KSJ) 건강 일지(SCR-HLT-002, JAJ) 경로가 생기면 [건강 일지] 토스트를 이동으로, 픽셀 캐릭터(SCR-MYP-010)를 만들면 `/mypage/characters` 이동이 이어진다 SCR-MYP-020 팀에 확인: 지난 날짜에도 "오늘 획득"으로 나오는 문구(시안 문구 그대로), 요약 카드를 눌러 스크롤하면 sticky 헤더에 제목이 가려지므로 `scroll-mt`를 넣을지. 시안 v5(`nmcare-design-v5`)에서 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`로 바뀌었는데 `UserLayout.jsx`·`UserFooter.jsx`(LJS)는 옛 값 그대로
+- SCR-MYP-020 남음: 미션 출제·정산·검진기록 20P(FN-MYP-020-05·06·08)는 서버 일이다 (health JAJ, 커뮤니티 KSJ). 건강 일지(SCR-HLT-002, JAJ) 경로가 생기면 [건강 일지] 토스트를 이동으로 바꾼다. 팀에 확인: 지난 날짜에도 "오늘 획득"으로 나오는 문구(시안 문구 그대로), 요약 카드를 눌러 스크롤하면 sticky 헤더에 제목이 가려지므로 `scroll-mt`를 넣을지, 설계서에 없는 안내 문구("이 날은 출제된 미션이 없어요"·"오늘 출제된 미션이 없어요"·"미션을 불러오지 못했어요")를 설계서에 반영할지. 서버가 동물마다 미션을 3개만 출제해(기획의 8개와 다름) 탭이 `완료/3`으로 보인다. 이번 달 사용이 0이면 "+0P"로 보인다. 시안 v5(`nmcare-design-v5`)에서 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`로 바뀌었는데 `UserLayout.jsx`·`UserFooter.jsx`(LJS)는 옛 값 그대로
 - SCR-MYP-031 연결 남음: 가계부 API(SJM 백엔드)가 나오면 `createExpenses`·`updateExpense`·`findDuplicateExpenses`를 실제 요청으로, 영수증 인식(YAY, OCR 호출부 LJS)이 나오면 `recognizeReceipt`를 실제 요청으로 바꾸고 추정 키를 응답에 맞춘다. 중복 확인을 서버가 저장 요청 안에서 하는지, 병원 공용 금지·미래 달 제한을 서버도 검사하는지 맞춘다 SCR-MYP-030 연결 남음: FN-MYP-030-08 한도 알림 발송(서버 인앱 알림, 알림 저장 YAY·가계부 API SJM 백엔드)
 - 건강 일지에서 병원 영수증을 저장하면 가계부에 1건이 자동 기록된다(FN-AIM-009-10, JAJ·YAY). 이 기록이 `rcptSn`으로 연결되는지 팀과 맞춘다
 - 삭제된 반려동물의 이름이 서버에 남는지 백엔드에서 확인한다(화면은 "이름 (삭제됨)"으로 표시). 기능명세서 FN-MYP-030-10·FN-MYP-002-07 문구가 이 표기와 맞는지도 확인한다 명세가 모호해 정한 것을 팀에 확인한다: 금액순 정렬은 전체를 금액순으로 늘어놓고 같은 날짜가 이어진 것만 묶어서 날짜 머리가 여러 번 나올 수 있다. 전체 내역 상단 합계·건수는 필터와 무관하게 그 달 전체다. 편집 중 필터·정렬을 바꾸면 편집이 풀린다(FN-MYP-030-17 그대로). 반려동물별 지출 비율은 반올림 때문에 합이 101%가 될 수 있다

@@ -1,12 +1,14 @@
 import { ChevronLeft, ExternalLink, Megaphone, Newspaper } from 'lucide-react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
+import FileImage from '@/components/FileImage';
 import PostBody from '@/components/PostBody';
 import SharePanel from '@/components/SharePanel';
 import { PATHS } from '@/routes/paths';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { formatDate, formatMonthDayDot } from '@/utils/formatDate';
 import NewsCategoryBadge from './NewsCategoryBadge';
 import NewsThumb from './NewsThumb';
-import { NEWS_SRC_ADMIN } from './newsCodes';
+import { getPressName, hasSummary, NEWS_SRC_ADMIN } from './newsCodes';
 import { useNewsList } from './queries';
 
 const LATEST_SIZE = 5;
@@ -31,32 +33,44 @@ export default function NewsDetail({ news }) {
             <Newspaper size={18} className="text-[#667374]" />
           )}
           <b className="text-base leading-normal font-semibold text-[#1a3234]">
-            {news.srcPressNm}
+            {getPressName(news)}
           </b>
           <i className="text-[#b9c4c4] not-italic">·</i>
           <time>{formatDate(news.pblcnDt)}</time>
         </p>
 
         {isAdmin ? (
-          <PostBody content={news.newsCn} />
+          <PostBody content={news.newsCn}>
+            {news.atchFileSn != null && (
+              <FileImage
+                src={publicFileUrl(news.atchFileSn)}
+                alt="첨부 이미지"
+                className="mx-auto mb-5 block h-auto max-w-full rounded-[10px]"
+                fallback={<></>}
+              />
+            )}
+          </PostBody>
         ) : (
           <>
             <figure className="mt-6">
               <NewsThumb
                 src={news.thmbUrlPath}
                 iconSize={56}
-                className="aspect-[16/9] max-w-[720px] rounded-[14px]"
+                natural
+                className="aspect-[16/9] w-full rounded-[14px]"
               />
               <figcaption className="mt-1.5 text-sm text-[#667374]">
                 사진 출처: {news.srcPressNm}
               </figcaption>
             </figure>
-            <p className="mt-6 border-l-[3px] border-[#22744a] pl-4 text-lg leading-[1.6] text-[#1a3234]">
-              <span className="mb-1.5 block text-sm font-semibold text-[#22744a]">
-                기사 요약
-              </span>
-              {news.newsCn}
-            </p>
+            {hasSummary(news) && (
+              <p className="mt-6 border-l-[3px] border-[#22744a] pl-4 text-lg leading-[1.6] text-[#1a3234]">
+                <span className="mb-1.5 block text-sm font-semibold text-[#22744a]">
+                  기사 요약
+                </span>
+                {news.newsCn}
+              </p>
+            )}
             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[#e2e7e7] bg-[#f4f6f6] px-6 py-5">
               <p className="text-sm leading-normal text-[#3d4a4b]">
                 <b className="block text-base text-[#1a3234]">
