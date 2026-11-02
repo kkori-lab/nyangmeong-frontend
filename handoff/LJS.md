@@ -2,10 +2,32 @@
 
 ## 지금 하는 것
 
-공통 파일 이미지 컴포넌트 · 공개·비공개 이미지 주소 — 끝(2026-10-30): 검증 `확인 못 함 있음`(1회차, 남은 것은 연결 남음뿐)·사람 확인. `@/utils/fileUrl` `publicFileUrl`, `@/hooks/useFileImage`(blob → data URL), `@/components/FileImage`를 만들고 캐릭터 훅·`PetFace`·커뮤니티 사진 7곳을 옮겼다. 공개 주소는 공용 DB에서 이 PC로 글을 올려 200 확인(글 1021 작성 후 삭제)
+SCR-ADM-010 회원 목록 — 끝 (2026-11-01, 검증 `확인 못 함 있음`·사람 확인). 목록·검색·필터를 가짜 응답으로 만들고 상세는 제목만 있는 임시 페이지로 두었다
 
 ## 다음에 할 것
 
+- SCR-ADM-010 연결 남음: FN-ADM-010-01·02·03·04 백엔드 연결(백엔드 저장소에서 `/start`, 담당 LJS). `GET /api/admin/members`, 필드 이름, 코드 값, 조회 조건 이름. 연결 때 `features/adminMember/api.js` 가짜를 바꾼다. 백엔드 `docs/admin/implementation-plan.md` 담당 표는 YAY이고 필터에 권한이 없어 그 문서도 고친다
+- SCR-ADM-010 실제 확인이 남은 것: 조회 오류의 [다시 시도]는 화면으로 못 봤다. 정지 회원 행의 정지 종료일은 일단 표시하지 않는다(사람 결정 2026-11-01). `?page=99`처럼 범위를 벗어난 쪽은 빈 문구만 나오고 쪽 번호가 없다
+- SCR-ADM-011 때: `pages/admin/AdminMemberDetailPage.jsx` 임시 페이지를 실제 화면으로 바꾼다
+- SCR-ADM-112 연결 남음: FN-ADM-112-01·02·03 백엔드 연결(백엔드 저장소에서 `/start`). 사용량 조회 API 3종·필드 이름, SYSG05를 명세 7종으로 수정, 호출 로그 기록(Python 통지 포함). 연결 때 `features/apiUsage/api.js` 가짜와 `apiUsageLabels.js`의 임시 코드(`TMP00001` AI 분류, `TMP00002` PDF 분석)를 바꾼다. 지금 AI 서버에는 토큰을 읽는 코드와 Java 통지가 없다(2026-11-01 검색)
+- SCR-ADM-112 문서 맞출 것(사람): 명세 7종에 대화 제목 생성(별도 LLM 호출)이 없고, PDF 분석은 AI 저장소 작업 사본에 코드가 없다. SCR-ADM-082도 PDF 실패를 이 로그로 본다고 되어 있다. 공통코드의 장소 공공데이터는 명세 7종에 없다
+- SCR-ADM-112 실제 확인이 남은 것: 스켈레톤 높이는 계산값이다(`AdminExternalApiUsagePage.jsx`). 조회 오류의 [다시 시도]는 화면으로 못 봤다. 390px 날짜 입력 줄 오른쪽 끝이 다른 칸보다 약 9px 더 나간다(`ApiUsageFilter.jsx`, 캡처로 어림, 가로 스크롤은 없음)
+- SCR-ADM-111 문서 맞출 것(사람): 기능명세서 FN-ADM-111-02·화면설계서 SCR-ADM-111에 실패 건수가 남아 있다. 응답에 없어 화면에서 지웠다(사람 결정 2026-11-01)
+- SCR-ADM-111 실제 확인이 남은 것: `실패 · {사유}` 문구는 화면으로 못 봤다. 이력 스켈레톤은 20행 기준(잰 값 306·1026px)이라 이력이 적은 배치를 `?batch=`로 바로 열면 ±20%를 넘는다(1행 +139%, 행 수는 응답 전에 알 수 없음). 실행 직후 결과 칸은 `실행 중`인데 버튼은 활성인 구간이 약 5초 있다(기획대로). 케어미션 출제는 이 서버에서 `runnableYn=false`다
+- SCR-ADM-111 배치 범위: 가짜는 공통코드 SYSG02 4종이다. 명세 10종·설계서 9종과 차이는 문서를 고치거나 배치가 늘 때 정한다
+- SCR-ADM-114 관리자 화면을 붙일 때: 새 `trgtTblNm`은 `features/audit/auditLabels.js` `TARGET_OPTIONS`에 한 줄 더한다(지금 `SYS_STNG`·`MBR`). 없으면 표에는 서버 값이 보이고 필터에는 없다
+- SCR-ADM-114 실제 확인이 남은 것: 쪽 이동은 로그가 8건뿐이라 응답 조작으로만 봤다(서버 페이징은 직접 호출로 확인). 스켈레톤 높이는 계산값이다(`AdminAuditLogsPage.jsx`). 로그가 20건을 넘으면 1440px·390px로 잰다(`docs/convention/ui.md`). 대상 필터 [회원]은 로그인 행을 주지만 그 행의 대상 칸은 "—"다(결정, 그대로 둠). 요약·상세 항목은 서버 필드 이름 그대로다. 한글 요약은 서버에서 고칠 일이다
+- 사람이 고칠 것(2026-11-01 사람 확인 때 "고치고 싶은 부분이 많은데 나중에", 내용은 아직 안 받음, 2026-11-01 사람 결정으로 다른 화면 구현 뒤로 미룸): 그때 목록을 받아 정한다. 검증 때 나온 참고 3가지: ① 390px에서 "관리자"와 닉네임 사이 간격 0px(`AdminLayout`) ② 390px 운영 설정 저장 토스트가 [되돌리기] 버튼과 일부 겹침 ③ 정확히 760px 사용자 화면은 바텀 네비가 없는데 토스트만 76px 위에 뜸(`BottomNav`는 `min-[760px]:hidden`, 운영 설정 네비는 `min-[761px]:hidden`이라 경계가 1px 다름)
+- 팀에 알릴 것(PR 전): 공용 `components/ToastContainer.jsx`를 고쳤다. 760px 이하에서 토스트가 76px 위에 뜬다(바텀 네비 없는 `/main` 등도 같음)
+- 사람이 고치는 문서(운영 설정 모바일 네비): 관리자 화면설계서 SCR-ADM-001 처리 조건을 "1100px 이하: 사이드바를 숨기고 상단 바 왼쪽 [≡]로 연다(덮는 서랍). 관리자 화면은 PC 사용 기준이라 공통 모바일 전용 배치는 두지 않음. 예외로 운영 설정(SCR-ADM-110)은 760px 이하에서 묶음 5개를 하단 바텀 네비로 나눠 고른 묶음만 표시"로 고친다
+- 운영 설정 연결 때 확인: 묶음 바텀 네비의 저장 포함은 가짜 API에서 다시 불러온 값으로만 확인했다. 스켈레톤 카드 1장도 화면으로 보지 못했다
+- SCR-ADM-110 프론트 연결 남음(FN-ADM-110-01~04): 백엔드는 이미 있다(`global/setting/AdminSystemSettingController`, 문서 `docs/api/global.md`). 가짜(`features/setting/api.js`)와 다른 점: 수정이 PUT이 아니라 `PATCH`, 응답이 묶음별 중첩(`memberPet`·`community`·`notification`·`ai`·`file`), `lowstHrwgAplcnYr`가 문자열, 응답에 `dshbdCareMaxExpsrCnt`가 있음(화면에는 두지 않음). 실제 항목별 오류 모양과 허용 범위를 맞춘다
+- SCR-ADM-110 스켈레톤 높이는 계산값이다(`AdminSettingsPage.jsx`, 383·503·143·203·143px). 실제 API 연결 때 1440px·390px로 잰다(`docs/convention/ui.md`)
+- `AdminLayout`의 `AdminLogoutConfirm`은 `ProfileDropdown`의 `LogoutConfirm`과 달리 AI 창·채팅 창을 닫지 않는다(관리자 화면에 여는 버튼이 없음). 이동 대상도 `/login`으로 다르다. 공통화할지 정한다
+- YAY에게 알릴 것(PR 전): 로그인 성공 뒤 이동을 `LoginPage.jsx`에서 바꿨다. 관리자는 `?redirect=`와 상관없이 `/admin`, 이동 전 `/auth/me`를 새로 받는다
+- 공용 하네스: 검증 스킬의 기준 사본 비교 명령이 `scripts/verify-loop.sh:99` 가드에 막혀 검증 에이전트가 비교하지 못한다(2026-10-30, 사람이 직접 실행해 확인). 가드나 스킬을 PR로 고친다
+- 관리자가 회원 화면(`/main` 등 user 레이아웃)에 들어오면 지금은 열린다(2026-10-30 SCR-ADM-110 기획에서 범위 밖으로 넘김). FN-COM-002-02 "역할이 맞지 않는 화면 → 역할별 홈"대로 `AppRoutes.jsx` member 묶음의 `ProtectedRoute`에 회원 역할만 허용할지 정한다(관리자도 회원 화면을 봐야 하는지 사람 결정)
+- 팀에 알릴 것(관리자, PR 전): `docs/routes.md` 1장에 관리자 화면 URL 32개를 넣었다(`/admin/...`, 관리자 화면설계서 v0.1). 담당 표에 관리자(ADM) LJS 추가(백엔드 PR #79와 같음). DMS에 `관리자_화면설계서_v0.1_20261030`(새 문서)·`관리자_기능명세서` v0.2(FN-ADM-050-07 추가, 110 케어 노출 수 제외)를 올렸다. 기능명세서 DMS 설명 문구는 v0.1 그대로(134건·화면설계서 없음)라 DMS 화면에서 고친다(사람)
 - 공통 이미지 연결 남음(2026-10-30): KSJ에게 커뮤니티 사진 주소를 `getPostImageUrl`에서 `@/utils/fileUrl` `publicFileUrl`로 바꿨고(7곳, 주소 같음) `@/components/FileImage`를 쓸 수 있다고 알린다. 문의 첨부 `useInquiryImageUrls`는 object URL 방식 그대로(한 화면 전용·큰 사진). SJM에게 `PetFace`가 받는 동안 스켈레톤을 보여 주고 `fallback`은 실패 때만 나온다고 알린다(`PetProfileCard`). JAJ 영수증 원본(`/receipts/{recptSn}/image`)·SJM 아이템(`/items/{itemSn}/image`)은 `useFileImage` + `FileImage`로 붙인다. 공개·비공개 분류는 가정이고 공동양육자 한정 여부는 SJM 확인 전. 팀 공지 문구는 2026-10-30 세션에서 사용자에게 전달함
 - 백엔드에 알릴 것(범위 밖, 2026-10-30): ① 파일은 올린 PC 디스크에만 있어 공용 DB의 다른 사람 사진은 이 PC·배포 서버에서 404(`/api/files/public/4247` 등) ② 게시글을 지워도 그 사진 `/api/files/public/{번호}`가 200으로 계속 열린다(글 1021·사진 4251) ③ 브라우저 `fetch`로 직접 보낸 `DELETE /api/posts/1021`은 403, 화면 [삭제]는 성공(원인 안 봄)
 - 대화창 화면 URL `/ai` → `/ai-chat`(2026-10-30, backend-90 요청, 사람이 고침): 배포 Nginx가 `/ai`를 301로 `/ai/`(Python)에 보내 Not Found였다. Nginx는 바꾸지 않았다(임시 `location = /ai` 없음, 사람 확인 2026-10-30). PR #120 병합(2026-10-30) 뒤 `https://pawever.cloud/ai-chat`이 200·SPA로 열림(curl 확인 2026-10-30). 남은 것: 팀에 알림(사람)

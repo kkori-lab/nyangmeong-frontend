@@ -19,7 +19,7 @@ export default function PrescriptionHistoryCard({ prescriptions }) {
       action={
         prescriptions.length > 0 && (
           <MoreLink
-            to={getCheckupDetailPath(prescriptions[0].ckupRcdSn, 'prescription')}
+            to={getCheckupDetailPath(prescriptions[0], 'prescription')}
           />
         )
       }
@@ -37,11 +37,11 @@ export default function PrescriptionHistoryCard({ prescriptions }) {
       ) : (
         <ul>
           {prescriptions.map((prescription) => {
-            const isDosing = prescription.dosSttsCd === DOSING;
+            const isDosing = prescription.prscSttsCd === DOSING;
             return (
-              <li key={prescription.rxSn} className="border-b border-line-soft last:border-b-0">
+              <li key={prescription.prscSn} className="border-b border-line-soft last:border-b-0">
                 <Link
-                  to={getCheckupDetailPath(prescription.ckupRcdSn)}
+                  to={getCheckupDetailPath(prescription)}
                   className="flex items-center gap-3.5 px-[18px] py-3.5 hover:bg-surface-2 sm:px-[22px]"
                 >
                   <span className="grid size-10 shrink-0 place-items-center rounded-[10px] border border-line bg-surface-2 text-ink-2">
@@ -50,16 +50,16 @@ export default function PrescriptionHistoryCard({ prescriptions }) {
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                       <span className="font-semibold">
-                        {prescription.medNm}
+                        {prescription.mdcnNm}
                       </span>
                       <Badge tone={isDosing ? 'ok' : 'gray'}>
                         {isDosing ? '복용 중' : '복용 종료'}
                       </Badge>
                     </span>
                     <span className="block text-subtle tabular-nums">
-                      {formatDate(prescription.dosBgnYmd)} ~{' '}
-                      {isDosing ? '현재' : formatDate(prescription.dosEndYmd)} ·
-                      1일 {prescription.dayDosCnt}회
+                      {formatDate(prescription.mdcnBgngYmd)} ~{' '}
+                      {isDosing ? '현재' : formatDate(prescription.mdcnEndYmd)} ·
+                      1일 {prescription.dayMdcnNmtm}회
                     </span>
                   </span>
                   <Icon name="chevron_right" className="text-[18px] text-subtle" />

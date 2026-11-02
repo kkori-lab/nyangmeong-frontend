@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import { formatDate } from '@/utils/formatDate';
-import { PREVENTION_ITEMS, findName } from '../checkup/checkupTypes';
 import { TIMELINE_PREVENTION } from '../summaryApi';
 import { CardTitle, MoreLink, SummaryEmpty } from './SummaryParts';
 import {
@@ -53,14 +52,12 @@ function TimelineItem({ entry, isFirst }) {
   const type = isPrevention
     ? PREVENTION_TIMELINE
     : getCheckupType(entry.ckupTypeCd);
-  const lines = isPrevention
-    ? [findName(PREVENTION_ITEMS, entry.prvntItmCd)]
-    : entry.cn.split('\n').filter(Boolean);
+  const lines = isPrevention ? [entry.reptPrvntArtclCdNm] : [];
 
   return (
     <Link
       to={getCheckupDetailPath(
-        entry.ckupRcdSn,
+        entry,
         isPrevention ? 'prevention' : undefined,
       )}
       className="relative grid grid-cols-[40px_minmax(0,1fr)_18px] items-start gap-3.5 py-3"
@@ -84,7 +81,7 @@ function TimelineItem({ entry, isFirst }) {
           >
             {type.nm}
           </span>
-          <span className="text-subtle">{entry.hospNm}</span>
+          <span className="text-subtle">{entry.hsptlNm}</span>
         </span>
         <span className="mt-1 flex flex-col text-muted">
           {lines.map((line) => (

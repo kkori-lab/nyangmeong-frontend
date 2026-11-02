@@ -14,7 +14,7 @@ import { DOSING } from './checkupTypes';
  * - 목록 행: 약품명(밑줄)·복용 기간·1일 복용 횟수·주기 체크·상태 뱃지, 약품명을 누르면 값이 채워진 수정 영역 (FN-HLT-005-03)
  * - 처방약이 0건이면 빈 상태 안내 + [＋ 처방약 추가]
  */
-export default function PrescriptionTab({ ckupRcdSn, prescriptions }) {
+export default function PrescriptionTab({ petSn, ckupRcdSn, prescriptions }) {
   /** 입력 영역: null이면 닫힘, prescription이 null이면 새로 입력. token으로 같은 영역을 다른 행으로 다시 엶 */
   const [form, setForm] = useState(null);
 
@@ -26,7 +26,7 @@ export default function PrescriptionTab({ ckupRcdSn, prescriptions }) {
         <ul>
           {prescriptions.map((prescription) => (
             <li
-              key={prescription.rxSn}
+              key={prescription.prscSn}
               className={`flex items-center gap-3.5 py-3.5 ${ROW_LINE}`}
             >
               <span className="grid size-10 shrink-0 place-items-center rounded-[10px] border border-line bg-surface-2 text-ink-2">
@@ -38,17 +38,17 @@ export default function PrescriptionTab({ ckupRcdSn, prescriptions }) {
                   className="text-left text-lg/[1.6] font-semibold text-ink underline underline-offset-4 hover:text-brand-600"
                   onClick={() => setForm({ prescription, token: Date.now() })}
                 >
-                  {prescription.medNm}
+                  {prescription.mdcnNm}
                 </button>
                 <span className="block text-subtle tabular-nums">
-                  {formatDate(prescription.dosBgnYmd)} ~{' '}
-                  {formatDate(prescription.dosEndYmd)} · 1일{' '}
-                  {prescription.dayDosCnt}회 · 주기 체크{' '}
-                  {prescription.cycleChckYn ? 'ON' : 'OFF'}
+                  {formatDate(prescription.mdcnBgngYmd)} ~{' '}
+                  {formatDate(prescription.mdcnEndYmd)} · 1일{' '}
+                  {prescription.dayMdcnNmtm}회 · 주기 체크{' '}
+                  {prescription.careRfltYn ? 'ON' : 'OFF'}
                 </span>
               </span>
-              <Badge tone={prescription.dosSttsCd === DOSING ? 'ok' : 'gray'}>
-                {prescription.dosSttsCd === DOSING ? '복용중' : '종료'}
+              <Badge tone={prescription.prscSttsCd === DOSING ? 'ok' : 'gray'}>
+                {prescription.prscSttsCd === DOSING ? '복용중' : '종료'}
               </Badge>
             </li>
           ))}
@@ -68,6 +68,7 @@ export default function PrescriptionTab({ ckupRcdSn, prescriptions }) {
       {form && (
         <PrescriptionForm
           key={form.token}
+          petSn={petSn}
           ckupRcdSn={ckupRcdSn}
           prescription={form.prescription}
           onClose={() => setForm(null)}

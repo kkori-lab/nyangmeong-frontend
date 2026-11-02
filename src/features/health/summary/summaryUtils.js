@@ -10,7 +10,7 @@ import { CHECKUP_TYPES, TONES } from '../scheduleTypes';
 
 /** 쉼표로 나눈 항목 수. 비어 있으면 0 */
 export const countItems = (text) =>
-  text
+  (text ?? '')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean).length;
@@ -33,8 +33,8 @@ export const formatRange = (refMinVal, refMaxVal, separator = ' ~ ') => {
   return `${refMinVal}${separator}${refMaxVal}`;
 };
 
-export const getCheckupDetailPath = (ckupRcdSn, tab) => {
-  const path = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, { ckupRcdSn });
+export const getCheckupDetailPath = ({ petSn, ckupRcdSn }, tab) => {
+  const path = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, { petSn, ckupRcdSn });
   return tab ? `${path}?tab=${tab}` : path;
 };
 

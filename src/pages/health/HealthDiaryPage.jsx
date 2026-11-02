@@ -25,8 +25,8 @@ import TodayRecordForm from '@/features/health/diary/TodayRecordForm';
 import { MEAL } from '@/features/health/diaryTypes';
 import {
   useDailyRecords,
-  useObservations,
-  usePets,
+  useMyPets,
+  useObservationItems,
 } from '@/features/health/queries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { showToast } from '@/components/toastStore';
@@ -58,11 +58,11 @@ export default function HealthDiaryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   /** 지속 관찰 모바일 상세 화면으로 연 항목. 주소에 남겨 브라우저 뒤로 가기로 목록에 복귀 */
   const openObsvSn = Number(searchParams.get('obsv')) || null;
-  const openObservation = (obsvItmSn) =>
+  const openObservation = (obsrvArtclSn) =>
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
-        next.set('obsv', String(obsvItmSn));
+        next.set('obsv', String(obsrvArtclSn));
         return next;
       },
       { state: { isObsvFromList: true } },
@@ -161,11 +161,12 @@ export default function HealthDiaryPage() {
     data: pets,
     isPending: isPetsPending,
     isError: isPetsError,
-  } = usePets();
+  } = useMyPets();
   const selectedPetSn = tabPetSn ?? pets?.[0]?.petSn ?? null;
   const { data: recordData, isPending: isRecordsPending } =
     useDailyRecords(selectedPetSn);
-  const { isPending: isObservationsPending } = useObservations(selectedPetSn);
+  const { isPending: isObservationsPending } =
+    useObservationItems(selectedPetSn);
 
   /** 첫 진입: 칩·탭까지 대시보드 틀 스켈레톤 */
   const isFirstLoading =
@@ -196,7 +197,7 @@ export default function HealthDiaryPage() {
   }
 
   const selectedPet = pets.find((pet) => pet.petSn === selectedPetSn);
-  const records = recordData?.content ?? [];
+  const records = recordData ?? [];
 
   const openRecordForm = (typeCd) =>
     setRecordForm({ typeCd, token: Date.now() });
@@ -217,6 +218,7 @@ export default function HealthDiaryPage() {
     }
     navigate(
       generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+        petSn: target.petSn,
         ckupRcdSn: target.ckupRcdSn,
       }),
       { state: { savedCheckups: saved } },
@@ -242,11 +244,7 @@ export default function HealthDiaryPage() {
           className="flex min-w-0 flex-col gap-7"
         >
           <div className="grid items-stretch gap-5 min-[1101px]:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-            <DailyTrendCard
-              pet={selectedPet}
-              records={records}
-              onAddRecord={openRecordForm}
-            />
+            <DailyTrendCard pet={selectedPet} onAddRecord={openRecordForm} />
             <TodayRecordCard
               records={records}
               todayYmd={todayYmd}
@@ -265,7 +263,11 @@ export default function HealthDiaryPage() {
             />
           )}
 
-          <RecentRecordTable records={records} todayYmd={todayYmd} />
+          <RecentRecordTable
+            petSn={selectedPet.petSn}
+            records={records}
+            todayYmd={todayYmd}
+          />
         </div>
       )}
 
@@ -274,7 +276,7 @@ export default function HealthDiaryPage() {
           <ObservationCard
             key={selectedPet.petSn}
             petSn={selectedPet.petSn}
-            openItmSn={openObsvSn}
+            openArtclSn={openObsvSn}
             onOpenItem={openObservation}
             onCloseItem={closeObservation}
           />
@@ -316,7 +318,6 @@ export default function HealthDiaryPage() {
           pets={pets}
           defaultPetSn={selectedPetSn}
           initialStep="form"
-          rcptSn={receiptFlow.rcptSn}
           onClose={() => setReceiptFlow(null)}
         />
       )}

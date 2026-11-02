@@ -1,7 +1,7 @@
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
-import { formatDate } from '@/utils/formatDate';
+import { formatDate, getHmOf, getYmdOf } from '@/utils/formatDate';
 import {
   MEAL,
   STOOL,
@@ -29,7 +29,9 @@ export default function TodayRecordCard({
   isFormOpen,
   onToggleForm,
 }) {
-  const todayRecords = records.filter((record) => record.rcdYmd === todayYmd);
+  const todayRecords = records.filter(
+    (record) => getYmdOf(record.rcdDt) === todayYmd,
+  );
 
   return (
     <Card
@@ -96,11 +98,11 @@ function TodayRow({ typeCd, summary }) {
         {count === 0 ? (
           <span className="text-line-strong">-</span>
         ) : isLatestOnly ? (
-          `${latest.rcdTm} 측정`
+          `${getHmOf(latest.rcdDt)} 측정`
         ) : (
           items
             .slice(0, MAX_VALUE_COUNT)
-            .map((record) => formatAmount(typeCd, record.rcdVal))
+            .map((record) => formatAmount(typeCd, record.rcdNvl))
             .join(' · ')
         )}
       </p>

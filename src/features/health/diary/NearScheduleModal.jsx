@@ -13,7 +13,7 @@ const findCheckupTypeNm = (cd) =>
 
 /**
  * [가까운 예정 일정 확인 창] (FN-HLT-002-46)
- * - rows: [{ key, schedule }] 대상 일정이 있는 검진기록. 1건이면 버튼 두 개로 바로 정하고,
+ * - rows: [{ key, schedule, petNm }] 대상 일정이 있는 검진기록. 일정 응답에 이름이 없어 petNm을 따로 받는다. 1건이면 버튼 두 개로 바로 정하고,
  *   여러 건이면 줄마다 [옮겨 연결하기]/[새 일정으로 저장하기]를 고른 뒤 저장
  * - ckupYmd: 검진일. onConfirm(moveByKey): { [key]: 옮겨 연결하면 true }
  * - ✕는 저장 없이 입력 화면으로 복귀
@@ -31,14 +31,14 @@ export default function NearScheduleModal({
   );
   const movedLabel = `${formatMonthDaySlash(ckupYmd)}로 옮겨 연결하기`;
 
-  const renderSchedule = (schedule) => (
+  const renderSchedule = ({ schedule, petNm }) => (
     <>
       [병원]{' '}
       {formatDate(getYmdOf(schedule.schdlDt), {
         separator: '-',
         hasYear: false,
       })}{' '}
-      · {schedule.petNm} · {findCheckupTypeNm(schedule.ckupTypeCd)} ·{' '}
+      · {petNm} · {findCheckupTypeNm(schedule.ckupTypeCd)} ·{' '}
       {schedule.hsptlNm}
     </>
   );
@@ -91,7 +91,7 @@ export default function NearScheduleModal({
     >
       {isSingle ? (
         <p className="mt-4 rounded-[8px] bg-surface-2 px-3 py-2 text-ink-2 tabular-nums">
-          {renderSchedule(rows[0].schedule)}
+          {renderSchedule(rows[0])}
         </p>
       ) : (
         <ul className="mt-4 flex flex-col gap-3 text-left">
@@ -101,11 +101,11 @@ export default function NearScheduleModal({
               className="rounded-[8px] border border-line px-3 py-3"
             >
               <p className="text-ink-2 tabular-nums">
-                {renderSchedule(row.schedule)}
+                {renderSchedule(row)}
               </p>
               <div
                 role="group"
-                aria-label={`${row.schedule.petNm} 일정 연결 방법`}
+                aria-label={`${row.petNm} 일정 연결 방법`}
                 className="mt-2 grid grid-cols-2 gap-2"
               >
                 {[

@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { getInspectionName } from '../summaryApi';
 import LabResultCard from './LabResultCard';
 import LabTrendCard from './LabTrendCard';
 
 /** 최근 검사의 항목 순서 뒤에 그 밖의 등록 항목 */
 const getItemNames = (lab, trends) => {
-  const latest = lab ? lab.items.map((item) => item.inspItmNm) : [];
+  const latest = lab ? lab.items.map(getInspectionName) : [];
   return [...new Set([...latest, ...Object.keys(trends)])];
 };
 

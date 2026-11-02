@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Cat, Dog, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Icon from '@/components/Icon';
+import PetFace from '@/components/PetFace';
 import { PATHS } from '@/routes/paths';
 import { diffDays, formatDate } from '@/utils/formatDate';
-import { CHRC_STTS, PET_REL, PET_SE } from '@/utils/petCodes';
+import { BRUP_ROLE, CHRC_STTS } from '@/utils/petCodes';
 import { formatAge, getGndrName, getVrtyName } from '@/utils/petFormat';
 import { DOSING } from '../checkup/checkupTypes';
+import { usePixelCharacters } from '../queries';
+import { getInspectionName } from '../summaryApi';
 import { countItems, formatRange } from './summaryUtils';
 
 const REGISTER_PATH = `${PATHS.MYPAGE_PETS}?register=1`;
@@ -16,7 +19,9 @@ const REGISTER_PATH = `${PATHS.MYPAGE_PETS}?register=1`;
  * - 반려동물 선택 탭 + 조회 기준일 + 요약 바 (FN-HLT-011-01·02)
  * - 탭은 반려동물이 2마리 이상일 때만. 칩마다 캐릭터 그림(없으면 종별 기본 이미지) 원 + 이름(등록 순서 그대로), 선택한 칩만 노란색
  * - 탭 뒤 세로 구분선과 점선 [+ 반려동물 등록] 버튼, 항상 보임
- * - 캐릭터 미생성이면 큰 이미지 자리가 빈 자리 카드(마이페이지 캐릭터 목록 이동), 공동양육은 기본 캐릭터만 (추가 요청)
+ * - 칩과 큰 이미지 모두 공용 PetFace(캐릭터 얼굴). 이미지가 없거나 못 받으면 종별 기본 아이콘, 캐릭터 오류 확인 중(bscCharSbstYn)이면 흑백
+ * - 큰 이미지 자리: 주양육이고 캐릭터가 없으면(GET /pixel-characters 행에 pixelCharSn 없음) "캐릭터 만들기" 빈 자리 카드
+ * - 공동양육·캐릭터 있음(생성 중·실패 포함)·캐릭터 목록 조회 중·실패는 PetFace
  */
 export default function SummaryHero({
   pets,
@@ -24,11 +29,19 @@ export default function SummaryHero({
   summary,
   onSelect,
 }) {
-  const { profile, latestCheckup, lab, prescriptions } = summary;
+  const { pet: profile, weight, latestCheckup, lab, prescriptions } = summary;
   const firstLabItem = lab?.items[0];
-  const dosing = prescriptions.filter((item) => item.dosSttsCd === DOSING);
-  const allergyCount = countItems(profile.allrgCn);
-  const diseaseCount = countItems(profile.undrlDiseCn);
+  const firstDosing = prescriptions.find((item) => item.prscSttsCd === DOSING);
+  const allergyCount = countItems(profile.algyCn);
+  const diseaseCount = countItems(profile.dssCn);
+  const { data: pixelCharacters } = usePixelCharacters();
+  const pixelCharacter = pixelCharacters?.find(
+    (item) => item.petSn === pet.petSn,
+  );
+  const isCharacterSlot =
+    pet.brupRoleCd === BRUP_ROLE.PRIMARY &&
+    pixelCharacter != null &&
+    pixelCharacter.pixelCharSn == null;
   const petRowRef = useRef(null);
   const [hasMoreRight, setHasMoreRight] = useState(false);
 
@@ -114,8 +127,7 @@ export default function SummaryHero({
 
       <div className="mt-7 grid gap-4 max-sm:mt-4 max-sm:gap-3 min-[1101px]:grid-cols-[minmax(280px,370px)_minmax(0,1fr)]">
         <div className="flex items-center gap-4 rounded-[14px] border border-white/16 bg-[rgba(9,32,34,0.28)] p-5 max-sm:gap-3 max-sm:p-3.5">
-          {pet.chrcSttsCd === CHRC_STTS.NONE &&
-          pet.petRelCd !== PET_REL.CO_PARENT ? (
+          {isCharacterSlot ? (
             <CharacterSlot />
           ) : (
             <PetImage pet={pet} className="size-28 max-sm:size-20" isLarge />
@@ -129,7 +141,7 @@ export default function SummaryHero({
             </p>
             {/* 모바일은 태그를 한 줄로 (추가 요청) */}
             <div className="mt-2 flex flex-wrap gap-1 max-sm:flex-nowrap">
-              <ProfileTag>{profile.wghtVal}kg</ProfileTag>
+              {weight != null && <ProfileTag>{weight}kg</ProfileTag>}
               {allergyCount > 0 && <ProfileTag>알레르기 {allergyCount}</ProfileTag>}
               {diseaseCount > 0 && <ProfileTag>기저질환 {diseaseCount}</ProfileTag>}
             </div>
@@ -148,43 +160,45 @@ export default function SummaryHero({
             unit="일 전"
             sub={
               latestCheckup &&
-              `${formatDate(latestCheckup.ckupYmd)} · ${latestCheckup.hospNm}`
+              `${formatDate(latestCheckup.ckupYmd)} · ${latestCheckup.hsptlNm}`
             }
             mobileSub={
               latestCheckup &&
-              `${formatDate(latestCheckup.ckupYmd).slice(5)} · ${latestCheckup.hospNm}`
+              `${formatDate(latestCheckup.ckupYmd).slice(5)} · ${latestCheckup.hsptlNm}`
             }
           />
           <Stat
             icon="science"
-            label={`검사 수치${firstLabItem ? ` · ${firstLabItem.inspItmNm}` : ''}`}
-            value={firstLabItem?.rsltVal ?? null}
+            label={`검사 수치${firstLabItem ? ` · ${getInspectionName(firstLabItem)}` : ''}`}
+            value={firstLabItem?.rsltNvl ?? null}
             unit={firstLabItem?.unitNm}
             sub={
               firstLabItem &&
-              `참고범위 ${formatRange(firstLabItem.refMinVal, firstLabItem.refMaxVal, '~')}`
+              `참고범위 ${formatRange(firstLabItem.refLlmtNvl, firstLabItem.refUplmtNvl, '~')}`
             }
             mobileSub={
               firstLabItem &&
-              `참고 ${formatRange(firstLabItem.refMinVal, firstLabItem.refMaxVal, '~')}`
+              `참고 ${formatRange(firstLabItem.refLlmtNvl, firstLabItem.refUplmtNvl, '~')}`
             }
           />
           <Stat
             icon="medication"
             label="현재 처방"
-            value={dosing.length}
+            value={summary.dosingCount}
             unit="건"
             sub={
-              dosing.length > 0 ? (
+              summary.dosingCount > 0 ? (
                 <>
-                  <span className="block">{dosing[0].medNm}</span>
+                  <span className="block">{firstDosing.mdcnNm}</span>
                   <span className="block">복용 중</span>
                 </>
               ) : (
                 '복용 중인 처방 없음'
               )
             }
-            mobileSub={dosing.length > 0 ? dosing[0].medNm : '복용 중인 처방 없음'}
+            mobileSub={
+              summary.dosingCount > 0 ? firstDosing.mdcnNm : '복용 중인 처방 없음'
+            }
           />
         </div>
       </div>
@@ -192,26 +206,20 @@ export default function SummaryHero({
   );
 }
 
-/** 캐릭터가 없으면 종별 기본 캐릭터. 테두리는 캐릭터가 있을 때와 같음 */
+/** 캐릭터 얼굴: 이미지가 없거나 못 받으면 종별 기본 아이콘. 테두리는 캐릭터가 있을 때와 같음 */
 function PetImage({ pet, className, isLarge = false }) {
-  const hasCharacter = pet.chrcSttsCd === CHRC_STTS.DONE && pet.chrctrImgPath;
-  const DefaultCharacter = pet.petSeCd === PET_SE.DOG ? Dog : Cat;
-
   return (
-    <span
-      aria-hidden="true"
-      className={`grid shrink-0 place-items-center overflow-hidden ${
+    <PetFace
+      petSn={pet.petSn}
+      petSeCd={pet.petSeCd}
+      chrcSttsCd={pet.bscCharSbstYn ? CHRC_STTS.ERROR : pet.chrcSttsCd}
+      className={`shrink-0 overflow-hidden ${
         isLarge
           ? 'rounded-modal bg-white text-subtle'
           : 'rounded-full border border-line text-current'
       } ${className}`}
-    >
-      {hasCharacter ? (
-        <img src={pet.chrctrImgPath} alt="" className="size-full object-cover" />
-      ) : (
-        <DefaultCharacter className="size-3/5" />
-      )}
-    </span>
+      iconClassName="size-3/5"
+    />
   );
 }
 
@@ -224,7 +232,7 @@ function CharacterSlot() {
   return (
     <Link
       to={PATHS.MYPAGE_CHARACTERS}
-      className="group flex size-28 shrink-0 flex-col items-center justify-center gap-2 rounded-modal max-sm:size-20 max-sm:gap-1 border border-dashed border-white/50 bg-white/12 text-center text-badge leading-tight font-semibold hover:border-white hover:bg-white/20 focus-visible:border-white"
+      className="group flex size-28 shrink-0 flex-col items-center justify-center gap-2 rounded-modal border border-dashed border-white/50 bg-white/12 text-center text-badge leading-tight font-semibold hover:border-white hover:bg-white/20 focus-visible:border-white max-sm:size-20 max-sm:gap-1"
     >
       <span
         aria-hidden="true"

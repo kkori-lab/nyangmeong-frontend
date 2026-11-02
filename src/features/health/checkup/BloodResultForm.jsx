@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
-import { findBloodItem } from '../labInput/bloodItems';
+import { showToast } from '@/components/toastStore';
 import { DIRECT } from '../labInput/ItemSelect';
 import LabItemForm from '../labInput/LabItemForm';
+import { getSkippedNames, toInspectionValue } from '../labInput/labRows';
 import { useCreateInspections } from '../queries';
 import { SUB_BOX } from './checkupStyles';
 
@@ -25,6 +26,7 @@ const isNumber = (text) => text.trim() !== '' && Number.isFinite(Number(text));
  * - registeredNames: 이미 등록된 항목 이름 (같은 항목 재입력 불가)
  */
 export default function BloodResultForm({
+  petSn,
   ckupRcdSn,
   registeredNames,
   onClose,
@@ -67,24 +69,26 @@ export default function BloodResultForm({
     if (createInspections.isPending) return;
     setIsSubmitted(true);
     if (Object.keys(errors).length > 0) return;
+    const values = [
+      toInspectionValue(itemName, {
+        rsltNvl: Number(form.val),
+        unitNm: form.unit.trim(),
+        refLlmtNvl: form.rangeMin.trim() === '' ? null : Number(form.rangeMin),
+        refUplmtNvl: form.rangeMax.trim() === '' ? null : Number(form.rangeMax),
+        memoCn: form.memo.trim(),
+      }),
+    ];
     createInspections.mutate(
+      { petSn, ckupRcdSn, values },
       {
-        ckupRcdSn,
-        items: [
-          {
-            fnctTagCd: findBloodItem(itemName)?.fnctTagCd ?? null,
-            inspItmNm: itemName,
-            rsltVal: Number(form.val),
-            unitNm: form.unit.trim(),
-            refMinVal:
-              form.rangeMin.trim() === '' ? null : Number(form.rangeMin),
-            refMaxVal:
-              form.rangeMax.trim() === '' ? null : Number(form.rangeMax),
-            memoCn: form.memo.trim(),
-          },
-        ],
+        onSuccess: (savedValues) => {
+          const skippedNames = getSkippedNames([itemName], values, savedValues);
+          if (skippedNames.length > 0) {
+            showToast(`이미 등록된 항목입니다: ${skippedNames.join(', ')}`);
+          }
+          onClose();
+        },
       },
-      { onSuccess: onClose },
     );
   };
 

@@ -75,14 +75,14 @@ export const PET_REL = {
   CO_PARENT: 'CO_PARENT',
 };
 
+/** PETG05 양육 역할 (반려동물 API의 brupRoleCd) */
+export const BRUP_ROLE = {
+  PRIMARY: 'PETC0018',
+  CO_PARENT: 'PETC0019',
+};
+
 /** 반려동물 1마리에 연동할 수 있는 공동양육자 최대 인원 */
 export const MAX_CAREGIVERS = 5;
-
-/** 양육 역할: 주양육자(PCG)·공동양육자(CCG) (PETG05, 공통코드 생기면 값 맞춤) */
-export const CGVR_ROLE = {
-  PCG: 'PCG',
-  CCG: 'CCG',
-};
 
 /** 캐릭터 상태 (캐릭터 API LJS, 공통코드 생기면 값 맞춤) */
 export const CHRC_STTS = {

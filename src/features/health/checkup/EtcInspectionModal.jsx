@@ -19,12 +19,13 @@ const OPTIONAL = (
  * - etcInspection이 있으면 입력값이 채워진 수정 상태
  */
 export default function EtcInspectionModal({
+  petSn,
   ckupRcdSn,
   etcInspection,
   onClose,
 }) {
   const [inspNm, setInspNm] = useState(etcInspection?.inspNm ?? '');
-  const [rsltCn, setRsltCn] = useState(etcInspection?.rsltCn ?? '');
+  const [rsltCn, setRsltCn] = useState(etcInspection?.inspRsltCn ?? '');
   const [memoCn, setMemoCn] = useState(etcInspection?.memoCn ?? '');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const createEtcInspection = useCreateEtcInspection();
@@ -39,9 +40,10 @@ export default function EtcInspectionModal({
     setIsSubmitted(true);
     if (Object.values(errors).some(Boolean)) return;
     const body = {
+      petSn,
       ckupRcdSn,
       inspNm: inspNm.trim(),
-      rsltCn: rsltCn.trim(),
+      inspRsltCn: rsltCn.trim(),
       memoCn: memoCn.trim(),
     };
     if (etcInspection) {

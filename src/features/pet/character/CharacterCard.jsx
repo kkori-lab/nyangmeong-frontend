@@ -29,8 +29,8 @@ export default function CharacterCard({
   const isDone = pet.chrcSttsCd === CHRC_STTS.DONE;
   const isNone = pet.chrcSttsCd === CHRC_STTS.NONE;
   const isGenerating = pet.chrcSttsCd === CHRC_STTS.GENERATING;
-  const isError = pet.chrcSttsCd === CHRC_STTS.ERROR;
-  const isRep = isOwn && pet.rprsYn === 'Y';
+  const isError = pet.bscCharSbstYn || pet.chrcSttsCd === CHRC_STTS.ERROR;
+  const isRep = isOwn && pet.rprsPetYn;
   const canDecorate = isOwn && isDone;
   const Icon = pet.petSeCd === PET_SE.CAT ? Cat : Dog;
 

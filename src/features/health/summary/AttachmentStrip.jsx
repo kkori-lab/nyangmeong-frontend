@@ -2,7 +2,10 @@ import { useState } from 'react';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import { showToast } from '@/components/toastStore';
-import { formatDate } from '@/utils/formatDate';
+import { formatDate, getYmdOf } from '@/utils/formatDate';
+import { FILE_EXT_PDF } from '../checkup/checkupTypes';
+import { getAttachmentFile } from '../checkupApi';
+import AttachmentImage from './AttachmentImage';
 import PhotoModal from './PhotoModal';
 import { CardTitle, SummaryEmpty } from './SummaryParts';
 import { DIARY_EXAM_PATH } from './summaryUtils';
@@ -10,30 +13,32 @@ import { DIARY_EXAM_PATH } from './summaryUtils';
 /**
  * [첨부 자료] (FN-HLT-011-09)
  * - 검진기록 첨부파일 최신 4건을 가로로 나열(미리보기 → 파일명 → 날짜), 업로드·삭제 없음
- * - 이미지는 누르면 미리보기, PDF 등은 내려받기. [전체 보기]는 없음(명세 v1.1)
+ * - 이미지는 누르면 미리보기, PDF는 내려받기(비공개 파일이라 받은 Blob을 임시 주소로 바꿔 내려받음). [전체 보기]는 없음(명세 v1.1)
  * - 제목 줄 어디를 눌러도(버튼 포함) 목록을 접고 펼침(처음은 접힘, 명세 v1.1)
  */
-export default function AttachmentStrip({ attachments }) {
-  const [photoUrl, setPhotoUrl] = useState(null);
+export default function AttachmentStrip({ petSn, attachments }) {
+  const [photo, setPhoto] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleOpen = (attachment) => {
-    if (!attachment.fileUrl) {
-      showToast(
-        isImage(attachment)
-          ? '미리볼 수 있는 파일이 없어요'
-          : '내려받을 수 있는 파일이 없어요',
-      );
-      return;
-    }
+  const handleOpen = async (attachment) => {
     if (isImage(attachment)) {
-      setPhotoUrl(attachment.fileUrl);
+      setPhoto(attachment);
       return;
     }
-    const link = document.createElement('a');
-    link.href = attachment.fileUrl;
-    link.download = attachment.fileNm;
-    link.click();
+    try {
+      const blob = await getAttachmentFile({
+        petSn,
+        ckupRcdAtchSn: attachment.ckupRcdAtchSn,
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = attachment.orgnlFileNm;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      showToast('파일을 내려받지 못했어요. 잠시 뒤 다시 시도해 주세요');
+    }
   };
 
   return (
@@ -66,9 +71,9 @@ export default function AttachmentStrip({ attachments }) {
         <ul className="grid grid-cols-2 gap-4 min-[761px]:grid-cols-4 min-[1101px]:grid-cols-[repeat(4,160px)]">
           {attachments.map((attachment) => {
             const image = isImage(attachment);
-            const actionLabel = `${attachment.fileNm} ${image ? '미리보기' : '다운로드'}`;
+            const actionLabel = `${attachment.orgnlFileNm} ${image ? '미리보기' : '다운로드'}`;
             return (
-              <li key={attachment.atchSn} className="min-w-0">
+              <li key={attachment.ckupRcdAtchSn} className="min-w-0">
                 <button
                   type="button"
                   aria-label={actionLabel}
@@ -80,10 +85,10 @@ export default function AttachmentStrip({ attachments }) {
                       image ? 'border-dashed' : ''
                     }`}
                   >
-                    {image && attachment.fileUrl ? (
-                      <img
-                        src={attachment.fileUrl}
-                        alt=""
+                    {image ? (
+                      <AttachmentImage
+                        petSn={petSn}
+                        attachment={attachment}
                         className="size-full object-cover"
                       />
                     ) : (
@@ -97,10 +102,10 @@ export default function AttachmentStrip({ attachments }) {
                     </em>
                   </span>
                   <span className="truncate text-lg/[1.6] font-semibold group-hover:text-brand-600">
-                    {attachment.fileNm}
+                    {attachment.orgnlFileNm}
                   </span>
                   <span className="text-sm/[1.6] text-subtle">
-                    {formatDate(attachment.ckupYmd)}
+                    {formatDate(getYmdOf(attachment.regDt))}
                   </span>
                   <span
                     aria-hidden="true"
@@ -117,11 +122,17 @@ export default function AttachmentStrip({ attachments }) {
           })}
         </ul>
       )}
-      {photoUrl && (
-        <PhotoModal src={photoUrl} onClose={() => setPhotoUrl(null)} />
+      {photo && (
+        <PhotoModal onClose={() => setPhoto(null)}>
+          <AttachmentImage
+            petSn={petSn}
+            attachment={photo}
+            className="w-full rounded-[10px]"
+          />
+        </PhotoModal>
       )}
     </Card>
   );
 }
 
-const isImage = (attachment) => attachment.mimeType.startsWith('image/');
+const isImage = (attachment) => attachment.fileExtnCd !== FILE_EXT_PDF;

@@ -17,6 +17,7 @@ const MAX_MEMO_LENGTH = 200;
  * [검진상세 기본정보 카드]
  * - 검진일·병원명·검진 종류·검진 내용·검진 메모, 탭 위에 고정 (FN-HLT-005-01)
  * - [수정]은 같은 자리에서 검진 내용·메모만 수정. 검진일·병원명·검진 종류는 비활성 + [검진기록 수정] 링크로 모달 수정
+ * - 모달로 저장하면 같은 자리 수정을 닫아 모달에서 고친 값이 옛 초안으로 덮이지 않게 함
  */
 export default function CheckupInfoCard({ checkup, pets }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -27,22 +28,19 @@ export default function CheckupInfoCard({ checkup, pets }) {
   const typeNm = findName(CHECKUP_TYPES, checkup.ckupTypeCd);
 
   const startEdit = () => {
-    setCkupCn(checkup.ckupCn);
-    setCkupMemoCn(checkup.ckupMemoCn);
+    setCkupCn(checkup.ckupCn ?? '');
+    setCkupMemoCn(checkup.ckupMemoCn ?? '');
     setIsEditing(true);
   };
 
+  /** 서버는 보낸 필드만 바꾼다 */
   const handleSubmit = (event) => {
     event.preventDefault();
     updateCheckup.mutate(
       {
-        ckupRcdSn: checkup.ckupRcdSn,
         petSn: checkup.petSn,
-        ckupYmd: checkup.ckupYmd,
-        hospNm: checkup.hospNm,
-        ckupTypeCd: checkup.ckupTypeCd,
-        ckupCn: ckupCn.trim(),
-        ckupMemoCn: ckupMemoCn.trim(),
+        ckupRcdSn: checkup.ckupRcdSn,
+        body: { ckupCn: ckupCn.trim(), ckupMemoCn: ckupMemoCn.trim() },
       },
       { onSuccess: () => setIsEditing(false) },
     );
@@ -78,7 +76,7 @@ export default function CheckupInfoCard({ checkup, pets }) {
             <Row label="동물병원명" htmlFor="info-hosp-nm">
               <input
                 id="info-hosp-nm"
-                value={checkup.hospNm}
+                value={checkup.hsptlNm}
                 disabled
                 className={INPUT_CLASS}
               />
@@ -143,7 +141,7 @@ export default function CheckupInfoCard({ checkup, pets }) {
           <Row label="검진일">
             <span className="tabular-nums">{formatDate(checkup.ckupYmd)}</span>
           </Row>
-          <Row label="동물병원명">{checkup.hospNm}</Row>
+          <Row label="동물병원명">{checkup.hsptlNm}</Row>
           <Row label="검진 종류">{typeNm}</Row>
           <Row label="검진 내용">{checkup.ckupCn}</Row>
           <Row label="검진 메모">
@@ -157,6 +155,7 @@ export default function CheckupInfoCard({ checkup, pets }) {
           pets={pets}
           defaultPetSn={checkup.petSn}
           checkup={checkup}
+          onSaved={() => setIsEditing(false)}
           onClose={() => setIsModalOpen(false)}
         />
       )}

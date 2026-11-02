@@ -530,6 +530,7 @@ export default function ReceiptResultStep({
           rows={phase.nears.map((row) => ({
             key: row.tabId,
             schedule: row.schedule,
+            petNm: pets.find((pet) => pet.petSn === row.schedule.petSn)?.petNm,
           }))}
           ckupYmd={ckupYmd}
           isPending={isPending}

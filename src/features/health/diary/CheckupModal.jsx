@@ -34,18 +34,18 @@ const OPTIONAL = (
 /**
  * [검진기록 등록 모달]
  * - 1단계 방법 선택 → 직접 입력 (FN-HLT-002-33·26~31). [영수증으로 등록하기]는 onReceipt로 부모가 이어받음
- * - initialStep="form"·rcptSn: 영수증 인식에 실패해 [직접 입력]으로 연 경우, 저장 때 이 영수증을 검진기록에 연결
- * - 저장하면 같은 날 병원 일정에 연결하고, 없고 앞뒤 7일 안에 예정 일정이 있으면 옮겨 연결할지 먼저 확인
+ * - initialStep="form": 영수증 인식에 실패해 [직접 입력]으로 연 경우. 검진기록 API에 영수증 번호가 없어 아직 영수증은 연결하지 않음
+ * - 저장하면 서버가 같은 날 병원 일정에 연결하고, 없고 앞뒤 7일 안에 예정 일정이 있으면 옮겨 연결할지 먼저 확인
  * - 저장 뒤 새 검진기록의 검진상세로 이동
  * - checkup: 검진상세 [검진기록 수정]으로 연 수정 상태. 기존 값이 채워지고 방법 선택·예정 일정 확인 없이 저장하며,
- *   반려동물을 바꾸면 연동 케어 항목도 옮겨진다는 확인 뒤 저장
+ *   반려동물을 바꾸면 연동 케어 항목도 옮겨진다는 확인 뒤 저장하고 바뀐 반려동물의 검진상세 주소로 바꿈. 수정 저장 뒤 onSaved
  */
 export default function CheckupModal({
   pets,
   defaultPetSn,
   initialStep = 'select',
-  rcptSn,
   checkup,
+  onSaved,
   onReceipt,
   onClose,
 }) {
@@ -56,7 +56,7 @@ export default function CheckupModal({
     checkup?.petSn ?? onlyPetSn ?? defaultPetSn,
   );
   const [ckupYmd, setCkupYmd] = useState(checkup?.ckupYmd ?? getTodayYmd);
-  const [hospNm, setHospNm] = useState(checkup?.hospNm ?? '');
+  const [hsptlNm, setHsptlNm] = useState(checkup?.hsptlNm ?? '');
   const [ckupTypeCd, setCkupTypeCd] = useState(checkup?.ckupTypeCd ?? '');
   const [ckupCn, setCkupCn] = useState(checkup?.ckupCn ?? '');
   const [ckupMemoCn, setCkupMemoCn] = useState(checkup?.ckupMemoCn ?? '');
@@ -74,31 +74,35 @@ export default function CheckupModal({
   const errors = {
     pet: petSn == null,
     date: ckupYmd === '',
-    hosp: hospNm.trim() === '',
+    hosp: hsptlNm.trim() === '',
     type: ckupTypeCd === '',
   };
   const isInvalid = (field) => isSubmitted && errors[field];
 
-  const save = (nearSchdlSn) =>
+  const toDetailPath = (saved) =>
+    generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+      petSn: saved.petSn,
+      ckupRcdSn: saved.ckupRcdSn,
+    });
+
+  /** schdlSn: 검진일로 옮겨 연결할 예정 일정 */
+  const save = (schdlSn) =>
     createCheckup.mutate(
       {
         petSn,
-        ckupYmd,
-        hospNm: hospNm.trim(),
-        ckupTypeCd,
-        ckupCn: ckupCn.trim(),
-        ckupMemoCn: ckupMemoCn.trim(),
-        nearSchdlSn,
-        rcptSn,
+        body: {
+          ckupYmd,
+          hsptlNm: hsptlNm.trim(),
+          ckupTypeCd,
+          ckupCn: ckupCn.trim(),
+          ckupMemoCn: ckupMemoCn.trim(),
+          schdlSn,
+        },
       },
       {
-        onSuccess: (checkup) => {
+        onSuccess: (saved) => {
           onClose();
-          navigate(
-            generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
-              ckupRcdSn: checkup.ckupRcdSn,
-            }),
-          );
+          navigate(toDetailPath(saved));
         },
       },
     );
@@ -107,15 +111,26 @@ export default function CheckupModal({
   const saveEdit = () =>
     updateCheckup.mutate(
       {
+        petSn: checkup.petSn,
         ckupRcdSn: checkup.ckupRcdSn,
-        petSn,
-        ckupYmd,
-        hospNm: hospNm.trim(),
-        ckupTypeCd,
-        ckupCn: ckupCn.trim(),
-        ckupMemoCn: ckupMemoCn.trim(),
+        body: {
+          petSn,
+          ckupYmd,
+          hsptlNm: hsptlNm.trim(),
+          ckupTypeCd,
+          ckupCn: ckupCn.trim(),
+          ckupMemoCn: ckupMemoCn.trim(),
+        },
       },
-      { onSuccess: onClose },
+      {
+        onSuccess: (saved) => {
+          onSaved?.();
+          onClose();
+          if (saved.petSn !== checkup.petSn) {
+            navigate(toDetailPath(saved), { replace: true });
+          }
+        },
+      },
     );
 
   const handleSubmit = () => {
@@ -225,11 +240,11 @@ export default function CheckupModal({
               <label className="flex flex-col gap-1.5">
                 <span className={LABEL_CLASS}>동물병원명{REQUIRED}</span>
                 <input
-                  value={hospNm}
+                  value={hsptlNm}
                   maxLength={MAX_HOSPITAL_NAME_LENGTH}
                   aria-invalid={isInvalid('hosp')}
                   className={INPUT_CLASS}
-                  onChange={(event) => setHospNm(event.target.value)}
+                  onChange={(event) => setHsptlNm(event.target.value)}
                 />
                 {isInvalid('hosp') && (
                   <FieldError>병원명을 입력해 주세요</FieldError>
@@ -321,7 +336,13 @@ export default function CheckupModal({
 
       {nearSchedule && (
         <NearScheduleModal
-          rows={[{ key: 'near', schedule: nearSchedule }]}
+          rows={[
+            {
+              key: 'near',
+              schedule: nearSchedule,
+              petNm: pets.find((pet) => pet.petSn === petSn)?.petNm,
+            },
+          ]}
           ckupYmd={ckupYmd}
           isPending={isPending}
           onConfirm={({ near: isMove }) =>

@@ -8,7 +8,12 @@ import {
   BTN_SECONDARY,
 } from '@/components/buttonStyles';
 import useMediaQuery from '@/hooks/useMediaQuery';
-import { formatDate } from '@/utils/formatDate';
+import {
+  formatDate,
+  getHmOf,
+  getYmdOf,
+  makeDateTime,
+} from '@/utils/formatDate';
 import {
   MEAL,
   RECORD_TYPES,
@@ -67,7 +72,7 @@ const formatDaySummary = (dayRecords) => {
  * - 모달의 기록 줄을 누르면 그 줄만 인라인 편집, 삭제는 확인 후 처리
  * - 760px 이하: 표 대신 "날짜 줄 + 한 줄 요약" 목록, 모달은 5칸 종류 버튼으로 고른 종류의 합계와 시간별 기록만 크게 표시
  */
-export default function RecentRecordTable({ records, todayYmd }) {
+export default function RecentRecordTable({ petSn, records, todayYmd }) {
   const [periodDays, setPeriodDays] = useState(DEFAULT_PERIOD);
   const [detailYmd, setDetailYmd] = useState(null);
   const [editingSn, setEditingSn] = useState(null);
@@ -83,12 +88,15 @@ export default function RecentRecordTable({ records, todayYmd }) {
   };
 
   const handleDelete = () =>
-    deleteRecord.mutate(deleteSn, {
-      onSuccess: () => {
-        setDeleteSn(null);
-        setEditingSn(null);
+    deleteRecord.mutate(
+      { petSn, dailyHlthRcdSn: deleteSn },
+      {
+        onSuccess: () => {
+          setDeleteSn(null);
+          setEditingSn(null);
+        },
       },
-    });
+    );
 
   return (
     <Card
@@ -123,7 +131,9 @@ export default function RecentRecordTable({ records, todayYmd }) {
               key={ymd}
               ymd={ymd}
               isToday={ymd === todayYmd}
-              dayRecords={records.filter((record) => record.rcdYmd === ymd)}
+              dayRecords={records.filter(
+                (record) => getYmdOf(record.rcdDt) === ymd,
+              )}
               onOpen={() => setDetailYmd(ymd)}
             />
           ))}
@@ -155,7 +165,9 @@ export default function RecentRecordTable({ records, todayYmd }) {
                   key={ymd}
                   ymd={ymd}
                   isToday={ymd === todayYmd}
-                  dayRecords={records.filter((record) => record.rcdYmd === ymd)}
+                  dayRecords={records.filter(
+                    (record) => getYmdOf(record.rcdDt) === ymd,
+                  )}
                   onOpen={() => setDetailYmd(ymd)}
                 />
               ))}
@@ -166,9 +178,12 @@ export default function RecentRecordTable({ records, todayYmd }) {
 
       {detailYmd !== null && (
         <DetailModal
+          petSn={petSn}
           ymd={detailYmd}
           isToday={detailYmd === todayYmd}
-          dayRecords={records.filter((record) => record.rcdYmd === detailYmd)}
+          dayRecords={records.filter(
+            (record) => getYmdOf(record.rcdDt) === detailYmd,
+          )}
           editingSn={editingSn}
           onEdit={setEditingSn}
           onRequestDelete={setDeleteSn}
@@ -266,6 +281,7 @@ function DayRows({ ymd, isToday, dayRecords, onOpen }) {
 }
 
 function DetailModal({
+  petSn,
   ymd,
   isToday,
   dayRecords,
@@ -304,6 +320,7 @@ function DetailModal({
       <div className="min-h-0 flex-1 overflow-auto px-6 py-5">
         {!isPc ? (
           <MobileDetail
+            petSn={petSn}
             summaries={summaries}
             editingSn={editingSn}
             onEdit={onEdit}
@@ -337,8 +354,9 @@ function DetailModal({
                         >
                           {record ? (
                             <RecordCell
+                              petSn={petSn}
                               record={record}
-                              isEditing={record.dlyRcdSn === editingSn}
+                              isEditing={record.dailyHlthRcdSn === editingSn}
                               onEdit={onEdit}
                               onRequestDelete={onRequestDelete}
                             />
@@ -381,7 +399,13 @@ function DetailModal({
  * 760px 이하 상세 기록: 5칸 종류 버튼으로 선택, 선택한 종류의 합계와 시간별 기록만 크게 표시
  * - 처음에는 기록이 있는 첫 종류 선택. 기록이 없는 종류도 눌러 볼 수 있음
  */
-function MobileDetail({ summaries, editingSn, onEdit, onRequestDelete }) {
+function MobileDetail({
+  petSn,
+  summaries,
+  editingSn,
+  onEdit,
+  onRequestDelete,
+}) {
   const [typeCd, setTypeCd] = useState(
     () =>
       RECORD_TYPES.find(
@@ -441,12 +465,13 @@ function MobileDetail({ summaries, editingSn, onEdit, onRequestDelete }) {
           <ul className="flex flex-col text-lg">
             {items.map((record) => (
               <li
-                key={record.dlyRcdSn}
+                key={record.dailyHlthRcdSn}
                 className="border-b border-line-soft py-3 last:border-b-0"
               >
                 <RecordCell
+                  petSn={petSn}
                   record={record}
-                  isEditing={record.dlyRcdSn === editingSn}
+                  isEditing={record.dailyHlthRcdSn === editingSn}
                   onEdit={onEdit}
                   onRequestDelete={onRequestDelete}
                 />
@@ -459,22 +484,23 @@ function MobileDetail({ summaries, editingSn, onEdit, onRequestDelete }) {
   );
 }
 
-function RecordCell({ record, isEditing, onEdit, onRequestDelete }) {
+function RecordCell({ petSn, record, isEditing, onEdit, onRequestDelete }) {
   if (isEditing)
     return (
       <RecordEditor
+        petSn={petSn}
         record={record}
         onClose={() => onEdit(null)}
-        onRequestDelete={() => onRequestDelete(record.dlyRcdSn)}
+        onRequestDelete={() => onRequestDelete(record.dailyHlthRcdSn)}
       />
     );
   return (
     <button
       type="button"
       className="group flex w-full items-center justify-between gap-2 text-left tabular-nums"
-      onClick={() => onEdit(record.dlyRcdSn)}
+      onClick={() => onEdit(record.dailyHlthRcdSn)}
     >
-      <span className="text-muted">{record.rcdTm}</span>
+      <span className="text-muted">{getHmOf(record.rcdDt)}</span>
       <b className="font-normal text-ink group-hover:text-brand-600">
         {formatRecordValue(record)}
       </b>
@@ -482,12 +508,12 @@ function RecordCell({ record, isEditing, onEdit, onRequestDelete }) {
   );
 }
 
-function RecordEditor({ record, onClose, onRequestDelete }) {
-  const type = findRecordType(record.rcdTypeCd);
-  const isStool = record.rcdTypeCd === STOOL;
-  const [rcdTm, setRcdTm] = useState(record.rcdTm);
+function RecordEditor({ petSn, record, onClose, onRequestDelete }) {
+  const type = findRecordType(record.dailyRcdIdctCd);
+  const isStool = record.dailyRcdIdctCd === STOOL;
+  const [rcdTm, setRcdTm] = useState(getHmOf(record.rcdDt));
   const [value, setValue] = useState(
-    isStool ? record.stlSttsCd : String(record.rcdVal),
+    isStool ? record.crsdSttsCd : String(record.rcdNvl),
   );
   const updateRecord = useUpdateDailyRecord();
 
@@ -498,10 +524,12 @@ function RecordEditor({ record, onClose, onRequestDelete }) {
     if (!canSave) return;
     updateRecord.mutate(
       {
-        dlyRcdSn: record.dlyRcdSn,
-        rcdTm,
-        rcdVal: isStool ? null : value,
-        stlSttsCd: isStool ? value : null,
+        petSn,
+        dailyHlthRcdSn: record.dailyHlthRcdSn,
+        body: {
+          rcdDt: makeDateTime(getYmdOf(record.rcdDt), rcdTm),
+          ...(isStool ? { crsdSttsCd: value } : { rcdNvl: Number(value) }),
+        },
       },
       { onSuccess: onClose },
     );

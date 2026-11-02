@@ -17,14 +17,14 @@ import { PREVENTION_ITEMS, findName } from './checkupTypes';
  * - 목록 행: 예방 항목·반복 주기·다음 예정일·연동 뱃지·[해지] (FN-HLT-005-05)
  * - [해지]는 확인 뒤 반복 주기를 해지하고 자동 추가된 케어 항목을 삭제(완료 기록은 유지)
  */
-export default function PreventionTab({ ckupRcdSn, preventions }) {
+export default function PreventionTab({ petSn, ckupRcdSn, preventions }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [cancelSn, setCancelSn] = useState(null);
   const cancelPrevention = useCancelPrevention();
 
   const handleCancel = () =>
     cancelPrevention.mutate(
-      { ckupRcdSn, prvntSn: cancelSn },
+      { petSn, ckupRcdSn, reptPrvntMngSn: cancelSn },
       { onSuccess: () => setCancelSn(null) },
     );
 
@@ -39,7 +39,7 @@ export default function PreventionTab({ ckupRcdSn, preventions }) {
         <ul>
           {preventions.map((prevention) => (
             <li
-              key={prevention.prvntSn}
+              key={prevention.reptPrvntMngSn}
               className={`flex items-center gap-3.5 py-3.5 ${ROW_LINE}`}
             >
               <span className="grid size-10 shrink-0 place-items-center rounded-[10px] border border-line bg-surface-2 text-ink-2">
@@ -47,23 +47,23 @@ export default function PreventionTab({ ckupRcdSn, preventions }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold">
-                  {findName(PREVENTION_ITEMS, prevention.prvntItmCd)}
+                  {findName(PREVENTION_ITEMS, prevention.reptPrvntArtclCd)}
                 </span>
                 <span className="block text-subtle tabular-nums">
                   {getCycleName({
-                    rptCycleCd: prevention.rptCycleCd,
-                    rptCycleDayCnt: prevention.rptCycleDayCnt,
+                    rptCycleCd: prevention.reptCycleCd,
+                    rptCycleDayCnt: prevention.cycleDrctInptDayCnt,
                   })}{' '}
                   주기
-                  {prevention.nextSchdYmd &&
-                    ` · 다음 예정 ${formatDate(prevention.nextSchdYmd)}`}
+                  {prevention.nxtmPrnmntYmd &&
+                    ` · 다음 예정 ${formatDate(prevention.nxtmPrnmntYmd)}`}
                 </span>
               </span>
               <Badge tone="brand">처방약 연동</Badge>
               <button
                 type="button"
                 className={TEXT_BTN_DEL}
-                onClick={() => setCancelSn(prevention.prvntSn)}
+                onClick={() => setCancelSn(prevention.reptPrvntMngSn)}
               >
                 해지
               </button>
@@ -84,6 +84,7 @@ export default function PreventionTab({ ckupRcdSn, preventions }) {
       )}
       {isFormOpen && (
         <PreventionForm
+          petSn={petSn}
           ckupRcdSn={ckupRcdSn}
           onClose={() => setIsFormOpen(false)}
         />

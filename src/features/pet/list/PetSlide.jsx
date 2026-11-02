@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import PetFace from '@/components/PetFace';
-import { MAX_OWN_PETS, PET_REL, PET_SE } from '@/utils/petCodes';
+import { BRUP_ROLE, CHRC_STTS, MAX_OWN_PETS, PET_SE } from '@/utils/petCodes';
+import { usePet } from '../queries';
 import FamilySection from './FamilySection';
 import {
   formatAge,
@@ -189,13 +190,23 @@ function AddSlide({ isFull, onAdd, children }) {
   );
 }
 
-function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
-  const isCoParent = pet.petRelCd === PET_REL.CO_PARENT;
-  const gndrText = `${getGndrName(pet)}${pet.nutrYn === 'Y' ? '(중성화 완료)' : ''}`;
+function PetCard({
+  pet: listPet,
+  onEdit,
+  onDelete,
+  onUnlink,
+  onInvite,
+  children,
+}) {
+  /** 목록 응답에 없는 중성화 여부·정상 체중 범위는 상세 응답으로 채움 */
+  const { data: detail } = usePet(listPet.petSn);
+  const pet = detail ? { ...listPet, ...detail } : listPet;
+  const isCoParent = pet.brupRoleCd === BRUP_ROLE.CO_PARENT;
+  const gndrText = `${getGndrName(pet)}${pet.nutrYn ? '(중성화 완료)' : ''}`;
   const metaText = [
     formatAge(pet.petBrdt),
     getVrtyName(pet),
-    `${getGndrName(pet)}${pet.nutrYn === 'Y' ? '(중성화)' : ''}`,
+    `${getGndrName(pet)}${pet.nutrYn ? '(중성화)' : ''}`,
   ]
     .filter(Boolean)
     .join(' · ');
@@ -209,7 +220,7 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
         <PetFace
           petSn={pet.petSn}
           petSeCd={pet.petSeCd}
-          chrcSttsCd={pet.chrcSttsCd}
+          chrcSttsCd={pet.bscCharSbstYn ? CHRC_STTS.ERROR : pet.chrcSttsCd}
           alt={`${pet.petNm} 캐릭터`}
           className="size-28 shrink-0 rounded-full bg-surface-2 text-line-strong shadow-[inset_0_0_0_1px_var(--color-line-strong)] max-[760px]:size-[84px]"
           iconClassName="size-14 max-[760px]:size-9"
@@ -224,7 +235,7 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
             >
               {pet.petNm}
               <span className="inline-flex flex-wrap gap-1 align-middle">
-                {pet.rprsYn === 'Y' && (
+                {pet.rprsPetYn && (
                   <Badge className="bg-brand-500 text-white">대표</Badge>
                 )}
                 {isCoParent ? (
