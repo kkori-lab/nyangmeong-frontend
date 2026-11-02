@@ -140,11 +140,15 @@
 - 기다리는 것: 백엔드 `GET /members/me/points`, `GET /point-ledgers?yearMonth=`, `GET /pets/{petSn}/daily-missions?msnCrtrYmd=` (SJM 백엔드, 끝남)
 - 완료 조건: `features/point/api.js`의 가짜가 실제 요청을 부르고 응답 키(`hldPnt`·`pntDlngTypeCd`·`dlngPnt`·`regDt`·`cmptnYn`)에 맞춰 화면이 그대로 보인다. `?fake=empty`를 지운다
 
-## SCR-MYP-030 가계부 목록 · 가계부 가짜 응답을 실제 API로 — 대기
+## SCR-MYP-030 가계부 목록 · 가계부 가짜 응답을 실제 API로 — 끝
 
 - 기능: 명세 기능 ID 추가 없음. FN-MYP-030-01~06·09~22, FN-MYP-031-02·03·05·06과 걸친다
 - 기다리는 것: 백엔드 `/expenses`(등록·목록·통계·합계·월·반려동물·수정·삭제·조건 삭제·중복 확인), `PUT /members/me/expense-limit` (SJM 백엔드, 끝남)
 - 완료 조건: `features/expense/api.js`의 가짜가 실제 요청을 부르고, 사용처 키를 `expndPlcusNm`으로 확정한다. 삭제된 반려동물은 `petDelYn`으로 "이름 (삭제됨)"이 보인다. `?fake=more-fail`을 지운다
+- 연결 남음: FN-MYP-030-18·19·21 조건 일괄 삭제에서 개별 해제한 건 제외 (백엔드 연결 `POST /expenses/bulk-delete`에 `excludeExpndSn`, 건수 검사 "전체 − 제외 수", 불일치 응답 409, 백엔드 저장소에서 /start)
+- 연결 남음: FN-MYP-031-02 미래 날짜 검증 (백엔드 연결 `POST /expenses`·`PATCH /expenses/{expndSn}`에서 `EXPND_YMD` > 오늘(KST)이면 400, 백엔드 저장소에서 /start)
+- 연결 남음: FN-MYP-031-03·05 영수증 인식 (YAY, OCR 호출부 LJS)
+- 연결 남음: FN-MYP-030-08 한도 알림 발송 (알림 저장 YAY, 가계부 API SJM 백엔드)
 
 ## SCR-MYP-040 회원정보 수정 · 조회·휴대폰 번호·프로필 사진 API 연결 — 대기
 

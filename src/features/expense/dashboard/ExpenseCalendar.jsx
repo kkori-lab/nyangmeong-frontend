@@ -1,6 +1,7 @@
 import { formatYm } from '@/utils/yearMonth';
 import { getClsfName } from '../shared/expenseStats';
 import { getPetLabel } from '../shared/expenseFormat';
+import { getTodayYmd } from '../shared/expenseInput';
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 /** 앱: 칸 테두리 없이 주 사이 얇은 선만, 날짜는 가운데 */
@@ -19,8 +20,7 @@ export default function ExpenseCalendar({
   onEmptyDay,
 }) {
   const monthLabel = formatYm(ym);
-  /** UTC 변환 시 날짜 어긋남 방지 */
-  const todayYmd = new Date().toLocaleDateString('sv-SE');
+  const todayYmd = getTodayYmd();
   const lastDayIndex = cells.findLastIndex((cell) => cell.day !== null);
 
   return (
@@ -49,7 +49,9 @@ export default function ExpenseCalendar({
               />
             );
           }
-          const hasItems = cell.items.length > 0;
+          const hasItems = cell.count > 0;
+          /** 내일 이후 칸은 지출이 없으면 등록할 수 없다 */
+          const isFuture = cell.expndYmd > todayYmd;
           const isSelected = cell.expndYmd === selectedYmd;
           const isWeekend = index % 7 === 0 || index % 7 === 6;
           /** 앱: 오늘은 초록 글자, 선택은 초록 원 */
@@ -67,6 +69,7 @@ export default function ExpenseCalendar({
             <button
               key={cell.expndYmd}
               type="button"
+              disabled={isFuture && !hasItems}
               onClick={() =>
                 hasItems
                   ? onSelectDay(cell.expndYmd)
@@ -76,9 +79,11 @@ export default function ExpenseCalendar({
               aria-label={
                 hasItems
                   ? undefined
-                  : `${Number(ym.slice(5))}월 ${cell.day}일 지출 등록`
+                  : isFuture
+                    ? `${Number(ym.slice(5))}월 ${cell.day}일 (등록할 수 없는 날짜)`
+                    : `${Number(ym.slice(5))}월 ${cell.day}일 지출 등록`
               }
-              className={`${CELL} cursor-pointer hover:bg-surface-2 max-[760px]:hover:bg-transparent ${
+              className={`${CELL} enabled:cursor-pointer enabled:hover:bg-surface-2 max-[760px]:hover:bg-transparent disabled:cursor-not-allowed ${
                 isSelected
                   ? 'bg-brand-50 shadow-[inset_0_0_0_2px_var(--color-brand-500)] hover:bg-brand-50 max-[760px]:bg-transparent max-[760px]:shadow-none'
                   : ''
@@ -97,13 +102,13 @@ export default function ExpenseCalendar({
                     {cell.totalAmt.toLocaleString('ko-KR')}
                   </span>
                   <span className="max-w-full truncate text-subtle max-[760px]:hidden">
-                    {cell.items.length === 1
-                      ? `${getPetLabel(cell.items[0])}·${getClsfName(cell.items[0].expndClsfCd)}`
-                      : `${cell.items.length}건`}
+                    {cell.only
+                      ? `${getPetLabel(cell.only)}·${getClsfName(cell.only.expndClsfCd)}`
+                      : `${cell.count}건`}
                   </span>
                   <span
                     aria-hidden="true"
-                    className={`hidden h-[5px] rounded-[3px] max-[760px]:block ${cell.items.length > 1 ? 'w-3.5' : 'w-[5px]'} ${isSelected ? 'bg-brand-600' : 'bg-[#4f8f86]'}`}
+                    className={`hidden h-[5px] rounded-[3px] max-[760px]:block ${cell.count > 1 ? 'w-3.5' : 'w-[5px]'} ${isSelected ? 'bg-brand-600' : 'bg-[#4f8f86]'}`}
                   />
                 </>
               )}

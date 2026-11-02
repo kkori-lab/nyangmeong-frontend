@@ -2,13 +2,13 @@ import { useState } from 'react';
 import StatLink from '@/components/StatLink';
 import { PATHS } from '@/routes/paths';
 import { getCurrentYm } from '@/utils/yearMonth';
-import { useExpenses } from '../queries';
+import { useExpenseStatistics } from '../queries';
 
 export default function ExpenseSummaryCard() {
   const [ym] = useState(getCurrentYm);
-  const { data: expenses, isError } = useExpenses({ fromYm: ym, toYm: ym });
+  const { data: stats, isError } = useExpenseStatistics(ym);
 
-  const total = expenses?.reduce((sum, expense) => sum + expense.expndAmt, 0);
+  const total = stats?.totalExpndAmt;
 
   return (
     <StatLink
