@@ -7,7 +7,12 @@ import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import NewsCategoryBadge from './NewsCategoryBadge';
 import NewsThumb from './NewsThumb';
-import { NEWS_CATEGORIES, NEWS_SRC_ADMIN } from './newsCodes';
+import {
+  getPressName,
+  hasSummary,
+  NEWS_CATEGORIES,
+  NEWS_SRC_ADMIN,
+} from './newsCodes';
 
 export default function NewsList({
   news,
@@ -107,15 +112,17 @@ export default function NewsList({
                       <h3 className="mt-2.5 truncate text-lg leading-[1.4] font-semibold tracking-[-0.18px] text-[#1a3234] group-hover:text-[#285a5c] max-[760px]:line-clamp-2 max-[760px]:whitespace-normal">
                         {item.newsTtl}
                       </h3>
-                      <p className="mt-3.5 line-clamp-2 min-h-[3.2em] text-base leading-[1.6] text-[#3d4a4b] max-[760px]:mt-2 max-[760px]:text-sm">
-                        {item.newsCn}
-                      </p>
+                      {hasSummary(item) && (
+                        <p className="mt-3.5 line-clamp-2 min-h-[3.2em] text-base leading-[1.6] text-[#3d4a4b] max-[760px]:mt-2 max-[760px]:text-sm">
+                          {item.newsCn}
+                        </p>
+                      )}
                     </div>
                     {!isAdmin && (
                       <NewsThumb
                         src={item.thmbUrlPath}
                         iconSize={40}
-                        className="col-start-2 row-span-2 row-start-1 min-h-[124px] self-stretch max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
+                        className="col-start-2 row-span-2 row-start-1 h-[150px] w-full self-start max-[760px]:order-1 max-[760px]:h-auto max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
                       />
                     )}
                     <div className="flex items-center gap-x-3 text-sm text-[#667374] max-[760px]:order-3">
@@ -125,7 +132,7 @@ export default function NewsList({
                         ) : (
                           <Newspaper size={16} />
                         )}
-                        {item.srcPressNm}
+                        {getPressName(item)}
                       </span>
                       <i className="text-[#b9c4c4] not-italic">·</i>
                       <time>{formatDate(item.pblcnDt)}</time>

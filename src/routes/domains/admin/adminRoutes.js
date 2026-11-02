@@ -24,6 +24,10 @@ const AdminPostDetailPage = lazy(
   () => import('@/pages/admin/AdminPostDetailPage'),
 );
 const AdminPostsPage = lazy(() => import('@/pages/admin/AdminPostsPage'));
+const AdminReportDetailPage = lazy(
+  () => import('@/pages/admin/AdminReportDetailPage'),
+);
+const AdminReportsPage = lazy(() => import('@/pages/admin/AdminReportsPage'));
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 
 export default [
@@ -44,6 +48,8 @@ export default [
       },
       { path: PATHS.ADMIN_POSTS, Component: AdminPostsPage },
       { path: PATHS.ADMIN_POST_DETAIL, Component: AdminPostDetailPage },
+      { path: PATHS.ADMIN_REPORTS, Component: AdminReportsPage },
+      { path: PATHS.ADMIN_REPORT_DETAIL, Component: AdminReportDetailPage },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
       {

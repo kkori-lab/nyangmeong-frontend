@@ -78,6 +78,8 @@ export const PATHS = {
   ADMIN_MEMBERS_WITHDRAWN: '/admin/members/withdrawn',
   ADMIN_POSTS: '/admin/posts',
   ADMIN_POST_DETAIL: '/admin/posts/:pstSn',
+  ADMIN_REPORTS: '/admin/reports',
+  ADMIN_REPORT_DETAIL: '/admin/reports/:dclrSn',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_BATCHES: '/admin/batches',
   ADMIN_EXTERNAL_API_USAGE: '/admin/external-api-usage',

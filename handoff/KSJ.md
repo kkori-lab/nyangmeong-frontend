@@ -2,11 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-CSC-002 자주 묻는 질문(FAQ) · API 연결 (2026-10-30) — 상태: 끝 (검증 `통과`(1회차 실패는 검증 브라우저 미로그인), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-02)
+SCR-CMU-003 펫뉴스 · API 연결 (2026-11-02) — 상태: 끝 (검증 `확인 못 함 있음`(1·2회차 실패는 첨부 이미지 404 처리), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-02)
 
-- 바꾼 것: `features/faq/api.js` 가짜를 `GET /faqs`(`page`·`size`·`faqClsfCd`·`keyword`)로, 질문 키 `qstnCn`→`qstnTtl`, 분류 칩은 코드 `CSCC0001~0004`와 디자인 문구 짝(`FAQ_CATEGORIES`), URL `?category=`는 이름 그대로 값만 코드, 모르는 코드는 전체로
-- 결정: 질문 옆 카테고리 배지는 넣지 않는다(디자인 기준, 명세 문구는 사람이 고침)
-- 확인 방법: 백엔드(8080) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`
+- 바꾼 것: `features/news/api.js` 가짜를 `GET /news`(`page`·`size`·`newsClsfCd`·`keyword`)·`GET /news/{newsSn}`로, 관리자 등록 글 출처는 「냥멍케어」(`getPressName`), 요약이 제목과 같은 기사는 요약 숨김(`hasSummary`), 관리자 글 첨부는 `FileImage`+`publicFileUrl`(404면 안 그림)
+- 추가 요청: 목록 썸네일 데스크탑 200×150 고정, 상세 썸네일·첨부는 원본 비율·크기(크면 본문 폭으로 줄이고 작으면 가운데, `NewsThumb` `natural`)
+- 결정: 화면설계서의 관리자 출처 「관리자」 표기는 고치지 않는다(사람 2026-11-02)
+- 확인 방법: 백엔드(8080) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`. 수집 기사는 관리자로 `POST /api/admin/batches/SYSC0028/run`(공용 DB에 쌓임)
 
 ## 다음에 할 것
 
@@ -27,7 +28,8 @@ SCR-CSC-002 자주 묻는 질문(FAQ) · API 연결 (2026-10-30) — 상태: 끝
 - SCR-CMU-001 연결 남음: 로그인 연결 후 글쓰기·수정 `ProtectedRoute`와 비로그인 좋아요·댓글·글쓰기 로그인 이동 후 복귀(FN-CMU-001-09·11·14·15, AIC), 댓글 알림 저장(FN-CMU-001-11, YAY `notification`). 기능명세서에 없는 「내 댓글 삭제」는 사람이 명세에 보완
 - SCR-CMU-002 연결 남음: FN-CMU-002-07 댓글 「작성자」 배지(백엔드 연결 실종 상세 응답 `mbrSn`, 백엔드 저장소에서 /start), FN-CMU-002-10·11 전북 밖 좌표 거절(백엔드 연결 `POST·PATCH /lost-reports`, 낮은 우선순위), FN-CMU-002-11 장소 검색을 YAY `GET /places`로 교체(YAY), FN-CMU-002-05·10 연락처 로그인 회원만·로그인 이동 후 복귀·`ProtectedRoute`(AIC), FN-CMU-002-09 종료 알림(YAY). 읍·면·동 필터는 DB `RGN` 전주시 아래 행이 생기면 다시 본다. 작성자가 찾았어요로 바꾼 글 상세에 [수정]이 보이는 것(서버는 실종 상태만 수정 허용)을 숨길지 정한다
 - SCR-CMU-002 사람이 정할 것: 실종 기간 필터 기준(화면설계서·기능명세서는 목격 날짜, ERD 비고 2026-09-23은 등록일시 `PST.REG_DT`), 품종 필수 여부(명세는 필수, ERD·디자인은 선택), 기능명세서 FN-CMU-002-09의 자동 댓글 이모지·「찾았어요!」 문구(디자인은 「찾았어요」)
-- SCR-CMU-003 연결 남음: 뉴스 API(KSJ 백엔드)로 `features/news/api.js` 가짜 교체(가정 키 `newsSn`·`newsClsfCd`·`newsSrcCd`·`newsTtl`·`newsCn`·`srcPressNm`·`orgtxtPath`·`pblcnDt`·`thmbUrlPath`, 카테고리 `CMUC0018~0021`·출처 `CMUC0022·0023`, 썸네일 URL 확인, 수집은 RSS), 첨부 이미지(`atchFileSn`) 표시(응답 모양을 본 뒤), 로그인 연결 후 `ProtectedRoute`로 감싸기(AIC)
+- SCR-CMU-003 연결 남음: FN-CMU-003-04 관리자 글 첨부 이미지 실제 표시(시드 첨부 4061~4074가 공개 주소에서 404, 관리자 뉴스 등록 화면 ADM이 공개 파일로 저장하는지, LJS). 관리자 등록이 비공개 파일이면 `NewsDetail.jsx`를 `useFileImage`로 바꾼다
+- 펫뉴스 데이터(백엔드, 필요하면 백엔드 저장소에서 /start): 시드 뉴스 썸네일이 `news.example.com` 가짜 주소라 자리 표시로 나옴, 수집 기사 요약에 `&#39;` 같은 HTML 엔티티가 그대로 남음(100번에서 봄). 공용 DB에 v0.11 (7)·(8) 뉴스 제외 키워드가 들어갔는지 확인 뒤 수집
 - 펫뉴스 「많이 본 뉴스」 레일: 디자인에는 있으나 기능명세서에 FN이 없고 ERD에 조회수 컬럼도 없어 뺐다(사람 결정 2026-10-22). 사람이 기능명세서에 FN(조회수 집계·기준 기간)과 ERD 컬럼을 추가하면 목록 오른쪽(1100px 이하는 목록 아래)과 상세 레일에 넣는다(디자인 `.st-rail`·`.rank`)
 - LJS 요청: `SubPageLayout`에 `back={false}`를 넘기면 머리에 목록용 메뉴 전환 ▾(761~1100px)가 켜진다(`hasSwitch = !title && !hasBack`). 본문 하단에 「목록으로」를 두는 상세(펫뉴스·공지)는 ▾와 위 「목록으로」를 모두 끄는 prop(예: `back="none"`)이 필요한지 정한다
 - CMU 화면은 `SubPageLayout`(`section="community"`)으로 만든다(사람 결정 2026-10-22): 상세는 `title` 없이 제목이 메뉴 이름이고 「목록으로」는 본문 하단, 글쓰기·수정은 `title="글쓰기"`와 `onLeave`로 「작성을 그만둘까요?」 확인, 본문 위 여백은 펫이야기 목록 `min-[1101px]:pt-0`, 펫돌봄·실종센터 목록 `min-[1101px]:pt-[7px]`
