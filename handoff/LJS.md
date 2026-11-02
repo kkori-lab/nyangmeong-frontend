@@ -2,10 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-113 관리자 계정 — 끝 (2026-11-02, 검증 `통과` 1회차·사람 확인). 실제 API로 관리자 목록·지정·해제를 붙였다. 지정 검색은 정지 모달의 검색을 `MemberSearch`로 공용화해 함께 쓴다
+SCR-ADM-011 회원 상세 — 끝 (2026-11-02, 검증 `확인 못 함 있음` 1회차·사람 확인). 가짜 응답으로 기본 정보, 탭 4개, 정지·해제 진입을 만들었다
 
 ## 다음에 할 것
 
+- SCR-ADM-011 연결 남음: FN-ADM-011-01~05 실제 API. 백엔드 저장소 SCR-ADM-011이 진행 중이다(작업 사본, 커밋 전). 탭 경로가 `/terms-agreements`·`/point-ledgers`로 가짜 `/terms`·`/points`와 다르다. `features/adminMember/api.js` 가짜(`maskedMblTelno`·`snsOffrCds`·`blncPnt`·`jntBrupCnt`·`petSeNm`·`brupRoleNm`·`trmsNm`·`trmsVerNo`·`agreYn`·`agreDt` 가정)를 그 문서에 맞춘다. 정지·해제 실제 연결은 SCR-ADM-012 연결 절
+- SCR-ADM-072 때: `routes/paths.js`에 `ADMIN_POINTS`를 넣고 회원 상세 [포인트 조정]을 켠다(`MemberPointsTab.jsx`, `/admin/points?mbrSn=`). 지금 넣으면 사이드바에 없는 화면 메뉴가 생긴다
+- SCR-ADM-011 실제 확인이 남은 것: 스켈레톤은 화면으로 못 봤고 높이는 계산값이다(`AdminMemberDetailPage.jsx`). 범위를 벗어난 `?page=`는 빈 문구만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 기본 정보 한 줄에 가입일 `2026-10-21`과 최근 로그인 `2026.10.22 14:02` 표기가 섞여 있다(`MemberDetailInfo.jsx`)
+- 원인 안 봄: SCR-ADM-011 검증 중 `/api/auth/me` 401로 로그인 화면으로 한 번 넘어갔고 다시 로그인하니 정상이었다
 - SCR-ADM-113 실제 확인이 남은 것: 스켈레톤은 화면으로 못 봤고 높이 240px는 잰 값이 아니다(`AdminAdminsPage.jsx`). 범위를 벗어난 `?page=`는 "관리자가 없어요"만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 마지막 관리자 [해제] 비활성은 내 행이 아닌 경우를 조작한 응답으로만 봤다
 - SCR-ADM-010 연결 때: `features/adminMember/api.js` `getAppointableMembers`는 `getAdminMembers`와 같은 요청이다. 가짜를 실제로 바꾸면 하나로 합치고 `useAppointableMembers`도 지운다
 - SCR-ADM-113 백엔드 병합 순서: 백엔드 LJS 브랜치의 관리자 지정·해제 API가 develop에 병합돼야 배포에서 동작한다
