@@ -2,24 +2,28 @@
 
 ## 지금 하는 것
 
-SCR-MYP-006 공동양육 연동 해제 · 확인 팝업·토스트를 실제 API로 — 끝 (2026-11-02, 검증 2회차 통과, 사람 확인 완료). lint·build 종료 코드 0. 추가-1 포함. BRUP_REL 1002는 복구 SQL로 되돌릴 것
-고른 이유: "다음에 할 것" 맨 위(SCR-MYP-002 가족 영역 후 남음)는 기존 레이아웃 문제·명세 확인·알림이라 마일스톤이 아니고, `milestones/SJM.md`의 `대기` 맨 위를 골랐다
-기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-006-01~05), 마이페이지_화면설계서_v0.6_20261021(SCR-MYP-006), 백엔드 `PetService.unlinkCaregiver`(같은 `DELETE /pets/{petSn}/caregivers/{brupRelSn}`로 공동양육자는 본인 줄만 해제, 남의 줄이면 403 `PET_PRIMARY_ONLY`, 주양육자 줄·없는 줄·이미 해제면 404 `CAREGIVER_NOT_FOUND`). 서버에 `caregivers/me` 경로는 없고, `GET /pets` 목록에 본인 `brupRelSn`이 없어 공동양육자에게 오는 양육자 목록의 공동양육자 줄(본인)에서 얻는다. 확인 팝업 문구·버튼은 이미 화면설계서대로라 화면은 그대로 두는 연결 작업이다
+SCR-MYP-002 반려동물 프로필 목록 · 반려동물 삭제를 실제 API로 — 끝 (2026-11-02, 검증 1회차 통과, 사람 확인 완료). lint·build 종료 코드 0. 사람이 FN-MYP-002-08을 DB로 연결해 확인했고(테스트 동물 삭제 뒤 공동양육 BRUP_REL USE_YN N), 대표는 까미로 되돌렸다
+고른 이유: "다음에 할 것" 맨 위(SCR-MYP-002 가족 영역 후 남음)는 레이아웃 문제·명세 확인·알림이라 마일스톤이 아니고, `milestones/SJM.md`의 `대기` 맨 위를 골랐다
+기준: 마이페이지_기능명세서_v0.5_20261101(FN-MYP-002-05·07·08), 마이페이지_화면설계서_v0.6_20261025(SCR-MYP-002 2-3), 백엔드 `PetService.deletePet`(`DELETE /pets/{petSn}`, 주양육자만: 아니면 403 `PET_PRIMARY_ONLY`, 없거나 이미 삭제면 404 `PET_NOT_FOUND`. 공동양육 연동 자동 해제·알림, 대표였으면 남은 주양육 동물 첫 마리로 승계는 서버가 한 트랜잭션에서 한다). 팝업 문구·버튼은 이미 화면설계서대로라 화면은 그대로 두는 연결 작업이다
 디자인: 해당 없음(기존 팝업 그대로)
 
-- FN-MYP-006-02 자진 해제: `features/pet/api.js` 가짜 `leavePet(petSn)`을 `leavePet({ petSn, brupRelSn })` → `api.delete('/pets/{petSn}/caregivers/{brupRelSn}')`로 바꾸고 주석의 `caregivers/me`를 고친다. `list/PetUnlinkDialog.jsx`는 `useCaregivers(pet.petSn)`(가족 영역이 이미 불러 둔 캐시)에서 `brupRoleCd === BRUP_ROLE.CO_PARENT` 줄의 `brupRelSn`을 찾아 넘기고, 목록을 읽는 동안·못 찾으면 [해제]를 비활성화한다. 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: 공동양육자 계정으로 `/mypage/pets`의 공동양육 동물에서 [연동 해제] → [해제]하면 네트워크에 `DELETE /api/pets/{petSn}/caregivers/{brupRelSn}` 200
-- FN-MYP-006-04·05 목록 반영·토스트: `queries.js` `useLeavePet` 성공 뒤 `petKeys.all` 무효화(지금 그대로, 양육자 목록도 함께 무효화됨). 성공하면 팝업을 닫고 토스트 "연동을 해제했어요". 실패 토스트는 고정 문구 대신 `error.message`(403 `PET_PRIMARY_ONLY`). 404 `CAREGIVER_NOT_FOUND`면 이미 해제된 것이라 팝업을 닫고 `petKeys.all`을 무효화한다. 완료 조건 — 명령: lint·build. 화면: 해제 뒤 `GET /api/pets`를 다시 읽어 그 동물이 슬라이드에서 빠지고, 토스트가 뜬다. 주양육자 계정으로 같은 동물을 보면 가족 영역에서 그 공동양육자가 빠져 있다
-- FN-MYP-006-01·03 팝업 노출·취소: 바꾸지 않는다(이미 화면설계서대로). 취소·Esc·바깥 클릭은 요청 중이 아닐 때만 닫힌다
-- 확인 계정: 지난 마일스톤의 시드 공동양육 관계(tester·user0006)를 쓴다. 해제하면 관계가 없어지고 초대 API가 아직 가짜라 화면에서 다시 맺을 수 없으므로, 해제 확인은 마지막에 한 번만 하고 되돌리기는 DB 시드로 한다(질문 1)
-- 이번에 하지 않음(다음 대기 절): 반려동물 삭제(SCR-MYP-002 삭제), 초대(SCR-MYP-005)는 가짜 그대로 둔다. 삭제 가짜가 쓰는 `fakePets`는 남는다
-질문: (1) 해제 확인으로 시드 관계 1건이 없어집니다. 확인 뒤 DB에서 되돌릴 수 있나요, 아니면 다른 계정·관계를 쓸까요? (추천: 시드 관계로 확인하고 다시 시드)
-결정: 추천안대로
+- FN-MYP-002-07 삭제 요청: `features/pet/api.js` 가짜 `deletePet`을 `api.delete('/pets/{petSn}')`로 바꾼다. `fakePets`는 캐릭터·초대 가짜가 계속 쓰므로 남긴다. 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: 주양육자 계정으로 `/mypage/pets`에서 ⋮ → [반려동물 삭제] → [삭제]하면 네트워크에 `DELETE /api/pets/{petSn}` 200
+- FN-MYP-002-05·07 목록 반영(추가-1과 같은 방식): `queries.js` `useDeletePet`을 `useLeavePet`의 `refreshAfterUnlink`와 같은 방식으로 바꾼다(목록 먼저 다시 읽고 → 삭제한 `petKeys.detail(petSn)` 제거 → 남은 `petKeys.all` 무효화). 삭제된 동물의 상세·캐릭터 이미지·양육자 재요청(404/403)이 나가지 않게 한다. 슬라이드는 기존 `currentIndex` 계산대로 같은 자리의 다음 동물(끝이면 등록 카드)로 간다. 완료 조건 — 명령: lint·build. 화면: 삭제 뒤 `GET /api/pets`를 다시 읽어 그 동물이 슬라이드에서 빠지고, 삭제된 petSn으로 가는 요청·콘솔 에러가 없다. 대표 동물을 지우면 등록일시가 빠른 다음 주양육 동물로 대표 표시가 승계된다(서버가 한다, 화면설계서 기준). 주양육 10마리에서 지우면 마지막 슬라이드가 등록 카드로 바뀐다(10마리 데이터가 없으면 확인 생략하고 보고)
+- FN-MYP-002-07 오류·팝업 동작·성공 토스트: `list/PetDeleteDialog.jsx`에서 성공하면 팝업을 닫고 토스트 "반려동물을 삭제했어요"(해제 토스트와 맞춤). 실패 토스트는 고정 문구 대신 `error.message`(403 `PET_PRIMARY_ONLY` 등). 404 `PET_NOT_FOUND`면 이미 삭제된 것이라 팝업을 닫고 목록을 맞춘다. 요청 중에는 [취소]를 비활성화하고 Esc·바깥 클릭으로 닫기를 `PetUnlinkDialog`와 같게 막는다(요청 중이 아닐 때만 닫힘). 완료 조건 — 명령: lint·build. 화면: 삭제하면 토스트 "반려동물을 삭제했어요"가 뜬다. 요청 중 [취소]·Esc가 막힌다. 404·403은 Playwright 가로채기로 응답을 바꿔 토스트 문구와 팝업 닫힘을 확인한다
+- 이번에 하지 않는 것: FN-MYP-002-08(공동양육 자동 해제·알림)은 서버 몫이라 프론트 변경 없음. 가계부 "(삭제됨)" 표기 갱신은 가계부 API가 아직 가짜라 가계부 연결 마일스톤에서 한다. 삭제 성공 토스트는 화면설계서에 없는 추가다(PR Design Decisions에 "설계서 후속 반영"으로 남긴다)
+- 확인 데이터: 반려동물 등록은 이미 실제 API(`POST /pets`, `api.js`)다. tester(mbrSn 1)로 화면에서 테스트 동물을 새로 등록해 쓴다. 삭제 확인은 테스트 동물로, 대표 승계도 테스트 동물을 대표로 지정한 뒤 지워 확인한다
+- 사람 확인 "정리": 대표 승계 확인이 끝나면 tester의 대표를 원래 동물(퍼그 까미)로 되돌린다(화면에서 까미 [대표 지정]). 테스트 동물은 삭제로 사라진다
+- 사람 확인(선택) FN-MYP-002-08 자동 해제: 초대 API가 가짜라 DB로 연결한다. (1) tester로 테스트 동물 등록 → (2) DB에 아래 INSERT로 user0006(mbrSn 6)을 공동양육자로 연결(`<테스트petSn>`은 등록 응답 또는 `GET /api/pets`의 petSn) → (3) tester로 삭제 → (4) user0006으로 `/mypage/pets`에서 그 동물이 빠지고 알림 "<이름>의 기록이 정리되어 공동양육 연동이 해제되었어요"가 오는지 확인 → (5) `SELECT USE_YN FROM BRUP_REL WHERE PET_SN = <테스트petSn> AND MBR_SN = 6;`이 'N'인지 확인
+  ```sql
+  INSERT INTO BRUP_REL (PET_SN, MBR_SN, BRUP_ROLE_CD, RPRS_PET_YN, MDFR_ID)
+  VALUES (<테스트petSn>, 6, 'PETC0019', 'N', '1');
+  ```
+  (`PETC0019` = 공동양육, `USE_YN`은 기본값 'Y'. 삭제하면 서버가 'N'으로 바꾸므로 따로 되돌릴 것은 없다)
+결정: 질문 1·2 사람 답 반영(2026-11-02)
 새 의존성: 없음
 
-### 추가 요청
-| 추가-1 | `features/pet/list/PetUnlinkDialog.jsx`, `pages/mypage/PetListPage.jsx`, `features/pet/queries.js` | 명령: lint·build. 화면: 공동양육자 계정으로 [해제] 성공 뒤 `GET /api/pets/{해제한 petSn}`·character-image·caregivers 재요청과 403·콘솔 에러가 없다(선택 동물을 먼저 다른 슬라이드로 옮기고 해제된 petSn 쿼리를 제거) | 요청 2026-11-02 "해제 직후 이미 해제된 pet 1에 상세·캐릭터 이미지·양육자 재요청이 403 3건 나가니, 선택 동물을 먼저 전환하고 해제된 petSn 쿼리를 제거·무효화해 달라" |
-
 ## 다음에 할 것
+- SCR-MYP-002 삭제 후 남음: (a) FN-MYP-002-08은 DB 수동 연결로 `USE_YN`·`RPRS_PET_YN`이 'N'이 되는 것까지 확인했다. 공동양육자에게 알림이 실제로 갔는지는 확인하지 못했으니 백엔드 알림 테스트로 확인한다. (b) 초대(SCR-MYP-005) 실연결 때 "초대 → 수락 → 삭제 → 자동 해제" 흐름을 화면으로 확인한다. (c) 삭제 성공 토스트는 설계서에 없는 추가라 팀에 설계서 후속 반영을 알린다. (d) 10마리 보유 때 삭제하면 등록 카드로 바뀌는 것은 데이터가 없어 화면으로 확인하지 못했다
 - SCR-MYP-002 가족 영역 후 남음: (a) 화면: 공동양육자 카드에서 [✕]가 이름 글자 위에 겹친다(탄이 "말랑한간식왕", 까미 "수줍은집사", 사람 확인 2026-11-01). 원래 있던 `MemberCard` 레이아웃 문제라 이번엔 고치지 않았다. (b) 명세 확인: 서버에 권한(`authrtNm`)이 없어 카드에서 권한 줄을 뺐다. 기능명세서 FN-MYP-004-01의 "이름·권한·연동일"을 팀에서 고칠지 정한다. (c) 알림: 공용 `utils/petCodes.js`의 `CGVR_ROLE`을 지웠다(`BRUP_ROLE`로 대체). LJS 등에 알린다
 - SCR-MYP-003 연결 후 남음: (a) 백엔드 연결: `PetSummary`에 `nutrYn`·`minBdwg`·`maxBdwg` 추가(백엔드 저장소에서 /start, 백엔드 마일스톤에 절을 넣었다). 지금은 슬라이드가 동물마다 `GET /pets/{petSn}` 상세를 불러 채운다(5마리면 5건). (b) 체중 입력 잠금: 서버는 체중 PATCH를 막지 않는다. 건강기록 API(JAJ)로 프론트에서 판단해 `PetFormModal`의 체중 읽기 전용·`lastBdwgRcd` 표시를 연결한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
 - [SCR-MYP-005 초대 연결 시] POST /caregiver-invitations 409 처리

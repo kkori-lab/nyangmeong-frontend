@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { showToast } from '@/components/toastStore';
 import { useDeletePet } from '../queries';
 
@@ -11,15 +12,37 @@ const withObjectParticle = (name) => {
 export default function PetDeleteDialog({ pet, onClose }) {
   const deletePet = useDeletePet();
 
+  /** 요청 중에는 닫기 불가 */
+  const close = () => {
+    if (!deletePet.isPending) onClose();
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') close();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  });
+
   const handleDelete = () =>
     deletePet.mutate(pet.petSn, {
-      onSuccess: onClose,
-      onError: () => showToast('삭제하지 못했어요. 잠시 후 다시 시도해 주세요'),
+      onSuccess: () => {
+        onClose();
+        showToast('반려동물을 삭제했어요');
+      },
+      onError: (error) => {
+        if (error.code === 'PET_NOT_FOUND') onClose();
+        showToast(error.message);
+      },
     });
 
   return (
     <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
-      <div className="fixed inset-0 bg-[rgba(15,23,35,0.45)]" />
+      <div
+        className="fixed inset-0 bg-[rgba(15,23,35,0.45)]"
+        onClick={close}
+      />
       <div
         role="alertdialog"
         aria-modal="true"
@@ -50,7 +73,8 @@ export default function PetDeleteDialog({ pet, onClose }) {
         <div className="flex gap-2 px-10 pb-6">
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
+            disabled={deletePet.isPending}
             className="h-11 min-w-0 flex-1 rounded-md border border-line bg-white font-semibold hover:border-line-strong hover:bg-surface-2"
           >
             취소
