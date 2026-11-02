@@ -99,7 +99,7 @@
 - 기다리는 것: 백엔드 `GET /pets/{petSn}/caregivers`(`linkYmd` 포함), 주양육자 강제 해제 `DELETE /pets/{petSn}/caregivers/{brupRelSn}` (SJM 백엔드, 끝남)
 - 완료 조건: 슬라이드 카드 가족 영역이 실제 목록(주양육자 첫 줄, 연동일)으로 바뀌고 주양육자의 [✕]가 강제 해제를 부른다. 공동양육자로 보면 주양육자와 본인만 보인다
 
-## SCR-MYP-006 공동양육 연동 해제 · 확인 팝업·토스트를 실제 API로 — 대기
+## SCR-MYP-006 공동양육 연동 해제 · 확인 팝업·토스트를 실제 API로 — 끝
 
 - 기능: 명세 기능 ID 추가 없음. FN-MYP-006-02·04와 걸친다
 - 기다리는 것: 백엔드 `DELETE /pets/{petSn}/caregivers/{brupRelSn}` (SJM 백엔드, 끝남)
