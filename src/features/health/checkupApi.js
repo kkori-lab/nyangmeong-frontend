@@ -302,7 +302,8 @@ export const createInspections = ({ petSn, ckupRcdSn, values }) =>
   api.post(`/pets/${petSn}/inspection-values`, { ckupRcdSn, values });
 
 /**
- * 저장된 행을 갱신: 검사 항목은 바꾸지 않고 결과값·단위·참고범위·메모만. null인 필드는 서버가 바꾸지 않는다
+ * 저장된 행을 갱신: 검사 항목은 바꾸지 않고 결과값·단위·참고범위·메모만
+ * - 참고범위는 `refRange` 묶음으로 보낸다. 안 보내면 유지, 둘 다 null이면 비운다
  * - 함께 넘어오는 ckupRcdSn은 캐시 무효화용이라 본문에 넣지 않는다
  */
 export const updateInspection = ({
@@ -317,8 +318,7 @@ export const updateInspection = ({
   api.patch(`/pets/${petSn}/inspection-values/${inspNvlSn}`, {
     rsltNvl,
     unitNm,
-    refLlmtNvl,
-    refUplmtNvl,
+    refRange: { refLlmtNvl, refUplmtNvl },
     memoCn,
   });
 

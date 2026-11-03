@@ -138,8 +138,6 @@ export default function LabInput({
   const itemName = getItemName(form);
   const hasOneSideRange =
     (form.rangeMin.trim() === '') !== (form.rangeMax.trim() === '');
-  /** 서버 수정은 null을 "안 바꿈"으로 받아, 저장된 참고범위는 비워서 지울 수 없다 */
-  const hasSavedRange = editItem?.refLlmtNvl != null;
   const takenNames = new Set([
     ...registeredNames,
     ...savableRows.map((row) => row.inspItmNm),
@@ -156,13 +154,16 @@ export default function LabInput({
     if (form.unit.trim() === '') errors.unit = '단위를 입력해 주세요';
     if (hasOneSideRange) {
       errors.range = '참고범위는 최소·최대를 함께 입력하거나 둘 다 비워 주세요';
-    } else if (isEdit && hasSavedRange && form.rangeMin.trim() === '') {
-      errors.range = '참고범위는 수정에서 지울 수 없어요';
     } else if (
       form.rangeMin.trim() !== '' &&
       !(isNumber(form.rangeMin) && isNumber(form.rangeMax))
     ) {
       errors.range = '참고범위는 숫자로 입력해 주세요';
+    } else if (
+      form.rangeMin.trim() !== '' &&
+      Number(form.rangeMin) > Number(form.rangeMax)
+    ) {
+      errors.range = '참고범위 최소는 최대보다 클 수 없어요';
     }
     return errors;
   };

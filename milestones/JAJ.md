@@ -179,11 +179,14 @@
 - 결정: "캐릭터 만들기" 카드를 되살림(디자인 기준), 생성 중·실패는 백엔드 기본 캐릭터 그대로(사람 결정)
 - 연결 남음: 없음
 
-## SCR-HLT-007 검사 수치 입력 · 참고범위 비우기 연결 — 대기
+## SCR-HLT-007 검사 수치 입력 · 참고범위 비우기 연결 — 끝
 
 - 기능: 명세 기능 ID 추가 없음, FN-HLT-007-02·03(참고범위 최소·최대는 둘 다 입력하거나 둘 다 비움)에 걸침. 백엔드 검사 수치 PATCH `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}`가 참고범위를 `refRange` 묶음(`{refLlmtNvl, refUplmtNvl}`)으로 받는다: 안 보내면 유지, 보내면 덮어씀, `{null, null}`이면 비움, 한쪽만 null이거나 최소 > 최대면 400(`data[0].field` `refRange.paired`·`refRange.ordered`). 등록 POST는 평평한 필드 그대로이고 최소 > 최대도 400(필드 목록 없음)
 - 기다리는 것: 백엔드 SCR-HLT-007 검사 수치 입력 · 참고범위 비우기 (끝, develop 병합 전이면 병합 뒤)
-- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `LabInput.jsx`·`BloodResultForm.jsx` 수정 저장 때 하한·상한을 `refRange`로 묶어 보내고(빈 칸은 null) "참고범위는 수정에서 지울 수 없어요" 막기를 지워, 저장된 참고범위를 둘 다 비우면 검진상세에서 "참고범위 없음"이 나온다. 한쪽만 입력하거나 최소 > 최대이면 저장 전에 막고 최소 > 최대는 "참고범위 최소는 최대보다 클 수 없어요"(`getFormErrors`의 짝 규칙 검사와 같은 자리, 등록·수정 모두). 범위 없으면 ▲▼ 판정 없음, 검사 수치 추이 밴드는 가장 최근 회차 범위이고 없으면 밴드 없음
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `LabInput.jsx`·`BloodResultForm.jsx` 수정 저장 때 하한·상한을 `refRange`로 묶어 보내고(빈 칸은 null) "참고범위는 수정에서 지울 수 없어요" 막기를 지워, 저장된 참고범위를 둘 다 비우면 검진상세에서 "참고범위 …" 줄이 사라지고 ▲▼ 표시도 없다. 한쪽만 입력하거나 최소 > 최대이면 저장 전에 막고 최소 > 최대는 "참고범위 최소는 최대보다 클 수 없어요"(`getFormErrors`의 짝 규칙 검사와 같은 자리, 등록·수정 모두). 범위 없으면 ▲▼ 판정 없음, 검사 수치 추이 밴드는 가장 최근 회차 범위이고 없으면 밴드 없음
+- 결과: 2026-11-03 검증 2회차 통과(1회차는 로그인 계정이 없어 화면 확인 못 함), 사람 확인 끝. `updateInspection`이 `refRange: { refLlmtNvl, refUplmtNvl }`를 항상 보내고, `LabInput.jsx`·`BloodResultForm.jsx`가 최소 > 최대를 막는다
+- 결정: 범위가 없으면 검진상세 "참고범위 …" 줄을 숨기는 기존 동작 그대로, "참고범위 없음" 문구는 더하지 않음(사람 결정). PDF 분석 행은 최소 > 최대 검사를 넣지 않음
+- 연결 남음: 없음
 
 ## SCR-HLT-002 건강 일지 · 지속 관찰 회차 수정 비우기 연결 — 끝
 
@@ -193,6 +196,19 @@
 - 결과: 2026-11-02 검증 2회차 통과, 사람 확인 끝. 수정 전 회차 값과 비교해 바뀐 값만 보내고 비운 칸은 `clearFields`로 보냄. 1회차는 `obsrvChgCd`를 보내지 않음
 - 결정: 디자인 `html/hlt-diary.html`, 수정 모드 사진 버튼 두 개 유지(버튼 정리는 사람이 화면 손볼 때)
 - 연결 남음: 없음
+
+## SCR-HLT-007 검사 수치 입력 · PDF 분석 연결 — 대기
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-005-04(검진상세 첨부 [PDF 분석])·FN-HLT-007-04·05·06(분석 결과 검수·검사 종류 표시·다시 분석·직접 입력하기)에 걸침. `checkupApi.js` `analyzeLabPdf` 가짜를 Python `POST /ai/checkups/lab-results`(LJS, `nyangmeong-ai` develop, `aiApi`)로 바꾼다. 요청은 multipart `file`(PDF, 최대 10MB, 로그인 쿠키 필요)이라 첨부 원본을 `getAttachmentFile`(Blob)로 받아 올린다. 응답 `items[]`는 `inspArtclCd`·`inspArtclDrctInptNm`·`rsltNvl`·`unitNm`·`refLlmtNvl`·`refUplmtNvl`, `excludedArtclNms[]`(가짜의 `inspItmNm`·`rsltVal`·`refMinVal`·`refMaxVal`·`bloodYn`과 다름, 검토 행 `labInput/`을 서버 키로 맞춘다). 오류 `NOT_LAB_RESULT` 422·`PDF_ANALYZE_TIMEOUT` 504·`PDF_ANALYZE_API_ERROR` 502. 가짜 메모리 저장소(`getStore`·시드)와 `?fakeCheckupDetail`을 지운다
+- 기다리는 것: 없음 (LJS에게 응답 모양 확정 여부 확인, 로컬 확인에는 AI 서버와 `LLM_API_KEY` 필요)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진상세 첨부 PDF에서 [PDF 분석]을 누르면 `POST /ai/checkups/lab-results`에 파일이 올라가고 검수 행이 응답 값으로 채워지며, 저장하면 `POST /pets/{petSn}/inspection-values`로 저장된다. 검사결과지가 아닌 PDF·시간 초과·분석 오류는 각각 안내가 나오고 [다시 분석]·[직접 입력하기]로 이어진다
+
+## SCR-HLT-002 건강 일지 · 영수증 일괄 저장 연결 — 대기
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-44(가계부 중복 확인)·46(가까운 예정 일정)과 영수증 저장(검진기록·처방약·가계부)에 걸침. `receiptApi.js`의 `prepareReceiptSave`·`saveReceiptCheckups`(검진기록은 실제, 처방약 `fakePrescriptions`·가계부 `fakeLedger`는 가짜, 반려동물마다 따로 저장)를 LJS 일괄 API `POST /api/receipts/{recptSn}/save-check`·`POST /api/receipts/{recptSn}/save`(검진기록·처방약·가계부 한 번에, 같은 요청 재전송은 200)로 바꾼다. `?fakeLedgerDup`·`?fakeReceiptSave` 가짜를 지운다
+- 기다리는 것: 백엔드 `expense/service/CheckupRecordFake`를 health 서비스로 교체. JAJ가 백엔드 저장소에서 health 서비스 메서드(같은 날 병원 일정 존재, 검진일 앞뒤 N일 미연결 병원 일정, 검진기록 생성(일정 연결·처방약 포함, `recptSn`), 영수증으로 만든 검진기록 조회)를 먼저 만들고, LJS가 `ReceiptSaveService`를 그 메서드로 바꾼다
+- 백엔드 연결: health 서비스 메서드 (백엔드 저장소에서 /start), `ReceiptSaveService` 교체 (LJS)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 영수증 결과 확인에서 저장하면 `save-check` 뒤 `save` 한 번만 요청하고, 검진기록·처방약·가계부 지출(마이페이지 가계부 목록)에 실제로 남는다. 같은 지출이 있으면 중복 안내, 가까운 예정 일정이 있으면 연결 선택이 나온다
 
 ## 제외
 
