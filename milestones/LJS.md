@@ -497,10 +497,13 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 2회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
 - 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세·가정 필드 이름·매칭 거래 상태 코드·실제 완료 사진, 백엔드 저장소에서 /start)
 
-## SCR-ADM-023 노출 콘텐츠 — 대기
+## SCR-ADM-023 노출 콘텐츠 — 끝
 - 기능: FN-ADM-023-01 오늘의 건강팁 현황, FN-ADM-023-02 건강팁 지정·해제, FN-ADM-023-03 지정 글 자동 대체, FN-ADM-023-04 오늘의 이야기 문구 관리, FN-ADM-023-05 오늘의 이야기 선택, FN-ADM-023-06 AI 코멘트 관리, FN-ADM-023-07 인기 포토 노출 제외
 - 기다리는 것: `/api/admin/community/exposure` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 오늘의 건강팁 지정·해제와 오늘의 이야기 문구가 반영된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 후보 문구 가정 필드 `todayPhrsSn`·`phrsCn`·200자(사람 2026-11-03 추천안대로). FN-ADM-023-07은 결번이라 만들지 않음. 건강팁 검색은 실제 `GET /api/admin/posts`, 나머지는 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-023-01·02·03·04·05·06 (백엔드 연결 `/api/admin/community/exposure` 건강팁 목록 `GET health-tips`·지정 `PUT`·해제 `DELETE health-tips/{pstSn}`·삭제·블라인드 시 자동 대체, 후보 문구 테이블과 `GET·POST·PATCH phrases`(가정 필드 `todayPhrsSn`·`phrsCn`·200자)·00:00 배치와 오늘 문구 `todayPhrs`, `GET commentaries`·`PATCH commentaries/{cmntyAiCmtrySn}`, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-050 펫뉴스 — 대기
 - 기능: FN-ADM-050-01 뉴스 목록 조회, FN-ADM-050-02 관리자 뉴스 등록·수정, FN-ADM-050-03 수집 기사 관리, FN-ADM-050-04 피드 소스 관리, FN-ADM-050-05 분류 키워드 관리, FN-ADM-050-06 수집 기사 자동 분류, FN-ADM-050-07 뉴스 수집 실행
