@@ -6,6 +6,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { showToast } from '@/components/toastStore';
+import { expenseKeys } from '@/features/expense/queries';
 import {
   cancelCareRecord,
   cancelLastDose,
@@ -488,6 +489,7 @@ export const useSaveReceiptCheckups = () => {
       queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all });
     },
   });
 };
