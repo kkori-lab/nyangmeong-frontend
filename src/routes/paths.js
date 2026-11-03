@@ -88,6 +88,7 @@ export const PATHS = {
   ADMIN_INQUIRY_DETAIL: '/admin/inquiries/:otoInqrySn',
   ADMIN_ITEMS: '/admin/items',
   ADMIN_NOTIFICATION_TEMPLATES: '/admin/notification-templates',
+  ADMIN_NOTIFICATION_LOGS: '/admin/notification-logs',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_BATCHES: '/admin/batches',
   ADMIN_EXTERNAL_API_USAGE: '/admin/external-api-usage',
