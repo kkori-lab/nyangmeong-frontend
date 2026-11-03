@@ -28,6 +28,9 @@ const AdminMemberSuspensionsPage = lazy(
 const AdminMembersWithdrawnPage = lazy(
   () => import('@/pages/admin/AdminMembersWithdrawnPage'),
 );
+const AdminNotificationLogsPage = lazy(
+  () => import('@/pages/admin/AdminNotificationLogsPage'),
+);
 const AdminNotificationTemplatesPage = lazy(
   () => import('@/pages/admin/AdminNotificationTemplatesPage'),
 );
@@ -75,6 +78,10 @@ export default [
       {
         path: PATHS.ADMIN_NOTIFICATION_TEMPLATES,
         Component: AdminNotificationTemplatesPage,
+      },
+      {
+        path: PATHS.ADMIN_NOTIFICATION_LOGS,
+        Component: AdminNotificationLogsPage,
       },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
