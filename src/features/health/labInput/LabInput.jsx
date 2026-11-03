@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, generatePath, useNavigate } from 'react-router-dom';
+import { Link, generatePath, useLocation, useNavigate } from 'react-router-dom';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
@@ -14,8 +14,10 @@ import { findBloodItem } from './bloodItems';
 import { DIRECT } from './ItemSelect';
 import LabItemForm from './LabItemForm';
 import {
+  getAnalyzedName,
   getExcludeReason,
   getSkippedNames,
+  toAnalyzedItems,
   toInspectionValue,
 } from './labRows';
 
@@ -33,17 +35,21 @@ const toText = (value) => (value == null ? '' : String(value));
 
 const isNumber = (text) => text.trim() !== '' && Number.isFinite(Number(text));
 
+/** 분석 항목 → 검수 행. 결과값은 입력칸이라 글자로 둔다 */
 const toRows = (items) =>
-  items.map((item, index) => ({
-    key: `${item.inspItmNm}-${index}`,
-    inspItmNm: item.inspItmNm,
-    isBlood: item.bloodYn !== false,
-    rsltVal: toText(item.rsltVal),
-    unitNm: toText(item.unitNm),
-    hasUnitInput: !item.unitNm,
-    refMinVal: item.refMinVal ?? null,
-    refMaxVal: item.refMaxVal ?? null,
-  }));
+  items.map((item, index) => {
+    const name = getAnalyzedName(item);
+    return {
+      key: `${name}-${index}`,
+      name,
+      isBlood: !item.isNonBlood,
+      rsltNvl: toText(item.rsltNvl),
+      unitNm: toText(item.unitNm),
+      hasUnitInput: !item.unitNm,
+      refLlmtNvl: item.refLlmtNvl ?? null,
+      refUplmtNvl: item.refUplmtNvl ?? null,
+    };
+  });
 
 /** 수정 진입: 저장된 행으로 입력칸을 채운다. 목록에 없는 항목 이름은 직접입력으로 */
 const toEditForm = (item) => {
@@ -67,6 +73,7 @@ const getItemName = (form) =>
  * - mode 'pdf': 분석 결과 확인 + 입력칸(추가로 넣을 항목이 있을 때만 사용), 'manual': 입력칸만, 'edit': 저장된 행 수정
  * - 저장하면 검진상세로 복귀. 취소는 입력값을 버리고 복귀
  * - analyzedItems가 없으면(새로고침 등) atchSn의 첨부 파일을 다시 분석
+ * - 검진상세에서 분석이 실패해 들어오면(state.analysisError) 다시 분석하지 않고 오류 안내부터
  */
 export default function LabInput({
   petSn,
@@ -78,6 +85,7 @@ export default function LabInput({
   atchSn,
 }) {
   const navigate = useNavigate();
+  const { state } = useLocation();
   const detailPath = generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
     petSn,
     ckupRcdSn,
@@ -88,6 +96,9 @@ export default function LabInput({
 
   const [isReviewOpen, setIsReviewOpen] = useState(mode === 'pdf');
   const [rows, setRows] = useState(() => toRows(analyzedItems ?? []));
+  const [analysisError, setAnalysisError] = useState(
+    () => state?.analysisError ?? null,
+  );
   const [form, setForm] = useState(() =>
     editItem ? toEditForm(editItem) : EMPTY_FORM,
   );
@@ -101,12 +112,25 @@ export default function LabInput({
 
   const runAnalysis = () =>
     analyzeLabPdf.mutate(
-      { ckupRcdSn, atchSn },
-      { onSuccess: (result) => setRows(toRows(result.items)) },
+      {
+        petSn,
+        ckupRcdAtchSn: atchSn,
+        fileNm: attachment?.orgnlFileNm,
+      },
+      {
+        onSuccess: (result) => {
+          setAnalysisError(null);
+          setRows(toRows(toAnalyzedItems(result)));
+        },
+        onError: (error) => {
+          setAnalysisError(error);
+          setRows([]);
+        },
+      },
     );
 
   useEffect(() => {
-    if (mode === 'pdf' && !analyzedItems) runAnalysis();
+    if (mode === 'pdf' && !analyzedItems && !analysisError) runAnalysis();
     // 처음 열 때 한 번만
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -118,13 +142,13 @@ export default function LabInput({
     ? rows.filter(
         (row) =>
           getExcludeReason(row, registeredNames) === null &&
-          row.rsltVal.trim() !== '',
+          row.rsltNvl.trim() !== '',
       )
     : [];
   const unitErrorNames = isSubmitted
     ? savableRows
         .filter((row) => row.unitNm.trim() === '')
-        .map((row) => row.inspItmNm)
+        .map((row) => row.name)
     : [];
 
   /** PDF 분석 중에는 입력칸이 선택 사항: 아무것도 넣지 않았으면 검사 생략 */
@@ -140,7 +164,7 @@ export default function LabInput({
     (form.rangeMin.trim() === '') !== (form.rangeMax.trim() === '');
   const takenNames = new Set([
     ...registeredNames,
-    ...savableRows.map((row) => row.inspItmNm),
+    ...savableRows.map((row) => row.name),
   ]);
 
   const getFormErrors = () => {
@@ -191,7 +215,7 @@ export default function LabInput({
     setIsSubmitted(true);
     const hasFormError = Object.keys(formErrors).length > 0;
     const hasRowError = savableRows.some((row) => row.unitNm.trim() === '');
-    const hasRowNumberError = savableRows.some((row) => !isNumber(row.rsltVal));
+    const hasRowNumberError = savableRows.some((row) => !isNumber(row.rsltNvl));
     if (hasFormError || hasRowError || hasRowNumberError) return;
 
     const rangeOf = (min, max) => ({
@@ -215,13 +239,13 @@ export default function LabInput({
       return;
     }
 
-    const names = savableRows.map((row) => row.inspItmNm);
+    const names = savableRows.map((row) => row.name);
     const values = savableRows.map((row) =>
-      toInspectionValue(row.inspItmNm, {
-        rsltNvl: Number(row.rsltVal),
+      toInspectionValue(row.name, {
+        rsltNvl: Number(row.rsltNvl),
         unitNm: row.unitNm.trim(),
-        refLlmtNvl: row.refMinVal,
-        refUplmtNvl: row.refMaxVal,
+        refLlmtNvl: row.refLlmtNvl,
+        refUplmtNvl: row.refUplmtNvl,
         memoCn: '',
       }),
     );
@@ -262,6 +286,7 @@ export default function LabInput({
           rows={rows}
           registeredNames={registeredNames}
           unitErrorNames={unitErrorNames}
+          analysisError={analysisError}
           isAnalyzing={analyzeLabPdf.isPending}
           onChangeRow={changeRow}
           onRerun={runAnalysis}

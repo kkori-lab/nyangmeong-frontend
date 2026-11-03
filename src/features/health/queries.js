@@ -425,9 +425,9 @@ export const useReplaceAttachment = () =>
 export const useDeleteAttachment = () =>
   useCheckupDetailMutation(deleteAttachment);
 
-/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 반환 */
+/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 반환. 실패 안내는 검사 수치 입력 화면이 보인다 */
 export const useAnalyzeLabPdf = () =>
-  useMutation({ mutationFn: analyzeLabPdf, onError: showErrorToast });
+  useMutation({ mutationFn: analyzeLabPdf });
 
 export const useCreateInspections = () =>
   useCheckupDetailMutation(createInspections);
