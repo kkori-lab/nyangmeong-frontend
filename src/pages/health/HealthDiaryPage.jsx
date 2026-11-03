@@ -103,7 +103,7 @@ export default function HealthDiaryPage() {
   /**
    * 영수증으로 검진기록 등록 흐름: null이면 닫힘
    * { step: 'upload' } 업로드(LJS) → { step: 'result', result } 인식 결과 확인
-   * 인식 실패 뒤 직접 입력은 { step: 'manual', rcptSn }
+   * 인식 실패 뒤 직접 입력은 { step: 'manual', recptSn }
    * features/health는 features/ai를 import 할 수 없어 두 도메인을 이 페이지가 연결
    * AI 대화창(SCR-AIM-013) [직접 입력]은 ?checkup=manual&recptSn=으로 와서 빈 폼으로 시작,
    *   [확인 후 저장]은 ?recptSn=&petSn=으로 와서 인식 결과를 받은 뒤 결과 확인으로 시작
@@ -112,7 +112,7 @@ export default function HealthDiaryPage() {
     searchParams.get('checkup') === 'manual'
       ? {
           step: 'manual',
-          rcptSn: Number(searchParams.get('recptSn')) || undefined,
+          recptSn: Number(searchParams.get('recptSn')) || undefined,
         }
       : null,
   );
@@ -299,7 +299,7 @@ export default function HealthDiaryPage() {
           defaultPetSn={selectedPetSn}
           onRecognized={(result) => setReceiptFlow({ step: 'result', result })}
           onManualInput={({ rcptSn } = {}) =>
-            setReceiptFlow({ step: 'manual', rcptSn })
+            setReceiptFlow({ step: 'manual', recptSn: rcptSn })
           }
           onClose={() => setReceiptFlow(null)}
         />
@@ -318,6 +318,7 @@ export default function HealthDiaryPage() {
           pets={pets}
           defaultPetSn={selectedPetSn}
           initialStep="form"
+          recptSn={receiptFlow.recptSn}
           onClose={() => setReceiptFlow(null)}
         />
       )}

@@ -66,7 +66,11 @@ import {
   updateDailyRecord,
   updateObservationCycle,
 } from './diaryApi';
-import { prepareReceiptSave, saveReceiptCheckups } from './receiptApi';
+import {
+  createReceiptCheckup,
+  prepareReceiptSave,
+  saveReceiptCheckups,
+} from './receiptApi';
 import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
@@ -183,7 +187,6 @@ export const useSaveCareMain = () => useCareMutation(saveCareMain);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
 
-/** 수정·삭제 UI는 화면설계서 갱신 뒤 따로 만든다 */
 export const useUpdateCareItem = () => useCareMutation(updateCareItem);
 
 export const useDeleteCareItem = () => useCareMutation(deleteCareItem);
@@ -331,8 +334,11 @@ export const useCheckupYears = (petSn) =>
     enabled: petSn != null,
   });
 
-/** 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐 */
-const useCheckupMutation = (mutationFn) => {
+/**
+ * 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐
+ * onError: 모달 안에 오류를 보이는 곳은 null로 토스트를 끈다(열린 모달 뒤에 가려짐)
+ */
+const useCheckupMutation = (mutationFn, onError = showErrorToast) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -342,11 +348,15 @@ const useCheckupMutation = (mutationFn) => {
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
     },
-    onError: showErrorToast,
+    onError,
   });
 };
 
 export const useCreateCheckup = () => useCheckupMutation(createCheckup);
+
+/** 오류(409 RECEIPT_ALREADY_SAVED·404 RECEIPT_NOT_FOUND 등)는 검진기록 등록 모달 안에 보인다 */
+export const useCreateReceiptCheckup = () =>
+  useCheckupMutation(createReceiptCheckup, null);
 
 export const useDeleteCheckup = () => useCheckupMutation(deleteCheckup);
 
