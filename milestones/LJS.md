@@ -481,10 +481,13 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
 - 연결 남음: FN-ADM-091-01 (백엔드 연결 `GET /api/admin/notification-logs` 목록·필터·쪽, `mbrNcnm`·기간 파라미터 이름, 백엔드 저장소에서 /start)
 
-## SCR-ADM-021 실종제보 — 대기
+## SCR-ADM-021 실종제보 — 끝
 - 기능: FN-ADM-021-01 실종제보 목록 조회, FN-ADM-021-02 실종제보 상세 조회, FN-ADM-021-03 기간 변경 없음
 - 기다리는 것: `/api/admin/lost-reports` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 상태별 실종제보 목록과 상세가 보인다
+- 결정: 디자인은 화면설계서 기준 + 발송 이력·게시글·댓글 화면 스타일, 백엔드 API도 LJS가 한다(사람 2026-11-03). 백엔드 API가 없어 가짜 응답으로 만듦
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-021-01·02·03 (백엔드 연결 `GET /api/admin/lost-reports` 목록·상태 필터·쪽, `GET /api/admin/lost-reports/{lostTpofSn}` 상세, `mbrNcnm`·`expryCrtrDt` 노출, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-022 펫돌봄 거래 — 대기
 - 기능: FN-ADM-022-01 모집글 목록 조회, FN-ADM-022-02 매칭 상세 조회, FN-ADM-022-03 채팅 내용 비노출
@@ -757,6 +760,22 @@
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-041-04 연결 작업)
 - 기다리는 것: `GET /api/common-codes?prntComCd=CSCG01` (LJS 백엔드, 끝)
 - 완료 조건: 탭(전체 + 이용방법·계정·신고/제재·기타)과 모달의 카테고리 선택지가 이 목록으로 그려진다
+
+## SCR-ADM-070 아이템 · 목록·이미지 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-070-01 연결 작업)
+- 기다리는 것: `GET /api/admin/items?itemRegnCd=`(판매 중지 포함, 페이지 없음, `[AdminItemSummary]`: itemSn·itemNm·itemRegnCd·itemRegnCdNm·needPnt·ntslYn(boolean)·sortSeq·atchFileSn·bakeHint·hldMbrCnt), `GET /api/admin/items/{itemSn}/image`(blob) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminItem/api.js` `getAdminItems`의 가짜 본문을 실제 요청으로 바꾼다. 판매 중지 아이템도 나오고 이미지는 blob으로 그린다. 신발 부위는 화면에서 계속 거른다
+- 이미 바뀐 것: `features/adminItem/api.js`(가짜 응답, 필드 이름은 백엔드와 같음)
+
+## SCR-ADM-070 아이템 · 등록·수정 모달 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-070-02·03 연결 작업)
+- 기다리는 것: `POST /api/admin/items`(multipart itemRegnCd·itemNm·needPnt·ntslYn·bakeHint(선택)·image, 201 `{itemSn}`), `PATCH /api/admin/items/{itemSn}`(multipart, 보낸 칸만, bakeHint 빈 값이면 지움) (LJS 백엔드, 끝)
+- 완료 조건: `createAdminItem`·`updateAdminItem`을 실제 요청으로 바꾼다. 같은 이름 409 `ITEM_NAME_DUPLICATED`, 보유 회원이 있는데 부위 변경 409 `ITEM_REGION_LOCKED`, 신발에 굽기 지시 400을 문구로 보여 준다. 굽기 지시 칸(영어 한 문장, 300자) 초안은 AI `POST /ai/items/bake-hints`로 채울지 정한다(신발은 칸 숨김)
+
+## SCR-ADM-070 아이템 · 순서 저장 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-070-04 연결 작업)
+- 기다리는 것: `PUT /api/admin/items/order` `{itemRegnCd, itemSns}` (LJS 백엔드, 끝)
+- 완료 조건: `saveAdminItemOrder`를 실제 요청으로 바꾼다. 그 부위 아이템 전부(판매 중지 포함, 화면에서 거른 것 없이)를 빠짐·중복 없이 보내야 하고 아니면 400 `INVALID_INPUT_VALUE`
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

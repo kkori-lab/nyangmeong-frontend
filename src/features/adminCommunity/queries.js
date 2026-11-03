@@ -8,6 +8,8 @@ import {
   blindPost,
   deleteComment,
   getAdminComments,
+  getAdminLostReport,
+  getAdminLostReports,
   getAdminPost,
   getAdminPosts,
   restorePost,
@@ -18,7 +20,22 @@ export const adminCommunityKeys = {
   posts: (params) => ['adminCommunity', 'posts', params],
   post: (pstSn) => ['adminCommunity', 'post', pstSn],
   comments: (params) => ['adminCommunity', 'comments', params],
+  lostReports: (params) => ['adminCommunity', 'lostReports', params],
+  lostReport: (lostTpofSn) => ['adminCommunity', 'lostReport', lostTpofSn],
 };
+
+export const useAdminLostReports = (params) =>
+  useQuery({
+    queryKey: adminCommunityKeys.lostReports(params),
+    queryFn: () => getAdminLostReports(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useAdminLostReport = (lostTpofSn) =>
+  useQuery({
+    queryKey: adminCommunityKeys.lostReport(lostTpofSn),
+    queryFn: () => getAdminLostReport(lostTpofSn),
+  });
 
 export const useAdminPosts = (params) =>
   useQuery({
