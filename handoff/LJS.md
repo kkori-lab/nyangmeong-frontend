@@ -2,13 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-ADM-091 발송 이력 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 1회차(연결 남음만), 사람 확인). 관리자 발송 이력 목록(기간·채널·유형·결과 필터, URL 쿼리 유지, 20건씩 쪽 번호, 재발송 버튼 없음)을 가짜 응답으로 만들었다
+SCR-ADM-021 실종제보 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 1회차(연결 남음만), 사람 확인). 관리자 실종제보 목록(상태 탭 URL 쿼리 유지, 20건씩 쪽 번호, 390px 한 줄 목록)·상세 모달(찾았어요는 제목·상태·처리 시각만, [게시글·댓글에서 보기])을 가짜 응답으로 만들었다
 
 ## 다음에 할 것
 
+- SCR-ADM-021 연결 남음: FN-ADM-021-01·02·03 (백엔드 연결 `GET /api/admin/lost-reports` 목록·상태 필터·쪽, `GET /api/admin/lost-reports/{lostTpofSn}` 상세(찾았어요는 제목·상태·처리 시각·`pstSn`만), 관리자에게 `mbrNcnm`·`expryCrtrDt` 노출, 실제 사진 `atchFileSn`·`pstSn`, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 실종제보 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-021 사람이 볼 것(판정 밖): 가짜 만료 제보의 만료 기준일이 미래 날짜라 실제와 다르다(상세 모달에서만 보임). `routes/paths.js`에 `ADMIN_LOST_REPORTS`를 기능 커밋에 같이 넣었다. 백엔드 `docs/admin/implementation-plan.md`의 SCR-ADM-021 담당 KSJ → LJS는 사람이 고친다
+- PR 캡처 확인: SCR-ADM-021 캡처 `LJS-20261103-SCR-ADM-021-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
+
 - SCR-ADM-091 연결 남음: FN-ADM-091-01 (백엔드 연결 `GET /api/admin/notification-logs` 목록·필터·쪽, 수신 회원 닉네임 `mbrNcnm`(가정), 기간 파라미터 이름(가짜 `fromYmd`·`toYmd`, 감사 로그는 `bgngYmd`·`endYmd`), 백엔드 저장소에서 /start). 나오면 `features/adminNotificationLog/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-091 사람이 정할 것: `routes/paths.js`에 `ADMIN_NOTIFICATION_LOGS`를 기능 커밋에 같이 넣었다(`docs/convention/shared-files.md`는 따로 PR). PR 때 나눌지 정한다. 대시보드 "알림 발송 실패" 링크(`?sndngRsltCd=AIMC0019&fromYmd=`)는 SCR-ADM-001 때 붙인다
-- PR 캡처 확인: SCR-ADM-091 캡처 `LJS-20261103-SCR-ADM-091-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
 
 - SCR-ADM-090 연결 남음: FN-ADM-090-01~03 (백엔드 연결 `GET·POST /api/admin/notification-templates`·`PATCH /api/admin/notification-templates/{notiTmpltSn}`, `useYn` 모양('Y'|'N' 가정)·유형별 치환 변수, 백엔드 저장소에서 /start). 나오면 `features/adminNotificationTemplate/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-090 사람이 볼 것(판정 밖): 목록 스켈레톤 높이(1108px, 모바일 1160px)는 20행 기준 계산값인데 실제 AIMG02는 9종이라 18행이다(`AdminNotificationTemplatesPage.jsx`). 템플릿 목록 자체 오류(403 아닌 것) 분기는 코드로만 봤다. 치환 변수 칩은 케어 일정 기준 목록을 모든 유형에 똑같이 보인다. 화면설계서의 `{변수}` 표기를 `{{변수}}`로 고치는 것은 사람 몫

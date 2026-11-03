@@ -78,6 +78,7 @@ export const PATHS = {
   ADMIN_MEMBERS_WITHDRAWN: '/admin/members/withdrawn',
   ADMIN_POSTS: '/admin/posts',
   ADMIN_POST_DETAIL: '/admin/posts/:pstSn',
+  ADMIN_LOST_REPORTS: '/admin/lost-reports',
   ADMIN_REPORTS: '/admin/reports',
   ADMIN_REPORT_DETAIL: '/admin/reports/:dclrSn',
   ADMIN_NOTICES: '/admin/notices',
