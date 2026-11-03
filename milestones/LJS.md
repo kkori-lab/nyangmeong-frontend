@@ -489,10 +489,13 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
 - 연결 남음: FN-ADM-021-01·02·03 (백엔드 연결 `GET /api/admin/lost-reports` 목록·상태 필터·쪽, `GET /api/admin/lost-reports/{lostTpofSn}` 상세, `mbrNcnm`·`expryCrtrDt` 노출, 백엔드 저장소에서 /start)
 
-## SCR-ADM-022 펫돌봄 거래 — 대기
+## SCR-ADM-022 펫돌봄 거래 — 끝
 - 기능: FN-ADM-022-01 모집글 목록 조회, FN-ADM-022-02 매칭 상세 조회, FN-ADM-022-03 채팅 내용 비노출
 - 기다리는 것: `/api/admin/care-matches` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 모집·매칭 상태와 이력이 보이고 채팅 내용은 없다
+- 결정: 디자인은 화면설계서 기준 + 실종제보 화면 스타일(사람 2026-11-03 "추천안대로"). 백엔드 API가 없어 가짜 응답으로 만듦. 추가-1 합의 조건 표기 "v2" → "2차 합의"(사람 2026-11-03)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 2회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세·가정 필드 이름·매칭 거래 상태 코드·실제 완료 사진, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-023 노출 콘텐츠 — 대기
 - 기능: FN-ADM-023-01 오늘의 건강팁 현황, FN-ADM-023-02 건강팁 지정·해제, FN-ADM-023-03 지정 글 자동 대체, FN-ADM-023-04 오늘의 이야기 문구 관리, FN-ADM-023-05 오늘의 이야기 선택, FN-ADM-023-06 AI 코멘트 관리, FN-ADM-023-07 인기 포토 노출 제외
@@ -781,6 +784,12 @@
 - 기다리는 것: `PUT /api/admin/items/order` `{itemRegnCd, itemSns}` (LJS 백엔드, 끝)
 - 완료 조건: `saveAdminItemOrder`를 실제 요청으로 바꾼다. 그 부위 아이템 전부(판매 중지 포함, 화면에서 거른 것 없이)를 빠짐·중복 없이 보내야 하고 아니면 400 `INVALID_INPUT_VALUE`
 - 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 판매 중지 포함 전부 전송·새로고침 뒤 유지, 검증 뒤 원래 순서로 되돌림), 사람 확인 2026-11-03
+
+## SCR-ADM-090 알림 템플릿 · 목록·등록·수정 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-090-01·02·03
+- 기다리는 것: `GET /api/admin/notification-templates?notiChnlCd=`(등록된 템플릿만 `[{ notiTmpltSn, notiTypeCd, notiChnlCd, notiTtl, notiCn, useYn(boolean) }]`, 유형·채널 코드순, 모르는 채널 400), `POST /api/admin/notification-templates`(`{ notiTypeCd, notiChnlCd, notiTtl(선택, 200자), notiCn(필수, 4000자), useYn(boolean) }` → 201 `{ notiTmpltSn }`, 같은 유형·채널 409 `NOTIFICATION_TEMPLATE_DUPLICATED`, 케어 일정(AIMC0008) 외 유형 400 `NOTIFICATION_TEMPLATE_NOT_SUPPORTED`, 모르는 `{{변수}}` 400 `INVALID_INPUT_VALUE`), `PATCH /api/admin/notification-templates/{notiTmpltSn}`(`{ notiTtl, notiCn, useYn }` 세 칸 덮어씀, 없으면 404) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminNotificationTemplate/api.js` 가짜 본문을 실제 요청으로 바꾼다. `useYn`은 `'Y'|'N'`이 아니라 `true`/`false`. 케어 일정 외 유형 행은 [등록] 없이 "기본 문구"만 보인다. 치환 변수 칩은 케어 일정 기준 `{{닉네임}}`·`{{반려동물명}}`·`{{검진유형}}`·`{{병원명}}`·`{{일정일}}`·`{{시간}}`·`{{D-N}}`·`{{캘린더링크}}`. 409·400 오류 문구를 모달에 보인다
+- 이미 바뀐 것: `features/adminNotificationTemplate/api.js`(가짜 응답, `useYn` 'Y'|'N' 가정), `TemplateTable.jsx`·`TemplateFormModal.jsx`(모든 유형에 [등록]·같은 변수 칩)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

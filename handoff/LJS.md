@@ -2,9 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-ADM-070 아이템 · 목록·이미지·등록·수정 모달·순서 저장 연결 — 끝 (2026-11-03, 검증 `통과` 1회차, 사람 확인). `features/adminItem/api.js` 가짜 응답을 실제 `/api/admin/items` 다섯 개로 바꾸고 등록·수정 모달에 굽기 지시 칸(선택, 300자)을 넣었다
+SCR-ADM-022 펫돌봄 거래 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회차(연결 남음만, 가짜 응답 기준), 사람 확인). `/admin/care-matches` 모집글 목록·상태 탭·쪽 번호와 매칭 상세 모달(매칭 탭·상태 이력·합의 조건·완료 사진·보호자 확인, `?rcrtSn=` 바로 열기)을 가짜 응답으로 만들었다. 추가-1 합의 조건 표기 "2차 합의"
 
 ## 다음에 할 것
+
+- SCR-ADM-022 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세, 가정 필드 이름 `ctptNcnm`·`agreVerNo`·`agreDt`·`agreCn`·`cmplReqDt`·`cmplImgs`·`ownerCfmtnRsltCd`·`ownerCfmtnDt`, 매칭 거래 상태 코드(가짜 `REQUESTED` 등)·보호자 확인 코드, 실제 완료 사진, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 펫돌봄 가짜 본문과 `careMatchLabels.js` 코드만 바꾼다
+- SCR-ADM-022 사람이 볼 것(판정 밖): 비용 단위 코드가 백엔드 `CareCostUnit`(PCAC0004·0005)과 회원용 펫돌봄 화면(PCAC0011·0012)이 다르다. 관리자 화면은 백엔드 값을 따랐다. `routes/paths.js`에 `ADMIN_CARE_MATCHES`를 기능 커밋에 같이 넣었다. 백엔드 마일스톤 SCR-ADM-022 절의 "KSJ 협의" 표기는 사람이 맞춘다
 
 - SCR-ADM-021 연결 남음: FN-ADM-021-01·02·03 (백엔드 연결 `GET /api/admin/lost-reports` 목록·상태 필터·쪽, `GET /api/admin/lost-reports/{lostTpofSn}` 상세(찾았어요는 제목·상태·처리 시각·`pstSn`만), 관리자에게 `mbrNcnm`·`expryCrtrDt` 노출, 실제 사진 `atchFileSn`·`pstSn`, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 실종제보 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-021 사람이 볼 것(판정 밖): 가짜 만료 제보의 만료 기준일이 미래 날짜라 실제와 다르다(상세 모달에서만 보임). `routes/paths.js`에 `ADMIN_LOST_REPORTS`를 기능 커밋에 같이 넣었다. 백엔드 `docs/admin/implementation-plan.md`의 SCR-ADM-021 담당 KSJ → LJS는 사람이 고친다
