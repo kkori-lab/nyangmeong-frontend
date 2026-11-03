@@ -1,5 +1,5 @@
 import { Cat, Dog } from 'lucide-react';
-import { CHRC_STTS, PET_SE } from '@/utils/petCodes';
+import { PET_SE } from '@/utils/petCodes';
 import FileImage from '@/components/FileImage';
 import { useFileImage } from '@/hooks/useFileImage';
 import { characterImageOptions } from '@/hooks/useCharacterImage';
@@ -8,11 +8,11 @@ import { characterImageOptions } from '@/hooks/useCharacterImage';
  * 반려동물 캐릭터 얼굴 (마이페이지·건강기록·건강일지·메인에서 공용)
  *
  * 사용법
- *   <PetFace petSn={pet.petSn} petSeCd={pet.petSeCd} chrcSttsCd={pet.chrcSttsCd} className="size-16 rounded-full" iconClassName="size-7" alt="초코 캐릭터" />
+ *   <PetFace petSn={pet.petSn} petSeCd={pet.petSeCd} isError={pet.bscCharSbstYn} className="size-16 rounded-full" iconClassName="size-7" alt="초코 캐릭터" />
  *
  * - petSn: 얼굴 이미지 요청용
  * - petSeCd: 이미지가 없을 때 그릴 기본 아이콘 종류(강아지·고양이)
- * - chrcSttsCd: 오류 확인 중이면 흑백 표시
+ * - isError: 오류 확인 중(bscCharSbstYn)이면 흑백 표시
  * - className: 크기·모양·바탕 지정. 이미지와 기본 아이콘 자리에 똑같이 붙으므로 `rounded-full`, `size-*`는 여기에 지정
  * - iconClassName: 기본 아이콘(종별 강아지·고양이) 크기. 기본 `size-7`
  * - alt: 이미지 설명. 꾸밈용이면 비워 둔다(기본 빈 문자열)
@@ -25,14 +25,14 @@ import { characterImageOptions } from '@/hooks/useCharacterImage';
 export default function PetFace({
   petSn,
   petSeCd,
-  chrcSttsCd,
+  isError = false,
   className = '',
   iconClassName = 'size-7',
   alt = '',
   fallback,
 }) {
   const { src, isPending } = useFileImage(characterImageOptions(petSn, 'face'));
-  const muted = chrcSttsCd === CHRC_STTS.ERROR ? ' opacity-55 grayscale' : '';
+  const muted = isError ? ' opacity-55 grayscale' : '';
   const Icon = petSeCd === PET_SE.CAT ? Cat : Dog;
 
   return (

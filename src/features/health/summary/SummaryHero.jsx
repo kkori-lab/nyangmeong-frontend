@@ -5,7 +5,7 @@ import Icon from '@/components/Icon';
 import PetFace from '@/components/PetFace';
 import { PATHS } from '@/routes/paths';
 import { diffDays, formatDate } from '@/utils/formatDate';
-import { BRUP_ROLE, CHRC_STTS } from '@/utils/petCodes';
+import { BRUP_ROLE } from '@/utils/petCodes';
 import { formatAge, getGndrName, getVrtyName } from '@/utils/petFormat';
 import { DOSING } from '../checkup/checkupTypes';
 import { usePixelCharacters } from '../queries';
@@ -212,7 +212,7 @@ function PetImage({ pet, className, isLarge = false }) {
     <PetFace
       petSn={pet.petSn}
       petSeCd={pet.petSeCd}
-      chrcSttsCd={pet.bscCharSbstYn ? CHRC_STTS.ERROR : pet.chrcSttsCd}
+      isError={pet.bscCharSbstYn}
       className={`shrink-0 overflow-hidden ${
         isLarge
           ? 'rounded-modal bg-white text-subtle'
