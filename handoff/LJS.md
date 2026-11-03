@@ -2,9 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-ADM-070 아이템 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회차 이후 추가-1 포함(연결 남음만), 사람 확인). 관리자 아이템 목록·부위 탭·등록·수정·판매 중지·순서 바꾸기(위·아래)를 가짜 응답으로 만들었다. 추가-1로 관리자 화면에서 신발 부위를 뺐다
+SCR-ADM-090 알림 템플릿 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 1회차(연결 남음만), 사람 확인). 관리자 알림 템플릿 목록(유형 × 채널, 채널 탭)·등록·수정 모달(치환 변수 `{{변수}}` 커서 삽입)·기본 문구 표시를 가짜 응답으로 만들었다. SCR-ADM-073은 명세 결번이라 마일스톤에서 제외로 옮겼다
 
 ## 다음에 할 것
+
+- SCR-ADM-090 연결 남음: FN-ADM-090-01~03 (백엔드 연결 `GET·POST /api/admin/notification-templates`·`PATCH /api/admin/notification-templates/{notiTmpltSn}`, `useYn` 모양('Y'|'N' 가정)·유형별 치환 변수, 백엔드 저장소에서 /start). 나오면 `features/adminNotificationTemplate/api.js` 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-090 사람이 볼 것(판정 밖): 목록 스켈레톤 높이(1108px, 모바일 1160px)는 20행 기준 계산값인데 실제 AIMG02는 9종이라 18행이다(`AdminNotificationTemplatesPage.jsx`). 템플릿 목록 자체 오류(403 아닌 것) 분기는 코드로만 봤다. 치환 변수 칩은 케어 일정 기준 목록을 모든 유형에 똑같이 보인다. 화면설계서의 `{변수}` 표기를 `{{변수}}`로 고치는 것은 사람 몫
+- PR 캡처 확인: SCR-ADM-090 캡처 `LJS-20261103-SCR-ADM-090-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
 
 - SCR-ADM-070 연결 남음: FN-ADM-070-01~04 (백엔드 연결 `GET /api/admin/items`·`GET /api/admin/items/{itemSn}/image`·`POST /api/admin/items`·`PATCH /api/admin/items/{itemSn}`·`PUT /api/admin/items/order`, 보유 회원 수 필드 이름(가짜 `hldMbrCnt`), 백엔드 저장소에서 /start). 나오면 `features/adminItem/api.js` 가짜 본문만 실제 요청으로 바꾼다(등록·수정은 multipart)
 - SCR-ADM-070 연결 남음: 추가-1 (백엔드 연결 공통코드 MYPG01에서 신발 제외·기존 신발 아이템과 보유·착용 처리, 백엔드 저장소에서 /start). 정리되면 `api.js` `EXCLUDED_PART_NAMES` 이름 거르기를 지운다. 문서(FN-ADM-070-02, 화면설계서 SCR-ADM-070 부위 목록) 갱신은 사람 몫
