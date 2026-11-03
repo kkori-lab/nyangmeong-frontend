@@ -514,10 +514,14 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 2회차, 연결 남음만, 가짜 응답 기준·뉴스 수집 실행은 실제 API), 사람 확인 2026-11-03
 - 연결 남음: FN-ADM-050-01·02·03·05 (백엔드 연결 `GET /api/admin/news` 목록·필터·쪽, `POST·PATCH /api/admin/news`·썸네일 `atchFileSn`, `GET·POST·DELETE /api/admin/news/keywords`(가정 필드 `kwrdDictSn`·`mpngCd`·`kwrdCn`·`sortSeq`), 백엔드 저장소에서 /start)
 
-## SCR-ADM-101 품종·지역 — 대기
+## SCR-ADM-101 품종·지역 — 끝
 - 기능: FN-ADM-101-01 품종 관리, FN-ADM-101-02 지역 조회
 - 기다리는 것: `/api/admin/breeds, /api/admin/regions` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 품종 등록·수정이 목록에 반영되고 지역은 조회만 된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03 추천안대로). 지역은 관리자 전용 API 없이 실제 공용 `GET /api/regions`로 조회만. 읍면동 실제 값 확인은 1회차 실패 뒤 사람이 잠금을 풀고 조건에서 뺌(당시 DB 0건)
+- 추가 요청: 추가-1 지역 탭을 시도 고르기 없이 전북특별자치도(`admdstCd` 5200000000) 시군구 → 읍면동 조회로(`RegionBrowser.jsx`·`api.js`, 사람 요청 2026-11-03 "서비스는 전라북도만")
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 연결 남음만, 품종은 가짜 응답 기준·지역은 실제 API), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함), 백엔드 저장소에서 /start)
 
 ## SCR-ADM-051 약관 — 대기
 - 기능: FN-ADM-051-01 약관 목록 조회, FN-ADM-051-02 약관 새 버전 등록, FN-ADM-051-03 약관 버전 이력 조회, FN-ADM-051-04 관리 대상 약관, FN-ADM-051-05 기존 회원 재동의
@@ -816,6 +820,12 @@
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-021-01·02·03
 - 기다리는 것: `GET /api/admin/lost-reports?page=&size=20&lostTpofSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, mbrSn, mbrNcnm, expryCrtrDt, regDt }`, 만료 기준 일시가 지난 실종은 `CMUC0008`, 찾았어요 행은 `expryCrtrDt` null, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/lost-reports/{lostTpofSn}`(실종·만료는 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, dscvSwtcDt, mbrSn, mbrNcnm, regDt, pstCn, expryCrtrDt, imgs[{ atchFileSn, sortSeq }] }`, 찾았어요는 `lostTpofSn·pstSn·pstTtl·lostTpofSttsCd·dscvSwtcDt`만 있고 나머지 null, 없거나 정상 글이 아니면 404 `LOST_REPORT_NOT_FOUND`, 강제 만료·기간 조정 API 없음) (LJS 백엔드, 끝)
 - 완료 조건: `features/adminCommunity/api.js` 실종제보 목록·상세 가짜 본문을 실제 요청으로 바꾼다. 필드 이름은 가짜와 같은 `mbrNcnm`·`expryCrtrDt`. 블라인드·삭제 글은 목록에 나오지 않고, 상세에 연락처·반려동물 정보가 없다(가짜에 있으면 화면에서 뺀다). 400·404 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+
+## SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-022-01·02·03
+- 기다리는 것: `GET /api/admin/care-matches?page=&size=20&rcrtSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ petPrtcRcrtSn, pstSn, pstTtl, rcrtSttsCd, mbrSn, mbrNcnm, cstAmt, cstUnitCd, regDt }`, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/care-matches/{petPrtcRcrtSn}`(목록 행 + `mtchs[]` 최신순·없으면 빈 배열, 매칭마다 `{ petPrtcMtchSn, ctptMbrSn, ctptNcnm, mtchDlngSttsCd, rcvYn, rcvIdntyDt, regDt, cndVers[{ cndVerNo, cstUnitCd, acrdCstAmt, acrdPrtcCn, acrdPrtcBgngDt, acrdPrtcEndDt, regDt }](버전 내림차순), sttsHstry[{ bfrSttsCd, aftrSttsCd, cndVerNo, chgRsn, regDt }](오래된 순), cmptnDmnds[{ dmndCycl, cmptnCn, spclMttrCn, prtcEndDt, prtcrIdntyRsltCd, prtcrIdntyDt, splmntDmndRsn, regDt, imgs[{ atchFileSn, sortSeq }] }](회차 순) }`, 블라인드 글도 열림, 없거나 삭제 글 404 `CARE_RECRUITMENT_NOT_FOUND`, 채팅 내용 없음) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminCommunity/api.js` 펫돌봄 목록·매칭 상세 가짜 본문을 실제 요청으로 바꾼다. 가짜와 다른 점: 조건 버전·완료 요청은 한 건이 아니라 목록(`cndVers`·`cmptnDmnds`, 가짜 `agreVerNo·agreDt·agreCn`·`cmplReqDt·cmplImgs·ownerCfmtnRsltCd·ownerCfmtnDt` 대신), 매칭 거래 상태는 가짜 `REQUESTED·MATCHED·DONE_REQ·COMPLETE·CANCELED` 대신 공통코드 PCAG05(PCAC0012 수락 대기·0013 매칭 완료·0014 확인 대기·0015 수령 대기·0016 거래 완료·0017 요청 취소·0018 무응답 종료), 보호자 확인 결과는 가짜 `CONFIRMED·REJECTED` 대신 PCAG06(PCAC0019 완료 확인·PCAC0020 보완 요청). 매칭이 여럿이면 탭으로 나눈다. 완료 사진은 지금 `/api/files/public/{atchFileSn}`으로 열리지 않는다(백엔드 연결 남음, KSJ와 정함). 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
 
 ## 제외
