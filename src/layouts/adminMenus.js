@@ -129,11 +129,7 @@ export const ADMIN_MENUS = [
     label: '기준정보',
     items: [
       { label: '공통코드', screenId: 'SCR-ADM-100', pathKey: 'ADMIN_CODES' },
-      {
-        label: '품종·지역',
-        screenId: 'SCR-ADM-101',
-        pathKey: 'ADMIN_BREEDS_REGIONS',
-      },
+      { label: '품종', screenId: 'SCR-ADM-101', pathKey: 'ADMIN_BREEDS' },
     ],
   },
   {

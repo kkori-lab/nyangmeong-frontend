@@ -16,7 +16,7 @@ export default function TermsTable({ terms, onHistory }) {
   );
 
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className="relative overflow-x-auto rounded-[14px] border border-line bg-white">
       <table className="w-full min-w-[640px] table-fixed text-left text-base max-[760px]:text-sm">
         <colgroup>
           <col className="w-[200px] max-[760px]:w-[148px]" />

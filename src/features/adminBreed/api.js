@@ -1,12 +1,10 @@
-import { api } from '@/api/axios';
 import { PET_SE } from '@/utils/petCodes';
 
 /**
- * [관리자 품종·지역 API]
- * - 품종: 백엔드 `/api/admin/breeds` 없음 -> 메모리 배열 가짜 응답, 새로고침하면 처음 값
- *   필드 이름은 백엔드 `VRTY`(BreedSummary) 그대로 + useYn
- *   공용 GET /api/breeds는 사용 안 함 품종이 빠질 수 있어 쓰지 않음
- * - 지역: 실제 GET /api/regions?upRgnSn= (조회만)
+ * [관리자 품종 API]
+ * - 백엔드 `/api/admin/breeds` 없음 -> 메모리 배열 가짜 응답, 새로고침하면 처음 값
+ * - 필드 이름은 백엔드 `VRTY`(BreedSummary) 그대로 + useYn
+ * - 공용 GET /api/breeds는 사용 안 함 품종이 빠질 수 있어 쓰지 않음
  */
 
 /** 품종 이름 최대 글자 수(가정) */
@@ -122,29 +120,3 @@ export const updateAdminBreed = async ({ vrtySn, vrtyNm, sortSeq, useYn }) => {
   Object.assign(breed, { vrtyNm, sortSeq, useYn });
   return { ...breed };
 };
-
-/** 서비스 지역 시도: 전북특별자치도 행정구역코드(rgnSn은 DB마다 달라질 수 있어 코드로 찾음) */
-export const SERVICE_CTPV = {
-  admdstCd: '5200000000',
-  ctpvNm: '전북특별자치도',
-};
-
-/**
- * 서비스 지역(전북) 시군구 목록: 시도 목록에서 전북을 찾아 그 하위를 부름
- * 전북이 없으면 서버 오류 모양으로 throw
- */
-export const getServiceSggRegions = async () => {
-  const sidos = await getRegions();
-  const ctpv = sidos.find(({ admdstCd }) => admdstCd === SERVICE_CTPV.admdstCd);
-  if (!ctpv) {
-    throw fakeError('NOT_FOUND', `${SERVICE_CTPV.ctpvNm} 지역이 없습니다.`);
-  }
-  return getRegions(ctpv.rgnSn);
-};
-
-/**
- * 하위 지역 목록(upRgnSn 없으면 시도)
- * [{ rgnSn, admdstCd, ctpvNm, sggNm, emdNm, rgnStpCd }]
- */
-export const getRegions = (upRgnSn) =>
-  api.get('/regions', { params: upRgnSn ? { upRgnSn } : {} });
