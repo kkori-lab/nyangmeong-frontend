@@ -1,6 +1,7 @@
 import Badge from '@/components/Badge';
 import Icon from '@/components/Icon';
 import { formatMonthDayDot } from '@/utils/formatDate';
+import CareItemMenu from './CareItemMenu';
 import { CARE_ZONE, getCareCycleName, getDueBadge } from './careDue';
 
 const BADGE_TONES = { today: 'brand', upcoming: 'gray', late: 'amber' };
@@ -13,11 +14,16 @@ export default function CareTile({
   onCheck,
   onToggleMain,
   onCancelLastDose,
+  onEdit,
+  onDelete,
   className = '',
 }) {
   const isDose = item.prscSn != null;
   const isLinked = item.prscSn != null || item.reptPrvntMngSn != null;
   const isRegular = item.careZoneCd === CARE_ZONE.REGULAR;
+  // 사용자 추가 항목은 수정·삭제, 기본 정기관리는 수정(주기만), 기본 일상관리·연동 항목은 메뉴 없음
+  const canEdit = !isLinked && (!item.bscArtclYn || isRegular);
+  const canDelete = !isLinked && !item.bscArtclYn;
   const badge =
     isRegular && item.nxtmPrnmntYmd ? getDueBadge(item.nxtmPrnmntYmd) : null;
 
@@ -109,19 +115,31 @@ export default function CareTile({
         )}
       </button>
 
-      <button
-        type="button"
-        aria-label={`${item.careArtclNm} 메인 표시`}
-        aria-pressed={item.mainExpsrYn}
-        className="mr-2 grid size-8 place-items-center rounded-full [grid-area:s] hover:bg-surface-3"
-        onClick={() => onToggleMain(item)}
-      >
-        <Icon
-          name="star"
-          filled={item.mainExpsrYn}
-          className={item.mainExpsrYn ? 'text-ink' : 'text-line-strong'}
-        />
-      </button>
+      {/* ★와 ⋮ 메뉴: 완료 토글 버튼 밖에 둬서 눌러도 완료가 바뀌지 않는다. 메뉴가 없는 줄도 자리를 비워 ★ 위치를 맞춘다 */}
+      <div className="mr-2 flex items-center [grid-area:s]">
+        <button
+          type="button"
+          aria-label={`${item.careArtclNm} 메인 표시`}
+          aria-pressed={item.mainExpsrYn}
+          className="grid size-8 place-items-center rounded-full hover:bg-surface-3"
+          onClick={() => onToggleMain(item)}
+        >
+          <Icon
+            name="star"
+            filled={item.mainExpsrYn}
+            className={item.mainExpsrYn ? 'text-ink' : 'text-line-strong'}
+          />
+        </button>
+        {canEdit ? (
+          <CareItemMenu
+            label={`${item.careArtclNm} 메뉴`}
+            onEdit={() => onEdit(item)}
+            onDelete={canDelete ? () => onDelete(item) : undefined}
+          />
+        ) : (
+          <span aria-hidden="true" className="size-8" />
+        )}
+      </div>
 
       {/* 투약 항목: 640px 미만은 둘째 줄에 복용 종료일·마지막 1회 취소, 640px 이상은 종료일은 이름 줄에 두고 취소만 ★ 앞에 */}
       {isDose && (

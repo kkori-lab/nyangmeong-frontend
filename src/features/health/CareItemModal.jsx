@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 import { formatYmdWeekday, getTodayYmd } from '@/utils/formatDate';
 import { CARE_CYCLES, CARE_ZONE, CUSTOM_CYCLE, addCycle } from './careDue';
-import { useCreateCareItem } from './queries';
+import { useCreateCareItem, useUpdateCareItem } from './queries';
 
 // 아이콘 목록과 이름은 퍼블리싱 html/hlt-calendar.html의 관리 항목 추가 모달과 같다
 // "기타"는 이모지를 고르지 않고 기본 아이콘(task_alt)을 쓴다
@@ -21,16 +21,22 @@ const ICONS = [
 const DEFAULT_ICON = 'task_alt';
 const MAX_NAME_LENGTH = 30;
 
-// 관리 항목 추가 모달(FN-HLT-003-21~24·38). 고른 반려동물의 토탈 케어리스트에 추가한다
-export default function CareItemModal({ petSn, onClose }) {
+// 관리 항목 추가·수정 모달(FN-HLT-003-21~24·38). item이 있으면 수정: 기본 정기관리 항목은 주기만 고치고, 마지막으로 한 날은 수정 Body에 없어 숨긴다
+export default function CareItemModal({ petSn, item = null, onClose }) {
   const dialogRef = useRef(null);
-  const [careArtclNm, setCareArtclNm] = useState('');
-  const [iconChoice, setIconChoice] = useState(null);
-  const [careZoneCd, setCareZoneCd] = useState(null);
-  const [careCycleCd, setCareCycleCd] = useState(null);
-  const [cycleDrctInptDayCnt, setCycleDrctInptDayCnt] = useState('');
+  const isEdit = item != null;
+  const isBasic = isEdit && item.bscArtclYn;
+  const [careArtclNm, setCareArtclNm] = useState(item?.careArtclNm ?? '');
+  const [iconChoice, setIconChoice] = useState(item?.rprsIconId ?? null);
+  const [careZoneCd, setCareZoneCd] = useState(item?.careZoneCd ?? null);
+  const [careCycleCd, setCareCycleCd] = useState(item?.careCycleCd ?? null);
+  const [cycleDrctInptDayCnt, setCycleDrctInptDayCnt] = useState(
+    item?.cycleDrctInptDayCnt != null ? String(item.cycleDrctInptDayCnt) : '',
+  );
   const [lastCmptnYmd, setLastCmptnYmd] = useState('');
   const createCareItem = useCreateCareItem();
+  const updateCareItem = useUpdateCareItem();
+  const saveItem = isEdit ? updateCareItem : createCareItem;
   const todayYmd = getTodayYmd();
 
   useEffect(() => {
@@ -47,17 +53,52 @@ export default function CareItemModal({ petSn, onClose }) {
     careArtclNm.trim() !== '' &&
     careZoneCd !== null &&
     (!isRegular || hasValidCycle) &&
-    !createCareItem.isPending;
+    !saveItem.isPending;
 
   // 비우면 오늘(등록일)부터 센다
   const nextDueYmd =
     isRegular && hasValidCycle
-      ? addCycle(lastCmptnYmd || todayYmd, careCycleCd, cycleDrctInptDayCnt)
+      ? addCycle(
+          lastCmptnYmd || item?.lastCmptnYmd || todayYmd,
+          careCycleCd,
+          cycleDrctInptDayCnt,
+        )
       : null;
+
+  // 바뀐 칸만 보낸다. 정기관리 주기는 구역·종류·일수 중 하나라도 바뀌면 종류와 일수를 함께 보낸다
+  const getUpdateBody = () => {
+    const body = {};
+    if (!isBasic) {
+      if (careArtclNm.trim() !== item.careArtclNm)
+        body.careArtclNm = careArtclNm.trim();
+      const nextIcon = iconChoice ?? DEFAULT_ICON;
+      if (nextIcon !== item.rprsIconId) body.rprsIconId = nextIcon;
+      if (careZoneCd !== item.careZoneCd) body.careZoneCd = careZoneCd;
+    }
+    if (isRegular) {
+      const days = isCustomCycle ? Number(cycleDrctInptDayCnt) : null;
+      if (
+        careZoneCd !== item.careZoneCd ||
+        careCycleCd !== item.careCycleCd ||
+        days !== (item.cycleDrctInptDayCnt ?? null)
+      ) {
+        body.careCycleCd = careCycleCd;
+        if (days != null) body.cycleDrctInptDayCnt = days;
+      }
+    }
+    return body;
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!canSubmit) return;
+    if (isEdit) {
+      updateCareItem.mutate(
+        { petSn, careArtclSn: item.careArtclSn, body: getUpdateBody() },
+        { onSuccess: onClose },
+      );
+      return;
+    }
     createCareItem.mutate(
       {
         petSn,
@@ -91,7 +132,7 @@ export default function CareItemModal({ petSn, onClose }) {
   );
 
   // 시안 .seg: 회색 바탕 안에서 고른 칸만 흰색으로 올라온다
-  const renderSegment = (options, selected, onSelect) => (
+  const renderSegment = (options, selected, onSelect, isLocked = false) => (
     <div className="flex h-10 rounded-[6px] border border-[#e6eaeb] bg-[#f1f3f4] p-[3px]">
       {options.map((option) => {
         const isSelected = selected === option.cd;
@@ -100,6 +141,7 @@ export default function CareItemModal({ petSn, onClose }) {
             key={option.cd}
             type="button"
             aria-pressed={isSelected}
+            disabled={isLocked}
             className={`flex flex-1 items-center justify-center rounded-[4px] whitespace-nowrap ${
               isSelected
                 ? 'bg-white font-semibold text-[#1e4a4c] shadow-[0_1px_2px_rgba(26,50,52,0.08),0_0_0_1px_rgba(40,90,92,0.18)]'
@@ -117,7 +159,7 @@ export default function CareItemModal({ petSn, onClose }) {
   return (
     <dialog
       ref={dialogRef}
-      aria-label="관리 항목 추가"
+      aria-label={isEdit ? '관리 항목 수정' : '관리 항목 추가'}
       className="m-auto w-[min(440px,calc(100%-32px))] rounded-[20px] bg-white p-0 shadow-[0_24px_64px_-12px_rgba(15,23,35,0.35)] backdrop:bg-[rgba(15,23,35,0.45)] backdrop:backdrop-blur-[2px]"
       onCancel={handleCancel}
     >
@@ -127,7 +169,7 @@ export default function CareItemModal({ petSn, onClose }) {
             <Icon name="playlist_add" />
           </span>
           <h2 className="flex-1 text-xl leading-[1.35] font-bold text-[#1a3234]">
-            관리 항목 추가
+            {isEdit ? '관리 항목 수정' : '관리 항목 추가'}
           </h2>
           <button
             type="button"
@@ -146,7 +188,8 @@ export default function CareItemModal({ petSn, onClose }) {
               value={careArtclNm}
               maxLength={MAX_NAME_LENGTH}
               placeholder="예: 영양제"
-              className={inputClass}
+              disabled={isBasic}
+              className={`${inputClass} disabled:bg-[#f4f6f6] disabled:text-[#667374]`}
               onChange={(event) => setCareArtclNm(event.target.value)}
             />
           </label>
@@ -166,7 +209,8 @@ export default function CareItemModal({ petSn, onClose }) {
                     title={icon.label}
                     aria-label={icon.label}
                     aria-pressed={isSelected}
-                    className={`grid h-10 place-items-center rounded-[6px] border ${
+                    disabled={isBasic}
+                    className={`grid h-10 place-items-center rounded-[6px] border disabled:opacity-40 ${
                       isSelected
                         ? 'border-[#285a5c] bg-[#e9f2f2] text-[#1e4a4c]'
                         : `bg-white hover:border-[#b9c4c4] ${
@@ -196,6 +240,7 @@ export default function CareItemModal({ petSn, onClose }) {
               ],
               careZoneCd,
               setCareZoneCd,
+              isBasic,
             )}
           </fieldset>
 
@@ -229,28 +274,43 @@ export default function CareItemModal({ petSn, onClose }) {
                 )}
               </fieldset>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="flex flex-col gap-1.5">
-                  <span className={labelClass}>마지막으로 한 날{optional}</span>
-                  <input
-                    type="date"
-                    value={lastCmptnYmd}
-                    max={todayYmd}
-                    className={`${inputClass} tabular-nums`}
-                    onChange={(event) => setLastCmptnYmd(event.target.value)}
-                  />
-                </label>
-                <p className={helpClass}>
-                  마지막으로 한 날을 알려주시면 다음 예정일을 더 정확하게
-                  계산해요. 비우면 오늘부터 셉니다
-                </p>
-                {nextDueYmd && (
-                  <p className="mt-1.5 rounded-xl bg-[#f4f6f6] px-4 py-3 tabular-nums">
+              {isEdit ? (
+                nextDueYmd && (
+                  <p className="rounded-xl bg-[#f4f6f6] px-4 py-3 tabular-nums">
                     다음 예정일 {formatYmdWeekday(nextDueYmd)}
                   </p>
-                )}
-              </div>
+                )
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  <label className="flex flex-col gap-1.5">
+                    <span className={labelClass}>
+                      마지막으로 한 날{optional}
+                    </span>
+                    <input
+                      type="date"
+                      value={lastCmptnYmd}
+                      max={todayYmd}
+                      className={`${inputClass} tabular-nums`}
+                      onChange={(event) => setLastCmptnYmd(event.target.value)}
+                    />
+                  </label>
+                  <p className={helpClass}>
+                    마지막으로 한 날을 알려주시면 다음 예정일을 더 정확하게
+                    계산해요. 비우면 오늘부터 셉니다
+                  </p>
+                  {nextDueYmd && (
+                    <p className="mt-1.5 rounded-xl bg-[#f4f6f6] px-4 py-3 tabular-nums">
+                      다음 예정일 {formatYmdWeekday(nextDueYmd)}
+                    </p>
+                  )}
+                </div>
+              )}
             </>
+          )}
+          {updateCareItem.isError && (
+            <p role="alert" className="text-sm text-[#b4473a]">
+              {updateCareItem.error.message}
+            </p>
           )}
         </div>
 
@@ -271,7 +331,7 @@ export default function CareItemModal({ petSn, onClose }) {
             disabled={!canSubmit}
             className="inline-flex h-10 min-w-24 items-center justify-center rounded-[6px] bg-[#285a5c] px-4 text-base font-semibold whitespace-nowrap text-white hover:bg-[#1e4a4c] disabled:opacity-40"
           >
-            추가하기
+            {isEdit ? '수정하기' : '추가하기'}
           </button>
         </footer>
       </form>
