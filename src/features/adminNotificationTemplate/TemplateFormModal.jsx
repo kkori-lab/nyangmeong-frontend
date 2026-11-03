@@ -71,9 +71,7 @@ export default function TemplateFormModal({ row, onClose }) {
 
   const [notiTtl, setNotiTtl] = useState(template?.notiTtl ?? '');
   const [notiCn, setNotiCn] = useState(template?.notiCn ?? '');
-  const [isUsed, setIsUsed] = useState(
-    template ? template.useYn === 'Y' : true,
-  );
+  const [isUsed, setIsUsed] = useState(template ? template.useYn : true);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const ttlRef = useRef(null);
@@ -115,7 +113,7 @@ export default function TemplateFormModal({ row, onClose }) {
     const body = {
       notiTtl: notiTtl.trim(),
       notiCn,
-      useYn: isUsed ? 'Y' : 'N',
+      useYn: isUsed,
     };
     if (isEdit) {
       update.mutate(

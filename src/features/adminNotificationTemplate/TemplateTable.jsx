@@ -4,16 +4,19 @@ const CELL = 'px-4 py-2 max-[760px]:px-1.5';
 const ROW_BUTTON =
   'inline-flex h-9 items-center justify-center rounded-md border border-line bg-white px-3 text-sm font-semibold hover:border-line-strong hover:bg-surface-2 max-[760px]:h-8 max-[760px]:px-2';
 
+/** 템플릿을 쓰는 알림 유형: 케어 일정만(서버 NotificationTemplateType과 같음), 나머지는 기본 문구로만 보낸다 */
+const TEMPLATE_TYPE_CDS = ['AIMC0008'];
+
 /** 사용 칸 글자: 템플릿 없음·사용 안 함은 기본 문구로 보낸다 */
 const getUseLabel = (template) => {
   if (!template) return '기본 문구';
-  return template.useYn === 'Y' ? '사용' : '미사용 (기본 문구)';
+  return template.useYn ? '사용' : '미사용 (기본 문구)';
 };
 
 /**
  * [알림 템플릿 목록 표]
  * - rows: [{ type, channel, template }] 유형 × 채널. type·channel은 공통코드 { comCd, comCdNm }, template은 없으면 null
- * - 템플릿 있는 행은 [수정], 없는 행은 [등록] -> onEdit(row)
+ * - 템플릿 있는 행은 [수정], 없는 행은 [등록] -> onEdit(row). 템플릿을 쓰지 않는 유형은 버튼 없음
  */
 export default function TemplateTable({ rows, onEdit }) {
   return (
@@ -42,7 +45,9 @@ export default function TemplateTable({ rows, onEdit }) {
         <tbody>
           {rows.map((row) => {
             const { type, channel, template } = row;
-            const isUsed = template?.useYn === 'Y';
+            const isUsed = Boolean(template?.useYn);
+            const isEditable =
+              Boolean(template) || TEMPLATE_TYPE_CDS.includes(type.comCd);
             return (
               <tr
                 key={`${type.comCd}-${channel.comCd}`}
@@ -66,14 +71,16 @@ export default function TemplateTable({ rows, onEdit }) {
                   {getUseLabel(template)}
                 </td>
                 <td className={`${CELL} text-right`}>
-                  <button
-                    type="button"
-                    aria-label={`${type.comCdNm} ${channel.comCdNm} 템플릿 ${template ? '수정' : '등록'}`}
-                    className={ROW_BUTTON}
-                    onClick={() => onEdit(row)}
-                  >
-                    {template ? '수정' : '등록'}
-                  </button>
+                  {isEditable && (
+                    <button
+                      type="button"
+                      aria-label={`${type.comCdNm} ${channel.comCdNm} 템플릿 ${template ? '수정' : '등록'}`}
+                      className={ROW_BUTTON}
+                      onClick={() => onEdit(row)}
+                    >
+                      {template ? '수정' : '등록'}
+                    </button>
+                  )}
                 </td>
               </tr>
             );
