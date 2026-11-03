@@ -17,6 +17,7 @@ const AdminInquiriesPage = lazy(
 const AdminInquiryDetailPage = lazy(
   () => import('@/pages/admin/AdminInquiryDetailPage'),
 );
+const AdminItemsPage = lazy(() => import('@/pages/admin/AdminItemsPage'));
 const AdminMemberDetailPage = lazy(
   () => import('@/pages/admin/AdminMemberDetailPage'),
 );
@@ -67,6 +68,7 @@ export default [
       { path: PATHS.ADMIN_FAQS, Component: AdminFaqsPage },
       { path: PATHS.ADMIN_INQUIRIES, Component: AdminInquiriesPage },
       { path: PATHS.ADMIN_INQUIRY_DETAIL, Component: AdminInquiryDetailPage },
+      { path: PATHS.ADMIN_ITEMS, Component: AdminItemsPage },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
       {

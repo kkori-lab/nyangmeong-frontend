@@ -2,9 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-042 1:1 문의 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 1회차(연결 남음만), 사람 확인). 관리자 1:1 문의 목록·상태 탭·필터·상세·첨부 크게 보기·답변 등록·수정·삭제 문의 조회만·캐릭터 오류 처리를 실제 API(`/api/admin/inquiries`)로 만들었다
+SCR-ADM-070 아이템 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회차 이후 추가-1 포함(연결 남음만), 사람 확인). 관리자 아이템 목록·부위 탭·등록·수정·판매 중지·순서 바꾸기(위·아래)를 가짜 응답으로 만들었다. 추가-1로 관리자 화면에서 신발 부위를 뺐다
 
 ## 다음에 할 것
+
+- SCR-ADM-070 연결 남음: FN-ADM-070-01~04 (백엔드 연결 `GET /api/admin/items`·`GET /api/admin/items/{itemSn}/image`·`POST /api/admin/items`·`PATCH /api/admin/items/{itemSn}`·`PUT /api/admin/items/order`, 보유 회원 수 필드 이름(가짜 `hldMbrCnt`), 백엔드 저장소에서 /start). 나오면 `features/adminItem/api.js` 가짜 본문만 실제 요청으로 바꾼다(등록·수정은 multipart)
+- SCR-ADM-070 연결 남음: 추가-1 (백엔드 연결 공통코드 MYPG01에서 신발 제외·기존 신발 아이템과 보유·착용 처리, 백엔드 저장소에서 /start). 정리되면 `api.js` `EXCLUDED_PART_NAMES` 이름 거르기를 지운다. 문서(FN-ADM-070-02, 화면설계서 SCR-ADM-070 부위 목록) 갱신은 사람 몫
+- SCR-ADM-070 사람이 볼 것(판정 밖): 이미지 검사에 영수증용 `@/utils/receiptFile`을 쓴다. 미리보기 object URL을 해제하지 않는다. 가짜 목록이 공통코드도 불러 "아이템 목록을 불러오지 못했어요." 분기는 화면으로 못 봤다. 부위 Select 안내에 `aria-describedby`가 없다.
+- PR 캡처 확인: SCR-ADM-070 캡처 `LJS-20261103-SCR-ADM-070-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
 
 - SCR-ADM-042 연결 남음: FN-ADM-042-07 접수 시점 캐릭터 이미지 (백엔드 연결 `GET /api/admin/inquiries/{otoInqrySn}/images/{atchFileSn}`가 캐릭터 이미지 1483에 404 FILE_NOT_FOUND, 백엔드 저장소에서 /start). 같은 코드로 204 첨부는 200이다. 백엔드 `/api/admin/inquiries`는 `origin/LJS`에만 있어 develop 병합이 돼야 배포에서 동작한다. 검증은 로컬 8080(백엔드 LJS 작업 사본)으로 했다
 - SCR-ADM-042 FN-ADM-042-08 펫돌봄 분쟁 연결: SCR-ADM-022(펫돌봄 거래)를 만들 때 분쟁(`inqryCtgr=DISPUTE`) 문의 상세에 [작성자 매칭 목록] 링크(`mbrSn`)를 붙인다(사람 결정 2026-11-03)
