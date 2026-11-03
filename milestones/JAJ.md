@@ -197,11 +197,13 @@
 - 결정: 디자인 `html/hlt-diary.html`, 수정 모드 사진 버튼 두 개 유지(버튼 정리는 사람이 화면 손볼 때)
 - 연결 남음: 없음
 
-## SCR-HLT-007 검사 수치 입력 · PDF 분석 연결 — 대기
+## SCR-HLT-007 검사 수치 입력 · PDF 분석 연결 — 끝
 
 - 기능: 명세 기능 ID 추가 없음, FN-HLT-005-04(검진상세 첨부 [PDF 분석])·FN-HLT-007-04·05·06(분석 결과 검수·검사 종류 표시·다시 분석·직접 입력하기)에 걸침. `checkupApi.js` `analyzeLabPdf` 가짜를 Python `POST /ai/checkups/lab-results`(LJS, `nyangmeong-ai` develop, `aiApi`)로 바꾼다. 요청은 multipart `file`(PDF, 최대 10MB, 로그인 쿠키 필요)이라 첨부 원본을 `getAttachmentFile`(Blob)로 받아 올린다. 응답 `items[]`는 `inspArtclCd`·`inspArtclDrctInptNm`·`rsltNvl`·`unitNm`·`refLlmtNvl`·`refUplmtNvl`, `excludedArtclNms[]`(가짜의 `inspItmNm`·`rsltVal`·`refMinVal`·`refMaxVal`·`bloodYn`과 다름, 검토 행 `labInput/`을 서버 키로 맞춘다). 오류 `NOT_LAB_RESULT` 422·`PDF_ANALYZE_TIMEOUT` 504·`PDF_ANALYZE_API_ERROR` 502. 가짜 메모리 저장소(`getStore`·시드)와 `?fakeCheckupDetail`을 지운다
 - 기다리는 것: 없음 (LJS에게 응답 모양 확정 여부 확인, 로컬 확인에는 AI 서버와 `LLM_API_KEY` 필요)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진상세 첨부 PDF에서 [PDF 분석]을 누르면 `POST /ai/checkups/lab-results`에 파일이 올라가고 검수 행이 응답 값으로 채워지며, 저장하면 `POST /pets/{petSn}/inspection-values`로 저장된다. 검사결과지가 아닌 PDF·시간 초과·분석 오류는 각각 안내가 나오고 [다시 분석]·[직접 입력하기]로 이어진다
+- 추가 요청: 추가-1 분석 오류 상태(422·504·502)에서는 노란 AI 주의 문구를 숨긴다
+- 연결 남음: 없음
 
 ## SCR-HLT-002 건강 일지 · 영수증 일괄 저장 연결 — 대기
 

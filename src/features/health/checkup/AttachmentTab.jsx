@@ -8,6 +8,7 @@ import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { getAttachmentFile } from '../checkupApi';
 import EmptyBox from '../diary/EmptyBox';
+import { toAnalyzedItems } from '../labInput/labRows';
 import {
   useAnalyzeLabPdf,
   useDeleteAttachment,
@@ -114,22 +115,33 @@ export default function AttachmentTab({
     });
   };
 
+  /** 성공하면 인식 항목을, 실패하면 오류를 들고 검사 수치 입력으로(그 화면에서 다시 분석·직접 입력) */
   const handleAnalyze = (attachment) => {
+    const toInspections = (state) =>
+      navigate(
+        {
+          pathname: generatePath(PATHS.HEALTH_CHECKUP_INSPECTIONS, {
+            petSn,
+            ckupRcdSn,
+          }),
+          search: `?mode=pdf&atch=${attachment.ckupRcdAtchSn}`,
+        },
+        { state },
+      );
     setAnalyzingSn(attachment.ckupRcdAtchSn);
     analyzeLabPdf.mutate(
-      { ckupRcdSn, atchSn: attachment.ckupRcdAtchSn },
+      {
+        petSn,
+        ckupRcdAtchSn: attachment.ckupRcdAtchSn,
+        fileNm: attachment.orgnlFileNm,
+      },
       {
         onSuccess: (result) =>
-          navigate(
-            {
-              pathname: generatePath(PATHS.HEALTH_CHECKUP_INSPECTIONS, {
-                petSn,
-                ckupRcdSn,
-              }),
-              search: `?mode=pdf&atch=${attachment.ckupRcdAtchSn}`,
-            },
-            { state: { analyzedItems: result.items } },
-          ),
+          toInspections({ analyzedItems: toAnalyzedItems(result) }),
+        onError: (error) =>
+          toInspections({
+            analysisError: { code: error.code, message: error.message },
+          }),
         onSettled: () => setAnalyzingSn(null),
       },
     );

@@ -52,3 +52,14 @@ export const findBloodItem = (ab) => {
   }
   return null;
 };
+
+/** 검사항목 코드로 항목을 찾는다. 목록에 없으면(직접입력 코드 등) null */
+export const findBloodItemByCode = (inspArtclCd) => {
+  for (const group of BLOOD_ITEM_GROUPS) {
+    const item = group.items.find(
+      (candidate) => candidate.inspArtclCd === inspArtclCd,
+    );
+    if (item) return item;
+  }
+  return null;
+};

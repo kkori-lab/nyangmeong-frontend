@@ -2,12 +2,12 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-007 검사 수치 입력 · 참고범위 비우기 연결 (2026-11-03). 검증 2회차 통과(1회차는 로그인 계정이 없어 화면 확인 못 함), 사람 확인 끝. 수정 PATCH가 참고범위를 `refRange` 묶음으로 보내 둘 다 비우면 지워지고, 등록·수정·검진상세 추가 폼에서 최소 > 최대를 저장 전에 막는다. 범위가 없으면 검진상세 "참고범위 …" 줄을 숨기고 문구는 더하지 않음(사람 결정)
+끝남: SCR-HLT-007 검사 수치 입력 · PDF 분석 연결 (2026-11-03). 검증 통과(실제 AI 서버로 분석·422 확인, 504·502는 Playwright route), 사람 확인 끝. `analyzeLabPdf`가 첨부 원본 Blob을 `POST /ai/checkups/lab-results`에 올리고 검수 행은 서버 키(`rsltNvl`·`refLlmtNvl`·`refUplmtNvl`)를 쓴다. 분석이 실패하면 검진상세에서 검사 수치 입력으로 넘어가 빨간 오류 안내와 [다시 분석하기]·[직접 입력하기]를 보이고, 노란 AI 주의 문구는 검수 행이 있을 때만 보인다(추가-1). 가짜 저장소·`?fakeCheckupDetail` 삭제
 
 ## 다음에 할 것
 
-- 다음 작업(SCR-HLT-007 · PDF 분석 연결, 마일스톤 대기): `analyzeLabPdf` 가짜를 Python `POST /ai/checkups/lab-results`(LJS, `nyangmeong-ai` develop)로 바꾼다. 시작 전에 LJS에게 응답 모양 확정과 `LLM_API_KEY`를 확인한다
 - 다음 작업(SCR-HLT-002 · 영수증 일괄 저장 연결, 마일스톤 대기): 백엔드 저장소에서 /start로 health 서비스 메서드(`CheckupRecordFake` 대신 쓸 것)를 먼저 만들고 LJS에게 `ReceiptSaveService` 교체를 요청한다. 그 뒤 프론트 `receiptApi.js`를 `POST /api/receipts/{recptSn}/save-check`·`/save`로 바꾼다
+- 참고(SCR-HLT-007 PDF 분석): 분석 항목 이름은 목록 12종 코드면 약어, 아니면 `inspArtclDrctInptNm`. 둘 다 없으면 `inspArtclCd`를 그대로 보인다(`labInput/labRows.js` `getAnalyzedName`, 실제 응답에서는 안 나옴). 이때 보일 이름은 정하지 않았다. 저장 제외 행(혈액검사 아님)에도 "인식 실패" placeholder가 붙는다. 실패 안내는 `useAnalyzeLabPdf` 토스트 대신 화면이 보인다
 - 참고(SCR-HLT-011 캐릭터 상태): 히어로 큰 이미지는 `GET /pixel-characters`(LJS) 행의 `pixelCharSn`이 없는 주양육 반려동물만 "캐릭터 만들기" 카드, 행이 없거나 조회 실패면 `PetFace`. 칩은 그대로. 생성 중(`CHRC0001`·`0002`)·실패(`CHRC0004`)는 백엔드 `character-image`가 종별 기본 캐릭터를 주므로 따로 표시하지 않는다(사람 결정)
 - 알릴 것(명세 담당): 지속 관찰 회차 수정에서 사진은 바꿀 수만 있고 뺄 수 없다(수정 모달 보조 문구 "사진은 바꿀 수만 있어요"). 기능명세서 FN-HLT-002-22에 반영을 요청한다
 - 참고(SCR-HLT-011): 타임라인 검진기록 행의 내용 줄은 목록 응답에 `ckupCn`이 없어 비어 있다. 예방접종 이력 이름은 `ckupTypeCdNm`. 예방접종은 `size=2`, 타임라인 검진기록은 `size=5`로 받은 뒤 오늘 이전만 거르므로 미래 날짜 검진기록이 있으면 표시 건수가 줄 수 있다. 첨부 썸네일·미리보기는 `summary/AttachmentImage.jsx`(검진상세 영상검사와 같은 캐시 키), PDF는 Blob으로 내려받는다. `PhotoModal`은 비공개 이미지를 `children`으로 받는다. 캐릭터가 없는 반려동물은 `character-image` 404가 콘솔에 남는다
