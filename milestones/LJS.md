@@ -505,10 +505,14 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
 - 연결 남음: FN-ADM-023-01·02·03·04·05·06 (백엔드 연결 `/api/admin/community/exposure` 건강팁 목록 `GET health-tips`·지정 `PUT`·해제 `DELETE health-tips/{pstSn}`·삭제·블라인드 시 자동 대체, 후보 문구 테이블과 `GET·POST·PATCH phrases`(가정 필드 `todayPhrsSn`·`phrsCn`·200자)·00:00 배치와 오늘 문구 `todayPhrs`, `GET commentaries`·`PATCH commentaries/{cmntyAiCmtrySn}`, 백엔드 저장소에서 /start)
 
-## SCR-ADM-050 펫뉴스 — 대기
+## SCR-ADM-050 펫뉴스 — 끝
 - 기능: FN-ADM-050-01 뉴스 목록 조회, FN-ADM-050-02 관리자 뉴스 등록·수정, FN-ADM-050-03 수집 기사 관리, FN-ADM-050-04 피드 소스 관리, FN-ADM-050-05 분류 키워드 관리, FN-ADM-050-06 수집 기사 자동 분류, FN-ADM-050-07 뉴스 수집 실행
 - 기다리는 것: `/api/admin/news` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 관리자 뉴스 등록·수집 기사 숨김·분류 변경이 목록에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03 추천안대로). FN-ADM-050-04는 결번이라 만들지 않음. 뉴스 수집 실행만 실제 `POST /api/admin/batches/SYSC0028/run`, 나머지는 가짜 응답
+- 추가 요청: 추가-1 SCR-AIM-010 FN-AIM-010-06 영수증 분석 실패(504 `OCR_TIMEOUT`·502 `OCR_API_ERROR`) 응답의 `data.recptSn`을 [직접 입력]에 넘김(`ReceiptUploadModal.jsx`, ai-47 계약 변경, 사람 요청 2026-11-03)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 2회차, 연결 남음만, 가짜 응답 기준·뉴스 수집 실행은 실제 API), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-050-01·02·03·05 (백엔드 연결 `GET /api/admin/news` 목록·필터·쪽, `POST·PATCH /api/admin/news`·썸네일 `atchFileSn`, `GET·POST·DELETE /api/admin/news/keywords`(가정 필드 `kwrdDictSn`·`mpngCd`·`kwrdCn`·`sortSeq`), 백엔드 저장소에서 /start)
 
 ## SCR-ADM-101 품종·지역 — 대기
 - 기능: FN-ADM-101-01 품종 관리, FN-ADM-101-02 지역 조회
@@ -801,6 +805,18 @@
 - 기다리는 것: 없음(프론트에서 먼저 검사). 서버가 모르는 변수 이름을 응답에 넣어 주면 그것도 쓴다(백엔드 연결 후보, LJS 백엔드)
 - 완료 조건: 저장 전에 제목·본문의 `{{…}}`를 치환 변수 목록과 견주어, 모르는 변수가 있으면 요청을 보내지 않고 그 칸 아래에 "쓸 수 없는 치환 변수예요: {{없는변수}}"처럼 칸과 변수 이름을 보인다. 서버 400이 와도 일반 문구 대신 무엇을 고칠지 알 수 있는 문구를 보인다
 - 사람이 볼 것: 수정 모달이 제목을 필수로 검사하지만 서버는 제목을 선택 값으로 받는다(DB에 제목 null 템플릿이 있다). 같이 고칠지 기획 때 정한다
+
+## SCR-ADM-091 발송 이력 · 목록 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-091-01·02
+- 기다리는 것: `GET /api/admin/notification-logs?page=&size=20&bgngYmd=&endYmd=&notiChnlCd=&notiTypeCd=&sndngRsltCd=`(최신순 `SNDNG_DT DESC`, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ notiSndngLogSn, mbrSn, mbrNcnm, notiTypeCd, notiChnlCd, sndngRsltCd, rtryNmtm, failRsn, sndngDt }`, 알림 본문 없음, 조건 모두 선택, 종료일 그날 끝까지 포함, 모르는 채널·유형·결과 코드와 기간 역전 400 `INVALID_INPUT_VALUE`, 재발송 API 없음) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminNotificationLog/api.js` 가짜 본문을 실제 요청으로 바꾼다. 기간 파라미터는 가짜 `fromYmd`·`toYmd`가 아니라 `bgngYmd`·`endYmd`. 대시보드 "알림 발송 실패"에서 오면 `bgngYmd`=어제·`endYmd`=오늘·`sndngRsltCd=AIMC0019`로 건다. 400 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminNotificationLog/api.js`(가짜 응답, `fromYmd`·`toYmd` 가정)
+
+## SCR-ADM-021 실종제보 · 목록·상세 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-021-01·02·03
+- 기다리는 것: `GET /api/admin/lost-reports?page=&size=20&lostTpofSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, mbrSn, mbrNcnm, expryCrtrDt, regDt }`, 만료 기준 일시가 지난 실종은 `CMUC0008`, 찾았어요 행은 `expryCrtrDt` null, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/lost-reports/{lostTpofSn}`(실종·만료는 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, dscvSwtcDt, mbrSn, mbrNcnm, regDt, pstCn, expryCrtrDt, imgs[{ atchFileSn, sortSeq }] }`, 찾았어요는 `lostTpofSn·pstSn·pstTtl·lostTpofSttsCd·dscvSwtcDt`만 있고 나머지 null, 없거나 정상 글이 아니면 404 `LOST_REPORT_NOT_FOUND`, 강제 만료·기간 조정 API 없음) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminCommunity/api.js` 실종제보 목록·상세 가짜 본문을 실제 요청으로 바꾼다. 필드 이름은 가짜와 같은 `mbrNcnm`·`expryCrtrDt`. 블라인드·삭제 글은 목록에 나오지 않고, 상세에 연락처·반려동물 정보가 없다(가짜에 있으면 화면에서 뺀다). 400·404 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
