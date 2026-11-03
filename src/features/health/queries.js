@@ -187,7 +187,6 @@ export const useSaveCareMain = () => useCareMutation(saveCareMain);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
 
-/** 수정·삭제 UI는 화면설계서 갱신 뒤 따로 만든다 */
 export const useUpdateCareItem = () => useCareMutation(updateCareItem);
 
 export const useDeleteCareItem = () => useCareMutation(deleteCareItem);
