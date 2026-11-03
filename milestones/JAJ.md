@@ -205,12 +205,22 @@
 - 추가 요청: 추가-1 분석 오류 상태(422·504·502)에서는 노란 AI 주의 문구를 숨긴다
 - 연결 남음: 없음
 
-## SCR-HLT-002 건강 일지 · 영수증 일괄 저장 연결 — 대기
+## SCR-HLT-002 건강 일지 · 영수증 일괄 저장 연결 — 끝
 
 - 기능: 명세 기능 ID 추가 없음, FN-HLT-002-44(가계부 중복 확인)·46(가까운 예정 일정)과 영수증 저장(검진기록·처방약·가계부)에 걸침. `receiptApi.js`의 `prepareReceiptSave`·`saveReceiptCheckups`(검진기록은 실제, 처방약 `fakePrescriptions`·가계부 `fakeLedger`는 가짜, 반려동물마다 따로 저장)를 LJS 일괄 API `POST /api/receipts/{recptSn}/save-check`·`POST /api/receipts/{recptSn}/save`(검진기록·처방약·가계부 한 번에, 같은 요청 재전송은 200)로 바꾼다. `?fakeLedgerDup`·`?fakeReceiptSave` 가짜를 지운다
-- 기다리는 것: 백엔드 `expense/service/CheckupRecordFake`를 health 서비스로 교체. JAJ가 백엔드 저장소에서 health 서비스 메서드(같은 날 병원 일정 존재, 검진일 앞뒤 N일 미연결 병원 일정, 검진기록 생성(일정 연결·처방약 포함, `recptSn`), 영수증으로 만든 검진기록 조회)를 먼저 만들고, LJS가 `ReceiptSaveService`를 그 메서드로 바꾼다
-- 백엔드 연결: health 서비스 메서드 (백엔드 저장소에서 /start), `ReceiptSaveService` 교체 (LJS)
+- 기다리는 것: 없음 (백엔드 가짜 교체가 develop에 병합됨 `c7cacb6`, PR #119. `save-check`의 `nearbySchedules`는 서버가 반려동물마다 가장 가까운 1건만 준다. [직접 입력] 영수증 저장 `POST /api/receipts/{recptSn}/checkups?petSn=`이 새로 생김)
+- 백엔드 연결: 끝 (health 서비스 메서드·`ReceiptSaveService` 가짜 교체, 백엔드 JAJ)
+- 결과: 2026-11-03 검증 통과(1·2회차 실패는 복용 상태 코드 `ING`·`END` 400, 공용 DB 쓰기 거부. 마지막은 옛 클래스로 돌던 백엔드를 다시 띄운 뒤 실제 저장으로 확인), 사람 확인 끝. `save-check` 요청 `{ ckupYmd, pets: [{ petSn, amt, expenseYn }] }`, 응답 `duplicateExpenses`·`nearbySchedules`(서버가 반려동물마다 1건)를 탭으로 바꾼다. `save`는 `idmptDmndId`(모달마다 1개)와 처방약 `prscSttsCd` `HLTC0010`·`HLTC0011`, 성공 때 `expenseKeys`도 무효화
+- 추가 요청: 추가-1 2-E 창은 검진 종류가 없으면 "MM/DD 병원 일정이 있어요"(`NearScheduleModal.jsx`), 추가-2 `save`·`save-check` 409 `RECEIPT_ALREADY_SAVED`면 서버 message만 보이고 [다시 시도하기] 숨김(`ReceiptResultStep.jsx`)
+- 결정: 디자인 `html/hlt-diary.html` 그대로(요청·응답만 바꿈). 백엔드를 먼저 고친 뒤 연결(사람 결정)
+- 연결 남음: 추가-2 (백엔드 연결 `save-check` 저장완료 영수증 409 `RECEIPT_ALREADY_SAVED`, 백엔드 저장소에서 /start)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 영수증 결과 확인에서 저장하면 `save-check` 뒤 `save` 한 번만 요청하고, 검진기록·처방약·가계부 지출(마이페이지 가계부 목록)에 실제로 남는다. 같은 지출이 있으면 중복 안내, 가까운 예정 일정이 있으면 연결 선택이 나온다
+
+## SCR-HLT-002 건강 일지 · 영수증 [직접 입력] 저장 연결 — 대기
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-31(영수증 인식 실패·일시 오류 뒤 [직접 입력]으로 연 검진기록 등록 모달의 저장)에 걸침. 이 경로의 저장을 `POST /pets/{petSn}/checkups` 대신 `POST /api/receipts/{recptSn}/checkups?petSn=`로 보낸다. 요청은 직접 등록 Body(`ckupYmd`·`hsptlNm`·`ckupTypeCd`·`ckupCn`·`ckupMemoCn`·`schdlSn`)에 `idmptDmndId`(모달마다 한 번 만든 값)를 더한다. 응답은 `CheckupResponse`(201, `recptSn` 포함). 업로드 전 [직접 입력하기]로 연 경우는 지금처럼 영수증 연결 없음
+- 기다리는 것: 백엔드 SCR-HLT-002 건강 일지 · 영수증 검진기록 연결 (JAJ 백엔드, 끝 2026-11-03)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 미인식 영수증에서 [직접 입력]으로 검진기록을 저장하면 `POST /api/receipts/{recptSn}/checkups?petSn=` 한 번만 요청하고, 그 영수증이 저장완료가 되며 가계부 지출은 생기지 않는다. 409 `RECEIPT_ALREADY_SAVED`(이미 저장됨)·404 `RECEIPT_NOT_FOUND`는 안내를 보인다
 
 ## 제외
 
