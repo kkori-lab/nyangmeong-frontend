@@ -2,9 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-022 펫돌봄 거래 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회차(연결 남음만, 가짜 응답 기준), 사람 확인). `/admin/care-matches` 모집글 목록·상태 탭·쪽 번호와 매칭 상세 모달(매칭 탭·상태 이력·합의 조건·완료 사진·보호자 확인, `?rcrtSn=` 바로 열기)을 가짜 응답으로 만들었다. 추가-1 합의 조건 표기 "2차 합의"
+SCR-ADM-023 노출 콘텐츠 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 1회차·연결 남음만, 사람 확인). `/admin/exposure` 건강팁·한마디·AI 코멘트 탭을 가짜 응답(`features/adminCommunity/api.js`)으로 만들고, 건강팁 검색만 실제 `GET /api/admin/posts`를 쓴다
 
 ## 다음에 할 것
+
+- SCR-ADM-023 연결 남음: FN-ADM-023-01~06 (백엔드 연결 `/api/admin/community/exposure` 건강팁 목록·지정·해제·자동 대체, 후보 문구 테이블·API(가정 필드 `todayPhrsSn`·`phrsCn`·200자)·00:00 배치·오늘 문구 `todayPhrs`, AI 코멘트 목록·사용 전환, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 노출 콘텐츠 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-023 사람이 볼 것(판정 밖): `routes/paths.js`에 `ADMIN_EXPOSURE`를 기능 커밋에 같이 넣었다. 스켈레톤 높이는 잰 값이 아니라 행 높이로 어림한 값이다(`AdminExposurePage.jsx`). AI 코멘트 탭은 미사용을 글자 없이 스위치·회색 글자로만 보인다
+
+- SCR-ADM-090 로컬 DB 검증 데이터(2026-11-03): 템플릿 `notiTmpltSn` 5(케어 일정·이메일, 제목 "검증 등록", 미사용)가 남았다(삭제 API 없음). 3번은 원래 값으로 되돌렸다. 수정 모달은 제목을 필수로 검사하지만 서버는 선택 값이다(DB에 제목 null 템플릿 3번)
 
 - SCR-ADM-022 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세, 가정 필드 이름 `ctptNcnm`·`agreVerNo`·`agreDt`·`agreCn`·`cmplReqDt`·`cmplImgs`·`ownerCfmtnRsltCd`·`ownerCfmtnDt`, 매칭 거래 상태 코드(가짜 `REQUESTED` 등)·보호자 확인 코드, 실제 완료 사진, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 펫돌봄 가짜 본문과 `careMatchLabels.js` 코드만 바꾼다
 - SCR-ADM-022 사람이 볼 것(판정 밖): 비용 단위 코드가 백엔드 `CareCostUnit`(PCAC0004·0005)과 회원용 펫돌봄 화면(PCAC0011·0012)이 다르다. 관리자 화면은 백엔드 값을 따랐다. `routes/paths.js`에 `ADMIN_CARE_MATCHES`를 기능 커밋에 같이 넣었다. 백엔드 마일스톤 SCR-ADM-022 절의 "KSJ 협의" 표기는 사람이 맞춘다
@@ -16,7 +21,6 @@ SCR-ADM-022 펫돌봄 거래 — 끝 (2026-11-03, 검증 `확인 못 함 있음`
 - SCR-ADM-091 연결 남음: FN-ADM-091-01 (백엔드 연결 `GET /api/admin/notification-logs` 목록·필터·쪽, 수신 회원 닉네임 `mbrNcnm`(가정), 기간 파라미터 이름(가짜 `fromYmd`·`toYmd`, 감사 로그는 `bgngYmd`·`endYmd`), 백엔드 저장소에서 /start). 나오면 `features/adminNotificationLog/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-091 사람이 정할 것: `routes/paths.js`에 `ADMIN_NOTIFICATION_LOGS`를 기능 커밋에 같이 넣었다(`docs/convention/shared-files.md`는 따로 PR). PR 때 나눌지 정한다. 대시보드 "알림 발송 실패" 링크(`?sndngRsltCd=AIMC0019&fromYmd=`)는 SCR-ADM-001 때 붙인다
 
-- SCR-ADM-090 연결 남음: FN-ADM-090-01~03 (백엔드 연결 `GET·POST /api/admin/notification-templates`·`PATCH /api/admin/notification-templates/{notiTmpltSn}`, `useYn` 모양('Y'|'N' 가정)·유형별 치환 변수, 백엔드 저장소에서 /start). 나오면 `features/adminNotificationTemplate/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-090 사람이 볼 것(판정 밖): 목록 스켈레톤 높이(1108px, 모바일 1160px)는 20행 기준 계산값인데 실제 AIMG02는 9종이라 18행이다(`AdminNotificationTemplatesPage.jsx`). 템플릿 목록 자체 오류(403 아닌 것) 분기는 코드로만 봤다. 치환 변수 칩은 케어 일정 기준 목록을 모든 유형에 똑같이 보인다. 화면설계서의 `{변수}` 표기를 `{{변수}}`로 고치는 것은 사람 몫
 
 - SCR-ADM-070 백엔드 병합 순서: 관리자 아이템 API(백엔드 `origin/LJS` 커밋 `f856376`)가 백엔드 develop에 병합돼야 배포에서 동작한다. 검증은 로컬 8080을 LJS 브랜치로 띄워 했다. 굽기 지시 AI 초안(`POST /ai/items/bake-hints`)은 넣지 않았다(사람 결정 2026-11-03)
@@ -214,3 +218,4 @@ SCR-ADM-022 펫돌봄 거래 — 끝 (2026-11-03, 검증 `확인 못 함 있음`
 - 범위 밖에서 본 것(말만): 공통레이아웃 기능명세서 FN-COM-004-07의 케어 일정 알림 이동 대상(건강상태관리 정기관리)이 AI매니저 FN-AIM-006-13(케어 캘린더 SCR-HLT-003)과 다름
 - SCR-COM-006 연결 남음: 006-07 터치 동작 명세 확정(반응형 범위는 ≤1100px·≤760px로 정해졌다. 명세 작성자가 문구를 갱신하면 구현할 내용을 정한다)
 - SCR-COM-002 연결 남음: 002-02 `ProtectedRoute`로 감싸기(user 레이아웃은 끝, ai·chat·place·main bare는 위 SCR-COM-003 연결 남음), 002-06 GNB 대상 페이지를 `UserLayout` 아래 라우트로 붙이기(각 담당), 002-09 알림 미확인 수 API(LJS 백엔드), 002-11 채팅 안 읽은 수 조회 위치를 KSJ와 맞추고 연결(KSJ), 002-15 회원 프로필 이미지, 002-24 세션 만료 토스트(SCR-COM-003과 함께)
+- SCR-ADM-090 검증 오류 메시지 구체화(마일스톤 `대기`, 사람 결정 2026-11-03: 맨 마지막에 한다, 사람 요청 2026-11-03): 모르는 치환 변수를 넣으면 "입력값이 올바르지 않습니다."만 보여 무엇이 문제인지 알 수 없다. 저장 전에 칸·변수 이름을 보이게 한다

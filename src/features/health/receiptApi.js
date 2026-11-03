@@ -78,3 +78,11 @@ export const saveReceiptCheckups = async ({
   });
   return ckupRcds;
 };
+
+/**
+ * 인식 실패 뒤 [직접 입력]으로 쓴 검진기록 1건을 영수증에 연결해 저장한다(FN-HLT-002-31)
+ * - 서버가 영수증을 저장완료로 바꾸고, 가계부 지출은 만들지 않는다
+ * - body는 직접 등록과 같은 키에 idmptDmndId를 더한 것. 응답은 검진기록 1건(recptSn 포함)
+ */
+export const createReceiptCheckup = ({ recptSn, petSn, body }) =>
+  api.post(`/receipts/${recptSn}/checkups`, body, { params: { petSn } });

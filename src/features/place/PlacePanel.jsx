@@ -1,9 +1,11 @@
-import { Bot, MapPinOff } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { MapPinOff } from 'lucide-react';
 import PlaceListItem from './PlaceListItem';
 import PlaceSearchForm from './PlaceSearchForm';
 import { SORT_OPTIONS, SUGGESTIONS } from './placeData';
 
-// const AI_KEYWORDS = ['전주', '동물병원', '정형외과'];
+// 목록 끝에서 이만큼 남았을 때 다음 쪽을 부른다
+const END_MARGIN_PX = 120;
 
 const groupTitle =
   'flex items-baseline gap-1.5 px-4 pt-4 text-sm font-semibold text-ink-2 md:px-5';
@@ -13,17 +15,42 @@ export default function PlacePanel({
   search,
   sort,
   regionText,
-  resultIds,
-  favoriteIds,
+  query,
+  results,
+  totalCount,
   favorites,
+  bookmarkSnOf,
   isOutside,
   isCollapsed,
   sheet,
   onSearch,
   onSortChange,
-  onSelectPlace,
   onToggleFavorite,
 }) {
+  const scrollRef = useRef(null);
+  const sentinelRef = useRef(null);
+  const [isEndInView, setIsEndInView] = useState(false);
+
+  // 목록 스크롤 영역을 기준으로 끝이 보이는지 본다(화면 기준이면 스크롤 영역에 잘려 보이지 않는다)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsEndInView(entry.isIntersecting),
+      { root: scrollRef.current, rootMargin: `0px 0px ${END_MARGIN_PX}px 0px` },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, []);
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
+
+  // 목록 끝이 보이면 다음 쪽을 이어 불러온다(최대 3쪽).
+  // 새 쪽이 막 그려져 감시 결과가 아직 이전 값일 수 있어 위치를 한 번 더 잰다
+  useEffect(() => {
+    if (!isEndInView || !hasNextPage || isFetchingNextPage) return;
+    const rootBottom = scrollRef.current.getBoundingClientRect().bottom;
+    const endTop = sentinelRef.current.getBoundingClientRect().top;
+    if (endTop <= rootBottom + END_MARGIN_PX) fetchNextPage();
+  }, [isEndInView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   return (
     <section
       aria-label="장소 목록"
@@ -74,7 +101,7 @@ export default function PlacePanel({
           className="min-w-0 flex-1 touch-none truncate text-sm text-muted max-md:cursor-grab"
         >
           <b className="font-semibold text-ink">{regionText}</b> · 결과{' '}
-          {resultIds.length}곳
+          {totalCount}곳
         </p>
         <select
           aria-label="정렬"
@@ -82,63 +109,42 @@ export default function PlacePanel({
           onChange={(event) => onSortChange(event.target.value)}
           className="h-9 w-[104px] shrink-0 rounded-md border border-input-line bg-white px-2 text-sm text-ink focus:ring-focus focus:outline-none"
         >
-          {SORT_OPTIONS.map((option) => (
-            <option key={option}>{option}</option>
+          {SORT_OPTIONS.map(({ label, value: optionValue }) => (
+            <option key={optionValue} value={optionValue}>
+              {label}
+            </option>
           ))}
         </select>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        {/* {search.isAi && (
-          <div className="mx-4 mt-4 flex gap-3 rounded-xl bg-brand-50 p-4 md:mx-5">
-            <Bot className="size-10 shrink-0 text-brand-500" />
-            <div className="text-sm text-ink-2">
-              <b className="block text-base text-ink">
-                AI 매니저가 찾은 키워드
-              </b>
-              질문을 장소 검색어로 바꿔 찾았어요
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {AI_KEYWORDS.map((keyword) => (
-                  <span
-                    key={keyword}
-                    className="inline-flex h-6 items-center rounded-full border border-line-strong bg-white px-2 text-badge font-semibold text-ink-2"
-                  >
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-2">
-                수술 실력이나 의학적 판단을 보증하지 않아요. 진료 전 병원에 꼭
-                문의해 주세요.
-              </p>
-            </div>
-          </div>
-        )} */}
-
-        {favoriteIds.length > 0 && (
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
+        {favorites.length > 0 && (
           <section
             aria-labelledby="place-fav-title"
             className="border-b-8 border-surface-2"
           >
             <h2 id="place-fav-title" className={groupTitle}>
-              내 즐겨찾기 <b className="text-brand-600">{favoriteIds.length}</b>
+              내 즐겨찾기 <b className="text-brand-600">{favorites.length}</b>
               <small className="ml-auto text-sm font-normal text-subtle">
                 상단 고정
               </small>
             </h2>
             <ul>
-              {favoriteIds.map((id) => (
+              {favorites.map((place) => (
                 <PlaceListItem
-                  key={id}
-                  id={id}
+                  key={place.plcSn}
+                  place={place}
                   isFavorite
-                  isStarred={!!favorites[id]}
-                  isOutside={isOutside(id)}
-                  isSelected={search.selected === id}
+                  isStarred
+                  isOutside={isOutside(place)}
+                  isSelected={search.selected === place.plcSn}
                   shouldScroll={
-                    search.selected === id && search.selectedBy === 'pin'
+                    search.selected === place.plcSn &&
+                    search.selectedBy === 'pin'
                   }
-                  onSelect={onSelectPlace}
                   onToggleFavorite={onToggleFavorite}
                 />
               ))}
@@ -148,12 +154,30 @@ export default function PlacePanel({
 
         <section aria-labelledby="place-result-title">
           <h2 id="place-result-title" className={groupTitle}>
-            검색 결과 <b className="text-brand-600">{resultIds.length}</b>
+            검색 결과 <b className="text-brand-600">{totalCount}</b>
             <small className="ml-auto text-sm font-normal text-subtle">
               “{search.q}”
             </small>
           </h2>
-          {resultIds.length === 0 ? (
+          {query.isPending ? (
+            <p className="px-6 py-12 text-center text-muted">
+              검색 결과를 불러오는 중이에요
+            </p>
+          ) : query.isError ? (
+            <div className="flex flex-col items-center gap-2.5 px-6 py-12 text-center text-muted">
+              <p className="text-lg font-bold text-ink">
+                검색 결과를 불러오지 못했어요
+              </p>
+              <p>{query.error.message}</p>
+              <button
+                type="button"
+                onClick={() => query.refetch()}
+                className="mt-1 h-10 rounded-md bg-brand-500 px-5 font-semibold text-white hover:bg-brand-600"
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : results.length === 0 ? (
             <div className="flex flex-col items-center gap-2.5 px-6 py-12 text-center text-muted">
               <span className="grid size-16 place-items-center rounded-full bg-brand-50 text-brand-500">
                 <MapPinOff className="size-8" />
@@ -166,26 +190,32 @@ export default function PlacePanel({
           ) : (
             <>
               <ul>
-                {resultIds.map((id, index) => (
+                {results.map((place, index) => (
                   <PlaceListItem
-                    key={id}
-                    id={id}
-                    letter={String.fromCharCode(65 + index)}
-                    isStarred={!!favorites[id]}
-                    isSelected={search.selected === id}
+                    key={place.plcSn}
+                    place={place}
+                    letter={String(index + 1)}
+                    isStarred={bookmarkSnOf(place) != null}
+                    isSelected={search.selected === place.plcSn}
                     shouldScroll={
-                      search.selected === id && search.selectedBy === 'pin'
+                      search.selected === place.plcSn &&
+                      search.selectedBy === 'pin'
                     }
-                    onSelect={onSelectPlace}
                     onToggleFavorite={onToggleFavorite}
                   />
                 ))}
               </ul>
               <p className="px-5 pb-10 pt-6 text-center text-sm text-subtle">
-                마지막 검색 결과예요
+                {isFetchingNextPage
+                  ? '검색 결과를 더 불러오는 중이에요'
+                  : hasNextPage
+                    ? ' '
+                    : '마지막 검색 결과예요'}
               </p>
             </>
           )}
+          {/* 감시 줄은 결과와 상관없이 항상 두어 처음 그릴 때부터 감시한다 */}
+          <div ref={sentinelRef} aria-hidden="true" className="h-px" />
         </section>
       </div>
     </section>

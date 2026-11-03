@@ -80,6 +80,7 @@ export const PATHS = {
   ADMIN_POST_DETAIL: '/admin/posts/:pstSn',
   ADMIN_LOST_REPORTS: '/admin/lost-reports',
   ADMIN_CARE_MATCHES: '/admin/care-matches',
+  ADMIN_EXPOSURE: '/admin/exposure',
   ADMIN_REPORTS: '/admin/reports',
   ADMIN_REPORT_DETAIL: '/admin/reports/:dclrSn',
   ADMIN_NOTICES: '/admin/notices',
