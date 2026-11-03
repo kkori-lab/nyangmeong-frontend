@@ -156,6 +156,12 @@
 - 기다리는 것: 백엔드 `GET /api/members/me`, `PATCH /api/members/me`(SJM, 2026-10-30 완료)
 - 완료 조건: 6-2·6-3 프로필 요약(사진·닉네임·이메일 또는 SNS 표시)과 계정 정보(가입 방식·가입일 `joinDt`·최근 로그인 `lastLgnDt`)를 조회로 채운다. [사진 변경]은 multipart `profilePhoto`, [기본 이미지로]는 `profilePhotoReset=true`로 보낸다. 휴대폰 [저장]은 `mblTelno`로 보내고 409 PHONE_ALREADY_USED면 "이미 사용 중인 휴대전화번호입니다."를 보여 준다
 
+## SCR-MYP-030 가계부 목록 · 전체 선택 뒤 해제한 건을 제외하고 삭제 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MYP-030-18·19·21
+- 기다리는 것: 백엔드 `POST /api/expenses/bulk-delete`의 `excludeExpndSn`(SJM 백엔드, 2026-11-03 완료)
+- 완료 조건: 편집 모드에서 [조회 결과 전체 선택] 뒤 개별 해제한 번호를 `excludeExpndSn`으로 보내고, `expectedCnt`는 "조건에 맞는 건수 − 해제한 수"로 보낸다. 409 `EXPENSE_BULK_DELETE_CHANGED`면 목록을 다시 불러온 뒤 다시 선택하게 안내한다(잘못된 제외 번호도 같은 409)
+
 ## 제외
 
 - 없음. 마이페이지 명세의 화면은 모두 SJM 담당이다

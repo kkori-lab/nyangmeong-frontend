@@ -11,10 +11,11 @@ import useKakaoMap from '@/hooks/useKakaoMap';
 import PlaceOverlay from './PlaceOverlay';
 import PlacePin from './PlacePin';
 import PlacePopup from './PlacePopup';
-import { SPOTS } from './placeData';
+import { JEONJU_AREA } from './placeData';
 
-const HOME_CENTER = [35.832, 127.1385];
+const HOME_CENTER = [JEONJU_AREA.cntrLat, JEONJU_AREA.cntrLot];
 const INITIAL_LEVEL = 6;
+const SINGLE_LEVEL = 4;
 const BOUNDS_PADDING = 80;
 
 const floatCard = 'bg-white shadow-depth-md';
@@ -23,10 +24,11 @@ const toolButton =
 
 // 지도 영역. 지도를 움직이면 '이 지역에서 다시 검색'이 뜬다. children은 모바일에서 지도 위에 얹는 검색창·칩이다
 export default function PlaceMap({
-  resultIds,
-  favoriteIds,
-  isOutside,
-  selected,
+  results,
+  strayFavorites,
+  selectedPlace,
+  fitKey,
+  isReady,
   regionText,
   isMoved,
   isCollapsed,
@@ -40,7 +42,7 @@ export default function PlaceMap({
 }) {
   const { kakao, isError } = useKakaoMap();
   const containerRef = useRef(null);
-  const homeBoundsRef = useRef(null);
+  const fittedKeyRef = useRef(null);
   // 코드로 지도를 옮기는 중에는 zoom_changed를 사용자가 움직인 것으로 치지 않는다
   const isAutoMoveRef = useRef(false);
   const onMovedRef = useRef(onMoved);
@@ -51,10 +53,31 @@ export default function PlaceMap({
     onMovedRef.current = onMoved;
   }, [onMoved]);
 
-  const fitHome = (target = map) => {
+  // 결과가 다 보이게 지도를 맞춘다. 결과가 없으면 전주시 대표 영역을 보인다
+  const fitPlaces = (target, places) => {
     isAutoMoveRef.current = true;
+    if (places.length === 1) {
+      target.setCenter(
+        new kakao.maps.LatLng(places[0].plcLat, places[0].plcLot),
+      );
+      target.setLevel(SINGLE_LEVEL);
+      return;
+    }
+    const bounds = new kakao.maps.LatLngBounds();
+    if (places.length === 0) {
+      bounds.extend(
+        new kakao.maps.LatLng(JEONJU_AREA.swLat, JEONJU_AREA.swLot),
+      );
+      bounds.extend(
+        new kakao.maps.LatLng(JEONJU_AREA.neLat, JEONJU_AREA.neLot),
+      );
+    } else {
+      places.forEach(({ plcLat, plcLot }) =>
+        bounds.extend(new kakao.maps.LatLng(plcLat, plcLot)),
+      );
+    }
     target.setBounds(
-      homeBoundsRef.current,
+      bounds,
       BOUNDS_PADDING,
       BOUNDS_PADDING,
       BOUNDS_PADDING,
@@ -64,17 +87,10 @@ export default function PlaceMap({
 
   useEffect(() => {
     if (!kakao) return;
-    const bounds = new kakao.maps.LatLngBounds();
-    Object.values(SPOTS).forEach(([lat, lng]) =>
-      bounds.extend(new kakao.maps.LatLng(lat, lng)),
-    );
-    homeBoundsRef.current = bounds;
-
     const kakaoMap = new kakao.maps.Map(containerRef.current, {
       center: new kakao.maps.LatLng(...HOME_CENTER),
       level: INITIAL_LEVEL,
     });
-    fitHome(kakaoMap);
     kakao.maps.event.addListener(kakaoMap, 'idle', () => {
       isAutoMoveRef.current = false;
     });
@@ -91,7 +107,6 @@ export default function PlaceMap({
     observer.observe(containerRef.current);
     return () => observer.disconnect();
     // 지도는 SDK가 준비됐을 때 한 번만 만든다
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kakao]);
 
   useEffect(() => {
@@ -101,19 +116,41 @@ export default function PlaceMap({
     );
   }, [map, kakao, isSky]);
 
+  // 새 검색의 결과가 오면 한 번 맞춘다. 재검색·정렬로 결과가 바뀔 때는 지도를 그대로 둔다
   useEffect(() => {
-    if (!map || !selected) return;
-    const [lat, lng] = SPOTS[selected];
-    map.panTo(new kakao.maps.LatLng(lat, lng));
-  }, [map, kakao, selected]);
+    if (!map || !isReady || fittedKeyRef.current === fitKey) return;
+    fittedKeyRef.current = fitKey;
+    fitPlaces(map, results);
+    // 결과가 바뀔 때마다가 아니라 새 검색일 때만 맞춘다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, isReady, fitKey]);
+
+  useEffect(() => {
+    if (!map || !selectedPlace) return;
+    map.panTo(
+      new kakao.maps.LatLng(selectedPlace.plcLat, selectedPlace.plcLot),
+    );
+  }, [map, kakao, selectedPlace]);
+
+  // 버튼을 누른 순간의 지도 영역과 중앙으로 다시 검색한다
+  const handleResearch = () => {
+    const bounds = map.getBounds();
+    const southWest = bounds.getSouthWest();
+    const northEast = bounds.getNorthEast();
+    const center = map.getCenter();
+    onResearch({
+      swLat: southWest.getLat(),
+      swLot: southWest.getLng(),
+      neLat: northEast.getLat(),
+      neLot: northEast.getLng(),
+      cntrLat: center.getLat(),
+      cntrLot: center.getLng(),
+    });
+  };
 
   const zoom = (direction) => {
     map?.setLevel(map.getLevel() - direction, { animate: true });
   };
-
-  const strayFavoriteIds = favoriteIds.filter(
-    (id) => !isOutside(id) && !resultIds.includes(id),
-  );
 
   return (
     <div className="relative min-w-0 overflow-hidden bg-[#f1f2ed] max-md:absolute max-md:inset-0">
@@ -124,34 +161,34 @@ export default function PlaceMap({
         </p>
       )}
       {map &&
-        resultIds.map((id, index) => (
+        results.map((place, index) => (
           <PlaceOverlay
-            key={id}
+            key={place.plcSn}
             kakao={kakao}
             map={map}
-            position={SPOTS[id]}
-            zIndex={selected === id ? 3 : 1}
+            position={[place.plcLat, place.plcLot]}
+            zIndex={selectedPlace?.plcSn === place.plcSn ? 3 : 1}
           >
             <PlacePin
-              id={id}
-              label={String.fromCharCode(65 + index)}
-              isSelected={selected === id}
+              place={place}
+              label={String(index + 1)}
+              isSelected={selectedPlace?.plcSn === place.plcSn}
               onSelect={onSelectPin}
             />
           </PlaceOverlay>
         ))}
       {map &&
-        strayFavoriteIds.map((id) => (
+        strayFavorites.map((place) => (
           <PlaceOverlay
-            key={id}
+            key={place.plcSn}
             kakao={kakao}
             map={map}
-            position={SPOTS[id]}
-            zIndex={selected === id ? 3 : 1}
+            position={[place.plcLat, place.plcLot]}
+            zIndex={selectedPlace?.plcSn === place.plcSn ? 3 : 1}
           >
             <PlacePin
-              id={id}
-              isSelected={selected === id}
+              place={place}
+              isSelected={selectedPlace?.plcSn === place.plcSn}
               onSelect={onSelectPin}
             />
           </PlaceOverlay>
@@ -206,7 +243,7 @@ export default function PlaceMap({
       {isMoved && (
         <button
           type="button"
-          onClick={onResearch}
+          onClick={handleResearch}
           className={`absolute left-1/2 top-[72px] z-[2] inline-flex h-11 -translate-x-1/2 items-center gap-1.5 rounded-md px-5 font-semibold text-brand-600 max-md:top-[164px] ${floatCard}`}
         >
           <RefreshCw className="size-5" />이 지도 영역에서 다시 검색
@@ -222,7 +259,7 @@ export default function PlaceMap({
           <button
             type="button"
             aria-label="처음 위치로"
-            onClick={() => map && fitHome()}
+            onClick={() => map && fitPlaces(map, results)}
             className={toolButton}
           >
             <LocateFixed className="size-[22px]" />
@@ -250,13 +287,9 @@ export default function PlaceMap({
         </div>
       </div>
 
-      <p className="absolute bottom-[13px] left-[90px] z-[2] rounded-sm bg-white/85 px-2 py-0.5 text-sm text-subtle max-md:hidden">
-        업체는 설명용 예시예요
-      </p>
-
-      {selected && (
+      {selectedPlace && (
         <div className={isSheetFull ? 'max-md:hidden' : ''}>
-          <PlacePopup id={selected} onClose={onClosePopup} />
+          <PlacePopup place={selectedPlace} onClose={onClosePopup} />
         </div>
       )}
     </div>
