@@ -92,6 +92,14 @@ export const CHRC_STTS = {
   ERROR: 'ERROR',
 };
 
+/** 캐릭터 생성 작업 상태 (CHRG01, `GET /pixel-characters`의 crtJobSttsCd) */
+export const CRT_JOB_STTS = {
+  REQUESTED: 'CHRC0001',
+  GENERATING: 'CHRC0002',
+  DONE: 'CHRC0003',
+  FAILED: 'CHRC0004',
+};
+
 /** 캐릭터 아이템 부위: 머리·얼굴·목·의상·가방 (공통코드 생기면 값 맞춤) */
 export const ITEM_PART = {
   HEAD: 'HEAD',

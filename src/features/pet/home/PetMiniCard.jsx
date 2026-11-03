@@ -4,6 +4,7 @@ import Badge from '@/components/Badge';
 import { PATHS } from '@/routes/paths';
 import PetFace from '@/components/PetFace';
 import { BRUP_ROLE, CHRC_STTS } from '@/utils/petCodes';
+import { useCharState } from '../queries';
 import { formatAge, getVrtyName } from '@/utils/petFormat';
 
 /** 캐릭터를 만든 동물의 얼굴 바탕색 (순서대로 순환 사용) */
@@ -16,8 +17,9 @@ const TONES = [
 ];
 
 export default function PetMiniCard({ pet, index }) {
-  const isDone = pet.chrcSttsCd === CHRC_STTS.DONE;
-  const isError = pet.bscCharSbstYn || pet.chrcSttsCd === CHRC_STTS.ERROR;
+  const charState = useCharState(pet.petSn);
+  const isDone = charState?.status === CHRC_STTS.DONE;
+  const isError = !!pet.bscCharSbstYn;
 
   return (
     <Link
@@ -35,7 +37,7 @@ export default function PetMiniCard({ pet, index }) {
         <PetFace
           petSn={pet.petSn}
           petSeCd={pet.petSeCd}
-          chrcSttsCd={isError ? CHRC_STTS.ERROR : pet.chrcSttsCd}
+          isError={isError}
           className="size-full rounded-full"
           iconClassName="size-7 max-[760px]:size-5"
         />
