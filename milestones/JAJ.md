@@ -216,11 +216,14 @@
 - 연결 남음: 추가-2 (백엔드 연결 `save-check` 저장완료 영수증 409 `RECEIPT_ALREADY_SAVED`, 백엔드 저장소에서 /start)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 영수증 결과 확인에서 저장하면 `save-check` 뒤 `save` 한 번만 요청하고, 검진기록·처방약·가계부 지출(마이페이지 가계부 목록)에 실제로 남는다. 같은 지출이 있으면 중복 안내, 가까운 예정 일정이 있으면 연결 선택이 나온다
 
-## SCR-HLT-002 건강 일지 · 영수증 [직접 입력] 저장 연결 — 대기
+## SCR-HLT-002 건강 일지 · 영수증 [직접 입력] 저장 연결 — 끝
 
 - 기능: 명세 기능 ID 추가 없음, FN-HLT-002-31(영수증 인식 실패·일시 오류 뒤 [직접 입력]으로 연 검진기록 등록 모달의 저장)에 걸침. 이 경로의 저장을 `POST /pets/{petSn}/checkups` 대신 `POST /api/receipts/{recptSn}/checkups?petSn=`로 보낸다. 요청은 직접 등록 Body(`ckupYmd`·`hsptlNm`·`ckupTypeCd`·`ckupCn`·`ckupMemoCn`·`schdlSn`)에 `idmptDmndId`(모달마다 한 번 만든 값)를 더한다. 응답은 `CheckupResponse`(201, `recptSn` 포함). 업로드 전 [직접 입력하기]로 연 경우는 지금처럼 영수증 연결 없음
 - 기다리는 것: 백엔드 SCR-HLT-002 건강 일지 · 영수증 검진기록 연결 (JAJ 백엔드, 끝 2026-11-03)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 미인식 영수증에서 [직접 입력]으로 검진기록을 저장하면 `POST /api/receipts/{recptSn}/checkups?petSn=` 한 번만 요청하고, 그 영수증이 저장완료가 되며 가계부 지출은 생기지 않는다. 409 `RECEIPT_ALREADY_SAVED`(이미 저장됨)·404 `RECEIPT_NOT_FOUND`는 안내를 보인다
+- 결과: 2026-11-03 검증 통과(1회차 409·404 토스트가 `<dialog>` 뒤에 가려 안 보임, 2회차 모달 안 상자가 기획과 다름 → 추가-1로 확정 후 잠금을 풀고 다시 검증), 사람 확인 끝
+- 추가 요청: 추가-1 409·404 안내를 토스트 대신 모달 안 빨간 안내 상자로(`CheckupModal.jsx`, `queries.js`)
+- 연결 남음: FN-HLT-002-31 일시 오류 뒤 [직접 입력]의 영수증 연결 (AI 서버 오류 응답 `recptSn`·업로드 모달, nyangmeong-ai 담당·LJS): AI 서버 영수증 분석 502 `OCR_API_ERROR`·504 시간 초과 응답에 `recptSn`이 없어(원본은 먼저 저장됨) 화면이 `POST /pets/{petSn}/checkups`로 저장한다(FN-HLT-002-31 "인식 실패·일시 오류"와 다름). 필요: AI 서버가 오류 응답에 `recptSn`을 준다(nyangmeong-ai 저장소에서 /start), LJS `features/ai/receipt/ReceiptUploadModal.jsx`가 오류 때도 `recptSn`을 [직접 입력]에 넘긴다. 백엔드는 일시 오류 영수증 저장을 이미 받고, `CheckupModal`은 `recptSn`만 받으면 영수증 경로로 저장한다. 브라우저 쪽 시간 초과(요청 중단)는 번호를 알 수 없어 남는다
 
 ## 제외
 
