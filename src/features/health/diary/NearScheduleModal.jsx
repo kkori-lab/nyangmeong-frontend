@@ -15,6 +15,7 @@ const findCheckupTypeNm = (cd) =>
  * [가까운 예정 일정 확인 창] (FN-HLT-002-46)
  * - rows: [{ key, schedule, petNm }] 대상 일정이 있는 검진기록. 일정 응답에 이름이 없어 petNm을 따로 받는다. 1건이면 버튼 두 개로 바로 정하고,
  *   여러 건이면 줄마다 [옮겨 연결하기]/[새 일정으로 저장하기]를 고른 뒤 저장
+ * - 영수증 저장 전 확인 응답에는 검진 종류(ckupTypeCd)가 없어 그 부분을 빼고 "병원 일정"으로 보인다
  * - ckupYmd: 검진일. onConfirm(moveByKey): { [key]: 옮겨 연결하면 true }
  * - ✕는 저장 없이 입력 화면으로 복귀
  */
@@ -38,13 +39,15 @@ export default function NearScheduleModal({
         separator: '-',
         hasYear: false,
       })}{' '}
-      · {petNm} · {findCheckupTypeNm(schedule.ckupTypeCd)} ·{' '}
-      {schedule.hsptlNm}
+      ·{' '}
+      {[petNm, findCheckupTypeNm(schedule.ckupTypeCd), schedule.hsptlNm]
+        .filter(Boolean)
+        .join(' · ')}
     </>
   );
 
   const title = isSingle
-    ? `${formatMonthDaySlash(getYmdOf(rows[0].schedule.schdlDt))} ${findCheckupTypeNm(rows[0].schedule.ckupTypeCd)} 일정이 있어요`
+    ? `${formatMonthDaySlash(getYmdOf(rows[0].schedule.schdlDt))} ${findCheckupTypeNm(rows[0].schedule.ckupTypeCd) ?? '병원'} 일정이 있어요`
     : '가까운 예정 일정이 있어요';
   const description = isSingle
     ? `이 검진기록과 연결하고 일정을 ${formatMonthDaySlash(ckupYmd)}로 옮길까요?`

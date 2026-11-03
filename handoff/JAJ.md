@@ -2,11 +2,14 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-007 검사 수치 입력 · PDF 분석 연결 (2026-11-03). 검증 통과(실제 AI 서버로 분석·422 확인, 504·502는 Playwright route), 사람 확인 끝. `analyzeLabPdf`가 첨부 원본 Blob을 `POST /ai/checkups/lab-results`에 올리고 검수 행은 서버 키(`rsltNvl`·`refLlmtNvl`·`refUplmtNvl`)를 쓴다. 분석이 실패하면 검진상세에서 검사 수치 입력으로 넘어가 빨간 오류 안내와 [다시 분석하기]·[직접 입력하기]를 보이고, 노란 AI 주의 문구는 검수 행이 있을 때만 보인다(추가-1). 가짜 저장소·`?fakeCheckupDetail` 삭제
+끝남: SCR-HLT-002 건강 일지 · 영수증 일괄 저장 연결 (2026-11-03). 검증 통과(새 백엔드로 실제 저장·2-E 일정 옮김·가계부·409 확인), 사람 확인 끝. `receiptApi.js`가 `POST /receipts/{recptSn}/save-check`·`/save`를 부르고 복용 상태는 `HLTC0010`·`HLTC0011`로 보낸다. 2-E 창은 검진 종류가 없으면 "병원 일정"(추가-1), 이미 저장한 영수증(409 `RECEIPT_ALREADY_SAVED`)은 서버 안내만 보이고 [다시 시도하기]를 숨긴다(추가-2). 가짜 처방약·가계부·`?fakeLedgerDup`·`?fakeReceiptSave` 삭제
 
 ## 다음에 할 것
 
-- 다음 작업(SCR-HLT-002 · 영수증 일괄 저장 연결, 마일스톤 대기): 백엔드 저장소에서 /start로 health 서비스 메서드(`CheckupRecordFake` 대신 쓸 것)를 먼저 만들고 LJS에게 `ReceiptSaveService` 교체를 요청한다. 그 뒤 프론트 `receiptApi.js`를 `POST /api/receipts/{recptSn}/save-check`·`/save`로 바꾼다
+- 다음 작업(SCR-HLT-002 · 영수증 [직접 입력] 저장 연결, 마일스톤 대기): 인식 실패 뒤 [직접 입력] 저장을 `POST /api/receipts/{recptSn}/checkups?petSn=`로 보낸다
+- 연결 남음(SCR-HLT-002 추가-2): 백엔드 `save-check`도 저장완료 영수증이면 409 `RECEIPT_ALREADY_SAVED`를 준다(백엔드 저장소에서 /start). 프론트는 이미 같은 안내로 처리한다
+- 정리 필요(공용 DB, DB 담당): 검증 계정 누리(petSn 20)의 확인용 영수증 504·506·507(지우는 API 없음). 검진기록 1002·처방약 443·가계부 10401·일정 4916은 지웠다
+- 참고(로컬 확인): AI 서버 영수증 인식은 nyangmeong-ai `.env.local`의 `GOOGLE_VISION_API_KEY`가 없으면 502. 검증은 백엔드 내부 API(`POST /internal/ai/receipts` → `/{recptSn}/result` RECOGNIZED)로 영수증을 만들고 `/ai/receipts` 응답만 route로 줬다. 백엔드가 DevTools 재시작만 되고 옛 클래스로 돌면 새 API가 404이니 완전히 다시 띄운다
 - 참고(SCR-HLT-007 PDF 분석): 분석 항목 이름은 목록 12종 코드면 약어, 아니면 `inspArtclDrctInptNm`. 둘 다 없으면 `inspArtclCd`를 그대로 보인다(`labInput/labRows.js` `getAnalyzedName`, 실제 응답에서는 안 나옴). 이때 보일 이름은 정하지 않았다. 저장 제외 행(혈액검사 아님)에도 "인식 실패" placeholder가 붙는다. 실패 안내는 `useAnalyzeLabPdf` 토스트 대신 화면이 보인다
 - 참고(SCR-HLT-011 캐릭터 상태): 히어로 큰 이미지는 `GET /pixel-characters`(LJS) 행의 `pixelCharSn`이 없는 주양육 반려동물만 "캐릭터 만들기" 카드, 행이 없거나 조회 실패면 `PetFace`. 칩은 그대로. 생성 중(`CHRC0001`·`0002`)·실패(`CHRC0004`)는 백엔드 `character-image`가 종별 기본 캐릭터를 주므로 따로 표시하지 않는다(사람 결정)
 - 알릴 것(명세 담당): 지속 관찰 회차 수정에서 사진은 바꿀 수만 있고 뺄 수 없다(수정 모달 보조 문구 "사진은 바꿀 수만 있어요"). 기능명세서 FN-HLT-002-22에 반영을 요청한다
@@ -15,12 +18,12 @@
 - 알릴 것(공용 `api/axios.js`·백엔드 인증 담당): 지속 관찰 검증 중 액세스 쿠키가 만료되자 POST가 `TOKEN_EXPIRED`가 아닌 401을 받아 재발급 없이 로그인 화면으로 갔다(뒤에 `/auth/refresh`는 200)
 - 알릴 것(백엔드 기준 데이터): SDMA `HLTC0078`이 백엔드 `db/20261030_insert_base_data_v0.11.sql` HLTG12에 없다. 공용 DB에는 사람이 넣었다. 새로 DB를 만들면 SDMA 저장이 500이 난다
 - 알릴 것(팀): 검진상세·검사 수치 입력 주소가 `/health/pets/:petSn/checkups/:ckupRcdSn`(`/inspections`)로 바뀌었다(`routes/paths.js`, `docs/routes.md` HLT-005·007). `docs/routes.md` 0장 규칙은 JAJ가 직접 고치고 팀에 공유한다
-- 참고(SCR-HLT-002·005): 관찰 사진 캐시 키는 `healthKeys.observationPhoto`(사진을 바꾼 수정만 다시 받음). 일상 기록 그래프는 선택 지표만 `size=14`, 식사량·음수량·산책은 `fromYmd`로 한 번 더. 검진기록 연도 목록은 `size=1` 두 번. 영수증 저장은 반려동물마다 `POST checkups`를 따로 보내 중간 실패 때 앞 기록이 남고 `recptSn`·처방 약품·가계부는 가짜. 첨부 목록은 서버 최대 50건. 기능 태그는 `labInput/bloodItems.js`에서 약어로 찾는다. 반복 예방 "처방약 연동" 배지는 이전 문구 그대로
+- 참고(SCR-HLT-002·005): 관찰 사진 캐시 키는 `healthKeys.observationPhoto`(사진을 바꾼 수정만 다시 받음). 일상 기록 그래프는 선택 지표만 `size=14`, 식사량·음수량·산책은 `fromYmd`로 한 번 더. 검진기록 연도 목록은 `size=1` 두 번. 첨부 목록은 서버 최대 50건. 기능 태그는 `labInput/bloodItems.js`에서 약어로 찾는다. 반복 예방 "처방약 연동" 배지는 이전 문구 그대로
 - 연결 남음(공용 · PetFace 올리기): 캐릭터 얼굴 이미지 실제 응답 `GET /pets/{petSn}/character-image?part=face` (LJS 백엔드)
 - 참고(SCR-HLT-002, 실패 아님): 최근 건강기록 모바일 한 줄 요약은 기록 있는 종류만 잇는다. 390px 그래프 x축 날짜 글자가 붙는다. 폭이 정확히 760px이면 `isLarge` 모달이 기본 크기로 열린다(이전부터)
 - 알릴 것(시안 담당): 건강 일지 반려동물 선택이 칩 막대 → 초록 알약형 셀렉트로 바뀌었다(추가-1~3). 오늘 기록하기 한 줄, 검진기록 제목 옆 연도 선택, 모바일 지속 관찰 목록→상세, 관찰 0건에도 카드 머리 등록 버튼, 상세 기록 모달 높이 맞춤·✕ 없음, 검진상세 [건강 일지로 돌아가기] 삭제(추가-4)가 시안(`html/hlt-diary.html`)과 다르다. 사람이 시안을 갱신하기로 함. 페이지 바탕색 `#faf8f5`는 토큰이 없어 `DiaryPetBar.jsx`에 직접 썼다
 - 알릴 것(공용 파일 담당): `components/Modal.jsx` `isAutoHeight`·`isCloseIconHidden`, `components/DropdownSelect.jsx` `isPill`, `components/Card.jsx` `leading`을 더했다(모두 기본값 꺼짐). `Card.jsx`는 `aria-labelledby` id를 제목 `<span>`으로 옮겼다. `features/health/PetTabs.jsx`는 지웠다
-- 연결 남음(SCR-HLT-002·003): 002-01·003 캐릭터 이미지 (LJS), 003 케어미션·포인트 반영 (SJM), 반려동물 프로필 체중 정상범위·목표 (SJM), 영수증 인식 결과 전체(YAY, 지금은 LJS 인식 응답 + `receiptApi.js` `getReceiptDetail` 가짜)
+- 연결 남음(SCR-HLT-002·003): 002-01·003 캐릭터 이미지 (LJS), 003 케어미션·포인트 반영 (SJM), 반려동물 프로필 체중 정상범위·목표 (SJM), 영수증 인식 결과 전체(YAY, 지금은 LJS 인식 응답)
 
 - 결정 필요(SCR-HLT-011, 디자인 담당): 명세와 디자인이 다르다. 사람이 디자인 파일이 맞다고 했다. 명세를 디자인에 맞게 고칠지 정한다. (1) FN-HLT-011-02 "캐릭터 없으면 예시 그림" vs 지금 디자인의 "캐릭터 만들기" 카드(주양육·미생성, 2026-11-01 되살림), (2) FN-HLT-011-07 "이탈 판정 없음" vs 범위를 벗어난 구간·점·마지막 값 빨간색, (3) 모바일 히어로·묶음 탭·검사 수치·관찰 기록 배치(추가-11~18)와 그래프 최대·최소 왼쪽 눈금은 시안·명세에 없다
 - 참고(SCR-HLT-011): 칩 줄이 여러 줄로 꺾이면 세로 구분선·등록 버튼이 마지막 줄 맨 앞으로 내려간다(10마리 계정에서 보임). 390px에서는 칩 줄이 가로로 밀려 등록 버튼이 화면 밖에 있다. `ConditionCard` 목록 key가 같은 항목이 두 번이면 겹칠 수 있다. `diary/LineChart.jsx` 선택 속성: `bandLabelSide`, `isLeftColumn`, `activeIndex`. 모바일 프로필 태그는 긴 값이면 넘칠 수 있다
@@ -32,6 +35,5 @@
 - 참고: 건강 일지 탭은 처음 열 때만 주소 `#`를 읽는다. `BloodResultForm.jsx`의 입력 검사가 `labInput/LabInput.jsx`와 거의 같아 합칠 수 있다
 - 결정 필요(SCR-HLT-007 추가-1): 검사 결과 행을 누르면 수정 화면으로 가게 바꾸면서(`BloodResultList.jsx`) 검진상세에서 종합 건강기록 추이(`/health?inspection=<항목>`)로 가는 길이 없어졌다. FN-HLT-005-02를 고칠지, 다른 길을 둘지 정한다
 - SCR-HLT-007 참고(실패 아님): [직접 입력하기] 뒤에도 주소가 `?mode=pdf&atch=<번호>`에 남아 새로고침하면 분석이 다시 뜬다. `labInput/ItemSelect.jsx` 묶음 행과 항목 행 key가 `GLU`로 겹쳐 콘솔 경고. PDF 진입 때 아래 입력칸은 선택으로 구현했다
-- 영수증 등록 가짜 확인용 쿼리(개발 환경만): `?fakeReceipt=zones`·`nozone`, `?fakeLedgerDup=1`, `?fakeReceiptSave=fail`. 인식 실패·15초 초과는 업로드 파일 이름에 `fail`·`slow`
 - 알릴 것(LJS): `routes/domains/devRoutes.js`의 영수증 DEV 화면은 지워도 된다. 공용 `layouts/UserHeader.jsx`·`NotificationDropdown.jsx`·`ProfileDropdown.jsx`를 시안 기준으로 수정(새 `headerStyles.js`·`assets/user.svg`), 로컬 Pretendard 글꼴 추가(`assets/fonts/PretendardVariable.woff2` 약 2MB), `eslint.config.js`에 `html` 제외
 - 결정 필요: 공용 `ConfirmModal`·우측 아래 플로팅 버튼을 시안 스타일로 맞출지(LJS 파일). 앱 전체 본문 줄 높이를 시안 1.6으로 할지. 식사량·음수량·산책 그래프 "최근 14개"를 14일로 바꿀지
