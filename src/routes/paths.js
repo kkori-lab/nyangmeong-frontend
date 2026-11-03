@@ -86,6 +86,7 @@ export const PATHS = {
   ADMIN_FAQS: '/admin/faqs',
   ADMIN_INQUIRIES: '/admin/inquiries',
   ADMIN_INQUIRY_DETAIL: '/admin/inquiries/:otoInqrySn',
+  ADMIN_ITEMS: '/admin/items',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_BATCHES: '/admin/batches',
   ADMIN_EXTERNAL_API_USAGE: '/admin/external-api-usage',
