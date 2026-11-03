@@ -7,7 +7,11 @@ import {
 import {
   blindPost,
   deleteComment,
+  getAdminCareRecruit,
+  getAdminCareRecruits,
   getAdminComments,
+  getAdminLostReport,
+  getAdminLostReports,
   getAdminPost,
   getAdminPosts,
   restorePost,
@@ -18,7 +22,41 @@ export const adminCommunityKeys = {
   posts: (params) => ['adminCommunity', 'posts', params],
   post: (pstSn) => ['adminCommunity', 'post', pstSn],
   comments: (params) => ['adminCommunity', 'comments', params],
+  lostReports: (params) => ['adminCommunity', 'lostReports', params],
+  lostReport: (lostTpofSn) => ['adminCommunity', 'lostReport', lostTpofSn],
+  careRecruits: (params) => ['adminCommunity', 'careRecruits', params],
+  careRecruit: (petPrtcRcrtSn) => [
+    'adminCommunity',
+    'careRecruit',
+    petPrtcRcrtSn,
+  ],
 };
+
+export const useAdminCareRecruits = (params) =>
+  useQuery({
+    queryKey: adminCommunityKeys.careRecruits(params),
+    queryFn: () => getAdminCareRecruits(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useAdminCareRecruit = (petPrtcRcrtSn) =>
+  useQuery({
+    queryKey: adminCommunityKeys.careRecruit(petPrtcRcrtSn),
+    queryFn: () => getAdminCareRecruit(petPrtcRcrtSn),
+  });
+
+export const useAdminLostReports = (params) =>
+  useQuery({
+    queryKey: adminCommunityKeys.lostReports(params),
+    queryFn: () => getAdminLostReports(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useAdminLostReport = (lostTpofSn) =>
+  useQuery({
+    queryKey: adminCommunityKeys.lostReport(lostTpofSn),
+    queryFn: () => getAdminLostReport(lostTpofSn),
+  });
 
 export const useAdminPosts = (params) =>
   useQuery({
