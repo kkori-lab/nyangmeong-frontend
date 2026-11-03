@@ -523,10 +523,13 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 연결 남음만, 품종은 가짜 응답 기준·지역은 실제 API), 사람 확인 2026-11-03
 - 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함), 백엔드 저장소에서 /start)
 
-## SCR-ADM-051 약관 — 대기
+## SCR-ADM-051 약관 — 끝
 - 기능: FN-ADM-051-01 약관 목록 조회, FN-ADM-051-02 약관 새 버전 등록, FN-ADM-051-03 약관 버전 이력 조회, FN-ADM-051-04 관리 대상 약관, FN-ADM-051-05 기존 회원 재동의
 - 기다리는 것: `/api/admin/terms` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 약관 새 버전 등록 뒤 버전 이력에 한 줄 늘어난다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 새 버전 등록은 별도 화면 `/admin/terms/new`(사람 2026-11-03 추천안대로)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-060 장소 — 대기
 - 기능: FN-ADM-060-01 장소 목록 조회, FN-ADM-060-02 장소 노출 설정, FN-ADM-060-03 place_url 수동 매칭, FN-ADM-060-04 공공데이터 수집 실행, FN-ADM-060-05 장소 직접 등록 제외
