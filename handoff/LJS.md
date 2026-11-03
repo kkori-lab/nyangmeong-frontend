@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-ADM-021 실종제보 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 1회차(연결 남음만), 사람 확인). 관리자 실종제보 목록(상태 탭 URL 쿼리 유지, 20건씩 쪽 번호, 390px 한 줄 목록)·상세 모달(찾았어요는 제목·상태·처리 시각만, [게시글·댓글에서 보기])을 가짜 응답으로 만들었다
+SCR-ADM-070 아이템 · 목록·이미지·등록·수정 모달·순서 저장 연결 — 끝 (2026-11-03, 검증 `통과` 1회차, 사람 확인). `features/adminItem/api.js` 가짜 응답을 실제 `/api/admin/items` 다섯 개로 바꾸고 등록·수정 모달에 굽기 지시 칸(선택, 300자)을 넣었다
 
 ## 다음에 할 것
 
@@ -16,7 +16,8 @@ SCR-ADM-021 실종제보 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 1�
 - SCR-ADM-090 연결 남음: FN-ADM-090-01~03 (백엔드 연결 `GET·POST /api/admin/notification-templates`·`PATCH /api/admin/notification-templates/{notiTmpltSn}`, `useYn` 모양('Y'|'N' 가정)·유형별 치환 변수, 백엔드 저장소에서 /start). 나오면 `features/adminNotificationTemplate/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-090 사람이 볼 것(판정 밖): 목록 스켈레톤 높이(1108px, 모바일 1160px)는 20행 기준 계산값인데 실제 AIMG02는 9종이라 18행이다(`AdminNotificationTemplatesPage.jsx`). 템플릿 목록 자체 오류(403 아닌 것) 분기는 코드로만 봤다. 치환 변수 칩은 케어 일정 기준 목록을 모든 유형에 똑같이 보인다. 화면설계서의 `{변수}` 표기를 `{{변수}}`로 고치는 것은 사람 몫
 
-- SCR-ADM-070 연결 남음: FN-ADM-070-01~04 (백엔드 연결 `GET /api/admin/items`·`GET /api/admin/items/{itemSn}/image`·`POST /api/admin/items`·`PATCH /api/admin/items/{itemSn}`·`PUT /api/admin/items/order`, 보유 회원 수 필드 이름(가짜 `hldMbrCnt`), 백엔드 저장소에서 /start). 나오면 `features/adminItem/api.js` 가짜 본문만 실제 요청으로 바꾼다(등록·수정은 multipart)
+- SCR-ADM-070 백엔드 병합 순서: 관리자 아이템 API(백엔드 `origin/LJS` 커밋 `f856376`)가 백엔드 develop에 병합돼야 배포에서 동작한다. 검증은 로컬 8080을 LJS 브랜치로 띄워 했다. 굽기 지시 AI 초안(`POST /ai/items/bake-hints`)은 넣지 않았다(사람 결정 2026-11-03)
+- SCR-ADM-070 로컬 DB 검증 데이터(2026-11-03): 아이템 `itemSn` 39 "[검증] 연결 가방 수정"(가방, 판매 중지)이 남았다(삭제 API 없음). 가방 순서는 원래대로 되돌렸다. 처음부터 있던 아이템(1~36)은 이 PC에 첨부 파일이 없어 이미지가 404로 빈 칸이다
 - SCR-ADM-070 연결 남음: 추가-1 (백엔드 연결 공통코드 MYPG01에서 신발 제외·기존 신발 아이템과 보유·착용 처리, 백엔드 저장소에서 /start). 정리되면 `api.js` `EXCLUDED_PART_NAMES` 이름 거르기를 지운다. 문서(FN-ADM-070-02, 화면설계서 SCR-ADM-070 부위 목록) 갱신은 사람 몫
 - SCR-ADM-070 사람이 볼 것(판정 밖): 이미지 검사에 영수증용 `@/utils/receiptFile`을 쓴다. 미리보기 object URL을 해제하지 않는다. 가짜 목록이 공통코드도 불러 "아이템 목록을 불러오지 못했어요." 분기는 화면으로 못 봤다. 부위 Select 안내에 `aria-describedby`가 없다.
 

@@ -462,7 +462,7 @@
 - 완료 조건: 아이템 등록(부위 필수)·수정·판매 중지·정렬이 목록에 반영된다
 - 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 순서 변경은 [위]·[아래] 버튼(사람 2026-11-03 추천안대로). 백엔드 API가 없어 가짜 응답으로 만듦. 추가-1 관리자 화면에서 신발 부위 제외(사람 2026-11-03, 서비스 전체 제외는 백엔드)
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차 실패(390px 넘침) 뒤 통과, 추가-1 포함 재검증, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
-- 연결 남음: FN-ADM-070-01~04 (백엔드 연결 `/api/admin/items` 목록·이미지·등록·수정·순서 저장, 보유 회원 수 필드 이름, 백엔드 저장소에서 /start)
+- 연결 끝: FN-ADM-070-01~04 (2026-11-03, 아래 "SCR-ADM-070 아이템 · … 연결" 세 절)
 - 연결 남음: 추가-1 (백엔드 연결 공통코드 MYPG01 신발 제외, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-090 알림 템플릿 — 끝
@@ -761,21 +761,26 @@
 - 기다리는 것: `GET /api/common-codes?prntComCd=CSCG01` (LJS 백엔드, 끝)
 - 완료 조건: 탭(전체 + 이용방법·계정·신고/제재·기타)과 모달의 카테고리 선택지가 이 목록으로 그려진다
 
-## SCR-ADM-070 아이템 · 목록·이미지 연결 — 대기
+## SCR-ADM-070 아이템 · 목록·이미지 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-070-01 연결 작업)
 - 기다리는 것: `GET /api/admin/items?itemRegnCd=`(판매 중지 포함, 페이지 없음, `[AdminItemSummary]`: itemSn·itemNm·itemRegnCd·itemRegnCdNm·needPnt·ntslYn(boolean)·sortSeq·atchFileSn·bakeHint·hldMbrCnt), `GET /api/admin/items/{itemSn}/image`(blob) (LJS 백엔드, 끝)
 - 완료 조건: `features/adminItem/api.js` `getAdminItems`의 가짜 본문을 실제 요청으로 바꾼다. 판매 중지 아이템도 나오고 이미지는 blob으로 그린다. 신발 부위는 화면에서 계속 거른다
 - 이미 바뀐 것: `features/adminItem/api.js`(가짜 응답, 필드 이름은 백엔드와 같음)
+- 결정: 등록·수정 모달 연결, 순서 저장 연결과 한 번에 함(사람 2026-11-03)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS), 사람 확인 2026-11-03. 처음부터 있던 아이템 이미지는 이 PC에 첨부 파일이 없어 404 빈 칸
 
-## SCR-ADM-070 아이템 · 등록·수정 모달 연결 — 대기
+## SCR-ADM-070 아이템 · 등록·수정 모달 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-070-02·03 연결 작업)
 - 기다리는 것: `POST /api/admin/items`(multipart itemRegnCd·itemNm·needPnt·ntslYn·bakeHint(선택)·image, 201 `{itemSn}`), `PATCH /api/admin/items/{itemSn}`(multipart, 보낸 칸만, bakeHint 빈 값이면 지움) (LJS 백엔드, 끝)
 - 완료 조건: `createAdminItem`·`updateAdminItem`을 실제 요청으로 바꾼다. 같은 이름 409 `ITEM_NAME_DUPLICATED`, 보유 회원이 있는데 부위 변경 409 `ITEM_REGION_LOCKED`, 신발에 굽기 지시 400을 문구로 보여 준다. 굽기 지시 칸(영어 한 문장, 300자) 초안은 AI `POST /ai/items/bake-hints`로 채울지 정한다(신발은 칸 숨김)
+- 결정: 굽기 지시는 직접 입력 칸만(선택, 300자), AI 초안은 넣지 않음. 신발은 부위 목록에서 빠져 칸 숨김 분기 없음(사람 2026-11-03)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 409 두 가지 모두 화면 확인), 사람 확인 2026-11-03
 
-## SCR-ADM-070 아이템 · 순서 저장 연결 — 대기
+## SCR-ADM-070 아이템 · 순서 저장 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-070-04 연결 작업)
 - 기다리는 것: `PUT /api/admin/items/order` `{itemRegnCd, itemSns}` (LJS 백엔드, 끝)
 - 완료 조건: `saveAdminItemOrder`를 실제 요청으로 바꾼다. 그 부위 아이템 전부(판매 중지 포함, 화면에서 거른 것 없이)를 빠짐·중복 없이 보내야 하고 아니면 400 `INVALID_INPUT_VALUE`
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 판매 중지 포함 전부 전송·새로고침 뒤 유지, 검증 뒤 원래 순서로 되돌림), 사람 확인 2026-11-03
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
