@@ -2,9 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-ADM-050 펫뉴스 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회차·연결 남음만, 사람 확인). `/admin/news` 뉴스 목록·필터·등록·수정·수집 기사 숨김·카테고리 변경·분류 키워드 탭을 가짜 응답(`features/adminNews/api.js`)으로 만들고, 뉴스 수집 실행만 실제 `POST /api/admin/batches/SYSC0028/run`을 쓴다. 추가-1로 SCR-AIM-010 영수증 분석 실패(504 `OCR_TIMEOUT`·502 `OCR_API_ERROR`) 응답의 `data.recptSn`을 [직접 입력]에 넘긴다
+SCR-ADM-101 품종·지역 — 끝 (2026-11-03, 검증 `확인 못 함 있음`·연결 남음만, 사람 확인). `/admin/breeds-regions` 품종 탭(종별 이름·정렬·사용 조회, 추가·수정 모달, 같은 종 이름 중복 막음)을 가짜 응답(`features/adminBreedRegion/api.js`)으로 만들고, 지역 탭은 추가-1로 전북특별자치도(`admdstCd` 5200000000) 시군구 → 읍면동 조회만 실제 `GET /api/regions`로 한다
 
 ## 다음에 할 것
+
+- SCR-ADM-101 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함, 사용 안 함 품종도 목록에), 백엔드 저장소에서 /start). 나오면 `features/adminBreedRegion/api.js` 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-101 사람이 볼 것(판정 밖): ① 지역 탭은 명세대로 조회만이라 쓸모가 적다(사람 2026-11-03 "일단 조회만으로 둔다"). 관리(사용 켜기·끄기 등)가 필요하면 명세 수정 후 새 마일스톤으로 ② 지역 탭 첫 진입은 시도 목록 → 전북 하위 목록 두 번 왕복이라 1초 넘게 걸린다 ③ 품종 이름 50자·중복 검사(공백 무시)는 가정 ④ `routes/paths.js`에 `ADMIN_BREEDS_REGIONS`를 기능 커밋에 같이 넣었다 ⑤ 1회차 검증 때 공용·로컬 DB 읍면동 0건이었는데 2회차 검증 땐 8080 서버가 전북 읍면동을 줬다(전주시 35개)
 
 - SCR-ADM-050 연결 남음: FN-ADM-050-01·02·03·05 (백엔드 연결 `GET /api/admin/news` 목록·출처·카테고리 필터·쪽, `POST /api/admin/news`·`PATCH /api/admin/news/{newsSn}`(관리자 등록 제목·요약·카테고리, 수집 기사 `useYn`·`newsClsfCd`)·썸네일 업로드 `atchFileSn`, `GET·POST /api/admin/news/keywords`·`DELETE /api/admin/news/keywords/{kwrdDictSn}`(KWRD_DICT 뉴스 분류 AIMC0039, 가정 필드 `kwrdDictSn`·`mpngCd`·`kwrdCn`·`sortSeq`), 백엔드 저장소에서 /start). 나오면 `features/adminNews/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-050 사람이 볼 것(판정 밖): ① 실행할 수 없는 서버(`runnableYn:false`)에서도 [뉴스 수집 실행]이 켜져 있다(배치 현황 `BatchTable.jsx`는 막음) ② 중복 키워드 안내가 그 칩을 지운 뒤에도 남는다 ③ 관리자 등록 뉴스도 사용 스위치로 숨길 수 있다(명세는 수집 기사만) ④ 썸네일은 선택 값, 제목 200자·요약 1000자·키워드 50자는 가정 ⑤ 스켈레톤 높이는 행 높이로 어림한 값(`AdminNewsPage.jsx`) ⑥ `routes/paths.js`에 `ADMIN_NEWS`를 기능 커밋에 같이 넣었다
