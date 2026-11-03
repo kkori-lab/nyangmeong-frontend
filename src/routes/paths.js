@@ -87,6 +87,7 @@ export const PATHS = {
   ADMIN_NOTICE_NEW: '/admin/notices/new',
   ADMIN_NOTICE_EDIT: '/admin/notices/:ntcMttrSn/edit',
   ADMIN_FAQS: '/admin/faqs',
+  ADMIN_NEWS: '/admin/news',
   ADMIN_INQUIRIES: '/admin/inquiries',
   ADMIN_INQUIRY_DETAIL: '/admin/inquiries/:otoInqrySn',
   ADMIN_ITEMS: '/admin/items',

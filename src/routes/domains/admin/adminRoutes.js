@@ -21,6 +21,7 @@ const AdminCareMatchesPage = lazy(
   () => import('@/pages/admin/AdminCareMatchesPage'),
 );
 const AdminItemsPage = lazy(() => import('@/pages/admin/AdminItemsPage'));
+const AdminNewsPage = lazy(() => import('@/pages/admin/AdminNewsPage'));
 const AdminExposurePage = lazy(() => import('@/pages/admin/AdminExposurePage'));
 const AdminLostReportsPage = lazy(
   () => import('@/pages/admin/AdminLostReportsPage'),
@@ -82,6 +83,7 @@ export default [
       { path: PATHS.ADMIN_NOTICE_NEW, Component: AdminNoticeFormPage },
       { path: PATHS.ADMIN_NOTICE_EDIT, Component: AdminNoticeFormPage },
       { path: PATHS.ADMIN_FAQS, Component: AdminFaqsPage },
+      { path: PATHS.ADMIN_NEWS, Component: AdminNewsPage },
       { path: PATHS.ADMIN_INQUIRIES, Component: AdminInquiriesPage },
       { path: PATHS.ADMIN_INQUIRY_DETAIL, Component: AdminInquiryDetailPage },
       { path: PATHS.ADMIN_ITEMS, Component: AdminItemsPage },

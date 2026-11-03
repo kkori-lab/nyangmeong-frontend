@@ -75,7 +75,7 @@ function AnalyzeProgress() {
  * 영수증 촬영·업로드 모달 (SCR-AIM-008)
  * pets: [{ petSn, petNm, vrtyNm? }], 목록은 여는 쪽이 넘긴다(features/pet import 금지)
  * onRecognized(result): 인식 성공 { recptSn, petSn, ocr }(일부만 인식돼도 실패 안내 없이 여기로)
- * onManualInput({ rcptSn? }): 직접 입력, 추출 0건 뒤에만 rcptSn(저장 때 영수증 상태를 변경용)
+ * onManualInput({ rcptSn? }): 직접 입력, 추출 0건·OCR 시간 초과·OCR 오류 뒤에만 rcptSn(저장 때 영수증 상태를 변경용)
  */
 export default function ReceiptUploadModal({
   pets,
@@ -98,7 +98,7 @@ export default function ReceiptUploadModal({
   const [isCancelled, setIsCancelled] = useState(false);
   /** 'empty' | 'timeout' | 'error' */
   const [failure, setFailure] = useState(null);
-  /** 추출 0건일 때 서버가 만든 영수증 식별자 */
+  /** 추출 0건·OCR 실패 때 서버가 만든 영수증 식별자 */
   const [failedRecptSn, setFailedRecptSn] = useState(null);
   const recognize = useRecognizeCheckupReceipt();
   const isAnalyzing = recognize.isPending;
@@ -157,6 +157,8 @@ export default function ReceiptUploadModal({
         onError: (error) => {
           clearTimeout(timerRef.current);
           isRunningRef.current = false;
+          /** OCR_TIMEOUT·OCR_API_ERROR만 서버가 만든 영수증 번호를 줌 */
+          setFailedRecptSn(error.data?.recptSn ?? null);
           if (isTimedOutRef.current) return setFailure('timeout');
           if (controller.signal.aborted) return setIsCancelled(true);
           if (FILE_ERROR[error.code]) {
