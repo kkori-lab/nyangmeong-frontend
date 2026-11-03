@@ -16,6 +16,12 @@ import { useCreateAdminItem, useUpdateAdminItem } from './queries';
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
 
+const TEXTAREA_CLASS = INPUT_CLASS.replace('h-10', 'min-h-[88px] resize-y py-2')
+  .replace('leading-[1.4]', 'leading-6');
+
+/** 굽기 지시 최대 글자 수(서버와 같음) */
+const BAKE_HINT_MAX = 300;
+
 /** 필요 포인트: 0 이상 정수 */
 const NEED_PNT_PATTERN = /^\d+$/;
 
@@ -53,6 +59,7 @@ export default function ItemFormModal({ item, parts, onClose }) {
   const [itemNm, setItemNm] = useState(item?.itemNm ?? '');
   const [needPnt, setNeedPnt] = useState(item ? String(item.needPnt) : '');
   const [ntslYn, setNtslYn] = useState(item?.ntslYn ?? true);
+  const [bakeHint, setBakeHint] = useState(item?.bakeHint ?? '');
   /** 새로 고른 이미지: { file, url } */
   const [image, setImage] = useState(null);
   const [imageError, setImageError] = useState('');
@@ -101,6 +108,8 @@ export default function ItemFormModal({ item, parts, onClose }) {
       itemNm: itemNm.trim(),
       needPnt: Number(needPnt.trim()),
       ntslYn,
+      /** 수정에서 비우면 빈 값을 보내 지움 */
+      bakeHint: bakeHint.trim(),
       ...(image ? { image: image.file } : {}),
     };
     if (isEdit) {
@@ -210,6 +219,33 @@ export default function ItemFormModal({ item, parts, onClose }) {
             </div>
           </div>
           <FieldError message={imageMessage} />
+        </div>
+        <div>
+          <label
+            htmlFor={`${formId}-bakeHint`}
+            className="mb-1.5 block text-sm font-semibold text-ink-2"
+          >
+            굽기 지시 <span className="font-normal text-subtle">(선택)</span>
+          </label>
+          <textarea
+            id={`${formId}-bakeHint`}
+            value={bakeHint}
+            maxLength={BAKE_HINT_MAX}
+            rows={3}
+            placeholder="예: Place the hat on top of the head."
+            aria-describedby={`${formId}-bakeHint-help`}
+            className={TEXTAREA_CLASS}
+            onChange={(event) => setBakeHint(event.target.value)}
+          />
+          <p
+            id={`${formId}-bakeHint-help`}
+            className="mt-1.5 flex justify-between gap-3 text-sm text-subtle"
+          >
+            <span>AI가 이미지를 캐릭터에 입힐 때 쓰는 영어 한 문장</span>
+            <span aria-hidden="true">
+              {bakeHint.length}/{BAKE_HINT_MAX}
+            </span>
+          </p>
         </div>
         <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
           <div className="w-[160px]">
