@@ -2,13 +2,13 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-002 건강 일지 · 영수증 일괄 저장 연결 (2026-11-03). 검증 통과(새 백엔드로 실제 저장·2-E 일정 옮김·가계부·409 확인), 사람 확인 끝. `receiptApi.js`가 `POST /receipts/{recptSn}/save-check`·`/save`를 부르고 복용 상태는 `HLTC0010`·`HLTC0011`로 보낸다. 2-E 창은 검진 종류가 없으면 "병원 일정"(추가-1), 이미 저장한 영수증(409 `RECEIPT_ALREADY_SAVED`)은 서버 안내만 보이고 [다시 시도하기]를 숨긴다(추가-2). 가짜 처방약·가계부·`?fakeLedgerDup`·`?fakeReceiptSave` 삭제
+끝남: SCR-HLT-002 영수증 [직접 입력] 저장 연결 (2026-11-03). 검증 통과(잠금을 한 번 풀어 회차를 다시 셈), 사람 확인 끝. `CheckupModal`이 `recptSn`을 받으면 `POST /receipts/{recptSn}/checkups?petSn=`(`idmptDmndId` 모달마다 1개)로 저장하고, 없으면 지금처럼 `/pets/{petSn}/checkups`. 409·404는 토스트 대신 모달 안 빨간 안내 상자(추가-1, 토스트가 `<dialog>` 뒤에 가려짐). `HealthDiaryPage` manual 상태 키 `rcptSn` → `recptSn`. 일시 오류 뒤 [직접 입력]은 영수증 번호가 없어 연결 남음
 
 ## 다음에 할 것
 
-- 다음 작업(SCR-HLT-002 · 영수증 [직접 입력] 저장 연결, 마일스톤 대기): 인식 실패 뒤 [직접 입력] 저장을 `POST /api/receipts/{recptSn}/checkups?petSn=`로 보낸다
+- 연결 남음(SCR-HLT-002 일시 오류 뒤 [직접 입력]의 영수증 연결): AI 서버 영수증 분석 502 `OCR_API_ERROR`·504 시간 초과 응답에 `recptSn`이 없어(원본은 먼저 저장됨) 화면이 `POST /pets/{petSn}/checkups`로 저장한다(FN-HLT-002-31 "인식 실패·일시 오류"와 다름). 필요: AI 서버가 오류 응답에 `recptSn`을 준다(nyangmeong-ai 저장소에서 /start), LJS `features/ai/receipt/ReceiptUploadModal.jsx`가 오류 때도 `recptSn`을 [직접 입력]에 넘긴다. 백엔드는 일시 오류 영수증 저장을 이미 받고, `CheckupModal`은 `recptSn`만 받으면 영수증 경로로 저장한다. 브라우저 쪽 시간 초과(요청 중단)는 번호를 알 수 없어 남는다
 - 연결 남음(SCR-HLT-002 추가-2): 백엔드 `save-check`도 저장완료 영수증이면 409 `RECEIPT_ALREADY_SAVED`를 준다(백엔드 저장소에서 /start). 프론트는 이미 같은 안내로 처리한다
-- 정리 필요(공용 DB, DB 담당): 검증 계정 누리(petSn 20)의 확인용 영수증 504·506·507(지우는 API 없음). 검진기록 1002·처방약 443·가계부 10401·일정 4916은 지웠다
+- 정리 필요(공용 DB, DB 담당): 검증 계정 누리(petSn 20)의 확인용 영수증 504·506·507·509·510·511·512·513(지우는 API 없음, 512는 Vision 키 없이 올린 일시 오류 영수증으로 보임). 검진기록 1002·처방약 443·가계부 10401·일정 4916은 지웠다
 - 참고(로컬 확인): AI 서버 영수증 인식은 nyangmeong-ai `.env.local`의 `GOOGLE_VISION_API_KEY`가 없으면 502. 검증은 백엔드 내부 API(`POST /internal/ai/receipts` → `/{recptSn}/result` RECOGNIZED)로 영수증을 만들고 `/ai/receipts` 응답만 route로 줬다. 백엔드가 DevTools 재시작만 되고 옛 클래스로 돌면 새 API가 404이니 완전히 다시 띄운다
 - 참고(SCR-HLT-007 PDF 분석): 분석 항목 이름은 목록 12종 코드면 약어, 아니면 `inspArtclDrctInptNm`. 둘 다 없으면 `inspArtclCd`를 그대로 보인다(`labInput/labRows.js` `getAnalyzedName`, 실제 응답에서는 안 나옴). 이때 보일 이름은 정하지 않았다. 저장 제외 행(혈액검사 아님)에도 "인식 실패" placeholder가 붙는다. 실패 안내는 `useAnalyzeLabPdf` 토스트 대신 화면이 보인다
 - 참고(SCR-HLT-011 캐릭터 상태): 히어로 큰 이미지는 `GET /pixel-characters`(LJS) 행의 `pixelCharSn`이 없는 주양육 반려동물만 "캐릭터 만들기" 카드, 행이 없거나 조회 실패면 `PetFace`. 칩은 그대로. 생성 중(`CHRC0001`·`0002`)·실패(`CHRC0004`)는 백엔드 `character-image`가 종별 기본 캐릭터를 주므로 따로 표시하지 않는다(사람 결정)
