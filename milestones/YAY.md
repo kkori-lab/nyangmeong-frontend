@@ -88,6 +88,15 @@
 - 완료 조건: 실제 서버로 탈퇴 보관 계정의 가입 시도 → 복구 인증 → 복구 안내 → 복구 실행 → 로그인 방법 선택으로 가고, 취소하면 회원은 탈퇴 그대로다
 - 넘김: 가입 409 `MEMBER_RECOVERY_AVAILABLE` → 복구 화면 진입의 화면 확인은 "SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결"의 "이어받은 확인"(YAY)
 
+## SCR-HOS-001 플레이스 · 장소 검색·즐겨찾기 API 연결 — 끝
+- 백엔드 끝: 검색 `GET /places`(`plcClsfCd` PLCG01 필수, `keyword`, 지도 범위 `swLat`·`swLot`·`neLat`·`neLot`, 거리 기준 `cntrLat`·`cntrLot` 필수, `sort` `RECOMMEND`·`DISTANCE`·`NAME`, `page`. 15건 고정·최대 3쪽 45건 → `plcSn`·`plcClsfCdNm`·`distance`(미터)·`kakaoUrlPath`·`plcBkmkSn`), 즐겨찾기 목록 `GET /place-bookmarks?plcClsfCd=`, 저장 `POST /place-bookmarks`(`plcSn` → 201 `plcBkmkSn`, 이미 있으면 409 `PLACE_BOOKMARK_ALREADY_EXISTS`), 해제 `DELETE /place-bookmarks/{plcBkmkSn}`(없으면 404) (백엔드 SCR-HOS-001 절의 "프론트 연결")
+- 기능: 명세 기능 ID 추가 없음. FN-HOS-001-01~32, FN-PLC-001~004-01에 걸친다
+- 대상: `features/place/`의 검색·재검색(지도 범위·중앙을 그때 값으로)·정렬·무한 스크롤(`hasNext`)·즐겨찾기 고정 영역·별 버튼. 별은 `plcBkmkSn`이 있으면 채움, 누르면 저장/해제하고 카드 클릭(상세 이동)이 같이 일어나지 않게 막는다. 카드·병원명·상세보기는 `kakaoUrlPath`를 새 탭으로 연다. `kakaoUrlPath`가 `null`(카카오 출처가 아닌 업체)이면 상세 버튼을 숨기거나 `https://map.kakao.com/link/map/{plcConm},{plcLat},{plcLot}`로 대신 연다. `rprsTelno`가 `null`이면 전화 줄을 숨긴다. 길찾기는 `https://map.kakao.com/link/to/{plcConm},{plcLat},{plcLot}`. 카카오 실패는 502 `EXTERNAL_API_ERROR`
+- 기다리는 것: 이 백엔드 작업(YAY SCR-HOS-001)의 PR 병합, 공유 `application.properties`의 `app.kakao-local.*`(키가 없으면 가짜 업체)
+- 완료 조건: 실제 서버로 병원 탭을 검색하면 카카오 업체가 카드·핀으로 나오고, 지도를 옮겨 재검색하면 새 범위 결과로 바뀐다. 별을 누르면 상단 즐겨찾기에 바로 들어오고 다시 누르면 빠진다
+- 끝남: 승인 2026-11-03, 검증 통과, 사람 확인 2026-11-03. 결과 카드·병원명·상세보기는 문서대로 카카오맵 상세 새 탭(지도 선택은 핀만)
+- 연결 남음: FN-HOS-001-33 (`routes/AppRoutes.jsx`의 `bare`+`member` 조립 별도 PR 뒤 `placeRoutes.js`를 `auth: 'member'`로, YAY)
+
 ## 제외
 - 없음. 외부인증창 참고 행 6개(네이버·카카오·구글 외부 로그인·동의 창)는 명세에 기능 ID가 없다
 

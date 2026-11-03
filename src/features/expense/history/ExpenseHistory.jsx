@@ -4,6 +4,7 @@ import { BTN_SECONDARY } from '@/components/buttonStyles';
 import MonthNav from '@/components/MonthNav';
 import MonthPicker from '@/components/MonthPicker';
 import Pagination from '@/components/Pagination';
+import { showToast } from '@/components/toastStore';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import { getCurrentYm, isYm, shiftYm } from '@/utils/yearMonth';
 import { toDateCond } from '../api';
@@ -34,6 +35,11 @@ import {
   useExpenses,
   useInfiniteExpenses,
 } from '../queries';
+
+/** 서버가 받는 해제 번호 최대 개수(ExpenseBulkDeleteRequest.excludeExpndSn) */
+const MAX_EXCLUDE = 1000;
+const EXCLUDE_LIMIT_MESSAGE =
+  '한 번에 1,000건까지 해제할 수 있어요. 개별 선택으로 골라 주세요';
 
 /** 앱(≤760px)은 페이지 번호 대신 무한 스크롤 */
 const MOBILE_QUERY = '(max-width: 760px)';
@@ -80,6 +86,8 @@ export default function ExpenseHistory({ initialYm }) {
   const [selected, setSelected] = useState(() => new Map());
   /** 조회 결과 전체 선택: 번호 대신 조건(범위·필터)으로 지운다 */
   const [isAllResult, setIsAllResult] = useState(false);
+  /** 결과 전체 선택 뒤 개별 해제한 지출: 번호 -> 금액(서버에 제외 번호로 보낸다) */
+  const [excluded, setExcluded] = useState(() => new Map());
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   /** 앱 지출 상세 시트: 보고 있는 지출 번호(편집 중에는 시트를 잠시 숨기고 저장하면 다시 표시) */
@@ -127,15 +135,20 @@ export default function ExpenseHistory({ initialYm }) {
   if (infiniteQuery.isFetchingNextPage) loadStatus = LOAD.LOADING;
   else if (infiniteQuery.isFetchNextPageError) loadStatus = LOAD.ERROR;
 
-  const isChecked = (expndSn) => isAllResult || selected.has(expndSn);
+  const isChecked = (expndSn) =>
+    isAllResult ? !excluded.has(expndSn) : selected.has(expndSn);
   const detailExpense = pageItems.find(
     (expense) => expense.expndSn === detailSn,
   );
   const resultCount = resultTotals?.expndCnt ?? 0;
-  const selectedCount = isAllResult ? resultCount : selected.size;
+  const sumAmt = (amtMap) =>
+    [...amtMap.values()].reduce((sum, amt) => sum + amt, 0);
+  const selectedCount = isAllResult
+    ? resultCount - excluded.size
+    : selected.size;
   const selectedAmt = isAllResult
-    ? (resultTotals?.totalExpndAmt ?? 0)
-    : [...selected.values()].reduce((sum, amt) => sum + amt, 0);
+    ? (resultTotals?.totalExpndAmt ?? 0) - sumAmt(excluded)
+    : sumAmt(selected);
   const isPageAllSelected =
     pageItems.length > 0 &&
     pageItems.every((expense) => isChecked(expense.expndSn));
@@ -163,6 +176,7 @@ export default function ExpenseHistory({ initialYm }) {
 
   const clearSelection = () => {
     setSelected(new Map());
+    setExcluded(new Map());
     setIsAllResult(false);
   };
   /** 앱: 다음 20건 (조건이 바뀌면 키가 바뀌어 1쪽부터 다시 불러온다) */
@@ -207,17 +221,25 @@ export default function ExpenseHistory({ initialYm }) {
     clearSelection();
     setPage(1);
   };
-  /** 결과 전체 선택 중 하나를 끄면 지금 보이는 항목만 개별 선택으로 바뀐다 */
+  /** 결과 전체 선택 중 해제 목록을 바꾼다. 다 해제해 0건이 되면 선택을 모두 푼다 */
+  const applyExcluded = (next) => {
+    if (resultCount - next.size <= 0) clearSelection();
+    else setExcluded(next);
+  };
   const handleToggle = (expndSn) => {
     if (isAllResult) {
-      setSelected(
-        new Map(
-          pageItems
-            .filter((expense) => expense.expndSn !== expndSn)
-            .map((expense) => [expense.expndSn, expense.expndAmt]),
-        ),
-      );
-      setIsAllResult(false);
+      const next = new Map(excluded);
+      if (next.has(expndSn)) {
+        next.delete(expndSn);
+      } else {
+        if (next.size >= MAX_EXCLUDE) {
+          showToast(EXCLUDE_LIMIT_MESSAGE);
+          return;
+        }
+        const item = pageItems.find((expense) => expense.expndSn === expndSn);
+        next.set(expndSn, item.expndAmt);
+      }
+      applyExcluded(next);
       return;
     }
     const next = new Map(selected);
@@ -231,7 +253,20 @@ export default function ExpenseHistory({ initialYm }) {
   };
   const handleTogglePage = () => {
     if (isAllResult) {
-      clearSelection();
+      const next = new Map(excluded);
+      if (isPageAllSelected) {
+        pageItems.forEach((expense) =>
+          next.set(expense.expndSn, expense.expndAmt),
+        );
+        /** 한도를 넘으면 그 쪽 전체를 해제하지 않는다 */
+        if (next.size > MAX_EXCLUDE) {
+          showToast(EXCLUDE_LIMIT_MESSAGE);
+          return;
+        }
+      } else {
+        pageItems.forEach((expense) => next.delete(expense.expndSn));
+      }
+      applyExcluded(next);
       return;
     }
     const next = new Map(selected);
@@ -243,6 +278,7 @@ export default function ExpenseHistory({ initialYm }) {
   };
   const handleToggleResult = () => {
     setSelected(new Map());
+    setExcluded(new Map());
     setIsAllResult(!isAllResult);
   };
   const handleDeleted = () => {
@@ -437,12 +473,14 @@ export default function ExpenseHistory({ initialYm }) {
         <ExpenseBulkDeleteDialog
           expndSns={isAllResult ? null : [...selected.keys()]}
           bulkCond={isAllResult ? resultCond : null}
+          excludeExpndSns={isAllResult ? [...excluded.keys()] : null}
           count={selectedCount}
           totalAmt={selectedAmt}
           fromYm={scope.fromYm}
           toYm={scope.toYm}
           filterLabel={`${petLabel} · ${categoryLabel}`}
           onDeleted={handleDeleted}
+          onChanged={handleDeleted}
           onClose={() => setIsBulkOpen(false)}
         />
       )}

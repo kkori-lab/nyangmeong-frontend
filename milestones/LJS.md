@@ -497,10 +497,13 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 2회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
 - 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세·가정 필드 이름·매칭 거래 상태 코드·실제 완료 사진, 백엔드 저장소에서 /start)
 
-## SCR-ADM-023 노출 콘텐츠 — 대기
+## SCR-ADM-023 노출 콘텐츠 — 끝
 - 기능: FN-ADM-023-01 오늘의 건강팁 현황, FN-ADM-023-02 건강팁 지정·해제, FN-ADM-023-03 지정 글 자동 대체, FN-ADM-023-04 오늘의 이야기 문구 관리, FN-ADM-023-05 오늘의 이야기 선택, FN-ADM-023-06 AI 코멘트 관리, FN-ADM-023-07 인기 포토 노출 제외
 - 기다리는 것: `/api/admin/community/exposure` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 오늘의 건강팁 지정·해제와 오늘의 이야기 문구가 반영된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 후보 문구 가정 필드 `todayPhrsSn`·`phrsCn`·200자(사람 2026-11-03 추천안대로). FN-ADM-023-07은 결번이라 만들지 않음. 건강팁 검색은 실제 `GET /api/admin/posts`, 나머지는 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-023-01·02·03·04·05·06 (백엔드 연결 `/api/admin/community/exposure` 건강팁 목록 `GET health-tips`·지정 `PUT`·해제 `DELETE health-tips/{pstSn}`·삭제·블라인드 시 자동 대체, 후보 문구 테이블과 `GET·POST·PATCH phrases`(가정 필드 `todayPhrsSn`·`phrsCn`·200자)·00:00 배치와 오늘 문구 `todayPhrs`, `GET commentaries`·`PATCH commentaries/{cmntyAiCmtrySn}`, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-050 펫뉴스 — 대기
 - 기능: FN-ADM-050-01 뉴스 목록 조회, FN-ADM-050-02 관리자 뉴스 등록·수정, FN-ADM-050-03 수집 기사 관리, FN-ADM-050-04 피드 소스 관리, FN-ADM-050-05 분류 키워드 관리, FN-ADM-050-06 수집 기사 자동 분류, FN-ADM-050-07 뉴스 수집 실행
@@ -785,11 +788,19 @@
 - 완료 조건: `saveAdminItemOrder`를 실제 요청으로 바꾼다. 그 부위 아이템 전부(판매 중지 포함, 화면에서 거른 것 없이)를 빠짐·중복 없이 보내야 하고 아니면 400 `INVALID_INPUT_VALUE`
 - 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 판매 중지 포함 전부 전송·새로고침 뒤 유지, 검증 뒤 원래 순서로 되돌림), 사람 확인 2026-11-03
 
-## SCR-ADM-090 알림 템플릿 · 목록·등록·수정 연결 — 대기
+## SCR-ADM-090 알림 템플릿 · 목록·등록·수정 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-090-01·02·03
 - 기다리는 것: `GET /api/admin/notification-templates?notiChnlCd=`(등록된 템플릿만 `[{ notiTmpltSn, notiTypeCd, notiChnlCd, notiTtl, notiCn, useYn(boolean) }]`, 유형·채널 코드순, 모르는 채널 400), `POST /api/admin/notification-templates`(`{ notiTypeCd, notiChnlCd, notiTtl(선택, 200자), notiCn(필수, 4000자), useYn(boolean) }` → 201 `{ notiTmpltSn }`, 같은 유형·채널 409 `NOTIFICATION_TEMPLATE_DUPLICATED`, 케어 일정(AIMC0008) 외 유형 400 `NOTIFICATION_TEMPLATE_NOT_SUPPORTED`, 모르는 `{{변수}}` 400 `INVALID_INPUT_VALUE`), `PATCH /api/admin/notification-templates/{notiTmpltSn}`(`{ notiTtl, notiCn, useYn }` 세 칸 덮어씀, 없으면 404) (LJS 백엔드, 끝)
 - 완료 조건: `features/adminNotificationTemplate/api.js` 가짜 본문을 실제 요청으로 바꾼다. `useYn`은 `'Y'|'N'`이 아니라 `true`/`false`. 케어 일정 외 유형 행은 [등록] 없이 "기본 문구"만 보인다. 치환 변수 칩은 케어 일정 기준 `{{닉네임}}`·`{{반려동물명}}`·`{{검진유형}}`·`{{병원명}}`·`{{일정일}}`·`{{시간}}`·`{{D-N}}`·`{{캘린더링크}}`. 409·400 오류 문구를 모달에 보인다
 - 이미 바뀐 것: `features/adminNotificationTemplate/api.js`(가짜 응답, `useYn` 'Y'|'N' 가정), `TemplateTable.jsx`·`TemplateFormModal.jsx`(모든 유형에 [등록]·같은 변수 칩)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 실제 API 기준 목록·채널 필터·[등록] 숨김·PATCH 200·POST 201·모르는 변수 400 모달 표시, 409는 코드로만), 사람 확인 2026-11-03
+
+## SCR-ADM-090 알림 템플릿 · 검증 오류 메시지 구체화 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-090-02
+- 배경: 본문·제목에 모르는 치환 변수(`{{없는변수}}`)를 넣고 저장하면 서버가 400 `INVALID_INPUT_VALUE`를 보내 모달에 "입력값이 올바르지 않습니다."만 보인다. 어느 칸의 어떤 변수가 문제인지 알 수 없다(사람 2026-11-03)
+- 기다리는 것: 없음(프론트에서 먼저 검사). 서버가 모르는 변수 이름을 응답에 넣어 주면 그것도 쓴다(백엔드 연결 후보, LJS 백엔드)
+- 완료 조건: 저장 전에 제목·본문의 `{{…}}`를 치환 변수 목록과 견주어, 모르는 변수가 있으면 요청을 보내지 않고 그 칸 아래에 "쓸 수 없는 치환 변수예요: {{없는변수}}"처럼 칸과 변수 이름을 보인다. 서버 400이 와도 일반 문구 대신 무엇을 고칠지 알 수 있는 문구를 보인다
+- 사람이 볼 것: 수정 모달이 제목을 필수로 검사하지만 서버는 제목을 선택 값으로 받는다(DB에 제목 null 템플릿이 있다). 같이 고칠지 기획 때 정한다
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

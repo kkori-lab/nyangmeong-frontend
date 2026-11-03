@@ -1,24 +1,24 @@
 import { useEffect, useRef } from 'react';
 import { Hospital, Star, Store } from 'lucide-react';
-import { KIND, PLACES } from './placeData';
+import { CATEGORIES } from './placeData';
+import { formatDistance, openDetail } from './placeFormat';
 
-const URGENT_TAGS = ['응급', '24시'];
+const HOSPITAL_CODE = CATEGORIES[0].code;
 
 // letter가 없으면 상단 고정된 즐겨찾기 줄이다
+// 카드를 누르면 카카오맵 업체 상세를 새 탭으로 연다. 지도에서 고르는 것은 핀만 한다
 export default function PlaceListItem({
-  id,
+  place,
   letter,
   isFavorite,
   isStarred,
   isOutside,
   isSelected,
   shouldScroll,
-  onSelect,
   onToggleFavorite,
 }) {
-  const place = PLACES[id];
   const itemRef = useRef(null);
-  const ThumbIcon = place.cat === 'hospital' ? Hospital : Store;
+  const ThumbIcon = place.plcClsfCd === HOSPITAL_CODE ? Hospital : Store;
 
   // 지도 핀으로 고른 장소를 목록에서도 보이게 한다. 모바일은 바텀시트가 가려 건너뛴다
   useEffect(() => {
@@ -31,7 +31,7 @@ export default function PlaceListItem({
     if (event.target !== event.currentTarget) return;
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      onSelect(id);
+      openDetail(place);
     }
   };
 
@@ -39,8 +39,8 @@ export default function PlaceListItem({
     <li
       ref={itemRef}
       tabIndex={0}
-      aria-label={`${place.name} — 지도에서 보기`}
-      onClick={() => onSelect(id)}
+      aria-label={`${place.plcConm} — 카카오맵 상세 보기`}
+      onClick={() => openDetail(place)}
       onKeyDown={handleKeyDown}
       className={`relative grid cursor-pointer grid-cols-[84px_minmax(0,1fr)] gap-4 border-b border-line-soft px-4 py-4 hover:bg-surface-2 md:px-5 lg:grid-cols-[88px_minmax(0,1fr)] ${
         isSelected
@@ -66,47 +66,41 @@ export default function PlaceListItem({
             </span>
           )}
           <h3 className="min-w-0 truncate text-lg font-bold leading-[1.35] text-ink">
-            {place.name}
+            {place.plcConm}
           </h3>
           <span className="shrink-0 text-sm text-subtle">
-            {KIND[place.cat]}
+            {place.plcClsfCdNm}
           </span>
         </div>
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted">
-          <span className="font-semibold text-tone-green-fg">{place.open}</span>
-          <i className="size-0.5 rounded-full bg-line-strong" />
-          <span>{place.hours}</span>
-          <i className="size-0.5 rounded-full bg-line-strong" />
-          <span className="font-semibold text-ink">{place.d.toFixed(1)}km</span>
-        </p>
-        <p className="mt-1 truncate text-sm text-muted">{place.addr}</p>
-        <div className="mt-2.5 flex flex-wrap gap-1">
-          {place.tags.map((tag) => (
-            <span
-              key={tag}
-              className={`inline-flex h-6 items-center rounded px-2 text-badge font-semibold ${
-                URGENT_TAGS.includes(tag)
-                  ? 'bg-danger-soft text-danger'
-                  : 'bg-tone-gray-bg text-tone-gray-fg'
-              }`}
-            >
-              {tag}
-            </span>
-          ))}
-          {isFavorite && isOutside && (
-            <span className="ml-1 inline-flex h-6 items-center rounded bg-[#fdf3d8] px-2 text-badge font-semibold text-[#8a5a00]">
+        {(place.distance != null || place.rprsTelno) && (
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted">
+            {place.distance != null && (
+              <span className="font-semibold text-ink">
+                {formatDistance(place.distance)}
+              </span>
+            )}
+            {place.distance != null && place.rprsTelno && (
+              <i className="size-0.5 rounded-full bg-line-strong" />
+            )}
+            {place.rprsTelno && <span>{place.rprsTelno}</span>}
+          </p>
+        )}
+        <p className="mt-1 truncate text-sm text-muted">{place.plcAddr}</p>
+        {isFavorite && isOutside && (
+          <div className="mt-2.5 flex flex-wrap gap-1">
+            <span className="inline-flex h-6 items-center rounded bg-[#fdf3d8] px-2 text-badge font-semibold text-[#8a5a00]">
               현재 지도 밖
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       <button
         type="button"
         aria-pressed={isStarred}
-        aria-label={`${place.name} 즐겨찾기 ${isStarred ? '해제' : '추가'}`}
+        aria-label={`${place.plcConm} 즐겨찾기 ${isStarred ? '해제' : '추가'}`}
         onClick={(event) => {
           event.stopPropagation();
-          onToggleFavorite(id);
+          onToggleFavorite(place);
         }}
         className={`absolute right-3 top-2 grid size-10 place-items-center rounded-full ${
           isStarred

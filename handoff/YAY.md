@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-ACC-001 재가입 복구 · 화면과 복구 API 연결 — 끝남 (승인 2026-10-30, 검증 통과(재시작 1회차, 이전 루프는 탈퇴 보관 계정·인증번호 로그가 없어 2회 실패 뒤 버림), 사람 확인 2026-10-30, PR #116). FN-ACC-001-40~48. 비밀번호 찾기 탈퇴 알림의 "재가입 복구 절차" → `/signup` 복구 본인확인(`USRC0012`) → 복구 확인(`recovery-info`, 빠진 약관·`GET /terms/{trmsSn}` 레이어, 기존 번호 유지 또는 입력·중복확인) → 복구 → 완료 → `/login`. 복구 권한 토큰은 훅 state에만. 결정: `Auth*` 디자인, 진입은 비밀번호 찾기(가입 409는 코드만), 실제 `missingTrms` 사용(레이어는 `recovery/RecoveryTermsModal.jsx` 새로). 추가-1: 완료 화면 체크 가운데·버튼 아래. 추가-2(요청 2026-10-30 "본인확인과 완료 화면의 배치가 달라 완료 화면을 원래대로"): 추가-1을 되돌려 다른 단계처럼 제목 아래에 체크·버튼을 이어 둔다(`features/member/recovery/RecoveryForm.jsx`, 명령: lint·build, 화면: 완료 화면이 사람 확인 때의 첫 배치와 같다). 확인 환경: 백엔드 로그 `../nyangmeong-backend/backend.log`(UTF-16)의 `[Mail]` 줄. 보관 번호가 없는 계정의 번호 입력칸은 코드로만 확인
+SCR-HOS-001 플레이스 · 장소 검색·즐겨찾기 API 연결 — 끝남 (승인 2026-11-03 11:10, 검증 통과(확인 못 함 없음, 연결 남음 FN-HOS-001-33), 사람 확인 2026-11-03). `features/place/` 더미를 `GET /places`(카테고리 `PLCC0001~5`·키워드·지도 범위·중앙·정렬, 15건씩 최대 45건 무한 스크롤)와 `/place-bookmarks`(목록·저장·해제)로 바꿨다. 결정: 결과 카드·병원명·상세보기는 문서대로 카카오맵 상세(`kakaoUrlPath`)를 새 탭으로 열고, 지도 선택은 핀만. 영업시간·영업 상태·태그는 서버에 없어 뺐다. 무한 스크롤은 공용 `useInView`가 스크롤 영역을 root로 못 받아 `PlacePanel.jsx`가 IntersectionObserver를 직접 쓴다. 즐겨찾기 저장·해제는 즐겨찾기 목록만 다시 받는다(별은 그 목록 기준). 확인 환경: `VITE_KAKAO_MAP_KEY`는 카카오 JavaScript 키여야 한다(REST 키면 지도 SDK 401)
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
@@ -12,6 +12,8 @@ SCR-ACC-001 재가입 복구 · 화면과 복구 API 연결 — 끝남 (승인 2
 
 ## 다음에 할 것
 
+- 중단: SCR-ACC-001 회원가입 · 가입·인증·닉네임 API 연결 (승인 2026-11-03 10:50, 2026-11-03 플레이스 API 연결을 먼저 하려고 멈춤). 코드(`features/member/` 약관 `GET /terms`·`shared/TermsModal.jsx`, 발송·확인 `USRC0010`, 번호 `checkPhoneAvailability`, 가입 `POST /members`(`USRC0006`·`certNo`·`trmsAgres`·`idmptDmndId`), 닉네임 모달 `GET /members/nickname-availability`·`PATCH /members/me/nickname`, 가입 비밀번호 `isValidJoinPassword`). lint·build 통과. 검증 1회차는 환경 때문에 실패: `backend.log`가 없어 인증번호를 못 읽음, 탈퇴 보관 계정 없음(회원 204가 정상). 코드는 `git stash`("SCR-ACC-001 회원가입 연결 중단분", 새 파일 포함)에 보관했다. `git stash pop`으로 되돌린다. 다시 할 때 백엔드를 로그 파일로 띄우고 회원 204를 탈퇴 보관으로 되돌린 뒤 `/start SCR-ACC-001`로 이어 간다. 서버 약관에는 만 14세 항목이 없다(SERVICE·PRIVACY·LOCATION·MARKETING)
+- 연결 남음: FN-HOS-001-33 플레이스 로그인 필수. `routes/AppRoutes.jsx`의 `<ProtectedRoute />` 아래에 `pick('bare', 'member')` 조립을 넣는 별도 PR을 올린 뒤 `routes/domains/place/placeRoutes.js`를 `auth: 'member'`로 바꾼다(YAY)
 - 연결 남음: 가입 화면 409 `MEMBER_RECOVERY_AVAILABLE` → 복구 화면 진입 (마일스톤 "회원가입 · 가입·인증·닉네임 API 연결"에서 화면 확인, YAY)
 - 코드 후보: `features/signup/TermsStep`의 CheckBox를 `features/member/shared/AuthCheckBox.jsx`로 합친다
 - 문서 정리(인증 이동 규칙) 사람 확인 남음: `docs/convention/api.md` 48~61줄, `docs/convention/pages.md` 22~23줄, `AGENTS.md` 2번을 읽고 확인한 뒤 `/end`. develop의 바뀐 `src/api/axios.js`를 병합한 뒤 문서가 다시 어긋나지 않는지 본다. PR Breaking Changes에 AGENTS.md 변경을 적고 LJS에게 알린다
