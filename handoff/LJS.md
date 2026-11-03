@@ -2,32 +2,42 @@
 
 ## 지금 하는 것
 
-SCR-ADM-070 아이템 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회차 이후 추가-1 포함(연결 남음만), 사람 확인). 관리자 아이템 목록·부위 탭·등록·수정·판매 중지·순서 바꾸기(위·아래)를 가짜 응답으로 만들었다. 추가-1로 관리자 화면에서 신발 부위를 뺐다
+SCR-ADM-022 펫돌봄 거래 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회차(연결 남음만, 가짜 응답 기준), 사람 확인). `/admin/care-matches` 모집글 목록·상태 탭·쪽 번호와 매칭 상세 모달(매칭 탭·상태 이력·합의 조건·완료 사진·보호자 확인, `?rcrtSn=` 바로 열기)을 가짜 응답으로 만들었다. 추가-1 합의 조건 표기 "2차 합의"
 
 ## 다음에 할 것
 
-- SCR-ADM-070 연결 남음: FN-ADM-070-01~04 (백엔드 연결 `GET /api/admin/items`·`GET /api/admin/items/{itemSn}/image`·`POST /api/admin/items`·`PATCH /api/admin/items/{itemSn}`·`PUT /api/admin/items/order`, 보유 회원 수 필드 이름(가짜 `hldMbrCnt`), 백엔드 저장소에서 /start). 나오면 `features/adminItem/api.js` 가짜 본문만 실제 요청으로 바꾼다(등록·수정은 multipart)
+- SCR-ADM-022 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세, 가정 필드 이름 `ctptNcnm`·`agreVerNo`·`agreDt`·`agreCn`·`cmplReqDt`·`cmplImgs`·`ownerCfmtnRsltCd`·`ownerCfmtnDt`, 매칭 거래 상태 코드(가짜 `REQUESTED` 등)·보호자 확인 코드, 실제 완료 사진, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 펫돌봄 가짜 본문과 `careMatchLabels.js` 코드만 바꾼다
+- SCR-ADM-022 사람이 볼 것(판정 밖): 비용 단위 코드가 백엔드 `CareCostUnit`(PCAC0004·0005)과 회원용 펫돌봄 화면(PCAC0011·0012)이 다르다. 관리자 화면은 백엔드 값을 따랐다. `routes/paths.js`에 `ADMIN_CARE_MATCHES`를 기능 커밋에 같이 넣었다. 백엔드 마일스톤 SCR-ADM-022 절의 "KSJ 협의" 표기는 사람이 맞춘다
+
+- SCR-ADM-021 연결 남음: FN-ADM-021-01·02·03 (백엔드 연결 `GET /api/admin/lost-reports` 목록·상태 필터·쪽, `GET /api/admin/lost-reports/{lostTpofSn}` 상세(찾았어요는 제목·상태·처리 시각·`pstSn`만), 관리자에게 `mbrNcnm`·`expryCrtrDt` 노출, 실제 사진 `atchFileSn`·`pstSn`, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 실종제보 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-021 사람이 볼 것(판정 밖): 가짜 만료 제보의 만료 기준일이 미래 날짜라 실제와 다르다(상세 모달에서만 보임). `routes/paths.js`에 `ADMIN_LOST_REPORTS`를 기능 커밋에 같이 넣었다. 백엔드 `docs/admin/implementation-plan.md`의 SCR-ADM-021 담당 KSJ → LJS는 사람이 고친다
+- PR 캡처 확인: SCR-ADM-021 캡처 `LJS-20261103-SCR-ADM-021-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
+
+- SCR-ADM-091 연결 남음: FN-ADM-091-01 (백엔드 연결 `GET /api/admin/notification-logs` 목록·필터·쪽, 수신 회원 닉네임 `mbrNcnm`(가정), 기간 파라미터 이름(가짜 `fromYmd`·`toYmd`, 감사 로그는 `bgngYmd`·`endYmd`), 백엔드 저장소에서 /start). 나오면 `features/adminNotificationLog/api.js` 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-091 사람이 정할 것: `routes/paths.js`에 `ADMIN_NOTIFICATION_LOGS`를 기능 커밋에 같이 넣었다(`docs/convention/shared-files.md`는 따로 PR). PR 때 나눌지 정한다. 대시보드 "알림 발송 실패" 링크(`?sndngRsltCd=AIMC0019&fromYmd=`)는 SCR-ADM-001 때 붙인다
+
+- SCR-ADM-090 연결 남음: FN-ADM-090-01~03 (백엔드 연결 `GET·POST /api/admin/notification-templates`·`PATCH /api/admin/notification-templates/{notiTmpltSn}`, `useYn` 모양('Y'|'N' 가정)·유형별 치환 변수, 백엔드 저장소에서 /start). 나오면 `features/adminNotificationTemplate/api.js` 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-090 사람이 볼 것(판정 밖): 목록 스켈레톤 높이(1108px, 모바일 1160px)는 20행 기준 계산값인데 실제 AIMG02는 9종이라 18행이다(`AdminNotificationTemplatesPage.jsx`). 템플릿 목록 자체 오류(403 아닌 것) 분기는 코드로만 봤다. 치환 변수 칩은 케어 일정 기준 목록을 모든 유형에 똑같이 보인다. 화면설계서의 `{변수}` 표기를 `{{변수}}`로 고치는 것은 사람 몫
+
+- SCR-ADM-070 백엔드 병합 순서: 관리자 아이템 API(백엔드 `origin/LJS` 커밋 `f856376`)가 백엔드 develop에 병합돼야 배포에서 동작한다. 검증은 로컬 8080을 LJS 브랜치로 띄워 했다. 굽기 지시 AI 초안(`POST /ai/items/bake-hints`)은 넣지 않았다(사람 결정 2026-11-03)
+- SCR-ADM-070 로컬 DB 검증 데이터(2026-11-03): 아이템 `itemSn` 39 "[검증] 연결 가방 수정"(가방, 판매 중지)이 남았다(삭제 API 없음). 가방 순서는 원래대로 되돌렸다. 처음부터 있던 아이템(1~36)은 이 PC에 첨부 파일이 없어 이미지가 404로 빈 칸이다
 - SCR-ADM-070 연결 남음: 추가-1 (백엔드 연결 공통코드 MYPG01에서 신발 제외·기존 신발 아이템과 보유·착용 처리, 백엔드 저장소에서 /start). 정리되면 `api.js` `EXCLUDED_PART_NAMES` 이름 거르기를 지운다. 문서(FN-ADM-070-02, 화면설계서 SCR-ADM-070 부위 목록) 갱신은 사람 몫
 - SCR-ADM-070 사람이 볼 것(판정 밖): 이미지 검사에 영수증용 `@/utils/receiptFile`을 쓴다. 미리보기 object URL을 해제하지 않는다. 가짜 목록이 공통코드도 불러 "아이템 목록을 불러오지 못했어요." 분기는 화면으로 못 봤다. 부위 Select 안내에 `aria-describedby`가 없다.
-- PR 캡처 확인: SCR-ADM-070 캡처 `LJS-20261103-SCR-ADM-070-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
 
 - SCR-ADM-042 연결 남음: FN-ADM-042-07 접수 시점 캐릭터 이미지 (백엔드 연결 `GET /api/admin/inquiries/{otoInqrySn}/images/{atchFileSn}`가 캐릭터 이미지 1483에 404 FILE_NOT_FOUND, 백엔드 저장소에서 /start). 같은 코드로 204 첨부는 200이다. 백엔드 `/api/admin/inquiries`는 `origin/LJS`에만 있어 develop 병합이 돼야 배포에서 동작한다. 검증은 로컬 8080(백엔드 LJS 작업 사본)으로 했다
 - SCR-ADM-042 FN-ADM-042-08 펫돌봄 분쟁 연결: SCR-ADM-022(펫돌봄 거래)를 만들 때 분쟁(`inqryCtgr=DISPUTE`) 문의 상세에 [작성자 매칭 목록] 링크(`mbrSn`)를 붙인다(사람 결정 2026-11-03)
 - SCR-ADM-042 사람이 볼 것(판정 밖): ① 상태가 서버 이름 그대로 "접수"로 보이고 탭은 "미답변"이다(백엔드 문서는 CSCC0012를 화면에서 '미답변'). 맞추려면 추가 요청이나 새 마일스톤으로 ② 삭제된 픽셀 캐릭터 문의는 `imgs`가 비어 `charImgAtchFileSn`이 오면 캐릭터 이미지 자리가 스켈레톤으로 남는다(`AdminInquiryDetailPage.jsx` `InquiryDetailBody`, 화면으로 못 봄) ③ 시드 픽셀 문의(82 등)는 첨부가 있는데 `charImgAtchFileSn`이 null이라 캐릭터 이미지 칸이 없다(백엔드 데이터) ④ 409 응답 표시는 코드로만 봤다
 - SCR-ADM-042 로컬 DB 검증 데이터(2026-11-03): 문의 204~206("확인A~C", 205는 회원 삭제)이 남았다. 204는 답변 완료("[검증] 답변 수정 확인입니다."), 206은 원래 캐릭터 복원(CHRC0009)을 실행해 회원 1의 캐릭터 1이 복원되고 알림이 갔을 수 있다. 감사 로그도 남았다(되돌리는 API 없음)
-- PR 캡처 확인: SCR-ADM-042 캡처 `LJS-20261103-SCR-ADM-042-after-1440.png`·`-390.png`·`-detail-after-1440.png`·`-detail-after-390.png`에 로컬 DB 닉네임이 찍혀 있다. `detail`이 붙은 이름은 규칙에 없는 형식이다
 
 - SCR-ADM-041 마일스톤 정리: `milestones/LJS.md` 끝의 "SCR-ADM-041 FAQ · 목록·등록·수정 모달·사용 토글·카테고리 탭 연결 — 대기" 4절은 백엔드 `/end`가 넣은 연결 절이다. 이번 작업이 이미 실제 API로 만들어 검증했다. 차이 2개: 400 칸 오류를 `data[].field`로 칸마다 보이지 않고 `message` 한 줄로 보인다(`FaqFormModal.jsx`), 목록 순서(정렬 순서 다음 번호순)는 서버를 따를 뿐 따로 확인하지 않았다. 이 둘을 볼지 정한 뒤 4절을 `끝`으로 바꾸거나 지운다
 - SCR-ADM-041 연결 남음: FN-ADM-041-01~04 (백엔드 연결 `/api/admin/faqs` 목록·상세·등록·수정, 백엔드 저장소에서 /start). 백엔드 마일스톤 SCR-ADM-041은 `끝`이다. 백엔드 커밋·develop 병합이 돼야 배포에서 동작한다. 검증은 로컬 8080(백엔드 LJS 작업 사본)으로 했다
 - SCR-ADM-041 로컬 DB 검증 데이터(2026-11-03): FAQ `faqSn` 41~44("[검증]·[확인]" 질문, 비노출)가 남았다(삭제 API 없음)
 - SCR-ADM-041 사람이 볼 것(판정 밖): 기획은 사용 칸을 "배지"라고 했지만 글자(비노출만 회색)로 보인다(`FaqTable.jsx`). 등록 직후 새로고침 없이 목록이 바뀌는지는 검증이 직접 보지 않았다(수정과 같은 무효화)
-- PR 캡처 확인: SCR-ADM-041 캡처 `LJS-20261103-SCR-ADM-041-after-1440.png`·`-390.png`에 로컬 DB FAQ 질문이 찍혀 있다
 
 - SCR-ADM-040 백엔드 병합 순서: 공지 관리자 API(백엔드 `origin/LJS` 커밋 `1553fd6`)가 백엔드 develop에 병합돼야 배포에서 동작한다. 검증은 로컬 8080을 LJS 브랜치로 띄워 했다
 - SCR-ADM-040 사람이 정할 것: 폼이 [사용]을 끈 상태에서도 [알림 발송] 체크를 막지 않아 서버가 400 "입력값이 올바르지 않습니다."로 거절한다(`NoticeForm.jsx`). 막으려면 새 마일스톤이나 추가 요청으로
 - SCR-ADM-040 로컬 DB 검증 데이터(2026-11-03): 공지 37 "[검증] 알림 발송 공지"가 비노출로 남았다(삭제 API 없음). 회원 191명에게 공지 알림이 1건씩 갔다
 - SCR-ADM-040 실제 확인이 남은 것: 글자 수 400은 입력칸 `maxLength`가 막아 화면으로 못 봤다. 403은 코드로만 봤다. 스켈레톤 높이(목록 표 1025px, 폼 카드 600px)는 잰 값이 아니라 계산값이다
-- PR 캡처 확인: SCR-ADM-040 캡처 `LJS-20261103-SCR-ADM-040-after-1440.png`·`-390.png`에 로컬 DB 공지 제목이 찍혀 있다
 - SCR-ADM-040 본문 이미지: 사용자 공지 상세(KSJ, 공용 `PostBody`)가 `![](/api/files/public/{atchFileSn})` 줄을 이미지로 그리게 되면 같이 한다(사람 결정 2026-11-03). 할 일: `NoticeForm.jsx` 이미지 버튼, `api.js` `uploadNoticeImage`(`POST /api/admin/notices/images`, multipart `image`, 201 `{ atchFileSn }`), 내용 커서 자리에 그 줄을 넣기
 
 - 8080 백엔드를 공용 DB로 되돌릴지: SCR-ADM-030 검증 때 사람이 `local` 프로필(로컬 DB)로 재시작했다. 지금 5173 화면도 로컬 데이터를 본다
@@ -35,11 +45,9 @@ SCR-ADM-070 아이템 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회�
 - SCR-ADM-030 공용 DB 검증 데이터(2026-11-02, 사람 허용 "아무나 해도 돼, DB 갈아엎을 예정", 되돌리지 않음): 신고 97·99·100·116·121·122·131·132 처리(100은 다른 회원 신고가 같은 대상이라 함께 처리됨), 글 337·213 블라인드로 남음, 글 607 블라인드 뒤 복구, 댓글 2561 삭제로 남음, 회원 38 7일 정지 뒤 해제. 신고자 알림·감사 로그가 남았다
 - SCR-ADM-030 로컬 DB 검증 데이터: SQL로 넣은 신고 `dclr` 126~136·142(신고자 회원 191~197, 상세 내용 '검증A'~'검증G'), tester API 신고 137~141. 회원 141 정지(2026-11-09까지), 글 998 블라인드로 남음
 - SCR-ADM-030 사람이 정할 것(판정 밖): 정지 사유 칸에 글자 수 제한이 없다(`ReportCompleteForm.jsx`, 서버 제한 확인 안 함). 영구 정지 `suspnDayCnt: null` 전송은 코드로만 확인했다. 첫 진입 때 상태 탭 줄이 스켈레톤이 아니다(`ui.md` 로딩 표시, `AdminPostsPage.jsx`와 같은 구조). 행 수가 정해지지 않은 목록 스켈레톤은 판정에서 뺐다(반려 탭 11건 +83%)
-- PR 캡처 확인: SCR-ADM-030 캡처 `LJS-20261102-SCR-ADM-030-after-1440.png`·`-390.png`에 로컬 DB 닉네임이 찍혀 있다
 - SCR-ADM-020 실제 확인이 남은 것: 403과 조회 오류·[다시 시도]는 조작한 응답으로만 봤다. 상세 스켈레톤은 748px인데 글 1001 실제는 1299px다(이력 길이에 따라 달라짐, `AdminPostDetailPage.jsx`). `/admin/posts/abc`처럼 잘못된 번호는 [다시 시도]만 나오고 [목록으로]가 없다. 삭제된 글의 댓글에도 [삭제]가 나온다(기획이 막지 않음, 막을지 사람이 정한다). 실종센터 필터는 0건이고 `[실종]`·`[펫돌봄]` 제목 글은 펫정보·펫일상 코드다
 - 공용 DB 검증 데이터(2026-11-02, 사람 허용): 글 1001을 블라인드·복구 2번(`pstSttsHstrySn` 1077~1080), 댓글 4028을 달고 삭제했다(되돌리지 않음). 감사 로그 `mngrTaskLogSn` 9~14. 검증 중 다른 작업이 글 1001을 신고(`dclrSn` 126~130)·자동 블라인드(이력 1081)·복구(이력 1082, 감사 로그 16·17)해 글은 정상이고 신고 수 5가 남았다. 주체는 확인 못 함. 감사 로그 15도 다른 세션으로 보인다
 - 공용 DB 확인: 아래 줄의 앞선 기록 `mngrTaskLogSn` 10~13·25·26과 번호가 겹친다. 지금 DB의 10~13은 SCR-ADM-020 것이고 로그가 17번까지뿐이다. DB 초기화인지 다른 DB인지 확인 안 함
-- PR 캡처 확인: SCR-ADM-020 캡처 6장(`LJS-20261102-SCR-ADM-020-*`)에 공용 DB 닉네임이 찍혀 있다. `detail`·`comments`가 붙은 이름은 규칙에 없는 형식이다. 공개 저장소에 올려도 되는지 PR 때 정한다
 - SCR-ADM-020 문서 맞출 것(사람): 기능명세서 FN-ADM-020-01·화면설계서 SCR-ADM-020의 게시판에 펫돌봄이 있는데 코드가 없어 필터에서 뺐다
 - 마일스톤 정리: `SCR-ADM-113 … 목록과 지정 모달 연결`·`해제 버튼과 확인 모달 연결` 2개가 `대기`로 남아 있지만 커밋 `70c41a5`에서 실제 API로 만들어졌다. 다음 `/start`가 고르기 전에 사람이 확인해 `끝`으로 바꾼다
 - SCR-ADM-011 연결 남음: FN-ADM-011-01 백엔드 연결 `AdminMemberDetailResponse.mbrAuthrtCd`(백엔드 저장소에서 `/start`). 그동안 관리자 회원에게도 [정지]가 보이고 서버가 409로 거절한다. 필드가 들어오면 `AdminMemberDetailPage.jsx` 머리 주석의 해당 줄만 지운다
@@ -51,14 +59,12 @@ SCR-ADM-070 아이템 — 끝 (2026-11-03, 검증 `확인 못 함 있음` 2회�
 - SCR-ADM-113 백엔드 병합 순서: 백엔드 LJS 브랜치의 관리자 지정·해제 API가 develop에 병합돼야 배포에서 동작한다
 - 로컬 검증 데이터: 회원 198을 지정했다가 해제해 감사 로그 2줄(`mngrTaskLogSn` 25·26)이 남았다
 - SCR-ADM-111 실제 확인이 남은 것: `?batch=`로 바로 들어오면 `HistorySkeleton`(20행 1026px)이 실제보다 길다(2026-11-02 이력 5건: 본문 1598px, 실제 약 927px, +72%). 행 수는 응답 전에 알 수 없어 그대로 둔다(사람 결정 2026-11-02). 이력 없음 문구도 이번에는 화면으로 못 봤다. 수동 실행은 로컬 DB에 SYSC0027이 없으면 외래키에 걸릴 수 있어 해 보지 않았다
-- 사람이 다시 찍을 것: 앞선 SCR-ADM-111 캡처 `LJS-20261102-SCR-ADM-111-after-1440.png`·`-390.png`를 이번 검증이 덮어썼다(git 제외 폴더). 앞선 PR에 쓸 계획이었다면 다시 찍는다
 - 백엔드 병합 순서: 이 링크는 백엔드 커밋 `61323fa`(SYSC0027)가 병합돼야 배치 현황에서 행을 고른다. 없으면 표에 그 배치가 없어 이력이 안 나온다
 - SCR-ADM-013 사람이 정할 것: 파기 안내와 [배치 현황]이 403·조회 오류 화면에도 나온다(`AdminMembersWithdrawnPage.jsx`). 고치면 추가 요청이나 새 마일스톤으로
 - SCR-ADM-013 실제 확인이 남은 것: 스켈레톤은 화면으로 못 봤다. 높이 1025px는 20행 기준이라 지금처럼 실제 5건이면 표보다 훨씬 크다(`AdminMembersWithdrawnPage.jsx`). 화면의 403 안내는 조작한 응답으로만 봤고 실제 서버 문구로는 못 봤다. 가짜 상태 배분을 바꿔 정지 23명이고 SCR-ADM-010·012 값이 달라졌다(이 둘 연결 때 없어진다)
 - 공용 하네스: 관리자 화면 검증은 별도 검증 에이전트가 관리자 계정을 받아야 한다. 이번에는 사람이 지시해 프롬프트에 계정을 넣었다(`/impl` 고정 프롬프트 예외). 검증 스킬에 관리자 화면 로그인을 어떻게 둘지 PR로 정한다
 - SCR-ADM-012 실제 확인이 남은 것: 쪽 이동 화면, 정지 일시 null 행 "—", 403 안내, 409 `MEMBER_NOT_SUSPENDABLE` 표시는 조작한 응답으로만 봤다. 일반 회원은 라우트 가드가 `/main`으로 보내 403 안내까지 가지 않는다. 해제 409 뒤 목록은 자동 갱신하지 않는다(기획에서 뺌). 로딩 스켈레톤은 화면으로 못 봤고 표 높이 1008px는 잰 값(실제 1186px, 15% 작음)이다
 - 공용 DB 검증 데이터(2026-11-02, 사람 허용): 회원 129를 7일 정지·해제·영구 정지·해제해 정상으로 되돌렸다. 상태 이력 `mbrSttsHstrySn` 209~212, 감사 로그 `mngrTaskLogSn` 10~13이 남았고, 관리자 로그인 감사 로그 9도 이 검증으로 보인다. 그 회원 세션은 정지 때 폐기됐다
-- PR 캡처 확인: SCR-ADM-012 캡처(`LJS-20261102-SCR-ADM-012-after-1440.png`·`-390.png`)에 공용 DB 회원 닉네임이 찍혀 있다. 공개 저장소에 올려도 되는지 PR 때 정한다
 - 백엔드에 알릴 것(검증 에이전트 보고, 사람 미확인): `application-local.properties`는 `local` 프로필이 켜져야 읽혀 그냥 `bootRun`하면 공용 DB에 붙는다. 백엔드 README "파일이 있으면 그 DB 설정이 우선한다"와 다르다. 2026-11-02 8080 서버의 DB 연결은 공용 DB로 확인했다
 - SCR-ADM-010 실제 확인이 남은 것: 정지 회원 행의 정지 종료일은 일단 표시하지 않는다(사람 결정 2026-11-01). `?page=99`처럼 범위를 벗어난 쪽은 빈 문구만 나오고 쪽 번호가 없다
 - SCR-ADM-112 연결 남음: FN-ADM-112-01·02·03 백엔드 연결(백엔드 저장소에서 `/start`). 사용량 조회 API 3종·필드 이름, SYSG05를 명세 7종으로 수정, 호출 로그 기록(Python 통지 포함). 연결 때 `features/apiUsage/api.js` 가짜와 `apiUsageLabels.js`의 임시 코드(`TMP00001` AI 분류, `TMP00002` PDF 분석)를 바꾼다. 지금 AI 서버에는 토큰을 읽는 코드와 Java 통지가 없다(2026-11-01 검색)
