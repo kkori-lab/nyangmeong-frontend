@@ -2,11 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-ADM-051 약관 · 390 폭 가로 스크롤 + SCR-ADM-101 지역 탭 빼기 — 끝 (2026-11-03, 검증 2회차 `통과`, 사람 확인). `/admin/terms` 390 폭 페이지 가로 스크롤을 없앴고(`TermsTable.jsx` 표 상자 `relative`), 관리자 품종·지역 화면을 품종만 남겨 `품종`·`/admin/breeds`로 바꿨다(`features/adminBreed`, `AdminBreedsPage.jsx`, 지역 탭·API 삭제)
+SCR-ADM-071 케어미션 — 끝 (2026-11-03, 검증 2회차 `확인 못 함 있음`(연결 남음만), 사람 확인). `/admin/care-missions`에 미션 풀 탭·목록 표·수정 모달(보상 포인트·달성 기준 횟수·사용, 다음 날 00:00 반영 안내)을 가짜 응답으로 만들었다(`features/adminCareMission`, `AdminCareMissionsPage.jsx`)
 
 ## 다음에 할 것
 
-- SCR-ADM-001 관리자 공통 페이지 틀·조회 오류 컴포넌트 정리(사람 요청 2026-11-03): `milestones/LJS.md`에 대기로 넣었다. 30개 관리자 화면을 건드리는 리팩터링이라 따로 한다
+- SCR-ADM-071 연결 남음: FN-ADM-071-01·02 (백엔드 연결 `GET /api/admin/care-missions?msnPoolCd=`·`PATCH /api/admin/care-missions/{careMsnSn}`, 허용 범위(프론트 가정 1 이상 정수·보상 1000P·횟수 10회 이하), 출제 배치 `CareMissionJob`이 `CARE_MSN`의 `useYn`·값을 읽는지, 백엔드 저장소에서 /start). 나오면 `features/adminCareMission/api.js` 가짜 본문(sessionStorage 보관 포함)만 실제 요청으로, 상한은 `careMissionLabels.js`에서 맞춘다
+- SCR-ADM-071 사람이 볼 것(판정 밖): ① `routes/paths.js`에 `ADMIN_CARE_MISSIONS`를 기능 커밋에 같이 넣었다 ② 스켈레톤 높이는 행 높이로 계산한 값(풀마다 21·9·12행, `AdminCareMissionsPage.jsx`) ③ 조회 오류·저장 실패 문구는 가짜가 실패하지 않아 검증에서 응답을 바꿔서만 봤다 ④ 백엔드 마일스톤 SCR-ADM-071의 "`pet` 케어미션 협의 (SJM)"는 사람이 맞춘다
+- 대기 순서(사람 결정 2026-11-03): SCR-ADM-060 장소는 기획까지 했다가 넘김(백엔드에 관리자 장소 API·공공데이터 수집 배치 없음). SCR-ADM-001 페이지 틀·조회 오류 정리는 남은 관리자 화면 구현 뒤 맨 마지막
 - SCR-ADM-051 연결 남음: FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start). 나오면 `features/adminTerms/api.js` 가짜 본문만 실제 요청으로, `termsKinds.js` 키를 실제 값으로 바꾼다
 - SCR-ADM-051 사람이 볼 것(판정 밖): ① 같은 버전 값은 확인 모달을 누른 뒤에 막힌다 ② 종류 키·등록일 `regDt`·글자 수(버전 20·제목 100·내용 20000)는 가정 ③ `routes/paths.js`에 `ADMIN_TERMS`·`ADMIN_TERM_NEW`를 기능 커밋에 같이 넣었다
 

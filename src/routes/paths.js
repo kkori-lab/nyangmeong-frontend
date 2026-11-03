@@ -93,6 +93,7 @@ export const PATHS = {
   ADMIN_INQUIRIES: '/admin/inquiries',
   ADMIN_INQUIRY_DETAIL: '/admin/inquiries/:otoInqrySn',
   ADMIN_ITEMS: '/admin/items',
+  ADMIN_CARE_MISSIONS: '/admin/care-missions',
   ADMIN_NOTIFICATION_TEMPLATES: '/admin/notification-templates',
   ADMIN_NOTIFICATION_LOGS: '/admin/notification-logs',
   ADMIN_BREEDS: '/admin/breeds',
