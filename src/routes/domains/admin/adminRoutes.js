@@ -24,9 +24,7 @@ const AdminItemsPage = lazy(() => import('@/pages/admin/AdminItemsPage'));
 const AdminNewsPage = lazy(() => import('@/pages/admin/AdminNewsPage'));
 const AdminTermsPage = lazy(() => import('@/pages/admin/AdminTermsPage'));
 const AdminTermFormPage = lazy(() => import('@/pages/admin/AdminTermFormPage'));
-const AdminBreedsRegionsPage = lazy(
-  () => import('@/pages/admin/AdminBreedsRegionsPage'),
-);
+const AdminBreedsPage = lazy(() => import('@/pages/admin/AdminBreedsPage'));
 const AdminExposurePage = lazy(() => import('@/pages/admin/AdminExposurePage'));
 const AdminLostReportsPage = lazy(
   () => import('@/pages/admin/AdminLostReportsPage'),
@@ -102,7 +100,7 @@ export default [
       },
       { path: PATHS.ADMIN_TERMS, Component: AdminTermsPage },
       { path: PATHS.ADMIN_TERM_NEW, Component: AdminTermFormPage },
-      { path: PATHS.ADMIN_BREEDS_REGIONS, Component: AdminBreedsRegionsPage },
+      { path: PATHS.ADMIN_BREEDS, Component: AdminBreedsPage },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
       {

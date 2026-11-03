@@ -5,16 +5,12 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Select from '@/components/Select';
 import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
-import BreedFormModal from '@/features/adminBreedRegion/BreedFormModal';
-import BreedTable from '@/features/adminBreedRegion/BreedTable';
-import RegionBrowser from '@/features/adminBreedRegion/RegionBrowser';
-import { useAdminBreeds } from '@/features/adminBreedRegion/queries';
+import BreedFormModal from '@/features/adminBreed/BreedFormModal';
+import BreedTable from '@/features/adminBreed/BreedTable';
+import { useAdminBreeds } from '@/features/adminBreed/queries';
 import { isForbiddenError } from '@/utils/isForbiddenError';
 import { PET_SE, PET_SE_OPTIONS } from '@/utils/petCodes';
 import AdminForbidden from './AdminForbidden';
-
-const TAB_BREEDS = 'breeds';
-const TAB_REGIONS = 'regions';
 
 /** 등록 모달을 연 상태 */
 const NEW_BREED = 'new';
@@ -35,8 +31,8 @@ function BreedListSkeleton() {
   );
 }
 
-/** 품종 탭: 종 선택 + 표 + 추가·수정 모달 */
-function BreedsTab({ petSeCd, breeds, onPetSeChange }) {
+/** 종 선택 + 표 + 추가·수정 모달 */
+function BreedList({ petSeCd, breeds, onPetSeChange }) {
   /** 열린 모달: null(닫힘), NEW_BREED(추가), 품종 행(수정) */
   const [editing, setEditing] = useState(null);
   const petSeName = PET_SE_OPTIONS.find(({ code }) => code === petSeCd).name;
@@ -108,79 +104,28 @@ function BreedsTab({ petSeCd, breeds, onPetSeChange }) {
 }
 
 /**
- * [품종·지역]
- * - 탭은 ?tab=regions, 없거나 모르면 품종
- * - 품종 탭 종은 ?petSeCd=, 없거나 모르면 강아지. 탭 개수는 지금 종의 품종 수
- * - 지역은 조회만
+ * [품종]
+ * - 종은 ?petSeCd=, 없거나 모르면 강아지
  */
-export default function AdminBreedsRegionsPage() {
+export default function AdminBreedsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const tab =
-    searchParams.get('tab') === TAB_REGIONS ? TAB_REGIONS : TAB_BREEDS;
   const petSeParam = searchParams.get('petSeCd');
   const petSeCd = PET_SE_CODES.includes(petSeParam) ? petSeParam : PET_SE.DOG;
 
   const breeds = useAdminBreeds(petSeCd);
 
-  const tabs = [
-    {
-      key: TAB_BREEDS,
-      label: '품종',
-      count: breeds.isSuccess ? breeds.data.length : null,
-    },
-    { key: TAB_REGIONS, label: '지역', count: null },
-  ];
-
-  const handleTabSelect = (nextTab) =>
-    setSearchParams(nextTab === TAB_REGIONS ? { tab: TAB_REGIONS } : {});
   const handlePetSeChange = (nextPetSeCd) =>
     setSearchParams(nextPetSeCd === PET_SE.DOG ? {} : { petSeCd: nextPetSeCd });
 
   return (
     <div className="mx-auto max-w-[1200px]">
-      <h1 className="mb-5 text-2xl font-bold text-ink">품종·지역</h1>
-      <div
-        role="tablist"
-        aria-label="품종·지역"
-        className="mb-4 flex gap-1 overflow-x-auto shadow-[inset_0_-1px_0_var(--color-line)] [scrollbar-width:none]"
-      >
-        {tabs.map(({ key, label, count }) => {
-          const isSelected = key === tab;
-          return (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={isSelected}
-              className={`relative h-12 shrink-0 px-4 text-base whitespace-nowrap ${
-                isSelected
-                  ? 'font-bold text-brand-900 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-brand-900'
-                  : 'font-semibold text-subtle hover:text-ink'
-              }`}
-              onClick={() => handleTabSelect(key)}
-            >
-              {label}
-              {count != null && (
-                <span className="ml-1.5 tabular-nums">
-                  {count.toLocaleString()}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-      <div role="tabpanel">
-        {tab === TAB_REGIONS ? (
-          <RegionBrowser />
-        ) : (
-          <BreedsTab
-            petSeCd={petSeCd}
-            breeds={breeds}
-            onPetSeChange={handlePetSeChange}
-          />
-        )}
-      </div>
+      <h1 className="mb-5 text-2xl font-bold text-ink">품종</h1>
+      <BreedList
+        petSeCd={petSeCd}
+        breeds={breeds}
+        onPetSeChange={handlePetSeChange}
+      />
     </div>
   );
 }

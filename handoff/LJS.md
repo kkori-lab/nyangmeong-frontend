@@ -2,18 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-ADM-051 약관 — 끝 (2026-11-03, 검증 `확인 못 함 있음`·연결 남음만, 사람 확인). `/admin/terms` 종류별 현재 버전 목록·[이력] 모달(버전 내용), `/admin/terms/new` 새 버전 등록(확인 모달, 같은 버전 409, 등록 뒤 재동의 없음 안내·공지 등록 링크)을 가짜 응답(`features/adminTerms/api.js`)으로 만들었다
+SCR-ADM-051 약관 · 390 폭 가로 스크롤 + SCR-ADM-101 지역 탭 빼기 — 끝 (2026-11-03, 검증 2회차 `통과`, 사람 확인). `/admin/terms` 390 폭 페이지 가로 스크롤을 없앴고(`TermsTable.jsx` 표 상자 `relative`), 관리자 품종·지역 화면을 품종만 남겨 `품종`·`/admin/breeds`로 바꿨다(`features/adminBreed`, `AdminBreedsPage.jsx`, 지역 탭·API 삭제)
 
 ## 다음에 할 것
 
-- SCR-ADM-051 390 폭 가로 스크롤 고치기(사람 결정 2026-11-03 "다음에서 수정"): `/admin/terms` 390 폭에서 페이지에 가로 스크롤(scrollWidth 589). `TermsTable.jsx` [이력] 칸 머리의 `sr-only` 글자(절대 위치)가 `overflow-x-auto` 밖으로 나간다. 표를 감싼 div에 `relative`를 넣으면 고쳐진다(검증 에이전트 확인). 완료 조건: 390 폭에서 `document.documentElement.scrollWidth`가 390
-- SCR-ADM-101 지역 탭 빼기(사람 결정 2026-11-03 "다음에서 빼버리는 걸로"): 지역은 회원 화면이 공용 `GET /api/regions`를 바로 쓰고 바뀌지 않아 관리 화면이 쓸모없다. 먼저 기능명세서 FN-ADM-101-02·화면설계서 SCR-ADM-101에서 지역 조회를 뺀 뒤, 화면을 품종만 남기고 이름·URL을 `품종`·`/admin/breeds`로 바꾼다(`docs/routes.md`·`routes/paths.js`·`layouts/adminMenus.js`). `RegionBrowser.jsx`와 지역 API·쿼리를 지운다
 - SCR-ADM-001 관리자 공통 페이지 틀·조회 오류 컴포넌트 정리(사람 요청 2026-11-03): `milestones/LJS.md`에 대기로 넣었다. 30개 관리자 화면을 건드리는 리팩터링이라 따로 한다
 - SCR-ADM-051 연결 남음: FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start). 나오면 `features/adminTerms/api.js` 가짜 본문만 실제 요청으로, `termsKinds.js` 키를 실제 값으로 바꾼다
 - SCR-ADM-051 사람이 볼 것(판정 밖): ① 같은 버전 값은 확인 모달을 누른 뒤에 막힌다 ② 종류 키·등록일 `regDt`·글자 수(버전 20·제목 100·내용 20000)는 가정 ③ `routes/paths.js`에 `ADMIN_TERMS`·`ADMIN_TERM_NEW`를 기능 커밋에 같이 넣었다
 
-- SCR-ADM-101 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함, 사용 안 함 품종도 목록에), 백엔드 저장소에서 /start). 나오면 `features/adminBreedRegion/api.js` 가짜 본문만 실제 요청으로 바꾼다
-- SCR-ADM-101 사람이 볼 것(판정 밖): ① 지역 탭은 명세대로 조회만이라 쓸모가 적다(사람 2026-11-03 "일단 조회만으로 둔다"). 관리(사용 켜기·끄기 등)가 필요하면 명세 수정 후 새 마일스톤으로 ② 지역 탭 첫 진입은 시도 목록 → 전북 하위 목록 두 번 왕복이라 1초 넘게 걸린다 ③ 품종 이름 50자·중복 검사(공백 무시)는 가정 ④ `routes/paths.js`에 `ADMIN_BREEDS_REGIONS`를 기능 커밋에 같이 넣었다 ⑤ 1회차 검증 때 공용·로컬 DB 읍면동 0건이었는데 2회차 검증 땐 8080 서버가 전북 읍면동을 줬다(전주시 35개)
+- SCR-ADM-101 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함, 사용 안 함 품종도 목록에), 백엔드 저장소에서 /start). 나오면 `features/adminBreed/api.js` 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-101 사람이 볼 것(판정 밖): ① 기능명세서 FN-ADM-101-02 지역 조회·화면설계서 SCR-ADM-101 지역 부분을 DMS에서 빼는 것은 문서 담당 몫(2026-11-03 결정) ② URL 변경(`docs/routes.md`·`routes/paths.js` `ADMIN_BREEDS`)은 `shared-files.md`상 따로 PR 대상이라 PR 본문에 팀 알림을 넣는다(2026-11-03 결정) ③ 옛 URL `/admin/breeds-regions` 리다이렉트는 두지 않았다 ④ 품종 이름 50자·중복 검사(공백 무시)는 가정
 
 - SCR-ADM-050 연결 남음: FN-ADM-050-01·02·03·05 (백엔드 연결 `GET /api/admin/news` 목록·출처·카테고리 필터·쪽, `POST /api/admin/news`·`PATCH /api/admin/news/{newsSn}`(관리자 등록 제목·요약·카테고리, 수집 기사 `useYn`·`newsClsfCd`)·썸네일 업로드 `atchFileSn`, `GET·POST /api/admin/news/keywords`·`DELETE /api/admin/news/keywords/{kwrdDictSn}`(KWRD_DICT 뉴스 분류 AIMC0039, 가정 필드 `kwrdDictSn`·`mpngCd`·`kwrdCn`·`sortSeq`), 백엔드 저장소에서 /start). 나오면 `features/adminNews/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-050 사람이 볼 것(판정 밖): ① 실행할 수 없는 서버(`runnableYn:false`)에서도 [뉴스 수집 실행]이 켜져 있다(배치 현황 `BatchTable.jsx`는 막음) ② 중복 키워드 안내가 그 칩을 지운 뒤에도 남는다 ③ 관리자 등록 뉴스도 사용 스위치로 숨길 수 있다(명세는 수집 기사만) ④ 썸네일은 선택 값, 제목 200자·요약 1000자·키워드 50자는 가정 ⑤ 스켈레톤 높이는 행 높이로 어림한 값(`AdminNewsPage.jsx`) ⑥ `routes/paths.js`에 `ADMIN_NEWS`를 기능 커밋에 같이 넣었다
