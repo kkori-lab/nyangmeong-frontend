@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Card from '@/components/Card';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import useMediaQuery from '@/hooks/useMediaQuery';
-import { formatMonthDayDot } from '@/utils/formatDate';
+import { formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
 import {
   RECORD_TYPES,
   STOOL,
@@ -11,6 +11,7 @@ import {
   findRecordType,
   findStoolState,
 } from '../diaryTypes';
+import { useDailyTrend } from '../queries';
 import BarChart from './BarChart';
 import CountBars from './CountBars';
 import EmptyBox from './EmptyBox';
@@ -29,9 +30,10 @@ import {
  * - 0건·1건은 그래프 대신 안내
  * - 760px 이하: 지표 탭이 한 줄 가로 밀기이고 줄 끝에 걸쳐 잘린 탭은 반투명, 체중 그래프의 상한·목표·하한은 왼쪽 한 열
  */
-export default function DailyTrendCard({ pet, records, onAddRecord }) {
+export default function DailyTrendCard({ pet, onAddRecord }) {
   const [typeCd, setTypeCd] = useState(WEIGHT);
   const type = findRecordType(typeCd);
+  const trend = useDailyTrend(pet.petSn, typeCd);
   const isPc = useMediaQuery('(min-width: 761px)');
   const rowRef = useRef(null);
   /** 줄 끝에 걸쳐 일부만 보이는 탭(모바일 가로 밀기) */
@@ -98,7 +100,7 @@ export default function DailyTrendCard({ pet, records, onAddRecord }) {
 
       <TrendBody
         pet={pet}
-        records={records}
+        trend={trend}
         type={type}
         isPc={isPc}
         onAddRecord={onAddRecord}
@@ -107,7 +109,7 @@ export default function DailyTrendCard({ pet, records, onAddRecord }) {
   );
 }
 
-function TrendBody({ pet, records, type, isPc, onAddRecord }) {
+function TrendBody({ pet, trend, type, isPc, onAddRecord }) {
   const emptyBox = (
     <EmptyBox
       icon="monitoring"
@@ -125,6 +127,22 @@ function TrendBody({ pet, records, type, isPc, onAddRecord }) {
     />
   );
 
+  if (trend.isPending) {
+    return (
+      <p className="py-16 text-center text-sm text-muted" aria-busy="true">
+        기록을 불러오는 중이에요
+      </p>
+    );
+  }
+  if (trend.isError) {
+    return (
+      <p role="alert" className="py-16 text-center text-sm text-muted">
+        기록을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
+      </p>
+    );
+  }
+  const records = trend.data;
+
   if (type.cd === STOOL) {
     const { recordCount, counts } = getStoolCounts(records);
     if (recordCount === 0) return emptyBox;
@@ -132,8 +150,8 @@ function TrendBody({ pet, records, type, isPc, onAddRecord }) {
       const [only] = pickType(records, STOOL);
       return (
         <OneRecord
-          ymd={only.rcdYmd}
-          value={findStoolState(only.stlSttsCd).nm}
+          ymd={getYmdOf(only.rcdDt)}
+          value={findStoolState(only.crsdSttsCd).nm}
         />
       );
     }

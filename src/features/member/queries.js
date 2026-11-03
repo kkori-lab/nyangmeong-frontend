@@ -44,6 +44,17 @@ export const useMe = () =>
 /** /auth/me 응답이 회원 요약과 같아 useMe와 같은 요청·캐시 사용 */
 export const useMemberSummary = useMe;
 
+/** 로그인 직후 회원 정보: 이전 캐시를 쓰지 않고 새로 조회 */
+export const useFetchMe = () => {
+  const queryClient = useQueryClient();
+  return () =>
+    queryClient.query({
+      queryKey: memberKeys.me,
+      queryFn: getMe,
+      staleTime: 0,
+    });
+};
+
 export const useLogout = () => useMutation({ mutationFn: logout });
 
 export const useMyProfile = () =>

@@ -1,4 +1,3 @@
-import { Cat, Dog } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import aiCharacter from '@/assets/ai-character.png';
@@ -17,8 +16,8 @@ import HealthSummary from '@/features/dashboard/HealthSummary';
 import HealthWidget from '@/features/dashboard/HealthWidget';
 import HeroAsk from '@/features/dashboard/HeroAsk';
 import MissionList from '@/features/dashboard/MissionList';
+import PetFace from '@/components/PetFace';
 import PetProfileCard from '@/features/pet/PetProfileCard';
-import { PET_SE } from '@/utils/petCodes';
 import { getVrtyName } from '@/utils/petFormat';
 import { usePets } from '@/features/pet/queries';
 import { PATHS } from '@/routes/paths';
@@ -33,7 +32,6 @@ const HERO_PANEL =
   'rounded-card border border-white/16 bg-[rgba(9,32,34,0.28)] transition-colors duration-150 hover:bg-[rgba(9,32,34,0.42)]';
 
 function PetChip({ pet, isSelected, onSelect }) {
-  const Icon = pet.petSeCd === PET_SE.CAT ? Cat : Dog;
   return (
     <button
       type="button"
@@ -51,15 +49,13 @@ function PetChip({ pet, isSelected, onSelect }) {
           isSelected ? 'bg-accent-ink/10' : 'bg-white/18'
         }`}
       >
-        {pet.chrcFaceUrl ? (
-          <img
-            src={pet.chrcFaceUrl}
-            alt=""
-            className="size-full object-cover"
-          />
-        ) : (
-          <Icon className="size-[18px]" aria-hidden="true" />
-        )}
+        <PetFace
+          petSn={pet.petSn}
+          petSeCd={pet.petSeCd}
+          isError={pet.bscCharSbstYn}
+          className="size-full object-cover"
+          iconClassName="size-[18px]"
+        />
       </span>
       {pet.petNm}
     </button>

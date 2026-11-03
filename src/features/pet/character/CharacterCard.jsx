@@ -1,6 +1,9 @@
 import { Cat, Dog } from 'lucide-react';
 import Badge from '@/components/Badge';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
+import FileImage from '@/components/FileImage';
+import { characterImageOptions } from '@/hooks/useCharacterImage';
+import { useFileImage } from '@/hooks/useFileImage';
 import { CHRC_STTS, PET_SE } from '../shared/petCodes';
 
 /** 카드마다 돌려 쓰는 무대 배경 */
@@ -15,7 +18,8 @@ const STAGE_TONES = [
 /**
  * [캐릭터 카드]
  * - mode: 'own'(내 캐릭터, 꾸미기·대표 지정·만들기) / 'shared'(공동양육, 조회 전용)
- * - 캐릭터가 없거나 오류 확인 중이면 종별 기본 캐릭터 사용
+ * - pet: GET /pets 한 행 + { pixelCharSn, charStatus, isCharError }(CharacterPage가 GET /pixel-characters로 합침)
+ * - 이미지는 GET /pets/{petSn}/character-image (오류 확인 중이면 서버가 종별 기본 캐릭터를 줘서 흑백으로 보임)
  */
 export default function CharacterCard({
   pet,
@@ -26,12 +30,17 @@ export default function CharacterCard({
   onSetRepresentative,
 }) {
   const isOwn = mode === 'own';
-  const isDone = pet.chrcSttsCd === CHRC_STTS.DONE;
-  const isNone = pet.chrcSttsCd === CHRC_STTS.NONE;
-  const isGenerating = pet.chrcSttsCd === CHRC_STTS.GENERATING;
-  const isError = pet.chrcSttsCd === CHRC_STTS.ERROR;
-  const isRep = isOwn && pet.rprsYn === 'Y';
-  const canDecorate = isOwn && isDone;
+  const isDone = pet.charStatus === CHRC_STTS.DONE;
+  const isNone = pet.charStatus === CHRC_STTS.NONE;
+  const isGenerating = pet.charStatus === CHRC_STTS.GENERATING;
+  const isError = pet.isCharError;
+  const isRep = isOwn && pet.rprsPetYn;
+  /** 오류 확인 중에는 꾸미기 진입을 막는다 (FN-MYP-010-23) */
+  const canDecorate = isOwn && isDone && !isError;
+  const { src, isPending } = useFileImage({
+    ...characterImageOptions(pet.petSn, 'full'),
+    enabled: isDone,
+  });
   const Icon = pet.petSeCd === PET_SE.CAT ? Cat : Dog;
 
   const stage = (
@@ -50,11 +59,12 @@ export default function CharacterCard({
           isError ? 'opacity-55 grayscale' : ''
         } ${isNone || isGenerating ? 'opacity-[0.12] brightness-0' : ''}`}
       >
-        {pet.chrcImgUrl && isDone ? (
-          <img
-            src={pet.chrcImgUrl}
-            alt=""
+        {isDone ? (
+          <FileImage
+            src={src}
+            pending={isPending}
             className="size-full object-contain [image-rendering:pixelated]"
+            fallback={<Icon className="size-3/5" />}
           />
         ) : (
           <Icon className="size-3/5" />
@@ -68,23 +78,16 @@ export default function CharacterCard({
           ?
         </span>
       )}
-      {isRep && (
-        <Badge
-          tone="brand"
-          className="absolute top-3 left-3 z-[4] bg-brand-500! text-white!"
-        >
-          대표
-        </Badge>
-      )}
-      {isError && (
-        <Badge tone="amber" className="absolute top-3 left-3 z-[4]">
-          오류 확인 중
-        </Badge>
-      )}
-      {isGenerating && (
-        <Badge tone="amber" className="absolute top-3 left-3 z-[4]">
-          만드는 중
-        </Badge>
+      {(isRep || isError || isGenerating) && (
+        <span className="absolute top-3 left-3 z-[4] flex flex-col items-start gap-1">
+          {isRep && (
+            <Badge tone="brand" className="bg-brand-500! text-white!">
+              대표
+            </Badge>
+          )}
+          {isError && <Badge tone="amber">오류 확인 중</Badge>}
+          {isGenerating && <Badge tone="amber">만드는 중</Badge>}
+        </span>
       )}
       {isOwn && isNone && (
         <span className="absolute inset-x-4 bottom-3 z-[5]">

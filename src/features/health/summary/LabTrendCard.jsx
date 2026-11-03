@@ -68,9 +68,9 @@ export default function LabTrendCard({
 }
 
 function TrendBody({ trend }) {
-  const { points, unitNm, refMinVal, refMaxVal } = trend;
-  const hasBand = refMinVal != null && refMaxVal != null;
-  const range = formatRange(refMinVal, refMaxVal, '~');
+  const { points, unitNm, refLlmtNvl, refUplmtNvl } = trend;
+  const hasBand = refLlmtNvl != null && refUplmtNvl != null;
+  const range = formatRange(refLlmtNvl, refUplmtNvl, '~');
 
   return (
     <>
@@ -78,12 +78,12 @@ function TrendBody({ trend }) {
         <LineChart
           points={points.map((point) => ({
             label: formatDate(point.ckupYmd),
-            value: point.rsltVal,
+            value: point.rsltNvl,
           }))}
-          band={hasBand ? [refMinVal, refMaxVal] : undefined}
+          band={hasBand ? [refLlmtNvl, refUplmtNvl] : undefined}
           formatValue={(value) => `${value} ${unitNm}`}
-          ariaLabel={`${trend.inspItmNm} 수치 변화 선그래프 · 참고범위 ${range} · ${points
-            .map((point) => `${formatDate(point.ckupYmd)} ${point.rsltVal}`)
+          ariaLabel={`${trend.inspNm} 수치 변화 선그래프 · 참고범위 ${range} · ${points
+            .map((point) => `${formatDate(point.ckupYmd)} ${point.rsltNvl}`)
             .join(' → ')} ${unitNm}`}
         />
       ) : (
@@ -92,7 +92,7 @@ function TrendBody({ trend }) {
             {formatDate(points[0].ckupYmd)}
           </span>
           <span className="text-lg/[1.6] font-bold">
-            {points[0].rsltVal} {unitNm}
+            {points[0].rsltNvl} {unitNm}
           </span>
           <span className="text-sm/[1.6] text-subtle">참고범위 {range}</span>
         </div>

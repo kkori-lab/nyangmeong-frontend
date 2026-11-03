@@ -1,19 +1,17 @@
-import { FILTER_SHARED, HOSPITAL_CLSF_CD, PET_STTS } from './expenseCodes';
+import { FILTER_SHARED, HOSPITAL_CLSF_CD } from './expenseCodes';
 import { getPetFilterLabel } from './expenseFormat';
 
 export const PET_PLACEHOLDER = { value: '', label: '선택해 주세요' };
 export const HOSPITAL_NOTICE = '병원비는 반려동물을 선택해 주세요';
 
-/** 오늘이 속한 달의 마지막 날 */
-export const getMaxExpndYmd = () => {
-  const now = new Date();
-  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  const pad = (value) => String(value).padStart(2, '0');
-  return `${last.getFullYear()}-${pad(last.getMonth() + 1)}-${pad(last.getDate())}`;
-};
+/** 한국 시간 기준 오늘(UTC 변환으로 하루 어긋나지 않게 시간대를 지정해 포맷) */
+export const getTodayYmd = () =>
+  new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 
-export const getActivePets = (pets) =>
-  pets.filter((pet) => pet.petStts === PET_STTS.ACTIVE);
+/** 지출 날짜 최대값: 오늘 (미래 날짜는 등록할 수 없다) */
+export const getMaxExpndYmd = getTodayYmd;
+
+export const getActivePets = (pets) => pets.filter((pet) => pet.petLinked);
 
 /** 가장 최근 등록 동물 */
 export const getDefaultPetValue = (activePets) =>

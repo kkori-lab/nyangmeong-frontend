@@ -22,7 +22,7 @@ export default function PetProfileCard({ pet }) {
       <PetFace
         petSn={pet.petSn}
         petSeCd={pet.petSeCd}
-        chrcSttsCd={pet.chrcSttsCd}
+        isError={pet.bscCharSbstYn}
         alt={`${pet.petNm} 캐릭터`}
         className="size-[76px] shrink-0 rounded-modal bg-white"
         fallback={

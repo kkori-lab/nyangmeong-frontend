@@ -15,3 +15,11 @@ export const getCategoryName = (code) =>
 
 export const getCategoryCode = (name) =>
   NEWS_CATEGORIES.find((category) => category.name === name)?.code;
+
+/** 관리자 등록 뉴스는 srcPressNm이 비어 와서 서비스 이름을 보인다 */
+export const getPressName = (news) =>
+  news.newsSrcCd === NEWS_SRC_ADMIN ? '냥멍케어' : news.srcPressNm;
+
+/** 요약을 못 읽은 기사는 newsCn이 제목과 같게 온다 */
+export const hasSummary = (news) =>
+  Boolean(news.newsCn) && news.newsCn.trim() !== news.newsTtl.trim();

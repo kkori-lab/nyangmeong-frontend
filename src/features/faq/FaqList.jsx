@@ -46,7 +46,7 @@ function FaqItems({ faqs }) {
                 <span
                   className={`text-base leading-[1.3] font-semibold max-[760px]:pt-[3px] ${isOpen ? 'text-[#2f6f57]' : 'text-[#1a3234] group-hover:text-[#1e4a4c]'}`}
                 >
-                  {faq.qstnCn}
+                  {faq.qstnTtl}
                 </span>
                 <ChevronDown
                   size={24}
@@ -104,21 +104,23 @@ export default function FaqList({
           aria-label="질문 카테고리"
           className="flex max-[760px]:overflow-x-auto max-[760px]:border-b max-[760px]:border-[#b9c4c4] max-[760px]:[scrollbar-width:none]"
         >
-          {['', ...FAQ_CATEGORIES].map((name) => {
-            const isSelected = name === category;
-            return (
-              <button
-                key={name || 'all'}
-                type="button"
-                role="tab"
-                aria-selected={isSelected}
-                onClick={() => onCategoryChange(name)}
-                className={`relative inline-flex h-[72px] shrink-0 cursor-pointer items-center px-4 text-lg whitespace-nowrap max-[760px]:h-12 ${isSelected ? 'font-bold text-[#2f6f57] after:absolute after:right-3 after:bottom-0 after:left-3 after:h-0.5 after:rounded-sm after:bg-[#2f6f57]' : 'font-semibold text-[#566465] hover:text-[#1a3234]'}`}
-              >
-                {name || '전체'}
-              </button>
-            );
-          })}
+          {[{ faqClsfCd: '', label: '전체' }, ...FAQ_CATEGORIES].map(
+            ({ faqClsfCd, label }) => {
+              const isSelected = faqClsfCd === category;
+              return (
+                <button
+                  key={faqClsfCd || 'all'}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => onCategoryChange(faqClsfCd)}
+                  className={`relative inline-flex h-[72px] shrink-0 cursor-pointer items-center px-4 text-lg whitespace-nowrap max-[760px]:h-12 ${isSelected ? 'font-bold text-[#2f6f57] after:absolute after:right-3 after:bottom-0 after:left-3 after:h-0.5 after:rounded-sm after:bg-[#2f6f57]' : 'font-semibold text-[#566465] hover:text-[#1a3234]'}`}
+                >
+                  {label}
+                </button>
+              );
+            },
+          )}
         </div>
         <SearchInput
           value={input}

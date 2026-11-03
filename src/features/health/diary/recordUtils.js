@@ -1,4 +1,4 @@
-import { addDays } from '@/utils/formatDate';
+import { addDays, getYmdOf } from '@/utils/formatDate';
 import {
   STOOL,
   STOOL_STATES,
@@ -18,27 +18,29 @@ export const RECENT_RECORD_COUNT = 14;
 const roundValue = (value) => Math.round(value * 10) / 10;
 
 const compareRecords = (a, b) => {
-  const aKey = `${a.rcdYmd} ${a.rcdTm}`;
-  const bKey = `${b.rcdYmd} ${b.rcdTm}`;
+  const aKey = a.rcdDt;
+  const bKey = b.rcdDt;
   if (aKey !== bKey) return aKey < bKey ? -1 : 1;
-  return a.dlyRcdSn - b.dlyRcdSn;
+  return a.dailyHlthRcdSn - b.dailyHlthRcdSn;
 };
 
 /** 날짜·시각 오름차순 */
 export const pickType = (records, typeCd) =>
-  records.filter((record) => record.rcdTypeCd === typeCd).sort(compareRecords);
+  records
+    .filter((record) => record.dailyRcdIdctCd === typeCd)
+    .sort(compareRecords);
 
 const sumValues = (records) =>
-  roundValue(records.reduce((sum, record) => sum + record.rcdVal, 0));
+  roundValue(records.reduce((sum, record) => sum + record.rcdNvl, 0));
 
 export const formatAmount = (typeCd, value) =>
   `${roundValue(value)}${findRecordType(typeCd).unit}`;
 
 /** 기록 한 건의 표시 값. 배변상태는 상태 이름 */
 export const formatRecordValue = (record) =>
-  record.rcdTypeCd === STOOL
-    ? findStoolState(record.stlSttsCd).nm
-    : formatAmount(record.rcdTypeCd, record.rcdVal);
+  record.dailyRcdIdctCd === STOOL
+    ? findStoolState(record.crsdSttsCd).nm
+    : formatAmount(record.dailyRcdIdctCd, record.rcdNvl);
 
 /** 종류별 하루 요약: 기록 목록·횟수·합계·가장 늦은 기록 */
 export const summarizeType = (dayRecords, typeCd) => {
@@ -59,19 +61,19 @@ export const getTrendPoints = (records, typeCd) => {
     return {
       recordCount: recent.length,
       points: recent.map((record) => ({
-        ymd: record.rcdYmd,
-        value: record.rcdVal,
+        ymd: getYmdOf(record.rcdDt),
+        value: record.rcdNvl,
       })),
     };
   }
   const sumsByYmd = new Map();
-  const firstYmd = recent[0]?.rcdYmd;
+  const firstYmd = getYmdOf(recent[0]?.rcdDt ?? '');
   all
-    .filter((record) => record.rcdYmd >= firstYmd)
+    .filter((record) => getYmdOf(record.rcdDt) >= firstYmd)
     .forEach((record) => {
       sumsByYmd.set(
-        record.rcdYmd,
-        (sumsByYmd.get(record.rcdYmd) ?? 0) + record.rcdVal,
+        getYmdOf(record.rcdDt),
+        (sumsByYmd.get(getYmdOf(record.rcdDt)) ?? 0) + record.rcdNvl,
       );
     });
   return {
@@ -90,7 +92,7 @@ export const getStoolCounts = (records) => {
     recordCount: recent.length,
     counts: STOOL_STATES.map((state) => ({
       ...state,
-      count: recent.filter((record) => record.stlSttsCd === state.cd).length,
+      count: recent.filter((record) => record.crsdSttsCd === state.cd).length,
     })),
   };
 };
@@ -101,7 +103,7 @@ export const getRecordedYmds = (records, todayYmd, periodDays) => {
   return [
     ...new Set(
       records
-        .map((record) => record.rcdYmd)
+        .map((record) => getYmdOf(record.rcdDt))
         .filter((ymd) => ymd >= startYmd && ymd <= todayYmd),
     ),
   ].sort((a, b) => (a < b ? 1 : -1));

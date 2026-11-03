@@ -228,7 +228,8 @@ function SidebarPanel({
                       onClick={() => onSelectRoom(conversation.aiCnvrsRoomSn)}
                     >
                       <span className="shrink-0 rounded-full bg-[#edf1f1] px-2 py-0.5 text-xs text-[#3d4a4b]">
-                        {conversation.petNm ?? '전체'}
+                        {pets?.find((pet) => pet.petSn === conversation.petSn)
+                          ?.petNm ?? '전체'}
                       </span>
                       <span className="truncate">{conversation.cnvrsTtl}</span>
                     </button>

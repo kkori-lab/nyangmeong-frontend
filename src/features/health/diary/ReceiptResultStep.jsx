@@ -83,10 +83,16 @@ export default function ReceiptResultStep({
   const [phase, setPhase] = useState(null);
   const [isRetakeOpen, setIsRetakeOpen] = useState(false);
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
+  /** 다시 시도해도 같은 요청으로 처리되도록 모달마다 한 번만 만든다 */
+  const [idmptDmndId] = useState(() => crypto.randomUUID());
   const prepare = usePrepareReceiptSave();
   const save = useSaveReceiptCheckups();
   const isPending = prepare.isPending || save.isPending;
   const hasSaveError = prepare.isError || save.isError;
+  /** 이미 저장한 영수증(409)은 다시 시도해도 같아 서버 안내만 보인다 */
+  const alreadySavedError = [prepare.error, save.error].find(
+    (error) => error?.code === 'RECEIPT_ALREADY_SAVED',
+  );
 
   const validation = validateReceipt({
     ckupYmd,
@@ -164,6 +170,7 @@ export default function ReceiptResultStep({
     save.mutate(
       {
         recptSn: result.recptSn,
+        idmptDmndId,
         ckupYmd,
         hospNm: hospNm.trim(),
         entries: payload,
@@ -192,7 +199,7 @@ export default function ReceiptResultStep({
     const entries = buildSaveEntries(tabs);
     save.reset();
     prepare.mutate(
-      { ckupYmd, entries },
+      { recptSn: result.recptSn, ckupYmd, entries },
       {
         onSuccess: ({ dupTabIds, nears }) => {
           if (dupTabIds.length > 0)
@@ -446,16 +453,20 @@ export default function ReceiptResultStep({
             className="flex flex-wrap items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-danger"
           >
             <p className="flex-1">
-              저장하지 못했어요. 입력한 내용은 그대로 있으니 다시 시도해 주세요.
+              {alreadySavedError
+                ? alreadySavedError.message
+                : '저장하지 못했어요. 입력한 내용은 그대로 있으니 다시 시도해 주세요.'}
             </p>
-            <button
-              type="button"
-              className={BTN_SECONDARY}
-              disabled={isPending}
-              onClick={handleSave}
-            >
-              다시 시도하기
-            </button>
+            {!alreadySavedError && (
+              <button
+                type="button"
+                className={BTN_SECONDARY}
+                disabled={isPending}
+                onClick={handleSave}
+              >
+                다시 시도하기
+              </button>
+            )}
           </div>
         )}
 
@@ -530,6 +541,7 @@ export default function ReceiptResultStep({
           rows={phase.nears.map((row) => ({
             key: row.tabId,
             schedule: row.schedule,
+            petNm: pets.find((pet) => pet.petSn === row.schedule.petSn)?.petNm,
           }))}
           ckupYmd={ckupYmd}
           isPending={isPending}

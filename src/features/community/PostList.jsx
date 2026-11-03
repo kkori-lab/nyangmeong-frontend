@@ -8,7 +8,7 @@ import EmptyResult from '@/components/EmptyResult';
 import SearchInput from '@/components/SearchInput';
 import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
-import { getPostImageUrl } from './api';
+import { publicFileUrl } from '@/utils/fileUrl';
 import PostBadges from './PostBadges';
 import { POST_BOARDS } from './postCodes';
 
@@ -124,7 +124,7 @@ export default function PostList({
                     className="relative col-start-2 row-span-2 row-start-1 min-h-[124px] self-stretch overflow-hidden rounded-[10px] bg-[#f4f6f6] max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
                   >
                     <img
-                      src={getPostImageUrl(item.thumbAtchFileSn)}
+                      src={publicFileUrl(item.thumbAtchFileSn)}
                       alt=""
                       loading="lazy"
                       className="absolute inset-0 size-full object-cover"

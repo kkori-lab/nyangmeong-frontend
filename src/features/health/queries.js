@@ -1,21 +1,26 @@
 import {
   keepPreviousData,
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { showToast } from '@/components/toastStore';
+import { expenseKeys } from '@/features/expense/queries';
 import {
   cancelCareRecord,
   cancelLastDose,
   checkCareItem,
   createCareItem,
   createSchedule,
+  deleteCareItem,
   deleteSchedule,
   getCareItems,
-  getPets,
+  getMyPets,
+  getPixelCharacters,
   getSchedules,
-  toggleCareMain,
+  saveCareMain,
+  updateCareItem,
   updateSchedule,
 } from './api';
 import {
@@ -30,7 +35,11 @@ import {
   deleteEtcInspection,
   deleteInspections,
   deletePrescription,
-  getCheckupDetail,
+  getCheckupAttachments,
+  getEtcInspections,
+  getInspectionValues,
+  getPrescriptions,
+  getRepeatPreventions,
   replaceAttachment,
   updateEtcInspection,
   updateInspection,
@@ -39,44 +48,83 @@ import {
 import {
   createCheckup,
   createDailyRecord,
-  createObservation,
-  createObservationRound,
+  createObservationCycle,
+  createObservationItem,
   deleteCheckup,
   deleteDailyRecord,
-  deleteObservationRound,
-  endObservation,
+  deleteObservationCycle,
+  endObservationItem,
   findNearSchedule,
+  getCheckup,
+  getCheckupYears,
   getCheckups,
   getDailyRecords,
-  getObservations,
+  getDailyTrend,
+  getObservationCycles,
+  getObservationItems,
   updateCheckup,
   updateDailyRecord,
-  updateObservationRound,
+  updateObservationCycle,
 } from './diaryApi';
-import { prepareReceiptSave, saveReceiptCheckups } from './receiptApi';
+import {
+  createReceiptCheckup,
+  prepareReceiptSave,
+  saveReceiptCheckups,
+} from './receiptApi';
 import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
   all: ['health'],
-  pets: ['health', 'pets'],
+  myPets: ['health', 'my-pets'],
+  pixelCharacters: ['health', 'pixel-characters'],
   schedules: ['health', 'schedules'],
   scheduleList: (params) => ['health', 'schedules', params],
   careItems: ['health', 'care-items'],
   careItemList: (petSn) => ['health', 'care-items', petSn],
   dailyRecords: ['health', 'daily-records'],
   dailyRecordList: (petSn) => ['health', 'daily-records', petSn],
+  dailyTrend: (petSn, dailyRcdIdctCd) => [
+    'health',
+    'daily-records',
+    petSn,
+    'trend',
+    dailyRcdIdctCd,
+  ],
   observations: ['health', 'observations'],
   observationList: (petSn) => ['health', 'observations', petSn],
+  observationCycles: (petSn, obsrvArtclSn) => [
+    'health',
+    'observations',
+    petSn,
+    'cycles',
+    obsrvArtclSn,
+  ],
+  observationPhoto: (petSn, obsrvCyclSn) => [
+    'health',
+    'observations',
+    petSn,
+    'photo',
+    obsrvCyclSn,
+  ],
   checkups: ['health', 'checkups'],
   checkupList: (params) => ['health', 'checkups', params],
+  checkupYears: (petSn) => ['health', 'checkups', 'years', petSn],
   checkupDetail: (ckupRcdSn) => ['health', 'checkups', 'detail', ckupRcdSn],
   summary: (petSn) => ['health', 'summary', petSn],
 };
 
 const showErrorToast = (error) => showToast(error.message);
 
-export const usePets = () =>
-  useQuery({ queryKey: healthKeys.pets, queryFn: getPets });
+/** 내 반려동물 목록(GET /pets) */
+export const useMyPets = () =>
+  useQuery({ queryKey: healthKeys.myPets, queryFn: getMyPets });
+
+/** 내 반려동물별 캐릭터 목록(GET /pixel-characters), 종합 건강기록 히어로의 캐릭터 유무 판정 */
+export const usePixelCharacters = () =>
+  useQuery({
+    queryKey: healthKeys.pixelCharacters,
+    queryFn: getPixelCharacters,
+  });
 
 /** params: { petSns, fromYmd, toYmd, size } */
 export const useSchedules = (params) =>
@@ -98,7 +146,10 @@ const useScheduleMutation = (mutationFn) => {
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
       queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
     },
-    onError: showErrorToast,
+    // 입력값 검증 오류는 모달 입력칸 아래에 표시
+    onError: (error) => {
+      if (!error.fields) showErrorToast(error);
+    },
   });
 };
 
@@ -132,9 +183,13 @@ export const useCancelLastDose = () => useCareMutation(cancelLastDose);
 
 export const useCancelCareRecord = () => useCareMutation(cancelCareRecord);
 
-export const useToggleCareMain = () => useCareMutation(toggleCareMain);
+export const useSaveCareMain = () => useCareMutation(saveCareMain);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
+
+export const useUpdateCareItem = () => useCareMutation(updateCareItem);
+
+export const useDeleteCareItem = () => useCareMutation(deleteCareItem);
 
 export const useDailyRecords = (petSn) =>
   useQuery({
@@ -142,6 +197,14 @@ export const useDailyRecords = (petSn) =>
     queryFn: () => getDailyRecords({ petSn }),
     enabled: petSn != null,
     placeholderData: keepPreviousData,
+  });
+
+/** 건강기록 변화 그래프용 한 지표의 최근 기록 */
+export const useDailyTrend = (petSn, dailyRcdIdctCd) =>
+  useQuery({
+    queryKey: healthKeys.dailyTrend(petSn, dailyRcdIdctCd),
+    queryFn: () => getDailyTrend({ petSn, dailyRcdIdctCd }),
+    enabled: petSn != null,
   });
 
 const useDailyRecordMutation = (mutationFn) => {
@@ -164,12 +227,30 @@ export const useUpdateDailyRecord = () =>
 export const useDeleteDailyRecord = () =>
   useDailyRecordMutation(deleteDailyRecord);
 
-export const useObservations = (petSn) =>
+/** 관찰 항목 목록. 회차는 선택한 항목만 useObservationCycles로 받는다 */
+export const useObservationItems = (petSn) =>
   useQuery({
     queryKey: healthKeys.observationList(petSn),
-    queryFn: () => getObservations({ petSn }),
+    queryFn: () => getObservationItems({ petSn }),
     enabled: petSn != null,
     placeholderData: keepPreviousData,
+  });
+
+export const useObservationCycles = (petSn, obsrvArtclSn) =>
+  useQuery({
+    queryKey: healthKeys.observationCycles(petSn, obsrvArtclSn),
+    queryFn: () => getObservationCycles({ petSn, obsrvArtclSn }),
+    enabled: petSn != null && obsrvArtclSn != null,
+  });
+
+/** 사진은 회차 번호마다 바뀌지 않으므로 다시 받지 않는다(지운 회차 사진을 다시 받아 404가 나는 것도 막음) */
+const isPhotoQuery = (query) => query.queryKey[3] === 'photo';
+
+/** 항목·회차 목록을 다시 받는다. 사진은 사진을 바꾼 수정만 따로 다시 받는다 */
+const invalidateObservations = (queryClient, isSkipped = () => false) =>
+  queryClient.invalidateQueries({
+    queryKey: healthKeys.observations,
+    predicate: (query) => !isPhotoQuery(query) && !isSkipped(query),
   });
 
 const useObservationMutation = (mutationFn) => {
@@ -177,27 +258,67 @@ const useObservationMutation = (mutationFn) => {
 
   return useMutation({
     mutationFn,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: healthKeys.observations }),
+    onSuccess: () => invalidateObservations(queryClient),
     onError: showErrorToast,
   });
 };
 
-export const useCreateObservation = () =>
-  useObservationMutation(createObservation);
+export const useCreateObservationItem = () =>
+  useObservationMutation(createObservationItem);
 
-export const useCreateObservationRound = () =>
-  useObservationMutation(createObservationRound);
+export const useCreateObservationCycle = () =>
+  useObservationMutation(createObservationCycle);
 
-export const useUpdateObservationRound = () =>
-  useObservationMutation(updateObservationRound);
+/** 새 사진을 보냈으면 그 회차 사진도 다시 받는다 */
+export const useUpdateObservationCycle = () => {
+  const queryClient = useQueryClient();
 
-export const useDeleteObservationRound = () =>
-  useObservationMutation(deleteObservationRound);
+  return useMutation({
+    mutationFn: updateObservationCycle,
+    onSuccess: (_, { petSn, obsrvCyclSn, file }) => {
+      invalidateObservations(queryClient);
+      if (file) {
+        queryClient.invalidateQueries({
+          queryKey: healthKeys.observationPhoto(petSn, obsrvCyclSn),
+        });
+      }
+    },
+    onError: showErrorToast,
+  });
+};
 
-export const useEndObservation = () => useObservationMutation(endObservation);
+/**
+ * 지운 회차를 회차 목록 캐시에서 먼저 빼고 다시 받는다
+ * - 마지막 회차였으면 항목도 사라지므로 그 항목의 회차 목록은 다시 받지 않는다(404 방지)
+ * - variables: { petSn, obsrvArtclSn, obsrvCyclSn }
+ */
+export const useDeleteObservationCycle = () => {
+  const queryClient = useQueryClient();
 
-/** params: { petSn, year } */
+  return useMutation({
+    mutationFn: deleteObservationCycle,
+    onSuccess: (_, { petSn, obsrvArtclSn, obsrvCyclSn }) => {
+      const cyclesKey = healthKeys.observationCycles(petSn, obsrvArtclSn);
+      const remaining = queryClient.setQueryData(cyclesKey, (cycles) =>
+        cycles?.filter((cycle) => cycle.obsrvCyclSn !== obsrvCyclSn),
+      );
+      const isItemDeleted = remaining?.length === 0;
+      return invalidateObservations(
+        queryClient,
+        (query) =>
+          isItemDeleted &&
+          query.queryKey[3] === 'cycles' &&
+          query.queryKey[4] === obsrvArtclSn,
+      );
+    },
+    onError: showErrorToast,
+  });
+};
+
+export const useEndObservationItem = () =>
+  useObservationMutation(endObservationItem);
+
+/** params: { petSn, year, ckupTypeCd, page, size } */
 export const useCheckups = (params) =>
   useQuery({
     queryKey: healthKeys.checkupList(params),
@@ -206,8 +327,18 @@ export const useCheckups = (params) =>
     placeholderData: keepPreviousData,
   });
 
-/** 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐 */
-const useCheckupMutation = (mutationFn) => {
+export const useCheckupYears = (petSn) =>
+  useQuery({
+    queryKey: healthKeys.checkupYears(petSn),
+    queryFn: () => getCheckupYears(petSn),
+    enabled: petSn != null,
+  });
+
+/**
+ * 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐
+ * onError: 모달 안에 오류를 보이는 곳은 null로 토스트를 끈다(열린 모달 뒤에 가려짐)
+ */
+const useCheckupMutation = (mutationFn, onError = showErrorToast) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -217,21 +348,62 @@ const useCheckupMutation = (mutationFn) => {
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
     },
-    onError: showErrorToast,
+    onError,
   });
 };
 
 export const useCreateCheckup = () => useCheckupMutation(createCheckup);
 
+/** 오류(409 RECEIPT_ALREADY_SAVED·404 RECEIPT_NOT_FOUND 등)는 검진기록 등록 모달 안에 보인다 */
+export const useCreateReceiptCheckup = () =>
+  useCheckupMutation(createReceiptCheckup, null);
+
 export const useDeleteCheckup = () => useCheckupMutation(deleteCheckup);
 
 export const useUpdateCheckup = () => useCheckupMutation(updateCheckup);
 
-/** 검진상세 한 번에: 검진기록·검사 결과·첨부 자료·처방약·반복 예방 */
-export const useCheckupDetail = (ckupRcdSn) =>
-  useQuery({
-    queryKey: healthKeys.checkupDetail(ckupRcdSn),
-    queryFn: () => getCheckupDetail(ckupRcdSn),
+/** 검진상세 조회: 기본정보와 탭 목록 5개를 각각 조회 */
+const CHECKUP_DETAIL_QUERIES = [
+  ['checkup', getCheckup],
+  ['bloodInspections', getInspectionValues],
+  ['etcInspections', getEtcInspections],
+  ['attachments', getCheckupAttachments],
+  ['prescriptions', getPrescriptions],
+  ['preventions', getRepeatPreventions],
+];
+
+/** 탭별 결과를 한 객체로: 바깥에 둬 결과가 그대로면 다시 만들지 않는다 */
+const combineCheckupDetail = (results) => {
+  const failed = results.find((result) => result.isError);
+  const isPending = results.some((result) => result.isPending);
+  return {
+    data:
+      isPending || failed
+        ? undefined
+        : Object.fromEntries(
+            CHECKUP_DETAIL_QUERIES.map(([name], index) => [
+              name,
+              results[index].data,
+            ]),
+          ),
+    isPending: !failed && isPending,
+    isError: Boolean(failed),
+    error: failed?.error ?? null,
+  };
+};
+
+/**
+ * 검진상세 한 번에: { checkup, bloodInspections, etcInspections, attachments, prescriptions, preventions }
+ * - 탭 건수를 함께 보여 주므로 모두 받은 뒤 data를 채우고, 하나라도 실패하면 isError
+ * - 반려동물을 옮기면 같은 검진기록도 주소의 petSn이 바뀌므로 키에 petSn을 넣는다. 무효화는 ckupRcdSn까지의 앞부분으로
+ */
+export const useCheckupDetail = ({ petSn, ckupRcdSn }) =>
+  useQueries({
+    queries: CHECKUP_DETAIL_QUERIES.map(([name, queryFn]) => ({
+      queryKey: [...healthKeys.checkupDetail(ckupRcdSn), petSn, name],
+      queryFn: () => queryFn({ petSn, ckupRcdSn }),
+    })),
+    combine: combineCheckupDetail,
   });
 
 /** 검진상세 변경: 변수의 ckupRcdSn 상세를 다시 읽고, 케어 항목이 바뀌는 변경은 케어리스트도 재조회 */
@@ -264,9 +436,9 @@ export const useReplaceAttachment = () =>
 export const useDeleteAttachment = () =>
   useCheckupDetailMutation(deleteAttachment);
 
-/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 반환 */
+/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 반환. 실패 안내는 검사 수치 입력 화면이 보인다 */
 export const useAnalyzeLabPdf = () =>
-  useMutation({ mutationFn: analyzeLabPdf, onError: showErrorToast });
+  useMutation({ mutationFn: analyzeLabPdf });
 
 export const useCreateInspections = () =>
   useCheckupDetailMutation(createInspections);
@@ -327,6 +499,7 @@ export const useSaveReceiptCheckups = () => {
       queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all });
     },
   });
 };

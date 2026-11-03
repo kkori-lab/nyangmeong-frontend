@@ -23,3 +23,10 @@ export function getRedirectPath(search) {
   }
   return url.pathname + url.search + url.hash;
 }
+
+/** 로그인 성공 뒤 목적지: 관리자는 ?redirect= 와 상관없이 관리자 홈 */
+export function getLoginDestination(mbrAuthrtCd, search) {
+  return mbrAuthrtCd === MEMBER_ROLE.ADMIN
+    ? PATHS.ADMIN
+    : getRedirectPath(search);
+}

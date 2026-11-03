@@ -5,10 +5,12 @@ import EmailLoginForm from '@/features/member/login/EmailLoginForm';
 import LoginMethodChoice from '@/features/member/login/LoginMethodChoice';
 import NicknameModal from '@/features/member/signup/NicknameModal';
 import { PATHS } from '@/routes/paths';
-import { getRedirectPath } from '@/routes/redirect';
+import { getLoginDestination } from '@/routes/redirect';
+import { useFetchMe } from '@/features/member/queries';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const fetchMe = useFetchMe();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isEmail = searchParams.get('method') === 'email';
@@ -44,8 +46,17 @@ export default function LoginPage() {
     );
   };
 
-  const goAfterLogin = () =>
-    navigate(getRedirectPath(location.search), { replace: true });
+  const goAfterLogin = async () => {
+    let mbrAuthrtCd;
+    try {
+      ({ mbrAuthrtCd } = await fetchMe());
+    } catch {
+      /** 역할 조회 실패: 회원 기준 이동 */
+    }
+    navigate(getLoginDestination(mbrAuthrtCd, location.search), {
+      replace: true,
+    });
+  };
 
   const finishLogin = ({ ncnmReguide, mbrNcnm }) => {
     if (ncnmReguide) {

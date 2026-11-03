@@ -3,6 +3,7 @@ import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
+import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
 import {
   BTN_DANGER,
@@ -10,11 +11,12 @@ import {
   BTN_SECONDARY,
 } from '@/components/buttonStyles';
 import useMediaQuery from '@/hooks/useMediaQuery';
-import { formatMonthDayDot } from '@/utils/formatDate';
+import { formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
 import {
-  useDeleteObservationRound,
-  useEndObservation,
-  useObservations,
+  useDeleteObservationCycle,
+  useEndObservationItem,
+  useObservationCycles,
+  useObservationItems,
 } from '../queries';
 import EmptyBox from './EmptyBox';
 import ObservationDetail from './ObservationDetail';
@@ -23,64 +25,80 @@ import {
   ObservationMobileList,
 } from './ObservationMobile';
 import ObservationModal from './ObservationModal';
-import { formatPart, getItemValueText } from './observationUtils';
+import ObservationPhoto from './ObservationPhoto';
+import { formatPart, getItemValueText, isEndedItem } from './observationUtils';
 
 /**
  * [지속 관찰 카드]
  * - 왼쪽 관찰 항목 목록, 오른쪽 선택한 항목의 회차별 사진·크기 변화·회차 상세 (FN-HLT-002-15~19)
+ * - 항목 목록은 한 번에 받고, 회차는 선택한 항목만 받는다(useObservationCycles)
  * - 관찰 기록 등록 모달 A(항목 등록)·B(회차 추가)·E(회차 수정)와 회차 삭제·사진 원본 보기
- * - 760px 이하는 목록 → 상세 화면(ObservationMobile). 연 항목은 페이지가 주소 ?obsv=로 넘겨 준다(openItmSn·onOpenItem·onCloseItem)
+ * - 760px 이하는 목록 → 상세 화면(ObservationMobile). 연 항목은 페이지가 주소 ?obsv=로 넘겨 준다(openArtclSn·onOpenItem·onCloseItem)
  */
 export default function ObservationCard({
   petSn,
-  openItmSn = null,
+  openArtclSn = null,
   onOpenItem,
   onCloseItem,
 }) {
-  const { data, isPending } = useObservations(petSn);
+  const { data, isPending } = useObservationItems(petSn);
   const isPc = useMediaQuery('(min-width: 761px)');
-  const [selection, setSelection] = useState({ itmSn: null, rndSn: null });
+  const [selection, setSelection] = useState({
+    obsrvArtclSn: null,
+    obsrvCyclSn: null,
+  });
   const [modal, setModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [photoPath, setPhotoPath] = useState(null);
-  const deleteRound = useDeleteObservationRound();
-  const endObservation = useEndObservation();
+  const [photoTarget, setPhotoTarget] = useState(null);
+  const deleteCycle = useDeleteObservationCycle();
+  const endItem = useEndObservationItem();
 
-  const items = data?.content ?? [];
-  const activeCount = items.filter((item) => item.obsvEndYmd === null).length;
+  const items = data ?? [];
+  const activeCount = items.filter((item) => !isEndedItem(item)).length;
   /** 760px 이하에서 상세 화면으로 연 항목(주소의 ?obsv=). 없거나 지워졌으면 목록 화면 */
   const openItem = isPc
     ? null
-    : (items.find((item) => item.obsvItmSn === openItmSn) ?? null);
+    : (items.find((item) => item.obsrvArtclSn === openArtclSn) ?? null);
   const selectedItem =
     openItem ??
-    items.find((item) => item.obsvItmSn === selection.itmSn) ??
+    items.find((item) => item.obsrvArtclSn === selection.obsrvArtclSn) ??
     items[0];
-  const foundIndex = selectedItem
-    ? selectedItem.rounds.findIndex(
-        (round) => round.obsvRndSn === selection.rndSn,
-      )
+  const { data: cycles } = useObservationCycles(
+    petSn,
+    selectedItem?.obsrvArtclSn,
+  );
+  const foundIndex = cycles
+    ? cycles.findIndex((cycle) => cycle.obsrvCyclSn === selection.obsrvCyclSn)
     : -1;
   /** 고른 회차가 없으면 최신 회차 */
   const selectedIndex =
-    foundIndex >= 0 ? foundIndex : (selectedItem?.rounds.length ?? 1) - 1;
+    foundIndex >= 0 ? foundIndex : (cycles?.length ?? 1) - 1;
 
-  const handleSaved = ({ obsvItmSn, obsvRndSn }) =>
-    setSelection({ itmSn: obsvItmSn, rndSn: obsvRndSn });
+  const handleSaved = ({ obsrvArtclSn, obsrvCyclSn }) =>
+    setSelection({ obsrvArtclSn, obsrvCyclSn });
 
   const handleDelete = () =>
-    deleteRound.mutate(deleteTarget.obsvRndSn, {
-      onSuccess: () => {
-        setDeleteTarget(null);
-        /** 항목이 남으면 같은 항목을 유지하고 마지막 회차를 고름, 항목까지 지워지면 첫 항목 */
-        setSelection({
-          itmSn: deleteTarget.isOnlyRound ? null : deleteTarget.obsvItmSn,
-          rndSn: null,
-        });
-        /** 모바일 상세에서 항목까지 지워지면 목록 화면으로 */
-        if (deleteTarget.isOnlyRound && openItem) onCloseItem();
+    deleteCycle.mutate(
+      {
+        petSn,
+        obsrvArtclSn: deleteTarget.obsrvArtclSn,
+        obsrvCyclSn: deleteTarget.obsrvCyclSn,
       },
-    });
+      {
+        onSuccess: () => {
+          setDeleteTarget(null);
+          /** 항목이 남으면 같은 항목을 유지하고 마지막 회차를 고름, 항목까지 지워지면 첫 항목 */
+          setSelection({
+            obsrvArtclSn: deleteTarget.isOnlyCycle
+              ? null
+              : deleteTarget.obsrvArtclSn,
+            obsrvCyclSn: null,
+          });
+          /** 모바일 상세에서 항목까지 지워지면 목록 화면으로 */
+          if (deleteTarget.isOnlyCycle && openItem) onCloseItem();
+        },
+      },
+    );
 
   const registerButton = (className, label = '관찰 항목 등록') => (
     <button
@@ -109,24 +127,42 @@ export default function ObservationCard({
     />
   );
 
-  /** PC 상세와 모바일 상세가 같이 쓰는 회차 동작 */
-  const detailProps = selectedItem && {
-    item: selectedItem,
-    selectedIndex,
-    onSelectRound: (rndSn) =>
-      setSelection({ itmSn: selectedItem.obsvItmSn, rndSn }),
-    onEditRound: (round) => setModal({ mode: 'E', round }),
-    onDeleteRound: (round) =>
-      setDeleteTarget({
-        obsvRndSn: round.obsvRndSn,
-        obsvItmSn: selectedItem.obsvItmSn,
-        obsvItmNm: selectedItem.obsvItmNm,
-        isOnlyRound: selectedItem.rounds.length === 1,
-      }),
-    onAddRound: () => setModal({ mode: 'B' }),
-    onEnd: () => endObservation.mutate(selectedItem.obsvItmSn),
-    onViewPhoto: setPhotoPath,
-  };
+  /**
+   * PC 상세와 모바일 상세가 같이 쓰는 회차 동작. 회차를 받기 전에는 없음(자리 표시)
+   * - 마지막 회차를 지운 직후 항목 목록을 다시 받기 전까지는 회차가 0개라 자리 표시
+   */
+  const detailProps = selectedItem &&
+    cycles?.length > 0 && {
+      petSn,
+      item: selectedItem,
+      cycles,
+      selectedIndex,
+      onSelectCycle: (obsrvCyclSn) =>
+        setSelection({
+          obsrvArtclSn: selectedItem.obsrvArtclSn,
+          obsrvCyclSn,
+        }),
+      onEditCycle: (cycle) => setModal({ mode: 'E', cycle }),
+      onDeleteCycle: (cycle) =>
+        setDeleteTarget({
+          obsrvCyclSn: cycle.obsrvCyclSn,
+          obsrvArtclSn: selectedItem.obsrvArtclSn,
+          obsrvArtclNm: selectedItem.obsrvArtclNm,
+          isOnlyCycle: cycles.length === 1,
+        }),
+      onAddCycle: () => setModal({ mode: 'B' }),
+      onEnd: () =>
+        endItem.mutate({ petSn, obsrvArtclSn: selectedItem.obsrvArtclSn }),
+      onViewPhoto: setPhotoTarget,
+    };
+
+  const detailPlaceholder = (
+    <div aria-busy="true">
+      <Skeleton className="mb-4 h-8 w-1/2" />
+      <Skeleton className="mb-4 h-[104px] w-full rounded-[10px]" />
+      <Skeleton className="h-[220px] w-full rounded-[10px]" />
+    </div>
+  );
 
   const dialogs = (
     <>
@@ -135,7 +171,8 @@ export default function ObservationCard({
           mode={modal.mode}
           petSn={petSn}
           item={modal.mode === 'A' ? null : selectedItem}
-          round={modal.round ?? null}
+          cycles={cycles ?? []}
+          cycle={modal.cycle ?? null}
           onSaved={handleSaved}
           onClose={() => setModal(null)}
         />
@@ -146,18 +183,18 @@ export default function ObservationCard({
           isConfirm
           title="이 회차를 삭제할까요?"
           description={
-            deleteTarget.isOnlyRound
-              ? `마지막 기록이라 '${deleteTarget.obsvItmNm}' 항목도 함께 삭제돼요`
+            deleteTarget.isOnlyCycle
+              ? `마지막 기록이라 '${deleteTarget.obsrvArtclNm}' 항목도 함께 삭제돼요`
               : '남은 회차는 관찰일 순으로 1회차부터 다시 번호를 매겨요'
           }
-          isPending={deleteRound.isPending}
+          isPending={deleteCycle.isPending}
           onClose={() => setDeleteTarget(null)}
           footer={
             <>
               <button
                 type="button"
                 className={BTN_SECONDARY}
-                disabled={deleteRound.isPending}
+                disabled={deleteCycle.isPending}
                 onClick={() => setDeleteTarget(null)}
               >
                 취소
@@ -165,7 +202,7 @@ export default function ObservationCard({
               <button
                 type="button"
                 className={BTN_DANGER}
-                disabled={deleteRound.isPending}
+                disabled={deleteCycle.isPending}
                 onClick={handleDelete}
               >
                 삭제하기
@@ -175,21 +212,25 @@ export default function ObservationCard({
         />
       )}
 
-      {photoPath && (
+      {photoTarget && (
         <Modal
           title="사진 원본"
-          onClose={() => setPhotoPath(null)}
+          onClose={() => setPhotoTarget(null)}
           footer={
             <button
               type="button"
               className={BTN_PRIMARY}
-              onClick={() => setPhotoPath(null)}
+              onClick={() => setPhotoTarget(null)}
             >
               닫기
             </button>
           }
         >
-          <img src={photoPath} alt="" className="w-full rounded-[10px]" />
+          <ObservationPhoto
+            petSn={petSn}
+            obsrvCyclSn={photoTarget.obsrvCyclSn}
+            className="w-full rounded-[10px]"
+          />
         </Modal>
       )}
     </>
@@ -208,13 +249,21 @@ export default function ObservationCard({
         {items.length === 0 ? (
           emptyBox
         ) : openItem ? (
-          <ObservationMobileDetail {...detailProps} onBack={onCloseItem} />
+          detailProps ? (
+            <ObservationMobileDetail {...detailProps} onBack={onCloseItem} />
+          ) : (
+            detailPlaceholder
+          )
         ) : (
           <>
             <p className="mb-1 text-sm/[1.6] text-subtle tabular-nums">
               관찰중 {activeCount}건 · 종료 {items.length - activeCount}건
             </p>
-            <ObservationMobileList items={items} onOpen={onOpenItem} />
+            <ObservationMobileList
+              petSn={petSn}
+              items={items}
+              onOpen={onOpenItem}
+            />
           </>
         )}
         {dialogs}
@@ -244,20 +293,28 @@ export default function ObservationCard({
             >
               {items.map((item) => (
                 <ItemButton
-                  key={item.obsvItmSn}
+                  key={item.obsrvArtclSn}
+                  petSn={petSn}
                   item={item}
-                  isSelected={item.obsvItmSn === selectedItem.obsvItmSn}
+                  isSelected={item.obsrvArtclSn === selectedItem.obsrvArtclSn}
                   onSelect={() =>
-                    setSelection({ itmSn: item.obsvItmSn, rndSn: null })
+                    setSelection({
+                      obsrvArtclSn: item.obsrvArtclSn,
+                      obsrvCyclSn: null,
+                    })
                   }
                 />
               ))}
             </div>
             <div className="min-w-0 min-[1101px]:border-l min-[1101px]:border-line-soft min-[1101px]:pl-6">
-              <ObservationDetail
-                key={selectedItem.obsvItmSn}
-                {...detailProps}
-              />
+              {detailProps ? (
+                <ObservationDetail
+                  key={selectedItem.obsrvArtclSn}
+                  {...detailProps}
+                />
+              ) : (
+                detailPlaceholder
+              )}
             </div>
           </div>
         </>
@@ -267,11 +324,9 @@ export default function ObservationCard({
   );
 }
 
-function ItemButton({ item, isSelected, onSelect }) {
-  const isEnded = item.obsvEndYmd !== null;
+function ItemButton({ petSn, item, isSelected, onSelect }) {
+  const isEnded = isEndedItem(item);
   const valueText = getItemValueText(item);
-  const lastRound = item.rounds[item.rounds.length - 1];
-  const photo = item.rounds.find((round) => round.photoPath)?.photoPath;
 
   return (
     <button
@@ -285,15 +340,16 @@ function ItemButton({ item, isSelected, onSelect }) {
       onClick={onSelect}
     >
       <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-[6px] bg-surface-3 text-line-strong">
-        {photo ? (
-          <img src={photo} alt="" className="size-full object-cover" />
-        ) : (
-          <Icon name="image" />
-        )}
+        <ObservationPhoto
+          petSn={petSn}
+          obsrvCyclSn={item.lastCycle.obsrvCyclSn}
+          className="size-full object-cover"
+          fallback={<Icon name="image" />}
+        />
       </span>
       <span className="min-w-0 flex-1">
         <span className={`block ${isSelected ? 'text-brand-600' : 'text-ink'}`}>
-          {item.obsvItmNm}
+          {item.obsrvArtclNm}
         </span>
         <span className="block text-sm/[1.6] text-subtle">
           {formatPart(item)}
@@ -308,7 +364,7 @@ function ItemButton({ item, isSelected, onSelect }) {
         <Badge tone="gray">종료</Badge>
       ) : (
         <Badge tone="outline" className="tabular-nums">
-          {formatMonthDayDot(lastRound.obsvYmd)}
+          {formatMonthDayDot(getYmdOf(item.lastCycle.obsrvDt))}
         </Badge>
       )}
     </button>

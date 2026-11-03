@@ -11,7 +11,7 @@ import ScheduleDayDetail from '@/features/health/ScheduleDayDetail';
 import ScheduleModal from '@/features/health/ScheduleModal';
 import UpcomingSchedules from '@/features/health/UpcomingSchedules';
 import SubPageLayout from '@/layouts/SubPageLayout';
-import { usePets, useSchedules } from '@/features/health/queries';
+import { useMyPets, useSchedules } from '@/features/health/queries';
 import {
   addMonths,
   getDaysInMonth,
@@ -59,7 +59,7 @@ export default function CareCalendarPage() {
     data: pets,
     isPending: isPetsPending,
     isError: isPetsError,
-  } = usePets();
+  } = useMyPets();
   const year = getYear(viewMonthYmd);
   const month = getMonth(viewMonthYmd);
   const allPetSns = pets?.map((pet) => pet.petSn);

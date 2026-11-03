@@ -10,7 +10,7 @@ import { PATHS } from '@/routes/paths';
  * - 앱(≤760px)은 두 버튼을 세로로 쌓고 로그인 버튼이 위
  */
 export default function InvitationMismatch({
-  invtEmlMskd,
+  invtnTrgtEmlMask,
   onLogin,
   isPending,
 }) {
@@ -24,7 +24,7 @@ export default function InvitationMismatch({
           <Mail className="size-9" aria-hidden="true" />
         </span>
         <h2 id="mismatch-title" className="text-lg font-bold break-keep">
-          이 초대는 {invtEmlMskd}으로 보낸 초대예요
+          이 초대는 {invtnTrgtEmlMask}으로 보낸 초대예요
         </h2>
         <p className="text-subtle break-keep">
           초대받은 이메일 계정으로 로그인해 주세요.

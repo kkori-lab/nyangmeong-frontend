@@ -12,7 +12,7 @@ const InquiryDetailPage = lazy(
 );
 const InquiryEditPage = lazy(() => import('@/pages/inquiry/InquiryEditPage'));
 
-/** 공지사항·FAQ·1:1 문의(KSJ). 로그인 구현 전 public: 연결 때 member로 전환 */
+/** 공지사항·FAQ·1:1 문의(KSJ) */
 export default [
   {
     layout: 'user',

@@ -1,35 +1,39 @@
-import { formatMonthDayDot } from '@/utils/formatDate';
-import { findObservationChange, findObservationPart } from '../diaryTypes';
+import { formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
+import { OBSERVATION_ENDED } from '../diaryTypes';
 
 /**
  * [지속 관찰 계산]
- * - 항목(item)은 관찰일 순으로 정렬된 회차(rounds)를 가지며 회차 번호는 순서 + 1
+ * - 항목(item)은 서버 목록 응답, 회차(cycles)는 선택한 항목의 회차 응답(관찰일 오름차순)
+ * - 항목 목록의 대표 값은 서버가 준 firstCycle·lastCycle·lastSzDiff를 쓴다
  */
 
-export const formatSize = (sizeMm) => `${sizeMm.toFixed(1)}mm`;
+export const formatSize = (size) => `${Number(size).toFixed(1)}mm`;
+
+/** 종료한 항목인지 */
+export const isEndedItem = (item) => item.obsrvSttsCd === OBSERVATION_ENDED;
 
 /** "등 · 오른쪽 어깨", 세부 위치가 없으면 대분류만 */
-export const formatPart = (item) => {
-  const partNm = findObservationPart(item.obsvPrtCd).nm;
-  return item.obsvPrtDtlNm ? `${partNm} · ${item.obsvPrtDtlNm}` : partNm;
-};
+export const formatPart = (item) =>
+  item.obsrvRegnDtlNm
+    ? `${item.obsrvRegnCdNm} · ${item.obsrvRegnDtlNm}`
+    : item.obsrvRegnCdNm;
 
 /** 크기를 입력한 마지막 이전 회차. 없으면 null */
-const findPrevSizedIndex = (rounds, index) => {
+const findPrevSizedIndex = (cycles, index) => {
   for (let prev = index - 1; prev >= 0; prev -= 1) {
-    if (rounds[prev].obsvSizeMm !== null) return prev;
+    if (cycles[prev].obsrvSz != null) return prev;
   }
   return null;
 };
 
-/** 직전 크기 대비 증감: { prevIndex, prevSizeMm, diff }. 비교할 회차가 없으면 null */
-export const getSizeDiff = (rounds, index) => {
-  const round = rounds[index];
-  if (round.obsvSizeMm === null) return null;
-  const prevIndex = findPrevSizedIndex(rounds, index);
+/** 직전 크기 대비 증감: { prevIndex, prevSize, diff }. 비교할 회차가 없으면 null */
+export const getSizeDiff = (cycles, index) => {
+  const cycle = cycles[index];
+  if (cycle.obsrvSz == null) return null;
+  const prevIndex = findPrevSizedIndex(cycles, index);
   if (prevIndex === null) return null;
-  const prevSizeMm = rounds[prevIndex].obsvSizeMm;
-  return { prevIndex, prevSizeMm, diff: round.obsvSizeMm - prevSizeMm };
+  const prevSize = cycles[prevIndex].obsrvSz;
+  return { prevIndex, prevSize, diff: cycle.obsrvSz - prevSize };
 };
 
 /** "▲0.3" / "▼0.2", 증감이 없으면 빈 문자열 */
@@ -41,16 +45,13 @@ export const formatDiff = (diff) => {
 
 /** 목록 값 줄: 마지막 회차의 크기(+증감), 크기가 없으면 변화, 둘 다 없으면 null. 종료 항목은 관찰 기간 */
 export const getItemValueText = (item) => {
-  const { rounds } = item;
-  if (item.obsvEndYmd !== null) {
-    return `${formatMonthDayDot(rounds[0].obsvYmd)} ~ ${formatMonthDayDot(rounds[rounds.length - 1].obsvYmd)}`;
+  const { firstCycle, lastCycle } = item;
+  if (isEndedItem(item)) {
+    return `${formatMonthDayDot(getYmdOf(firstCycle.obsrvDt))} ~ ${formatMonthDayDot(getYmdOf(lastCycle.obsrvDt))}`;
   }
-  const lastIndex = rounds.length - 1;
-  const last = rounds[lastIndex];
-  if (last.obsvSizeMm !== null) {
-    const sizeDiff = getSizeDiff(rounds, lastIndex);
-    const diffText = sizeDiff ? formatDiff(sizeDiff.diff) : '';
-    return `${formatSize(last.obsvSizeMm)}${diffText ? ` ${diffText}` : ''}`;
+  if (lastCycle.obsrvSz != null) {
+    const diffText = item.lastSzDiff == null ? '' : formatDiff(item.lastSzDiff);
+    return `${formatSize(lastCycle.obsrvSz)}${diffText ? ` ${diffText}` : ''}`;
   }
-  return last.obsvChgCd ? findObservationChange(last.obsvChgCd).nm : null;
+  return lastCycle.obsrvChgCdNm ?? null;
 };

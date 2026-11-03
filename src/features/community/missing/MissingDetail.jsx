@@ -29,7 +29,7 @@ import {
   formatRelativeTime,
   getYmdOf,
 } from '@/utils/formatDate';
-import { getPostImageUrl } from '../api';
+import { publicFileUrl } from '@/utils/fileUrl';
 import CommentSection from '../CommentSection';
 import {
   EXTEND_DAYS,
@@ -318,7 +318,7 @@ export default function MissingDetail({ post }) {
                 {post.imgs.map((img, index) => (
                   <img
                     key={img.atchFileSn}
-                    src={getPostImageUrl(img.atchFileSn)}
+                    src={publicFileUrl(img.atchFileSn)}
                     alt={`첨부 이미지 ${index + 1}`}
                     className="h-auto max-w-full rounded-[10px]"
                   />

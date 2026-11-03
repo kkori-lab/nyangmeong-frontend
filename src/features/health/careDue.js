@@ -1,54 +1,51 @@
 import { addDays, addMonths, diffDays, getTodayYmd } from '@/utils/formatDate';
 
-// 주기 코드는 공통코드가 정해지기 전의 가안이다
+// 케어 구역 공통코드(HLTG13)
+export const CARE_ZONE = { DAILY: 'HLTC0036', REGULAR: 'HLTC0037' };
+
+// 케어 주기 공통코드(HLTG15)
+export const CUSTOM_CYCLE = 'HLTC0042';
+
 export const CARE_CYCLES = [
-  { cd: '1W', nm: '1주' },
-  { cd: '2W', nm: '2주' },
-  { cd: '1M', nm: '한달' },
-  { cd: '1Y', nm: '1년' },
-  { cd: 'CUSTOM', nm: '직접입력' },
+  { cd: 'HLTC0038', nm: '1주' },
+  { cd: 'HLTC0039', nm: '2주' },
+  { cd: 'HLTC0040', nm: '한달' },
+  { cd: 'HLTC0041', nm: '1년' },
+  { cd: CUSTOM_CYCLE, nm: '직접입력' },
 ];
 
 export const MAX_MAIN_CARE = 6;
 
+/** 검진상세 반복 예방(가짜 응답 필드)의 주기 이름 */
 export const getCycleName = (item) =>
-  item.rptCycleCd === 'CUSTOM'
+  item.rptCycleCd === CUSTOM_CYCLE
     ? `${item.rptCycleDayCnt}일`
     : CARE_CYCLES.find((cycle) => cycle.cd === item.rptCycleCd)?.nm;
 
-export const addCycle = (ymd, rptCycleCd, rptCycleDayCnt) => {
-  switch (rptCycleCd) {
-    case '1W':
+/** 케어 항목의 주기 이름: 직접입력은 일수, 나머지는 서버가 준 이름 */
+export const getCareCycleName = (item) =>
+  item.careCycleCd === CUSTOM_CYCLE
+    ? `${item.cycleDrctInptDayCnt}일`
+    : item.careCycleCdNm;
+
+export const addCycle = (ymd, careCycleCd, cycleDrctInptDayCnt) => {
+  switch (careCycleCd) {
+    case 'HLTC0038':
       return addDays(ymd, 7);
-    case '2W':
+    case 'HLTC0039':
       return addDays(ymd, 14);
-    case '1M':
+    case 'HLTC0040':
       return addMonths(ymd, 1);
-    case '1Y':
+    case 'HLTC0041':
       return addMonths(ymd, 12);
     default:
-      return addDays(ymd, Number(rptCycleDayCnt));
+      return addDays(ymd, Number(cycleDrctInptDayCnt));
   }
 };
 
-// 다음 예정일 = 가장 최근 완료일 + 주기. 완료 기록이 없으면 등록일 + 주기(FN-HLT-003-12·38)
-// 늦게 완료해도 그날부터 다시 세므로 예정일이 계속 밀리지 않는다
-export const getNextDueYmd = (item, records) => {
-  const lastDoneYmd = records
-    .filter((record) => record.careItemSn === item.careItemSn)
-    .map((record) => record.careYmd)
-    .sort()
-    .at(-1);
-  return addCycle(
-    lastDoneYmd ?? item.regYmd,
-    item.rptCycleCd,
-    item.rptCycleDayCnt,
-  );
-};
-
 // 정기관리 상태 배지. 지난 예정일은 오류가 아니라 안내라 빨강 대신 주황 "+n일"로 쓴다
-export const getDueBadge = (nextSchdYmd) => {
-  const days = diffDays(getTodayYmd(), nextSchdYmd);
+export const getDueBadge = (nxtmPrnmntYmd) => {
+  const days = diffDays(getTodayYmd(), nxtmPrnmntYmd);
   if (days === 0) return { label: '오늘', tone: 'today' };
   if (days > 0) return { label: `D-${days}`, tone: 'upcoming' };
   return { label: `+${-days}일`, tone: 'late' };

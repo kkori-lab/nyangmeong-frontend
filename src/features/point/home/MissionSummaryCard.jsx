@@ -1,21 +1,14 @@
-import { useState } from 'react';
 import StatLink from '@/components/StatLink';
 import { PATHS } from '@/routes/paths';
-import { toYmd } from '@/utils/formatDate';
-import { useCareMissions } from '../queries';
+import { usePointBalance } from '../queries';
 import { getPercent } from '../shared/pointFormat';
 
-/** 서버가 주양육 동물의 미션만 주는 것으로 보고 그대로 집계 */
+/** 오늘 미션 달성률은 포인트 요약(주양육 동물 전체)의 완료/전체로 낸다 */
 export default function MissionSummaryCard() {
-  const [todayYmd] = useState(() => toYmd(new Date()));
-  const { data: missions, isError } = useCareMissions(todayYmd);
+  const { data: point, isError } = usePointBalance();
 
-  const allMissions = missions?.pets.flatMap((pet) => pet.missions);
-  const percent = allMissions
-    ? getPercent(
-        allMissions.filter((mission) => mission.cmplYn === 'Y').length,
-        allMissions.length,
-      )
+  const percent = point
+    ? getPercent(point.todayCmptnMsnCnt, point.todayMsnCnt)
     : null;
 
   return (

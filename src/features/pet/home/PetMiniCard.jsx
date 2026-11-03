@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import Badge from '@/components/Badge';
 import { PATHS } from '@/routes/paths';
 import PetFace from '@/components/PetFace';
-import { CHRC_STTS, PET_REL } from '@/utils/petCodes';
+import { BRUP_ROLE, CHRC_STTS } from '@/utils/petCodes';
+import { useCharState } from '../queries';
 import { formatAge, getVrtyName } from '@/utils/petFormat';
 
 /** 캐릭터를 만든 동물의 얼굴 바탕색 (순서대로 순환 사용) */
@@ -16,8 +17,9 @@ const TONES = [
 ];
 
 export default function PetMiniCard({ pet, index }) {
-  const isDone = pet.chrcSttsCd === CHRC_STTS.DONE;
-  const isError = pet.chrcSttsCd === CHRC_STTS.ERROR;
+  const charState = useCharState(pet.petSn);
+  const isDone = charState?.status === CHRC_STTS.DONE;
+  const isError = !!pet.bscCharSbstYn;
 
   return (
     <Link
@@ -35,11 +37,11 @@ export default function PetMiniCard({ pet, index }) {
         <PetFace
           petSn={pet.petSn}
           petSeCd={pet.petSeCd}
-          chrcSttsCd={pet.chrcSttsCd}
+          isError={isError}
           className="size-full rounded-full"
           iconClassName="size-7 max-[760px]:size-5"
         />
-        {pet.rprsYn === 'Y' && (
+        {pet.rprsPetYn && (
           <span className="absolute -right-1.5 -bottom-1 max-[760px]:-right-2.5 max-[760px]:-bottom-1.5 max-[760px]:scale-[.85] inline-flex h-6 items-center rounded-full bg-brand-500 px-2.5 pt-[1.5px] text-[13px] leading-none font-semibold whitespace-nowrap text-white ring-2 ring-white">
             대표
           </span>
@@ -48,7 +50,7 @@ export default function PetMiniCard({ pet, index }) {
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="flex flex-wrap items-center gap-2 text-lg font-bold group-hover:text-brand-600 max-[760px]:text-base">
           {pet.petNm}
-          {pet.petRelCd === PET_REL.CO_PARENT && <Badge>공동양육</Badge>}
+          {pet.brupRoleCd === BRUP_ROLE.CO_PARENT && <Badge>공동양육</Badge>}
           {isError && <Badge tone="amber">오류 확인 중</Badge>}
         </span>
         <span className="text-sm text-subtle max-[760px]:truncate">

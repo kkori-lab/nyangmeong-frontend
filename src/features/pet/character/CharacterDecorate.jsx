@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
+import { useCharacterImage } from '@/hooks/useCharacterImage';
 import { PATHS } from '@/routes/paths';
 import { useCharacterItems, useUpdateCharacterWear } from '../queries';
 import { ITEM_PART } from '../shared/petCodes';
@@ -45,6 +46,7 @@ export default function CharacterDecorate({ pet, pntBal }) {
   const { mutate: saveWear, isPending: isSaving } = useUpdateCharacterWear();
   const [draft, setDraft] = useState(null);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const characterImage = useCharacterImage(pet.petSn, 'full');
 
   const worn = draft ?? toWorn(items);
 
@@ -106,7 +108,7 @@ export default function CharacterDecorate({ pet, pntBal }) {
             state={{
               inquiryType: 'PIXEL_CHARACTER',
               petSn: pet.petSn,
-              imageUrl: pet.chrcImgUrl,
+              imageUrl: characterImage,
             }}
             className={BTN_SECONDARY}
           >

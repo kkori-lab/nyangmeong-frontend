@@ -10,6 +10,8 @@
 2. `html/<SCR-ID>.html` 디자인 파일
 3. DMS 화면설계서
 
+관리자 화면(`pages/admin/`)은 디자인 파일이 없어도 묻지 않는다. 화면설계서를 기준으로 하고 스타일은 기존 관리자 화면에 맞춘다.
+
 ## AI 슬롭을 넣지 않는다
 
 AI 도구가 기준 없이 채우면 어느 서비스에서나 본 듯한 화면이 된다. 디자인 기준에 없으면 아래를 쓰지 않는다.
@@ -90,6 +92,7 @@ function CalendarSkeleton() {
 - 항목은 그 화면이 속한 메뉴의 서브 메뉴다. 글자만 쓴다.
 - AI 플로팅 버튼은 바텀 네비 위에 둔다.
 - `layouts/bottomNavMenus.js`의 `paths`는 하위 경로까지 포함한다(`/mypage`면 `/mypage/pets`도). 새 메뉴 영역을 만들면 `{ label, paths, items }`를 추가한다. `UserLayout`이 이 목록으로 푸터를 숨기고 바텀 네비를 둔다.
+- 관리자 화면에는 공통 바텀 네비가 없다. 예외로 운영 설정(`features/setting/admin/SettingForm.jsx`)은 760px 이하에서 묶음을 하단 버튼으로 나눠 고른 묶음만 보인다.
 
 ## html/ 디자인 파일
 

@@ -15,15 +15,18 @@ import ExpenseTopList from './ExpenseTopList';
 import {
   getCalendarCells,
   getCategoryStats,
-  getMonthExpenses,
   getPetStats,
-  getTopExpenses,
   sumAmt,
 } from '../shared/expenseStats';
 import { CARD, CARD_BODY } from '../shared/expenseStyles';
-import { useExpenseOverview, useExpenses } from '../queries';
+import {
+  useExpensePets,
+  useExpenseStatistics,
+  useExpenses,
+} from '../queries';
 
-const TOP_EXPENSE_COUNT = 3;
+/** 하루 지출 상세는 한 번에 최대 건수(서버 한 쪽 최대) */
+const DAY_SIZE = 50;
 
 /** onViewAll(ym): 보던 달을 넘기는 전체 내역 이동 */
 export default function ExpenseDashboard({ onViewAll }) {
@@ -38,23 +41,27 @@ export default function ExpenseDashboard({ onViewAll }) {
   /** 앱 지출 상세 시트: 보고 있는 지출 번호(편집 중에는 시트를 잠시 숨기고 저장하면 다시 표시) */
   const [detailSn, setDetailSn] = useState(null);
 
-  /** 지난달 대비용 조회 범위 */
-  const { data: expenses = [], isPlaceholderData } = useExpenses({
-    fromYm: shiftYm(ym, -1),
-    toYm: ym,
-  });
-  const { data: overview } = useExpenseOverview();
+  const { data: stats, isPlaceholderData } = useExpenseStatistics(ym);
+  const { data: pets } = useExpensePets();
+  /** 선택한 날짜의 지출: 이전 날짜 결과를 잠시 보이지 않도록 이전 값 유지는 끈다 */
+  const { data: dayPage } = useExpenses(
+    {
+      startYmd: selectedYmd,
+      endYmd: selectedYmd,
+      size: DAY_SIZE,
+      sort: 'latest',
+    },
+    1,
+    { enabled: Boolean(selectedYmd), placeholderData: undefined },
+  );
 
-  if (!overview) return null;
+  if (!stats || !pets) return null;
 
-  const monthExpenses = getMonthExpenses(expenses, ym);
-  const prevExpenses = getMonthExpenses(expenses, shiftYm(ym, -1));
-  const detailExpense = monthExpenses.find(
+  const selectedItems = selectedYmd ? (dayPage?.content ?? []) : [];
+  const detailExpense = [...selectedItems, ...stats.topExpenses].find(
     (expense) => expense.expndSn === detailSn,
   );
-  const selectedItems = selectedYmd
-    ? monthExpenses.filter((expense) => expense.expndYmd === selectedYmd)
-    : [];
+  const totalCount = stats.days.reduce((sum, day) => sum + day.expndCnt, 0);
 
   const handleChangeMonth = (delta) => {
     setYm(shiftYm(ym, delta));
@@ -79,16 +86,16 @@ export default function ExpenseDashboard({ onViewAll }) {
           ym={ym}
           isNextDisabled={ym >= maxYm}
           onChangeMonth={handleChangeMonth}
-          totalAmt={sumAmt(monthExpenses)}
-          count={monthExpenses.length}
-          prevTotalAmt={prevExpenses.length > 0 ? sumAmt(prevExpenses) : null}
-          mmExpndLimAmt={overview.mmExpndLimAmt}
+          totalAmt={stats.totalExpndAmt}
+          count={totalCount}
+          prevTotalAmt={stats.lastMonthTotalExpndAmt}
+          mmExpndLimAmt={stats.mmExpndLimAmt}
           onOpenLimit={() => setIsLimitOpen(true)}
         />
         <section aria-label="월간 달력" className={`${CARD} ${CARD_BODY}`}>
           <ExpenseCalendar
             ym={ym}
-            cells={getCalendarCells(ym, monthExpenses)}
+            cells={getCalendarCells(ym, stats.days)}
             selectedYmd={selectedYmd}
             onSelectDay={handleSelectDay}
             onEmptyDay={setAddingYmd}
@@ -107,11 +114,9 @@ export default function ExpenseDashboard({ onViewAll }) {
         </section>
       </div>
       <div className="flex min-w-0 flex-col gap-5">
-        <ExpenseCategoryChart stats={getCategoryStats(monthExpenses)} />
-        <ExpensePetChart stats={getPetStats(monthExpenses, overview.pets)} />
-        <ExpenseTopList
-          expenses={getTopExpenses(monthExpenses, TOP_EXPENSE_COUNT)}
-        />
+        <ExpenseCategoryChart stats={getCategoryStats(stats.categories)} />
+        <ExpensePetChart stats={getPetStats(stats, pets)} />
+        <ExpenseTopList expenses={stats.topExpenses} />
         <button
           type="button"
           onClick={() => onViewAll(ym)}
@@ -123,14 +128,14 @@ export default function ExpenseDashboard({ onViewAll }) {
       </div>
       {isLimitOpen && (
         <ExpenseLimitModal
-          mmExpndLimAmt={overview.mmExpndLimAmt}
+          mmExpndLimAmt={stats.mmExpndLimAmt}
           onClose={() => setIsLimitOpen(false)}
         />
       )}
       {addingYmd && (
         <ExpenseAddModal
           expndYmd={addingYmd}
-          pets={overview.pets}
+          pets={pets}
           onSaved={handleSaved}
           onClose={() => setAddingYmd(null)}
         />
@@ -138,7 +143,7 @@ export default function ExpenseDashboard({ onViewAll }) {
       {editingExpense && (
         <ExpenseEditModal
           expense={editingExpense}
-          pets={overview.pets}
+          pets={pets}
           onSaved={handleSaved}
           onClose={() => setEditingExpense(null)}
         />
