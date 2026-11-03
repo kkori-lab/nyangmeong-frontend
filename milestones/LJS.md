@@ -439,10 +439,13 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 가짜 응답), 사람 확인 2026-11-02
 - 연결 남음: FN-ADM-040-01~05 (백엔드 연결 `/api/admin/notices` 목록·상세·등록·수정, 알림 대상 수, 알림 발송 컬럼, 백엔드 저장소에서 /start)
 
-## SCR-ADM-041 FAQ — 대기
+## SCR-ADM-041 FAQ — 끝
 - 기능: FN-ADM-041-01 FAQ 목록 조회, FN-ADM-041-02 FAQ 등록·수정, FN-ADM-041-03 FAQ 비노출, FN-ADM-041-04 FAQ 카테고리
 - 기다리는 것: `/api/admin/faqs` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 카테고리별 FAQ 등록·수정·비노출이 목록에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03). 가짜 없이 실제 API로 연결
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 작업 사본), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-041-01~04 (백엔드 연결 `/api/admin/faqs` 목록·상세·등록·수정, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-042 1:1 문의 — 대기
 - 기능: FN-ADM-042-01 문의 목록 조회, FN-ADM-042-02 문의 필터, FN-ADM-042-03 문의 상세 조회, FN-ADM-042-04 답변 등록, FN-ADM-042-05 답변 수정, FN-ADM-042-06 삭제된 문의 처리, FN-ADM-042-07 캐릭터 오류 처리, FN-ADM-042-08 펫돌봄 분쟁 연결
@@ -725,6 +728,26 @@
 - 기다리는 것: `GET /api/admin/notices/{ntcMttrSn}`, `PATCH /api/admin/notices/{ntcMttrSn}`(`AdminNoticeUpdateRequest`, 모두 선택) (LJS 백엔드, 끝)
 - 완료 조건: 수정 화면에 값이 채워지고 발송 칸은 숨긴다. 사용 여부를 끄면 사용자 공지에서 빠진다. 삭제 버튼 없음
 - 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
+## SCR-ADM-041 FAQ · 목록 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-041-01 연결 작업)
+- 기다리는 것: `GET /api/admin/faqs`(`faqClsfCd`·`keyword`·`page`·`size`, 20건씩, `PageResponse<AdminFaqSummary>`) (LJS 백엔드, 끝)
+- 완료 조건: 비노출 FAQ도 나오고 정렬 순서 다음 번호순이다. 카테고리 탭과 질문·답변 검색이 AND로 걸린다. 행을 누르면 `GET /api/admin/faqs/{faqSn}`으로 수정 모달을 연다
+
+## SCR-ADM-041 FAQ · 등록·수정 모달 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-041-02 연결 작업)
+- 기다리는 것: `POST /api/admin/faqs`(`AdminFaqCreateRequest`, 201), `PATCH /api/admin/faqs/{faqSn}`(`AdminFaqUpdateRequest`, 보낸 필드만) (LJS 백엔드, 끝)
+- 완료 조건: 질문 200자·답변 4,000자·정렬 순서 0 이상. 등록·수정하면 목록에 반영된다. 400이면 `data[].field`로 칸 오류를 보여 준다
+
+## SCR-ADM-041 FAQ · 사용 토글 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-041-03 연결 작업)
+- 기다리는 것: `PATCH /api/admin/faqs/{faqSn}` `{"useYn": false}` (LJS 백엔드, 끝). 삭제 API 없음
+- 완료 조건: 끄면 목록에 "비노출"로 남고 사용자 고객센터 FAQ에서 빠진다
+
+## SCR-ADM-041 FAQ · 카테고리 탭 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-041-04 연결 작업)
+- 기다리는 것: `GET /api/common-codes?prntComCd=CSCG01` (LJS 백엔드, 끝)
+- 완료 조건: 탭(전체 + 이용방법·계정·신고/제재·기타)과 모달의 카테고리 선택지가 이 목록으로 그려진다
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
