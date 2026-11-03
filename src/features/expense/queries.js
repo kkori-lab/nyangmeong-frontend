@@ -83,8 +83,21 @@ const useExpenseMutation = (mutationFn) => {
 export const useSaveExpenseLimit = () => useExpenseMutation(saveExpenseLimit);
 export const useDeleteExpense = () => useExpenseMutation(deleteExpense);
 export const useDeleteExpenses = () => useExpenseMutation(deleteExpenses);
-export const useBulkDeleteExpenses = () =>
-  useExpenseMutation(bulkDeleteExpenses);
+/** 그 사이 지출이 바뀌어 건수가 맞지 않을 때 서버가 주는 오류 코드 */
+export const BULK_DELETE_CHANGED = 'EXPENSE_BULK_DELETE_CHANGED';
+
+/** 성공과 409(내역이 바뀜) 모두 목록·달력·차트·총 지출을 다시 불러온다 */
+export const useBulkDeleteExpenses = () => {
+  const qc = useQueryClient();
+  const refresh = () => qc.invalidateQueries({ queryKey: expenseKeys.all });
+  return useMutation({
+    mutationFn: bulkDeleteExpenses,
+    onSuccess: refresh,
+    onError: (error) => {
+      if (error.code === BULK_DELETE_CHANGED) refresh();
+    },
+  });
+};
 export const useCreateExpenses = () => useExpenseMutation(createExpenses);
 export const useUpdateExpense = () => useExpenseMutation(updateExpense);
 /** 저장 전 중복 지출 조회 */

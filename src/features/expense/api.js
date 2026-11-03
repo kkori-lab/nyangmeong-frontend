@@ -59,9 +59,13 @@ export const deleteExpenses = (expndSns) =>
     paramsSerializer: { indexes: null },
   });
 
-/** 조회 조건 전체 삭제 (POST /expenses/bulk-delete) */
-export const bulkDeleteExpenses = ({ expectedCnt, ...cond }) =>
-  api.post('/expenses/bulk-delete', { expectedCnt, ...clean(cond) });
+/** 조회 조건 전체 삭제 (POST /expenses/bulk-delete), excludeExpndSn: 전체 선택 뒤 해제한 번호 */
+export const bulkDeleteExpenses = ({ expectedCnt, excludeExpndSn, ...cond }) =>
+  api.post('/expenses/bulk-delete', {
+    expectedCnt,
+    excludeExpndSn,
+    ...clean(cond),
+  });
 
 /**
  * 등록·중복 확인 요청 본문
