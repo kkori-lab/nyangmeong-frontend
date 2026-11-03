@@ -22,6 +22,8 @@ const AdminCareMatchesPage = lazy(
 );
 const AdminItemsPage = lazy(() => import('@/pages/admin/AdminItemsPage'));
 const AdminNewsPage = lazy(() => import('@/pages/admin/AdminNewsPage'));
+const AdminTermsPage = lazy(() => import('@/pages/admin/AdminTermsPage'));
+const AdminTermFormPage = lazy(() => import('@/pages/admin/AdminTermFormPage'));
 const AdminBreedsRegionsPage = lazy(
   () => import('@/pages/admin/AdminBreedsRegionsPage'),
 );
@@ -98,6 +100,8 @@ export default [
         path: PATHS.ADMIN_NOTIFICATION_LOGS,
         Component: AdminNotificationLogsPage,
       },
+      { path: PATHS.ADMIN_TERMS, Component: AdminTermsPage },
+      { path: PATHS.ADMIN_TERM_NEW, Component: AdminTermFormPage },
       { path: PATHS.ADMIN_BREEDS_REGIONS, Component: AdminBreedsRegionsPage },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },

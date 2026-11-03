@@ -523,10 +523,13 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 연결 남음만, 품종은 가짜 응답 기준·지역은 실제 API), 사람 확인 2026-11-03
 - 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함), 백엔드 저장소에서 /start)
 
-## SCR-ADM-051 약관 — 대기
+## SCR-ADM-051 약관 — 끝
 - 기능: FN-ADM-051-01 약관 목록 조회, FN-ADM-051-02 약관 새 버전 등록, FN-ADM-051-03 약관 버전 이력 조회, FN-ADM-051-04 관리 대상 약관, FN-ADM-051-05 기존 회원 재동의
 - 기다리는 것: `/api/admin/terms` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 약관 새 버전 등록 뒤 버전 이력에 한 줄 늘어난다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 새 버전 등록은 별도 화면 `/admin/terms/new`(사람 2026-11-03 추천안대로)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-060 장소 — 대기
 - 기능: FN-ADM-060-01 장소 목록 조회, FN-ADM-060-02 장소 노출 설정, FN-ADM-060-03 place_url 수동 매칭, FN-ADM-060-04 공공데이터 수집 실행, FN-ADM-060-05 장소 직접 등록 제외
@@ -827,6 +830,11 @@
 - 기다리는 것: `GET /api/admin/care-matches?page=&size=20&rcrtSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ petPrtcRcrtSn, pstSn, pstTtl, rcrtSttsCd, mbrSn, mbrNcnm, cstAmt, cstUnitCd, regDt }`, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/care-matches/{petPrtcRcrtSn}`(목록 행 + `mtchs[]` 최신순·없으면 빈 배열, 매칭마다 `{ petPrtcMtchSn, ctptMbrSn, ctptNcnm, mtchDlngSttsCd, rcvYn, rcvIdntyDt, regDt, cndVers[{ cndVerNo, cstUnitCd, acrdCstAmt, acrdPrtcCn, acrdPrtcBgngDt, acrdPrtcEndDt, regDt }](버전 내림차순), sttsHstry[{ bfrSttsCd, aftrSttsCd, cndVerNo, chgRsn, regDt }](오래된 순), cmptnDmnds[{ dmndCycl, cmptnCn, spclMttrCn, prtcEndDt, prtcrIdntyRsltCd, prtcrIdntyDt, splmntDmndRsn, regDt, imgs[{ atchFileSn, sortSeq }] }](회차 순) }`, 블라인드 글도 열림, 없거나 삭제 글 404 `CARE_RECRUITMENT_NOT_FOUND`, 채팅 내용 없음) (LJS 백엔드, 끝)
 - 완료 조건: `features/adminCommunity/api.js` 펫돌봄 목록·매칭 상세 가짜 본문을 실제 요청으로 바꾼다. 가짜와 다른 점: 조건 버전·완료 요청은 한 건이 아니라 목록(`cndVers`·`cmptnDmnds`, 가짜 `agreVerNo·agreDt·agreCn`·`cmplReqDt·cmplImgs·ownerCfmtnRsltCd·ownerCfmtnDt` 대신), 매칭 거래 상태는 가짜 `REQUESTED·MATCHED·DONE_REQ·COMPLETE·CANCELED` 대신 공통코드 PCAG05(PCAC0012 수락 대기·0013 매칭 완료·0014 확인 대기·0015 수령 대기·0016 거래 완료·0017 요청 취소·0018 무응답 종료), 보호자 확인 결과는 가짜 `CONFIRMED·REJECTED` 대신 PCAG06(PCAC0019 완료 확인·PCAC0020 보완 요청). 매칭이 여럿이면 탭으로 나눈다. 완료 사진은 지금 `/api/files/public/{atchFileSn}`으로 열리지 않는다(백엔드 연결 남음, KSJ와 정함). 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+
+## SCR-ADM-001 관리자 공통 · 페이지 틀·조회 오류 컴포넌트 정리 — 대기
+- 기능: 명세 기능 ID 추가 없음. 관리자 페이지(`pages/admin/`) 전체와 관리자 features의 조회 오류 묶음
+- 기다리는 것: 없음
+- 완료 조건: 조회 오류 안내 + [다시 시도] 묶음(지금 36개 파일에 복사)을 `components/` 공통 컴포넌트 하나로 바꾸고, 가운데 정렬 틀(`mx-auto max-w-[1200px]`)·제목 `h1`·오른쪽 버튼 줄(27~29개 페이지에 복사)을 공통 페이지 틀로 묶는다. 바꾼 뒤에도 화면 모양과 동작(403 `AdminForbidden` 포함)은 그대로다. 기능 작업과 섞지 않는다(요청 2026-11-03)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
