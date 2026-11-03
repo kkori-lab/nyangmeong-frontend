@@ -7,6 +7,8 @@ import {
 import {
   blindPost,
   deleteComment,
+  getAdminCareRecruit,
+  getAdminCareRecruits,
   getAdminComments,
   getAdminLostReport,
   getAdminLostReports,
@@ -22,7 +24,26 @@ export const adminCommunityKeys = {
   comments: (params) => ['adminCommunity', 'comments', params],
   lostReports: (params) => ['adminCommunity', 'lostReports', params],
   lostReport: (lostTpofSn) => ['adminCommunity', 'lostReport', lostTpofSn],
+  careRecruits: (params) => ['adminCommunity', 'careRecruits', params],
+  careRecruit: (petPrtcRcrtSn) => [
+    'adminCommunity',
+    'careRecruit',
+    petPrtcRcrtSn,
+  ],
 };
+
+export const useAdminCareRecruits = (params) =>
+  useQuery({
+    queryKey: adminCommunityKeys.careRecruits(params),
+    queryFn: () => getAdminCareRecruits(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useAdminCareRecruit = (petPrtcRcrtSn) =>
+  useQuery({
+    queryKey: adminCommunityKeys.careRecruit(petPrtcRcrtSn),
+    queryFn: () => getAdminCareRecruit(petPrtcRcrtSn),
+  });
 
 export const useAdminLostReports = (params) =>
   useQuery({

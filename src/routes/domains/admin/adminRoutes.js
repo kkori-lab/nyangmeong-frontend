@@ -17,6 +17,9 @@ const AdminInquiriesPage = lazy(
 const AdminInquiryDetailPage = lazy(
   () => import('@/pages/admin/AdminInquiryDetailPage'),
 );
+const AdminCareMatchesPage = lazy(
+  () => import('@/pages/admin/AdminCareMatchesPage'),
+);
 const AdminItemsPage = lazy(() => import('@/pages/admin/AdminItemsPage'));
 const AdminLostReportsPage = lazy(
   () => import('@/pages/admin/AdminLostReportsPage'),
@@ -70,6 +73,7 @@ export default [
       { path: PATHS.ADMIN_POSTS, Component: AdminPostsPage },
       { path: PATHS.ADMIN_POST_DETAIL, Component: AdminPostDetailPage },
       { path: PATHS.ADMIN_LOST_REPORTS, Component: AdminLostReportsPage },
+      { path: PATHS.ADMIN_CARE_MATCHES, Component: AdminCareMatchesPage },
       { path: PATHS.ADMIN_REPORTS, Component: AdminReportsPage },
       { path: PATHS.ADMIN_REPORT_DETAIL, Component: AdminReportDetailPage },
       { path: PATHS.ADMIN_NOTICES, Component: AdminNoticesPage },
