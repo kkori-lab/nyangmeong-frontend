@@ -3,13 +3,13 @@ import { formatDate, getYmdOf } from '@/utils/formatDate';
 const COLUMNS = ['고정', '제목', '사용', '조회수', '알림 발송', '등록일'];
 
 /** 알림 발송 칸: 'MM-DD · N명', 안 보냈으면 — */
-const formatSending = ({ ntfctnSndngDt, ntfctnTrgtCnt }) => {
-  if (!ntfctnSndngDt) return '—';
-  const sentDate = formatDate(getYmdOf(ntfctnSndngDt), {
+const formatSending = ({ notiSndngDt, notiTrgtCnt }) => {
+  if (!notiSndngDt) return '—';
+  const sentDate = formatDate(getYmdOf(notiSndngDt), {
     separator: '-',
     hasYear: false,
   });
-  return `${sentDate} · ${ntfctnTrgtCnt.toLocaleString()}명`;
+  return `${sentDate} · ${(notiTrgtCnt ?? 0).toLocaleString()}명`;
 };
 
 /**

@@ -696,6 +696,36 @@
 - 완료 조건: 자동 대상이 대상별로 나오고 복구하면 목록에서 사라진다
 - 완료 조건 결과: SCR-ADM-030 신고 처리 절과 같은 검증(2026-11-02)
 
+## SCR-ADM-040 공지사항 · 목록 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-01·05 연결 작업)
+- 기다리는 것: `GET /api/admin/notices`(`keyword`, 20건씩, `PageResponse<AdminNoticeSummary>`) (LJS 백엔드, 끝)
+- 완료 조건: 비노출 공지도 나오고 고정이 먼저 최신순으로 나온다. 알림 발송 칸은 `notiSndngDt`·`notiTrgtCnt`(null이면 —)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
+## SCR-ADM-040 공지사항 · 등록 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-02 연결 작업)
+- 기다리는 것: `POST /api/admin/notices`(`AdminNoticeCreateRequest`, 201) (LJS 백엔드, 끝)
+- 완료 조건: 등록하면 목록에 보인다
+- 결정: 본문 이미지는 아래 "본문 이미지 연결" 절로 넘김(사람 2026-11-03)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
+## SCR-ADM-040 공지사항 · 본문 이미지 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-02 연결 작업)
+- 기다리는 것: 사용자 공지 상세가 `![](/api/files/public/{atchFileSn})` 줄을 이미지로 그리는 것(KSJ, 공용 `PostBody`), `POST /api/admin/notices/images`(multipart `image`, 201 `{atchFileSn}`) (LJS 백엔드, 끝)
+- 완료 조건: 본문 이미지는 올린 뒤 본문에 `![](/api/files/public/{atchFileSn})` 한 줄로 넣는다(HTML 저장 안 함). 사용자 공지 상세가 이 줄을 이미지로 그린다
+
+## SCR-ADM-040 공지사항 · 알림 발송 모달 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-03 연결 작업)
+- 기다리는 것: `GET /api/admin/notices/notification-target-count`(`{trgtCnt}`), 등록 요청의 `notiSndngYn` (LJS 백엔드, 끝)
+- 완료 조건: 발송을 체크하고 등록하면 "회원 N명에게 알림을 보내요" 확인 모달이 뜨고, 확인하면 등록된다. `useYn=false`와 함께 보내면 400
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
+## SCR-ADM-040 공지사항 · 수정·비노출 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-04 연결 작업)
+- 기다리는 것: `GET /api/admin/notices/{ntcMttrSn}`, `PATCH /api/admin/notices/{ntcMttrSn}`(`AdminNoticeUpdateRequest`, 모두 선택) (LJS 백엔드, 끝)
+- 완료 조건: 수정 화면에 값이 채워지고 발송 칸은 숨긴다. 사용 여부를 끄면 사용자 공지에서 빠진다. 삭제 버튼 없음
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)
