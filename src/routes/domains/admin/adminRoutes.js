@@ -9,7 +9,14 @@ const AdminBatchesPage = lazy(() => import('@/pages/admin/AdminBatchesPage'));
 const AdminExternalApiUsagePage = lazy(
   () => import('@/pages/admin/AdminExternalApiUsagePage'),
 );
+const AdminFaqsPage = lazy(() => import('@/pages/admin/AdminFaqsPage'));
 const AdminHomePage = lazy(() => import('@/pages/admin/AdminHomePage'));
+const AdminInquiriesPage = lazy(
+  () => import('@/pages/admin/AdminInquiriesPage'),
+);
+const AdminInquiryDetailPage = lazy(
+  () => import('@/pages/admin/AdminInquiryDetailPage'),
+);
 const AdminMemberDetailPage = lazy(
   () => import('@/pages/admin/AdminMemberDetailPage'),
 );
@@ -57,6 +64,9 @@ export default [
       { path: PATHS.ADMIN_NOTICES, Component: AdminNoticesPage },
       { path: PATHS.ADMIN_NOTICE_NEW, Component: AdminNoticeFormPage },
       { path: PATHS.ADMIN_NOTICE_EDIT, Component: AdminNoticeFormPage },
+      { path: PATHS.ADMIN_FAQS, Component: AdminFaqsPage },
+      { path: PATHS.ADMIN_INQUIRIES, Component: AdminInquiriesPage },
+      { path: PATHS.ADMIN_INQUIRY_DETAIL, Component: AdminInquiryDetailPage },
       { path: PATHS.ADMIN_SETTINGS, Component: AdminSettingsPage },
       { path: PATHS.ADMIN_BATCHES, Component: AdminBatchesPage },
       {
