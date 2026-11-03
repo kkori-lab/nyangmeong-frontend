@@ -60,7 +60,7 @@ export default function NoticeForm({ notice }) {
   const [ntcMttrCn, setNtcMttrCn] = useState(notice?.ntcMttrCn ?? '');
   const [upendFixYn, setUpendFixYn] = useState(notice?.upendFixYn ?? false);
   const [useYn, setUseYn] = useState(notice?.useYn ?? true);
-  const [ntfctnSndngYn, setNtfctnSndngYn] = useState(false);
+  const [notiSndngYn, setNotiSndngYn] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const create = useCreateAdminNotice();
@@ -84,13 +84,13 @@ export default function NoticeForm({ notice }) {
       );
       return;
     }
-    create.mutate({ ...body, ntfctnSndngYn }, { onSuccess: handleSaved });
+    create.mutate({ ...body, notiSndngYn }, { onSuccess: handleSaved });
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!canSubmit) return;
-    if (!isEdit && ntfctnSndngYn) {
+    if (!isEdit && notiSndngYn) {
       create.reset();
       setIsConfirmOpen(true);
       return;
@@ -146,7 +146,7 @@ export default function NoticeForm({ notice }) {
           사용
         </CheckOption>
         {!isEdit && (
-          <CheckOption checked={ntfctnSndngYn} onChange={setNtfctnSndngYn}>
+          <CheckOption checked={notiSndngYn} onChange={setNotiSndngYn}>
             알림 발송
           </CheckOption>
         )}
