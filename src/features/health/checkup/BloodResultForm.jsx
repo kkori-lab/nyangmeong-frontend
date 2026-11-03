@@ -59,6 +59,11 @@ export default function BloodResultForm({
     !(isNumber(form.rangeMin) && isNumber(form.rangeMax))
   ) {
     errors.range = '참고범위는 숫자로 입력해 주세요';
+  } else if (
+    form.rangeMin.trim() !== '' &&
+    Number(form.rangeMin) > Number(form.rangeMax)
+  ) {
+    errors.range = '참고범위 최소는 최대보다 클 수 없어요';
   }
 
   const changeForm = (field, value) =>
