@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import RecoveryForm from '@/features/member/recovery/RecoveryForm';
 import SignupForm from '@/features/member/signup/SignupForm';
+import SnsSignupForm from '@/features/member/signup/SnsSignupForm';
 import { PATHS } from '@/routes/paths';
 
 // 가입 화면. 탈퇴 후 보관 기간 안의 이메일이면(가입 발송이 거절되거나 비밀번호 찾기에서 넘어오면) 재가입 복구 화면으로 바뀐다.
-// 복구할 이메일만 넘어오고, 복구 확인 권한은 복구 화면 안에서만 다룬다
+// 복구할 이메일만 넘어오고, 복구 확인 권한은 복구 화면 안에서만 다룬다.
+// SNS 로그인이 신규 가입으로 보내면(state.snsSignup) SNS 가입 확인 화면이다. 새로고침으로 state가 없으면 이메일 가입이다
 export default function SignupPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -27,6 +29,17 @@ export default function SignupPage() {
           setPickedEmail('');
           navigate(PATHS.SIGNUP, { replace: true, state: null });
         }}
+      />
+    );
+  }
+
+  if (state?.snsSignup) {
+    return (
+      <SnsSignupForm
+        key={state.snsSignup.signupTkn}
+        snsSignup={state.snsSignup}
+        onCancel={() => navigate(PATHS.LOGIN, { replace: true })}
+        onGoLogin={() => navigate(`${PATHS.LOGIN}?joined=1`, { replace: true })}
       />
     );
   }
