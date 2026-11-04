@@ -64,7 +64,7 @@ export default function ProfileEditForm({ profile, hidePassword, onWithdraw }) {
             )}
           </ProfileImageField>
           <NicknameField mbrNcnm={mbrNcnm} {...rowProps('nickname')} />
-          <PhoneField mbrTelno={mblTelno ?? ''} {...rowProps('phone')} />
+          <PhoneField mblTelno={mblTelno ?? ''} {...rowProps('phone')} />
           {!snsTyCd && !hidePassword && (
             <PasswordChangeCard {...rowProps('password')} />
           )}

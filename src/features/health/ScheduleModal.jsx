@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import ConfirmModal from '@/components/ConfirmModal';
 import Icon from '@/components/Icon';
 import { getHmOf, getYmdOf, makeDateTime } from '@/utils/formatDate';
-import { CHECKUP_TYPES, HOSPITAL, SCHEDULE_TYPES } from './scheduleTypes';
+import {
+  BADGE_COLORS,
+  CHECKUP_TYPES,
+  HOSPITAL,
+  SCHEDULE_TYPES,
+  TONE_CLASSES,
+} from './scheduleTypes';
 import {
   useCreateSchedule,
   useDeleteSchedule,
@@ -30,6 +36,7 @@ const toForm = (schedule, defaultPetSn, defaultYmd) => ({
   scheduleDate: schedule ? getYmdOf(schedule.schdlDt) : defaultYmd,
   scheduleTime: schedule?.hrInptYn ? getHmOf(schedule.schdlDt) : '',
   memoCn: schedule?.memoCn ?? '',
+  cldrBadgeColrCd: schedule?.cldrBadgeColrCd ?? '',
 });
 
 // 서버 입력값 검증 오류 문구
@@ -106,6 +113,8 @@ export default function ScheduleModal({
     hsptlNm: isHospitalForm ? form.hsptlNm.trim() : null,
     schdlNm: isHospitalForm ? null : form.schdlNm.trim(),
     memoCn: form.memoCn.trim(),
+    // 고르지 않으면 ''을 보낸다. 등록은 비워 저장하고, 수정은 고른 색을 지운다
+    cldrBadgeColrCd: form.cldrBadgeColrCd,
   });
 
   const save = () => {
@@ -333,7 +342,45 @@ export default function ScheduleModal({
             <FieldError message={fieldError('memoCn')} />
           </label>
 
-          {/** 캘린더 뱃지 색상: 공통코드(HLTG21) 확정 전까지 미노출 */}
+          <div className="flex flex-col gap-1.5">
+            <span id="schedule-badge-color-label" className={labelClass}>
+              캘린더 뱃지 색상{optional}
+            </span>
+            {/* 고른 칩을 다시 누르면 선택을 푼다 */}
+            <div
+              role="radiogroup"
+              aria-labelledby="schedule-badge-color-label"
+              className="flex flex-wrap gap-3"
+            >
+              {BADGE_COLORS.map((color) => {
+                const isChecked = form.cldrBadgeColrCd === color.cd;
+                return (
+                  <button
+                    key={color.cd}
+                    type="button"
+                    role="radio"
+                    aria-checked={isChecked}
+                    title={color.nm}
+                    className={`grid size-8 place-items-center rounded-full outline-offset-(--spacing) focus-visible:outline focus-visible:outline-[#285a5c] ${
+                      TONE_CLASSES[color.tone].chip
+                    } ${isChecked ? 'outline-solid outline-[length:medium] outline-current' : ''}`}
+                    onClick={() =>
+                      setField('cldrBadgeColrCd', isChecked ? '' : color.cd)
+                    }
+                  >
+                    <span className="sr-only">{color.nm}</span>
+                    {isChecked && (
+                      <Icon name="check" className="text-lg font-semibold" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-sm leading-normal text-muted">
+              고르지 않으면 일정 종류의 기본 색상이 적용돼요
+            </p>
+            <FieldError message={fieldError('cldrBadgeColrCd')} />
+          </div>
         </div>
 
         <footer className="flex items-center justify-end gap-2 rounded-b-[20px] border-t border-[#e2e7e7] bg-[#fbfcfd] px-7 py-4">

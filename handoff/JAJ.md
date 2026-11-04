@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-002 건강 일지 · 영수증 원본 이미지 연결 (2026-11-04). 검증 1회차 통과, 사람 확인 끝. 인식 결과 확인 모달 썸네일과 [영수증 원본] 모달이 `GET /api/receipts/{recptSn}/image`를 `useFileImage`(`healthKeys.receiptImage`, 두 곳이 같은 캐시)로 그린다. 받는 중엔 로딩 자리, 없거나 실패(404)면 `receipt_long` 아이콘
+끝남: SCR-HLT-003 케어 캘린더 · 일정 뱃지 색상 연결 (2026-11-04). 검증 통과, 사람 확인 끝. 일정 모달에 뱃지 색 칩 5개(HLTG21 HLTC0079 보라·0080 초록·0081 빨강·0082 파랑·0083 회색)를 켜고 `cldrBadgeColrCd`로 보낸다(안 고르면 `''`, 다시 누르면 해제). 색은 `scheduleTypes.js` `TONE_CLASSES`(`index.css` `--color-tone-*` 토큰 클래스)로 그린다. 추가-1 종합 건강기록 타임라인도 같은 클래스, 추가-2 선택 링 `outline` medium currentColor·offset `--spacing`, 추가-3 칩 간격 `gap-3`
 
 ## 결정
 
@@ -11,11 +11,10 @@
 
 ## 다음에 할 것
 
-1. 다음 작업(백엔드, nyangmeong-backend에서 `/start`): SCR-HLT-002 건강 일지 · 영수증 save-check 저장완료 409 (추가-2 연결 남음)
-   - `POST /receipts/{recptSn}/save-check`도 이미 저장된(저장완료) 영수증이면 `save`와 같이 409 `RECEIPT_ALREADY_SAVED`를 준다. 지금은 `save`만 409를 준다
-   - 프론트는 이미 `save-check` 409를 `save`와 같은 안내로 처리하므로 프론트 작업은 없다
-   - 백엔드 `milestones/JAJ.md`에 `## SCR-HLT-002 건강 일지 · 영수증 save-check 저장완료 409 — 대기` 절을 넣었다(커밋 안 함, 백엔드 다음 `/end` 커밋에 들어감)
+1. 다음 작업: 없음(JAJ 프론트 마일스톤 모두 끝). 남은 것은 아래 "결정 기다림"과 참고 항목
 
+- 참고(SCR-HLT-003 뱃지 색상): hex 색 표(`TONES`·`BADGE_COLORS` hex·`CHECKUP_TYPES[].color`·`DEFAULT_SCHEDULE_COLOR`)는 지웠다. 톤은 `TONE_CLASSES[tone].chip`(연한 바탕+진한 글자)·`.bar`(진한 색). 앱 CSS에는 `--space-*` 토큰이 없어(퍼블리싱 `html/nyangmung.css`에만 있음) 링 틈은 같은 값의 Tailwind `--spacing`(4px)을 썼다(사람 결정). 고른 칩에 키보드 포커스가 있으면 같은 `outline` 속성이라 브랜드색 가는 선만 보인다. 390px 수정 모달 하단 [새 일정 등록] 글자가 왼쪽으로 잘린다(이전부터, 이번엔 안 고침)
+- 참고(검증 세션): Playwright 검증 중 로그인 세션이 만료되면 화면 확인을 못 해 실패로 나온다. 검증 전에 다시 로그인한다(계정은 저장소에 적지 않는다). 첫 실패 뒤에는 핸드오프 완료 조건을 고치지 않는다(기준 변경으로 실패)
 - 참고(SCR-HLT-002 체중 그래프): 범위 태그는 `LineChart` 기존 문구 "상한/하한"이다. 시안 범례는 "정상범위 최소/최대"라 다르다(이번엔 안 바꿈)
 - 전달함(LJS, 2026-11-04): `features/health/CareItemMenu.jsx`는 마이페이지 가계부 `ExpenseMenu.jsx`의 여는 방식·모양을 복사했다(아이콘만 `size-4.5`). 둘 중 하나를 바꾸면 다른 쪽도 맞춘다
 - 전달함(LJS, 2026-11-04): `features/ai/receipt/ReceiptUploadModal.jsx` `onManualInput` 인자 키를 `rcptSn` → `recptSn`으로 바꿨다(받는 쪽 `HealthDiaryPage`도 같이). 브라우저 쪽 시간 초과(요청 중단)는 영수증 번호를 알 수 없어 일반 저장으로 남는다

@@ -56,19 +56,13 @@ function TimelineItem({ entry, isFirst }) {
 
   return (
     <Link
-      to={getCheckupDetailPath(
-        entry,
-        isPrevention ? 'prevention' : undefined,
-      )}
+      to={getCheckupDetailPath(entry, isPrevention ? 'prevention' : undefined)}
       className="relative grid grid-cols-[40px_minmax(0,1fr)_18px] items-start gap-3.5 py-3"
     >
       <span
-        className="relative z-10 grid size-10 place-items-center rounded-full"
-        style={
-          isFirst
-            ? { background: '#285a5c', color: '#fff' }
-            : { background: type.tone.bg, color: type.tone.fg }
-        }
+        className={`relative z-10 grid size-10 place-items-center rounded-full ${
+          isFirst ? 'bg-[#285a5c] text-white' : type.tone.chip
+        }`}
       >
         <Icon name={type.icon} />
       </span>
@@ -76,8 +70,7 @@ function TimelineItem({ entry, isFirst }) {
         <span className="flex flex-wrap items-center gap-2">
           <span className="font-semibold">{formatDate(entry.ymd)}</span>
           <span
-            className="inline-flex h-6 items-center rounded-full px-2.5 text-[13px] leading-none font-semibold"
-            style={{ background: type.tone.bg, color: type.tone.fg }}
+            className={`inline-flex h-6 items-center rounded-full px-2.5 text-[13px] leading-none font-semibold ${type.tone.chip}`}
           >
             {type.nm}
           </span>
