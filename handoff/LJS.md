@@ -2,33 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-082 처리 현황 — 구현 중 (승인 2026-11-04 02:00)
-
-고른 이유: "다음에 할 것" 위쪽은 연결 남음·사람이 볼 것·후순위(사람 2026-11-04 "후순위로 미루고 화면 구현부터")라 남은 화면 구현 중 맨 위 `대기`를 골랐다. SCR-ADM-060 장소는 사람 결정(2026-11-03)으로 넘김
-
-근거: 관리자_기능명세서_v0.4 FN-ADM-082-01~03, 관리자_화면설계서_v0.3 SCR-ADM-082(`/admin/processing`, 탭 3개: 영수증 OCR·캐릭터 생성·검사결과지 분석, 처리 조건: 대시보드 처리 대기 건수에서 오면 실패 상태로 걸린 채, 분석 결과 내용은 보여 주지 않고 상태·건수만(결정 26))
-
-디자인: 없음, 화면설계서 기준 (+ 기존 관리자 목록 화면(발송 이력·외부 API 사용량) 스타일)
-
-화면 틀(공통): `pages/admin/AdminProcessingPage.jsx`(탭 `?tab=ocr|character|pdf`, 기본 ocr, 탭 바꾸면 그 탭 필터·페이지 초기화), `features/adminProcessing/`(api.js·queries.js·화면 컴포넌트), `routes/domains/admin/` 라우트 1줄, `routes/paths.js`에 `ADMIN_PROCESSING: '/admin/processing'`(`docs/routes.md`에는 이미 있고 사이드 메뉴 `adminMenus.js`도 이 키를 쓰는데 상수만 없다). 가짜 응답은 `features/adminProcessing/api.js` 메모리(발송 이력과 같은 방식, 개발 환경 `?fake=forbidden` 403·`?fake=error` 조회 오류). 백엔드 연결: `GET /api/admin/processing/*` 전부 (백엔드 저장소에서 /start)
-
-- FN-ADM-082-01 영수증 OCR 현황: `OcrStatusPanel.jsx`(상단 건수 카드 요청·성공·인식 실패(+실패율)·처리 중, 기간·출처 필터, 목록 요청 일시·출처·상태·회원·[원본 보기], 20건씩 페이지), `ReceiptImageModal.jsx`(비공개 이미지, `hooks/useFileImage` + `components/FileImage`). 출처 코드는 실제 값(건강 일지 AIMC0026·AI 대화창 AIMC0031·가계부는 코드 미확인 → 가정), 상태 이름은 공통코드 AIMG01(`/api/common-codes`, 실제 API). 필드는 RECPT 컬럼 이름 가정(`recptSn`·`ocrRqstSrcCd`·`ocrPrcsSttsCd`·`mbrSn`·`mbrNcnm`·`frstRegDt`·`atchFileSn`). 부를 API: `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrRqstSrcCd=&ocrPrcsSttsCd=&page=`(건수 요약 포함, 가정), 원본 `GET /api/admin/processing/receipts/{recptSn}/image`(가정). 백엔드 연결: 위 2개 (백엔드 저장소에서 /start)
-  - 완료 조건: `명령:` `yarn -s lint`·`yarn -s build` 종료 코드 0. `화면:` 건수 카드 4개와 실패율이 가짜 데이터 합과 맞다. 기간·출처·상태로 거르면 목록과 총 건수가 바뀐다. [원본 보기]를 누르면 모달에 이미지(가짜는 없는 파일 → FileImage 대체 칸)가 뜨고 닫힌다. `?tab=ocr&ocrPrcsSttsCd=AIMC0004`로 들어오면 인식 실패로 걸린 채 열린다(대시보드 링크용, URL 필터 이름은 서버 키 그대로)
-- FN-ADM-082-02 캐릭터 생성 현황: `CharacterJobPanel.jsx`(상태별 건수 카드, 목록 요청 일시·회원·상태·실패 사유·연결 문의). 연결된 1:1 문의가 있으면 `PATHS.ADMIN_INQUIRY_DETAIL`(SCR-ADM-042)로 가는 링크. 필드는 CHAR_CRT_JOB 이름 가정(`charCrtJobSn`·`jobSttsCd`·`failRsn`·`otoInqrySn`). 상태 코드 그룹은 미확인이라 가짜에서 임시 이름 표. 부를 API: `GET /api/admin/processing/character-jobs?jobSttsCd=&page=`(가정). 백엔드 연결: 이 API와 상태 공통코드 (백엔드 저장소에서 /start)
-  - 완료 조건: `화면:` 상태 카드를 누르면 그 상태로 목록이 걸러진다. 실패 행에 실패 사유가 보이고, 연결 문의가 있는 행의 링크를 누르면 `/admin/inquiries/<번호>`로 간다. 결과 이미지·내용은 보이지 않는다
-- FN-ADM-082-03 검사결과지 분석 현황: `PdfAnalysisPanel.jsx`(기간 필터, 요청·성공·시간 초과·API 오류 건수 카드, 실패 목록 호출 일시·결과·오류 메시지). 결과 코드는 EXTL_API_CALL_LOG 호출결과 SYSG06(SYSC0021 성공·0022 실패·0023 시간 초과)을 이 feature 안 상수로 둔다(`features/apiUsage`는 import 하지 않는다). PDF 분석 종류 코드는 공통코드에 없어 임시. 검사결과지가 아닌 파일은 서버가 빼서 준다고 가정. 부를 API: `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=`(가정). 백엔드 연결: 이 API와 Python→Java 통지 내부 API (백엔드 저장소에서 /start)
-  - 완료 조건: `화면:` 건수 카드가 가짜 데이터와 맞고 실패만 목록에 나온다. 분석 결과 내용은 보이지 않는다
-- 공통 완료 조건: `화면:` 1440·390 폭에서 페이지 가로 스크롤이 없다(표는 칸 안 가로 스크롤). 조회 중 스켈레톤, 403은 관리자 권한 없음 안내, 오류는 조회 오류 안내가 뜬다. 사이드 메뉴 "처리 현황"이 이 화면으로 가고 선택 표시된다
-- 확인 방법(이 클라우드 세션은 백엔드가 없음): Playwright에서 `/api/auth/me`(관리자)·`/api/common-codes`를 가짜 응답으로 막아 확인한다. 이 가짜는 확인 스크립트에만 두고 저장소에 넣지 않는다. 로그인 실제 흐름은 사람 확인(로컬 백엔드)에서 본다
-
-질문: ① 디자인 파일이 없습니다. 화면설계서 목업 + 기존 관리자 목록 화면 스타일로 갈까요? (추천: 그렇게) ② `routes/paths.js`에 `ADMIN_PROCESSING` 상수를 기능 커밋에 같이 넣을까요? 규칙은 따로 PR이지만 URL은 `docs/routes.md`에 이미 있고 메뉴가 이 키를 기다린다 (추천: 같이 넣고 "사람이 볼 것"에 남긴다. 이전 ADM-071·081과 같은 처리)
-
-결정: 추천안대로 (2026-11-04 02:00)
-
-새 의존성: 없음
+SCR-ADM-082 처리 현황 — 끝 (2026-11-04, 검증 1회 `통과`, 사람 확인). `/admin/processing`에 3탭(영수증 OCR·캐릭터 생성·검사결과지 분석) 건수 카드·필터·목록·영수증 원본 모달을 가짜 응답으로 만들었다(`features/adminProcessing`, `AdminProcessingPage.jsx`)
 
 ## 다음에 할 것
 
+- SCR-ADM-082 연결 남음: FN-ADM-082-01 (백엔드 연결 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrRqstSrcCd=&ocrPrcsSttsCd=&page=`(summary `totCnt`·`scsCnt`·`failCnt`·`prcsCnt` 가정)·`GET /api/admin/processing/receipts/{recptSn}/image`, 가계부 출처 코드(지금 임시 `TMP00031`), 백엔드 저장소에서 /start). 나오면 `features/adminProcessing/api.js` 가짜 본문만 실제 요청으로, 코드는 `processingLabels.js`에서 맞춘다
+- SCR-ADM-082 연결 남음: FN-ADM-082-02 (백엔드 연결 `GET /api/admin/processing/character-jobs?jobSttsCd=&page=`(`sttsCnts` 가정)·CHAR_CRT_JOB 상태 공통코드(지금 임시 `TMP00041~44`), 백엔드 저장소에서 /start)
+- SCR-ADM-082 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=`(summary `totCnt`·`scsCnt`·`tmotCnt`·`errCnt` 가정)·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
+- SCR-ADM-082 사람이 볼 것(판정 밖): ① `routes/paths.js`에 `ADMIN_PROCESSING`을 기능 커밋에 같이 넣었다(사람 2026-11-04 추천안대로) ② 대시보드 링크는 `?tab=ocr&ocrPrcsSttsCd=AIMC0004`(기획의 `status=`를 서버 키 이름으로 고침) ③ 스켈레톤 높이는 브라우저로 재지 않고 계산한 값 ④ 가짜 영수증 성공·처리 중 코드 AIMC0003·0002는 가정(AIMG01에서 확인된 것은 인식 실패 AIMC0004뿐)
 - SCR-ADM-081 연결 남음: FN-ADM-081-01·02 (백엔드 연결 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`·`POST /api/admin/ai/keywords`·`PATCH`·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`, 새 행 `sortSeq` 규칙(가정: 그 탭 맨 아래), 백엔드 저장소에서 /start). 나오면 `features/adminAiKeyword/api.js` 가짜 본문(sessionStorage `fakeAdminAiKeywords`)만 실제 요청으로, 코드 선택지는 `keywordLabels.js`에서 맞춘다
 - SCR-ADM-081 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start. 지금 가짜 가계부 3행은 예시)
 - SCR-ADM-081 연결 남음: AI 서버가 사전을 DB 조회 API로 읽기(백엔드 조회 API는 백엔드 저장소, AI 서버 전환은 ai 저장소). 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다. 가계부 분류는 지금 OCR(`ai/app/ocr/clients.py`)의 고정 표가 쓴다

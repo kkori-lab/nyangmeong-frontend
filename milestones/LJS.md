@@ -587,10 +587,15 @@
 - 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04)
 - 완료 조건: 탭 이름·표 칸 이름·모달 칸 이름을 운영자가 읽고 무엇을 넣는지 알 수 있는 말로 바꾼다(`features/adminAiKeyword/keywordLabels.js`·`AiKeywordTable.jsx`·`AiKeywordFormModal.jsx`). 저장 값(`kwrdClsfNm` 등)은 기초 데이터 그대로 두고 화면 표시만 바꿀지 기획 때 정한다
 
-## SCR-ADM-082 처리 현황 — 진행
+## SCR-ADM-082 처리 현황 — 끝
 - 기능: FN-ADM-082-01 영수증 OCR 현황, FN-ADM-082-02 캐릭터 생성 현황, FN-ADM-082-03 검사결과지 분석 현황
 - 기다리는 것: `/api/admin/processing` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: OCR·캐릭터 생성·검사결과지 분석의 상태별 건수와 실패 목록이 보인다
+- 결정: 디자인은 화면설계서 기준 + 관리자 목록 화면 스타일, `paths.js` `ADMIN_PROCESSING`은 기능 커밋에 같이(사람 2026-11-04 추천안대로)
+- 완료 조건 결과: 검증 `통과`(2026-11-04 1회째, 가짜 응답 기준), 사람 확인 2026-11-04
+- 연결 남음: FN-ADM-082-01 (백엔드 연결 `GET /api/admin/processing/receipts`·`/receipts/{recptSn}/image`, 가계부 출처 코드, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-082-02 (백엔드 연결 `GET /api/admin/processing/character-jobs`·CHAR_CRT_JOB 상태 공통코드, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses`·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-001 대시보드 — 대기
 - 기능: FN-ADM-001-02 운영 현황 조회, FN-ADM-001-03 처리 대기 건수, FN-ADM-001-04 이용 통계 조회, FN-ADM-001-05 통계 기간 선택
