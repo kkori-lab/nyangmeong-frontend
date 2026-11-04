@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import CharacterCreateModal from '@/features/pet/character/CharacterCreateModal';
 import CharacterDecorate from '@/features/pet/character/CharacterDecorate';
@@ -6,6 +7,7 @@ import CharacterEmpty from '@/features/pet/character/CharacterEmpty';
 import CharacterGrid from '@/features/pet/character/CharacterGrid';
 import CharacterTabs from '@/features/pet/character/CharacterTabs';
 import {
+  petKeys,
   usePets,
   usePixelCharacters,
   useSetRepresentativePet,
@@ -25,11 +27,25 @@ export default function CharacterPage() {
     isPending: isCharsPending,
     isError: isCharsError,
     refetch: refetchChars,
-  } = usePixelCharacters();
+  } = usePixelCharacters({ isPolling: true });
+  const queryClient = useQueryClient();
+  /** 이 화면에서 생성 중으로 본 동물: 끝나면 캐릭터 이미지를 다시 읽는다 */
+  const creatingSnsRef = useRef(new Set());
   const isPending = isPetsPending || isCharsPending;
   const { mutate: setRepresentative } = useSetRepresentativePet();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [creatingPet, setCreatingPet] = useState(null);
+  const [creatingPetSn, setCreatingPetSn] = useState(null);
+
+  useEffect(() => {
+    characters?.forEach((item) => {
+      const { status } = getCharState(item);
+      if (status === CHRC_STTS.GENERATING) {
+        creatingSnsRef.current.add(item.petSn);
+      } else if (creatingSnsRef.current.delete(item.petSn)) {
+        queryClient.invalidateQueries({ queryKey: petKeys.all });
+      }
+    });
+  }, [characters, queryClient]);
 
   /** 반려동물에 캐릭터 목록의 번호·상태를 합친다 */
   const pets = rawPets.map((pet) => {
@@ -44,6 +60,7 @@ export default function CharacterPage() {
   });
   const ownPets = pets.filter((pet) => pet.brupRoleCd === BRUP_ROLE.PRIMARY);
   const sharedPets = pets.filter((pet) => pet.brupRoleCd !== BRUP_ROLE.PRIMARY);
+  const creatingPet = pets.find((pet) => pet.petSn === creatingPetSn);
   const decoratingCharSn = Number(searchParams.get('pixelCharSn'));
 
   if (isPending) {
@@ -121,7 +138,7 @@ export default function CharacterPage() {
                 onDecorate={(pet) =>
                   setSearchParams({ pixelCharSn: pet.pixelCharSn })
                 }
-                onCreate={setCreatingPet}
+                onCreate={(pet) => setCreatingPetSn(pet.petSn)}
                 onSetRepresentative={(pet) => setRepresentative(pet.petSn)}
               />
               <p className="text-sm text-subtle">
@@ -137,7 +154,7 @@ export default function CharacterPage() {
       {creatingPet && (
         <CharacterCreateModal
           pet={creatingPet}
-          onClose={() => setCreatingPet(null)}
+          onClose={() => setCreatingPetSn(null)}
         />
       )}
     </SubPageLayout>
