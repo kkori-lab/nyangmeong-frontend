@@ -4,6 +4,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import Select from '@/components/Select';
 import { showToast } from '@/components/toastStore';
+import { publicFileUrl } from '@/utils/fileUrl';
 import {
   RECEIPT_ACCEPT,
   RECEIPT_HELP,
@@ -68,6 +69,7 @@ const validate = ({ newsClsfCd, newsTtl, newsCn }) => ({
  * - news가 있으면 그 행 값으로 채운 수정, 없으면 등록
  * - 출처는 관리자 등록 고정, 원문 주소 칸 없음
  * - [등록]·[저장]을 누르면 칸마다 검사하고, 저장하면 토스트 후 닫음. 실패하면 입력 유지 + 서버 문구
+ * - 400 칸별 오류는 클라이언트 안내가 없는 칸 아래, 그 밖 오류(404·업로드 실패)는 폼 아래
  */
 export default function AdminNewsFormModal({ news, onClose }) {
   const formId = useId();
@@ -85,8 +87,22 @@ export default function AdminNewsFormModal({ news, onClose }) {
   const update = useUpdateAdminNews();
   const save = isEdit ? update : create;
 
-  const errors = isSubmitted ? validate({ newsClsfCd, newsTtl, newsCn }) : {};
-  const previewUrl = thumbnail?.url ?? news?.thmbUrlPath;
+  const clientErrors = isSubmitted
+    ? validate({ newsClsfCd, newsTtl, newsCn })
+    : {};
+  const serverFieldErrors = Object.fromEntries(
+    (save.error?.fields ?? []).map((item) => [item.field, item.message]),
+  );
+  const errors = {
+    newsClsfCd: clientErrors.newsClsfCd ?? serverFieldErrors.newsClsfCd,
+    newsTtl: clientErrors.newsTtl ?? serverFieldErrors.newsTtl,
+    newsCn: clientErrors.newsCn ?? serverFieldErrors.newsCn,
+  };
+  // 칸 아래에 보일 서버 문구가 없으면 폼 아래에 서버 문구
+  const hasServerFieldError = Object.keys(serverFieldErrors).some(
+    (field) => field in errors,
+  );
+  const previewUrl = thumbnail?.url ?? publicFileUrl(news?.atchFileSn);
 
   const handleThumbnailChange = async (event) => {
     const [file] = event.target.files;
@@ -253,7 +269,7 @@ export default function AdminNewsFormModal({ news, onClose }) {
           </div>
           <FieldError message={thumbnailError} />
         </div>
-        {save.isError && (
+        {save.isError && !hasServerFieldError && (
           <p role="alert" className="text-sm text-danger">
             {save.error.message}
           </p>
