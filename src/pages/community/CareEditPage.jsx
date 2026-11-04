@@ -1,3 +1,4 @@
+import { FileX } from 'lucide-react';
 import { useEffect } from 'react';
 import {
   generatePath,
@@ -6,6 +7,7 @@ import {
   useNavigate,
   useParams,
 } from 'react-router-dom';
+import EmptyResult from '@/components/EmptyResult';
 import { showToast } from '@/components/toastStore';
 import CareForm from '@/features/community/care/CareForm';
 import { toFormValues } from '@/features/community/care/careUtils';
@@ -24,7 +26,7 @@ export default function CareEditPage() {
     petPrtcRcrtSn,
   });
   /** 본인 글이 아니면 안내 후 상세로 이동 */
-  const isDenied = Boolean(post) && post.mineYn !== 'Y';
+  const isDenied = Boolean(post) && !post.owner;
 
   useEffect(() => {
     if (isDenied) showToast('수정 권한이 없어요');
@@ -50,14 +52,19 @@ export default function CareEditPage() {
     body = <p className="text-muted">불러오는 중이에요</p>;
   } else if (isError) {
     body = (
-      <div role="alert" className="flex flex-col items-start gap-3">
-        <p className="text-muted">게시글을 찾지 못했어요</p>
-        <Link
-          to={PATHS.COMMUNITY_PETCARE}
-          className="text-base font-medium text-brand-500 hover:underline"
+      <div role="alert">
+        <EmptyResult
+          icon={<FileX size={32} aria-hidden="true" />}
+          title="게시글을 찾지 못했어요"
+          description="삭제되었거나 주소가 잘못되었을 수 있어요"
         >
-          우리동네 펫돌봄 목록으로
-        </Link>
+          <Link
+            to={PATHS.COMMUNITY_PETCARE}
+            className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:bg-surface-2"
+          >
+            우리동네 펫돌봄 목록으로
+          </Link>
+        </EmptyResult>
       </div>
     );
   } else {
@@ -68,10 +75,7 @@ export default function CareEditPage() {
         initial={toFormValues(post)}
         cancelTo={detailPath}
         isPending={update.isPending}
-        errorMessage={
-          update.isError &&
-          '게시글을 저장하지 못했어요. 잠시 뒤 다시 시도해 주세요'
-        }
+        submitError={update.isError ? update.error : null}
         onSubmit={handleSubmit}
         onLeave={onLeave}
         onDirtyChange={setDirty}

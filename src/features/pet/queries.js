@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import {
   keepPreviousData,
   useMutation,
@@ -8,6 +9,7 @@ import {
 import { healthKeys } from '@/features/health/queries';
 import { pointKeys } from '@/features/point/queries';
 import { getCharState } from './shared/charState';
+import { CRT_JOB_STTS } from '@/utils/petCodes';
 import {
   acceptInvitation,
   createCharacter,
@@ -63,15 +65,38 @@ export const invitationKeys = {
 export const usePets = () =>
   useQuery({ queryKey: petKeys.list(), queryFn: getPets });
 
+const CHAR_POLL_MS = 4000;
+const CHAR_POLL_LIMIT_MS = 12 * 60 * 1000;
+
 /**
  * 캐릭터 목록(GET /pixel-characters)
  * - 건강기록 히어로와 같은 키라 캐시가 하나다
+ * - isPolling이면 생성 중인 동물이 있는 동안 4초마다 다시 읽는다(처음 본 때부터 12분이 지나면 멈춤)
  */
-export const usePixelCharacters = () =>
-  useQuery({
+export const usePixelCharacters = ({ isPolling = false } = {}) => {
+  const startedAtRef = useRef(null);
+  return useQuery({
     queryKey: healthKeys.pixelCharacters,
     queryFn: getPixelCharacters,
+    refetchInterval: isPolling
+      ? ({ state }) => {
+          const isCreating = state.data?.some(
+            (item) =>
+              item.crtJobSttsCd === CRT_JOB_STTS.REQUESTED ||
+              item.crtJobSttsCd === CRT_JOB_STTS.GENERATING,
+          );
+          if (!isCreating) {
+            startedAtRef.current = null;
+            return false;
+          }
+          startedAtRef.current ??= Date.now();
+          return Date.now() - startedAtRef.current < CHAR_POLL_LIMIT_MS
+            ? CHAR_POLL_MS
+            : false;
+        }
+      : false,
   });
+};
 
 /** 동물 한 마리의 캐릭터 상태 { status, isError }, 목록 로딩 중에는 undefined */
 export const useCharState = (petSn) =>
@@ -198,15 +223,17 @@ export const usePixelCharacter = (pixelCharSn) =>
 export const useCreateCharacter = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body) => {
-      const done = createCharacter(body);
-      /** 요청 즉시 "만드는 중" 상태를 목록에 반영 */
-      qc.invalidateQueries({ queryKey: petKeys.list() });
-      return done;
-    },
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: petKeys.all });
-      qc.invalidateQueries({ queryKey: healthKeys.pixelCharacters });
+    mutationFn: createCharacter,
+    /** 목록을 다시 읽은 뒤 끝내 모달이 바로 "생성 중"으로 바뀌게 한다 */
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: healthKeys.pixelCharacters }),
+    /** 409(이미 있음·생성 중)는 상태가 달라졌을 수 있어 다시 읽는다 */
+    onError: (error) => {
+      if (
+        error.code === 'PIXEL_CHARACTER_CREATING' ||
+        error.code === 'PIXEL_CHARACTER_ALREADY_EXISTS'
+      )
+        qc.invalidateQueries({ queryKey: healthKeys.pixelCharacters });
     },
   });
 };

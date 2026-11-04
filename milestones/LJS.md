@@ -897,11 +897,12 @@
 - 이미 바뀐 것: `features/adminBreed/api.js`(가짜 응답)
 - 완료 조건 결과: 검증 `통과`(2026-11-04 1회차), 사람 확인 2026-11-04
 
-## SCR-ADM-050 펫뉴스 · 펫뉴스 API 연결 — 진행
+## SCR-ADM-050 펫뉴스 · 펫뉴스 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-050-01·02·03·05
 - 기다리는 것: 백엔드 SCR-ADM-050 펫뉴스 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/news` 행)
 - 완료 조건: `features/adminNews/api.js` 가짜를 `/api/admin/news` 실제 API로 바꿔 목록 필터, 썸네일 업로드 후 관리자 뉴스 등록·수정, 수집 기사 숨김·카테고리 변경, 분류 키워드 등록·삭제가 화면에서 동작한다. 가짜와 다른 점: 썸네일은 `POST /api/admin/news/images`(form-data `image`) → `{ atchFileSn }`로 먼저 올리고 등록·수정 본문에 `atchFileSn`을 넣는다. 목록 행에 `newsSrcCdNm` 추가
 - 이미 바뀐 것: `features/adminNews/api.js`(가짜 응답)
+- 완료 조건 결과: 검증 `통과`(2026-11-04 1회차), 사람 확인 2026-11-04
 
 ## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-023-01·02·04·06
