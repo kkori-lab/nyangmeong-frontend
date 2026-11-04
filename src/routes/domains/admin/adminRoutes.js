@@ -9,6 +9,7 @@ const AdminBatchesPage = lazy(() => import('@/pages/admin/AdminBatchesPage'));
 const AdminCareMissionsPage = lazy(
   () => import('@/pages/admin/AdminCareMissionsPage'),
 );
+const AdminPointsPage = lazy(() => import('@/pages/admin/AdminPointsPage'));
 const AdminExternalApiUsagePage = lazy(
   () => import('@/pages/admin/AdminExternalApiUsagePage'),
 );
@@ -94,6 +95,7 @@ export default [
       { path: PATHS.ADMIN_INQUIRY_DETAIL, Component: AdminInquiryDetailPage },
       { path: PATHS.ADMIN_ITEMS, Component: AdminItemsPage },
       { path: PATHS.ADMIN_CARE_MISSIONS, Component: AdminCareMissionsPage },
+      { path: PATHS.ADMIN_POINTS, Component: AdminPointsPage },
       {
         path: PATHS.ADMIN_NOTIFICATION_TEMPLATES,
         Component: AdminNotificationTemplatesPage,
