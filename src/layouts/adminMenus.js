@@ -68,12 +68,6 @@ export const ADMIN_MENUS = [
     ],
   },
   {
-    label: '장소 관리',
-    items: [
-      { label: '장소', screenId: 'SCR-ADM-060', pathKey: 'ADMIN_PLACES' },
-    ],
-  },
-  {
     label: '캐릭터·리워드',
     items: [
       { label: '아이템', screenId: 'SCR-ADM-070', pathKey: 'ADMIN_ITEMS' },
