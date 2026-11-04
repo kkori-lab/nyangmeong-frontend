@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { PATHS } from '@/routes/paths';
 
 const AdminAdminsPage = lazy(() => import('@/pages/admin/AdminAdminsPage'));
+const AdminAiRoutesPage = lazy(() => import('@/pages/admin/AdminAiRoutesPage'));
 const AdminAuditLogsPage = lazy(
   () => import('@/pages/admin/AdminAuditLogsPage'),
 );
@@ -9,6 +10,7 @@ const AdminBatchesPage = lazy(() => import('@/pages/admin/AdminBatchesPage'));
 const AdminCareMissionsPage = lazy(
   () => import('@/pages/admin/AdminCareMissionsPage'),
 );
+const AdminPointsPage = lazy(() => import('@/pages/admin/AdminPointsPage'));
 const AdminExternalApiUsagePage = lazy(
   () => import('@/pages/admin/AdminExternalApiUsagePage'),
 );
@@ -94,6 +96,8 @@ export default [
       { path: PATHS.ADMIN_INQUIRY_DETAIL, Component: AdminInquiryDetailPage },
       { path: PATHS.ADMIN_ITEMS, Component: AdminItemsPage },
       { path: PATHS.ADMIN_CARE_MISSIONS, Component: AdminCareMissionsPage },
+      { path: PATHS.ADMIN_POINTS, Component: AdminPointsPage },
+      { path: PATHS.ADMIN_AI_ROUTES, Component: AdminAiRoutesPage },
       {
         path: PATHS.ADMIN_NOTIFICATION_TEMPLATES,
         Component: AdminNotificationTemplatesPage,
