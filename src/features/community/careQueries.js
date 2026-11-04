@@ -9,10 +9,9 @@ import {
   deleteCare,
   getCare,
   getCareList,
-  reportCare,
-  toggleCareLike,
   updateCare,
 } from './careApi';
+import { reportPost, togglePostLike } from './api';
 
 export const careKeys = {
   all: ['care'],
@@ -46,8 +45,19 @@ const useInvalidatingMutation = (mutationFn) => {
 
 export const useCreateCare = () => useInvalidatingMutation(createCare);
 export const useUpdateCare = () => useInvalidatingMutation(updateCare);
-export const useDeleteCare = () => useInvalidatingMutation(deleteCare);
-export const useToggleCareLike = () => useInvalidatingMutation(toggleCareLike);
+/**
+ * 삭제는 목록만 다시 받는다: 상세까지 받으면 삭제한 글이 404가 되어
+ * 상세가 오류 화면으로 바뀌고 삭제 뒤 이동·토스트(mutate의 onSuccess)가 불리지 않는다
+ */
+export const useDeleteCare = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteCare,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [...careKeys.all, 'list'] }),
+  });
+};
+export const useToggleCareLike = () => useInvalidatingMutation(togglePostLike);
 
 /** 신고는 화면이 바뀌지 않아 재조회 없음 */
-export const useReportCare = () => useMutation({ mutationFn: reportCare });
+export const useReportCare = () => useMutation({ mutationFn: reportPost });

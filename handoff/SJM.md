@@ -2,16 +2,19 @@
 
 ## 지금 하는 것
 
-SCR-MYP-040 회원정보 수정 · 회원 조회와 본인 확인·비밀번호 변경 API 연결 — 끝 (2026-11-04, 검증 판정 통과 3회차, 사람 확인 완료). lint·build 종료 코드 0. 기획은 `milestones/SJM.md`의 같은 이름 절
-- 한 것: `GET /members/me`·`POST /members/me/password-verification`·`PATCH /members/me/password` 연결, SNS 판정을 `joinPathCd`(USRC0006 아님)로, 새 비밀번호 검사를 서버 규칙(영문+숫자 ASCII 8~64자)으로, 안내 문구 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)"
-- 검증 3회 중 1·2회차 실패: 번호 없는 회원(`mblTelno` null)에서 흰 화면, 검증 계정 비밀번호 상태 불일치(코드 문제 아님). 둘 다 해소
-- 검증 계정 비밀번호는 사람이 복구 UPDATE로 되돌렸다(2026-11-04)
+SCR-MYP-010 픽셀 캐릭터 관리 · [장착] 뒤 착용 모습 대표 이미지 저장 — 끝 (2026-11-04, 검증 판정 `통과` 1회차, 사람 확인 완료). lint·build 종료 코드 0. 기획은 `milestones/SJM.md`의 같은 이름 절
 
-### 추가 요청
-| 추가-1 (사람 요청 2026-11-04) | src/features/member/profile/PhoneField.jsx | 화면: 번호가 없는 회원(MBR_SN 9)은 번호 칸에 "미등록" | 요청 2026-11-04 "휴대폰 번호가 없을 때는 빈 칸 대신 '미등록'으로 보여 주세요" |
+- 한 것: [장착]으로 착용 저장(`PUT equipped-items`)이 성공하면 착용 아이템이 있을 때만 `POST /ai/characters/{n}/equipped-image`(같은 `itemSns`)를 기다리지 않고 부르고, 끝나면 성공·실패와 상관없이 그 동물의 `character-image`(전신·얼굴)를 다시 읽는다. 아이템 0개면 AI를 부르지 않고 다시 읽기만 한다. 실패 토스트는 없다. `api.js`·`queries.js`·`CharacterDecorate.jsx`
+- 확인 범위: `equipped-image`를 가로채 200·409로 확인함(사람 결정: 새로 생성하지 않음, `CHARACTER_BAKE_ENABLED=false`). 탄이(pixelCharSn 2)는 몸 시트가 없어 실제 응답은 404 `PIXEL_CHARACTER_NOT_FOUND`였고 실패 처리는 같다. 실제 착용 이미지 표시는 확인하지 못했다
+- 검증 계정 정리: 탄이의 착용을 바꿔 확인했고 원래 상태(`hldItemSn` 5 착용, 4 해제)로 되돌려 조회로 확인함. 복구 SQL 없음
 
 ## 다음에 할 것
-- SCR-MYP-010 1단계 뒤 남음: (a) 3단계 선행: `GET /pixel-characters`에 결과 유무 필드 추가(`rsltYn` 등, LJS 요청)와 FN-MYP-010-12 [캐릭터 만들기] 재노출·실패 안내 문구 확인(LJS) (b) 공용 파일 변경 알림: `components/PetFace.jsx`의 입력이 `chrcSttsCd`에서 `isError`로, `utils/petCodes.js`에 `CRT_JOB_STTS` 추가(LJS), `SummaryHero.jsx`(JAJ), `MainPage.jsx` `PetChip`을 `PetFace`로(YAY). 메인 대표 판별 `rprsYn === 'Y'`는 `rprsPetYn`으로(YAY) (c) 가계부 두 건은 1단계 뒤 따로 기획: 영수증 OCR `ckupYmd` null이면 지출 날짜 기본값(모달 날짜 vs 오늘은 기획 때 정함), 가계부 출처 영수증 다시 열기는 `GET /receipts/{recptSn}`이 `petSn` 필수라 LJS가 고칠 때까지 없이 진행 (d) 다음은 2단계(꾸미기·상점을 실제 API로)
+- SCR-MYP-010 [장착] 대표 이미지 연결 남음(LJS): 실제 착용 이미지 표시 확인. `CHARACTER_BAKE_ENABLED`가 켜지고 아이템이 구워진 뒤 LJS와 함께 `/mypage/characters`·홈 얼굴이 착용 모습인지 확인한다(그때까지 `equipped-image`는 409 `ITEM_BAKING`)
+- SCR-MYP-010 2단계: 아이템을 입힌 합성 미리보기 굽기는 LJS(`CHARACTER_BAKE_ENABLED`). 안 구운 아이템은 미리보기·대표 이미지 모두 409 `ITEM_BAKING`
+- SCR-MYP-010 3단계 팀에 확인: 확인용 동물 털색을 "흰색"으로 등록했는데 생성 캐릭터는 검은 강아지였다(사진을 따른 것으로 보임). 서버가 털색을 결과에 반영하는지 LJS에 확인한다. 안내 문구(사진 형식·용량, 중복 생성·주양육자만·실패 토스트)는 설계서에 없어 새로 썼다
+- SCR-MYP-010 2단계 팀 알림/확인: 공용 `utils/petCodes.js`의 `ITEM_PART`가 `MYPC0001~0005`로 바뀌었다(LJS 알림). 서버 상점이 `MYPC0006` 신발 4개도 주는데 프론트 부위는 5개라 [전체] 탭에만 나오고 담으면 부위 이름이 빈칸이다(사람 화면에는 신발이 없다고 함, 서버 DB가 다른지 확인). 상점 보유 포인트(`PointFake` 8,450 고정, 홈 2,049·상점 2,089 화면 값과 불일치)는 `PointService.use` 연결(LJS, 백엔드 마일스톤에 있음) 뒤 맞춘다. 꾸미기 [오류 문의] 판정 `pet.inqryRcptYn === 'Y'`는 서버 상세의 `inqryRcptYn`(boolean)으로 바꿀지 3단계에서 정한다
+- 문서 할 일(코드 아님, 기능명세서 담당): FN-MYP-010-13 "아이템은 부위별 이미지를 고정 좌표로 겹쳐 표시…" 문장을 서버 합성 방식(`POST /ai/characters/{pixelCharSn}/preview`가 만든 PNG를 보여 줌)으로, FN-MYP-010-17(규격 고정)·018(규격 일관성 검증)·019(규격 미확보 시 대체)를 서버 합성 방식에 맞게 고치거나 삭제 여부를 정한다. 상점 미리보기 설계서 확인 결과가 다르면 FN-MYP-011-01도 함께
+- SCR-MYP-010 1단계 뒤 남음: (a) 3단계 기다리는 것: 재생성 실패 뒤 다시 처리: LJS와 결정됨(자동 재시도 없음, 관리자 화면에서 같은 문의 재생성 허용, LJS 담당, SJM 할 일 없음. 재생성 실패·시간 초과여도 `BSC_CHAR_SBST_YN`은 'Y'라 "오류 확인 중" 판정은 그대로 둔다)과 FN-MYP-010-12 첫 생성 실패의 [캐릭터 만들기] 재노출·실패 안내 문구 확인(LJS) (b) 공용 파일 변경 알림: `components/PetFace.jsx`의 입력이 `chrcSttsCd`에서 `isError`로, `utils/petCodes.js`에 `CRT_JOB_STTS` 추가(LJS), `SummaryHero.jsx`(JAJ), `MainPage.jsx` `PetChip`을 `PetFace`로(YAY). 메인 대표 판별 `rprsYn === 'Y'`는 `rprsPetYn`으로(YAY) (c) 가계부 두 건은 1단계 뒤 따로 기획: 영수증 OCR `ckupYmd` null이면 지출 날짜 기본값(모달 날짜 vs 오늘은 기획 때 정함), 가계부 출처 영수증 다시 열기는 `GET /receipts/{recptSn}`이 `petSn` 필수라 LJS가 고칠 때까지 없이 진행 (d) 다음은 2단계(꾸미기·상점을 실제 API로)
 - SCR-MYP-030 팀에 확인: (a) 일괄 삭제 뒤에도 편집 모드가 유지된다(`handleDeleted`는 선택만 비운다). 명세 FN-MYP-030-21은 "목록·합계·통계에 즉시 반영"만 적고 편집 종료는 말하지 않는다 (b) 현재 쪽 [전체 선택]이 일부만 선택됐을 때 중간 상태(−) 표시가 없다(기존 동작, 명세에도 없음)
 - SCR-MYP-030 시드 데이터: `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(회원 1, 2026-10-05, 병원, 공용(PET_SN NULL), 42,000원)은 "병원은 공용 불가" 규칙에 어긋난다. 서버는 등록·수정(PATCH) 모두 `EXPENSE_PET_REQUIRED`로 막고 있어(`ExpenseService.validate`·`update`) 서버 수정은 필요 없다. 시드의 `PET_SN`을 채우거나 카테고리를 바꾼다(백엔드 저장소). 이 행은 수정 모달에서 반려동물을 고르기 전에는 저장되지 않는다
 - SCR-MYP-030 미래 날짜(사람 결정 2026-11-02: 오늘(KST)까지만 허용): 프론트는 추가-1로 반영됐다. 백엔드 저장소에서 `/start`로 `POST /expenses`·`PATCH /expenses/{expndSn}`(`ExpenseService.validate`·`update`)에 `EXPND_YMD > 오늘(KST)`이면 400(`INVALID_INPUT_VALUE`)을 추가한다. 서버가 막기 전에는 API를 직접 부르면 미래 날짜가 저장된다

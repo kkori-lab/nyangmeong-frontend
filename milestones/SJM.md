@@ -70,12 +70,12 @@
 - 완료 조건: 5명이 찬 동물은 체크박스가 비활성이다. 보낸 초대의 대기중 항목에 만료 예정일이 보인다
 - 연결 남음: FN-MYP-005-01~08 초대 API (SJM 백엔드, 지금은 가짜 응답), FN-MYP-005-01 알림·메일 발송 (알림 저장 YAY)
 
-## SCR-MYP-010 픽셀 캐릭터 관리 — 다시 엶 (아래 1~3단계로 진행)
+## SCR-MYP-010 픽셀 캐릭터 관리 — 끝 (1~3단계 모두 끝)
 
 - 기능: FN-MYP-010-01 탭 구성, FN-MYP-010-02 내 캐릭터 목록, FN-MYP-010-03 캐릭터 만들기, FN-MYP-010-04 생성 상한, FN-MYP-010-05 대표 반려동물 지정, FN-MYP-010-07 공동양육 탭, FN-MYP-010-08 1단계·사진 첨부, FN-MYP-010-09 2단계·생성 중, FN-MYP-010-10 3단계·결과 확인, FN-MYP-010-12 생성 실패 시 대체, FN-MYP-010-13 미리보기·부위 슬롯, FN-MYP-010-14 보관함·카테고리 탭, FN-MYP-010-15 아이템 상점 열기, FN-MYP-010-16 되돌리기·장착, FN-MYP-010-17 캐릭터 규격 고정, FN-MYP-010-18 규격 일관성 검증, FN-MYP-010-19 규격 미확보 시 대체, FN-MYP-010-22 0마리 안내, FN-MYP-010-23 생성 오류 처리, FN-MYP-010-24 오류 문의
 - API가 남의 것: FN-MYP-010-01~04·07~24 (LJS). 010-05 대표 지정은 SJM
 - 기다리는 것: pet 캐릭터 이미지 조회 (LJS), notification 알림 저장 (YAY), 고객센터 1:1 문의 작성 화면 (KSJ)
-- 완료 조건: 같은 부위 아이템을 고르면 기존 아이템이 해제된다. [되돌리기]는 진입 시점 착용 상태로 돌아간다. 만들기 1단계에서 품종·털색·특징이 읽기 전용으로 보이고, 생성 요청에 털색(`colrCd`, 직접 입력이면 `colrDrctInptNm`)이 들어간다
+- 완료 조건: 같은 부위 아이템을 고르면 기존 아이템이 해제된다. [되돌리기]는 진입 시점 착용 상태로 돌아간다. 만들기 1단계에서 품종·털색·특징이 읽기 전용으로 보이고, 생성 요청은 사진과 `petSn`만 보낸다(품종·털색·특징은 서버가 등록값을 읽는다)
 - 연결 남음: FN-MYP-010-08~10·12~14·16 캐릭터 생성·아이템·착용 API (LJS, 머지됨. 아래 1~3단계로 연결), FN-MYP-010-05 대표 지정 API (SJM 백엔드), FN-MYP-010-09·23 완료·오류 처리 인앱 알림 (알림 저장 LJS), FN-MYP-010-24 문의 작성 화면 미리 채우기 (KSJ)
 
 ## SCR-MYP-011 아이템 상점 모달 — 끝
@@ -197,18 +197,58 @@
 - 기다리는 것: 백엔드 `GET /pixel-characters`, `GET /pets/{petSn}/character-image` (LJS, 머지됨)
 - 완료 조건: 목록은 `GET /pixel-characters`로 읽고(`GET /pets`에 키를 더하지 않는다), 상태는 `pixelCharSn` 유무 + `crtJobSttsCd`(CHRC0002 생성 중·0003 완료·0004 실패) + `bscCharSbstYn`으로 판정한다. `chrcSttsCd`·`chrcImgUrl` 의존을 PetFace·SummaryHero·PetMiniCard·PetSlide·PetProfileCard·InvitationAccept·CharacterCard·WearPreview에서 없앤다. 완료 카드를 누르면 꾸미기로 들어간다
 - 이 단계에서 꾸미기 상세·아이템은 가짜 그대로
-- 연결 남음: FN-MYP-010-12 재생성만 실패한 동물의 [캐릭터 만들기] 노출 (`GET /pixel-characters`에 결과 유무 필드 `rsltYn` 등, LJS 요청. 지금은 `CHRC0004`면 캐릭터 없음으로 봄)
 - 연결 남음: FN-MYP-010-12 첫 생성 실패의 [캐릭터 만들기] 재노출·실패 안내 문구 (기능명세서 확인, LJS)
 
-## SCR-MYP-010 픽셀 캐릭터 관리 · 2단계 꾸미기·상점을 실제 API로 — 기획 대기
+## SCR-MYP-010 픽셀 캐릭터 관리 · 2단계 꾸미기·상점을 실제 API로 — 끝
 
 - 기능: FN-MYP-010-13·14·16, FN-MYP-011-01~06과 걸친다
-- 기다리는 것: 1단계 끝, 백엔드 `GET /pixel-characters/{pixelCharSn}`, `…/shop-items`, `POST …/held-items`, `PUT …/equipped-items` (LJS, 머지됨)
+- 기다리는 것: 1단계 끝, 백엔드 `GET /pixel-characters/{pixelCharSn}`, `…/shop-items`, `POST …/held-items`, `PUT …/equipped-items` (LJS, 머지됨), AI 서버 `POST /ai/characters/{pixelCharSn}/preview` (LJS, `nyangmeong-ai` origin/develop f1ef7c0에 머지됨을 2026-11-04 확인)
+- 기다리는 것: character-image 착용 합성 반영(LJS) — 반영되면 착용 저장 후 이미지 새로 불러오기 추가
 - 완료 조건: 꾸미기 상세·보유·상점·구매·착용 저장이 실제 요청을 부르고 `POINT_NOT_ENOUGH`(400)·`PET_PRIMARY_ONLY`(403)·`ITEM_ALREADY_HELD`(409)를 처리한다. `fakeItems`·`SHOP_ITEMS`를 지운다
+- 연결 남음: FN-MYP-010-13·FN-MYP-011-01 실제 합성 이미지 확인은 3단계 생성 후 실제 캐릭터로 한다(LJS 의견 2026-11-04: 맨몸 시트는 캐릭터 생성 성공 때 만들어져, 지금 공용 DB의 캐릭터 1·2·3은 `BODY_SHEET_FILE_SN`이 없어 미리보기가 404 `PIXEL_CHARACTER_NOT_FOUND`)
+- 연결 남음: FN-MYP-011-05 구매 포인트 차감 (`ItemService`의 `PointFake`를 `PointService.use`로, LJS. 백엔드 마일스톤 SCR-MYP-020 연결 남음에 이미 있어 별도 절은 만들지 않음)
+- 연결 남음: FN-MYP-010-16 [장착] 뒤 `character-image` 착용 합성 반영 (LJS)
 
-## SCR-MYP-010 픽셀 캐릭터 관리 · 3단계 캐릭터 생성을 실제 API로 — 기획 대기
+## SCR-MYP-010 픽셀 캐릭터 관리 · 3단계 캐릭터 생성을 실제 API로 — 끝
 
 - 기능: FN-MYP-010-08~10·12·23·24와 걸친다
-- 기다리는 것: 2단계 끝, 백엔드 `GET /pixel-characters`에 현재 결과 유무 필드 추가(`rsltYn` 등, LJS 요청. 재생성만 실패한 동물과 첫 생성 실패를 구분해 [캐릭터 만들기] 노출을 정하는 선행 조건), AI 서버 `POST /ai/characters`. 요청 형식·인증·완료 확인 방식은 `nyangmeong-ai` 코드에서 먼저 정리하고, 코드로 확인되지 않는 것은 "LJS 확인 필요"로 적는다
+- 기다리는 것: 2단계 닫음(미리보기 확인은 이 단계 뒤로 미룸), 재생성 실패 뒤 다시 처리: LJS와 결정됨(자동 재시도 없음, 관리자 화면에서 같은 문의 재생성 허용, LJS 담당, SJM 할 일 없음. 재생성이 실패하거나 시간 초과로 끝나도 `BSC_CHAR_SBST_YN`은 'Y'로 유지돼 지금 판정대로 "오류 확인 중"을 보여 주면 되고 [캐릭터 만들기]가 잘못 뜨지 않는다), AI 서버 `POST /ai/characters`. 요청 형식·인증·완료 확인 방식은 `nyangmeong-ai` 코드에서 먼저 정리하고, 코드로 확인되지 않는 것은 "LJS 확인 필요"로 적는다
 - 완료 조건: `createCharacter` 가짜와 `?fake=fail`을 지우고 실제 요청으로 생성·완료·실패가 이어진다
 
+사전 조사(2026-11-04, `nyangmeong-ai` origin/develop f1ef7c0 `docs/api/character.md`·`app/character/{router,service}.py`·`app/core/image.py`, 백엔드 `PixelCharacterService`·`CharacterCreationService`)
+- 요청: `POST /ai/characters` multipart/form-data, 필드는 `photo`(파일)와 `petSn`(Long) 둘뿐이다. 품종·털색·특징은 보내지 않는다(보내도 안 쓴다. 서버가 Java에서 등록값을 읽는다). 그래서 현재 `createCharacter({ petSn, photo, colrCd, colrDrctInptNm })`의 `colrCd`·`colrDrctInptNm`은 보내지 않는다(`CharacterCreateModal`의 인자도 정리). 사진은 jpg·jpeg·png·webp, 10MB 이하, 확장자와 파일 시그니처가 같아야 한다(PDF 불가)
+- 인증: 쿠키 `access_token`을 AI 서버가 Java `/internal/auth/check`로 확인하고 `X-Requested-With: XMLHttpRequest` 필수. `aiApi`(`src/api/axios.js`)가 이미 헤더를 붙이고 `/ai` 프록시도 있어 추가 설정 없음
+- 응답: 202 `{ charCrtJobSn }`. 생성은 응답 뒤 백그라운드로 돈다
+- 오류: 400 `FILE_TYPE_NOT_ALLOWED`·`FILE_SIZE_EXCEEDED`·`INVALID_REQUEST`(`petSn`·`photo` 없음), 502 `EXTERNAL_API_ERROR`(생성기 없음·Java 연결 실패), Java 4xx 그대로: 주양육자 아님(`PET_PRIMARY_ONLY` 403), 이미 캐릭터 있음(`PIXEL_CHARACTER_ALREADY_EXISTS` 409), 생성 중(`PIXEL_CHARACTER_CREATING` 409)
+- 완료 확인: 웹소켓·SSE 없음. 프론트는 `GET /pixel-characters`의 `crtJobSttsCd`를 폴링한다(CHRC0002 생성 중 → 0003 완료 / 0004 실패). 보고에는 `charCrtJobSn`이 없고 목록 항목에는 작업 번호가 없어 동물(`petSn`)별 상태로 본다. 생성이 끝나면 Java가 인앱 알림(`NotificationType.CHARACTER`)을 만든다. 멈춘 작업은 Java가 10분(`TIMEOUT_MINUTES`)에 정리해 실패로 돌린다. 폴링 간격·중단 조건은 기획 때 정한다(추천: 생성 중일 때만 3~5초, 12분 상한)
+- 성공 보고(`report_success`)가 몸 시트(`BODY_SHEET_FILE_SN`)를 저장한다 → 2단계 미리보기 실제 확인의 선행 조건. 지금 `CHARACTER_BAKE_ENABLED=false`라 생성 직후 아이템 굽기는 안 한다(안 구운 아이템은 미리보기에서 `ITEM_BAKING`)
+- 확인용 동물: tester(mbrSn 1)의 주양육 동물은 까미(1)·?(2)·루루(3)이고 모두 캐릭터 행이 있다(1·2는 `CHRC0003`, 루루는 `CHRC0004` 실패+기본 캐릭터). 서버는 `CHAR_PHOTO` 현재 사진이 없으면 다시 만들게 해 준다(`checkCreatable`). 캐릭터 없는 주양육 동물은 없다. 제안은 보고 참고
+
+### 3단계 기획 (2026-11-04 작성, 2단계를 `/end`로 닫은 뒤 `/start`가 "지금 하는 것"으로 옮긴다)
+
+기준: 마이페이지_기능명세서_v0.5_20261101 FN-MYP-010-08~10·12·23, `nyangmeong-ai` origin/develop f1ef7c0 `docs/api/character.md`. 디자인: 화면 변경 없음(기존 `CharacterCreateModal` 1~4단계 레이아웃 유지, 데이터만 실제로)
+
+- 공통: `src/features/pet/api.js`의 `createCharacter`를 `aiApi.post('/characters', FormData{ photo, petSn })`로 바꾼다(202 `{ charCrtJobSn }`). **`colrCd`·`colrDrctInptNm`은 보내지 않고 인자에서 뺀다**(`CharacterCreateModal`의 호출부도). 가짜 `createCharacter`와 `?fake=fail`, 이로써 쓰는 곳이 없어지는 `fakePets`·`basePet`·`FAKE_CREATE_MS`·`getQueryParam`·미사용 import를 지운다 | 명령: `grep -nE "fakePets|FAKE_CREATE_MS|fake=" src/features/pet` 0줄, `yarn -s lint`, `yarn -s build` 종료 코드 0
+- FN-MYP-010-08 사진 첨부: `CharacterCreateModal.jsx`에서 선택 직후 검사 — jpg·jpeg·png·webp가 아니면 "jpg, png, webp 사진만 올릴 수 있어요", 10MB 초과면 "10MB 이하 사진만 올릴 수 있어요"를 입력 아래에 보이고 [만들기]는 비활성(`accept`도 `.jpg,.jpeg,.png,.webp`). 문구는 설계서에 없어 새로 썼다 | 화면: 새 반려동물로 `.gif` 또는 11MB 파일을 고르면 문구가 뜨고 요청이 나가지 않는다(Network에 `/ai/characters` 없음). 정상 사진은 파일명이 보이고 [만들기] 활성
+- FN-MYP-010-09 생성 요청·생성 중: `queries.js` `useCreateCharacter`의 `mutationFn`을 위 요청으로, `onSuccess`에서 `healthKeys.pixelCharacters`를 무효화하고 그 Promise를 반환해(목록을 다시 읽은 뒤 완료) 모달이 바로 "생성 중"으로 바뀌게 한다. Java가 202 전에 작업을 `CHRC0002`로 올리므로 목록에 곧바로 생성 중이 나온다 | 화면: [만들기] 직후 Network `POST /ai/characters` 202, 모달이 "…만들고 있어요", 카드는 "생성 중". 창을 닫아도 계속된다
+- FN-MYP-010-09 완료 확인(폴링): `queries.js` `usePixelCharacters`에 `refetchInterval` 함수를 둔다 — 목록에 생성 중(`REQUESTED`·`GENERATING`)인 동물이 있을 때만 4초 간격, 처음 생성 중을 본 시점부터 12분이 지나면 멈춘다(`useRef`에 시작 시각, 생성 중이 없어지면 초기화). 이 화면(`CharacterPage`)에서만 돈다. 다른 화면은 알림으로 알린다(서버) | 화면: 생성 중에 Network에 `GET /pixel-characters`가 4초쯤 간격으로 나가고, 완료(`CHRC0003`)되면 멈춘다. 12분 상한은 코드 검토로 확인(실제로 12분 기다리지 않는다)
+- FN-MYP-010-10·12·23 결과: `CharacterPage`가 모달에 `pet` 스냅샷(`creatingPet`)이 아니라 `petSn`만 넘기고 최신 목록의 같은 동물을 찾아 준다. 모달은 요청 성공 뒤 `charStatus`로 단계를 정한다 — `DONE`이고 오류 확인 중이 아니면 "완성" 단계(결과 이미지는 `useCharacterImage(petSn, 'full')`, 없으면 기존 아이콘), 생성 중이었다가 `NONE`(`CHRC0004`·10분 서버 정리 포함)이면 "만들지 못했어요" 단계, `isCharError`(오류 확인 중)면 기존 실패/문의 안내 | 화면: 실제 생성이 끝나면 모달이 완성 단계로 바뀌고 카드 이미지가 실제 캐릭터로 바뀐다. 실패는 가로채기(Playwright route)로 `crtJobSttsCd: CHRC0004` 응답을 줘서 확인
+- 요청 오류: 400 `FILE_TYPE_NOT_ALLOWED`·`FILE_SIZE_EXCEEDED`는 "사진 첨부" 단계에 머물며 위 문구, 409 `PIXEL_CHARACTER_CREATING`·`PIXEL_CHARACTER_ALREADY_EXISTS`는 목록을 다시 읽고 모달을 닫으며 토스트 "이미 캐릭터를 만들었거나 만드는 중이에요", 403 `PET_PRIMARY_ONLY`는 토스트 "주양육자만 만들 수 있어요", 502 `EXTERNAL_API_ERROR`와 그 밖은 "캐릭터를 만들지 못했어요" 단계. 문구는 설계서에 없어 새로 썼다 | 화면: 가로채기로 각 코드를 주고 위 동작을 확인
+- 이번엔 안 함: FN-MYP-010-24 오류 문의 미리 채우기(KSJ, 기존 유지), 생성 완료·오류 인앱 알림(서버), 재생성 실패 뒤 다시 처리(LJS와 결정됨: 자동 재시도 없음, 관리자 화면에서 같은 문의 재생성 허용, LJS 담당, SJM 할 일 없음), 대표 지정 API
+- 2단계 연결 남음 확인(생성 뒤): 새 동물의 꾸미기 → `POST /ai/characters/{pixelCharSn}/preview`에 `{"itemSns":[]}` → 200 PNG(맨몸)가 뜨는지. 아이템을 입힌 합성은 AI 저장소 `CHARACTER_BAKE_ENABLED=false`라 안 구운 아이템이 `ITEM_BAKING`이다(위 결정)
+
+확인용 동물과 정리 (공용 DB에 실제로 쓴다)
+- 루루(PET_SN 3)는 쓰지 않는다(오류 확인 중 확인용). 화면에서 tester(mbrSn 1)로 확인용 반려동물을 새로 등록하고(이름 예 `생성확인`, 강아지, 필수 값만, 등록 후 `PET_SN`을 보고에 적는다) 캐릭터 관리의 [캐릭터 만들기]로 실제 생성한다. 생성 1회마다 OpenAI 이미지 API 비용이 든다(실패 경로는 가로채기로만 확인해 추가 호출 없음)
+- 정리: 화면에서 그 반려동물을 삭제한다(`DELETE /pets/{petSn}`). 삭제는 소프트 삭제라 행은 남는다 — `PET`·`PIXEL_CHAR`·`CHAR_PHOTO`·`CHAR_CRT_JOB`·`CHAR_ITEM_SHEET`·`HLD_ITEM`(구매했다면)이 `DEL_YN='Y'`로 남고, `BRUP_REL`(양육관계)은 행이 남는다. 첨부 파일(`ATCH_FILE`의 올린 사진·몸 시트)과 생성 완료 인앱 알림(`CHARACTER`)도 그대로 남는다. 보고의 "정리"에 등록한 `PET_SN`과 이 목록을 적는다. 다시 보이게 하려면 `UPDATE PET SET DEL_YN='N' WHERE PET_SN=<번호>` 식으로 되돌리지 않는다(확인용이라 되돌릴 필요 없음). 새 동물은 대표가 아니라 대표 승계가 일어나지 않는다
+- 새 의존성: 없음
+
+결정: 확인용 사진은 사람이 준 강아지 정면 사진(로컬 파일)으로 확인함
+결정: 아이템 미리보기는 맨몸만 확인하고 합성은 LJS(`CHARACTER_BAKE_ENABLED=false` 유지)
+- 연결 남음: 없음(3단계 안). 착용 합성 반영 뒤 [장착] 이미지 새로 불러오기는 2단계 절·핸드오프에 있음
+
+## SCR-MYP-010 픽셀 캐릭터 관리 · [장착] 뒤 착용 모습 대표 이미지 저장 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. FN-MYP-010-16(장착)·FN-MYP-010-13과 걸친다. 2단계 절의 "연결 남음: FN-MYP-010-16 [장착] 뒤 `character-image` 착용 합성 반영"을 닫는다
+- 기다리는 것: AI 서버 `POST /ai/characters/{pixelCharSn}/equipped-image`(LJS, `nyangmeong-ai` origin/develop 27b1496 PR #37 머지), 백엔드 `PUT /internal/ai/characters/{pixelCharSn}/equipped-image`·`character-image` 저장본 우선(LJS, 백엔드 origin/develop 97f6d5e PR #149 머지, 공용 DB v0.13 (1) 실행됨)
+- 완료 조건: [장착] 성공 뒤 같은 착용 아이템 번호(`itemSns`)로 AI 서버 대표 이미지 저장을 부르고, 끝나면(200·409 모두) 그 동물의 `character-image`(전신·얼굴) 캐시를 다시 읽고 실패 토스트는 없다. 아이템 0개면 AI를 부르지 않는다. 화면은 `equipped-image` 가로채기로 확인한다(`CHARACTER_BAKE_ENABLED=false`라 실제로는 409 `ITEM_BAKING`)
+- 연결 남음: FN-MYP-010-16 실제 착용 이미지 표시(꾸미기 밖 화면) 확인 (굽기 `CHARACTER_BAKE_ENABLED` 켜짐, LJS)
