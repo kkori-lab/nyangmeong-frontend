@@ -2,11 +2,46 @@
 
 ## 지금 하는 것
 
-SCR-ADM-090 알림 템플릿 · 목록·등록·수정 연결 — 끝 (2026-11-03, 검증 `통과` 1회차, 사람 확인). `features/adminNotificationTemplate` 가짜 응답을 실제 `GET·POST·PATCH /api/admin/notification-templates`로 바꾸고, `useYn`을 boolean으로, 케어 일정(AIMC0008) 외 유형 행은 [등록] 없이 "기본 문구"만 보이게 했다
+SCR-ADM-001 대시보드 — 끝 (2026-11-04, 가짜 응답으로 검증 통과·사람 확인)
 
 ## 다음에 할 것
 
-- SCR-ADM-090 검증 오류 메시지 구체화(마일스톤 `대기`, 사람 요청 2026-11-03): 모르는 치환 변수를 넣으면 "입력값이 올바르지 않습니다."만 보여 무엇이 문제인지 알 수 없다. 저장 전에 칸·변수 이름을 보이게 한다
+- SCR-ADM-001 연결 남음: FN-ADM-001-02·03 (백엔드 연결 `GET /api/admin/dashboard`(운영 현황 `totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs`·`recentPsts`, 처리 대기 `dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`, 가정 필드), 백엔드 저장소에서 /start). 나오면 `features/adminDashboard/api.js` 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-001 연결 남음: FN-ADM-001-04·05 (백엔드 연결 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(`daily`[`ymd`·`joinCnt`·`whdwlCnt`·`aiChatCnt`·`ocrRqstCnt`]·`pstCntByBbs`·`expnsCntByCtgry`·`petDstrb`·`fvrtPlcs`, 가정 필드, 최대 90일), 백엔드 저장소에서 /start)
+- SCR-ADM-001 사람이 볼 것(판정 밖): ① 캐릭터 생성 실패 링크의 `jobSttsCd=TMP00044`는 SCR-ADM-082와 같은 임시 코드 ② 실패한 배치는 배치 화면에 실패 필터가 없어 필터 없이 간다 ③ 스켈레톤은 검증에서 코드로만 확인했다
+
+- SCR-ADM-082 연결 남음: FN-ADM-082-01 (백엔드 연결 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrRqstSrcCd=&ocrPrcsSttsCd=&page=`(summary `totCnt`·`scsCnt`·`failCnt`·`prcsCnt` 가정)·`GET /api/admin/processing/receipts/{recptSn}/image`, 가계부 출처 코드(지금 임시 `TMP00031`), 백엔드 저장소에서 /start). 나오면 `features/adminProcessing/api.js` 가짜 본문만 실제 요청으로, 코드는 `processingLabels.js`에서 맞춘다
+- SCR-ADM-082 연결 남음: FN-ADM-082-02 (백엔드 연결 `GET /api/admin/processing/character-jobs?jobSttsCd=&page=`(`sttsCnts` 가정)·CHAR_CRT_JOB 상태 공통코드(지금 임시 `TMP00041~44`), 백엔드 저장소에서 /start)
+- SCR-ADM-082 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=`(summary `totCnt`·`scsCnt`·`tmotCnt`·`errCnt` 가정)·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
+- SCR-ADM-082 사람이 볼 것(판정 밖): ① `routes/paths.js`에 `ADMIN_PROCESSING`을 기능 커밋에 같이 넣었다(사람 2026-11-04 추천안대로) ② 대시보드 링크는 `?tab=ocr&ocrPrcsSttsCd=AIMC0004`(기획의 `status=`를 서버 키 이름으로 고침) ③ 스켈레톤 높이는 브라우저로 재지 않고 계산한 값 ④ 가짜 영수증 성공·처리 중 코드 AIMC0003·0002는 가정(AIMG01에서 확인된 것은 인식 실패 AIMC0004뿐)
+- SCR-ADM-081 연결 남음: FN-ADM-081-01·02 (백엔드 연결 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`·`POST /api/admin/ai/keywords`·`PATCH`·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`, 새 행 `sortSeq` 규칙(가정: 그 탭 맨 아래), 백엔드 저장소에서 /start). 나오면 `features/adminAiKeyword/api.js` 가짜 본문(sessionStorage `fakeAdminAiKeywords`)만 실제 요청으로, 코드 선택지는 `keywordLabels.js`에서 맞춘다
+- SCR-ADM-081 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start. 지금 가짜 가계부 3행은 예시)
+- SCR-ADM-081 연결 남음: AI 서버가 사전을 DB 조회 API로 읽기(백엔드 조회 API는 백엔드 저장소, AI 서버 전환은 ai 저장소). 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다. 가계부 분류는 지금 OCR(`ai/app/ocr/clients.py`)의 고정 표가 쓴다
+- SCR-ADM-081 사람이 볼 것(판정 밖): ① 화면설계서 예시 `EXPC0001` 대신 실제 코드 MYPC0012~0018(MYPG05)을 썼다 ② 글자 수는 입력을 막지 않고 칸 아래 오류로 알린다(라우팅 매핑표 모달은 `maxLength`로 막는다) ③ `routes/paths.js`에 `ADMIN_AI_KEYWORDS`를 기능 커밋에 같이 넣었다
+- SCR-ADM-081 탭·칸 이름 쉬운 말로(후순위, 사람 2026-11-04): 마일스톤 절 참고
+- SCR-ADM-080 후속(사람 2026-11-04 "나중에 수정", 같은 날 "후순위로 미루고 화면 구현부터". 2026-11-04 기획 초안: 표에서 순위 칸을 빼고 겹치는 행에만 "'병원' 같은 지시어 3건 중 1번째" 표시, 모달 칸 이름 "같은 지시어일 때 순서", `utils/josa.js`로 조사 맞춤, 화면만 바꾸기 추천): 순위 칸이 매핑 전체 우선순위처럼 읽힌다. 실제로는 같은 길이 지시어가 겹칠 때만 쓰는 판정 기준이다. 화면만 바꾸기(순위 칸을 앞에서 빼고 겹치는 행에 표시, 칸 이름을 "같은 지시어일 때 순서"로) 또는 구조 바꾸기(지시어별 우선순위, ERD·백엔드·AI 서버) 중 정한다. 겹침 경고의 조사 "'병원'는"을 받침에 맞춘다
+- SCR-ADM-080 연결 남음: FN-ADM-080-01·02·03 (백엔드 연결 `GET /api/admin/ai/routes?q=`·`POST /api/admin/ai/routes`·`PATCH`·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`(등록·수정 본문에 `prrtSeq`, 그 자리에 넣고 나머지를 민다), 화면 ID 선택지 출처, 지시어 저장 형식(가정 쉼표 구분), `domnNm` 정하는 규칙, 백엔드 저장소에서 /start). 나오면 `features/adminAiRoute/api.js` 가짜 본문(sessionStorage `fakeAdminAiRoutes`)만 실제 요청으로, 선택지는 `routeLabels.js`에서 맞춘다
+- SCR-ADM-080 연결 남음: FN-ADM-080-04·05 (백엔드 연결 AI 서버·대화창용 조회 API와 부록 A 초기 데이터 INSERT, 백엔드 저장소에서 /start. AI 서버가 `data/routing.yaml` 대신 그 API를 읽는 것은 ai 저장소 몫)
+- SCR-ADM-080 사람이 볼 것(판정 밖): ① 화면 ID 선택지에 `docs/routes.md` ✓가 아닌 `SCR-COM-009`·`SCR-MYP-031`을 더했다(부록 A 행이 씀) ② 저장 토스트는 기획 문구 그대로 "~했습니다" 말투라 다른 관리자 화면("~했어요")과 다르다 ③ `routes/paths.js`에 `ADMIN_AI_ROUTES`를 기능 커밋에 같이 넣었다 ④ 스켈레톤 높이(3330px)는 45행 어림값
+- SCR-ADM-072 연결 남음: FN-ADM-072-01·02 (백엔드 연결 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments { mbrSn, dlngPnt, memoCn }`, 회원 보유 포인트 응답 필드, 상한(프론트 가정 1회 100,000P·사유 200자), 백엔드 저장소에서 /start). 나오면 `features/adminPoint/api.js` 가짜 본문(sessionStorage 보관, 가짜 회원 9001~9005)만 실제 요청으로, 상한은 `pointLabels.js`에서 맞춘다. FN-ADM-072-03은 그 뒤 회원 포인트 내역에 "관리자 조정"으로 보이는지 화면으로 확인
+- SCR-ADM-072 사람이 볼 것(판정 밖): ① 기획의 `nickNm`·`keyword=` 대신 서버 키 `mbrNcnm`·`q`를 썼다 ② 가짜 원장에 없는 실제 회원의 현재 잔액은 회원 상세 포인트 탭 API의 마지막 잔액으로 읽는다 ③ `routes/paths.js`에 `ADMIN_POINTS`를 기능 커밋에 같이 넣었다
+- SCR-ADM-071 연결 남음: FN-ADM-071-01·02 (백엔드 연결 `GET /api/admin/care-missions?msnPoolCd=`·`PATCH /api/admin/care-missions/{careMsnSn}`, 허용 범위(프론트 가정 1 이상 정수·보상 1000P·횟수 10회 이하), 출제 배치 `CareMissionJob`이 `CARE_MSN`의 `useYn`·값을 읽는지, 백엔드 저장소에서 /start). 나오면 `features/adminCareMission/api.js` 가짜 본문(sessionStorage 보관 포함)만 실제 요청으로, 상한은 `careMissionLabels.js`에서 맞춘다
+- SCR-ADM-071 사람이 볼 것(판정 밖): ① `routes/paths.js`에 `ADMIN_CARE_MISSIONS`를 기능 커밋에 같이 넣었다 ② 스켈레톤 높이는 행 높이로 계산한 값(풀마다 21·9·12행, `AdminCareMissionsPage.jsx`) ③ 조회 오류·저장 실패 문구는 가짜가 실패하지 않아 검증에서 응답을 바꿔서만 봤다 ④ 백엔드 마일스톤 SCR-ADM-071의 "`pet` 케어미션 협의 (SJM)"는 사람이 맞춘다
+- 대기 순서(사람 결정 2026-11-03): SCR-ADM-060 장소는 기획까지 했다가 넘김(백엔드에 관리자 장소 API·공공데이터 수집 배치 없음). SCR-ADM-001 페이지 틀·조회 오류 정리는 남은 관리자 화면 구현 뒤 맨 마지막
+- SCR-ADM-051 연결 남음: FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start). 나오면 `features/adminTerms/api.js` 가짜 본문만 실제 요청으로, `termsKinds.js` 키를 실제 값으로 바꾼다
+- SCR-ADM-051 사람이 볼 것(판정 밖): ① 같은 버전 값은 확인 모달을 누른 뒤에 막힌다 ② 종류 키·등록일 `regDt`·글자 수(버전 20·제목 100·내용 20000)는 가정 ③ `routes/paths.js`에 `ADMIN_TERMS`·`ADMIN_TERM_NEW`를 기능 커밋에 같이 넣었다
+
+- SCR-ADM-101 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함, 사용 안 함 품종도 목록에), 백엔드 저장소에서 /start). 나오면 `features/adminBreed/api.js` 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-101 사람이 볼 것(판정 밖): ① 기능명세서 FN-ADM-101-02 지역 조회·화면설계서 SCR-ADM-101 지역 부분을 DMS에서 빼는 것은 문서 담당 몫(2026-11-03 결정) ② URL 변경(`docs/routes.md`·`routes/paths.js` `ADMIN_BREEDS`)은 `shared-files.md`상 따로 PR 대상이라 PR 본문에 팀 알림을 넣는다(2026-11-03 결정) ③ 옛 URL `/admin/breeds-regions` 리다이렉트는 두지 않았다 ④ 품종 이름 50자·중복 검사(공백 무시)는 가정
+
+- SCR-ADM-050 연결 남음: FN-ADM-050-01·02·03·05 (백엔드 연결 `GET /api/admin/news` 목록·출처·카테고리 필터·쪽, `POST /api/admin/news`·`PATCH /api/admin/news/{newsSn}`(관리자 등록 제목·요약·카테고리, 수집 기사 `useYn`·`newsClsfCd`)·썸네일 업로드 `atchFileSn`, `GET·POST /api/admin/news/keywords`·`DELETE /api/admin/news/keywords/{kwrdDictSn}`(KWRD_DICT 뉴스 분류 AIMC0039, 가정 필드 `kwrdDictSn`·`mpngCd`·`kwrdCn`·`sortSeq`), 백엔드 저장소에서 /start). 나오면 `features/adminNews/api.js` 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-050 사람이 볼 것(판정 밖): ① 실행할 수 없는 서버(`runnableYn:false`)에서도 [뉴스 수집 실행]이 켜져 있다(배치 현황 `BatchTable.jsx`는 막음) ② 중복 키워드 안내가 그 칩을 지운 뒤에도 남는다 ③ 관리자 등록 뉴스도 사용 스위치로 숨길 수 있다(명세는 수집 기사만) ④ 썸네일은 선택 값, 제목 200자·요약 1000자·키워드 50자는 가정 ⑤ 스켈레톤 높이는 행 높이로 어림한 값(`AdminNewsPage.jsx`) ⑥ `routes/paths.js`에 `ADMIN_NEWS`를 기능 커밋에 같이 넣었다
+- SCR-ADM-050 로컬 정리(2026-11-03): 뉴스 수집 배치 실행 이력 `btchExcnHstrySn` 308과 실제 RSS 수집 기사가 로컬 DB에 남았다(되돌리는 API 없음). 백엔드 로컬 설정 `app.news.batch-enabled=true`는 확인용으로 켰으니 끄려면 `false`로 되돌린다
+- 추가-1(SCR-AIM-010) 알릴 것: ai-47에게 "프론트 반영 끝. `ReceiptUploadModal`이 `error.data?.recptSn`을 [직접 입력]에 `rcptSn` 키로 넘기고(받는 쪽 `HealthDiaryPage`도 `rcptSn`), 다시 올리기·닫기 때 비운다. AI `LJS` PR과 같이 낸다". JAJ에게 "`HealthDiaryPage.jsx`가 받은 `rcptSn`을 `receiptFlow`에 넣기만 하고 `CheckupModal`·검진기록 등록 요청에 넘기지 않아 영수증 연결이 실제 저장에 빠진다(추출 0건도 같음)"
+
+- SCR-ADM-023 연결 남음: FN-ADM-023-01~06 (백엔드 연결 `/api/admin/community/exposure` 건강팁 목록·지정·해제·자동 대체, 후보 문구 테이블·API(가정 필드 `todayPhrsSn`·`phrsCn`·200자)·00:00 배치·오늘 문구 `todayPhrs`, AI 코멘트 목록·사용 전환, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 노출 콘텐츠 가짜 본문만 실제 요청으로 바꾼다
+- SCR-ADM-023 사람이 볼 것(판정 밖): `routes/paths.js`에 `ADMIN_EXPOSURE`를 기능 커밋에 같이 넣었다. 스켈레톤 높이는 잰 값이 아니라 행 높이로 어림한 값이다(`AdminExposurePage.jsx`). AI 코멘트 탭은 미사용을 글자 없이 스위치·회색 글자로만 보인다
+
 - SCR-ADM-090 로컬 DB 검증 데이터(2026-11-03): 템플릿 `notiTmpltSn` 5(케어 일정·이메일, 제목 "검증 등록", 미사용)가 남았다(삭제 API 없음). 3번은 원래 값으로 되돌렸다. 수정 모달은 제목을 필수로 검사하지만 서버는 선택 값이다(DB에 제목 null 템플릿 3번)
 
 - SCR-ADM-022 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세, 가정 필드 이름 `ctptNcnm`·`agreVerNo`·`agreDt`·`agreCn`·`cmplReqDt`·`cmplImgs`·`ownerCfmtnRsltCd`·`ownerCfmtnDt`, 매칭 거래 상태 코드(가짜 `REQUESTED` 등)·보호자 확인 코드, 실제 완료 사진, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 펫돌봄 가짜 본문과 `careMatchLabels.js` 코드만 바꾼다
@@ -54,7 +89,6 @@ SCR-ADM-090 알림 템플릿 · 목록·등록·수정 연결 — 끝 (2026-11-0
 - 마일스톤 정리: `SCR-ADM-113 … 목록과 지정 모달 연결`·`해제 버튼과 확인 모달 연결` 2개가 `대기`로 남아 있지만 커밋 `70c41a5`에서 실제 API로 만들어졌다. 다음 `/start`가 고르기 전에 사람이 확인해 `끝`으로 바꾼다
 - SCR-ADM-011 연결 남음: FN-ADM-011-01 백엔드 연결 `AdminMemberDetailResponse.mbrAuthrtCd`(백엔드 저장소에서 `/start`). 그동안 관리자 회원에게도 [정지]가 보이고 서버가 409로 거절한다. 필드가 들어오면 `AdminMemberDetailPage.jsx` 머리 주석의 해당 줄만 지운다
 - SCR-ADM-011 백엔드 병합 순서: 회원 상세·탭 API는 백엔드 작업 사본(커밋 전)에 있다. 백엔드가 develop에 병합돼야 배포에서 동작한다
-- SCR-ADM-072 때: `routes/paths.js`에 `ADMIN_POINTS`를 넣고 회원 상세 [포인트 조정]을 켠다(`MemberPointsTab.jsx`, `/admin/points?mbrSn=`). 지금 넣으면 사이드바에 없는 화면 메뉴가 생긴다
 - SCR-ADM-011 실제 확인이 남은 것: 반려동물 20건 초과 쪽 번호와 동의 기록 없는 약관 행은 조작 응답으로만 봤다(로컬 데이터에 없음). 스켈레톤은 화면으로 못 봤고 높이는 계산값이다(`AdminMemberDetailPage.jsx`). 범위를 벗어난 `?page=`는 빈 문구만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 기본 정보 한 줄에 가입일 `2026-10-21`과 최근 로그인 `2026.10.22 14:02` 표기가 섞여 있다(`MemberDetailInfo.jsx`)
 - 원인 안 봄: SCR-ADM-011 검증 중 `/api/auth/me` 401로 로그인 화면으로 한 번 넘어갔고 다시 로그인하니 정상이었다
 - SCR-ADM-113 실제 확인이 남은 것: 스켈레톤은 화면으로 못 봤고 높이 240px는 잰 값이 아니다(`AdminAdminsPage.jsx`). 범위를 벗어난 `?page=`는 "관리자가 없어요"만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 마지막 관리자 [해제] 비활성은 내 행이 아닌 경우를 조작한 응답으로만 봤다
@@ -216,3 +250,4 @@ SCR-ADM-090 알림 템플릿 · 목록·등록·수정 연결 — 끝 (2026-11-0
 - 범위 밖에서 본 것(말만): 공통레이아웃 기능명세서 FN-COM-004-07의 케어 일정 알림 이동 대상(건강상태관리 정기관리)이 AI매니저 FN-AIM-006-13(케어 캘린더 SCR-HLT-003)과 다름
 - SCR-COM-006 연결 남음: 006-07 터치 동작 명세 확정(반응형 범위는 ≤1100px·≤760px로 정해졌다. 명세 작성자가 문구를 갱신하면 구현할 내용을 정한다)
 - SCR-COM-002 연결 남음: 002-02 `ProtectedRoute`로 감싸기(user 레이아웃은 끝, ai·chat·place·main bare는 위 SCR-COM-003 연결 남음), 002-06 GNB 대상 페이지를 `UserLayout` 아래 라우트로 붙이기(각 담당), 002-09 알림 미확인 수 API(LJS 백엔드), 002-11 채팅 안 읽은 수 조회 위치를 KSJ와 맞추고 연결(KSJ), 002-15 회원 프로필 이미지, 002-24 세션 만료 토스트(SCR-COM-003과 함께)
+- SCR-ADM-090 검증 오류 메시지 구체화(마일스톤 `대기`, 사람 결정 2026-11-03: 맨 마지막에 한다, 사람 요청 2026-11-03): 모르는 치환 변수를 넣으면 "입력값이 올바르지 않습니다."만 보여 무엇이 문제인지 알 수 없다. 저장 전에 칸·변수 이름을 보이게 한다

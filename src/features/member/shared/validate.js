@@ -25,9 +25,9 @@ export const isValidPhone = (value) =>
 export const formatPhone = (digits = '') =>
   digits.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1-$2-$3');
 
-/** 8자 이상, 문자·숫자 조합 */
+/** 영문·숫자를 함께 쓴 공백 없는 ASCII 8~64자 (서버 규칙과 같다) */
 export const isValidPassword = (value) =>
-  value.length >= 8 && /[a-zA-Z가-힣]/.test(value) && /\d/.test(value);
+  /^(?=.*[A-Za-z])(?=.*\d)[!-~]{8,64}$/.test(value);
 
 export const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 

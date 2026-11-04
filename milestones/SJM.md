@@ -70,13 +70,13 @@
 - 완료 조건: 5명이 찬 동물은 체크박스가 비활성이다. 보낸 초대의 대기중 항목에 만료 예정일이 보인다
 - 연결 남음: FN-MYP-005-01~08 초대 API (SJM 백엔드, 지금은 가짜 응답), FN-MYP-005-01 알림·메일 발송 (알림 저장 YAY)
 
-## SCR-MYP-010 픽셀 캐릭터 관리 — 끝
+## SCR-MYP-010 픽셀 캐릭터 관리 — 다시 엶 (아래 1~3단계로 진행)
 
 - 기능: FN-MYP-010-01 탭 구성, FN-MYP-010-02 내 캐릭터 목록, FN-MYP-010-03 캐릭터 만들기, FN-MYP-010-04 생성 상한, FN-MYP-010-05 대표 반려동물 지정, FN-MYP-010-07 공동양육 탭, FN-MYP-010-08 1단계·사진 첨부, FN-MYP-010-09 2단계·생성 중, FN-MYP-010-10 3단계·결과 확인, FN-MYP-010-12 생성 실패 시 대체, FN-MYP-010-13 미리보기·부위 슬롯, FN-MYP-010-14 보관함·카테고리 탭, FN-MYP-010-15 아이템 상점 열기, FN-MYP-010-16 되돌리기·장착, FN-MYP-010-17 캐릭터 규격 고정, FN-MYP-010-18 규격 일관성 검증, FN-MYP-010-19 규격 미확보 시 대체, FN-MYP-010-22 0마리 안내, FN-MYP-010-23 생성 오류 처리, FN-MYP-010-24 오류 문의
 - API가 남의 것: FN-MYP-010-01~04·07~24 (LJS). 010-05 대표 지정은 SJM
 - 기다리는 것: pet 캐릭터 이미지 조회 (LJS), notification 알림 저장 (YAY), 고객센터 1:1 문의 작성 화면 (KSJ)
 - 완료 조건: 같은 부위 아이템을 고르면 기존 아이템이 해제된다. [되돌리기]는 진입 시점 착용 상태로 돌아간다. 만들기 1단계에서 품종·털색·특징이 읽기 전용으로 보이고, 생성 요청에 털색(`colrCd`, 직접 입력이면 `colrDrctInptNm`)이 들어간다
-- 연결 남음: FN-MYP-010-08~10·12~14·16 캐릭터 생성·아이템·착용 API (LJS, 지금은 가짜 응답), FN-MYP-010-05 대표 지정 API (SJM 백엔드), FN-MYP-010-09·23 완료·오류 처리 인앱 알림 (알림 저장 LJS), FN-MYP-010-24 문의 작성 화면 미리 채우기 (KSJ)
+- 연결 남음: FN-MYP-010-08~10·12~14·16 캐릭터 생성·아이템·착용 API (LJS, 머지됨. 아래 1~3단계로 연결), FN-MYP-010-05 대표 지정 API (SJM 백엔드), FN-MYP-010-09·23 완료·오류 처리 인앱 알림 (알림 저장 LJS), FN-MYP-010-24 문의 작성 화면 미리 채우기 (KSJ)
 
 ## SCR-MYP-011 아이템 상점 모달 — 끝
 
@@ -148,6 +148,8 @@
 - 연결 남음: FN-MYP-030-18·19·21 조건 일괄 삭제에서 개별 해제한 건 제외 (백엔드 연결 `POST /expenses/bulk-delete`에 `excludeExpndSn`, 건수 검사 "전체 − 제외 수", 불일치 응답 409, 백엔드 저장소에서 /start)
 - 연결 남음: FN-MYP-031-02 미래 날짜 검증 (백엔드 연결 `POST /expenses`·`PATCH /expenses/{expndSn}`에서 `EXPND_YMD` > 오늘(KST)이면 400, 백엔드 저장소에서 /start)
 - 연결 남음: FN-MYP-031-03·05 영수증 인식 (YAY, OCR 호출부 LJS)
+- 연결 남음(LJS 답변, 픽셀 캐릭터 1단계 뒤 따로 기획): FN-MYP-031-03 영수증 OCR에서 `ckupYmd`가 null이면 지출 날짜를 오늘로 채우고 수정 가능하게 둔다(계약상 null이 맞음, LJS 확인)
+- 연결 남음(LJS 답변, 픽셀 캐릭터 1단계 뒤 따로 기획): 가계부 출처 영수증 다시 열기. `GET /api/receipts/{recptSn}`이 `petSn` 필수라 지금은 열 수 없다. LJS가 백엔드를 고칠 때까지 다시 열기 없이 진행한다
 - 연결 남음: FN-MYP-030-08 한도 알림 발송 (알림 저장 YAY, 가계부 API SJM 백엔드)
 
 ## SCR-MYP-040 회원정보 수정 · 조회·휴대폰 번호·프로필 사진 API 연결 — 대기
@@ -155,6 +157,25 @@
 - 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MYP-040-02·03·05·08·09·11·13
 - 기다리는 것: 백엔드 `GET /api/members/me`, `PATCH /api/members/me`(SJM, 2026-10-30 완료)
 - 완료 조건: 6-2·6-3 프로필 요약(사진·닉네임·이메일 또는 SNS 표시)과 계정 정보(가입 방식·가입일 `joinDt`·최근 로그인 `lastLgnDt`)를 조회로 채운다. [사진 변경]은 multipart `profilePhoto`, [기본 이미지로]는 `profilePhotoReset=true`로 보낸다. 휴대폰 [저장]은 `mblTelno`로 보내고 409 PHONE_ALREADY_USED면 "이미 사용 중인 휴대전화번호입니다."를 보여 준다
+
+## SCR-MYP-040 회원정보 수정 · 회원 조회와 본인 확인·비밀번호 변경 API 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MYP-040-01·06 (화면 6-1 본인 확인, 6-2 비밀번호 [변경]), 조회는 FN-MYP-040-09·13의 `joinPathCd`·`snsAcntLinks` 판정에만 쓴다
+- 기다리는 것: 백엔드 `GET /api/members/me`(SJM), `POST /api/members/me/password-verification`, `PATCH /api/members/me/password`(YAY, 2026-11-03 develop 머지 `0f0bdfd`)
+- 범위: `GET /members/me` 조회 연결만 이 마일스톤에서 한다. 닉네임·휴대폰·사진 변경은 위 "조회·휴대폰 번호·프로필 사진 API 연결" 마일스톤에 그대로 둔다
+- 완료 조건:
+  - `getMyProfile`을 `GET /members/me`로 바꾸고 응답 키(`acntEml`·`mbrNcnm`·`mblTelno`·`atchFileSn`·`joinPathCd`·`snsAcntLinks`·`joinDt`·`lastLgnDt`)를 그대로 쓴다. 가짜 키(`snsTyCd`·`mbrJoinPathCd`·`mbrRegDt`·`mbrLastLgnDt`·`mbrTelno`·`prflImgUrl`)에 기대는 곳은 새 키로 고친다. 가짜 `api.js` 본문 중 닉네임·휴대폰·사진은 건드리지 않는다
+  - SNS 회원은 `joinPathCd`가 `USRC0006`(이메일)이 아닐 때다(`USRC0007` 네이버·`USRC0008` 카카오·`USRC0009` 구글). `snsAcntLinks`로는 판정하지 않는다. SNS 회원은 6-1을 건너뛰고 `password-verification`을 부르지 않는다
+  - 6-1 [확인]은 `{pswd}`. 200이면 6-2로 바꾼다. 400 `CURRENT_PASSWORD_MISMATCH`면 입력란 아래에 "비밀번호가 일치하지 않아요". 400 `SNS_ONLY_MEMBER`면 6-3으로 바꾼다. 입력값은 상태에 남기지 않는다
+  - 6-2 [저장]은 6-1 입력값을 쓰지 않고 현재 비밀번호 칸을 다시 입력받아 `{currentPswd, pswd, pswdCnfrm}`로 보낸다. 400 `CURRENT_PASSWORD_MISMATCH`는 현재 비밀번호 칸에 "현재 비밀번호가 일치하지 않아요", `PASSWORD_MISMATCH`는 확인 칸에 "비밀번호가 일치하지 않아요", `INVALID_INPUT_VALUE`의 `pswd`는 새 비밀번호 칸에 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)". 네트워크·서버 오류는 토스트 "잠시 후 다시 시도해 주세요". 200이면 토스트 "비밀번호를 변경했어요"를 띄우고 행을 닫는다
+  - 새 비밀번호 클라이언트 검사를 서버 규칙(`^(?=.*[A-Za-z])(?=.*\d)[\x21-\x7E]{8,64}$`)에 맞춘다. 한글이 들어가면 [저장]을 켜지 않는다
+  - 새 비밀번호 칸 안내 문구를 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)"로 바꾼다(사람 결정 2026-11-04, 설계서는 SJM이 직접 고친다)
+  - 요청에 로그인 쿠키가 붙는지 확인한다(`withCredentials` 필요 여부는 Vite 프록시 기준으로 확인하고 필요할 때만 추가한다)
+  - 화면 검증 계정: 비밀번호 변경은 이메일 가입·정상·`PSWD_HASH` 있는 회원(1차 후보 user0100, tester는 쓰지 않음)으로 로그인 화면에서 로그인한다. SNS 건너뛰기는 SNS 가입(USRC0007~0009)·정상 회원을 dev-token으로. 원래 비밀번호 `ggorilab`은 숫자가 없어 화면으로 되돌릴 수 없으므로 복구는 해시 백업 UPDATE로만 한다
+  - 화면 검증(Playwright, 비밀번호가 있는 검증 계정): 변경 200 직후 `GET /auth/me`가 200이고, 새로고침해도 `/mypage/profile`에서 로그인이 유지된다. 변경 전에 따로 연 두 번째 브라우저 컨텍스트는 access 만료 뒤 `/auth/refresh`가 401이다. 옛 비밀번호 로그인은 실패하고 새 비밀번호 로그인은 성공한다
+  - 검증 뒤 원래 해시로 되돌리는 SQL을 보고의 "정리"에 적는다(DB 실행은 사람이 한다)
+- 화면설계서 대조(v0.6_20261025, SCR-MYP-040): 문구·동작이 기능명세서 v0.5와 다른 곳은 없다. 설계서에 6-1 불일치 문구가 없어 위 문구는 새로 정한 것이다. 설계서 새 비밀번호 칸 안내 "8자 이상, 문자·숫자 조합"은 서버가 영문을 요구하는 것과 달라, 칸 안내를 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)"로 맞추기로 했다(SJM 결정 2026-11-04, 설계서 수정은 SJM이 직접)
+- 연결 남음: 닉네임·휴대폰·프로필 사진 API 연결 (위 "조회·휴대폰 번호·프로필 사진 API 연결" 마일스톤, SJM)
 
 ## SCR-MYP-030 가계부 목록 · 전체 선택 뒤 해제한 건을 제외하고 삭제 — 끝
 
@@ -169,3 +190,25 @@
 ## 대조
 
 - 마이페이지: 명세 115 = 마일스톤 115 + 제외 0
+
+## SCR-MYP-010 픽셀 캐릭터 관리 · 1단계 목록·상태·이미지·진입을 실제 API로 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. FN-MYP-010-02·03·07·12·23, FN-MYP-001-01, FN-MYP-002-02와 걸친다
+- 기다리는 것: 백엔드 `GET /pixel-characters`, `GET /pets/{petSn}/character-image` (LJS, 머지됨)
+- 완료 조건: 목록은 `GET /pixel-characters`로 읽고(`GET /pets`에 키를 더하지 않는다), 상태는 `pixelCharSn` 유무 + `crtJobSttsCd`(CHRC0002 생성 중·0003 완료·0004 실패) + `bscCharSbstYn`으로 판정한다. `chrcSttsCd`·`chrcImgUrl` 의존을 PetFace·SummaryHero·PetMiniCard·PetSlide·PetProfileCard·InvitationAccept·CharacterCard·WearPreview에서 없앤다. 완료 카드를 누르면 꾸미기로 들어간다
+- 이 단계에서 꾸미기 상세·아이템은 가짜 그대로
+- 연결 남음: FN-MYP-010-12 재생성만 실패한 동물의 [캐릭터 만들기] 노출 (`GET /pixel-characters`에 결과 유무 필드 `rsltYn` 등, LJS 요청. 지금은 `CHRC0004`면 캐릭터 없음으로 봄)
+- 연결 남음: FN-MYP-010-12 첫 생성 실패의 [캐릭터 만들기] 재노출·실패 안내 문구 (기능명세서 확인, LJS)
+
+## SCR-MYP-010 픽셀 캐릭터 관리 · 2단계 꾸미기·상점을 실제 API로 — 기획 대기
+
+- 기능: FN-MYP-010-13·14·16, FN-MYP-011-01~06과 걸친다
+- 기다리는 것: 1단계 끝, 백엔드 `GET /pixel-characters/{pixelCharSn}`, `…/shop-items`, `POST …/held-items`, `PUT …/equipped-items` (LJS, 머지됨)
+- 완료 조건: 꾸미기 상세·보유·상점·구매·착용 저장이 실제 요청을 부르고 `POINT_NOT_ENOUGH`(400)·`PET_PRIMARY_ONLY`(403)·`ITEM_ALREADY_HELD`(409)를 처리한다. `fakeItems`·`SHOP_ITEMS`를 지운다
+
+## SCR-MYP-010 픽셀 캐릭터 관리 · 3단계 캐릭터 생성을 실제 API로 — 기획 대기
+
+- 기능: FN-MYP-010-08~10·12·23·24와 걸친다
+- 기다리는 것: 2단계 끝, 백엔드 `GET /pixel-characters`에 현재 결과 유무 필드 추가(`rsltYn` 등, LJS 요청. 재생성만 실패한 동물과 첫 생성 실패를 구분해 [캐릭터 만들기] 노출을 정하는 선행 조건), AI 서버 `POST /ai/characters`. 요청 형식·인증·완료 확인 방식은 `nyangmeong-ai` 코드에서 먼저 정리하고, 코드로 확인되지 않는 것은 "LJS 확인 필요"로 적는다
+- 완료 조건: `createCharacter` 가짜와 `?fake=fail`을 지우고 실제 요청으로 생성·완료·실패가 이어진다
+

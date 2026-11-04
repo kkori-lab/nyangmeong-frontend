@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from '@/components/Modal';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
+import { useCharacterImage } from '@/hooks/useCharacterImage';
 import { PATHS } from '@/routes/paths';
 import { useCreateCharacter } from '../queries';
 import { COLR_DRCT_INPT, COLR_OPTIONS, PET_SE } from '../shared/petCodes';
@@ -22,6 +23,7 @@ export default function CharacterCreateModal({ pet, onClose }) {
   const [step, setStep] = useState('photo');
   const [photo, setPhoto] = useState(null);
   const { mutate } = useCreateCharacter();
+  const characterImage = useCharacterImage(pet.petSn, 'full');
 
   const colrNm = getColrNm(pet);
 
@@ -57,7 +59,7 @@ export default function CharacterCreateModal({ pet, onClose }) {
               state={{
                 inquiryType: 'PIXEL_CHARACTER',
                 petSn: pet.petSn,
-                imageUrl: pet.chrcImgUrl,
+                imageUrl: characterImage,
               }}
               className={BTN_SECONDARY}
             >

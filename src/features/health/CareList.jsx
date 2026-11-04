@@ -4,6 +4,7 @@ import DropdownSelect from '@/components/DropdownSelect';
 import Icon from '@/components/Icon';
 import SkeletonCard from '@/components/SkeletonCard';
 import { getTodayYmd } from '@/utils/formatDate';
+import ConfirmModal from '@/components/ConfirmModal';
 import CareItemModal from './CareItemModal';
 import CareRecordList from './CareRecordList';
 import CareTile from './CareTile';
@@ -13,6 +14,7 @@ import {
   useCancelLastDose,
   useCareItems,
   useCheckCareItem,
+  useDeleteCareItem,
   useSaveCareMain,
 } from './queries';
 
@@ -23,12 +25,16 @@ const MOBILE_VISIBLE_COUNT = 3;
 export default function CareList({ petSn, pets, onSelectPet }) {
   const { data, isPending, isError, error, refetch } = useCareItems(petSn);
   const [isAdding, setIsAdding] = useState(false);
+  // 수정 중인 항목, 삭제 확인 중인 항목
+  const [editingItem, setEditingItem] = useState(null);
+  const [deletingItem, setDeletingItem] = useState(null);
   // 640px 미만에서 펼친 구역. 반려동물별 키라 반려동물을 바꾸면 다시 접힌다
   const [expandedZones, setExpandedZones] = useState([]);
   const checkCareItem = useCheckCareItem();
   const cancelLastDose = useCancelLastDose();
   const cancelCareRecord = useCancelCareRecord();
   const saveCareMain = useSaveCareMain();
+  const deleteCareItem = useDeleteCareItem();
 
   if (isPending) {
     return (
@@ -136,6 +142,8 @@ export default function CareList({ petSn, pets, onSelectPet }) {
               }
               onCheck={handleCheck}
               onToggleMain={handleToggleMain}
+              onEdit={setEditingItem}
+              onDelete={setDeletingItem}
               onCancelLastDose={(target) =>
                 cancelLastDose.mutate({
                   petSn,
@@ -254,6 +262,32 @@ export default function CareList({ petSn, pets, onSelectPet }) {
 
       {isAdding && (
         <CareItemModal petSn={petSn} onClose={() => setIsAdding(false)} />
+      )}
+      {editingItem && (
+        <CareItemModal
+          petSn={petSn}
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+        />
+      )}
+      {deletingItem && (
+        <ConfirmModal
+          title="관리 항목 삭제"
+          description={`${deletingItem.careArtclNm}을(를) 삭제할까요? 완료 기록도 함께 사라져요`}
+          confirmLabel="삭제"
+          isPending={deleteCareItem.isPending}
+          errorMessage={deleteCareItem.error?.message}
+          onCancel={() => {
+            deleteCareItem.reset();
+            setDeletingItem(null);
+          }}
+          onConfirm={() =>
+            deleteCareItem.mutate(
+              { petSn, careArtclSn: deletingItem.careArtclSn },
+              { onSuccess: () => setDeletingItem(null) },
+            )
+          }
+        />
       )}
     </>
   );

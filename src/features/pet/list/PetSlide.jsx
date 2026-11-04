@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import PetFace from '@/components/PetFace';
-import { BRUP_ROLE, CHRC_STTS, MAX_OWN_PETS, PET_SE } from '@/utils/petCodes';
+import { BRUP_ROLE, MAX_OWN_PETS, PET_SE } from '@/utils/petCodes';
 import FamilySection from './FamilySection';
 import {
   formatAge,
@@ -209,7 +209,7 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
         <PetFace
           petSn={pet.petSn}
           petSeCd={pet.petSeCd}
-          chrcSttsCd={pet.bscCharSbstYn ? CHRC_STTS.ERROR : pet.chrcSttsCd}
+          isError={pet.bscCharSbstYn}
           alt={`${pet.petNm} 캐릭터`}
           className="size-28 shrink-0 rounded-full bg-surface-2 text-line-strong shadow-[inset_0_0_0_1px_var(--color-line-strong)] max-[760px]:size-[84px]"
           iconClassName="size-14 max-[760px]:size-9"

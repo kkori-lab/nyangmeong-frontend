@@ -83,7 +83,7 @@
 | ADM-090 | 알림 템플릿 | `/admin/notification-templates` | LJS | |
 | ADM-091 | 발송 이력 | `/admin/notification-logs` | LJS | |
 | ADM-100 | 공통코드 | `/admin/codes` | LJS | |
-| ADM-101 | 품종·지역 | `/admin/breeds-regions` (`?tab=regions`) | LJS | |
+| ADM-101 | 품종 | `/admin/breeds` | LJS | |
 | ADM-110 | 운영 설정 | `/admin/settings` | LJS | |
 | ADM-111 | 배치 현황 | `/admin/batches` (`?batch=`) | LJS | |
 | ADM-112 | 외부 API 사용량 | `/admin/external-api-usage` | LJS | |

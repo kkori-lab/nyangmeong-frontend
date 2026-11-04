@@ -38,7 +38,7 @@ function InvitePetCard({ pet, checked, onToggle }) {
         <PetFace
           petSn={pet.petSn}
           petSeCd={pet.petSeCd}
-          chrcSttsCd={pet.chrcSttsCd}
+          isError={pet.bscCharSbstYn}
           className="mb-2 size-28 rounded-full bg-white text-brand-500"
           iconClassName="size-12"
         />

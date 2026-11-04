@@ -20,12 +20,14 @@ function toCurvePath(points) {
 }
 
 // band: 참고범위 [최소, 최대]. 있으면 점선으로 그리고 범위를 벗어난 점은 경고색으로 칠한다
+/** labelEvery: 값·날짜 글자 간격(마지막 점부터), 기본 1은 모든 점 */
 export default function CurveChart({
   values,
   labels,
   formatValue = String,
   label,
   band,
+  labelEvery = 1,
 }) {
   let lo = Math.min(...values);
   let hi = Math.max(...values);
@@ -45,6 +47,7 @@ export default function CurveChart({
   const points = values.map((v, i) => ({ x: x(i), y: y(v) }));
   const lastIndex = values.length - 1;
   const isOut = (v) => band && (v < band[0] || v > band[1]);
+  const hasText = (i) => (lastIndex - i) % labelEvery === 0;
 
   return (
     <svg
@@ -79,25 +82,29 @@ export default function CurveChart({
             strokeWidth="1.5"
             className={`stroke-white ${isOut(v) ? 'fill-danger' : 'fill-brand-500'}`}
           />
-          <text
-            x={points[i].x}
-            y={points[i].y - 12}
-            textAnchor="middle"
-            strokeWidth="4"
-            strokeLinejoin="round"
-            paintOrder="stroke"
-            className={`stroke-white text-sm font-semibold ${isOut(v) ? 'fill-danger' : 'fill-ink'}`}
-          >
-            {formatValue(v)}
-          </text>
-          <text
-            x={points[i].x}
-            y={H - 8}
-            textAnchor="middle"
-            className="fill-subtle text-sm"
-          >
-            {labels[i]}
-          </text>
+          {hasText(i) && (
+            <text
+              x={points[i].x}
+              y={points[i].y - 12}
+              textAnchor="middle"
+              strokeWidth="4"
+              strokeLinejoin="round"
+              paintOrder="stroke"
+              className={`stroke-white text-sm font-semibold ${isOut(v) ? 'fill-danger' : 'fill-ink'}`}
+            >
+              {formatValue(v)}
+            </text>
+          )}
+          {hasText(i) && (
+            <text
+              x={points[i].x}
+              y={H - 8}
+              textAnchor="middle"
+              className="fill-subtle text-sm"
+            >
+              {labels[i]}
+            </text>
+          )}
         </g>
       ))}
     </svg>
