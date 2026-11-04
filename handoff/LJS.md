@@ -2,10 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-081 키워드 사전 — 끝 (2026-11-04, 검증 2회 중 마지막 `확인 못 함 있음`(연결 남음만), 사람 확인). `/admin/ai-keywords`에 6탭(등록 동사·날짜·주기·일정 종류·검진유형·가계부 카테고리) 키워드 조회·등록/수정/삭제 모달을 가짜 응답(부록 B)으로 만들었다(`features/adminAiKeyword`, `AdminAiKeywordsPage.jsx`)
+SCR-ADM-082 처리 현황 — 끝 (2026-11-04, 검증 1회 `통과`, 사람 확인). `/admin/processing`에 3탭(영수증 OCR·캐릭터 생성·검사결과지 분석) 건수 카드·필터·목록·영수증 원본 모달을 가짜 응답으로 만들었다(`features/adminProcessing`, `AdminProcessingPage.jsx`)
 
 ## 다음에 할 것
 
+- SCR-ADM-082 연결 남음: FN-ADM-082-01 (백엔드 연결 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrRqstSrcCd=&ocrPrcsSttsCd=&page=`(summary `totCnt`·`scsCnt`·`failCnt`·`prcsCnt` 가정)·`GET /api/admin/processing/receipts/{recptSn}/image`, 가계부 출처 코드(지금 임시 `TMP00031`), 백엔드 저장소에서 /start). 나오면 `features/adminProcessing/api.js` 가짜 본문만 실제 요청으로, 코드는 `processingLabels.js`에서 맞춘다
+- SCR-ADM-082 연결 남음: FN-ADM-082-02 (백엔드 연결 `GET /api/admin/processing/character-jobs?jobSttsCd=&page=`(`sttsCnts` 가정)·CHAR_CRT_JOB 상태 공통코드(지금 임시 `TMP00041~44`), 백엔드 저장소에서 /start)
+- SCR-ADM-082 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=`(summary `totCnt`·`scsCnt`·`tmotCnt`·`errCnt` 가정)·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
+- SCR-ADM-082 사람이 볼 것(판정 밖): ① `routes/paths.js`에 `ADMIN_PROCESSING`을 기능 커밋에 같이 넣었다(사람 2026-11-04 추천안대로) ② 대시보드 링크는 `?tab=ocr&ocrPrcsSttsCd=AIMC0004`(기획의 `status=`를 서버 키 이름으로 고침) ③ 스켈레톤 높이는 브라우저로 재지 않고 계산한 값 ④ 가짜 영수증 성공·처리 중 코드 AIMC0003·0002는 가정(AIMG01에서 확인된 것은 인식 실패 AIMC0004뿐)
 - SCR-ADM-081 연결 남음: FN-ADM-081-01·02 (백엔드 연결 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`·`POST /api/admin/ai/keywords`·`PATCH`·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`, 새 행 `sortSeq` 규칙(가정: 그 탭 맨 아래), 백엔드 저장소에서 /start). 나오면 `features/adminAiKeyword/api.js` 가짜 본문(sessionStorage `fakeAdminAiKeywords`)만 실제 요청으로, 코드 선택지는 `keywordLabels.js`에서 맞춘다
 - SCR-ADM-081 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start. 지금 가짜 가계부 3행은 예시)
 - SCR-ADM-081 연결 남음: AI 서버가 사전을 DB 조회 API로 읽기(백엔드 조회 API는 백엔드 저장소, AI 서버 전환은 ai 저장소). 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다. 가계부 분류는 지금 OCR(`ai/app/ocr/clients.py`)의 고정 표가 쓴다
