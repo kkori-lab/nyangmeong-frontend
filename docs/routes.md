@@ -72,7 +72,6 @@
 | ADM-042 | 1:1 문의 | `/admin/inquiries` · `/admin/inquiries/:otoInqrySn` | LJS | |
 | ADM-050 | 펫뉴스 | `/admin/news` (`?tab=`) | LJS | |
 | ADM-051 | 약관 | `/admin/terms` · `/admin/terms/new` | LJS | |
-| ADM-060 | 장소 | `/admin/places` (`?tab=unmatched`) | LJS | |
 | ADM-070 | 아이템 | `/admin/items` | LJS | |
 | ADM-071 | 케어미션 | `/admin/care-missions` | LJS | |
 | ADM-072 | 포인트 | `/admin/points` (`?mbrSn=`) | LJS | |

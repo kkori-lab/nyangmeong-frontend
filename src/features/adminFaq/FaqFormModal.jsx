@@ -59,6 +59,16 @@ function FormFooter({ formId, submitLabel, isDisabled, isPending, onClose }) {
   );
 }
 
+/** 칸 아래 서버 검증 오류 */
+function FieldError({ message }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="mt-1.5 text-sm text-danger">
+      {message}
+    </p>
+  );
+}
+
 /** 입력 모달. faq가 있으면 수정, 없으면 등록 */
 function FaqEditor({ faq, categories, onClose }) {
   const formId = useId();
@@ -81,6 +91,11 @@ function FaqEditor({ faq, categories, onClose }) {
       label: comCdNm,
     })),
   ];
+
+  /** 서버 400의 칸별 오류: { 필드명: 메시지 } */
+  const fieldErrors = Object.fromEntries(
+    (save.error?.fields ?? []).map((item) => [item.field, item.message]),
+  );
 
   const trimmedQstn = qstnTtl.trim();
   const canSubmit =
@@ -136,6 +151,7 @@ function FaqEditor({ faq, categories, onClose }) {
             placeholder="카테고리 선택"
             onChange={setFaqClsfCd}
           />
+          <FieldError message={fieldErrors.faqClsfCd} />
         </div>
         <div>
           <FieldLabel
@@ -153,6 +169,7 @@ function FaqEditor({ faq, categories, onClose }) {
             className={INPUT_CLASS}
             onChange={(event) => setQstnTtl(event.target.value)}
           />
+          <FieldError message={fieldErrors.qstnTtl} />
         </div>
         <div>
           <FieldLabel
@@ -169,6 +186,7 @@ function FaqEditor({ faq, categories, onClose }) {
             className={TEXTAREA_CLASS}
             onChange={(event) => setAnsCn(event.target.value)}
           />
+          <FieldError message={fieldErrors.ansCn} />
         </div>
         <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
           <div className="w-[160px]">
@@ -184,6 +202,7 @@ function FaqEditor({ faq, categories, onClose }) {
                 setSortSeq(event.target.value.replace(/\D/g, ''))
               }
             />
+            <FieldError message={fieldErrors.sortSeq} />
           </div>
           <div className="flex h-10 items-center gap-3">
             <span className="text-sm font-semibold text-ink-2">사용</span>
@@ -193,7 +212,7 @@ function FaqEditor({ faq, categories, onClose }) {
             </span>
           </div>
         </div>
-        {save.isError && (
+        {save.isError && !save.error.fields && (
           <p role="alert" className="text-sm text-danger">
             {save.error.message}
           </p>
