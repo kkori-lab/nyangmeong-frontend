@@ -165,7 +165,7 @@
 - 결정: 백엔드 API는 develop에 머지돼 있었다. 디자인은 `html/hlt-summary.html` 그대로(모양은 바꾸지 않고 서버 키로만 바꿈). `GET /pets`에 캐릭터 상태가 없어 "캐릭터 만들기" 점선 카드를 빼고 `PetFace`로 둠(사람 결정). 건강기록 가짜 반려동물·일상기록·관찰·검진기록·일정·연동 케어 항목 저장소를 지움(PDF 분석·영수증 가짜는 남김)
 - 연결 남음: FN-HLT-011-01·02 캐릭터 상태 (`GET /pets`의 `chrcSttsCd`, LJS)
 
-## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 진행
+## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 끝
 
 - 기능: 토탈 케어리스트에서 사용자가 추가한 항목을 수정·삭제하는 UI (명세 기능 ID 추가 없음, FN-HLT-003-12 "사용자가 추가한 항목만 직접 수정·삭제"·"정기관리 기본 항목은 주기만 변경"에 걸침). API는 "토탈 케어리스트 API 연결" 절에서 연결한 `updateCareItem`(`PATCH /pets/{petSn}/care-items/{careArtclSn}`)·`deleteCareItem`(`DELETE …`)을 쓴다. 지금 화면·시안(`html/hlt-calendar.html`)에 수정·삭제 버튼과 모달이 없다
 - 기다리는 것: 화면설계서 갱신(수정·삭제 진입 위치와 모달), 이 파일의 "SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결"

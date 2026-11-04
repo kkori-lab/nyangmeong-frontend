@@ -2,26 +2,10 @@
 
 ## 지금 하는 것
 
-진행 중: SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI (승인 2026-11-03 15:00). 구현·사람 확인 끝(2026-11-03), 검증 1회차가 로그인 없음으로 화면을 못 봐 실패
-
-기획:
-- 기준: 건강기록_기능명세서_v1.2_20261101 FN-HLT-003-12 "서비스 기본 항목은 삭제·이름·아이콘 변경 불가, 정기관리 기본 항목은 주기만 변경 가능 · 사용자가 추가한 항목만 직접 수정·삭제", 003-21~24·38(항목 등록 모달 입력칸). 화면설계서 v1.2에도 수정·삭제 진입 위치와 모달이 없다(마일스톤 "기다리는 것" 그대로)
-- 디자인: `html/hlt-calendar.html`(수정·삭제 UI 없음). 진입·메뉴·버튼은 화면설계서에 근거가 없어 사람 결정(2026-11-03)으로 정한다: 줄 끝 ⋯ 메뉴, 마이페이지 가계부 메뉴의 여는 방식·모양을 복사한 케어용 메뉴(LJS 파일은 그대로), 삭제는 메뉴에서만, 모달 버튼은 [취소]·[수정하기]
-- FN-HLT-003-12 (케어용 메뉴): `src/features/health/CareItemMenu.jsx`를 새로 만든다. 마이페이지 가계부(`/mypage/expenses`) 행 메뉴 `features/expense/shared/ExpenseMenu.jsx`의 여는 방식(버튼 토글, 바깥 pointerdown·Esc로 닫힘)과 모양(`MoreVertical` 18px(`size-4.5`), 32px 둥근 버튼, 오른쪽 아래 펼침, [수정]·[삭제] 빨강)을 그대로 복사한다. 이 파일에만 props `label`(버튼 `aria-label`)과 `onDelete` 생략 시 [삭제] 숨김을 더한다. 복사본은 직접 쓴 px를 없앤다: 원본의 직접 값은 아이콘 `size-[18px]` 하나(HEX 없음)이고 `src/assets/index.css` `@theme`에 크기 토큰이 없어 Tailwind 눈금 `size-4.5`(18px)로 쓴다(사람 결정) `ExpenseMenu.jsx`·`ExpenseDayDetail.jsx` 등 LJS 파일은 건드리지 않는다(사람 결정)
-- FN-HLT-003-12 (수정·삭제 진입): `src/features/health/CareTile.jsx`·`CareList.jsx`. 줄 끝(★ 오른쪽)에 `CareItemMenu`(`label="<항목명> 메뉴"`). 응답 `bscArtclYn`·`prscSn`·`reptPrvntMngSn`·`careZoneCd`로 판정: 사용자 추가(`bscArtclYn` false, 연동 아님) → [수정]·[삭제], 기본 정기관리 → [수정]만, 기본 일상관리·처방약/반복 예방 연동 → ⋯ 없음. 메뉴는 완료 토글 버튼과 형제로 두고(버튼 안에 넣지 않음) 클릭이 줄로 번지지 않게 해 ⋯·메뉴 항목을 눌러도 완료 토글이 일어나지 않는다. 줄 클릭 완료 토글·★ 그대로
-- FN-HLT-003-21~24·38 (수정 모달): `src/features/health/CareItemModal.jsx`에 `item` prop을 더해 수정 상태로 연다. 제목 "관리 항목 수정", 기존 값 채움. 기본 정기관리 항목은 이름·아이콘·구역 칸을 잠그고 주기만. 저장은 `useUpdateCareItem`(`PATCH /pets/{petSn}/care-items/{careArtclSn}`, JAJ 백엔드 develop에 있음)으로 바뀐 칸만 보낸다. 마지막으로 한 날(`lastCmptnYmd`)은 수정 Body에 없어 수정 상태에서는 숨긴다. 하단 버튼은 [취소]·[수정하기]만(삭제 버튼 없음). 서버 오류(`CARE_ITEM_DEFAULT_LIMITED` 등)는 서버 message를 모달 안에 보인다
-- FN-HLT-003-12 (삭제): 메뉴 [삭제] → `@/components/ConfirmModal` "<항목명>을(를) 삭제할까요? 완료 기록도 함께 사라져요" → `useDeleteCareItem`(`DELETE …/care-items/{careArtclSn}`). 메인 표시(★)에서도 빠지고 자동으로 채우지 않는다(서버). 실패는 서버 message 토스트
-  - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 사용자 추가 항목의 ⋯ → [수정]으로 이름·아이콘·구역·주기를 고쳐 저장하면 줄이 바뀌고(정기관리면 예정일·배지 다시 계산), ⋯ → [삭제] → 확인 뒤 목록·메인 표시에서 사라진다. 기본 정기관리 항목 ⋯에는 [수정]만 있고 주기만 고칠 수 있다. 기본 일상관리·처방약/반복 예방 연동 항목에는 ⋯가 없다. ⋯·메뉴 항목을 눌러도 완료 토글이 일어나지 않고, 줄 클릭 완료 토글·★는 그대로. 수정 모달 하단은 [취소]·[수정하기]뿐. 390px(PC·모바일 두 열 모두)에서 줄이 넘치지 않고 메뉴가 화면 밖으로 잘리지 않는다
-- 검증 데이터: 검증 계정 반려동물에 사용자 항목을 하나 만들어 고치고 지운다(끝나면 남지 않음). 기본 항목 주기를 바꿨으면 원래 주기로 되돌린다
-- 범위 밖: 메인페이지 케어 표시, 수정 때 마지막으로 한 날 바꾸기(서버 Body에 없음)
-
-새 의존성: 없음
-
-이전: SCR-HLT-002 영수증 [직접 입력] 저장 연결 (2026-11-03). 검증 통과(잠금을 한 번 풀어 회차를 다시 셈), 사람 확인 끝. `CheckupModal`이 `recptSn`을 받으면 `POST /receipts/{recptSn}/checkups?petSn=`(`idmptDmndId` 모달마다 1개)로 저장하고, 없으면 지금처럼 `/pets/{petSn}/checkups`. 409·404는 토스트 대신 모달 안 빨간 안내 상자(추가-1, 토스트가 `<dialog>` 뒤에 가려짐). `HealthDiaryPage` manual 상태 키 `rcptSn` → `recptSn`. 일시 오류 뒤 [직접 입력]은 영수증 번호가 없어 연결 남음
+끝남: SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI (2026-11-04). 검증 3회차 통과(1·2회차는 백엔드 미기동·로그인 없음으로 화면 확인 못 함), 사람 확인 끝. 토탈 케어리스트 줄 끝 ⋮(`CareItemMenu.jsx`, 가계부 `ExpenseMenu` 복사): 사용자 추가 [수정]·[삭제], 기본 정기관리 [수정]만(주기만), 기본 일상관리·연동 항목 ⋮ 없음. `CareItemModal` `item` prop으로 수정(바뀐 칸만 PATCH, [취소]·[수정하기]), 삭제는 `ConfirmModal` → DELETE
 
 ## 다음에 할 것
 
-- 검증 루프 1회차 실패로 보관 중. 기획은 고치지 않는다. 루프를 버리려면 `! sh scripts/verify-loop.sh clear`. 1회차: 화면 조건 전부 확인 못 함(Playwright 브라우저가 로그인되어 있지 않고 검증 계정을 저장소에서 알 수 없음, 코드 고칠 곳 없음). Playwright 브라우저에서 검증 계정으로 로그인해 둔 뒤 `/verify`를 다시 돌린다. 사람 확인은 2026-11-03에 마침
 - 알릴 것(LJS): `features/health/CareItemMenu.jsx`는 마이페이지 가계부 `ExpenseMenu.jsx`의 여는 방식·모양을 복사했다(아이콘만 `size-4.5`). 둘 중 하나를 바꾸면 다른 쪽도 맞춘다
 - 연결 남음(SCR-HLT-002 일시 오류 뒤 [직접 입력]의 영수증 연결): AI 서버 영수증 분석 502 `OCR_API_ERROR`·504 시간 초과 응답에 `recptSn`이 없어(원본은 먼저 저장됨) 화면이 `POST /pets/{petSn}/checkups`로 저장한다(FN-HLT-002-31 "인식 실패·일시 오류"와 다름). 필요: AI 서버가 오류 응답에 `recptSn`을 준다(nyangmeong-ai 저장소에서 /start), LJS `features/ai/receipt/ReceiptUploadModal.jsx`가 오류 때도 `recptSn`을 [직접 입력]에 넘긴다. 백엔드는 일시 오류 영수증 저장을 이미 받고, `CheckupModal`은 `recptSn`만 받으면 영수증 경로로 저장한다. 브라우저 쪽 시간 초과(요청 중단)는 번호를 알 수 없어 남는다
 - 연결 남음(SCR-HLT-002 추가-2): 백엔드 `save-check`도 저장완료 영수증이면 409 `RECEIPT_ALREADY_SAVED`를 준다(백엔드 저장소에서 /start). 프론트는 이미 같은 안내로 처리한다
