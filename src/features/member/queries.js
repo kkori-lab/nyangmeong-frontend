@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  checkNickname,
   checkNicknameAvailability,
-  checkPhone,
   checkPhoneAvailability,
   getCaptcha,
   getLoginStatus,
@@ -21,7 +19,6 @@ import {
   sendRecoveryCode,
   sendSignupCode,
   setupNickname,
-  updateNickname,
   updatePassword,
   updatePhone,
   updateProfileImage,
@@ -73,22 +70,6 @@ export const useUpdateProfileImage = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: memberKeys.profile }),
   });
 };
-
-export const useCheckNickname = () =>
-  useMutation({ mutationFn: checkNickname });
-
-export const useUpdateNickname = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: updateNickname,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: memberKeys.profile });
-      qc.invalidateQueries({ queryKey: memberKeys.me });
-    },
-  });
-};
-
-export const useCheckPhone = () => useMutation({ mutationFn: checkPhone });
 
 export const useUpdatePhone = () => {
   const qc = useQueryClient();

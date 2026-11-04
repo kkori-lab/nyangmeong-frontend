@@ -9,15 +9,22 @@ export default function ProfileImageField({ prflImgUrl, mbrNcnm, children }) {
   const fileId = useId();
   const { mutate, isPending } = useUpdateProfileImage();
 
+  const handleError = (error) =>
+    showToast(
+      error.code === 'FILE_TYPE_NOT_ALLOWED' || error.code === 'FILE_TOO_LARGE'
+        ? 'jpg·png·webp 이미지, 10MB 이하만 올릴 수 있어요'
+        : '사진을 바꾸지 못했어요. 잠시 후 다시 시도해 주세요.',
+    );
+
   const handleFile = (event) => {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      showToast('이미지 파일만 올릴 수 있어요');
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      showToast('jpg·png·webp 이미지, 10MB 이하만 올릴 수 있어요');
       return;
     }
-    mutate({ file });
+    mutate({ file }, { onError: handleError });
   };
 
   return (
@@ -60,14 +67,14 @@ export default function ProfileImageField({ prflImgUrl, mbrNcnm, children }) {
         <input
           id={fileId}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleFile}
           className="sr-only"
         />
         <button
           type="button"
           disabled={!prflImgUrl || isPending}
-          onClick={() => mutate({ file: null })}
+          onClick={() => mutate({ file: null }, { onError: handleError })}
           className="inline-flex h-10 items-center rounded-md px-4 font-semibold text-muted hover:enabled:bg-surface-2 hover:enabled:text-ink disabled:cursor-not-allowed disabled:text-line-strong"
         >
           기본 이미지로
