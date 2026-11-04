@@ -226,7 +226,7 @@
 - 추가 요청: 추가-1 409·404 안내를 토스트 대신 모달 안 빨간 안내 상자로(`CheckupModal.jsx`, `queries.js`)
 - 연결 남음: FN-HLT-002-31 일시 오류 뒤 [직접 입력]의 영수증 연결 (AI 서버 오류 응답 `recptSn`·업로드 모달, nyangmeong-ai 담당·LJS): AI 서버 영수증 분석 502 `OCR_API_ERROR`·504 시간 초과 응답에 `recptSn`이 없어(원본은 먼저 저장됨) 화면이 `POST /pets/{petSn}/checkups`로 저장한다(FN-HLT-002-31 "인식 실패·일시 오류"와 다름). 필요: AI 서버가 오류 응답에 `recptSn`을 준다(nyangmeong-ai 저장소에서 /start), LJS `features/ai/receipt/ReceiptUploadModal.jsx`가 오류 때도 `recptSn`을 [직접 입력]에 넘긴다. 백엔드는 일시 오류 영수증 저장을 이미 받고, `CheckupModal`은 `recptSn`만 받으면 영수증 경로로 저장한다. 브라우저 쪽 시간 초과(요청 중단)는 번호를 알 수 없어 남는다
 
-## SCR-HLT-002 건강 일지 · 영수증 일시 오류 [직접 입력] 연결 — 대기
+## SCR-HLT-002 건강 일지 · 영수증 일시 오류 [직접 입력] 연결 — 끝
 
 - 기능: 명세 기능 ID 추가 없음, FN-HLT-002-31(영수증 일시 오류 뒤 [직접 입력] 저장의 영수증 연결)에 걸침. `ReceiptUploadModal.jsx`가 AI 서버 오류 응답 `data.recptSn`을 [직접 입력]에 넘겨 `CheckupModal`이 영수증 경로로 저장한다. `onManualInput` 키 `rcptSn` → `recptSn`
 - 기다리는 것: AI 서버 영수증 분석 오류 응답 `data.recptSn` (nyangmeong-ai)

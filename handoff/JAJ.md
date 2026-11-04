@@ -2,14 +2,16 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI (2026-11-04). 검증 3회차 통과(1·2회차는 백엔드 미기동·로그인 없음으로 화면 확인 못 함), 사람 확인 끝. 토탈 케어리스트 줄 끝 ⋮(`CareItemMenu.jsx`, 가계부 `ExpenseMenu` 복사): 사용자 추가 [수정]·[삭제], 기본 정기관리 [수정]만(주기만), 기본 일상관리·연동 항목 ⋮ 없음. `CareItemModal` `item` prop으로 수정(바뀐 칸만 PATCH, [취소]·[수정하기]), 삭제는 `ConfirmModal` → DELETE
+끝남: SCR-HLT-002 건강 일지 · 영수증 일시 오류 [직접 입력] 연결 (2026-11-04). 검증 1회차 통과, 사람 확인 끝. AI 서버 `/ai/receipts` 502 `OCR_API_ERROR`·504 `OCR_TIMEOUT`의 `data.recptSn`을 `ReceiptUploadModal`이 `onManualInput({ recptSn })`(키 `rcptSn` → 서버 키)로 넘기고 `HealthDiaryPage`가 받아 `POST /receipts/{recptSn}/checkups?petSn=`로 저장한다. 번호 없는 오류·업로드 전 [직접 입력하기]는 `/pets/{petSn}/checkups`
+
+이전: SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI (2026-11-04). 토탈 케어리스트 줄 끝 ⋮로 사용자 항목 수정·삭제, 기본 정기관리는 주기만 수정
 
 ## 다음에 할 것
 
 - 알릴 것(LJS): `features/health/CareItemMenu.jsx`는 마이페이지 가계부 `ExpenseMenu.jsx`의 여는 방식·모양을 복사했다(아이콘만 `size-4.5`). 둘 중 하나를 바꾸면 다른 쪽도 맞춘다
-- 연결 남음(SCR-HLT-002 일시 오류 뒤 [직접 입력]의 영수증 연결): AI 서버 영수증 분석 502 `OCR_API_ERROR`·504 시간 초과 응답에 `recptSn`이 없어(원본은 먼저 저장됨) 화면이 `POST /pets/{petSn}/checkups`로 저장한다(FN-HLT-002-31 "인식 실패·일시 오류"와 다름). 필요: AI 서버가 오류 응답에 `recptSn`을 준다(nyangmeong-ai 저장소에서 /start), LJS `features/ai/receipt/ReceiptUploadModal.jsx`가 오류 때도 `recptSn`을 [직접 입력]에 넘긴다. 백엔드는 일시 오류 영수증 저장을 이미 받고, `CheckupModal`은 `recptSn`만 받으면 영수증 경로로 저장한다. 브라우저 쪽 시간 초과(요청 중단)는 번호를 알 수 없어 남는다
+- 알릴 것(LJS): `features/ai/receipt/ReceiptUploadModal.jsx` `onManualInput` 인자 키를 `rcptSn` → `recptSn`으로 바꿨다(받는 쪽 `HealthDiaryPage`도 같이). 브라우저 쪽 시간 초과(요청 중단)는 영수증 번호를 알 수 없어 일반 저장으로 남는다
 - 연결 남음(SCR-HLT-002 추가-2): 백엔드 `save-check`도 저장완료 영수증이면 409 `RECEIPT_ALREADY_SAVED`를 준다(백엔드 저장소에서 /start). 프론트는 이미 같은 안내로 처리한다
-- 정리 필요(공용 DB, DB 담당): 검증 계정 누리(petSn 20)의 확인용 영수증 504·506·507·509·510·511·512·513(지우는 API 없음, 512는 Vision 키 없이 올린 일시 오류 영수증으로 보임). 검진기록 1002·처방약 443·가계부 10401·일정 4916은 지웠다
+- 정리 필요(공용 DB, DB 담당): 검증 계정 누리(petSn 20)의 확인용 영수증 504·506·507·509·510·511·512·513·516·517(지우는 API 없음, 512는 Vision 키 없이 올린 일시 오류 영수증으로 보임). 검진기록 1002·처방약 443·가계부 10401·일정 4916은 지웠다
 - 참고(로컬 확인): AI 서버 영수증 인식은 nyangmeong-ai `.env.local`의 `GOOGLE_VISION_API_KEY`가 없으면 502. 검증은 백엔드 내부 API(`POST /internal/ai/receipts` → `/{recptSn}/result` RECOGNIZED)로 영수증을 만들고 `/ai/receipts` 응답만 route로 줬다. 백엔드가 DevTools 재시작만 되고 옛 클래스로 돌면 새 API가 404이니 완전히 다시 띄운다
 - 참고(SCR-HLT-007 PDF 분석): 분석 항목 이름은 목록 12종 코드면 약어, 아니면 `inspArtclDrctInptNm`. 둘 다 없으면 `inspArtclCd`를 그대로 보인다(`labInput/labRows.js` `getAnalyzedName`, 실제 응답에서는 안 나옴). 이때 보일 이름은 정하지 않았다. 저장 제외 행(혈액검사 아님)에도 "인식 실패" placeholder가 붙는다. 실패 안내는 `useAnalyzeLabPdf` 토스트 대신 화면이 보인다
 - 참고(SCR-HLT-011 캐릭터 상태): 히어로 큰 이미지는 `GET /pixel-characters`(LJS) 행의 `pixelCharSn`이 없는 주양육 반려동물만 "캐릭터 만들기" 카드, 행이 없거나 조회 실패면 `PetFace`. 칩은 그대로. 생성 중(`CHRC0001`·`0002`)·실패(`CHRC0004`)는 백엔드 `character-image`가 종별 기본 캐릭터를 주므로 따로 표시하지 않는다(사람 결정)
