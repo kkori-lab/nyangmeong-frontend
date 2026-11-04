@@ -2,11 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-ADM-080 라우팅 매핑표 — 끝 (2026-11-04, 검증 2회 중 마지막 `통과`, 사람 확인). `/admin/ai-routes`에 매핑표 조회·지시어 검색·등록/수정/삭제 모달·우선순위 숫자 칸(추가-1, [순서 바꾸기] 대신)·같은 지시어 경고를 가짜 응답(부록 A 45행)으로 만들었다(`features/adminAiRoute`, `AdminAiRoutesPage.jsx`)
+SCR-ADM-081 키워드 사전 — 끝 (2026-11-04, 검증 2회 중 마지막 `확인 못 함 있음`(연결 남음만), 사람 확인). `/admin/ai-keywords`에 6탭(등록 동사·날짜·주기·일정 종류·검진유형·가계부 카테고리) 키워드 조회·등록/수정/삭제 모달을 가짜 응답(부록 B)으로 만들었다(`features/adminAiKeyword`, `AdminAiKeywordsPage.jsx`)
 
 ## 다음에 할 것
 
-- SCR-ADM-080 후속(사람 2026-11-04 "나중에 수정"): 순위 칸이 매핑 전체 우선순위처럼 읽힌다. 실제로는 같은 길이 지시어가 겹칠 때만 쓰는 판정 기준이다. 화면만 바꾸기(순위 칸을 앞에서 빼고 겹치는 행에 표시, 칸 이름을 "같은 지시어일 때 순서"로) 또는 구조 바꾸기(지시어별 우선순위, ERD·백엔드·AI 서버) 중 정한다. 겹침 경고의 조사 "'병원'는"을 받침에 맞춘다
+- SCR-ADM-081 연결 남음: FN-ADM-081-01·02 (백엔드 연결 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`·`POST /api/admin/ai/keywords`·`PATCH`·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`, 새 행 `sortSeq` 규칙(가정: 그 탭 맨 아래), 백엔드 저장소에서 /start). 나오면 `features/adminAiKeyword/api.js` 가짜 본문(sessionStorage `fakeAdminAiKeywords`)만 실제 요청으로, 코드 선택지는 `keywordLabels.js`에서 맞춘다
+- SCR-ADM-081 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start. 지금 가짜 가계부 3행은 예시)
+- SCR-ADM-081 연결 남음: AI 서버가 사전을 DB 조회 API로 읽기(백엔드 조회 API는 백엔드 저장소, AI 서버 전환은 ai 저장소). 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다. 가계부 분류는 지금 OCR(`ai/app/ocr/clients.py`)의 고정 표가 쓴다
+- SCR-ADM-081 사람이 볼 것(판정 밖): ① 화면설계서 예시 `EXPC0001` 대신 실제 코드 MYPC0012~0018(MYPG05)을 썼다 ② 글자 수는 입력을 막지 않고 칸 아래 오류로 알린다(라우팅 매핑표 모달은 `maxLength`로 막는다) ③ `routes/paths.js`에 `ADMIN_AI_KEYWORDS`를 기능 커밋에 같이 넣었다
+- SCR-ADM-081 탭·칸 이름 쉬운 말로(후순위, 사람 2026-11-04): 마일스톤 절 참고
+- SCR-ADM-080 후속(사람 2026-11-04 "나중에 수정", 같은 날 "후순위로 미루고 화면 구현부터". 2026-11-04 기획 초안: 표에서 순위 칸을 빼고 겹치는 행에만 "'병원' 같은 지시어 3건 중 1번째" 표시, 모달 칸 이름 "같은 지시어일 때 순서", `utils/josa.js`로 조사 맞춤, 화면만 바꾸기 추천): 순위 칸이 매핑 전체 우선순위처럼 읽힌다. 실제로는 같은 길이 지시어가 겹칠 때만 쓰는 판정 기준이다. 화면만 바꾸기(순위 칸을 앞에서 빼고 겹치는 행에 표시, 칸 이름을 "같은 지시어일 때 순서"로) 또는 구조 바꾸기(지시어별 우선순위, ERD·백엔드·AI 서버) 중 정한다. 겹침 경고의 조사 "'병원'는"을 받침에 맞춘다
 - SCR-ADM-080 연결 남음: FN-ADM-080-01·02·03 (백엔드 연결 `GET /api/admin/ai/routes?q=`·`POST /api/admin/ai/routes`·`PATCH`·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`(등록·수정 본문에 `prrtSeq`, 그 자리에 넣고 나머지를 민다), 화면 ID 선택지 출처, 지시어 저장 형식(가정 쉼표 구분), `domnNm` 정하는 규칙, 백엔드 저장소에서 /start). 나오면 `features/adminAiRoute/api.js` 가짜 본문(sessionStorage `fakeAdminAiRoutes`)만 실제 요청으로, 선택지는 `routeLabels.js`에서 맞춘다
 - SCR-ADM-080 연결 남음: FN-ADM-080-04·05 (백엔드 연결 AI 서버·대화창용 조회 API와 부록 A 초기 데이터 INSERT, 백엔드 저장소에서 /start. AI 서버가 `data/routing.yaml` 대신 그 API를 읽는 것은 ai 저장소 몫)
 - SCR-ADM-080 사람이 볼 것(판정 밖): ① 화면 ID 선택지에 `docs/routes.md` ✓가 아닌 `SCR-COM-009`·`SCR-MYP-031`을 더했다(부록 A 행이 씀) ② 저장 토스트는 기획 문구 그대로 "~했습니다" 말투라 다른 관리자 화면("~했어요")과 다르다 ③ `routes/paths.js`에 `ADMIN_AI_ROUTES`를 기능 커밋에 같이 넣었다 ④ 스켈레톤 높이(3330px)는 45행 어림값

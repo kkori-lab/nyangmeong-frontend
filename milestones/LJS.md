@@ -564,10 +564,28 @@
 - 연결 남음: FN-ADM-080-01·02·03 (백엔드 연결 `GET·POST /api/admin/ai/routes`·`PATCH·DELETE /api/admin/ai/routes/{aiRoutMpngSn}`(본문 `prrtSeq`), 화면 ID 선택지·지시어 저장 형식·`domnNm`, 백엔드 저장소에서 /start)
 - 연결 남음: FN-ADM-080-04·05 (백엔드 연결 AI 서버·대화창용 조회 API·부록 A 초기 데이터, 백엔드 저장소에서 /start. AI 서버 전환은 ai 저장소)
 
-## SCR-ADM-081 키워드 사전 — 대기
+## SCR-ADM-080 라우팅 매핑표 · 순위 칸을 같은 지시어 순서로 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·03
+- 배경: 순위 칸이 매핑 전체 우선순위처럼 읽힌다. 실제로는 같은 길이 지시어가 겹칠 때만 쓰는 판정 기준이다(FN-ADM-080-03 "같은 길이로 일치하면 위쪽 행이 먼저", 사람 2026-11-04 "나중에 수정")
+- 기다리는 것: 없음(화면만). 지시어별 우선순위로 구조를 바꾸면 ERD·백엔드·AI 서버 몫
+- 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04 "후순위로 미루고 화면 구현부터"). 2026-11-04 기획 초안은 핸드오프 "다음에 할 것"
+- 완료 조건: 표 맨 앞 순위 칸이 없고 지시어가 겹치는 행에만 겹치는 지시어와 그 안의 순서가 보인다. 모달 칸 이름이 "같은 지시어일 때 순서"다. 겹침 경고 조사가 받침에 맞는다
+
+## SCR-ADM-081 키워드 사전 — 끝
 - 기능: FN-ADM-081-01 키워드 조회, FN-ADM-081-02 키워드 등록·수정·삭제, FN-ADM-081-03 초기 데이터
 - 기다리는 것: `/api/admin/ai/keywords` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 키워드 등록·수정·삭제가 사전에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 관리자 아이템·라우팅 매핑표 화면 스타일. 검진유형(HLTG01) 탭을 더해 6탭, 사용 여부 토글은 넣지 않음(사람 2026-11-04 "추천안대로")
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-04 2회째, 연결 남음만, 가짜 응답 기준. 1회째 `실패`: 390폭 페이지 가로 스크롤), 사람 확인 2026-11-04
+- 연결 남음: FN-ADM-081-01·02 (백엔드 연결 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`·`POST /api/admin/ai/keywords`·`PATCH`·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`, 새 행 `sortSeq` 규칙(가정: 그 탭 맨 아래), 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-081-01~03 (AI 서버가 사전을 DB 조회 API로 읽기, 백엔드 조회 API는 백엔드 저장소·AI 서버 전환은 ai 저장소. 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다)
+
+## SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-081-01·02
+- 배경: "등록 동사"·"주기"·"해석 결과"·"연결 코드" 같은 말이 무슨 뜻인지 알기 어렵다(사람 2026-11-04)
+- 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04)
+- 완료 조건: 탭 이름·표 칸 이름·모달 칸 이름을 운영자가 읽고 무엇을 넣는지 알 수 있는 말로 바꾼다(`features/adminAiKeyword/keywordLabels.js`·`AiKeywordTable.jsx`·`AiKeywordFormModal.jsx`). 저장 값(`kwrdClsfNm` 등)은 기초 데이터 그대로 두고 화면 표시만 바꿀지 기획 때 정한다
 
 ## SCR-ADM-082 처리 현황 — 대기
 - 기능: FN-ADM-082-01 영수증 OCR 현황, FN-ADM-082-02 캐릭터 생성 현황, FN-ADM-082-03 검사결과지 분석 현황
@@ -857,6 +875,24 @@
 - 기다리는 것: 남은 관리자 화면 구현이 다 끝난 뒤 맨 마지막에 한다(사람 결정 2026-11-03 "리팩토링이니까 마지막으로")
 - 완료 조건: 조회 오류 안내 + [다시 시도] 묶음(지금 36개 파일에 복사)을 `components/` 공통 컴포넌트 하나로 바꾸고, 가운데 정렬 틀(`mx-auto max-w-[1200px]`)·제목 `h1`·오른쪽 버튼 줄(27~29개 페이지에 복사)을 공통 페이지 틀로 묶는다. 바꾼 뒤에도 화면 모양과 동작(403 `AdminForbidden` 포함)은 그대로다. 기능 작업과 섞지 않는다(요청 2026-11-03)
 - 기획 초안(2026-11-03, 승인 전 보류): `components/LoadError.jsx`(`message`·`onRetry`·`className`) 38곳, `pages/admin/AdminPageFrame.jsx`(`title`·`actions`·`children`) 28개 파일 31곳
+
+## SCR-ADM-101 품종 · 품종 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-101-01
+- 기다리는 것: `GET /api/admin/breeds?petSeCd=`(사용 안 함 포함, 종·정렬순 `[{ vrtySn, vrtyCd, vrtyNm, petSeCd, sortSeq, useYn(true/false) }]`, 종 코드 없으면 전체), `POST /api/admin/breeds` `{ petSeCd, vrtyNm, sortSeq?, useYn? }` → 201 품종 행(`vrtyCd`는 서버가 매김, `sortSeq` 없으면 그 종 마지막 + 10), `PATCH /api/admin/breeds/{vrtySn}` `{ vrtyNm?, sortSeq?, useYn? }` → 200 품종 행 (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/breeds` 행)
+- 완료 조건: `features/adminBreed/api.js` 가짜를 실제 API로 바꿔 품종 목록·[품종 추가]·[수정]이 화면에서 동작한다. 이름 50자(가정 그대로), 같은 종 같은 이름(공백 무시) 409 `DUPLICATE_VRTY_NM`(가짜 그대로), 없는 품종은 가짜 `NOT_FOUND`가 아니라 404 `BREED_NOT_FOUND`, 모르는 종 코드·빈 이름·51자 400 `INVALID_INPUT_VALUE`. 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminBreed/api.js`(가짜 응답)
+
+## SCR-ADM-050 펫뉴스 · 펫뉴스 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-050-01·02·03·05
+- 기다리는 것: 백엔드 SCR-ADM-050 펫뉴스 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/news` 행)
+- 완료 조건: `features/adminNews/api.js` 가짜를 `/api/admin/news` 실제 API로 바꿔 목록 필터, 썸네일 업로드 후 관리자 뉴스 등록·수정, 수집 기사 숨김·카테고리 변경, 분류 키워드 등록·삭제가 화면에서 동작한다. 가짜와 다른 점: 썸네일은 `POST /api/admin/news/images`(form-data `image`) → `{ atchFileSn }`로 먼저 올리고 등록·수정 본문에 `atchFileSn`을 넣는다. 목록 행에 `newsSrcCdNm` 추가
+- 이미 바뀐 것: `features/adminNews/api.js`(가짜 응답)
+
+## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-023-01·02·04·06
+- 기다리는 것: 백엔드 SCR-ADM-023 노출 콘텐츠 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/community/exposure` 행)
+- 완료 조건: `features/adminCommunity/api.js` 노출 콘텐츠 절 가짜를 `/api/admin/community/exposure` 실제 API로 바꿔 건강팁 지정·해제, 문구 등록·수정, AI 코멘트 사용 여부가 화면에서 동작한다
+- 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
