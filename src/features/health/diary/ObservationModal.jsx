@@ -152,10 +152,12 @@ export default function ObservationModal({
         {
           petSn,
           obsrvCyclSn: cycle.obsrvCyclSn,
+          cycle,
+          isFirstCycle,
           file,
           obsrvYmd,
           obsrvSz: size,
-          obsrvChgCd: isFirstCycle ? '' : chgCd,
+          obsrvChgCd: chgCd,
           memoCn: memo.trim(),
         },
         options,
@@ -297,6 +299,11 @@ export default function ObservationModal({
             앨범에서 선택
           </button>
         </div>
+        {isEdit && (
+          <p className="mt-2 text-[13px] font-medium text-[#667374]">
+            사진은 바꿀 수만 있어요
+          </p>
+        )}
         <input
           ref={cameraRef}
           type="file"

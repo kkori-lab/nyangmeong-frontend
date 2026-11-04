@@ -6,6 +6,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { showToast } from '@/components/toastStore';
+import { expenseKeys } from '@/features/expense/queries';
 import {
   cancelCareRecord,
   cancelLastDose,
@@ -16,6 +17,7 @@ import {
   deleteSchedule,
   getCareItems,
   getMyPets,
+  getPetDetail,
   getPixelCharacters,
   getSchedules,
   saveCareMain,
@@ -65,12 +67,17 @@ import {
   updateDailyRecord,
   updateObservationCycle,
 } from './diaryApi';
-import { prepareReceiptSave, saveReceiptCheckups } from './receiptApi';
+import {
+  createReceiptCheckup,
+  prepareReceiptSave,
+  saveReceiptCheckups,
+} from './receiptApi';
 import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
   all: ['health'],
   myPets: ['health', 'my-pets'],
+  petDetail: (petSn) => ['health', 'my-pets', 'detail', petSn],
   pixelCharacters: ['health', 'pixel-characters'],
   schedules: ['health', 'schedules'],
   scheduleList: (params) => ['health', 'schedules', params],
@@ -113,6 +120,14 @@ const showErrorToast = (error) => showToast(error.message);
 /** 내 반려동물 목록(GET /pets) */
 export const useMyPets = () =>
   useQuery({ queryKey: healthKeys.myPets, queryFn: getMyPets });
+
+/** 반려동물 상세(GET /pets/{petSn}), 체중 그래프 목표선용. isEnabled가 false면 요청하지 않는다 */
+export const usePetDetail = (petSn, isEnabled) =>
+  useQuery({
+    queryKey: healthKeys.petDetail(petSn),
+    queryFn: () => getPetDetail(petSn),
+    enabled: isEnabled && petSn != null,
+  });
 
 /** 내 반려동물별 캐릭터 목록(GET /pixel-characters), 종합 건강기록 히어로의 캐릭터 유무 판정 */
 export const usePixelCharacters = () =>
@@ -182,7 +197,6 @@ export const useSaveCareMain = () => useCareMutation(saveCareMain);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
 
-/** 수정·삭제 UI는 화면설계서 갱신 뒤 따로 만든다 */
 export const useUpdateCareItem = () => useCareMutation(updateCareItem);
 
 export const useDeleteCareItem = () => useCareMutation(deleteCareItem);
@@ -330,8 +344,11 @@ export const useCheckupYears = (petSn) =>
     enabled: petSn != null,
   });
 
-/** 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐 */
-const useCheckupMutation = (mutationFn) => {
+/**
+ * 검진기록 변경은 병원 일정·검진기록 수와 연동 케어 항목에 이어짐
+ * onError: 모달 안에 오류를 보이는 곳은 null로 토스트를 끈다(열린 모달 뒤에 가려짐)
+ */
+const useCheckupMutation = (mutationFn, onError = showErrorToast) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -341,11 +358,15 @@ const useCheckupMutation = (mutationFn) => {
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
     },
-    onError: showErrorToast,
+    onError,
   });
 };
 
 export const useCreateCheckup = () => useCheckupMutation(createCheckup);
+
+/** 오류(409 RECEIPT_ALREADY_SAVED·404 RECEIPT_NOT_FOUND 등)는 검진기록 등록 모달 안에 보인다 */
+export const useCreateReceiptCheckup = () =>
+  useCheckupMutation(createReceiptCheckup, null);
 
 export const useDeleteCheckup = () => useCheckupMutation(deleteCheckup);
 
@@ -425,9 +446,9 @@ export const useReplaceAttachment = () =>
 export const useDeleteAttachment = () =>
   useCheckupDetailMutation(deleteAttachment);
 
-/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 반환 */
+/** PDF 분석: 데이터를 바꾸지 않는 요청이라 무효화 없이 결과만 반환. 실패 안내는 검사 수치 입력 화면이 보인다 */
 export const useAnalyzeLabPdf = () =>
-  useMutation({ mutationFn: analyzeLabPdf, onError: showErrorToast });
+  useMutation({ mutationFn: analyzeLabPdf });
 
 export const useCreateInspections = () =>
   useCheckupDetailMutation(createInspections);
@@ -488,6 +509,7 @@ export const useSaveReceiptCheckups = () => {
       queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
+      queryClient.invalidateQueries({ queryKey: expenseKeys.all });
     },
   });
 };

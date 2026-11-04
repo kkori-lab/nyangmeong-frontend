@@ -165,10 +165,11 @@
 - 결정: 백엔드 API는 develop에 머지돼 있었다. 디자인은 `html/hlt-summary.html` 그대로(모양은 바꾸지 않고 서버 키로만 바꿈). `GET /pets`에 캐릭터 상태가 없어 "캐릭터 만들기" 점선 카드를 빼고 `PetFace`로 둠(사람 결정). 건강기록 가짜 반려동물·일상기록·관찰·검진기록·일정·연동 케어 항목 저장소를 지움(PDF 분석·영수증 가짜는 남김)
 - 연결 남음: FN-HLT-011-01·02 캐릭터 상태 (`GET /pets`의 `chrcSttsCd`, LJS)
 
-## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 대기
+## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 끝
 
 - 기능: 토탈 케어리스트에서 사용자가 추가한 항목을 수정·삭제하는 UI (명세 기능 ID 추가 없음, FN-HLT-003-12 "사용자가 추가한 항목만 직접 수정·삭제"·"정기관리 기본 항목은 주기만 변경"에 걸침). API는 "토탈 케어리스트 API 연결" 절에서 연결한 `updateCareItem`(`PATCH /pets/{petSn}/care-items/{careArtclSn}`)·`deleteCareItem`(`DELETE …`)을 쓴다. 지금 화면·시안(`html/hlt-calendar.html`)에 수정·삭제 버튼과 모달이 없다
 - 기다리는 것: 화면설계서 갱신(수정·삭제 진입 위치와 모달), 이 파일의 "SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결"
+- 결정: 화면설계서에 진입 근거가 없어 사람이 정함(2026-11-03). 줄 끝 ⋯ 메뉴(마이페이지 가계부 `ExpenseMenu`의 여는 방식·모양을 복사해 `features/health/CareItemMenu.jsx`로 새로 만듦, LJS 파일은 건드리지 않음), 사용자 추가 [수정]·[삭제], 기본 정기관리 [수정]만, 기본 일상관리·연동 항목 ⋯ 없음, 삭제는 메뉴 → `ConfirmModal`, 수정 모달은 [취소]·[수정하기]만
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 사용자가 추가한 항목은 이름·아이콘·구역·주기를 고치고 지울 수 있고, 기본 정기관리 항목은 주기만 고칠 수 있으며, 기본 항목·처방약 연동 항목에는 삭제가 없다(갱신된 화면설계서 기준으로 다시 맞춘다)
 
 ## SCR-HLT-011 종합 건강기록 · 캐릭터 상태 연결 — 끝
@@ -178,6 +179,65 @@
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 캐릭터 없는 주양육 반려동물은 히어로에 "캐릭터 만들기" 카드가 나오고 `/mypage/characters`로 가며, 캐릭터 있음·공동양육·조회 실패는 `PetFace`
 - 결정: "캐릭터 만들기" 카드를 되살림(디자인 기준), 생성 중·실패는 백엔드 기본 캐릭터 그대로(사람 결정)
 - 연결 남음: 없음
+
+## SCR-HLT-007 검사 수치 입력 · 참고범위 비우기 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-007-02·03(참고범위 최소·최대는 둘 다 입력하거나 둘 다 비움)에 걸침. 백엔드 검사 수치 PATCH `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}`가 참고범위를 `refRange` 묶음(`{refLlmtNvl, refUplmtNvl}`)으로 받는다: 안 보내면 유지, 보내면 덮어씀, `{null, null}`이면 비움, 한쪽만 null이거나 최소 > 최대면 400(`data[0].field` `refRange.paired`·`refRange.ordered`). 등록 POST는 평평한 필드 그대로이고 최소 > 최대도 400(필드 목록 없음)
+- 기다리는 것: 백엔드 SCR-HLT-007 검사 수치 입력 · 참고범위 비우기 (끝, develop 병합 전이면 병합 뒤)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `LabInput.jsx`·`BloodResultForm.jsx` 수정 저장 때 하한·상한을 `refRange`로 묶어 보내고(빈 칸은 null) "참고범위는 수정에서 지울 수 없어요" 막기를 지워, 저장된 참고범위를 둘 다 비우면 검진상세에서 "참고범위 …" 줄이 사라지고 ▲▼ 표시도 없다. 한쪽만 입력하거나 최소 > 최대이면 저장 전에 막고 최소 > 최대는 "참고범위 최소는 최대보다 클 수 없어요"(`getFormErrors`의 짝 규칙 검사와 같은 자리, 등록·수정 모두). 범위 없으면 ▲▼ 판정 없음, 검사 수치 추이 밴드는 가장 최근 회차 범위이고 없으면 밴드 없음
+- 결과: 2026-11-03 검증 2회차 통과(1회차는 로그인 계정이 없어 화면 확인 못 함), 사람 확인 끝. `updateInspection`이 `refRange: { refLlmtNvl, refUplmtNvl }`를 항상 보내고, `LabInput.jsx`·`BloodResultForm.jsx`가 최소 > 최대를 막는다
+- 결정: 범위가 없으면 검진상세 "참고범위 …" 줄을 숨기는 기존 동작 그대로, "참고범위 없음" 문구는 더하지 않음(사람 결정). PDF 분석 행은 최소 > 최대 검사를 넣지 않음
+- 연결 남음: 없음
+
+## SCR-HLT-002 건강 일지 · 지속 관찰 회차 수정 비우기 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-19·23·24(크기·변화·메모는 선택 입력)·22(사진 필수)에 걸침. 백엔드 `PATCH /pets/{petSn}/observation-cycles/{obsrvCyclSn}`(multipart)가 비울 필드 이름을 `clearFields`로 받는다(`obsrvSz`·`obsrvChgCd`·`memoCn`, 반복 키 또는 쉼표). 보내지 않은 칸은 유지, 그 밖의 이름은 400(`data[0].field` `clearFields[i]`), 같은 칸에 값과 비우기를 함께 보내면 400(`clearFieldsDistinct`). 사진은 비울 수 없고 보내면 교체
+- 기다리는 것: 백엔드 SCR-HLT-002 건강 일지 · 지속 관찰 회차 수정 비우기 (끝, develop 병합 전이면 병합 뒤)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 회차 수정 모달에서 크기·변화·메모 칸을 비우고 저장하면 `updateObservationCycle`이 그 칸 이름을 `clearFields`로 보내고, 선택 회차 상세에서 그 줄이 숨겨진다(메모는 비어 보임). 손대지 않은 칸은 보내지 않는다. 수정 모달은 기존 사진을 미리보기에 채우고 사진 칸에는 [촬영하기]·[앨범에서 선택]을 그대로 둔다(빼기 없음). 사진 칸 아래 보조 문구 "사진은 바꿀 수만 있어요". 이 문구는 명세에 없는 새 정책이라 기능명세서 FN-HLT-002-22에도 반영한다
+- 결과: 2026-11-02 검증 2회차 통과, 사람 확인 끝. 수정 전 회차 값과 비교해 바뀐 값만 보내고 비운 칸은 `clearFields`로 보냄. 1회차는 `obsrvChgCd`를 보내지 않음
+- 결정: 디자인 `html/hlt-diary.html`, 수정 모드 사진 버튼 두 개 유지(버튼 정리는 사람이 화면 손볼 때)
+- 연결 남음: 없음
+
+## SCR-HLT-007 검사 수치 입력 · PDF 분석 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-005-04(검진상세 첨부 [PDF 분석])·FN-HLT-007-04·05·06(분석 결과 검수·검사 종류 표시·다시 분석·직접 입력하기)에 걸침. `checkupApi.js` `analyzeLabPdf` 가짜를 Python `POST /ai/checkups/lab-results`(LJS, `nyangmeong-ai` develop, `aiApi`)로 바꾼다. 요청은 multipart `file`(PDF, 최대 10MB, 로그인 쿠키 필요)이라 첨부 원본을 `getAttachmentFile`(Blob)로 받아 올린다. 응답 `items[]`는 `inspArtclCd`·`inspArtclDrctInptNm`·`rsltNvl`·`unitNm`·`refLlmtNvl`·`refUplmtNvl`, `excludedArtclNms[]`(가짜의 `inspItmNm`·`rsltVal`·`refMinVal`·`refMaxVal`·`bloodYn`과 다름, 검토 행 `labInput/`을 서버 키로 맞춘다). 오류 `NOT_LAB_RESULT` 422·`PDF_ANALYZE_TIMEOUT` 504·`PDF_ANALYZE_API_ERROR` 502. 가짜 메모리 저장소(`getStore`·시드)와 `?fakeCheckupDetail`을 지운다
+- 기다리는 것: 없음 (LJS에게 응답 모양 확정 여부 확인, 로컬 확인에는 AI 서버와 `LLM_API_KEY` 필요)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진상세 첨부 PDF에서 [PDF 분석]을 누르면 `POST /ai/checkups/lab-results`에 파일이 올라가고 검수 행이 응답 값으로 채워지며, 저장하면 `POST /pets/{petSn}/inspection-values`로 저장된다. 검사결과지가 아닌 PDF·시간 초과·분석 오류는 각각 안내가 나오고 [다시 분석]·[직접 입력하기]로 이어진다
+- 추가 요청: 추가-1 분석 오류 상태(422·504·502)에서는 노란 AI 주의 문구를 숨긴다
+- 연결 남음: 없음
+
+## SCR-HLT-002 건강 일지 · 영수증 일괄 저장 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-44(가계부 중복 확인)·46(가까운 예정 일정)과 영수증 저장(검진기록·처방약·가계부)에 걸침. `receiptApi.js`의 `prepareReceiptSave`·`saveReceiptCheckups`(검진기록은 실제, 처방약 `fakePrescriptions`·가계부 `fakeLedger`는 가짜, 반려동물마다 따로 저장)를 LJS 일괄 API `POST /api/receipts/{recptSn}/save-check`·`POST /api/receipts/{recptSn}/save`(검진기록·처방약·가계부 한 번에, 같은 요청 재전송은 200)로 바꾼다. `?fakeLedgerDup`·`?fakeReceiptSave` 가짜를 지운다
+- 기다리는 것: 없음 (백엔드 가짜 교체가 develop에 병합됨 `c7cacb6`, PR #119. `save-check`의 `nearbySchedules`는 서버가 반려동물마다 가장 가까운 1건만 준다. [직접 입력] 영수증 저장 `POST /api/receipts/{recptSn}/checkups?petSn=`이 새로 생김)
+- 백엔드 연결: 끝 (health 서비스 메서드·`ReceiptSaveService` 가짜 교체, 백엔드 JAJ)
+- 결과: 2026-11-03 검증 통과(1·2회차 실패는 복용 상태 코드 `ING`·`END` 400, 공용 DB 쓰기 거부. 마지막은 옛 클래스로 돌던 백엔드를 다시 띄운 뒤 실제 저장으로 확인), 사람 확인 끝. `save-check` 요청 `{ ckupYmd, pets: [{ petSn, amt, expenseYn }] }`, 응답 `duplicateExpenses`·`nearbySchedules`(서버가 반려동물마다 1건)를 탭으로 바꾼다. `save`는 `idmptDmndId`(모달마다 1개)와 처방약 `prscSttsCd` `HLTC0010`·`HLTC0011`, 성공 때 `expenseKeys`도 무효화
+- 추가 요청: 추가-1 2-E 창은 검진 종류가 없으면 "MM/DD 병원 일정이 있어요"(`NearScheduleModal.jsx`), 추가-2 `save`·`save-check` 409 `RECEIPT_ALREADY_SAVED`면 서버 message만 보이고 [다시 시도하기] 숨김(`ReceiptResultStep.jsx`)
+- 결정: 디자인 `html/hlt-diary.html` 그대로(요청·응답만 바꿈). 백엔드를 먼저 고친 뒤 연결(사람 결정)
+- 연결 남음: 추가-2 (백엔드 연결 `save-check` 저장완료 영수증 409 `RECEIPT_ALREADY_SAVED`, 백엔드 저장소에서 /start)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 영수증 결과 확인에서 저장하면 `save-check` 뒤 `save` 한 번만 요청하고, 검진기록·처방약·가계부 지출(마이페이지 가계부 목록)에 실제로 남는다. 같은 지출이 있으면 중복 안내, 가까운 예정 일정이 있으면 연결 선택이 나온다
+
+## SCR-HLT-002 건강 일지 · 영수증 [직접 입력] 저장 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-31(영수증 인식 실패·일시 오류 뒤 [직접 입력]으로 연 검진기록 등록 모달의 저장)에 걸침. 이 경로의 저장을 `POST /pets/{petSn}/checkups` 대신 `POST /api/receipts/{recptSn}/checkups?petSn=`로 보낸다. 요청은 직접 등록 Body(`ckupYmd`·`hsptlNm`·`ckupTypeCd`·`ckupCn`·`ckupMemoCn`·`schdlSn`)에 `idmptDmndId`(모달마다 한 번 만든 값)를 더한다. 응답은 `CheckupResponse`(201, `recptSn` 포함). 업로드 전 [직접 입력하기]로 연 경우는 지금처럼 영수증 연결 없음
+- 기다리는 것: 백엔드 SCR-HLT-002 건강 일지 · 영수증 검진기록 연결 (JAJ 백엔드, 끝 2026-11-03)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 미인식 영수증에서 [직접 입력]으로 검진기록을 저장하면 `POST /api/receipts/{recptSn}/checkups?petSn=` 한 번만 요청하고, 그 영수증이 저장완료가 되며 가계부 지출은 생기지 않는다. 409 `RECEIPT_ALREADY_SAVED`(이미 저장됨)·404 `RECEIPT_NOT_FOUND`는 안내를 보인다
+- 결과: 2026-11-03 검증 통과(1회차 409·404 토스트가 `<dialog>` 뒤에 가려 안 보임, 2회차 모달 안 상자가 기획과 다름 → 추가-1로 확정 후 잠금을 풀고 다시 검증), 사람 확인 끝
+- 추가 요청: 추가-1 409·404 안내를 토스트 대신 모달 안 빨간 안내 상자로(`CheckupModal.jsx`, `queries.js`)
+- 연결 남음: FN-HLT-002-31 일시 오류 뒤 [직접 입력]의 영수증 연결 (AI 서버 오류 응답 `recptSn`·업로드 모달, nyangmeong-ai 담당·LJS): AI 서버 영수증 분석 502 `OCR_API_ERROR`·504 시간 초과 응답에 `recptSn`이 없어(원본은 먼저 저장됨) 화면이 `POST /pets/{petSn}/checkups`로 저장한다(FN-HLT-002-31 "인식 실패·일시 오류"와 다름). 필요: AI 서버가 오류 응답에 `recptSn`을 준다(nyangmeong-ai 저장소에서 /start), LJS `features/ai/receipt/ReceiptUploadModal.jsx`가 오류 때도 `recptSn`을 [직접 입력]에 넘긴다. 백엔드는 일시 오류 영수증 저장을 이미 받고, `CheckupModal`은 `recptSn`만 받으면 영수증 경로로 저장한다. 브라우저 쪽 시간 초과(요청 중단)는 번호를 알 수 없어 남는다
+
+## SCR-HLT-002 건강 일지 · 영수증 일시 오류 [직접 입력] 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-31(영수증 일시 오류 뒤 [직접 입력] 저장의 영수증 연결)에 걸침. `ReceiptUploadModal.jsx`가 AI 서버 오류 응답 `data.recptSn`을 [직접 입력]에 넘겨 `CheckupModal`이 영수증 경로로 저장한다. `onManualInput` 키 `rcptSn` → `recptSn`
+- 기다리는 것: AI 서버 영수증 분석 오류 응답 `data.recptSn` (nyangmeong-ai)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `/ai/receipts` 502에 `data.recptSn`이 있으면 실패 안내 [직접 입력] 저장이 `POST /api/receipts/{recptSn}/checkups?petSn=` 한 번, 없으면 `POST /pets/{petSn}/checkups`
+
+## SCR-HLT-002 건강 일지 · 체중 그래프 정상범위·목표 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-10(체중 — 사용자 정상범위 기준 색상 표시)에 걸침. `DailyTrendCard.jsx`가 가짜 키 `nrmlWghtMinVal`·`nrmlWghtMaxVal`·`goalWghtVal` 대신 서버 키 `minBdwg`·`maxBdwg`(`GET /pets`)·`goalBdwg`(`GET /pets/{petSn}`)를 읽는다
+- 기다리는 것: 없음(백엔드 develop에 있음, SJM)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 정상범위가 있는 반려동물의 체중 그래프에 범위 띠, 목표체중이 있으면 목표선이 보인다
+- 결과: 2026-11-04 검증 2회차 통과(1회차는 검증 브라우저 미로그인으로 화면 확인 못 함), 사람 확인 끝
 
 ## 제외
 

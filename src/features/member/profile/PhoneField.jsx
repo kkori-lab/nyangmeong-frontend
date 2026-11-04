@@ -23,7 +23,13 @@ export default function PhoneField({ mbrTelno, isEditing, onEdit, onClose }) {
   return (
     <AccountRow
       label="휴대폰 번호"
-      value={<span className="tabular-nums">{formatPhone(mbrTelno)}</span>}
+      value={
+        mbrTelno ? (
+          <span className="tabular-nums">{formatPhone(mbrTelno)}</span>
+        ) : (
+          <span className="text-subtle">미등록</span>
+        )
+      }
       actionLabel="수정"
       isEditing={isEditing}
       onEdit={onEdit}

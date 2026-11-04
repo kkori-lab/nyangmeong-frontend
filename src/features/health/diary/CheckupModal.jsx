@@ -7,6 +7,7 @@ import { PATHS } from '@/routes/paths';
 import { getTodayYmd } from '@/utils/formatDate';
 import {
   useCreateCheckup,
+  useCreateReceiptCheckup,
   useFindNearSchedule,
   useUpdateCheckup,
 } from '../queries';
@@ -34,7 +35,8 @@ const OPTIONAL = (
 /**
  * [검진기록 등록 모달]
  * - 1단계 방법 선택 → 직접 입력 (FN-HLT-002-33·26~31). [영수증으로 등록하기]는 onReceipt로 부모가 이어받음
- * - initialStep="form": 영수증 인식에 실패해 [직접 입력]으로 연 경우. 검진기록 API에 영수증 번호가 없어 아직 영수증은 연결하지 않음
+ * - initialStep="form": 영수증 인식에 실패해 [직접 입력]으로 연 경우. recptSn이 있으면 그 영수증에 연결해 저장(저장완료, 가계부 기록 없음),
+ *   업로드 전 [직접 입력하기]처럼 recptSn이 없으면 영수증 연결 없이 저장
  * - 저장하면 서버가 같은 날 병원 일정에 연결하고, 없고 앞뒤 7일 안에 예정 일정이 있으면 옮겨 연결할지 먼저 확인
  * - 저장 뒤 새 검진기록의 검진상세로 이동
  * - checkup: 검진상세 [검진기록 수정]으로 연 수정 상태. 기존 값이 채워지고 방법 선택·예정 일정 확인 없이 저장하며,
@@ -44,6 +46,7 @@ export default function CheckupModal({
   pets,
   defaultPetSn,
   initialStep = 'select',
+  recptSn,
   checkup,
   onSaved,
   onReceipt,
@@ -65,10 +68,14 @@ export default function CheckupModal({
   const [isMoveConfirmOpen, setIsMoveConfirmOpen] = useState(false);
   const findNearSchedule = useFindNearSchedule();
   const createCheckup = useCreateCheckup();
+  const createReceiptCheckup = useCreateReceiptCheckup();
+  /** 영수증 저장의 중복 클릭·재전송 방지 ID. 다시 저장해도 같은 값을 보낸다 */
+  const [idmptDmndId] = useState(() => crypto.randomUUID());
   const updateCheckup = useUpdateCheckup();
   const isPending =
     findNearSchedule.isPending ||
     createCheckup.isPending ||
+    createReceiptCheckup.isPending ||
     updateCheckup.isPending;
 
   const errors = {
@@ -86,26 +93,30 @@ export default function CheckupModal({
     });
 
   /** schdlSn: 검진일로 옮겨 연결할 예정 일정 */
-  const save = (schdlSn) =>
-    createCheckup.mutate(
-      {
-        petSn,
-        body: {
-          ckupYmd,
-          hsptlNm: hsptlNm.trim(),
-          ckupTypeCd,
-          ckupCn: ckupCn.trim(),
-          ckupMemoCn: ckupMemoCn.trim(),
-          schdlSn,
-        },
+  const save = (schdlSn) => {
+    const body = {
+      ckupYmd,
+      hsptlNm: hsptlNm.trim(),
+      ckupTypeCd,
+      ckupCn: ckupCn.trim(),
+      ckupMemoCn: ckupMemoCn.trim(),
+      schdlSn,
+    };
+    const options = {
+      onSuccess: (saved) => {
+        onClose();
+        navigate(toDetailPath(saved));
       },
-      {
-        onSuccess: (saved) => {
-          onClose();
-          navigate(toDetailPath(saved));
-        },
-      },
-    );
+    };
+    if (recptSn) {
+      createReceiptCheckup.mutate(
+        { recptSn, petSn, body: { ...body, idmptDmndId } },
+        options,
+      );
+      return;
+    }
+    createCheckup.mutate({ petSn, body }, options);
+  };
 
   /** 수정 저장: 검진일을 바꾸면 이 검진기록만 바뀐 날짜의 병원 일정으로 옮겨짐 */
   const saveEdit = () =>
@@ -299,6 +310,15 @@ export default function CheckupModal({
               저장하면 케어 캘린더에도 표시됩니다. 같은 날짜에 등록한 병원
               일정이 있으면 그 일정과 자동으로 연결됩니다
             </p>
+
+            {createReceiptCheckup.isError && (
+              <p
+                role="alert"
+                className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-danger"
+              >
+                {createReceiptCheckup.error.message}
+              </p>
+            )}
           </>
         )}
       </FormModal>

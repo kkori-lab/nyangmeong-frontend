@@ -413,7 +413,7 @@
 - 결정: 디자인 파일 없이 화면설계서 기준, [포인트 조정]은 SCR-ADM-072까지 비활성(사람 2026-11-02). 관리자·탈퇴 회원은 정지 버튼 없음. `ADMIN_POINTS`는 사이드바 메뉴가 생겨 SCR-ADM-072 때 넣는다
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 가짜 응답), 사람 확인 2026-11-02
 - 연결 남음: FN-ADM-011-01·02·03·04·05 (백엔드 연결 회원 상세·탭 API·필드 이름, 백엔드 저장소에서 /start)
-- 연결 남음: FN-ADM-011-04 ([포인트 조정] 이동, SCR-ADM-072, LJS)
+- 연결 남음: FN-ADM-011-04 ([포인트 조정] 이동, SCR-ADM-072, LJS) → 2026-11-04 SCR-ADM-072에서 켜 끝
 
 ## SCR-ADM-020 게시글·댓글 — 끝
 - 기능: FN-ADM-020-01 게시글 목록 조회, FN-ADM-020-02 게시글 검색·필터, FN-ADM-020-03 게시글 상세 조회, FN-ADM-020-04 게시글 블라인드, FN-ADM-020-05 블라인드 복구, FN-ADM-020-06 댓글 조회·삭제
@@ -439,95 +439,163 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-02, 1회차, 확인 못 함(내 것) 없음, 가짜 응답), 사람 확인 2026-11-02
 - 연결 남음: FN-ADM-040-01~05 (백엔드 연결 `/api/admin/notices` 목록·상세·등록·수정, 알림 대상 수, 알림 발송 컬럼, 백엔드 저장소에서 /start)
 
-## SCR-ADM-041 FAQ — 대기
+## SCR-ADM-041 FAQ — 끝
 - 기능: FN-ADM-041-01 FAQ 목록 조회, FN-ADM-041-02 FAQ 등록·수정, FN-ADM-041-03 FAQ 비노출, FN-ADM-041-04 FAQ 카테고리
 - 기다리는 것: `/api/admin/faqs` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 카테고리별 FAQ 등록·수정·비노출이 목록에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03). 가짜 없이 실제 API로 연결
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 작업 사본), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-041-01~04 (백엔드 연결 `/api/admin/faqs` 목록·상세·등록·수정, 백엔드 저장소에서 /start)
 
-## SCR-ADM-042 1:1 문의 — 대기
+## SCR-ADM-042 1:1 문의 — 끝
 - 기능: FN-ADM-042-01 문의 목록 조회, FN-ADM-042-02 문의 필터, FN-ADM-042-03 문의 상세 조회, FN-ADM-042-04 답변 등록, FN-ADM-042-05 답변 수정, FN-ADM-042-06 삭제된 문의 처리, FN-ADM-042-07 캐릭터 오류 처리, FN-ADM-042-08 펫돌봄 분쟁 연결
 - 기다리는 것: `/api/admin/inquiries` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 유형·상태로 거른 문의에 답변을 등록·수정할 수 있다(삭제 없음)
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, FN-ADM-042-08은 SCR-ADM-022로 넘김(사람 2026-11-03). 가짜 없이 실제 API로 연결
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 로컬 8080 백엔드 LJS 작업 사본), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-042-07 (백엔드 연결 `GET /api/admin/inquiries/{otoInqrySn}/images/{atchFileSn}` 접수 시점 캐릭터 이미지 404, 백엔드 저장소에서 /start)
+- 넘김: FN-ADM-042-08 → SCR-ADM-022 펫돌봄 거래
 
-## SCR-ADM-070 아이템 — 대기
+## SCR-ADM-070 아이템 — 끝
 - 기능: FN-ADM-070-01 아이템 목록 조회, FN-ADM-070-02 아이템 등록, FN-ADM-070-03 아이템 수정·판매 중지, FN-ADM-070-04 아이템 정렬
 - 기다리는 것: `/api/admin/items` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 아이템 등록(부위 필수)·수정·판매 중지·정렬이 목록에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 순서 변경은 [위]·[아래] 버튼(사람 2026-11-03 추천안대로). 백엔드 API가 없어 가짜 응답으로 만듦. 추가-1 관리자 화면에서 신발 부위 제외(사람 2026-11-03, 서비스 전체 제외는 백엔드)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차 실패(390px 넘침) 뒤 통과, 추가-1 포함 재검증, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 끝: FN-ADM-070-01~04 (2026-11-03, 아래 "SCR-ADM-070 아이템 · … 연결" 세 절)
+- 연결 남음: 추가-1 (백엔드 연결 공통코드 MYPG01 신발 제외, 백엔드 저장소에서 /start)
 
-## SCR-ADM-073 기본 캐릭터 — 대기
-- 기능: FN-ADM-073-01 종별 기본 캐릭터 관리
-- 기다리는 것: `/api/admin/characters/default` (LJS 백엔드). 없으면 가짜 응답
-- 완료 조건: 종별 기본 캐릭터 이미지를 바꾸면 미리보기가 바뀐다
-
-## SCR-ADM-090 알림 템플릿 — 대기
+## SCR-ADM-090 알림 템플릿 — 끝
 - 기능: FN-ADM-090-01 템플릿 목록 조회, FN-ADM-090-02 템플릿 등록·수정, FN-ADM-090-03 기본 문구 사용
 - 기다리는 것: `/api/admin/notification-templates` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 유형×채널별 템플릿 등록·수정과 치환 변수 안내가 보인다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 치환 변수는 서버 표기 `{{변수}}`, AIMG02 전 유형 × 채널 2개 행·변수 칩은 모든 유형에 같은 목록(사람 2026-11-03 추천안대로). 백엔드 API가 없어 가짜 응답으로 만듦
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-090-01~03 (백엔드 연결 `/api/admin/notification-templates` 목록·등록·수정, `useYn` 모양·유형별 치환 변수, 백엔드 저장소에서 /start)
 
-## SCR-ADM-091 발송 이력 — 대기
+## SCR-ADM-091 발송 이력 — 끝
 - 기능: FN-ADM-091-01 발송 이력 조회, FN-ADM-091-02 재발송 없음
 - 기다리는 것: `/api/admin/notification-logs` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 기간·채널·결과로 거른 발송 이력과 실패 사유가 보인다(재발송 버튼 없음)
+- 결정: 디자인은 화면설계서 기준 + 감사 로그 화면 스타일, 기간 필터 기본값 비움(사람 2026-11-03 추천안대로). 백엔드 API가 없어 가짜 응답으로 만듦
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-091-01 (백엔드 연결 `GET /api/admin/notification-logs` 목록·필터·쪽, `mbrNcnm`·기간 파라미터 이름, 백엔드 저장소에서 /start)
 
-## SCR-ADM-021 실종제보 — 대기
+## SCR-ADM-021 실종제보 — 끝
 - 기능: FN-ADM-021-01 실종제보 목록 조회, FN-ADM-021-02 실종제보 상세 조회, FN-ADM-021-03 기간 변경 없음
 - 기다리는 것: `/api/admin/lost-reports` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 상태별 실종제보 목록과 상세가 보인다
+- 결정: 디자인은 화면설계서 기준 + 발송 이력·게시글·댓글 화면 스타일, 백엔드 API도 LJS가 한다(사람 2026-11-03). 백엔드 API가 없어 가짜 응답으로 만듦
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-021-01·02·03 (백엔드 연결 `GET /api/admin/lost-reports` 목록·상태 필터·쪽, `GET /api/admin/lost-reports/{lostTpofSn}` 상세, `mbrNcnm`·`expryCrtrDt` 노출, 백엔드 저장소에서 /start)
 
-## SCR-ADM-022 펫돌봄 거래 — 대기
+## SCR-ADM-022 펫돌봄 거래 — 끝
 - 기능: FN-ADM-022-01 모집글 목록 조회, FN-ADM-022-02 매칭 상세 조회, FN-ADM-022-03 채팅 내용 비노출
 - 기다리는 것: `/api/admin/care-matches` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 모집·매칭 상태와 이력이 보이고 채팅 내용은 없다
+- 결정: 디자인은 화면설계서 기준 + 실종제보 화면 스타일(사람 2026-11-03 "추천안대로"). 백엔드 API가 없어 가짜 응답으로 만듦. 추가-1 합의 조건 표기 "v2" → "2차 합의"(사람 2026-11-03)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 2회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세·가정 필드 이름·매칭 거래 상태 코드·실제 완료 사진, 백엔드 저장소에서 /start)
 
-## SCR-ADM-023 노출 콘텐츠 — 대기
+## SCR-ADM-023 노출 콘텐츠 — 끝
 - 기능: FN-ADM-023-01 오늘의 건강팁 현황, FN-ADM-023-02 건강팁 지정·해제, FN-ADM-023-03 지정 글 자동 대체, FN-ADM-023-04 오늘의 이야기 문구 관리, FN-ADM-023-05 오늘의 이야기 선택, FN-ADM-023-06 AI 코멘트 관리, FN-ADM-023-07 인기 포토 노출 제외
 - 기다리는 것: `/api/admin/community/exposure` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 오늘의 건강팁 지정·해제와 오늘의 이야기 문구가 반영된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 후보 문구 가정 필드 `todayPhrsSn`·`phrsCn`·200자(사람 2026-11-03 추천안대로). FN-ADM-023-07은 결번이라 만들지 않음. 건강팁 검색은 실제 `GET /api/admin/posts`, 나머지는 가짜 응답
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-023-01·02·03·04·05·06 (백엔드 연결 `/api/admin/community/exposure` 건강팁 목록 `GET health-tips`·지정 `PUT`·해제 `DELETE health-tips/{pstSn}`·삭제·블라인드 시 자동 대체, 후보 문구 테이블과 `GET·POST·PATCH phrases`(가정 필드 `todayPhrsSn`·`phrsCn`·200자)·00:00 배치와 오늘 문구 `todayPhrs`, `GET commentaries`·`PATCH commentaries/{cmntyAiCmtrySn}`, 백엔드 저장소에서 /start)
 
-## SCR-ADM-050 펫뉴스 — 대기
+## SCR-ADM-050 펫뉴스 — 끝
 - 기능: FN-ADM-050-01 뉴스 목록 조회, FN-ADM-050-02 관리자 뉴스 등록·수정, FN-ADM-050-03 수집 기사 관리, FN-ADM-050-04 피드 소스 관리, FN-ADM-050-05 분류 키워드 관리, FN-ADM-050-06 수집 기사 자동 분류, FN-ADM-050-07 뉴스 수집 실행
 - 기다리는 것: `/api/admin/news` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 관리자 뉴스 등록·수집 기사 숨김·분류 변경이 목록에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03 추천안대로). FN-ADM-050-04는 결번이라 만들지 않음. 뉴스 수집 실행만 실제 `POST /api/admin/batches/SYSC0028/run`, 나머지는 가짜 응답
+- 추가 요청: 추가-1 SCR-AIM-010 FN-AIM-010-06 영수증 분석 실패(504 `OCR_TIMEOUT`·502 `OCR_API_ERROR`) 응답의 `data.recptSn`을 [직접 입력]에 넘김(`ReceiptUploadModal.jsx`, ai-47 계약 변경, 사람 요청 2026-11-03)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 2회차, 연결 남음만, 가짜 응답 기준·뉴스 수집 실행은 실제 API), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-050-01·02·03·05 (백엔드 연결 `GET /api/admin/news` 목록·필터·쪽, `POST·PATCH /api/admin/news`·썸네일 `atchFileSn`, `GET·POST·DELETE /api/admin/news/keywords`(가정 필드 `kwrdDictSn`·`mpngCd`·`kwrdCn`·`sortSeq`), 백엔드 저장소에서 /start)
 
-## SCR-ADM-101 품종·지역 — 대기
-- 기능: FN-ADM-101-01 품종 관리, FN-ADM-101-02 지역 조회
-- 기다리는 것: `/api/admin/breeds, /api/admin/regions` (LJS 백엔드). 없으면 가짜 응답
-- 완료 조건: 품종 등록·수정이 목록에 반영되고 지역은 조회만 된다
+## SCR-ADM-101 품종 — 끝
+- 기능: FN-ADM-101-01 품종 관리 (FN-ADM-101-02 지역 조회는 2026-11-03에 뺐다, 제외 절)
+- 기다리는 것: `/api/admin/breeds` (LJS 백엔드). 없으면 가짜 응답
+- 완료 조건: 품종 등록·수정이 목록에 반영된다 (지역 조회는 2026-11-03에 뺐다)
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03 추천안대로). 지역은 관리자 전용 API 없이 실제 공용 `GET /api/regions`로 조회만. 읍면동 실제 값 확인은 1회차 실패 뒤 사람이 잠금을 풀고 조건에서 뺌(당시 DB 0건)
+- 추가 요청: 추가-1 지역 탭을 시도 고르기 없이 전북특별자치도(`admdstCd` 5200000000) 시군구 → 읍면동 조회로(`RegionBrowser.jsx`·`api.js`, 사람 요청 2026-11-03 "서비스는 전라북도만")
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 연결 남음만, 품종은 가짜 응답 기준·지역은 실제 API), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함), 백엔드 저장소에서 /start)
 
-## SCR-ADM-051 약관 — 대기
+## SCR-ADM-051 약관 — 끝
 - 기능: FN-ADM-051-01 약관 목록 조회, FN-ADM-051-02 약관 새 버전 등록, FN-ADM-051-03 약관 버전 이력 조회, FN-ADM-051-04 관리 대상 약관, FN-ADM-051-05 기존 회원 재동의
 - 기다리는 것: `/api/admin/terms` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 약관 새 버전 등록 뒤 버전 이력에 한 줄 늘어난다
+- 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 새 버전 등록은 별도 화면 `/admin/terms/new`(사람 2026-11-03 추천안대로)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-060 장소 — 대기
 - 기능: FN-ADM-060-01 장소 목록 조회, FN-ADM-060-02 장소 노출 설정, FN-ADM-060-03 place_url 수동 매칭, FN-ADM-060-04 공공데이터 수집 실행, FN-ADM-060-05 장소 직접 등록 제외
-- 기다리는 것: `/api/admin/places` (LJS 백엔드). 없으면 가짜 응답
+- 기다리는 것: `/api/admin/places` (LJS 백엔드). 없으면 가짜 응답. 2026-11-03 기획까지 했다가 사람 결정 "일단 넘어가고 다음"으로 미룸(백엔드에 관리자 장소 API·공공데이터 수집 배치가 없음)
 - 완료 조건: 장소 노출 on/off와 place_url 수동 매칭이 목록에 반영된다
 
-## SCR-ADM-071 케어미션 — 대기
+## SCR-ADM-071 케어미션 — 끝
 - 기능: FN-ADM-071-01 케어미션 목록 조회, FN-ADM-071-02 케어미션 수정, FN-ADM-071-03 변경 반영 시점
 - 기다리는 것: `/api/admin/care-missions` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 케어미션 배점·기준 수정이 목록에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 관리자 아이템 화면 스타일, 상한 보상 1000P·횟수 10회 가정(사람 2026-11-03 추천안대로)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03 2회차, 연결 남음만, 가짜 응답 기준. 1회차는 390 폭 가로 스크롤로 실패), 사람 확인 2026-11-03
+- 연결 남음: FN-ADM-071-01·02 (백엔드 연결 `GET /api/admin/care-missions?msnPoolCd=`·`PATCH /api/admin/care-missions/{careMsnSn}`, 허용 범위, 출제 배치 `CareMissionJob`이 `CARE_MSN` 값을 읽는지, 백엔드 저장소에서 /start)
 
-## SCR-ADM-072 포인트 — 대기
+## SCR-ADM-072 포인트 — 끝
 - 기능: FN-ADM-072-01 포인트 원장 조회, FN-ADM-072-02 포인트 수동 조정, FN-ADM-072-03 회원 화면 표시
 - 기다리는 것: `/api/admin/points` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 포인트 수동 지급·차감(사유 필수)이 원장과 잔액에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 관리자 목록 화면 스타일, 조정 1회 상한 100,000P·사유 200자 가정(사람 2026-11-04 추천안대로)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-04 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-04
+- 연결 남음: FN-ADM-072-01 (백엔드 연결 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-072-02 (백엔드 연결 `POST /api/admin/points/adjustments { mbrSn, dlngPnt, memoCn }`·회원 보유 포인트 응답 필드·상한, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-072-03 (조정 API가 생긴 뒤 회원 포인트 내역에 "관리자 조정"으로 보이는지 화면 확인, LJS)
 
-## SCR-ADM-080 라우팅 매핑표 — 대기
+## SCR-ADM-080 라우팅 매핑표 — 끝
 - 기능: FN-ADM-080-01 매핑표 조회, FN-ADM-080-02 매핑 등록·수정·삭제, FN-ADM-080-03 우선순위 변경, FN-ADM-080-04 매핑표 제공, FN-ADM-080-05 초기 데이터
 - 기다리는 것: `/api/admin/ai/routes` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 매핑 등록·수정·삭제와 우선순위 변경이 표에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 관리자 아이템 화면 스타일, 화면 ID 선택지는 `docs/routes.md` AI 대상 목록 복사(사람 2026-11-04 추천안대로)
+- 추가 요청: 추가-1 [순서 바꾸기]를 모달의 우선순위 숫자 칸으로 바꾸고 같은 지시어 경고(사람 2026-11-04)
+- 완료 조건 결과: 검증 `통과`(2026-11-04 2회째, 추가-1 포함, 가짜 응답 기준. 1회째는 `확인 못 함 있음`(연결 남음만)), 사람 확인 2026-11-04
+- 연결 남음: FN-ADM-080-01·02·03 (백엔드 연결 `GET·POST /api/admin/ai/routes`·`PATCH·DELETE /api/admin/ai/routes/{aiRoutMpngSn}`(본문 `prrtSeq`), 화면 ID 선택지·지시어 저장 형식·`domnNm`, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-080-04·05 (백엔드 연결 AI 서버·대화창용 조회 API·부록 A 초기 데이터, 백엔드 저장소에서 /start. AI 서버 전환은 ai 저장소)
 
-## SCR-ADM-081 키워드 사전 — 대기
+## SCR-ADM-080 라우팅 매핑표 · 순위 칸을 같은 지시어 순서로 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·03
+- 배경: 순위 칸이 매핑 전체 우선순위처럼 읽힌다. 실제로는 같은 길이 지시어가 겹칠 때만 쓰는 판정 기준이다(FN-ADM-080-03 "같은 길이로 일치하면 위쪽 행이 먼저", 사람 2026-11-04 "나중에 수정")
+- 기다리는 것: 없음(화면만). 지시어별 우선순위로 구조를 바꾸면 ERD·백엔드·AI 서버 몫
+- 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04 "후순위로 미루고 화면 구현부터"). 2026-11-04 기획 초안은 핸드오프 "다음에 할 것"
+- 완료 조건: 표 맨 앞 순위 칸이 없고 지시어가 겹치는 행에만 겹치는 지시어와 그 안의 순서가 보인다. 모달 칸 이름이 "같은 지시어일 때 순서"다. 겹침 경고 조사가 받침에 맞는다
+
+## SCR-ADM-081 키워드 사전 — 끝
 - 기능: FN-ADM-081-01 키워드 조회, FN-ADM-081-02 키워드 등록·수정·삭제, FN-ADM-081-03 초기 데이터
 - 기다리는 것: `/api/admin/ai/keywords` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 키워드 등록·수정·삭제가 사전에 반영된다
+- 결정: 디자인은 화면설계서 기준 + 관리자 아이템·라우팅 매핑표 화면 스타일. 검진유형(HLTG01) 탭을 더해 6탭, 사용 여부 토글은 넣지 않음(사람 2026-11-04 "추천안대로")
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-04 2회째, 연결 남음만, 가짜 응답 기준. 1회째 `실패`: 390폭 페이지 가로 스크롤), 사람 확인 2026-11-04
+- 연결 남음: FN-ADM-081-01·02 (백엔드 연결 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`·`POST /api/admin/ai/keywords`·`PATCH`·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`, 새 행 `sortSeq` 규칙(가정: 그 탭 맨 아래), 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-081-01~03 (AI 서버가 사전을 DB 조회 API로 읽기, 백엔드 조회 API는 백엔드 저장소·AI 서버 전환은 ai 저장소. 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다)
 
-## SCR-ADM-082 처리 현황 — 대기
+## SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-081-01·02
+- 배경: "등록 동사"·"주기"·"해석 결과"·"연결 코드" 같은 말이 무슨 뜻인지 알기 어렵다(사람 2026-11-04)
+- 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04)
+- 완료 조건: 탭 이름·표 칸 이름·모달 칸 이름을 운영자가 읽고 무엇을 넣는지 알 수 있는 말로 바꾼다(`features/adminAiKeyword/keywordLabels.js`·`AiKeywordTable.jsx`·`AiKeywordFormModal.jsx`). 저장 값(`kwrdClsfNm` 등)은 기초 데이터 그대로 두고 화면 표시만 바꿀지 기획 때 정한다
+
+## SCR-ADM-082 처리 현황 — 끝
 - 기능: FN-ADM-082-01 영수증 OCR 현황, FN-ADM-082-02 캐릭터 생성 현황, FN-ADM-082-03 검사결과지 분석 현황
 - 기다리는 것: `/api/admin/processing` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: OCR·캐릭터 생성·검사결과지 분석의 상태별 건수와 실패 목록이 보인다
+- 결정: 디자인은 화면설계서 기준 + 관리자 목록 화면 스타일, `paths.js` `ADMIN_PROCESSING`은 기능 커밋에 같이(사람 2026-11-04 추천안대로)
+- 완료 조건 결과: 검증 `통과`(2026-11-04 1회째, 가짜 응답 기준), 사람 확인 2026-11-04
+- 연결 남음: FN-ADM-082-01 (백엔드 연결 `GET /api/admin/processing/receipts`·`/receipts/{recptSn}/image`, 가계부 출처 코드, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-082-02 (백엔드 연결 `GET /api/admin/processing/character-jobs`·CHAR_CRT_JOB 상태 공통코드, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses`·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-001 대시보드 — 대기
 - 기능: FN-ADM-001-02 운영 현황 조회, FN-ADM-001-03 처리 대기 건수, FN-ADM-001-04 이용 통계 조회, FN-ADM-001-05 통계 기간 선택
@@ -696,10 +764,147 @@
 - 완료 조건: 자동 대상이 대상별로 나오고 복구하면 목록에서 사라진다
 - 완료 조건 결과: SCR-ADM-030 신고 처리 절과 같은 검증(2026-11-02)
 
+## SCR-ADM-040 공지사항 · 목록 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-01·05 연결 작업)
+- 기다리는 것: `GET /api/admin/notices`(`keyword`, 20건씩, `PageResponse<AdminNoticeSummary>`) (LJS 백엔드, 끝)
+- 완료 조건: 비노출 공지도 나오고 고정이 먼저 최신순으로 나온다. 알림 발송 칸은 `notiSndngDt`·`notiTrgtCnt`(null이면 —)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
+## SCR-ADM-040 공지사항 · 등록 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-02 연결 작업)
+- 기다리는 것: `POST /api/admin/notices`(`AdminNoticeCreateRequest`, 201) (LJS 백엔드, 끝)
+- 완료 조건: 등록하면 목록에 보인다
+- 결정: 본문 이미지는 아래 "본문 이미지 연결" 절로 넘김(사람 2026-11-03)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
+## SCR-ADM-040 공지사항 · 본문 이미지 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-02 연결 작업)
+- 기다리는 것: 사용자 공지 상세가 `![](/api/files/public/{atchFileSn})` 줄을 이미지로 그리는 것(KSJ, 공용 `PostBody`), `POST /api/admin/notices/images`(multipart `image`, 201 `{atchFileSn}`) (LJS 백엔드, 끝)
+- 완료 조건: 본문 이미지는 올린 뒤 본문에 `![](/api/files/public/{atchFileSn})` 한 줄로 넣는다(HTML 저장 안 함). 사용자 공지 상세가 이 줄을 이미지로 그린다
+
+## SCR-ADM-040 공지사항 · 알림 발송 모달 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-03 연결 작업)
+- 기다리는 것: `GET /api/admin/notices/notification-target-count`(`{trgtCnt}`), 등록 요청의 `notiSndngYn` (LJS 백엔드, 끝)
+- 완료 조건: 발송을 체크하고 등록하면 "회원 N명에게 알림을 보내요" 확인 모달이 뜨고, 확인하면 등록된다. `useYn=false`와 함께 보내면 400
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
+## SCR-ADM-040 공지사항 · 수정·비노출 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-040-04 연결 작업)
+- 기다리는 것: `GET /api/admin/notices/{ntcMttrSn}`, `PATCH /api/admin/notices/{ntcMttrSn}`(`AdminNoticeUpdateRequest`, 모두 선택) (LJS 백엔드, 끝)
+- 완료 조건: 수정 화면에 값이 채워지고 발송 칸은 숨긴다. 사용 여부를 끄면 사용자 공지에서 빠진다. 삭제 버튼 없음
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
+
+## SCR-ADM-041 FAQ · 목록 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-041-01 연결 작업)
+- 기다리는 것: `GET /api/admin/faqs`(`faqClsfCd`·`keyword`·`page`·`size`, 20건씩, `PageResponse<AdminFaqSummary>`) (LJS 백엔드, 끝)
+- 완료 조건: 비노출 FAQ도 나오고 정렬 순서 다음 번호순이다. 카테고리 탭과 질문·답변 검색이 AND로 걸린다. 행을 누르면 `GET /api/admin/faqs/{faqSn}`으로 수정 모달을 연다
+
+## SCR-ADM-041 FAQ · 등록·수정 모달 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-041-02 연결 작업)
+- 기다리는 것: `POST /api/admin/faqs`(`AdminFaqCreateRequest`, 201), `PATCH /api/admin/faqs/{faqSn}`(`AdminFaqUpdateRequest`, 보낸 필드만) (LJS 백엔드, 끝)
+- 완료 조건: 질문 200자·답변 4,000자·정렬 순서 0 이상. 등록·수정하면 목록에 반영된다. 400이면 `data[].field`로 칸 오류를 보여 준다
+
+## SCR-ADM-041 FAQ · 사용 토글 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-041-03 연결 작업)
+- 기다리는 것: `PATCH /api/admin/faqs/{faqSn}` `{"useYn": false}` (LJS 백엔드, 끝). 삭제 API 없음
+- 완료 조건: 끄면 목록에 "비노출"로 남고 사용자 고객센터 FAQ에서 빠진다
+
+## SCR-ADM-041 FAQ · 카테고리 탭 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-041-04 연결 작업)
+- 기다리는 것: `GET /api/common-codes?prntComCd=CSCG01` (LJS 백엔드, 끝)
+- 완료 조건: 탭(전체 + 이용방법·계정·신고/제재·기타)과 모달의 카테고리 선택지가 이 목록으로 그려진다
+
+## SCR-ADM-070 아이템 · 목록·이미지 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-070-01 연결 작업)
+- 기다리는 것: `GET /api/admin/items?itemRegnCd=`(판매 중지 포함, 페이지 없음, `[AdminItemSummary]`: itemSn·itemNm·itemRegnCd·itemRegnCdNm·needPnt·ntslYn(boolean)·sortSeq·atchFileSn·bakeHint·hldMbrCnt), `GET /api/admin/items/{itemSn}/image`(blob) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminItem/api.js` `getAdminItems`의 가짜 본문을 실제 요청으로 바꾼다. 판매 중지 아이템도 나오고 이미지는 blob으로 그린다. 신발 부위는 화면에서 계속 거른다
+- 이미 바뀐 것: `features/adminItem/api.js`(가짜 응답, 필드 이름은 백엔드와 같음)
+- 결정: 등록·수정 모달 연결, 순서 저장 연결과 한 번에 함(사람 2026-11-03)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS), 사람 확인 2026-11-03. 처음부터 있던 아이템 이미지는 이 PC에 첨부 파일이 없어 404 빈 칸
+
+## SCR-ADM-070 아이템 · 등록·수정 모달 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-070-02·03 연결 작업)
+- 기다리는 것: `POST /api/admin/items`(multipart itemRegnCd·itemNm·needPnt·ntslYn·bakeHint(선택)·image, 201 `{itemSn}`), `PATCH /api/admin/items/{itemSn}`(multipart, 보낸 칸만, bakeHint 빈 값이면 지움) (LJS 백엔드, 끝)
+- 완료 조건: `createAdminItem`·`updateAdminItem`을 실제 요청으로 바꾼다. 같은 이름 409 `ITEM_NAME_DUPLICATED`, 보유 회원이 있는데 부위 변경 409 `ITEM_REGION_LOCKED`, 신발에 굽기 지시 400을 문구로 보여 준다. 굽기 지시 칸(영어 한 문장, 300자) 초안은 AI `POST /ai/items/bake-hints`로 채울지 정한다(신발은 칸 숨김)
+- 결정: 굽기 지시는 직접 입력 칸만(선택, 300자), AI 초안은 넣지 않음. 신발은 부위 목록에서 빠져 칸 숨김 분기 없음(사람 2026-11-03)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 409 두 가지 모두 화면 확인), 사람 확인 2026-11-03
+
+## SCR-ADM-070 아이템 · 순서 저장 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(FN-ADM-070-04 연결 작업)
+- 기다리는 것: `PUT /api/admin/items/order` `{itemRegnCd, itemSns}` (LJS 백엔드, 끝)
+- 완료 조건: `saveAdminItemOrder`를 실제 요청으로 바꾼다. 그 부위 아이템 전부(판매 중지 포함, 화면에서 거른 것 없이)를 빠짐·중복 없이 보내야 하고 아니면 400 `INVALID_INPUT_VALUE`
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 판매 중지 포함 전부 전송·새로고침 뒤 유지, 검증 뒤 원래 순서로 되돌림), 사람 확인 2026-11-03
+
+## SCR-ADM-090 알림 템플릿 · 목록·등록·수정 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-090-01·02·03
+- 기다리는 것: `GET /api/admin/notification-templates?notiChnlCd=`(등록된 템플릿만 `[{ notiTmpltSn, notiTypeCd, notiChnlCd, notiTtl, notiCn, useYn(boolean) }]`, 유형·채널 코드순, 모르는 채널 400), `POST /api/admin/notification-templates`(`{ notiTypeCd, notiChnlCd, notiTtl(선택, 200자), notiCn(필수, 4000자), useYn(boolean) }` → 201 `{ notiTmpltSn }`, 같은 유형·채널 409 `NOTIFICATION_TEMPLATE_DUPLICATED`, 케어 일정(AIMC0008) 외 유형 400 `NOTIFICATION_TEMPLATE_NOT_SUPPORTED`, 모르는 `{{변수}}` 400 `INVALID_INPUT_VALUE`), `PATCH /api/admin/notification-templates/{notiTmpltSn}`(`{ notiTtl, notiCn, useYn }` 세 칸 덮어씀, 없으면 404) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminNotificationTemplate/api.js` 가짜 본문을 실제 요청으로 바꾼다. `useYn`은 `'Y'|'N'`이 아니라 `true`/`false`. 케어 일정 외 유형 행은 [등록] 없이 "기본 문구"만 보인다. 치환 변수 칩은 케어 일정 기준 `{{닉네임}}`·`{{반려동물명}}`·`{{검진유형}}`·`{{병원명}}`·`{{일정일}}`·`{{시간}}`·`{{D-N}}`·`{{캘린더링크}}`. 409·400 오류 문구를 모달에 보인다
+- 이미 바뀐 것: `features/adminNotificationTemplate/api.js`(가짜 응답, `useYn` 'Y'|'N' 가정), `TemplateTable.jsx`·`TemplateFormModal.jsx`(모든 유형에 [등록]·같은 변수 칩)
+- 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 실제 API 기준 목록·채널 필터·[등록] 숨김·PATCH 200·POST 201·모르는 변수 400 모달 표시, 409는 코드로만), 사람 확인 2026-11-03
+
+## SCR-ADM-090 알림 템플릿 · 검증 오류 메시지 구체화 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-090-02
+- 배경: 본문·제목에 모르는 치환 변수(`{{없는변수}}`)를 넣고 저장하면 서버가 400 `INVALID_INPUT_VALUE`를 보내 모달에 "입력값이 올바르지 않습니다."만 보인다. 어느 칸의 어떤 변수가 문제인지 알 수 없다(사람 2026-11-03)
+- 기다리는 것: 없음(프론트에서 먼저 검사). 서버가 모르는 변수 이름을 응답에 넣어 주면 그것도 쓴다(백엔드 연결 후보, LJS 백엔드)
+- 완료 조건: 저장 전에 제목·본문의 `{{…}}`를 치환 변수 목록과 견주어, 모르는 변수가 있으면 요청을 보내지 않고 그 칸 아래에 "쓸 수 없는 치환 변수예요: {{없는변수}}"처럼 칸과 변수 이름을 보인다. 서버 400이 와도 일반 문구 대신 무엇을 고칠지 알 수 있는 문구를 보인다
+- 사람이 볼 것: 수정 모달이 제목을 필수로 검사하지만 서버는 제목을 선택 값으로 받는다(DB에 제목 null 템플릿이 있다). 같이 고칠지 기획 때 정한다
+
+## SCR-ADM-091 발송 이력 · 목록 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-091-01·02
+- 기다리는 것: `GET /api/admin/notification-logs?page=&size=20&bgngYmd=&endYmd=&notiChnlCd=&notiTypeCd=&sndngRsltCd=`(최신순 `SNDNG_DT DESC`, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ notiSndngLogSn, mbrSn, mbrNcnm, notiTypeCd, notiChnlCd, sndngRsltCd, rtryNmtm, failRsn, sndngDt }`, 알림 본문 없음, 조건 모두 선택, 종료일 그날 끝까지 포함, 모르는 채널·유형·결과 코드와 기간 역전 400 `INVALID_INPUT_VALUE`, 재발송 API 없음) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminNotificationLog/api.js` 가짜 본문을 실제 요청으로 바꾼다. 기간 파라미터는 가짜 `fromYmd`·`toYmd`가 아니라 `bgngYmd`·`endYmd`. 대시보드 "알림 발송 실패"에서 오면 `bgngYmd`=어제·`endYmd`=오늘·`sndngRsltCd=AIMC0019`로 건다. 400 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminNotificationLog/api.js`(가짜 응답, `fromYmd`·`toYmd` 가정)
+
+## SCR-ADM-021 실종제보 · 목록·상세 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-021-01·02·03
+- 기다리는 것: `GET /api/admin/lost-reports?page=&size=20&lostTpofSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, mbrSn, mbrNcnm, expryCrtrDt, regDt }`, 만료 기준 일시가 지난 실종은 `CMUC0008`, 찾았어요 행은 `expryCrtrDt` null, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/lost-reports/{lostTpofSn}`(실종·만료는 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, dscvSwtcDt, mbrSn, mbrNcnm, regDt, pstCn, expryCrtrDt, imgs[{ atchFileSn, sortSeq }] }`, 찾았어요는 `lostTpofSn·pstSn·pstTtl·lostTpofSttsCd·dscvSwtcDt`만 있고 나머지 null, 없거나 정상 글이 아니면 404 `LOST_REPORT_NOT_FOUND`, 강제 만료·기간 조정 API 없음) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminCommunity/api.js` 실종제보 목록·상세 가짜 본문을 실제 요청으로 바꾼다. 필드 이름은 가짜와 같은 `mbrNcnm`·`expryCrtrDt`. 블라인드·삭제 글은 목록에 나오지 않고, 상세에 연락처·반려동물 정보가 없다(가짜에 있으면 화면에서 뺀다). 400·404 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+
+## SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-022-01·02·03
+- 기다리는 것: `GET /api/admin/care-matches?page=&size=20&rcrtSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ petPrtcRcrtSn, pstSn, pstTtl, rcrtSttsCd, mbrSn, mbrNcnm, cstAmt, cstUnitCd, regDt }`, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/care-matches/{petPrtcRcrtSn}`(목록 행 + `mtchs[]` 최신순·없으면 빈 배열, 매칭마다 `{ petPrtcMtchSn, ctptMbrSn, ctptNcnm, mtchDlngSttsCd, rcvYn, rcvIdntyDt, regDt, cndVers[{ cndVerNo, cstUnitCd, acrdCstAmt, acrdPrtcCn, acrdPrtcBgngDt, acrdPrtcEndDt, regDt }](버전 내림차순), sttsHstry[{ bfrSttsCd, aftrSttsCd, cndVerNo, chgRsn, regDt }](오래된 순), cmptnDmnds[{ dmndCycl, cmptnCn, spclMttrCn, prtcEndDt, prtcrIdntyRsltCd, prtcrIdntyDt, splmntDmndRsn, regDt, imgs[{ atchFileSn, sortSeq }] }](회차 순) }`, 블라인드 글도 열림, 없거나 삭제 글 404 `CARE_RECRUITMENT_NOT_FOUND`, 채팅 내용 없음) (LJS 백엔드, 끝)
+- 완료 조건: `features/adminCommunity/api.js` 펫돌봄 목록·매칭 상세 가짜 본문을 실제 요청으로 바꾼다. 가짜와 다른 점: 조건 버전·완료 요청은 한 건이 아니라 목록(`cndVers`·`cmptnDmnds`, 가짜 `agreVerNo·agreDt·agreCn`·`cmplReqDt·cmplImgs·ownerCfmtnRsltCd·ownerCfmtnDt` 대신), 매칭 거래 상태는 가짜 `REQUESTED·MATCHED·DONE_REQ·COMPLETE·CANCELED` 대신 공통코드 PCAG05(PCAC0012 수락 대기·0013 매칭 완료·0014 확인 대기·0015 수령 대기·0016 거래 완료·0017 요청 취소·0018 무응답 종료), 보호자 확인 결과는 가짜 `CONFIRMED·REJECTED` 대신 PCAG06(PCAC0019 완료 확인·PCAC0020 보완 요청). 매칭이 여럿이면 탭으로 나눈다. 완료 사진은 지금 `/api/files/public/{atchFileSn}`으로 열리지 않는다(백엔드 연결 남음, KSJ와 정함). 400·404 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+
+## SCR-ADM-051 약관 · 390 폭 가로 스크롤 + SCR-ADM-101 지역 탭 빼기 — 끝
+- 기능: 명세 기능 ID 없음(2026-11-03 SCR-ADM-051 검증에서 나온 것, 사람 결정 "다음에서 수정") + FN-ADM-101-02 지역 조회 제거(사람 결정 2026-11-03 "다음에서 빼버리는 걸로"). 둘을 묶음(사람 요청 2026-11-03)
+- 기다리는 것: 없음
+- 완료 조건: `/admin/terms` 390 폭에서 `document.documentElement.scrollWidth`가 390이다. 표는 표 안에서만 가로로 밀린다. 1440 폭 모양은 그대로다 / 관리자 품종 화면이 `품종`·`/admin/breeds`로 바뀌고 지역 탭·지역 코드가 없다. 품종 목록·추가·수정은 그대로 된다
+- 결정: 기능명세서·화면설계서에서 지역 조회를 빼는 것은 문서 담당이 DMS에 올린다. URL 변경은 같은 PR에 두고 PR 본문에 팀 알림(사람 2026-11-03 추천안대로)
+- 완료 조건 결과: 검증 `통과`(2026-11-03 2회차, 1회차는 백엔드 8080 꺼짐으로 화면 확인 못 함), 사람 확인 2026-11-03
+- 연결 남음: 없음
+
+## SCR-ADM-001 관리자 공통 · 페이지 틀·조회 오류 컴포넌트 정리 — 대기
+- 기능: 명세 기능 ID 추가 없음. 관리자 페이지(`pages/admin/`) 전체와 관리자 features의 조회 오류 묶음
+- 기다리는 것: 남은 관리자 화면 구현이 다 끝난 뒤 맨 마지막에 한다(사람 결정 2026-11-03 "리팩토링이니까 마지막으로")
+- 완료 조건: 조회 오류 안내 + [다시 시도] 묶음(지금 36개 파일에 복사)을 `components/` 공통 컴포넌트 하나로 바꾸고, 가운데 정렬 틀(`mx-auto max-w-[1200px]`)·제목 `h1`·오른쪽 버튼 줄(27~29개 페이지에 복사)을 공통 페이지 틀로 묶는다. 바꾼 뒤에도 화면 모양과 동작(403 `AdminForbidden` 포함)은 그대로다. 기능 작업과 섞지 않는다(요청 2026-11-03)
+- 기획 초안(2026-11-03, 승인 전 보류): `components/LoadError.jsx`(`message`·`onRetry`·`className`) 38곳, `pages/admin/AdminPageFrame.jsx`(`title`·`actions`·`children`) 28개 파일 31곳
+
+## SCR-ADM-101 품종 · 품종 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-101-01
+- 기다리는 것: `GET /api/admin/breeds?petSeCd=`(사용 안 함 포함, 종·정렬순 `[{ vrtySn, vrtyCd, vrtyNm, petSeCd, sortSeq, useYn(true/false) }]`, 종 코드 없으면 전체), `POST /api/admin/breeds` `{ petSeCd, vrtyNm, sortSeq?, useYn? }` → 201 품종 행(`vrtyCd`는 서버가 매김, `sortSeq` 없으면 그 종 마지막 + 10), `PATCH /api/admin/breeds/{vrtySn}` `{ vrtyNm?, sortSeq?, useYn? }` → 200 품종 행 (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/breeds` 행)
+- 완료 조건: `features/adminBreed/api.js` 가짜를 실제 API로 바꿔 품종 목록·[품종 추가]·[수정]이 화면에서 동작한다. 이름 50자(가정 그대로), 같은 종 같은 이름(공백 무시) 409 `DUPLICATE_VRTY_NM`(가짜 그대로), 없는 품종은 가짜 `NOT_FOUND`가 아니라 404 `BREED_NOT_FOUND`, 모르는 종 코드·빈 이름·51자 400 `INVALID_INPUT_VALUE`. 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminBreed/api.js`(가짜 응답)
+
+## SCR-ADM-050 펫뉴스 · 펫뉴스 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-050-01·02·03·05
+- 기다리는 것: 백엔드 SCR-ADM-050 펫뉴스 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/news` 행)
+- 완료 조건: `features/adminNews/api.js` 가짜를 `/api/admin/news` 실제 API로 바꿔 목록 필터, 썸네일 업로드 후 관리자 뉴스 등록·수정, 수집 기사 숨김·카테고리 변경, 분류 키워드 등록·삭제가 화면에서 동작한다. 가짜와 다른 점: 썸네일은 `POST /api/admin/news/images`(form-data `image`) → `{ atchFileSn }`로 먼저 올리고 등록·수정 본문에 `atchFileSn`을 넣는다. 목록 행에 `newsSrcCdNm` 추가
+- 이미 바뀐 것: `features/adminNews/api.js`(가짜 응답)
+
+## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-023-01·02·04·06
+- 기다리는 것: 백엔드 SCR-ADM-023 노출 콘텐츠 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/community/exposure` 행)
+- 완료 조건: `features/adminCommunity/api.js` 노출 콘텐츠 절 가짜를 `/api/admin/community/exposure` 실제 API로 바꿔 건강팁 지정·해제, 문구 등록·수정, AI 코멘트 사용 여부가 화면에서 동작한다
+- 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)
 - FN-ADM-100-01~04: 관리자 기능명세서 v0.4에서 결번(공통코드 화면을 만들지 않는다, 사람 결정 2026-11-01)
+- FN-ADM-101-02 지역 조회: 사람 결정 2026-11-03으로 화면에서 뺌(회원 화면이 공용 `GET /api/regions`를 바로 쓰고 지역은 바뀌지 않는다). 기능명세서·화면설계서에서 빼는 것은 문서 담당이 DMS에 올린다
+- FN-ADM-073-01: 관리자 기능명세서 v0.4에서 결번(2026-10-30 기능 제외, 기본 캐릭터 이미지는 서버 파일이라 배포로 교체). SCR-ADM-073 절을 지웠다(2026-11-03)
 
 ## 대조
 - 공통레이아웃: 명세 117 = 마일스톤 117 + 제외 0
@@ -708,3 +913,4 @@
 - 커뮤니티: 명세 57 = 마일스톤 11 + 제외 46
 - 관리자 v0.2: 명세 135 = 마일스톤 135 + 제외 0 (FN-ADM-001-01은 SCR-ADM-110 절)
 - 관리자 v0.4 (2026-11-01): 명세 135 = 마일스톤 131 + 제외 4 (결번 FN-ADM-100-01~04)
+- 관리자 v0.4 재대조 (2026-11-03): 명세 135 = 마일스톤 130 + 제외 5 (결번 FN-ADM-073-01 추가)

@@ -204,6 +204,9 @@ const getQueryParam = (name) =>
 /** 목록 조회 GET /pets */
 export const getPets = () => api.get('/pets');
 
+/** 캐릭터 목록 GET /pixel-characters (캐릭터 없는 반려동물은 pixelCharSn 없음) */
+export const getPixelCharacters = () => api.get('/pixel-characters');
+
 /** 상세 조회 GET /pets/{petSn} */
 export const getPet = (petSn) => api.get(`/pets/${petSn}`);
 

@@ -4,7 +4,9 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { healthKeys } from '@/features/health/queries';
 import { pointKeys } from '@/features/point/queries';
+import { getCharState } from './shared/charState';
 import {
   acceptInvitation,
   createCharacter,
@@ -17,6 +19,7 @@ import {
   getInvitation,
   getPet,
   getPets,
+  getPixelCharacters,
   getShopItems,
   getSentInvitations,
   getVarieties,
@@ -46,6 +49,24 @@ export const invitationKeys = {
 
 export const usePets = () =>
   useQuery({ queryKey: petKeys.list(), queryFn: getPets });
+
+/**
+ * 캐릭터 목록(GET /pixel-characters)
+ * - 건강기록 히어로와 같은 키라 캐시가 하나다
+ */
+export const usePixelCharacters = () =>
+  useQuery({
+    queryKey: healthKeys.pixelCharacters,
+    queryFn: getPixelCharacters,
+  });
+
+/** 동물 한 마리의 캐릭터 상태 { status, isError }, 목록 로딩 중에는 undefined */
+export const useCharState = (petSn) =>
+  useQuery({
+    queryKey: healthKeys.pixelCharacters,
+    queryFn: getPixelCharacters,
+    select: (list) => getCharState(list.find((item) => item.petSn === petSn)),
+  }).data;
 
 export const usePet = (petSn) =>
   useQuery({
@@ -168,7 +189,10 @@ export const useCreateCharacter = () => {
       qc.invalidateQueries({ queryKey: petKeys.list() });
       return done;
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: petKeys.all }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: petKeys.all });
+      qc.invalidateQueries({ queryKey: healthKeys.pixelCharacters });
+    },
   });
 };
 

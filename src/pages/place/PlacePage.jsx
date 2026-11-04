@@ -22,15 +22,17 @@ export default function PlacePage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { search } = place;
 
-  const handlePinSelect = (id) => {
-    place.selectPlace(id, 'pin');
+  const handlePinSelect = (plcSn) => {
+    place.selectPlace(plcSn, 'pin');
     sheet.setSheet('peek');
   };
 
-  const handleListSelect = (id) => {
-    place.selectPlace(id, 'list');
-    sheet.setSheet('peek');
-  };
+  // 현재 지도 안에 있으면서 검색 결과에 없는 즐겨찾기는 번호 없는 별 핀으로 보인다
+  const strayFavorites = place.favorites.filter(
+    (fav) =>
+      !place.isOutside(fav) &&
+      !place.results.some((result) => result.plcSn === fav.plcSn),
+  );
 
   return (
     <div
@@ -58,23 +60,25 @@ export default function PlacePage() {
         search={search}
         sort={place.sort}
         regionText={place.regionText}
-        resultIds={place.resultIds}
-        favoriteIds={place.favoriteIds}
+        query={place.query}
+        results={place.results}
+        totalCount={place.totalCount}
         favorites={place.favorites}
+        bookmarkSnOf={place.bookmarkSnOf}
         isOutside={place.isOutside}
         isCollapsed={isCollapsed}
         sheet={sheet}
         onSearch={place.submitSearch}
         onSortChange={place.setSort}
-        onSelectPlace={handleListSelect}
         onToggleFavorite={place.toggleFavorite}
       />
 
       <PlaceMap
-        resultIds={place.resultIds}
-        favoriteIds={place.favoriteIds}
-        isOutside={place.isOutside}
-        selected={search.selected}
+        results={place.results}
+        strayFavorites={strayFavorites}
+        selectedPlace={place.selectedPlace}
+        fitKey={search.fitKey}
+        isReady={place.query.isSuccess}
         regionText={place.regionText}
         isMoved={search.isMoved}
         isCollapsed={isCollapsed}

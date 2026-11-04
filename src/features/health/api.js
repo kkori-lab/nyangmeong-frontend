@@ -1,10 +1,6 @@
 import { api } from '@/api/axios';
 import { IS_DEV } from '@/api/env';
-import {
-  addDays,
-  diffDays,
-  getYmdOf,
-} from '@/utils/formatDate';
+import { addDays, diffDays, getYmdOf } from '@/utils/formatDate';
 import { CHRC_STTS, PET_REL, PET_SE } from '@/utils/petCodes';
 import { HOSPITAL, compareSchedules } from './scheduleTypes';
 
@@ -15,6 +11,9 @@ export const getQueryParam = (name) =>
 
 /** 내 반려동물 목록 GET /pets (SJM 백엔드, 케어 캘린더) */
 export const getMyPets = () => api.get('/pets');
+
+/** 반려동물 상세 GET /pets/{petSn} (SJM 백엔드, 건강 일지 체중 그래프의 목표체중 goalBdwg) */
+export const getPetDetail = (petSn) => api.get(`/pets/${petSn}`);
 
 /** 내 반려동물별 캐릭터 목록 GET /pixel-characters (LJS 백엔드, 캐릭터 없는 반려동물은 pixelCharSn 없음) */
 export const getPixelCharacters = () => api.get('/pixel-characters');
@@ -121,4 +120,3 @@ export const updateCareItem = ({ petSn, careArtclSn, body }) =>
 
 export const deleteCareItem = ({ petSn, careArtclSn }) =>
   api.delete(`/pets/${petSn}/care-items/${careArtclSn}`);
-

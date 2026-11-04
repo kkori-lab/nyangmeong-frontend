@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
+import { PATHS } from '@/routes/paths';
 import { formatDateTime } from '@/utils/formatDate';
 import MemberTabTable from './MemberTabTable';
 import { useAdminMemberPoints } from './queries';
@@ -12,7 +14,7 @@ const formatPointChange = (dlngPnt) =>
 /**
  * [회원 상세 포인트 탭]
  * - 원장 최신순
- * - [포인트 조정]: 포인트 화면(SCR-ADM-072)이 생길 때까지 비활성
+ * - [포인트 조정]: 포인트 화면(SCR-ADM-072)으로 이 회원을 걸고 이동
  */
 export default function MemberPointsTab({ mbrSn, page, size, onPageChange }) {
   const points = useAdminMemberPoints({ mbrSn, page, size });
@@ -20,9 +22,12 @@ export default function MemberPointsTab({ mbrSn, page, size, onPageChange }) {
   return (
     <>
       <div className="mb-3 flex justify-end">
-        <button type="button" className={BTN_SECONDARY} disabled>
+        <Link
+          to={`${PATHS.ADMIN_POINTS}?mbrSn=${mbrSn}`}
+          className={BTN_SECONDARY}
+        >
           포인트 조정
-        </button>
+        </Link>
       </div>
       <MemberTabTable
         query={points}

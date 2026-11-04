@@ -1,20 +1,38 @@
 import { Lock } from 'lucide-react';
 import { useId, useState } from 'react';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
+import { showToast } from '@/components/toastStore';
 import { useVerifyPassword } from '../queries';
 import { CARD, INPUT } from '../shared/profileStyles';
 import { ErrorText } from './FieldMessage';
 
-export default function PasswordConfirm({ onVerified }) {
+export default function PasswordConfirm({ onVerified, onSnsOnly }) {
   const inputId = useId();
   const errorId = useId();
   const [pswd, setPswd] = useState('');
-  const { mutate, isPending, isError, reset } = useVerifyPassword();
+  const { mutate, isPending, error, reset } = useVerifyPassword();
+  // 비밀번호 불일치만 입력란 아래에 안내하고, 그 밖의 실패는 토스트로 알린다
+  const isError = error?.code === 'CURRENT_PASSWORD_MISMATCH';
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!pswd || isPending) return;
-    mutate({ pswd }, { onSuccess: onVerified });
+    mutate(
+      { pswd },
+      {
+        onSuccess: () => {
+          // 입력값은 상태에 남기지 않는다
+          setPswd('');
+          onVerified();
+        },
+        onError: (err) => {
+          if (err.code === 'SNS_ONLY_MEMBER') onSnsOnly?.();
+          else if (err.code !== 'CURRENT_PASSWORD_MISMATCH') {
+            showToast('잠시 후 다시 시도해 주세요');
+          }
+        },
+      },
+    );
   };
 
   return (
@@ -53,7 +71,7 @@ export default function PasswordConfirm({ onVerified }) {
           className={INPUT}
         />
         {isError && (
-          <ErrorText id={errorId}>비밀번호가 일치하지 않습니다.</ErrorText>
+          <ErrorText id={errorId}>비밀번호가 일치하지 않아요</ErrorText>
         )}
         <button
           type="submit"
