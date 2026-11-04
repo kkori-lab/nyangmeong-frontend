@@ -2,14 +2,15 @@ import {
   MapPin,
   MessageCircle,
   PawPrint,
-  User,
   CalendarDays,
   Wallet,
 } from 'lucide-react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
+import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { getCostLabel, getPetBadges, isOpen } from '../careCodes';
 import CareStatusBadge from './CareStatusBadge';
 import { formatArea, formatScheduleShort, getShapeNames } from './careUtils';
@@ -79,12 +80,11 @@ export default function CareCard({ post }) {
       </span>
       <span className="col-start-1 row-start-2 flex flex-wrap items-center max-[760px]:order-3 max-[760px]:row-start-auto gap-x-3 gap-y-1.5 border-t border-line pt-3.5 text-sm text-subtle">
         <span className="flex min-w-0 items-center gap-1.5">
-          <span
-            aria-hidden="true"
-            className="grid size-6 place-items-center rounded-full bg-brand-50 text-brand-500"
-          >
-            <User size={14} />
-          </span>
+          <Avatar
+            src={publicFileUrl(post.mbrAtchFileSn)}
+            className="size-6"
+            iconSize={14}
+          />
           {post.wrtrNcknm}
           <i className="text-line-strong not-italic">·</i>
           <time>{formatRelativeTime(post.regDt)}</time>

@@ -15,13 +15,15 @@ import {
  *   [PET_PRTC_RCRT] petPrtcRcrtSn, rcrtSttsCd, cstUnitCd, cstAmt, rlsRgnNm, prtcBgngDt, prtcEndDt, schdlCnsltnPsbltyYn, utztnRulAgreYn
  *   [RCRT_PET_KND] petKnds: [{ petSeCd, petSizeCd(가정, ERD는 PET_BDWG 체중), vrtyNm(VRTY_SN의 품종명), vrtyDrctInptNm }]
  *   [RCRT_PRTC_SHP] prtcShpCds: [PRTC_SHP_CD]
- * - ERD에 없어 서버가 계산한다고 가정한 값: sggNm·emdNm(RGN_SN), wrtrNcknm, chatCnt(이 글로 채팅 중인 사람 수), chatYn(내가 채팅 중),
+ * - ERD에 없어 서버가 계산한다고 가정한 값: sggNm·emdNm(RGN_SN), wrtrNcknm, mbrAtchFileSn(작성자 프로필 사진, 없으면 null), chatCnt(이 글로 채팅 중인 사람 수), chatYn(내가 채팅 중),
  *   likeYn, mineYn, thmbUrlPath, atchFiles, mtchSttrNcknm(매칭된 돌보미 닉네임)
  * - 상세 주소(PRTC_PLC_DADDR_ENC)와 정확한 좌표(PRTC_PLC_LAT·LOT)는 저장만 하고 응답에는 넣지 않는다(공개 응답 제외)
  * - 좋아요·신고·채팅은 pstSn, 상세·수정·삭제는 petPrtcRcrtSn 기준
  * - 로그인 전이라 내 회원번호는 MY_MBR_SN으로 고정
  */
 const MY_MBR_SN = 1;
+/** 내 프로필 사진 파일 번호(시드 회원 1) */
+const MY_ATCH_FILE_SN = 25;
 const MY_NICKNAME = '토리맘';
 
 const pad = (value) => String(value).padStart(2, '0');
@@ -76,6 +78,7 @@ const rcrt = ({
     pstSn: 200 + petPrtcRcrtSn,
     mbrSn,
     wrtrNcknm: nickname,
+    mbrAtchFileSn: mbrSn === MY_MBR_SN ? MY_ATCH_FILE_SN : null,
     pstTtl: title,
     pstCn: body,
     inqCnt,
@@ -438,6 +441,7 @@ export const createCare = (values) => {
       pstSn,
       mbrSn: MY_MBR_SN,
       wrtrNcknm: MY_NICKNAME,
+      mbrAtchFileSn: MY_ATCH_FILE_SN,
       rcrtSttsCd: RCRT_STTS.OPEN,
       utztnRulAgreYn: 'Y',
       chatCnt: 0,

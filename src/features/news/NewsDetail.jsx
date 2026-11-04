@@ -40,7 +40,7 @@ export default function NewsDetail({ news }) {
         </p>
 
         {isAdmin ? (
-          <PostBody content={news.newsCn}>
+          <PostBody content={news.newsCn} mediaFirst>
             {news.atchFileSn != null && (
               <FileImage
                 src={publicFileUrl(news.atchFileSn)}

@@ -2,16 +2,21 @@
 
 ## 지금 하는 것
 
-SCR-CMU-003 펫뉴스 · API 연결 (2026-11-02) — 상태: 끝 (검증 `확인 못 함 있음`(1·2회차 실패는 첨부 이미지 404 처리), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-02)
+SCR-CMU-001 커뮤니티 · 작성자 프로필 사진 (2026-11-04) — 상태: 끝 (검증 `확인 못 함 있음`(연결 남음만, 1회차 실패는 답글 연결선 어긋남), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-04)
 
-- 바꾼 것: `features/news/api.js` 가짜를 `GET /news`(`page`·`size`·`newsClsfCd`·`keyword`)·`GET /news/{newsSn}`로, 관리자 등록 글 출처는 「냥멍케어」(`getPressName`), 요약이 제목과 같은 기사는 요약 숨김(`hasSummary`), 관리자 글 첨부는 `FileImage`+`publicFileUrl`(404면 안 그림)
-- 추가 요청: 목록 썸네일 데스크탑 200×150 고정, 상세 썸네일·첨부는 원본 비율·크기(크면 본문 폭으로 줄이고 작으면 가운데, `NewsThumb` `natural`)
-- 결정: 화면설계서의 관리자 출처 「관리자」 표기는 고치지 않는다(사람 2026-11-02)
-- 확인 방법: 백엔드(8080) + localhost:5173 탭 콘솔에서 `POST /api/auth/dev-tokens {"mbrSn":1}` + `yarn dev`. 수집 기사는 관리자로 `POST /api/admin/batches/SYSC0028/run`(공용 DB에 쌓임)
+- 바꾼 것: 공용 `components/Avatar.jsx`(공개 파일 주소를 둥글게, null·404면 연한 청록 원 + `User` 아이콘, props `src`·`className`·`iconSize`)를 펫이야기 목록(24px)·상세(32px)·댓글(32px)·답글(24px), 실종 상세, 펫돌봄 카드·상세에 적용. 펫돌봄 가짜 응답(`careApi.js`)에 `mbrAtchFileSn`(내 글 25)
+- 같이 한 것(사람 요청 2026-11-03): `PostBody` 글을 사진·지도보다 먼저(24px 간격), 최소 높이 160px + 아래 여백 40px, 펫뉴스만 `mediaFirst`로 사진 먼저. 댓글 아바타 열 32px와 답글 연결선 위치 맞춤
+- 결정: 인기 포토 레일에는 아바타를 넣지 않는다. 기획의 `Avatar` `fallback` prop은 쓰는 곳이 없어 `iconSize`로 바꿨다
+- 확인 방법: 백엔드(8080) + `yarn dev`, localhost:5173 탭 콘솔에서 `fetch('/api/auth/dev-tokens',{method:'POST',headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},body:'{"mbrSn":1}'})`(헤더가 없으면 403). 시드 프로필 사진은 공개 주소에서 404라 지금은 모두 기본 아이콘으로 보인다
 
 ## 다음에 할 것
 
-- 커뮤니티 작성자 프로필 사진(사람 요청 2026-10-30): 지금은 닉네임 왼쪽이 모두 기본 아이콘. 백엔드 저장소에서 /start로 커뮤니티(펫이야기·실종센터·펫돌봄) 목록·상세·댓글 응답에 작성자 `MBR.ATCH_FILE_SN`을 넣고(공개 파일 주소로 줄지도 정함) → 이 저장소에서 /start로 `components/`에 공용 아바타(사진 없으면 지금 아이콘)를 만들어 `PostList`·`PostDetail`·`MissingDetail`·`CommentSection`·`StoryRail`에 적용. 시드 회원 1은 사진 있음(`ATCH_FILE_SN` 25), 회원 2·3은 없음. 회원 프로필 사진 등록 API보다 먼저 해도 된다
+- 다음 작업(LJS 관리자 화면 공유 2026-11-04): 공지 본문 이미지. 관리자가 본문에 `![](/api/files/public/{번호})` 줄로 저장한다. `NoticeDetail`(`PostBody`)에서 그 형식의 줄만 이미지로 그린다(`/api/files/public/숫자`만 허용). SCR-CSC-001 FN-CSC-001-05 연결 남음이 이것으로 풀린다 → `/start CSC-001`
+- 다음 작업(같은 공유): 펫뉴스 목록 썸네일. 관리자 기사는 `atchFileSn`(공개 주소), 수집 기사는 `thmbUrlPath`. 상세는 이미 둘 다 그림, `NewsList.jsx`는 `thmbUrlPath`만 씀(목록 응답 `NewsSummary`에 `atchFileSn` 있음) → `/start CMU-003`
+- 백엔드(같은 공유, 백엔드 저장소에서 /start): 파기 회원이 게시글·댓글에 `탈퇴회원#번호`(DB 닉네임 UK 때문)로 보인다. 커뮤니티 조회에서 파기 회원은 `mbrNcnm`을 「탈퇴한 회원」, `mbrAtchFileSn`을 null로 준다. 프론트는 고칠 것 없음
+- 백엔드(같은 공유): 펫돌봄 완료 사진이 `public/` 경로가 아니라 관리자 화면에서 404. 업로드 경로를 정할 때 관리자 열람 방법도 정한다. 채팅 실시간 제안(백엔드 `docs/api/community.md` 「실시간」) 검토
+- 데이터(사람): 공용 DB 「[실종]」 글이 `BBS_CD=CMUC0002`라 관리자 `CMUC0024` 필터가 0건. 사용자 화면은 `/lost-reports`라 영향 없음
+- SCR-CMU-001 작성자 프로필 사진 연결 남음: FN-CMU-004-01·04 펫돌봄 작성자 사진은 `careApi.js` 가짜 응답으로만 확인. SCR-CMU-004 API 연결 때 응답의 `mbrAtchFileSn`을 그대로 쓴다(백엔드 KSJ `CareRecruitmentSummary`·`CareRecruitmentResponse`에 이미 있음)
 - 시드 이미지 묶음이 시드 SQL(`db/seed/20261028_seed_data.sql`, 백엔드)과 다른 생성본이다. 게시글 사진 3481~3529가 없고(번호가 49씩 밀림), 채팅·펫돌봄·1:1 문의·뉴스 시드 사진도 빠지거나 어긋난다. LJS에게 같은 생성본을 `public/seed/...` 구조로 받아 백엔드 `uploads/seed`·`uploads/public/seed`를 바꾼다(지금 `uploads/public/seed`의 `post`·`character`는 임시 복사본)
 - 실종센터 검증 때 만든 데이터(실종 글 110~114와 첨부 4219~4247, 글 57·21·9 신고, 112 종료일 연장)는 DB에서 아직 안 지웠으면 직접 지운다(사람)
 - 펫이야기 검증·확인 때 만든 데이터(글 1001~1006과 그 댓글·신고·좋아요·첨부)는 DB에서 아직 안 지웠으면 직접 지운다(사람, 업로드 파일은 지움)
@@ -26,7 +31,7 @@ SCR-CMU-003 펫뉴스 · API 연결 (2026-11-02) — 상태: 끝 (검증 `확인
 - SCR-CMU-004 연결 남음: 돌봄 모집 게시글·좋아요·신고 API(KSJ 백엔드)로 `careApi.js` 교체(응답 키·코드 값 `PCAG01~03`·`petSizeCd`·`chatCnt`·`chatYn`·`mtchSttrNcknm` 확인, 다르면 화면 코드의 키도 같이 바꾼다), 장소 검색·역지오코딩은 프론트에서 카카오 SDK로 처리하도록 바꿈(2026-10-26 추가-6, AIC 담당과 합의 필요), 품종 마스터(`VRTY`) API, 최저 시급 설정값(관리자 ADM), 글쓰기·수정 `ProtectedRoute`와 [돌봄 요청 등록하기]·[채팅하기] 비로그인 로그인 이동 후 복귀(AIC), `PET_BDWG` 체중 문제(ERD `RCRT_PET_KND.PET_BDWG`는 NOT NULL 숫자인데 폼은 크기 구간 선택. ERD를 구간 코드 컬럼으로 바꾸거나 폼에 체중 입력을 둔다, 사람이 정할 것)
 - 실종센터 목록은 필터를 바꾸면 목록이 새로 불러와져 필터 영역이 잠깐 사라질 수 있다. 펫돌봄처럼 `missingQueries.js`의 `useMissingList`에 `placeholderData: keepPreviousData`를 넣을지 정한다
 - SCR-CMU-001 연결 남음: 로그인 연결 후 글쓰기·수정 `ProtectedRoute`와 비로그인 좋아요·댓글·글쓰기 로그인 이동 후 복귀(FN-CMU-001-09·11·14·15, AIC), 댓글 알림 저장(FN-CMU-001-11, YAY `notification`). 기능명세서에 없는 「내 댓글 삭제」는 사람이 명세에 보완
-- SCR-CMU-002 연결 남음: FN-CMU-002-07 댓글 「작성자」 배지(백엔드 연결 실종 상세 응답 `mbrSn`, 백엔드 저장소에서 /start), FN-CMU-002-10·11 전북 밖 좌표 거절(백엔드 연결 `POST·PATCH /lost-reports`, 낮은 우선순위), FN-CMU-002-11 장소 검색을 YAY `GET /places`로 교체(YAY), FN-CMU-002-05·10 연락처 로그인 회원만·로그인 이동 후 복귀·`ProtectedRoute`(AIC), FN-CMU-002-09 종료 알림(YAY). 읍·면·동 필터는 DB `RGN` 전주시 아래 행이 생기면 다시 본다. 작성자가 찾았어요로 바꾼 글 상세에 [수정]이 보이는 것(서버는 실종 상태만 수정 허용)을 숨길지 정한다
+- SCR-CMU-002 연결 남음: FN-CMU-002-10·11 전북 밖 좌표 거절(백엔드 연결 `POST·PATCH /lost-reports`, 낮은 우선순위), FN-CMU-002-11 장소 검색을 YAY `GET /places`로 교체(YAY), FN-CMU-002-05·10 연락처 로그인 회원만·로그인 이동 후 복귀·`ProtectedRoute`(AIC), FN-CMU-002-09 종료 알림(YAY). 읍·면·동 필터는 DB `RGN` 전주시 아래 행이 생기면 다시 본다. 작성자가 찾았어요로 바꾼 글 상세에 [수정]이 보이는 것(서버는 실종 상태만 수정 허용)을 숨길지 정한다
 - SCR-CMU-002 사람이 정할 것: 실종 기간 필터 기준(화면설계서·기능명세서는 목격 날짜, ERD 비고 2026-09-23은 등록일시 `PST.REG_DT`), 품종 필수 여부(명세는 필수, ERD·디자인은 선택), 기능명세서 FN-CMU-002-09의 자동 댓글 이모지·「찾았어요!」 문구(디자인은 「찾았어요」)
 - SCR-CMU-003 연결 남음: FN-CMU-003-04 관리자 글 첨부 이미지 실제 표시(시드 첨부 4061~4074가 공개 주소에서 404, 관리자 뉴스 등록 화면 ADM이 공개 파일로 저장하는지, LJS). 관리자 등록이 비공개 파일이면 `NewsDetail.jsx`를 `useFileImage`로 바꾼다
 - 펫뉴스 데이터(백엔드, 필요하면 백엔드 저장소에서 /start): 시드 뉴스 썸네일이 `news.example.com` 가짜 주소라 자리 표시로 나옴, 수집 기사 요약에 `&#39;` 같은 HTML 엔티티가 그대로 남음(100번에서 봄). 공용 DB에 v0.11 (7)·(8) 뉴스 제외 키워드가 들어갔는지 확인 뒤 수집

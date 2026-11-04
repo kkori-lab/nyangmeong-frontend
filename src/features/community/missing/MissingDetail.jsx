@@ -11,10 +11,10 @@ import {
   PawPrint,
   Phone,
   Tag,
-  User,
 } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
+import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
 import PostBody from '@/components/PostBody';
@@ -93,12 +93,7 @@ function PostHead({ post, children }) {
       </h2>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 pb-1">
         <p className="flex flex-wrap items-center gap-2 text-sm text-subtle">
-          <span
-            aria-hidden="true"
-            className="grid size-8 place-items-center rounded-full bg-brand-50 text-brand-500"
-          >
-            <User size={18} />
-          </span>
+          <Avatar src={publicFileUrl(post.mbrAtchFileSn)} className="size-8" />
           {post.mbrNcnm && (
             <b className="text-base leading-normal font-semibold text-ink">
               {post.mbrNcnm}
@@ -325,7 +320,7 @@ export default function MissingDetail({ post }) {
                 ))}
               </div>
             )}
-            <section aria-labelledby="missing-info-title" className="mb-8">
+            <section aria-labelledby="missing-info-title">
               <h3
                 id="missing-info-title"
                 className="text-lg font-bold text-ink"

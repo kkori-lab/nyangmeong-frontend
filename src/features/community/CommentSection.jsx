@@ -1,10 +1,11 @@
 import { Flag, MoreVertical } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
-import userIcon from '@/assets/user.svg';
+import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
 import ReportModal from '@/components/ReportModal';
 import { showToast } from '@/components/toastStore';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { formatRelativeTime } from '@/utils/formatDate';
 const CMNT_MAX = 500;
 const PREVIEW_MAX = 30;
@@ -16,16 +17,6 @@ const menuItemClass =
   'flex min-h-10 w-full cursor-pointer items-center gap-2 rounded px-3 text-left text-sm whitespace-nowrap text-[#1a3234] hover:bg-[#f4f6f6]';
 
 /** 회원 기본 프로필(사진이 없을 때): 디자인의 .ava-user */
-function Avatar({ className }) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{ backgroundImage: `url(${userIcon})` }}
-      className={`block shrink-0 rounded-full border border-[#e2e7e7] bg-white bg-cover bg-center ${className}`}
-    />
-  );
-}
-
 function CommentInput({
   inputId,
   placeholder,
@@ -161,10 +152,14 @@ function CommentRow({
 
   return (
     <div
-      className={`grid items-start ${isFoundNotice ? 'my-2 rounded-lg border border-warn-line bg-warn-soft px-4 py-3.5' : 'py-2'} ${isReply ? 'grid-cols-[24px_minmax(0,1fr)_auto] gap-2' : 'grid-cols-[40px_minmax(0,1fr)_auto] gap-3 max-[760px]:grid-cols-[32px_minmax(0,1fr)_auto] max-[760px]:gap-2.5'}`}
+      className={`grid items-start ${isFoundNotice ? 'my-2 rounded-lg border border-warn-line bg-warn-soft px-4 py-3.5' : 'py-2'} ${isReply ? 'grid-cols-[24px_minmax(0,1fr)_auto] gap-2' : 'grid-cols-[32px_minmax(0,1fr)_auto] gap-3 max-[760px]:gap-2.5'}`}
     >
       <span className="flex flex-col self-stretch">
-        <Avatar className={isReply ? 'size-6' : 'size-10 max-[760px]:size-8'} />
+        <Avatar
+          src={publicFileUrl(comment.mbrAtchFileSn)}
+          className={isReply ? 'size-6' : 'size-8'}
+          iconSize={isReply ? 14 : 18}
+        />
         {hasReplies && (
           <span
             aria-hidden="true"
@@ -227,7 +222,7 @@ function CommentRow({
 
 /** 답글: 왼쪽에 ㄴ 모양 연결선, 마지막이 아니면 세로선이 아래로 연결 */
 const REPLY_ITEM_CLASS =
-  "relative before:absolute before:top-0 before:-left-[33px] before:h-[21px] before:w-[27px] before:rounded-bl-[14px] before:border-b-2 before:border-l-2 before:border-[#e2e7e7] before:content-[''] [&:not(:last-child)]:after:absolute [&:not(:last-child)]:after:top-0 [&:not(:last-child)]:after:bottom-0 [&:not(:last-child)]:after:-left-[33px] [&:not(:last-child)]:after:border-l-2 [&:not(:last-child)]:after:border-[#e2e7e7] [&:not(:last-child)]:after:content-[''] max-[760px]:before:-left-[27px] max-[760px]:before:w-[23px] max-[760px]:[&:not(:last-child)]:after:-left-[27px]";
+  "relative before:absolute before:top-0 before:-left-[29px] before:h-[21px] before:w-[23px] before:rounded-bl-[14px] before:border-b-2 before:border-l-2 before:border-[#e2e7e7] before:content-[''] [&:not(:last-child)]:after:absolute [&:not(:last-child)]:after:top-0 [&:not(:last-child)]:after:bottom-0 [&:not(:last-child)]:after:-left-[29px] [&:not(:last-child)]:after:border-l-2 [&:not(:last-child)]:after:border-[#e2e7e7] [&:not(:last-child)]:after:content-[''] max-[760px]:before:-left-[27px] max-[760px]:before:w-[23px] max-[760px]:[&:not(:last-child)]:after:-left-[27px]";
 
 /**
  * 댓글 영역: 댓글 + 대댓글 1단계
@@ -318,7 +313,7 @@ export default function CommentSection({
               {...rowProps}
             />
             {repliesOf(root.cmntSn).length > 0 && (
-              <ul className="pl-[52px] max-[760px]:pl-[42px]">
+              <ul className="pl-[44px] max-[760px]:pl-[42px]">
                 {repliesOf(root.cmntSn).map((reply) => (
                   <li key={reply.cmntSn} className={REPLY_ITEM_CLASS}>
                     <CommentRow
