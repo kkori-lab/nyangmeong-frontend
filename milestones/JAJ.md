@@ -232,6 +232,21 @@
 - 기다리는 것: AI 서버 영수증 분석 오류 응답 `data.recptSn` (nyangmeong-ai)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `/ai/receipts` 502에 `data.recptSn`이 있으면 실패 안내 [직접 입력] 저장이 `POST /api/receipts/{recptSn}/checkups?petSn=` 한 번, 없으면 `POST /pets/{petSn}/checkups`
 
+## SCR-HLT-002 건강 일지 · 체중 그래프 정상범위·목표 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-10(체중 — 사용자 정상범위 기준 색상 표시)에 걸침. `DailyTrendCard.jsx`가 가짜 키 `nrmlWghtMinVal`·`nrmlWghtMaxVal`·`goalWghtVal` 대신 서버 키 `minBdwg`·`maxBdwg`(`GET /pets`)·`goalBdwg`(`GET /pets/{petSn}`)를 읽는다
+- 기다리는 것: 없음(백엔드 develop에 있음, SJM)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 정상범위가 있는 반려동물의 체중 그래프에 범위 띠, 목표체중이 있으면 목표선이 보인다
+- 결과: 2026-11-04 검증 2회차 통과(1회차는 검증 브라우저 미로그인으로 화면 확인 못 함), 사람 확인 끝
+
+## SCR-HLT-002 건강 일지 · 영수증 원본 이미지 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-34(원본 이미지)에 걸침. `diary/ReceiptResultStep.jsx`의 `imgUrl = null`(아이콘 대체)을 `GET /api/receipts/{recptSn}/image`(비공개 파일)로 바꾼다
+- 기다리는 것: 없음 (백엔드 `ReceiptController` `GET /{recptSn}/image`가 develop에 있음)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 영수증 인식 결과 확인 모달 썸네일과 [영수증 원본] 모달에 올린 영수증 사진이 보인다
+- 결과: 2026-11-04 검증 1회차 통과, 사람 확인 끝
+- 연결 남음: 추가-2 (백엔드 연결 `POST /receipts/{recptSn}/save-check` 저장완료 영수증 409 `RECEIPT_ALREADY_SAVED`, 백엔드 저장소에서 /start)
+
 ## 제외
 
 - AI매니저 FN-AIM-008 참조 대상 반려동물 선택: 화면 SCR-AIM-008 영수증 업로드는 LJS(분배 표 "AIM-008 영수증 업로드")

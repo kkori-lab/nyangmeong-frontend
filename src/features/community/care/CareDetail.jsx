@@ -6,11 +6,11 @@ import {
   HeartHandshake,
   MapPin,
   PawPrint,
-  User,
   Wallet,
 } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
+import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
 import PostBody from '@/components/PostBody';
@@ -20,6 +20,7 @@ import { showToast } from '@/components/toastStore';
 import useChatWindow from '@/hooks/useChatWindow';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { getCostLabel, getPetBadges } from '../careCodes';
 import {
   useDeleteCare,
@@ -100,12 +101,10 @@ export default function CareDetail({ post }) {
         </h2>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-1">
           <p className="flex flex-wrap items-center gap-2 text-sm text-subtle">
-            <span
-              aria-hidden="true"
-              className="grid size-8 place-items-center rounded-full bg-brand-50 text-brand-500"
-            >
-              <User size={18} />
-            </span>
+            <Avatar
+              src={publicFileUrl(post.mbrAtchFileSn)}
+              className="size-8"
+            />
             <b className="text-base leading-normal font-semibold text-ink">
               {post.wrtrNcknm}
             </b>
@@ -149,7 +148,7 @@ export default function CareDetail({ post }) {
               ))}
             </div>
           )}
-          <section aria-labelledby="care-info-title" className="mb-8">
+          <section aria-labelledby="care-info-title">
             <h3 id="care-info-title" className="text-lg font-bold text-ink">
               돌봄 정보
             </h3>

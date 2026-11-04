@@ -445,7 +445,7 @@
 - 완료 조건: 카테고리별 FAQ 등록·수정·비노출이 목록에 반영된다
 - 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03). 가짜 없이 실제 API로 연결
 - 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 작업 사본), 사람 확인 2026-11-03
-- 연결 남음: FN-ADM-041-01~04 (백엔드 연결 `/api/admin/faqs` 목록·상세·등록·수정, 백엔드 저장소에서 /start)
+- 연결 남음: 없음(백엔드 `/api/admin/faqs`가 develop에 들어가 2026-11-04 연결 절 4개로 확인)
 
 ## SCR-ADM-042 1:1 문의 — 끝
 - 기능: FN-ADM-042-01 문의 목록 조회, FN-ADM-042-02 문의 필터, FN-ADM-042-03 문의 상세 조회, FN-ADM-042-04 답변 등록, FN-ADM-042-05 답변 수정, FN-ADM-042-06 삭제된 문의 처리, FN-ADM-042-07 캐릭터 오류 처리, FN-ADM-042-08 펫돌봄 분쟁 연결
@@ -529,12 +529,7 @@
 - 완료 조건: 약관 새 버전 등록 뒤 버전 이력에 한 줄 늘어난다
 - 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 새 버전 등록은 별도 화면 `/admin/terms/new`(사람 2026-11-03 추천안대로)
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
-- 연결 남음: FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start)
-
-## SCR-ADM-060 장소 — 대기
-- 기능: FN-ADM-060-01 장소 목록 조회, FN-ADM-060-02 장소 노출 설정, FN-ADM-060-03 place_url 수동 매칭, FN-ADM-060-04 공공데이터 수집 실행, FN-ADM-060-05 장소 직접 등록 제외
-- 기다리는 것: `/api/admin/places` (LJS 백엔드). 없으면 가짜 응답. 2026-11-03 기획까지 했다가 사람 결정 "일단 넘어가고 다음"으로 미룸(백엔드에 관리자 장소 API·공공데이터 수집 배치가 없음)
-- 완료 조건: 장소 노출 on/off와 place_url 수동 매칭이 목록에 반영된다
+- 연결 남음(2026-11-04 "약관 API 연결" 절에서 끝): FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-071 케어미션 — 끝
 - 기능: FN-ADM-071-01 케어미션 목록 조회, FN-ADM-071-02 케어미션 수정, FN-ADM-071-03 변경 반영 시점
@@ -587,15 +582,22 @@
 - 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04)
 - 완료 조건: 탭 이름·표 칸 이름·모달 칸 이름을 운영자가 읽고 무엇을 넣는지 알 수 있는 말로 바꾼다(`features/adminAiKeyword/keywordLabels.js`·`AiKeywordTable.jsx`·`AiKeywordFormModal.jsx`). 저장 값(`kwrdClsfNm` 등)은 기초 데이터 그대로 두고 화면 표시만 바꿀지 기획 때 정한다
 
-## SCR-ADM-082 처리 현황 — 대기
+## SCR-ADM-082 처리 현황 — 끝
 - 기능: FN-ADM-082-01 영수증 OCR 현황, FN-ADM-082-02 캐릭터 생성 현황, FN-ADM-082-03 검사결과지 분석 현황
 - 기다리는 것: `/api/admin/processing` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: OCR·캐릭터 생성·검사결과지 분석의 상태별 건수와 실패 목록이 보인다
+- 결정: 디자인은 화면설계서 기준 + 관리자 목록 화면 스타일, `paths.js` `ADMIN_PROCESSING`은 기능 커밋에 같이(사람 2026-11-04 추천안대로)
+- 완료 조건 결과: 검증 `통과`(2026-11-04 1회째, 가짜 응답 기준), 사람 확인 2026-11-04
+- 연결 남음: FN-ADM-082-01 (백엔드 연결 `GET /api/admin/processing/receipts`·`/receipts/{recptSn}/image`, 가계부 출처 코드, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-082-02 (백엔드 연결 `GET /api/admin/processing/character-jobs`·CHAR_CRT_JOB 상태 공통코드, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses`·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
 
-## SCR-ADM-001 대시보드 — 대기
+## SCR-ADM-001 대시보드 — 끝
 - 기능: FN-ADM-001-02 운영 현황 조회, FN-ADM-001-03 처리 대기 건수, FN-ADM-001-04 이용 통계 조회, FN-ADM-001-05 통계 기간 선택
 - 기다리는 것: `/api/admin/dashboard` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 운영 현황·처리 대기 건수·이용 통계가 보이고 처리 대기 건수를 누르면 필터를 건 관리 화면으로 간다
+- 연결 남음: FN-ADM-001-02·03 (백엔드 연결 `GET /api/admin/dashboard`, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-001-04·05 (백엔드 연결 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-111 배치 현황 · 배치 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(연결 작업). 걸치는 기능 FN-ADM-111-01 배치 목록 조회, FN-ADM-111-02 실행 이력 조회, FN-ADM-111-03 수동 실행
@@ -634,15 +636,19 @@
 - 결정: 배치 6종에 맞춰 `BatchesSkeleton`을 436px로 고쳤고, `?batch=` 진입 때 이력 자리 높이는 판정에서 뺀다(행 수를 알 수 없음, 사람 결정 2026-11-02)
 - 완료 조건 결과: 검증 `통과`(2026-11-02, 앞선 1회차 스켈레톤 실패는 사람이 `clear` 뒤 완료 조건을 좁힘), 사람 확인 2026-11-02
 
-## SCR-ADM-113 관리자 계정 · 목록과 지정 모달 연결 — 대기
+## SCR-ADM-113 관리자 계정 · 목록과 지정 모달 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-113-01, FN-ADM-113-02
 - 기다리는 것: 백엔드 관리자 계정 API(끝, 2026-11-02)
 - 완료 조건: 목록이 `GET /api/admin/admins`(`mbrSn`, `mbrNcnm`, `maskedAcntEml`, `apntDt`)로 나오고 `apntDt`가 null이면 지정일을 비워 둔다. 지정 모달이 `GET /api/admin/members?q=&status=USRC0001&role=USRC0004`로 검색하고 `POST /api/admin/admins/{mbrSn}`(본문 없음) 뒤 목록에 반영된다. 409 `MEMBER_NOT_APPOINTABLE`을 안내한다
+- 완료 조건 결과: 실제 API 확인(2026-11-04, 5180 + 로컬 8080 백엔드, 관리자 계정). 목록 2건·`apntDt` null이면 "—", 검색 `status=USRC0001&role=USRC0004`, 냥멍테스터 지정 뒤 목록 3건(지정일 11-04). 첫 지정은 공유 DB 잠금 대기로 500이 나서 모달에 오류 문구가 보였고 다시 누르니 성공. 409 안내는 코드로만 확인(재현할 데이터 없음). 코드는 2026-11-02 커밋 `70c41a5`에 이미 있었고 마일스톤만 대기로 남아 있었다
+- 연결 남음: 없음
 
-## SCR-ADM-113 관리자 계정 · 해제 버튼과 확인 모달 연결 — 대기
+## SCR-ADM-113 관리자 계정 · 해제 버튼과 확인 모달 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-113-03
 - 기다리는 것: 백엔드 관리자 계정 API(끝, 2026-11-02)
 - 완료 조건: 확인 모달 뒤 `DELETE /api/admin/admins/{mbrSn}`(본문 없음)로 해제되고 목록에 반영된다. 본인 행(`/auth/me`의 `mbrSn`)과 마지막 관리자(목록 `totalElements` 1)는 버튼이 비활성이다. 409 `ADMIN_NOT_RELEASABLE`·`ALREADY_PROCESSED`를 안내한다
+- 완료 조건 결과: 실제 API 확인(2026-11-04, 5180 + 로컬 8080 백엔드, 관리자 계정). 확인 모달 뒤 냥멍테스터 해제, 목록 2건으로 돌아옴. 본인 행 해제 버튼 비활성. 마지막 관리자 비활성과 409 안내는 코드로만 확인(관리자 2명이라 재현 안 함)
+- 연결 남음: 없음
 
 ## SCR-ADM-011 회원 상세 · 기본 정보와 정지·해제 모달 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음. FN-ADM-011-01
@@ -789,25 +795,33 @@
 - 완료 조건: 수정 화면에 값이 채워지고 발송 칸은 숨긴다. 사용 여부를 끄면 사용자 공지에서 빠진다. 삭제 버튼 없음
 - 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
 
-## SCR-ADM-041 FAQ · 목록 연결 — 대기
+## SCR-ADM-041 FAQ · 목록 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-041-01 연결 작업)
 - 기다리는 것: `GET /api/admin/faqs`(`faqClsfCd`·`keyword`·`page`·`size`, 20건씩, `PageResponse<AdminFaqSummary>`) (LJS 백엔드, 끝)
 - 완료 조건: 비노출 FAQ도 나오고 정렬 순서 다음 번호순이다. 카테고리 탭과 질문·답변 검색이 AND로 걸린다. 행을 누르면 `GET /api/admin/faqs/{faqSn}`으로 수정 모달을 연다
+- 완료 조건 결과: 실제 API 확인(2026-11-04, 5180 + 로컬 8080 백엔드, 관리자 계정). `GET /api/admin/faqs` 45건 정렬 순서대로, 탭+검색 `faqClsfCd=CSCC0002&keyword=탈퇴` 함께 걸림, 행 클릭 `GET /api/admin/faqs/5`로 수정 모달. 코드는 커밋 `bb1e515`에 이미 있었다
+- 연결 남음: 없음
 
-## SCR-ADM-041 FAQ · 등록·수정 모달 연결 — 대기
+## SCR-ADM-041 FAQ · 등록·수정 모달 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-041-02 연결 작업)
 - 기다리는 것: `POST /api/admin/faqs`(`AdminFaqCreateRequest`, 201), `PATCH /api/admin/faqs/{faqSn}`(`AdminFaqUpdateRequest`, 보낸 필드만) (LJS 백엔드, 끝)
 - 완료 조건: 질문 200자·답변 4,000자·정렬 순서 0 이상. 등록·수정하면 목록에 반영된다. 400이면 `data[].field`로 칸 오류를 보여 준다
+- 완료 조건 결과: 실제 API 확인(2026-11-04, 5180 + 로컬 8080 백엔드, 관리자 계정). 수정 저장이 목록에 반영됨. 400 `data[].field` 칸 오류는 이번에 넣었다(`FaqFormModal.jsx` `FieldError`, 칸별 오류가 있으면 일반 문구는 숨김). 서버 400은 화면에서 먼저 막혀 재현이 안 돼 브라우저에서 PATCH 응답만 가짜 400으로 바꿔 확인했다. 등록은 삭제 API가 없어 실제로 누르지 않았다
+- 연결 남음: 없음
 
-## SCR-ADM-041 FAQ · 사용 토글 연결 — 대기
+## SCR-ADM-041 FAQ · 사용 토글 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-041-03 연결 작업)
 - 기다리는 것: `PATCH /api/admin/faqs/{faqSn}` `{"useYn": false}` (LJS 백엔드, 끝). 삭제 API 없음
 - 완료 조건: 끄면 목록에 "비노출"로 남고 사용자 고객센터 FAQ에서 빠진다
+- 완료 조건 결과: 실제 API 확인(2026-11-04, 5180 + 로컬 8080 백엔드, 관리자 계정). "실종 제보는 언제 만료되나요? (5)"를 끄자 목록 "비노출", 사용자 `GET /api/faqs` 40→39건. 다시 켜서 되돌림(40건)
+- 연결 남음: 없음
 
-## SCR-ADM-041 FAQ · 카테고리 탭 연결 — 대기
+## SCR-ADM-041 FAQ · 카테고리 탭 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-041-04 연결 작업)
 - 기다리는 것: `GET /api/common-codes?prntComCd=CSCG01` (LJS 백엔드, 끝)
 - 완료 조건: 탭(전체 + 이용방법·계정·신고/제재·기타)과 모달의 카테고리 선택지가 이 목록으로 그려진다
+- 완료 조건 결과: 실제 API 확인(2026-11-04, 5180 + 로컬 8080 백엔드, 관리자 계정). `GET /api/common-codes?prntComCd=CSCG01`로 탭(전체·이용방법·계정·신고/제재·기타)과 모달 선택지가 그려짐
+- 연결 남음: 없음
 
 ## SCR-ADM-070 아이템 · 목록·이미지 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-070-01 연결 작업)
@@ -894,12 +908,25 @@
 - 완료 조건: `features/adminCommunity/api.js` 노출 콘텐츠 절 가짜를 `/api/admin/community/exposure` 실제 API로 바꿔 건강팁 지정·해제, 문구 등록·수정, AI 코멘트 사용 여부가 화면에서 동작한다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
 
+## SCR-ADM-051 약관 · 약관 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-051-01·02·03·04
+- 기다리는 것: `GET /api/admin/terms`(종류별 사용 중 1행, 정렬순, 가입 약관 4종 `SERVICE`·`PRIVACY`·`AGE_14`·`MARKETING`, 기능별 동의 2종은 TRMS에 없음)·`GET /api/admin/terms/history?trmsFixIdntfKey=`(최신순, 내용 제외, 키 없으면 400)·`GET /api/admin/terms/{trmsSn}`(404 `TERMS_NOT_FOUND`)·`POST /api/admin/terms` `{ trmsFixIdntfKey, trmsVerId(1~80), trmsTtl(1~200), trmsCn(1~4000), esntlAgreYn }` → 201 상세(없는 종류 404 `TERMS_NOT_FOUND`, 같은 버전 409 `DUPLICATE_TRMS_VER`, 400 `INVALID_INPUT_VALUE`) (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/member.md` `/admin/terms` 행)
+- 완료 조건: `features/adminTerms/api.js` 가짜를 실제 API로 바꿔 목록·이력·상세·새 버전 등록이 화면에서 동작한다. 종류 키 `AGE`→`AGE_14`, 글자 수 상한 80·200·4000. 400·404·409 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminTerms/api.js`(가짜 응답)
+
+## SCR-ADM-071 케어미션 · 케어미션 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-071-01·02
+- 기다리는 것: `GET /api/admin/care-missions?msnPoolCd=`(사용 안 함 포함, 번호순 `[{ careMsnSn, msnPoolCd, msnNm, cmpnPnt, achvCrtrNmtm, mvmnPath, useYn(true/false) }]`, 풀 코드 없으면 전체, 모르는 풀 400 `INVALID_INPUT_VALUE`)·`PATCH /api/admin/care-missions/{careMsnSn}` `{ cmpnPnt?(1~1000), achvCrtrNmtm?(1~10), useYn? }` → 200 미션 행(보낸 칸만, 미션명·풀·경로는 안 바꿈, 빈 본문·범위 밖 400 `INVALID_INPUT_VALUE`, 없는 미션 404 `CARE_MISSION_NOT_FOUND`) (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/care-missions` 행)
+- 완료 조건: `features/adminCareMission/api.js` 가짜를 실제 API로 바꿔 목록(풀 탭)·수정 모달이 화면에서 동작한다. `useYn`은 'Y'/'N' 가정이 아니라 true/false. 모달의 "다음 날 00:00 출제부터 반영" 안내 그대로. 400·404 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminCareMission/api.js`(가짜 응답)
+
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)
 - FN-ADM-100-01~04: 관리자 기능명세서 v0.4에서 결번(공통코드 화면을 만들지 않는다, 사람 결정 2026-11-01)
 - FN-ADM-101-02 지역 조회: 사람 결정 2026-11-03으로 화면에서 뺌(회원 화면이 공용 `GET /api/regions`를 바로 쓰고 지역은 바뀌지 않는다). 기능명세서·화면설계서에서 빼는 것은 문서 담당이 DMS에 올린다
 - FN-ADM-073-01: 관리자 기능명세서 v0.4에서 결번(2026-10-30 기능 제외, 기본 캐릭터 이미지는 서버 파일이라 배포로 교체). SCR-ADM-073 절을 지웠다(2026-11-03)
+- FN-ADM-060-01~05: 사람 결정 2026-11-04로 화면을 없앰(사용자 장소는 카카오 로컬 검색을 바로 써서 공공데이터 장소 관리 화면이 필요 없다). 사이드바 메뉴와 `docs/routes.md` 행을 지웠다. 기능명세서·화면설계서에서 빼는 것은 문서 담당이 DMS에서 한다
 
 ## 대조
 - 공통레이아웃: 명세 117 = 마일스톤 117 + 제외 0
@@ -909,3 +936,4 @@
 - 관리자 v0.2: 명세 135 = 마일스톤 135 + 제외 0 (FN-ADM-001-01은 SCR-ADM-110 절)
 - 관리자 v0.4 (2026-11-01): 명세 135 = 마일스톤 131 + 제외 4 (결번 FN-ADM-100-01~04)
 - 관리자 v0.4 재대조 (2026-11-03): 명세 135 = 마일스톤 130 + 제외 5 (결번 FN-ADM-073-01 추가)
+- 관리자 v0.4 재대조 (2026-11-04): 명세 135 = 마일스톤 125 + 제외 10 (FN-ADM-060-01~05 제외 추가)

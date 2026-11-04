@@ -33,7 +33,7 @@ export default function NoticeDetail({ notice }) {
           </time>
         </div>
 
-        <PostBody content={notice.ntcMttrCn} />
+        <PostBody content={notice.ntcMttrCn} fileImages />
 
         <div className="border-t border-[#e2e7e7] pt-[21px]">
           <Link

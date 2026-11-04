@@ -75,6 +75,7 @@ function EsntlOption({ name, checked, onChange, children }) {
  * - 빈 칸은 손댄 뒤나 [등록]을 누른 뒤 칸 아래 안내, 다 채워야 [등록]
  * - [등록] -> 확인 모달 "이전 버전은 더 쓰지 않아요" -> 등록 -> 목록(완료 안내는 목록에서)
  * - 같은 버전이 있으면(DUPLICATE_TRMS_VER) 모달을 닫고 버전 칸 아래 서버 문구
+ * - 입력값 오류(400 fields)도 모달을 닫고 칸 아래 서버 문구, 그 밖 오류는 폼 아래 서버 문구
  */
 export default function TermsVersionForm({ initialKind, currentByKind }) {
   const formId = useId();
@@ -108,8 +109,13 @@ export default function TermsVersionForm({ initialKind, currentByKind }) {
     trmsTtl: '제목을 입력해 주세요',
     trmsCn: '내용을 입력해 주세요',
   };
+  const serverFieldErrors = new Map(
+    (create.error?.fields ?? []).map((item) => [item.field, item.message]),
+  );
   const getError = (field) =>
-    touched[field] && !values[field] ? emptyMessages[field] : null;
+    touched[field] && !values[field]
+      ? emptyMessages[field]
+      : (serverFieldErrors.get(field) ?? null);
   const isFilled = Object.keys(emptyMessages).every((field) => values[field]);
   const duplicateMessage =
     create.error?.code === 'DUPLICATE_TRMS_VER' ? create.error.message : null;
@@ -148,7 +154,9 @@ export default function TermsVersionForm({ initialKind, currentByKind }) {
           });
         },
         onError: (error) => {
-          if (error?.code === 'DUPLICATE_TRMS_VER') setIsConfirmOpen(false);
+          if (error?.code === 'DUPLICATE_TRMS_VER' || error?.fields) {
+            setIsConfirmOpen(false);
+          }
         },
       },
     );
@@ -269,11 +277,14 @@ export default function TermsVersionForm({ initialKind, currentByKind }) {
       <p className="rounded-[10px] bg-surface-2 px-4 py-3 text-sm leading-[22px] text-subtle">
         {TERMS_REAGREE_GUIDE}
       </p>
-      {create.isError && !duplicateMessage && !isConfirmOpen && (
-        <p role="alert" className="text-sm text-danger">
-          {create.error.message}
-        </p>
-      )}
+      {create.isError &&
+        !duplicateMessage &&
+        !create.error.fields &&
+        !isConfirmOpen && (
+          <p role="alert" className="text-sm text-danger">
+            {create.error.message}
+          </p>
+        )}
       <div className="flex justify-end gap-2 max-[760px]:[&>*]:flex-1">
         <Link to={PATHS.ADMIN_TERMS} className={BTN_SECONDARY}>
           취소
