@@ -30,6 +30,7 @@ import {
   leavePet,
   purchaseItems,
   rejectInvitation,
+  saveEquippedImage,
   saveEquippedItems,
   setRepresentativePet,
   updatePet,
@@ -244,12 +245,28 @@ const applyCharacter = (qc, pixelCharSn, character) => {
   qc.invalidateQueries({ queryKey: healthKeys.pixelCharacters });
 };
 
+/**
+ * 착용 저장 (variables: { pixelCharSn, petSn, hldItemSns, itemSns })
+ * - 저장 성공 뒤 착용 아이템이 있으면 대표 이미지 저장을 기다리지 않고 부른다(200·409 등 실패여도 알리지 않는다)
+ * - 끝나면 character-image(전신·얼굴)를 다시 읽는다. 아이템이 없으면 서버가 대표 이미지를 지워 맨몸이다
+ */
 export const useSaveEquippedItems = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: saveEquippedItems,
-    onSuccess: (character, { pixelCharSn }) =>
-      applyCharacter(qc, pixelCharSn, character),
+    mutationFn: ({ pixelCharSn, hldItemSns }) =>
+      saveEquippedItems({ pixelCharSn, hldItemSns }),
+    onSuccess: (character, { pixelCharSn, petSn, itemSns }) => {
+      applyCharacter(qc, pixelCharSn, character);
+      const refreshImages = () =>
+        qc.invalidateQueries({ queryKey: ['pets', petSn, 'character-image'] });
+      if (itemSns.length === 0) {
+        refreshImages();
+        return;
+      }
+      saveEquippedImage({ pixelCharSn, itemSns })
+        .catch(() => {})
+        .finally(refreshImages);
+    },
     /** 오류 확인 중으로 바뀐 캐릭터는 목록 상태를 다시 읽는다 */
     onError: (error) => {
       if (error.code === 'PIXEL_CHARACTER_UNDER_REVIEW')

@@ -82,6 +82,14 @@ export const getCharacterPreview = ({ pixelCharSn, itemSns, signal }) =>
     )
     .then(blobToDataUrl);
 
+/**
+ * 착용 모습 대표 이미지 저장 POST /ai/characters/{pixelCharSn}/equipped-image
+ * - [장착]으로 착용 저장(PUT equipped-items)이 성공한 뒤 같은 아이템 번호(itemSns)로 부른다
+ * - 아이템이 아직 구워지지 않았으면 409 ITEM_BAKING
+ */
+export const saveEquippedImage = ({ pixelCharSn, itemSns }) =>
+  aiApi.post(`/characters/${pixelCharSn}/equipped-image`, { itemSns });
+
 /** 대표 반려동물 지정 POST /pets/{petSn}/representative (주양육 동물만) */
 export const setRepresentativePet = (petSn) =>
   api.post(`/pets/${petSn}/representative`);
