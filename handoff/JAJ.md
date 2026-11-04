@@ -2,13 +2,19 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-002 건강 일지 · 체중 그래프 정상범위·목표 연결 (2026-11-04). 검증 2회차 통과(1회차는 검증 브라우저 미로그인), 사람 확인 끝. 체중 그래프 범위는 `GET /pets`의 `minBdwg`·`maxBdwg`, 목표선은 `GET /pets/{petSn}`의 `goalBdwg`(`usePetDetail`, 체중 탭일 때만 요청, 실패하면 목표선 없이)
+끝남: SCR-HLT-002 건강 일지 · 영수증 원본 이미지 연결 (2026-11-04). 검증 1회차 통과, 사람 확인 끝. 인식 결과 확인 모달 썸네일과 [영수증 원본] 모달이 `GET /api/receipts/{recptSn}/image`를 `useFileImage`(`healthKeys.receiptImage`, 두 곳이 같은 캐시)로 그린다. 받는 중엔 로딩 자리, 없거나 실패(404)면 `receipt_long` 아이콘
+
+## 결정
+
+- (2026-11-04, 사람) 화면설계서·기능명세서는 전체 수정을 마친 뒤 한 번에 갱신한다. 그때까지 아래 "결정 기다림" 중 명세·시안과 다른 점은 지금 화면대로 두고 명세 갱신 때 반영한다
+- (2026-11-04, 사람) 색 토큰(히어로 `#f9eaa6`·`#dbe8e8`, 바탕 `#faf8f5`)·`ConfirmModal`·플로팅 버튼 스타일·본문 줄 높이는 지금 그대로 둔다
 
 ## 다음에 할 것
 
 1. 다음 작업(백엔드, nyangmeong-backend에서 `/start`): SCR-HLT-002 건강 일지 · 영수증 save-check 저장완료 409 (추가-2 연결 남음)
    - `POST /receipts/{recptSn}/save-check`도 이미 저장된(저장완료) 영수증이면 `save`와 같이 409 `RECEIPT_ALREADY_SAVED`를 준다. 지금은 `save`만 409를 준다
    - 프론트는 이미 `save-check` 409를 `save`와 같은 안내로 처리하므로 프론트 작업은 없다
+   - 백엔드 `milestones/JAJ.md`에 `## SCR-HLT-002 건강 일지 · 영수증 save-check 저장완료 409 — 대기` 절을 넣었다(커밋 안 함, 백엔드 다음 `/end` 커밋에 들어감)
 
 - 참고(SCR-HLT-002 체중 그래프): 범위 태그는 `LineChart` 기존 문구 "상한/하한"이다. 시안 범례는 "정상범위 최소/최대"라 다르다(이번엔 안 바꿈)
 - 전달함(LJS, 2026-11-04): `features/health/CareItemMenu.jsx`는 마이페이지 가계부 `ExpenseMenu.jsx`의 여는 방식·모양을 복사했다(아이콘만 `size-4.5`). 둘 중 하나를 바꾸면 다른 쪽도 맞춘다

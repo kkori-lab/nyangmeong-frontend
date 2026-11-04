@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import ConfirmModal from '@/components/ConfirmModal';
 import Icon from '@/components/Icon';
+import FileImage from '@/components/FileImage';
 import Modal from '@/components/Modal';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
+import { useFileImage } from '@/hooks/useFileImage';
 import { getTodayYmd } from '@/utils/formatDate';
-import { usePrepareReceiptSave, useSaveReceiptCheckups } from '../queries';
+import {
+  healthKeys,
+  usePrepareReceiptSave,
+  useSaveReceiptCheckups,
+} from '../queries';
 import { CHECKUP_TYPES } from '../scheduleTypes';
 import FieldError from './FieldError';
 import FormModal from './FormModal';
@@ -44,9 +50,6 @@ const OPTIONAL = (
 
 const aiClass = (isAi) => (isAi ? 'border-dashed' : '');
 
-/** 영수증 원본 주소는 아직 분석 응답에 없어 아이콘으로 대체 */
-const imgUrl = null;
-
 /**
  * [영수증 인식 결과 확인] (FN-HLT-002-34~46)
  * - LJS의 영수증 업로드 모달(SCR-AIM-008)이 받은 AI 서버 분석 응답을 그대로 받아 확인·수정
@@ -85,6 +88,11 @@ export default function ReceiptResultStep({
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
   /** 다시 시도해도 같은 요청으로 처리되도록 모달마다 한 번만 만든다 */
   const [idmptDmndId] = useState(() => crypto.randomUUID());
+  const { src: imgSrc, isPending: isImgPending } = useFileImage({
+    queryKey: healthKeys.receiptImage(result.recptSn),
+    url: `/receipts/${result.recptSn}/image`,
+    enabled: result.recptSn != null,
+  });
   const prepare = usePrepareReceiptSave();
   const save = useSaveReceiptCheckups();
   const isPending = prepare.isPending || save.isPending;
@@ -239,11 +247,12 @@ export default function ReceiptResultStep({
             className="grid aspect-[3/4] w-16 shrink-0 cursor-zoom-in place-items-center overflow-hidden rounded-[8px] border border-line bg-surface-2 text-subtle"
             onClick={() => setIsOriginalOpen(true)}
           >
-            {imgUrl ? (
-              <img src={imgUrl} alt="" className="size-full object-cover" />
-            ) : (
-              <Icon name="receipt_long" className="text-3xl" />
-            )}
+            <FileImage
+              src={imgSrc}
+              pending={isImgPending}
+              className="size-full object-cover"
+              fallback={<Icon name="receipt_long" className="text-3xl" />}
+            />
           </button>
           <p className="text-sm text-muted">
             인식 결과를 확인하고 고칠 수 있어요
@@ -490,13 +499,17 @@ export default function ReceiptResultStep({
             </button>
           }
         >
-          {imgUrl ? (
-            <img src={imgUrl} alt="영수증 원본" className="w-full" />
-          ) : (
-            <div className="grid aspect-[3/4] place-items-center rounded-[8px] bg-surface-2 text-subtle">
-              <Icon name="receipt_long" className="text-6xl" />
-            </div>
-          )}
+          <FileImage
+            src={imgSrc}
+            pending={isImgPending}
+            alt="영수증 원본"
+            className="aspect-[3/4] w-full rounded-[8px] object-contain"
+            fallback={
+              <div className="grid aspect-[3/4] place-items-center rounded-[8px] bg-surface-2 text-subtle">
+                <Icon name="receipt_long" className="text-6xl" />
+              </div>
+            }
+          />
         </Modal>
       )}
 
