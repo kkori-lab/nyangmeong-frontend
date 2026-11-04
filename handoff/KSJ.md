@@ -2,16 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-CMU-001 커뮤니티 · 작성자 프로필 사진 (2026-11-04) — 상태: 끝 (검증 `확인 못 함 있음`(연결 남음만, 1회차 실패는 답글 연결선 어긋남), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-04)
+SCR-CSC-001 공지사항 · 본문 이미지 (2026-11-04) — 상태: 끝 (검증 2회차 `통과`, 1회차 실패는 검증 브라우저 로그인 없음, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-04 캡처와 펫이야기 상세)
 
-- 바꾼 것: 공용 `components/Avatar.jsx`(공개 파일 주소를 둥글게, null·404면 연한 청록 원 + `User` 아이콘, props `src`·`className`·`iconSize`)를 펫이야기 목록(24px)·상세(32px)·댓글(32px)·답글(24px), 실종 상세, 펫돌봄 카드·상세에 적용. 펫돌봄 가짜 응답(`careApi.js`)에 `mbrAtchFileSn`(내 글 25)
-- 같이 한 것(사람 요청 2026-11-03): `PostBody` 글을 사진·지도보다 먼저(24px 간격), 최소 높이 160px + 아래 여백 40px, 펫뉴스만 `mediaFirst`로 사진 먼저. 댓글 아바타 열 32px와 답글 연결선 위치 맞춤
-- 결정: 인기 포토 레일에는 아바타를 넣지 않는다. 기획의 `Avatar` `fallback` prop은 쓰는 곳이 없어 `iconSize`로 바꿨다
-- 확인 방법: 백엔드(8080) + `yarn dev`, localhost:5173 탭 콘솔에서 `fetch('/api/auth/dev-tokens',{method:'POST',headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},body:'{"mbrSn":1}'})`(헤더가 없으면 403). 시드 프로필 사진은 공개 주소에서 404라 지금은 모두 기본 아이콘으로 보인다
+- 바꾼 것: 공용 `components/PostBody.jsx`에 `fileImages` prop(기본 false). 켜면 문단 안에서 앞뒤 공백을 뺀 줄 전체가 `![설명](/api/files/public/숫자)`인 줄만 `FileImage`(가운데·`max-w-full`·`rounded-[10px]`, 404면 빈 자리)로 그린다. 외부 주소·다른 경로·줄 중간 `![]()`는 글자 그대로. `NoticeDetail`만 켠다
+- 확인 방법: 테스터 계정은 일반 회원이라 관리자 공지 수정 화면에 못 들어간다. 검증은 Playwright `page.route`로 공지 31 상세 응답 본문만 바꿔 했다(DB 변경 없음). 실제 저장 확인은 관리자 계정으로 공지 본문에 위 줄을 넣어 본다
 
 ## 다음에 할 것
 
-- 다음 작업(LJS 관리자 화면 공유 2026-11-04): 공지 본문 이미지. 관리자가 본문에 `![](/api/files/public/{번호})` 줄로 저장한다. `NoticeDetail`(`PostBody`)에서 그 형식의 줄만 이미지로 그린다(`/api/files/public/숫자`만 허용). SCR-CSC-001 FN-CSC-001-05 연결 남음이 이것으로 풀린다 → `/start CSC-001`
+- (낮은 우선순위) 공지 본문 맨 끝 줄이 못 불러오는 이미지면 그 앞 문단 아래 20px이 남는다(`PostBody` `last:mb-0`이 빈 fragment 때문에 안 걸림). 거슬리면 이미지 블록에 감싸는 요소를 둔다
 - 다음 작업(같은 공유): 펫뉴스 목록 썸네일. 관리자 기사는 `atchFileSn`(공개 주소), 수집 기사는 `thmbUrlPath`. 상세는 이미 둘 다 그림, `NewsList.jsx`는 `thmbUrlPath`만 씀(목록 응답 `NewsSummary`에 `atchFileSn` 있음) → `/start CMU-003`
 - 백엔드(같은 공유, 백엔드 저장소에서 /start): 파기 회원이 게시글·댓글에 `탈퇴회원#번호`(DB 닉네임 UK 때문)로 보인다. 커뮤니티 조회에서 파기 회원은 `mbrNcnm`을 「탈퇴한 회원」, `mbrAtchFileSn`을 null로 준다. 프론트는 고칠 것 없음
 - 백엔드(같은 공유): 펫돌봄 완료 사진이 `public/` 경로가 아니라 관리자 화면에서 404. 업로드 경로를 정할 때 관리자 열람 방법도 정한다. 채팅 실시간 제안(백엔드 `docs/api/community.md` 「실시간」) 검토
@@ -40,7 +38,6 @@ SCR-CMU-001 커뮤니티 · 작성자 프로필 사진 (2026-11-04) — 상태: 
 - CMU 화면은 `SubPageLayout`(`section="community"`)으로 만든다(사람 결정 2026-10-22): 상세는 `title` 없이 제목이 메뉴 이름이고 「목록으로」는 본문 하단, 글쓰기·수정은 `title="글쓰기"`와 `onLeave`로 「작성을 그만둘까요?」 확인, 본문 위 여백은 펫이야기 목록 `min-[1101px]:pt-0`, 펫돌봄·실종센터 목록 `min-[1101px]:pt-[7px]`
 - 고객센터(`CustomerCenterLayout`, KSJ)도 `SubPageLayout`(`section="support"`)으로 옮긴다(LJS 핸드오프). 옮기면 `SideMenu`의 `menuLabel` 호환과 `/dev/sub-page`를 지운다
 - SCR-CSC-003 사람이 고치는 문서: 기능명세서 FN-CSC-003-13의 「[문의 수정] 비활성」을 「버튼 숨김 + 안내 문구」로, 화면설계서 SCR-CSC-003-03 ③의 같은 문구
-- SCR-CSC-001 연결 남음: FN-CSC-001-05 본문 이미지 표시(ERD에 공지 첨부 테이블이 없음, 사람이 정할 것)
 - 375px 페이지 가로 스크롤은 공용 푸터가 원인(`UserFooter.jsx`, LJS). develop의 LJS 반응형 작업이 들어오면 다시 본다(FN 추가-4 연결 남음). 푸터 일러스트와 내용 사이 여백도 LJS가 푸터 공통 레이아웃에서 정하고, 그 전까지 고객센터 화면은 내용이 띠에 붙어 보인다
 - 사람이 고치는 문서: 기능명세서 FN-CSC-001-03 「공지 제목 검색」→ 제목·내용 검색, FN-CSC-001-01 「제목·작성일만 노출」→ 번호 포함, 화면설계서 SCR-CSC-001-01 ② 검색 문구. FN-CSC-001-05 「작성자·작성일·조회수」에서 조회수 삭제(상세에 조회수를 보이지 않기로 함, 2026-10-30)
 - 본문 영역은 `components/PostBody`(최소 200px은 사진과 글을 합친 영역 기준, 아래 여백 없음 2026-10-30)로 맞춘다. 펫이야기·공지·펫뉴스·실종센터·펫돌봄은 적용됨. 남음: 1:1 문의 상세(CSC-003, 사람이 적용 예정). 「‹ 목록으로」와 구분선은 `PostBody` 안에 없고 각 상세가 둔다
