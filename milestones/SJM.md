@@ -147,12 +147,12 @@
 - 완료 조건: `features/expense/api.js`의 가짜가 실제 요청을 부르고, 사용처 키를 `expndPlcusNm`으로 확정한다. 삭제된 반려동물은 `petDelYn`으로 "이름 (삭제됨)"이 보인다. `?fake=more-fail`을 지운다
 - 연결 남음: FN-MYP-030-18·19·21 조건 일괄 삭제에서 개별 해제한 건 제외 (백엔드 연결 `POST /expenses/bulk-delete`에 `excludeExpndSn`, 건수 검사 "전체 − 제외 수", 불일치 응답 409, 백엔드 저장소에서 /start)
 - 연결 남음: FN-MYP-031-02 미래 날짜 검증 (백엔드 연결 `POST /expenses`·`PATCH /expenses/{expndSn}`에서 `EXPND_YMD` > 오늘(KST)이면 400, 백엔드 저장소에서 /start)
-- 연결 남음: FN-MYP-031-03·05 영수증 인식 (YAY, OCR 호출부 LJS)
-- 연결 남음(LJS 답변, 픽셀 캐릭터 1단계 뒤 따로 기획): FN-MYP-031-03 영수증 OCR에서 `ckupYmd`가 null이면 지출 날짜를 오늘로 채우고 수정 가능하게 둔다(계약상 null이 맞음, LJS 확인)
-- 연결 남음(LJS 답변, 픽셀 캐릭터 1단계 뒤 따로 기획): 가계부 출처 영수증 다시 열기. `GET /api/receipts/{recptSn}`이 `petSn` 필수라 지금은 열 수 없다. LJS가 백엔드를 고칠 때까지 다시 열기 없이 진행한다
+- 연결 남음: FN-MYP-031-03·05 영수증 인식 → "SCR-MYP-031 영수증 인식을 실제 API로" 절에서 끝
+- 끝남(SCR-MYP-031 영수증 인식 절, 클릭한 날짜로 결정): FN-MYP-031-03 영수증 OCR에서 `ckupYmd`가 null이면 지출 날짜를 오늘로 채우고 수정 가능하게 둔다(계약상 null이 맞음, LJS 확인)
+- 하지 않음(명세에 다시 열기 진입점 없음): 가계부 출처 영수증 다시 열기. `GET /api/receipts/{recptSn}`이 `petSn` 필수라 지금은 열 수 없다. LJS가 백엔드를 고칠 때까지 다시 열기 없이 진행한다
 - 연결 남음: FN-MYP-030-08 한도 알림 발송 (알림 저장 YAY, 가계부 API SJM 백엔드)
 
-## SCR-MYP-040 회원정보 수정 · 조회·휴대폰 번호·프로필 사진 API 연결 — 대기
+## SCR-MYP-040 회원정보 수정 · 조회·휴대폰 번호·프로필 사진 API 연결 — 끝
 
 - 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MYP-040-02·03·05·08·09·11·13
 - 기다리는 것: 백엔드 `GET /api/members/me`, `PATCH /api/members/me`(SJM, 2026-10-30 완료)
@@ -182,6 +182,12 @@
 - 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MYP-030-18·19·21
 - 기다리는 것: 백엔드 `POST /api/expenses/bulk-delete`의 `excludeExpndSn`(SJM 백엔드, 2026-11-03 완료)
 - 완료 조건: 편집 모드에서 [조회 결과 전체 선택] 뒤 개별 해제한 번호를 `excludeExpndSn`으로 보내고, `expectedCnt`는 "조건에 맞는 건수 − 해제한 수"로 보낸다. 409 `EXPENSE_BULK_DELETE_CHANGED`면 목록을 다시 불러온 뒤 다시 선택하게 안내한다(잘못된 제외 번호도 같은 409)
+
+## SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. FN-MYP-031-03·04·05와 걸친다. SCR-MYP-030 실제 API 절의 "연결 남음: FN-MYP-031-03·05 영수증 인식"과 `ckupYmd` null 날짜 항목을 닫는다
+- 기다리는 것: AI 서버 `POST /ai/receipts`(가계부 출처 `AIMC0027`, LJS), 백엔드 `POST /internal/ai/receipts`(LJS, `docs/api/receipt.md`)
+- 완료 조건: `recognizeReceipt` 가짜를 지우고 실제 요청으로 인식한다. 인식 결과로 저장하면 `recptSn`이 붙는다. 인식 0건·일시 오류·시간 초과는 실패 안내와 [직접 입력](영수증 연결), 서버 파일 거절은 사유 문구
 
 ## 제외
 

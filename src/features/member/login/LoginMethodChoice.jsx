@@ -2,6 +2,7 @@ import { Mail } from 'lucide-react';
 import AuthCard from '../shared/AuthCard';
 import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
+import { LOGIN_MESSAGES as MSG } from './loginMessages';
 import SnsLoginButtons from './SnsLoginButtons';
 
 export default function LoginMethodChoice({
@@ -9,6 +10,8 @@ export default function LoginMethodChoice({
   onSelectEmail,
   onSignup,
   isJoined,
+  snsNotice,
+  isSnsPending,
 }) {
   return (
     <AuthCard onBack={onBack}>
@@ -19,7 +22,15 @@ export default function LoginMethodChoice({
           message="회원가입이 완료되었습니다. 가입한 방법으로 다시 로그인해 주세요."
         />
       )}
-      <SnsLoginButtons />
+      {isSnsPending && <AuthNotice type="info" message={MSG.snsPending} />}
+      {snsNotice && (
+        <AuthNotice
+          type={snsNotice.type}
+          message={snsNotice.message}
+          hasGuide
+        />
+      )}
+      <SnsLoginButtons disabled={isSnsPending} />
       <div className="my-6 flex items-center gap-4 text-subtle before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line">
         또는
       </div>

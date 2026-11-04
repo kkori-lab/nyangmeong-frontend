@@ -247,6 +247,16 @@
 - 결과: 2026-11-04 검증 1회차 통과, 사람 확인 끝
 - 연결 남음: 추가-2 (백엔드 연결 `POST /receipts/{recptSn}/save-check` 저장완료 영수증 409 `RECEIPT_ALREADY_SAVED`, 백엔드 저장소에서 /start)
 
+## SCR-HLT-003 케어 캘린더 · 일정 뱃지 색상 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-003-36 일정 메모 · 뱃지 색상에 걸침. 숨겨 둔 일정 등록·수정 모달의 뱃지 색상 선택을 켜고 칩 5개를 HLTG21 코드로 `cldrBadgeColrCd`에 보낸다. 색을 고르지 않은 일정은 종류·검진유형 기본 톤으로 표시한다(병원 일정은 정기검진 보라·예방접종 초록·질병진료 빨강·검사 파랑·기타 진료 회색, 그 밖의 종류는 회색). 코드와 `nyangmung.css` tone 토큰: HLTC0079 보라 → `--tone-violet-fg`/`--tone-violet-bg`, HLTC0080 초록 → `--tone-green-fg`/`--tone-green-bg`, HLTC0081 빨강 → `--tone-rose-fg`/`--tone-rose-bg`, HLTC0082 파랑 → `--tone-blue-fg`/`--tone-blue-bg`, HLTC0083 회색 → `--tone-gray-fg`/`--tone-gray-bg`. 캘린더 칩은 `hlt.css`의 `c-violet`·`c-green`·`c-rose`·`c-blue`·`c-gray`를 그대로 쓴다. `c-amber`는 쓰지 않는다
+- 기다리는 것: 백엔드 SCR-HLT-003 일정 뱃지 색상(JAJ 백엔드, HLTG21 코드 5개. 공용 DB에는 `db/` 변경 절 v0.12 (6) 실행됨, develop 병합 전)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `http://localhost:5173/health/calendar`에서 색을 골라 등록·수정한 일정이 그 색 칩으로 보이고, 색을 고르지 않은 일정은 종류·검진유형 기본 톤으로 보인다
+- 결정: HLTC0081 칩 이름은 시안 "분홍"이 아니라 "빨강"(팀 확정, 공용 DB `COM_CD_NM`). 칩 순서는 시안에서 주황만 뺀 파랑·초록·빨강·보라·회색, 고른 칩을 다시 누르면 해제(`''` 전송). 색은 `TONE_CLASSES`(`index.css` `--color-tone-*` 클래스)로 그리고 hex 표는 지움
+- 추가 요청: 추가-1 종합 건강기록 `summaryUtils.js`·`TimelineCard.jsx`도 tone 클래스로(빌드 실패로 함께) / 추가-2 선택 링을 `outline: medium solid currentColor`·`outline-offset: var(--spacing)`으로(앱에 `--space-1` 없음) / 추가-3 칩 간격 `gap-3`(12px)
+- 결과: 2026-11-04 검증 통과(이전 루프는 로그인 미완료·첫 실패 뒤 핸드오프 URL 정정으로 실패해 사람이 루프를 버림, 마지막 루프 1회차는 로그인 세션 만료), 사람 확인 끝
+- 연결 남음: 없음
+
 ## 제외
 
 - AI매니저 FN-AIM-008 참조 대상 반려동물 선택: 화면 SCR-AIM-008 영수증 업로드는 LJS(분배 표 "AIM-008 영수증 업로드")

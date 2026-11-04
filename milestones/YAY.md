@@ -29,10 +29,11 @@
 - 기다리는 것: 없음 (가입·이메일 인증·닉네임 API는 YAY 백엔드 SCR-ACC-001, 대기)
 - 완료 조건: 약관 → 이메일 인증 → 번호 중복확인 → 비밀번호 순서로만 다음이 열리고, 가입 뒤 닉네임 모달 → 가입 완료 → 로그인 방법 선택으로 간다
 
-## SCR-ACC-002 SNS 로그인 — 대기
+## SCR-ACC-002 SNS 로그인 — 끝
 - 기능: FN-ACC-002-09 네이버로 로그인하기, FN-ACC-002-10 카카오로 로그인하기, FN-ACC-002-11 구글로 로그인하기, FN-ACC-001-33 SNS 신규 가입 취소(화면은 SCR-ACC-001), FN-ACC-001-31 SNS 가입 계정 확인(화면은 SCR-ACC-001), FN-ACC-001-32 SNS 회원가입 완료(화면은 SCR-ACC-001)
 - 기다리는 것: SNS 로그인 흐름 결정(백엔드 `docs/api/issues.md` 로그인 2번), 제공자 앱 키(팀)
 - 완료 조건: 기존 연결 계정은 로그인되고, 처음 보는 SNS 계정은 SNS 가입 확인 화면으로 간다
+- 끝남: 2026-11-04, "SNS 로그인·가입 API 연결" 절에서 같은 기능 ID를 함께 만들고 검증·사람 확인을 마쳤다
 
 ## SCR-ACC-001 재가입 복구 — 끝
 - 기능: FN-ACC-001-40 복구 대상 이메일 확인, FN-ACC-001-41 복구 인증번호 발송·재전송, FN-ACC-001-42 복구 인증번호 입력, FN-ACC-001-43 복구 본인확인, FN-ACC-001-44 기존 정보 복구 안내, FN-ACC-001-45 기존 정보 복구 실행, FN-ACC-001-46 복구 취소, FN-ACC-001-47 기존 정보 복구 완료, FN-ACC-001-48 복구 후 로그인으로
@@ -44,11 +45,12 @@
 - 기다리는 것: 회원정보 수정 화면(SCR-MYP-040, SJM)의 탈퇴 진입 버튼
 - 완료 조건: "정말로 탈퇴하겠습니다."가 완전히 같을 때만 탈퇴하기가 켜지고, 완료 뒤 랜딩으로 간다
 
-## SCR-HOS-001 플레이스 — 대기
+## SCR-HOS-001 플레이스 — 끝
 - 기능: FN-HOS-001-33 로그인 필수 접근, FN-HOS-001-01 카테고리 탭, FN-HOS-001-03 지역·상호명·키워드 검색, FN-HOS-001-04 검색창 검색 버튼, FN-HOS-001-05 검색창 검색 결과 지도, FN-HOS-001-06 정렬 선택, FN-HOS-001-07 병원 결과 카드, FN-HOS-001-08 병원명, FN-HOS-001-09 즐겨찾기 저장·해제, FN-HOS-001-10 지도 핀, FN-HOS-001-11 지도 도구·이동, FN-HOS-001-29 즐겨찾기 고정 영역, FN-HOS-001-30 검색 결과 영역, FN-HOS-001-15 이동한 지도 영역, FN-HOS-001-16 이 지도 영역에서 다시 검색, FN-HOS-001-17 즐겨찾기, FN-HOS-001-31 이전 검색 결과, FN-HOS-001-18 재검색 지도 영역, FN-HOS-001-20 검색 결과 핀, FN-HOS-001-32 즐겨찾기(재검색 결과), FN-HOS-001-19 새 지도 범위의 검색 결과, FN-HOS-001-21 선택 병원 카드, FN-HOS-001-22 선택 병원명, FN-HOS-001-23 즐겨찾기 저장·해제(핀 선택), FN-HOS-001-24 선택 핀, FN-HOS-001-25 지도 요약 카드, FN-HOS-001-26 카카오맵 상세보기, FN-HOS-001-27 길찾기, FN-HOS-001-28 지도 도구·이동(핀 선택), FN-PLC-001-01 미용 탭·대상 데이터(화면은 SCR-PLC-001), FN-PLC-002-01 용품 탭·오프라인 매장 범위(화면은 SCR-PLC-002), FN-PLC-003-01 동반 탭·대상 데이터(화면은 SCR-PLC-003), FN-PLC-004-01 호텔 탭·정보 조회 범위(화면은 SCR-PLC-004)
 - 이미 만든 것: `features/place/`, `pages/place/PlacePage.jsx`(`/places`). 기능명세서 대조·`/end` 기록 없음
 - 기다리는 것: 장소 검색·즐겨찾기 API(YAY 백엔드 SCR-HOS-001, 대기), 카카오 지도 키(팀)
 - 완료 조건: 키워드로 검색하면 핀과 결과 카드가 같은 업체로 이어지고, 지도를 옮기면 "이 지도 영역에서 다시 검색"이 나온다. 즐겨찾기는 재검색해도 위에 남는다
+- 끝남: FN-HOS-001-33 승인 2026-11-04 16:10, 검증 통과, 사람 확인 2026-11-04. 나머지 기능 ID(FN-HOS-001-01~32, FN-PLC-001~004-01)는 "장소 검색·즐겨찾기 API 연결" 절에서 통과(사람 확인 2026-11-03). 명세 확인 필요(「전체」 탭, 즐겨찾기 실패 안내 기준)는 미정
 
 ## SCR-MAN-001 메인페이지 — 대기
 - 기능: FN-MAN-001 히어로 반려동물 캐릭터 노출, FN-MAN-002 AI매니저 검색바 진입 · 확장형 대화창 전환, FN-MAN-003 반려동물 프로필 요약 노출, FN-MAN-004 반려동물 선택 탭 전환, FN-MAN-005 건강 대시보드 기준일·업데이트 시각 표시, FN-MAN-006 건강 지표 위젯 노출, FN-MAN-007 건강 지표 위젯 순서 조정, FN-MAN-008 건강 지표 위젯 전체 보기 이동, FN-MAN-009 데일리 케어미션 미리보기 노출
@@ -96,14 +98,16 @@
 - 기다리는 것: 이 백엔드 작업(YAY SCR-HOS-001)의 PR 병합, 공유 `application.properties`의 `app.kakao-local.*`(키가 없으면 가짜 업체)
 - 완료 조건: 실제 서버로 병원 탭을 검색하면 카카오 업체가 카드·핀으로 나오고, 지도를 옮겨 재검색하면 새 범위 결과로 바뀐다. 별을 누르면 상단 즐겨찾기에 바로 들어오고 다시 누르면 빠진다
 - 끝남: 승인 2026-11-03, 검증 통과, 사람 확인 2026-11-03. 결과 카드·병원명·상세보기는 문서대로 카카오맵 상세 새 탭(지도 선택은 핀만)
-- 연결 남음: FN-HOS-001-33 (`routes/AppRoutes.jsx`의 `bare`+`member` 조립 별도 PR 뒤 `placeRoutes.js`를 `auth: 'member'`로, YAY)
+- 연결 끝: FN-HOS-001-33 (2026-11-04, SCR-HOS-001 플레이스 절)
 
-## SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 대기
+## SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 끝
 - 백엔드 끝: SNS 로그인 `POST /auth/sns-login`(`snsOffrCd` USRC0007 네이버·0008 카카오·0009 구글, `code`, `state`(네이버 필수) → `snsLoginRslt` `LOGIN`(쿠키 발급, `ncnmReguide`·`mbrNcnm`) / `SIGNUP_REQUIRED`(`snsOffrCd`·`acntEml`·`mblTelno`·`ageCnfrmd`·`signupTkn`) / `EMAIL_DUPLICATE`(`acntEml`) / `RECOVERY_AVAILABLE`(`acntEml`)), SNS 가입 `POST /members`(`joinPathCd`=제공자, `signupTkn`, `mblTelno`, `trmsAgres`, `pswd`·`emlCertSn`·`certNo` 보내면 400) (백엔드 SCR-ACC-002 SNS 로그인 절의 "프론트 연결")
 - 기능: 명세 기능 ID 추가 없음. FN-ACC-002-09·10·11, FN-ACC-001-31·32에 걸친다
 - 대상: 버튼을 누르면 프론트가 `state`를 만들어 sessionStorage에 두고 제공자 인가 창을 연다. 콜백에서 `state`를 비교한 뒤 `code`를 넘긴다. `LOGIN`은 `ncnmReguide`면 닉네임 모달, 아니면 요청 화면. `SIGNUP_REQUIRED`는 SNS 가입 확인 화면(이메일 읽기 전용, `mblTelno`가 있으면 읽기 전용·없으면 입력, `ageCnfrmd`면 만 14세 "확인 완료" 표시이고 요청에는 동의 true). `EMAIL_DUPLICATE`는 "이미 가입된 이메일입니다. 기존에 가입한 방법으로 로그인해 주세요.", `RECOVERY_AVAILABLE`은 `acntEml`로 기존 이메일 복구 흐름. 오류: 400 `SNS_AUTH_FAILED`·`SNS_EMAIL_NOT_PROVIDED`·`SNS_SIGNUP_TOKEN_INVALID`(로그인 방법 선택에서 다시), 403 `MEMBER_INACTIVE`, 409 `SNS_ACCOUNT_ALREADY_LINKED`. 가입 성공은 이메일 가입과 같이 `ncnm_setup` 쿠키만, 자동 로그인 없음
 - 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-002 SNS 로그인)의 PR 병합, 공유 `application.properties`의 `/api/auth/sns-login` 열린 경로와 `app.sns.*`(키가 없으면 가짜 제공자: `code`를 `fake-이름`으로 보낸다), 제공자 콘솔 redirect-uri를 프론트 콜백 주소로 등록
 - 완료 조건: 실제 서버로 처음 보는 SNS 계정 → 가입 확인 화면 → 가입 완료 → 같은 SNS로 다시 로그인하면 로그인되고, 같은 이메일의 다른 가입 방식이면 중복 안내가 나온다
+- 끝남: 승인 2026-11-04, 검증 통과(2회차), 사람 확인 2026-11-04. 콜백은 `/login`, 로컬은 fake 제공자로 확인
+- 연결 남음: FN-ACC-002-09·10·11 (실제 앱 키·제공자 콘솔 redirect-uri `/login` 등록, 팀)
 
 ## 제외
 - 없음. 외부인증창 참고 행 6개(네이버·카카오·구글 외부 로그인·동의 창)는 명세에 기능 ID가 없다

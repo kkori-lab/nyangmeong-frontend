@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  checkNickname,
   checkNicknameAvailability,
-  checkPhone,
   checkPhoneAvailability,
   getCaptcha,
   getLoginStatus,
@@ -13,6 +11,7 @@ import {
   getTermsList,
   invalidateRecoveryCode,
   joinMember,
+  joinSnsMember,
   login,
   logout,
   recoverMember,
@@ -21,7 +20,7 @@ import {
   sendRecoveryCode,
   sendSignupCode,
   setupNickname,
-  updateNickname,
+  snsLogin,
   updatePassword,
   updatePhone,
   updateProfileImage,
@@ -74,22 +73,6 @@ export const useUpdateProfileImage = () => {
   });
 };
 
-export const useCheckNickname = () =>
-  useMutation({ mutationFn: checkNickname });
-
-export const useUpdateNickname = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: updateNickname,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: memberKeys.profile });
-      qc.invalidateQueries({ queryKey: memberKeys.me });
-    },
-  });
-};
-
-export const useCheckPhone = () => useMutation({ mutationFn: checkPhone });
-
 export const useUpdatePhone = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -107,6 +90,19 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: login,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: memberKeys.me }),
+  });
+};
+
+/** 로그인 결과일 때 쿠키가 바뀌므로 내 정보(헤더) 재조회 */
+export const useSnsLogin = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: snsLogin,
+    onSuccess: ({ snsLoginRslt }) => {
+      if (snsLoginRslt === 'LOGIN') {
+        queryClient.invalidateQueries({ queryKey: memberKeys.me });
+      }
+    },
   });
 };
 
@@ -154,6 +150,9 @@ export const useVerifySignupCode = () =>
   useMutation({ mutationFn: verifySignupCode });
 
 export const useJoinMember = () => useMutation({ mutationFn: joinMember });
+
+export const useJoinSnsMember = () =>
+  useMutation({ mutationFn: joinSnsMember });
 
 export const useCheckNicknameAvailability = () =>
   useMutation({ mutationFn: checkNicknameAvailability });

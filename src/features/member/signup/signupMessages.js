@@ -17,6 +17,8 @@ export const SIGNUP_MESSAGES = {
   phoneAvailable: '사용 가능한 휴대전화번호입니다.',
   phoneNeedCheck: '휴대전화번호 중복확인을 해 주세요.',
   phoneHelp: '문자 인증 없이 중복 여부만 확인합니다.',
+  snsPhoneProvided: '받은 번호로 중복확인합니다.',
+  snsPhoneMissing: 'SNS에서 번호를 받지 못해 추가 입력이 필요합니다.',
   pwEmpty: '비밀번호를 입력해 주세요.',
   pwRule: '영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)',
   pwHelp: '영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)',

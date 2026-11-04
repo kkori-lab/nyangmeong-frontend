@@ -5,30 +5,11 @@ export const getMe = () => api.get('/auth/me', { skipAuthRedirect: true });
 
 export const logout = () => api.post('/auth/logout');
 
-/**
- * [회원정보 수정]
- * - 조회·본인 확인·비밀번호 변경은 실제 API
- * - 아래 닉네임·휴대폰·사진은 아직 가짜(해당 API 연결 마일스톤에서 교체):
- *   닉네임 초코맘2·관리자와 번호 01099998888은 중복, 번호 01000000000은 조회 실패
- */
+/** 가짜 응답 대기(비밀번호 재설정 가짜가 쓴다) */
 const FAKE_DELAY_MS = 200;
-const DUP_NICKNAMES = ['초코맘2', '관리자'];
-const DUP_PHONES = ['01099998888'];
-const FAIL_PHONE = '01000000000';
-
-const profile = {
-  mbrNcnm: '초코맘',
-  mbrTelno: '01012345678',
-  prflImgUrl: null,
-};
 
 const wait = (result) =>
   new Promise((resolve) => setTimeout(() => resolve(result), FAKE_DELAY_MS));
-
-const fail = (code) =>
-  wait().then(() => {
-    throw Object.assign(new Error(code), { code });
-  });
 
 /** 응답 { acntEml, mbrNcnm, mblTelno, atchFileSn, joinPathCd, snsAcntLinks, joinDt, lastLgnDt } */
 export const getMyProfile = () => api.get('/members/me');
@@ -37,29 +18,22 @@ export const getMyProfile = () => api.get('/members/me');
 export const verifyPassword = ({ pswd }) =>
   api.post('/members/me/password-verification', { pswd });
 
+/**
+ * 프로필 사진 변경: multipart. file이 있으면 profilePhoto, 없으면 기본 이미지(profilePhotoReset)
+ * 오류: FILE_TYPE_NOT_ALLOWED · FILE_TOO_LARGE
+ */
 export const updateProfileImage = ({ file }) => {
-  profile.prflImgUrl = file ? URL.createObjectURL(file) : null;
-  return wait({ prflImgUrl: profile.prflImgUrl });
+  const form = new FormData();
+  if (file) form.append('profilePhoto', file);
+  else form.append('profilePhotoReset', 'true');
+  return api.patch('/members/me', form);
 };
 
-export const checkNickname = ({ mbrNcnm }) =>
-  wait({ dplctYn: DUP_NICKNAMES.includes(mbrNcnm) });
-
-export const updateNickname = ({ mbrNcnm }) => {
-  if (DUP_NICKNAMES.includes(mbrNcnm)) return fail('DUPLICATE');
-  profile.mbrNcnm = mbrNcnm;
-  return wait();
-};
-
-export const checkPhone = ({ mbrTelno }) =>
-  mbrTelno === FAIL_PHONE
-    ? fail('FAILED')
-    : wait({ dplctYn: DUP_PHONES.includes(mbrTelno) });
-
-export const updatePhone = ({ mbrTelno }) => {
-  if (DUP_PHONES.includes(mbrTelno)) return fail('DUPLICATE');
-  profile.mbrTelno = mbrTelno;
-  return wait();
+/** 휴대폰 번호 변경: multipart. 오류: PHONE_ALREADY_USED · INVALID_PHONE_NUMBER */
+export const updatePhone = ({ mblTelno }) => {
+  const form = new FormData();
+  form.append('mblTelno', mblTelno);
+  return api.patch('/members/me', form);
 };
 
 /** 오류: CURRENT_PASSWORD_MISMATCH · PASSWORD_MISMATCH · INVALID_INPUT_VALUE(fields에 pswd) */
@@ -85,6 +59,20 @@ export const login = ({ acntEml, pswd, scrtyCd }) =>
   api.post(
     '/auth/login',
     { acntEml, pswd, scrtyCd },
+    { skipAuthRedirect: true },
+  );
+
+/**
+ * SNS 로그인. snsLoginRslt로 갈린다
+ * - LOGIN { ncnmReguide, mbrNcnm }: 로그인 쿠키가 심긴다
+ * - SIGNUP_REQUIRED { snsOffrCd, acntEml, mblTelno, ageCnfrmd, signupTkn }: SNS 가입 확인으로
+ * - EMAIL_DUPLICATE·RECOVERY_AVAILABLE { acntEml }
+ * - 오류: SNS_AUTH_FAILED · SNS_EMAIL_NOT_PROVIDED · MEMBER_INACTIVE(이 화면에서 안내하므로 이동 끔)
+ */
+export const snsLogin = ({ snsOffrCd, code, state }) =>
+  api.post(
+    '/auth/sns-login',
+    { snsOffrCd, code, state },
     { skipAuthRedirect: true },
   );
 
@@ -212,6 +200,23 @@ export const joinMember = ({
       trmsAgres,
       idmptDmndId,
     },
+    { skipAuthRedirect: true },
+  );
+
+/**
+ * SNS 가입. 가입경로는 제공자 코드, 비밀번호·이메일 인증 없이 signupTkn으로 가입한다
+ * 응답·쿠키는 이메일 가입과 같다. 오류: SNS_SIGNUP_TOKEN_INVALID(만료) · SNS_ACCOUNT_ALREADY_LINKED · PHONE_ALREADY_USED
+ */
+export const joinSnsMember = ({
+  snsOffrCd,
+  signupTkn,
+  mblTelno,
+  trmsAgres,
+  idmptDmndId,
+}) =>
+  api.post(
+    '/members',
+    { joinPathCd: snsOffrCd, signupTkn, mblTelno, trmsAgres, idmptDmndId },
     { skipAuthRedirect: true },
   );
 

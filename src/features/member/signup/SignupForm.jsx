@@ -39,49 +39,55 @@ const STEPS = {
   },
 };
 
+// 가입 완료 화면. 닉네임 모달이 열린 채로 들어오고, 이메일 가입과 SNS 가입이 같이 쓴다.
+// form: direction, nickname, isNicknameOpen, openNickname, closeNickname, saveNickname
+export function SignupComplete({ form, onGoLogin }) {
+  return (
+    <AuthCard>
+      <StepMotion stepKey="complete" direction={form.direction}>
+        <AuthHeading
+          title="회원가입이 완료되었습니다"
+          subtitle="가입한 계정으로 다시 로그인해 주세요."
+        />
+        <div className="rounded-box bg-surface-2 px-5 py-6 text-center">
+          <small className="block text-muted">현재 저장된 닉네임</small>
+          <strong className="mt-1 block text-2xl font-bold">
+            {form.nickname}
+          </strong>
+          <button
+            type="button"
+            onClick={form.openNickname}
+            className="mt-2 font-semibold text-brand-600 hover:underline hover:underline-offset-[3px]"
+          >
+            닉네임 설정
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={onGoLogin}
+          className={`${PRIMARY_BTN} mt-8`}
+        >
+          로그인 화면으로
+        </button>
+      </StepMotion>
+      {form.isNicknameOpen && (
+        <NicknameModal
+          savedNickname={form.nickname}
+          onSaved={form.saveNickname}
+          onClose={form.closeNickname}
+        />
+      )}
+    </AuthCard>
+  );
+}
+
 // 이메일 가입(약관 → 이메일 인증 → 휴대전화번호 → 비밀번호). 가입은 마지막 단계에서만 일어나고,
 // 성공하면 닉네임 설정 모달이 열린 가입 완료 화면으로 간다. 가입만으로 로그인하지 않는다
 export default function SignupForm({ onBackToLogin, onGoLogin, onRecover }) {
   const form = useSignup({ onBackToLogin, onRecover });
 
   if (form.step === 'complete') {
-    return (
-      <AuthCard>
-        <StepMotion stepKey="complete" direction={form.direction}>
-          <AuthHeading
-            title="회원가입이 완료되었습니다"
-            subtitle="가입한 계정으로 다시 로그인해 주세요."
-          />
-          <div className="rounded-box bg-surface-2 px-5 py-6 text-center">
-            <small className="block text-muted">현재 저장된 닉네임</small>
-            <strong className="mt-1 block text-2xl font-bold">
-              {form.nickname}
-            </strong>
-            <button
-              type="button"
-              onClick={form.openNickname}
-              className="mt-2 font-semibold text-brand-600 hover:underline hover:underline-offset-[3px]"
-            >
-              닉네임 설정
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={onGoLogin}
-            className={`${PRIMARY_BTN} mt-8`}
-          >
-            로그인 화면으로
-          </button>
-        </StepMotion>
-        {form.isNicknameOpen && (
-          <NicknameModal
-            savedNickname={form.nickname}
-            onSaved={form.saveNickname}
-            onClose={form.closeNickname}
-          />
-        )}
-      </AuthCard>
-    );
+    return <SignupComplete form={form} onGoLogin={onGoLogin} />;
   }
 
   const { no, title, subtitle, Body } = STEPS[form.step];

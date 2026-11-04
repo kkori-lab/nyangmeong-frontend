@@ -79,10 +79,9 @@ export default function ScheduleDayDetail({
                 >
                   <span
                     aria-hidden="true"
-                    className="w-1 shrink-0 self-stretch rounded-full"
-                    style={{
-                      backgroundColor: getScheduleTone(schedule).fg,
-                    }}
+                    className={`w-1 shrink-0 self-stretch rounded-full ${
+                      getScheduleTone(schedule).bar
+                    }`}
                   />
                   {schedule.hrInptYn && (
                     <span className="shrink-0 whitespace-nowrap text-[#667374]">
