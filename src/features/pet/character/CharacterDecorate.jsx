@@ -88,7 +88,9 @@ export default function CharacterDecorate({ pet }) {
     saveWear(
       {
         pixelCharSn: pet.pixelCharSn,
+        petSn: pet.petSn,
         hldItemSns: Object.values(worn).map((item) => item.hldItemSn),
+        itemSns: Object.values(worn).map((item) => item.itemSn),
       },
       {
         onSuccess: () => {

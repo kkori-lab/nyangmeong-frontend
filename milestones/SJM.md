@@ -245,3 +245,10 @@
 결정: 확인용 사진은 사람이 준 강아지 정면 사진(로컬 파일)으로 확인함
 결정: 아이템 미리보기는 맨몸만 확인하고 합성은 LJS(`CHARACTER_BAKE_ENABLED=false` 유지)
 - 연결 남음: 없음(3단계 안). 착용 합성 반영 뒤 [장착] 이미지 새로 불러오기는 2단계 절·핸드오프에 있음
+
+## SCR-MYP-010 픽셀 캐릭터 관리 · [장착] 뒤 착용 모습 대표 이미지 저장 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. FN-MYP-010-16(장착)·FN-MYP-010-13과 걸친다. 2단계 절의 "연결 남음: FN-MYP-010-16 [장착] 뒤 `character-image` 착용 합성 반영"을 닫는다
+- 기다리는 것: AI 서버 `POST /ai/characters/{pixelCharSn}/equipped-image`(LJS, `nyangmeong-ai` origin/develop 27b1496 PR #37 머지), 백엔드 `PUT /internal/ai/characters/{pixelCharSn}/equipped-image`·`character-image` 저장본 우선(LJS, 백엔드 origin/develop 97f6d5e PR #149 머지, 공용 DB v0.13 (1) 실행됨)
+- 완료 조건: [장착] 성공 뒤 같은 착용 아이템 번호(`itemSns`)로 AI 서버 대표 이미지 저장을 부르고, 끝나면(200·409 모두) 그 동물의 `character-image`(전신·얼굴) 캐시를 다시 읽고 실패 토스트는 없다. 아이템 0개면 AI를 부르지 않는다. 화면은 `equipped-image` 가로채기로 확인한다(`CHARACTER_BAKE_ENABLED=false`라 실제로는 409 `ITEM_BAKING`)
+- 연결 남음: FN-MYP-010-16 실제 착용 이미지 표시(꾸미기 밖 화면) 확인 (굽기 `CHARACTER_BAKE_ENABLED` 켜짐, LJS)

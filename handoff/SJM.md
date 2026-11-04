@@ -2,14 +2,15 @@
 
 ## 지금 하는 것
 
-SCR-MYP-010 픽셀 캐릭터 관리 · 3단계 캐릭터 생성을 실제 API로 — 끝 (2026-11-04, 검증 판정 `통과` 1회차, 사람 확인 완료). lint·build 종료 코드 0. 기획은 `milestones/SJM.md`의 같은 이름 절
-- 한 것: 캐릭터 생성을 `POST /ai/characters`(multipart `photo`·`petSn`, 202)로, 사진 검사(jpg·jpeg·png·webp, 10MB), 생성 중일 때만 4초 폴링(12분 상한, `CharacterPage`만), 완료·실패·요청 오류(400·403·409·502) 처리로 연결. 가짜 `createCharacter`·`fakePets`·`?fake=fail` 삭제. `colrCd`·`colrDrctInptNm`은 더 보내지 않는다
-- 결정: 확인용 사진은 사람이 준 강아지 정면 사진(로컬 파일)으로 확인함. 아이템 미리보기는 맨몸만 확인하고 합성은 LJS(`CHARACTER_BAKE_ENABLED=false` 유지)
-- 확인 범위: 사진 첨부는 사람이 직접 확인(gif·13MB 거절, jpg 통과). 실제 생성·완료·맨몸 미리보기는 검증 결과로 갈음(비용 절약)
-- 검증 계정 정리: 확인용 동물 `생성확인`(PET_SN 1002, PIXEL_CHAR_SN 602, CHAR_CRT_JOB_SN 781, BRUP_REL_SN 1172)을 화면에서 삭제함. 소프트 삭제라 `PET`·`PIXEL_CHAR`·`CHAR_PHOTO`·`CHAR_CRT_JOB`·`CHAR_ITEM_SHEET`는 `DEL_YN='Y'`, `BRUP_REL`·`ATCH_FILE`·`CHARACTER` 알림은 남음. 되돌릴 필요 없음
+SCR-MYP-010 픽셀 캐릭터 관리 · [장착] 뒤 착용 모습 대표 이미지 저장 — 끝 (2026-11-04, 검증 판정 `통과` 1회차, 사람 확인 완료). lint·build 종료 코드 0. 기획은 `milestones/SJM.md`의 같은 이름 절
+
+- 한 것: [장착]으로 착용 저장(`PUT equipped-items`)이 성공하면 착용 아이템이 있을 때만 `POST /ai/characters/{n}/equipped-image`(같은 `itemSns`)를 기다리지 않고 부르고, 끝나면 성공·실패와 상관없이 그 동물의 `character-image`(전신·얼굴)를 다시 읽는다. 아이템 0개면 AI를 부르지 않고 다시 읽기만 한다. 실패 토스트는 없다. `api.js`·`queries.js`·`CharacterDecorate.jsx`
+- 확인 범위: `equipped-image`를 가로채 200·409로 확인함(사람 결정: 새로 생성하지 않음, `CHARACTER_BAKE_ENABLED=false`). 탄이(pixelCharSn 2)는 몸 시트가 없어 실제 응답은 404 `PIXEL_CHARACTER_NOT_FOUND`였고 실패 처리는 같다. 실제 착용 이미지 표시는 확인하지 못했다
+- 검증 계정 정리: 탄이의 착용을 바꿔 확인했고 원래 상태(`hldItemSn` 5 착용, 4 해제)로 되돌려 조회로 확인함. 복구 SQL 없음
 
 ## 다음에 할 것
-- SCR-MYP-010 2단계 연결 남음: 맨몸 미리보기는 3단계 생성 뒤 새 캐릭터로 확인함(공용 DB 캐릭터 1·2는 몸 시트가 없어 `character-image` 404). `character-image`에 착용 합성이 반영되면(LJS) [장착] 성공 뒤 그 이미지를 새로 불러오는 코드를 더한다. 아이템을 입힌 합성 미리보기는 LJS(`CHARACTER_BAKE_ENABLED`)
+- SCR-MYP-010 [장착] 대표 이미지 연결 남음(LJS): 실제 착용 이미지 표시 확인. `CHARACTER_BAKE_ENABLED`가 켜지고 아이템이 구워진 뒤 LJS와 함께 `/mypage/characters`·홈 얼굴이 착용 모습인지 확인한다(그때까지 `equipped-image`는 409 `ITEM_BAKING`)
+- SCR-MYP-010 2단계: 아이템을 입힌 합성 미리보기 굽기는 LJS(`CHARACTER_BAKE_ENABLED`). 안 구운 아이템은 미리보기·대표 이미지 모두 409 `ITEM_BAKING`
 - SCR-MYP-010 3단계 팀에 확인: 확인용 동물 털색을 "흰색"으로 등록했는데 생성 캐릭터는 검은 강아지였다(사진을 따른 것으로 보임). 서버가 털색을 결과에 반영하는지 LJS에 확인한다. 안내 문구(사진 형식·용량, 중복 생성·주양육자만·실패 토스트)는 설계서에 없어 새로 썼다
 - SCR-MYP-010 2단계 팀 알림/확인: 공용 `utils/petCodes.js`의 `ITEM_PART`가 `MYPC0001~0005`로 바뀌었다(LJS 알림). 서버 상점이 `MYPC0006` 신발 4개도 주는데 프론트 부위는 5개라 [전체] 탭에만 나오고 담으면 부위 이름이 빈칸이다(사람 화면에는 신발이 없다고 함, 서버 DB가 다른지 확인). 상점 보유 포인트(`PointFake` 8,450 고정, 홈 2,049·상점 2,089 화면 값과 불일치)는 `PointService.use` 연결(LJS, 백엔드 마일스톤에 있음) 뒤 맞춘다. 꾸미기 [오류 문의] 판정 `pet.inqryRcptYn === 'Y'`는 서버 상세의 `inqryRcptYn`(boolean)으로 바꿀지 3단계에서 정한다
 - 문서 할 일(코드 아님, 기능명세서 담당): FN-MYP-010-13 "아이템은 부위별 이미지를 고정 좌표로 겹쳐 표시…" 문장을 서버 합성 방식(`POST /ai/characters/{pixelCharSn}/preview`가 만든 PNG를 보여 줌)으로, FN-MYP-010-17(규격 고정)·018(규격 일관성 검증)·019(규격 미확보 시 대체)를 서버 합성 방식에 맞게 고치거나 삭제 여부를 정한다. 상점 미리보기 설계서 확인 결과가 다르면 FN-MYP-011-01도 함께
