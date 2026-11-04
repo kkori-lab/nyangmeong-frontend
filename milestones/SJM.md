@@ -158,6 +158,25 @@
 - 기다리는 것: 백엔드 `GET /api/members/me`, `PATCH /api/members/me`(SJM, 2026-10-30 완료)
 - 완료 조건: 6-2·6-3 프로필 요약(사진·닉네임·이메일 또는 SNS 표시)과 계정 정보(가입 방식·가입일 `joinDt`·최근 로그인 `lastLgnDt`)를 조회로 채운다. [사진 변경]은 multipart `profilePhoto`, [기본 이미지로]는 `profilePhotoReset=true`로 보낸다. 휴대폰 [저장]은 `mblTelno`로 보내고 409 PHONE_ALREADY_USED면 "이미 사용 중인 휴대전화번호입니다."를 보여 준다
 
+## SCR-MYP-040 회원정보 수정 · 회원 조회와 본인 확인·비밀번호 변경 API 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MYP-040-01·06 (화면 6-1 본인 확인, 6-2 비밀번호 [변경]), 조회는 FN-MYP-040-09·13의 `joinPathCd`·`snsAcntLinks` 판정에만 쓴다
+- 기다리는 것: 백엔드 `GET /api/members/me`(SJM), `POST /api/members/me/password-verification`, `PATCH /api/members/me/password`(YAY, 2026-11-03 develop 머지 `0f0bdfd`)
+- 범위: `GET /members/me` 조회 연결만 이 마일스톤에서 한다. 닉네임·휴대폰·사진 변경은 위 "조회·휴대폰 번호·프로필 사진 API 연결" 마일스톤에 그대로 둔다
+- 완료 조건:
+  - `getMyProfile`을 `GET /members/me`로 바꾸고 응답 키(`acntEml`·`mbrNcnm`·`mblTelno`·`atchFileSn`·`joinPathCd`·`snsAcntLinks`·`joinDt`·`lastLgnDt`)를 그대로 쓴다. 가짜 키(`snsTyCd`·`mbrJoinPathCd`·`mbrRegDt`·`mbrLastLgnDt`·`mbrTelno`·`prflImgUrl`)에 기대는 곳은 새 키로 고친다. 가짜 `api.js` 본문 중 닉네임·휴대폰·사진은 건드리지 않는다
+  - SNS 회원은 `joinPathCd`가 `USRC0006`(이메일)이 아닐 때다(`USRC0007` 네이버·`USRC0008` 카카오·`USRC0009` 구글). `snsAcntLinks`로는 판정하지 않는다. SNS 회원은 6-1을 건너뛰고 `password-verification`을 부르지 않는다
+  - 6-1 [확인]은 `{pswd}`. 200이면 6-2로 바꾼다. 400 `CURRENT_PASSWORD_MISMATCH`면 입력란 아래에 "비밀번호가 일치하지 않아요". 400 `SNS_ONLY_MEMBER`면 6-3으로 바꾼다. 입력값은 상태에 남기지 않는다
+  - 6-2 [저장]은 6-1 입력값을 쓰지 않고 현재 비밀번호 칸을 다시 입력받아 `{currentPswd, pswd, pswdCnfrm}`로 보낸다. 400 `CURRENT_PASSWORD_MISMATCH`는 현재 비밀번호 칸에 "현재 비밀번호가 일치하지 않아요", `PASSWORD_MISMATCH`는 확인 칸에 "비밀번호가 일치하지 않아요", `INVALID_INPUT_VALUE`의 `pswd`는 새 비밀번호 칸에 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)". 네트워크·서버 오류는 토스트 "잠시 후 다시 시도해 주세요". 200이면 토스트 "비밀번호를 변경했어요"를 띄우고 행을 닫는다
+  - 새 비밀번호 클라이언트 검사를 서버 규칙(`^(?=.*[A-Za-z])(?=.*\d)[\x21-\x7E]{8,64}$`)에 맞춘다. 한글이 들어가면 [저장]을 켜지 않는다
+  - 새 비밀번호 칸 안내 문구를 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)"로 바꾼다(사람 결정 2026-11-04, 설계서는 SJM이 직접 고친다)
+  - 요청에 로그인 쿠키가 붙는지 확인한다(`withCredentials` 필요 여부는 Vite 프록시 기준으로 확인하고 필요할 때만 추가한다)
+  - 화면 검증 계정: 비밀번호 변경은 이메일 가입·정상·`PSWD_HASH` 있는 회원(1차 후보 user0100, tester는 쓰지 않음)으로 로그인 화면에서 로그인한다. SNS 건너뛰기는 SNS 가입(USRC0007~0009)·정상 회원을 dev-token으로. 원래 비밀번호 `ggorilab`은 숫자가 없어 화면으로 되돌릴 수 없으므로 복구는 해시 백업 UPDATE로만 한다
+  - 화면 검증(Playwright, 비밀번호가 있는 검증 계정): 변경 200 직후 `GET /auth/me`가 200이고, 새로고침해도 `/mypage/profile`에서 로그인이 유지된다. 변경 전에 따로 연 두 번째 브라우저 컨텍스트는 access 만료 뒤 `/auth/refresh`가 401이다. 옛 비밀번호 로그인은 실패하고 새 비밀번호 로그인은 성공한다
+  - 검증 뒤 원래 해시로 되돌리는 SQL을 보고의 "정리"에 적는다(DB 실행은 사람이 한다)
+- 화면설계서 대조(v0.6_20261025, SCR-MYP-040): 문구·동작이 기능명세서 v0.5와 다른 곳은 없다. 설계서에 6-1 불일치 문구가 없어 위 문구는 새로 정한 것이다. 설계서 새 비밀번호 칸 안내 "8자 이상, 문자·숫자 조합"은 서버가 영문을 요구하는 것과 달라, 칸 안내를 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)"로 맞추기로 했다(SJM 결정 2026-11-04, 설계서 수정은 SJM이 직접)
+- 연결 남음: 닉네임·휴대폰·프로필 사진 API 연결 (위 "조회·휴대폰 번호·프로필 사진 API 연결" 마일스톤, SJM)
+
 ## SCR-MYP-030 가계부 목록 · 전체 선택 뒤 해제한 건을 제외하고 삭제 — 끝
 
 - 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MYP-030-18·19·21

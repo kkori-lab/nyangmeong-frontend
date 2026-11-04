@@ -2,6 +2,9 @@ import { lazy } from 'react';
 import { PATHS } from '@/routes/paths';
 
 const AdminAdminsPage = lazy(() => import('@/pages/admin/AdminAdminsPage'));
+const AdminAiKeywordsPage = lazy(
+  () => import('@/pages/admin/AdminAiKeywordsPage'),
+);
 const AdminAiRoutesPage = lazy(() => import('@/pages/admin/AdminAiRoutesPage'));
 const AdminAuditLogsPage = lazy(
   () => import('@/pages/admin/AdminAuditLogsPage'),
@@ -98,6 +101,7 @@ export default [
       { path: PATHS.ADMIN_CARE_MISSIONS, Component: AdminCareMissionsPage },
       { path: PATHS.ADMIN_POINTS, Component: AdminPointsPage },
       { path: PATHS.ADMIN_AI_ROUTES, Component: AdminAiRoutesPage },
+      { path: PATHS.ADMIN_AI_KEYWORDS, Component: AdminAiKeywordsPage },
       {
         path: PATHS.ADMIN_NOTIFICATION_TEMPLATES,
         Component: AdminNotificationTemplatesPage,

@@ -2,32 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-MYP-010 픽셀 캐릭터 관리 · 1단계 목록·상태·이미지·진입을 실제 API로 — 끝 (2026-11-03, 검증 판정 통과 1회차, 추가-1·2 사람 승인, 사람 확인 완료). lint·build 종료 코드 0. 기획은 이 대화에서 보여 주고 사람이 승인(`/start` 없이 `/impl`로 시작)
-기준: 마이페이지_기능명세서_v0.5_20261101 FN-MYP-010-02·03·12·23, 백엔드 `GET /pixel-characters`(`PixelCharacterSummary`)·`GET /pets/{petSn}/character-image`
-디자인: html/myp-character.html (시안 폴더 `D:\warkspace\포트폴리오
-mcare-design-v4\myp-character*.html`, 화면설계서 기준)
-결정: (1) 오류 확인 중(`bscCharSbstYn`)은 흑백 + 종별 기본 캐릭터 + "오류 확인 중" 배지, 착용 아이템 숨김, 꾸미기 진입 차단. 시안 `myp.css:165`가 "오류 확인 중 = 종별 기본 캐릭터 흑백"이라 기본 캐릭터가 맞다(서버 `character-image`도 오류 확인 중이면 기본 캐릭터를 준다). (2) `usePixelCharacters`는 `features/pet`에 새로 만들고 queryKey는 health의 `healthKeys.pixelCharacters`(`['health','pixel-characters']`)와 같은 값을 써서 캐시를 하나로 둔다(queryKey 객체만 import하는 예외). (3) 생성 실패(`CHRC0004`)는 "캐릭터 없음"으로 본다(백엔드 `POST /internal/ai/characters/jobs`가 "실패로 끝나 결과가 없으면 다시 요청할 수 있다"). 명세 FN-MYP-010-12는 "생성 실패 시 종별 기본 캐릭터 표시"만 쓰고 [캐릭터 만들기] 재노출·실패 안내는 말하지 않는다 → LJS 확인 필요
-| 파일 | 도메인 | 하는 일 |
-| --- | --- | --- |
-| features/pet/api.js | 마이페이지 | `getPixelCharacters` 추가 (`GET /pixel-characters`) |
-| features/pet/queries.js | 마이페이지 | `usePixelCharacters`(키 `healthKeys.pixelCharacters`), 동물별 상태 선택 훅 |
-| features/pet/shared/charState.js | 마이페이지(새 파일) | `pixelCharSn`·`crtJobSttsCd`·`bscCharSbstYn` → none·generating·done·error 판정 |
-| pages/mypage/CharacterPage.jsx | 마이페이지 | 목록과 `/pets`를 `petSn`으로 합침, 꾸미기 진입 `?pixelCharSn=`, 완료(오류 아님)만 진입 |
-| features/pet/character/CharacterCard.jsx | 마이페이지 | 상태 판정·이미지(`character-image`)·오류 확인 중 흑백 기본 캐릭터 + 배지, 진입 차단 |
-| features/pet/character/WearPreview.jsx · CharacterDecorate.jsx · CharacterCreateModal.jsx | 마이페이지 | `chrcSttsCd`·`chrcImgUrl` 읽기 제거(이미지는 `character-image`) |
-| features/pet/home/PetMiniCard.jsx · list/PetSlide.jsx · PetProfileCard.jsx · invite/InvitationAccept.jsx | 마이페이지 | `PetFace`에 `isError`만 넘김, 완료 판정은 새 훅 |
-| components/PetFace.jsx | 공용(LJS) | 입력을 `chrcSttsCd`에서 `isError`로 바꿈 |
-| utils/petCodes.js | 공용(LJS) | `CRT_JOB_STTS`(CHRC0001~0004) 추가 |
-| features/health/summary/SummaryHero.jsx | 건강기록(JAJ) | `PetFace`에 `isError={pet.bscCharSbstYn}` 한 줄 |
-명령: yarn -s lint, yarn -s build
-화면: 완료 카드 클릭 → 꾸미기, 오류 확인 중 카드는 흑백 기본 캐릭터 + 배지이고 눌러도 안 들어감, 생성 중 카드는 "만드는 중", 캐릭터 없는 카드는 [캐릭터 만들기]. 홈·반려동물 관리 얼굴이 같은 판정. 꾸미기 상세·아이템은 이 단계에서 가짜 그대로
-이번엔 안 함: 꾸미기 상세·상점·구매·착용 저장(2단계), 생성 POST(3단계)
-새 의존성: 없음
-알아 둘 것: 로컬에서 `character-image`가 404(`FILE_NOT_FOUND`)로 오는 것은 로컬 백엔드가 `uploads`를 보고 실제 파일은 공용 서버 `/home/ggorilab/attachment`에 있어서 생긴다(LJS 확인). 로컬 확인에서는 종별 아이콘 대체가 정상이다. 재생성만 실패한 동물의 [캐릭터 만들기] 노출은 `GET /pixel-characters`에 결과 유무 필드가 오기 전까지 판정하지 못한다(임시 처리는 넣지 않음, 지금은 생성이 가짜라 영향 없음. 3단계 선행 조건으로 milestones/SJM.md에 적음)
+SCR-MYP-040 회원정보 수정 · 회원 조회와 본인 확인·비밀번호 변경 API 연결 — 끝 (2026-11-04, 검증 판정 통과 3회차, 사람 확인 완료). lint·build 종료 코드 0. 기획은 `milestones/SJM.md`의 같은 이름 절
+- 한 것: `GET /members/me`·`POST /members/me/password-verification`·`PATCH /members/me/password` 연결, SNS 판정을 `joinPathCd`(USRC0006 아님)로, 새 비밀번호 검사를 서버 규칙(영문+숫자 ASCII 8~64자)으로, 안내 문구 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)"
+- 검증 3회 중 1·2회차 실패: 번호 없는 회원(`mblTelno` null)에서 흰 화면, 검증 계정 비밀번호 상태 불일치(코드 문제 아님). 둘 다 해소
+- 검증 계정 비밀번호는 사람이 복구 UPDATE로 되돌렸다(2026-11-04)
 
 ### 추가 요청
-| 추가-1 (사람 승인 2026-11-03) | features/pet/character/CharacterCard.jsx | 화면: 대표 + 오류 확인 중 카드에서 두 배지가 겹치지 않음(page.route로 확인) | 요청 2026-11-03 "대표는 오류 확인 중에도 유지되는 정책이라 1단계에서 두 배지가 겹치지 않게 고치고, page.route로 확인" |
-| 추가-2 (사람 승인 2026-11-03) | src/pages/main/MainPage.jsx | 화면: 메인 반려동물 칩이 `PetFace`로 얼굴을 그리고 루루·나비만 흑백 | 요청 2026-11-03 "메인 페이지에서도 PetFace를 쓴다. 안 바뀐 곳이 있으면 고치고 메인도 화면에서 확인" |
+| 추가-1 (사람 요청 2026-11-04) | src/features/member/profile/PhoneField.jsx | 화면: 번호가 없는 회원(MBR_SN 9)은 번호 칸에 "미등록" | 요청 2026-11-04 "휴대폰 번호가 없을 때는 빈 칸 대신 '미등록'으로 보여 주세요" |
 
 ## 다음에 할 것
 - SCR-MYP-010 1단계 뒤 남음: (a) 3단계 선행: `GET /pixel-characters`에 결과 유무 필드 추가(`rsltYn` 등, LJS 요청)와 FN-MYP-010-12 [캐릭터 만들기] 재노출·실패 안내 문구 확인(LJS) (b) 공용 파일 변경 알림: `components/PetFace.jsx`의 입력이 `chrcSttsCd`에서 `isError`로, `utils/petCodes.js`에 `CRT_JOB_STTS` 추가(LJS), `SummaryHero.jsx`(JAJ), `MainPage.jsx` `PetChip`을 `PetFace`로(YAY). 메인 대표 판별 `rprsYn === 'Y'`는 `rprsPetYn`으로(YAY) (c) 가계부 두 건은 1단계 뒤 따로 기획: 영수증 OCR `ckupYmd` null이면 지출 날짜 기본값(모달 날짜 vs 오늘은 기획 때 정함), 가계부 출처 영수증 다시 열기는 `GET /receipts/{recptSn}`이 `petSn` 필수라 LJS가 고칠 때까지 없이 진행 (d) 다음은 2단계(꾸미기·상점을 실제 API로)
@@ -44,7 +25,7 @@ mcare-design-v4\myp-character*.html`, 화면설계서 기준)
 - SCR-MYP-010 연결 남음: 2단계(꾸미기·상점)·3단계(생성)에서 `features/pet/api.js`의 가짜(`createCharacter`·`getCharacterItems`·`updateCharacterWear`, `fakePets`의 `chrcSttsCd`·`chrcImgUrl`·`inqryRcptYn`, 추정 키 `itemSn`·`itemNm`·`itemPartCd`·`itemImgUrl`·`wearYn`, 부위·상태 코드 `ITEM_PART`·`CHRC_STTS`는 `petCodes.js`)를 실제 요청으로 바꾼다. 대표 지정 API(SJM 백엔드)가 나오면 `setRepresentativePet`도 바꾼다. 개발 전용 `?fake=empty|owner|fail`은 그때 지운다 SCR-MYP-010 연결 남음: 오류 문의(KSJ, SCR-CSC-003)는 `/inquiries/new`로 router state `{ inquiryType: 'PIXEL_CHARACTER', petSn, imageUrl }`를 넘긴다. 문의 작성 화면이 이 state를 받아 유형·이미지를 미리 채우는지, 유형 값을 무엇으로 할지 KSJ와 맞춘다. 생성 완료·오류 처리 인앱 알림(알림 저장 LJS)과 아이템 상점 모달(SCR-MYP-011)도 남았다 SCR-MYP-010 팀에 확인: 시안에 캐릭터·아이템 이미지가 없어 lucide 아이콘 자리표시자다(이미지가 나오면 `chrcImgUrl`·`itemImgUrl`로 겹침이 그려진다). 가짜 데이터에서 까미·모모를 공동양육으로 바꿨다(`/mypage/pets`에도 반영). 오류 확인 중 카드의 [대표 지정]은 오류 확인 중이면 기본 캐릭터로 바뀌므로 그대로 둠(사람 결정 2026-10-25). 꾸미기의 뒤로 가기 링크는 공용 "목록으로"다
 - SCR-MYP-005 연결 남음: 초대 API(SJM 백엔드)가 나오면 `features/pet/api.js`의 가짜(`createInvitation`·`getSentInvitations`·`getInvitation`·`acceptInvitation`·`rejectInvitation`, 추정 키 `invtSn`·`invitationToken`·`invtEml`·`invtSttsCd`·`invtDt`·`expryDt`·`mbrYn`·`invtrNcnm`·`pets`, 상태 `INVT_STTS`)를 실제 요청으로 바꾸고 만료 판정(`withExpiry`)을 서버 상태로 바꾼다. 인앱 알림·메일 발송(알림 저장 YAY), 알림 드롭다운 진입(SCR-COM-004), 가입 직후 자동 노출(SCR-ACC-001, YAY·AIC)과 맞춘다 10-24 시안 v0.2·v0.3 반영으로 가짜가 바뀌었다: 보낸 초대의 상태는 동물별(`pets[].invtSttsCd`), 수락은 `{ invitationToken, petSns }`로 고른 동물만 연동하고 나머지는 거절, 이메일 불일치는 받은 초대의 추정 키 `emlMtchYn: 'N'`·`invtEmlMskd`(마스킹은 서버가 하는지 맞춘다). 불일치 안내의 [초대받은 계정으로 로그인]은 로그아웃(`useLogout`, 가짜) 뒤 `/login?redirect=<초대 주소>`로 보내므로 로그인(AIC)이 `redirect`를 받는지 맞춘다. 가짜 토큰 `demo-mismatch`는 서버 연결 때 지운다 SCR-MYP-005: 경로 변수 이름 `invitationToken`은 백엔드와 확정 필요(`docs/routes.md` 4장 10번). 새 URL은 PR #57로 develop에 들어갔다 SCR-MYP-005 팀에 확인: 수락·거절·만료 초대 안내 문구와 "초대를 찾을 수 없어요"는 화면설계서에 없어 새로 썼다. 거절 팝업은 공용 `components/Modal`(isConfirm)을 썼다
 - SCR-MYP-004 연결 남음: 로그인(AIC)이 나오면 `/mypage/pets`는 `ProtectedRoute` 아래로(기존 항목). 팀에 확인: 슬라이드 정보 영역과 가족 구분선 사이는 시안(56px)보다 좁힌 32px(사람 요청). 모바일 밀어 넘기기는 시안 문구대로 넣었다. 기능명세서 16:00판은 DMS에 아직 14시판만 있다 로그인(AIC)이 나오면 `/mypage/expenses`·`/mypage/expenses/all`도 `ProtectedRoute` 아래로 옮긴다
-- SCR-MYP-040 연결 남음: 회원 조회·수정·검증 API(member, AIC)가 나오면 `features/member/api.js`의 가짜(`getMyProfile`·`verifyPassword`·`checkNickname`·`checkPhone`·`update*`, 추정 키 `acntEml`·`mbrNcnm`·`mbrTelno`·`prflImgUrl`·`snsTyCd`·`dplctYn`·`mbrJoinPathCd`·`mbrRegDt`·`mbrLastLgnDt`)를 실제 요청으로 바꾼다. 사진은 업로드 방식(multipart 여부)을 맞춘다 회원 탈퇴 화면(SCR-ACC-020, YAY) 경로가 생기면 [회원 탈퇴 ›] 토스트를 `/mypage/withdraw` 이동으로 바꾼다. 로그인(AIC)이 나오면 `/mypage/profile`을 `ProtectedRoute` 아래로 옮긴다
+- SCR-MYP-040 연결 남음: 닉네임 확인·변경, 휴대폰 확인·변경, 프로필 사진 변경 API(`features/member/api.js`의 가짜 `checkNickname`·`updateNickname`·`checkPhone`·`updatePhone`·`updateProfileImage`)를 실제 요청으로 바꾼다(`milestones/SJM.md`의 "조회·휴대폰 번호·프로필 사진 API 연결" 마일스톤). 사진은 multipart `profilePhoto`, 기본 이미지는 `profilePhotoReset=true`. 지금은 조회가 실제라 가짜로 저장해도 화면에 반영되지 않는다. 팀에 알림: `isValidPassword`(회원가입·비밀번호 재설정도 사용)가 서버 규칙으로 엄격해졌고 그쪽 안내 문구는 그대로다. 설계서(SJM): 새 비밀번호 칸 안내와 휴대폰 "미등록" 표기 반영. 회원 탈퇴 화면(SCR-ACC-020, YAY) 경로가 생기면 [회원 탈퇴 ›] 토스트를 이동으로 바꾼다. 로그인(AIC)이 나오면 `/mypage/profile`을 `ProtectedRoute` 아래로 옮긴다
 - SCR-MYP-020 남음: 미션 출제·정산·검진기록 20P(FN-MYP-020-05·06·08)는 서버 일이다 (health JAJ, 커뮤니티 KSJ). 건강 일지(SCR-HLT-002, JAJ) 경로가 생기면 [건강 일지] 토스트를 이동으로 바꾼다. 팀에 확인: 지난 날짜에도 "오늘 획득"으로 나오는 문구(시안 문구 그대로), 요약 카드를 눌러 스크롤하면 sticky 헤더에 제목이 가려지므로 `scroll-mt`를 넣을지, 설계서에 없는 안내 문구("이 날은 출제된 미션이 없어요"·"오늘 출제된 미션이 없어요"·"미션을 불러오지 못했어요")를 설계서에 반영할지. 서버가 동물마다 미션을 3개만 출제해(기획의 8개와 다름) 탭이 `완료/3`으로 보인다. 이번 달 사용이 0이면 "+0P"로 보인다. 시안 v5(`nmcare-design-v5`)에서 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`로 바뀌었는데 `UserLayout.jsx`·`UserFooter.jsx`(LJS)는 옛 값 그대로
 - SCR-MYP-031 연결 남음: 영수증 인식(YAY, OCR 호출부 LJS)이 나오면 `features/expense/api.js`의 가짜 `recognizeReceipt`를 실제 요청으로 바꾼다(결과 키는 `recptSn`·`expndPlcusNm`으로 맞춰 둠). 그 전까지 인식 결과로 저장(또는 인식 실패 뒤 [직접 입력])은 가짜 `recptSn`을 서버가 거부해 실패한다. SCR-MYP-030 연결 남음: FN-MYP-030-08 한도 알림 발송(서버 인앱 알림, 알림 저장 YAY·가계부 API SJM 백엔드)
 - 건강 일지에서 병원 영수증을 저장하면 가계부에 1건이 자동 기록된다(FN-AIM-009-10, JAJ·YAY). 이 기록이 `recptSn`으로 연결되는지 팀과 맞춘다
@@ -54,4 +35,3 @@ mcare-design-v4\myp-character*.html`, 화면설계서 기준)
 - 디자인 반영 때 정한 스타일 결정(토큰을 `@theme`에, Pretendard CDN, 브랜드 색 #285a5c 계열, 아이콘은 lucide 대응, 가계부용 tone·warn 색 토큰 추가)을 팀과 맞춘 뒤 `docs/OPEN_ISSUES.md` 스타일링 항목을 갱신한다
 - 털색 신규 6개(강아지 황색·세이블·멀, 고양이 젖소·카오스·포인트)는 백엔드가 코드 번호를 정하면 `features/pet/shared/petCodes.js`의 `COLR`와 `COLR_OPTIONS`에 넣는다. 이름 변경(블랙탄·파티)과 순서는 커밋 08c33cf에 반영됨
 - 건강 일지(SCR-HLT-002, JAJ) 경로가 생기면 [건강 일지에서 기록하기]를 연결한다
-
