@@ -521,7 +521,7 @@
 - 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03 추천안대로). 지역은 관리자 전용 API 없이 실제 공용 `GET /api/regions`로 조회만. 읍면동 실제 값 확인은 1회차 실패 뒤 사람이 잠금을 풀고 조건에서 뺌(당시 DB 0건)
 - 추가 요청: 추가-1 지역 탭을 시도 고르기 없이 전북특별자치도(`admdstCd` 5200000000) 시군구 → 읍면동 조회로(`RegionBrowser.jsx`·`api.js`, 사람 요청 2026-11-03 "서비스는 전라북도만")
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 연결 남음만, 품종은 가짜 응답 기준·지역은 실제 API), 사람 확인 2026-11-03
-- 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함), 백엔드 저장소에서 /start)
+- 연결 남음(2026-11-04 "품종 API 연결" 절에서 끝): FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함), 백엔드 저장소에서 /start)
 
 ## SCR-ADM-051 약관 — 끝
 - 기능: FN-ADM-051-01 약관 목록 조회, FN-ADM-051-02 약관 새 버전 등록, FN-ADM-051-03 약관 버전 이력 조회, FN-ADM-051-04 관리 대상 약관, FN-ADM-051-05 기존 회원 재동의
@@ -529,7 +529,7 @@
 - 완료 조건: 약관 새 버전 등록 뒤 버전 이력에 한 줄 늘어난다
 - 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일, 새 버전 등록은 별도 화면 `/admin/terms/new`(사람 2026-11-03 추천안대로)
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03 1회차, 연결 남음만, 가짜 응답 기준), 사람 확인 2026-11-03
-- 연결 남음: FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start)
+- 연결 남음(2026-11-04 "약관 API 연결" 절에서 끝): FN-ADM-051-01·02·03·04 (백엔드 연결 `GET /api/admin/terms`·`GET /api/admin/terms/history?trmsFixIdntfKey=`·`GET /api/admin/terms/{trmsSn}`·`POST /api/admin/terms`, 약관 종류 `trmsFixIdntfKey` 실제 값, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-071 케어미션 — 끝
 - 기능: FN-ADM-071-01 케어미션 목록 조회, FN-ADM-071-02 케어미션 수정, FN-ADM-071-03 변경 반영 시점
@@ -890,11 +890,12 @@
 - 완료 조건: 조회 오류 안내 + [다시 시도] 묶음(지금 36개 파일에 복사)을 `components/` 공통 컴포넌트 하나로 바꾸고, 가운데 정렬 틀(`mx-auto max-w-[1200px]`)·제목 `h1`·오른쪽 버튼 줄(27~29개 페이지에 복사)을 공통 페이지 틀로 묶는다. 바꾼 뒤에도 화면 모양과 동작(403 `AdminForbidden` 포함)은 그대로다. 기능 작업과 섞지 않는다(요청 2026-11-03)
 - 기획 초안(2026-11-03, 승인 전 보류): `components/LoadError.jsx`(`message`·`onRetry`·`className`) 38곳, `pages/admin/AdminPageFrame.jsx`(`title`·`actions`·`children`) 28개 파일 31곳
 
-## SCR-ADM-101 품종 · 품종 API 연결 — 대기
+## SCR-ADM-101 품종 · 품종 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-101-01
 - 기다리는 것: `GET /api/admin/breeds?petSeCd=`(사용 안 함 포함, 종·정렬순 `[{ vrtySn, vrtyCd, vrtyNm, petSeCd, sortSeq, useYn(true/false) }]`, 종 코드 없으면 전체), `POST /api/admin/breeds` `{ petSeCd, vrtyNm, sortSeq?, useYn? }` → 201 품종 행(`vrtyCd`는 서버가 매김, `sortSeq` 없으면 그 종 마지막 + 10), `PATCH /api/admin/breeds/{vrtySn}` `{ vrtyNm?, sortSeq?, useYn? }` → 200 품종 행 (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/breeds` 행)
 - 완료 조건: `features/adminBreed/api.js` 가짜를 실제 API로 바꿔 품종 목록·[품종 추가]·[수정]이 화면에서 동작한다. 이름 50자(가정 그대로), 같은 종 같은 이름(공백 무시) 409 `DUPLICATE_VRTY_NM`(가짜 그대로), 없는 품종은 가짜 `NOT_FOUND`가 아니라 404 `BREED_NOT_FOUND`, 모르는 종 코드·빈 이름·51자 400 `INVALID_INPUT_VALUE`. 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminBreed/api.js`(가짜 응답)
+- 완료 조건 결과: 검증 `통과`(2026-11-04 1회차), 사람 확인 2026-11-04
 
 ## SCR-ADM-050 펫뉴스 · 펫뉴스 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-050-01·02·03·05
@@ -907,6 +908,18 @@
 - 기다리는 것: 백엔드 SCR-ADM-023 노출 콘텐츠 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/community/exposure` 행)
 - 완료 조건: `features/adminCommunity/api.js` 노출 콘텐츠 절 가짜를 `/api/admin/community/exposure` 실제 API로 바꿔 건강팁 지정·해제, 문구 등록·수정, AI 코멘트 사용 여부가 화면에서 동작한다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+
+## SCR-ADM-051 약관 · 약관 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-051-01·02·03·04
+- 기다리는 것: `GET /api/admin/terms`(종류별 사용 중 1행, 정렬순, 가입 약관 4종 `SERVICE`·`PRIVACY`·`AGE_14`·`MARKETING`, 기능별 동의 2종은 TRMS에 없음)·`GET /api/admin/terms/history?trmsFixIdntfKey=`(최신순, 내용 제외, 키 없으면 400)·`GET /api/admin/terms/{trmsSn}`(404 `TERMS_NOT_FOUND`)·`POST /api/admin/terms` `{ trmsFixIdntfKey, trmsVerId(1~80), trmsTtl(1~200), trmsCn(1~4000), esntlAgreYn }` → 201 상세(없는 종류 404 `TERMS_NOT_FOUND`, 같은 버전 409 `DUPLICATE_TRMS_VER`, 400 `INVALID_INPUT_VALUE`) (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/member.md` `/admin/terms` 행)
+- 완료 조건: `features/adminTerms/api.js` 가짜를 실제 API로 바꿔 목록·이력·상세·새 버전 등록이 화면에서 동작한다. 종류 키 `AGE`→`AGE_14`, 글자 수 상한 80·200·4000. 400·404·409 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminTerms/api.js`(가짜 응답)
+
+## SCR-ADM-071 케어미션 · 케어미션 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-071-01·02
+- 기다리는 것: `GET /api/admin/care-missions?msnPoolCd=`(사용 안 함 포함, 번호순 `[{ careMsnSn, msnPoolCd, msnNm, cmpnPnt, achvCrtrNmtm, mvmnPath, useYn(true/false) }]`, 풀 코드 없으면 전체, 모르는 풀 400 `INVALID_INPUT_VALUE`)·`PATCH /api/admin/care-missions/{careMsnSn}` `{ cmpnPnt?(1~1000), achvCrtrNmtm?(1~10), useYn? }` → 200 미션 행(보낸 칸만, 미션명·풀·경로는 안 바꿈, 빈 본문·범위 밖 400 `INVALID_INPUT_VALUE`, 없는 미션 404 `CARE_MISSION_NOT_FOUND`) (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/care-missions` 행)
+- 완료 조건: `features/adminCareMission/api.js` 가짜를 실제 API로 바꿔 목록(풀 탭)·수정 모달이 화면에서 동작한다. `useYn`은 'Y'/'N' 가정이 아니라 true/false. 모달의 "다음 날 00:00 출제부터 반영" 안내 그대로. 400·404 오류 문구를 화면에 보인다
+- 이미 바뀐 것: `features/adminCareMission/api.js`(가짜 응답)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

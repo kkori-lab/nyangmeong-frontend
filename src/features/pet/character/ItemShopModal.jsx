@@ -4,8 +4,9 @@ import Badge from '@/components/Badge';
 import Modal from '@/components/Modal';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
-import { usePurchaseCharacterItems, useShopItems } from '../queries';
+import { usePurchaseItems, useShopItems } from '../queries';
 import { ITEM_PART_OPTIONS } from '../shared/petCodes';
+import ItemImage from './ItemImage';
 import WearPreview from './WearPreview';
 
 const ALL = 'ALL';
@@ -16,64 +17,110 @@ const PART_NAMES = Object.fromEntries(
 
 const formatPoint = (value) => `${value.toLocaleString()}P`;
 
+const PURCHASE_ERRORS = {
+  POINT_NOT_ENOUGH: '포인트가 부족해요',
+  ITEM_ALREADY_HELD: '이미 보유한 아이템이 있어요',
+  PET_PRIMARY_ONLY: '주양육자만 꾸밀 수 있어요',
+};
+
 /**
  * [아이템 상점] (SCR-MYP-011)
  * - cart: 담은 아이템, tryOn: 부위별로 미리보기에 임시 착용한 아이템 (닫으면 둘 다 버려짐)
- * - 보유 판정은 현재 꾸미는 캐릭터의 보유 목록(ownedItems) 기준
+ * - 보유 판정과 보유 포인트는 상점 응답(현재 꾸미는 캐릭터 기준)을 쓴다
+ * - worn: 꾸미기 화면의 현재 착용 { 부위: 보유 아이템 }
  */
-export default function ItemShopModal({
-  pet,
-  worn,
-  ownedItems,
-  pntBal,
-  onClose,
-}) {
-  const { data: shopItems = [] } = useShopItems();
-  const { mutate: purchase, isPending } = usePurchaseCharacterItems();
+export default function ItemShopModal({ pet, worn, onClose }) {
+  const {
+    data: shop,
+    isPending: isShopPending,
+    isError: isShopError,
+    refetch,
+  } = useShopItems(pet.pixelCharSn);
+  const { mutate: purchase, isPending } = usePurchaseItems();
   const [part, setPart] = useState(ALL);
   const [cart, setCart] = useState([]);
   const [tryOn, setTryOn] = useState({});
+  /** 실패 뒤 재시도에도 같은 값을 보내 중복 결제를 막는다 */
+  const [idmptDmndId] = useState(() => crypto.randomUUID());
 
-  const ownedSns = new Set(ownedItems.map((item) => item.itemSn));
+  const shopItems = shop?.items ?? [];
+  const hldPnt = shop?.hldPnt ?? 0;
+  /** 구매 도중 이미 보유로 바뀐 아이템은 담기·임시 착용에서 뺀다 */
+  const heldSns = new Set(
+    shopItems.filter((item) => item.hldYn).map((item) => item.itemSn),
+  );
+  const cartItems = cart.filter((item) => !heldSns.has(item.itemSn));
+  const activeTryOn = Object.fromEntries(
+    Object.entries(tryOn).filter(([, item]) => !heldSns.has(item.itemSn)),
+  );
+  const previewSns = Object.values({ ...worn, ...activeTryOn }).map(
+    (item) => item.itemSn,
+  );
   const visibleItems =
     part === ALL
       ? shopItems
-      : shopItems.filter((item) => item.itemPartCd === part);
-  const total = cart.reduce((sum, item) => sum + item.itemPrc, 0);
-  const isShort = total > pntBal;
+      : shopItems.filter((item) => item.itemRegnCd === part);
+  const total = cartItems.reduce((sum, item) => sum + item.needPnt, 0);
+  const isShort = total > hldPnt;
 
   /** 담지 않은 아이템이면 담고, 담은 아이템이면 미리보기에만 다시 보여 준다(빼지 않음) */
   const pick = (item) => {
     setCart((prev) =>
       prev.some((it) => it.itemSn === item.itemSn) ? prev : [...prev, item],
     );
-    setTryOn((prev) => ({ ...prev, [item.itemPartCd]: item }));
+    setTryOn((prev) => ({ ...prev, [item.itemRegnCd]: item }));
   };
 
   const remove = (item) => {
     const rest = cart.filter((it) => it.itemSn !== item.itemSn);
     setCart(rest);
-    if (tryOn[item.itemPartCd]?.itemSn !== item.itemSn) return;
+    if (tryOn[item.itemRegnCd]?.itemSn !== item.itemSn) return;
     /** 빠진 것이 보이던 아이템이면 같은 부위에 담아 둔 마지막 것으로 */
-    const fallback = rest.findLast((it) => it.itemPartCd === item.itemPartCd);
+    const fallback = rest.findLast((it) => it.itemRegnCd === item.itemRegnCd);
     setTryOn((prev) => {
       const next = { ...prev };
-      if (fallback) next[item.itemPartCd] = fallback;
-      else delete next[item.itemPartCd];
+      if (fallback) next[item.itemRegnCd] = fallback;
+      else delete next[item.itemRegnCd];
       return next;
     });
   };
 
+  /** 미리보기 합성이 실패하면 그 아이템의 담기를 취소하고 마지막으로 성공한 조합으로 되돌린다 */
+  const revertTo = (confirmedSns) => {
+    const confirmed = new Set(confirmedSns);
+    const failed = new Set(
+      Object.values(tryOn)
+        .filter((item) => !confirmed.has(item.itemSn))
+        .map((item) => item.itemSn),
+    );
+    const rest = cart.filter((item) => !failed.has(item.itemSn));
+    setCart(rest);
+    setTryOn(
+      Object.fromEntries(
+        rest
+          .filter((item) => confirmed.has(item.itemSn))
+          .map((item) => [item.itemRegnCd, item]),
+      ),
+    );
+  };
+
   const handlePurchase = () => {
     purchase(
-      { petSn: pet.petSn, itemSns: cart.map((item) => item.itemSn) },
+      {
+        pixelCharSn: pet.pixelCharSn,
+        itemSns: cartItems.map((item) => item.itemSn),
+        idmptDmndId,
+      },
       {
         onSuccess: () => {
           showToast('아이템을 구매했어요. 보관함에서 확인해 보세요');
           onClose();
         },
-        onError: () =>
-          showToast('구매하지 못했어요. 잠시 뒤 다시 시도해 주세요'),
+        onError: (error) =>
+          showToast(
+            PURCHASE_ERRORS[error.code] ??
+              '구매하지 못했어요. 잠시 뒤 다시 시도해 주세요',
+          ),
       },
     );
   };
@@ -88,9 +135,9 @@ export default function ItemShopModal({
         <>
           <div>
             <p className="text-muted">
-              선택 {cart.length}개 · 총{' '}
+              선택 {cartItems.length}개 · 총{' '}
               <b className="tabular-nums">{formatPoint(total)}</b> · 보유{' '}
-              {formatPoint(pntBal)}
+              {formatPoint(hldPnt)}
             </p>
             {isShort && (
               <p role="alert" className="text-sm text-danger">
@@ -101,7 +148,9 @@ export default function ItemShopModal({
           <button
             type="button"
             onClick={handlePurchase}
-            disabled={cart.length === 0 || isShort || isPending}
+            disabled={
+              cartItems.length === 0 || isShort || isPending || isShopPending
+            }
             className={BTN_PRIMARY}
           >
             구매하기
@@ -112,7 +161,7 @@ export default function ItemShopModal({
       <div className="grid gap-6 px-6 py-5 min-[761px]:min-h-0 min-[761px]:flex-1 min-[761px]:grid-cols-[260px_minmax(0,1fr)] min-[761px]:gap-0 min-[761px]:py-0">
         <div className="flex flex-col gap-3 min-[761px]:min-h-0 min-[761px]:overflow-y-auto min-[761px]:border-r min-[761px]:border-line-soft min-[761px]:p-4">
           <div className="mx-auto w-40 min-[761px]:w-[180px]">
-            <WearPreview pet={pet} worn={{ ...worn, ...tryOn }} />
+            <WearPreview pet={pet} itemSns={previewSns} onFail={revertTo} />
           </div>
           <button
             type="button"
@@ -121,10 +170,10 @@ export default function ItemShopModal({
           >
             원래대로
           </button>
-          <p className="mt-1 font-bold">담은 아이템 ({cart.length})</p>
-          {cart.length > 0 && (
+          <p className="mt-1 font-bold">담은 아이템 ({cartItems.length})</p>
+          {cartItems.length > 0 && (
             <ul className="max-h-[182px] shrink-0 divide-y divide-line-soft overflow-y-auto border-y border-line">
-              {cart.map((item) => (
+              {cartItems.map((item) => (
                 <li
                   key={item.itemSn}
                   className="flex h-9 items-center gap-2 pr-1 pl-1"
@@ -136,11 +185,11 @@ export default function ItemShopModal({
                   >
                     {item.itemNm}{' '}
                     <span className="text-subtle">
-                      · {PART_NAMES[item.itemPartCd]}
+                      · {PART_NAMES[item.itemRegnCd]}
                     </span>
                   </button>
                   <b className="font-semibold tabular-nums">
-                    {formatPoint(item.itemPrc)}
+                    {formatPoint(item.needPnt)}
                   </b>
                   <button
                     type="button"
@@ -178,9 +227,23 @@ export default function ItemShopModal({
             ))}
           </div>
           <div className="grid grid-cols-3 content-start gap-2 p-[3px] min-[761px]:min-h-0 min-[761px]:flex-1 min-[761px]:grid-cols-4 min-[761px]:overflow-y-auto">
+            {isShopError && (
+              <p className="col-span-full py-6 text-center text-muted">
+                상점을 불러오지 못했어요{' '}
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="font-semibold text-brand-600 underline"
+                >
+                  다시 시도
+                </button>
+              </p>
+            )}
             {visibleItems.map((item) => {
-              const isOwned = ownedSns.has(item.itemSn);
-              const isInCart = cart.some((it) => it.itemSn === item.itemSn);
+              const isOwned = item.hldYn;
+              const isInCart = cartItems.some(
+                (it) => it.itemSn === item.itemSn,
+              );
               return (
                 <button
                   key={item.itemSn}
@@ -204,15 +267,7 @@ export default function ItemShopModal({
                       isOwned ? 'text-line-strong' : 'text-subtle'
                     }`}
                   >
-                    {item.itemImgUrl ? (
-                      <img
-                        src={item.itemImgUrl}
-                        alt=""
-                        className="size-full object-contain [image-rendering:pixelated]"
-                      />
-                    ) : (
-                      <span aria-hidden="true">{item.itemNm.slice(0, 2)}</span>
-                    )}
+                    <ItemImage item={item} />
                   </span>
                   <span className="mb-0.5 break-all">{item.itemNm}</span>
                   <span
@@ -220,7 +275,7 @@ export default function ItemShopModal({
                       isOwned ? 'text-line-strong' : 'text-ink'
                     }`}
                   >
-                    {formatPoint(item.itemPrc)}
+                    {formatPoint(item.needPnt)}
                   </span>
                 </button>
               );

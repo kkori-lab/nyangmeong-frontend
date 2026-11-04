@@ -1,15 +1,13 @@
 /**
  * [관리 대상 약관 종류]
- * - 가입 약관 필수 3종·선택 1종 + 기능별 동의 문구 2종(FN-ADM-051-04)
- * - trmsFixIdntfKey 값은 가정. 백엔드 /api/admin/terms 연결 때 TRMS_FIX_IDNTF_KEY 실제 값으로 맞춘다
+ * - 가입 약관 필수 3종·선택 1종(FN-ADM-051-04). 값은 TRMS.TRMS_FIX_IDNTF_KEY
+ * - 기능별 동의 2종(펫돌봄 이용수칙·실종 개인정보 공개 동의)은 아직 TRMS에 없어 뺐다. 생기면 여기 넣는다
  */
 export const TERMS_KINDS = [
   { trmsFixIdntfKey: 'SERVICE', name: '서비스 이용약관' },
   { trmsFixIdntfKey: 'PRIVACY', name: '개인정보 수집 및 이용' },
-  { trmsFixIdntfKey: 'AGE', name: '만 14세 이상 확인' },
+  { trmsFixIdntfKey: 'AGE_14', name: '만 14세 이상 확인' },
   { trmsFixIdntfKey: 'MARKETING', name: '마케팅 수신 동의' },
-  { trmsFixIdntfKey: 'CARE_RULE', name: '펫돌봄 이용수칙' },
-  { trmsFixIdntfKey: 'LOST_PRIVACY', name: '실종 개인정보 공개 동의' },
 ];
 
 /** 종류 키 → 표시 이름, 모르는 키는 키 그대로 */

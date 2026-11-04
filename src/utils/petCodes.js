@@ -100,13 +100,13 @@ export const CRT_JOB_STTS = {
   FAILED: 'CHRC0004',
 };
 
-/** 캐릭터 아이템 부위: 머리·얼굴·목·의상·가방 (공통코드 생기면 값 맞춤) */
+/** 캐릭터 아이템 부위(MYPG01): 머리·얼굴·목·의상·가방 */
 export const ITEM_PART = {
-  HEAD: 'HEAD',
-  FACE: 'FACE',
-  NECK: 'NECK',
-  CLOTHES: 'CLOTHES',
-  BAG: 'BAG',
+  HEAD: 'MYPC0001',
+  FACE: 'MYPC0002',
+  NECK: 'MYPC0003',
+  CLOTHES: 'MYPC0004',
+  BAG: 'MYPC0005',
 };
 
 /** 보관함 탭 순서 */

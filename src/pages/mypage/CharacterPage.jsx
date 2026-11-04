@@ -11,7 +11,6 @@ import {
   useSetRepresentativePet,
 } from '@/features/pet/queries';
 import { getCharState } from '@/features/pet/shared/charState';
-import { usePointBalance } from '@/features/point/queries';
 import { BRUP_ROLE, CHRC_STTS } from '@/features/pet/shared/petCodes';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
@@ -28,7 +27,6 @@ export default function CharacterPage() {
     refetch: refetchChars,
   } = usePixelCharacters();
   const isPending = isPetsPending || isCharsPending;
-  const { data: point } = usePointBalance();
   const { mutate: setRepresentative } = useSetRepresentativePet();
   const [searchParams, setSearchParams] = useSearchParams();
   const [creatingPet, setCreatingPet] = useState(null);
@@ -87,7 +85,7 @@ export default function CharacterPage() {
         description={DESCRIPTION}
         contentClassName="min-[1101px]:pt-6 max-[760px]:grid max-[760px]:grid-cols-[auto_minmax(0,1fr)] max-[760px]:items-center"
       >
-        <CharacterDecorate pet={decoratingPet} pntBal={point?.hldPnt ?? 0} />
+        <CharacterDecorate pet={decoratingPet} />
       </SubPageLayout>
     );
   }
@@ -120,7 +118,9 @@ export default function CharacterPage() {
               <CharacterGrid
                 pets={ownPets}
                 mode="own"
-                onDecorate={(pet) => setSearchParams({ pixelCharSn: pet.pixelCharSn })}
+                onDecorate={(pet) =>
+                  setSearchParams({ pixelCharSn: pet.pixelCharSn })
+                }
                 onCreate={setCreatingPet}
                 onSetRepresentative={(pet) => setRepresentative(pet.petSn)}
               />
