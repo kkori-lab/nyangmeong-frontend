@@ -587,7 +587,7 @@
 - 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04)
 - 완료 조건: 탭 이름·표 칸 이름·모달 칸 이름을 운영자가 읽고 무엇을 넣는지 알 수 있는 말로 바꾼다(`features/adminAiKeyword/keywordLabels.js`·`AiKeywordTable.jsx`·`AiKeywordFormModal.jsx`). 저장 값(`kwrdClsfNm` 등)은 기초 데이터 그대로 두고 화면 표시만 바꿀지 기획 때 정한다
 
-## SCR-ADM-082 처리 현황 — 대기
+## SCR-ADM-082 처리 현황 — 진행
 - 기능: FN-ADM-082-01 영수증 OCR 현황, FN-ADM-082-02 캐릭터 생성 현황, FN-ADM-082-03 검사결과지 분석 현황
 - 기다리는 것: `/api/admin/processing` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: OCR·캐릭터 생성·검사결과지 분석의 상태별 건수와 실패 목록이 보인다
