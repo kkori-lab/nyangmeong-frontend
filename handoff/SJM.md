@@ -2,11 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-MYP-040 회원정보 수정 · 조회·휴대폰 번호·프로필 사진 API 연결 — 끝 (2026-11-04, 검증 판정 `통과` 1회차, 사람 확인 완료). lint·build 종료 코드 0. 기획은 `milestones/SJM.md`의 같은 이름 절
+SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝 (2026-11-04, 검증 판정 `통과` 1회차, 사람 확인 완료). lint·build 종료 코드 0. 기획은 `milestones/SJM.md`의 같은 이름 절
 
-- 한 것: 닉네임·휴대폰·프로필 사진을 실제 API로 바꿨다. 닉네임 확인·저장과 휴대폰 중복확인은 YAY의 `checkNicknameAvailability`·`setupNickname`·`checkPhoneAvailability`와 훅을 같이 쓰고, 내 것은 `updatePhone`·`updateProfileImage`(`PATCH /members/me` multipart)다. 사진 실패 토스트 문구는 설계서에 없어 새로 정했다("jpg·png·webp 이미지, 10MB 이하만 올릴 수 있어요" / "사진을 바꾸지 못했어요. 잠시 후 다시 시도해 주세요."). `api.js`·`queries.js`·`profile/` 4개 파일
-- 확인 범위: 저장 409, 서버 400 파일 오류, 500은 요청을 가로채서만 확인했다
-- 검증 계정 정리: 닉네임·번호는 화면으로 되돌렸고 사진은 `ATCH_FILE_SN=25` 복구 SQL을 사람이 실행했다. 업로드로 생긴 `ATCH_FILE` 4228 행이 남아 있으면 필요할 때 지운다
+- 한 것: 영수증 인식을 가짜에서 AI 서버 `POST /ai/receipts`(가계부 출처 `AIMC0027`, `petSn` 없음)로 바꿨다. 인식 0건·500·시간 초과(20초)는 실패 안내와 [직접 입력](영수증 연결), 서버 파일 거절은 업로드 칸 사유 문구, 409 `OCR_IN_PROGRESS`는 업로드 상태로 돌아가 토스트. `ckupYmd`가 null이면 클릭한 날짜(사람 결정). `api.js`·`ExpenseReceiptUpload.jsx` 2개 파일
+- 새로 정한 문구(설계서에 없음): 토스트 "이전 분석이 아직 진행 중이에요. 잠시 후 다시 시도해 주세요"(사람 요청)
+- 확인 범위: 오류·파일 거절·취소·409는 요청을 가로채서만 확인했다
+- 검증 계정 정리: 지출 3건(1/23, 1/17, `EXPND_SN=10447`)은 화면에서 삭제했다(소프트 삭제). `RECPT` 520·521·523·524와 원본 첨부파일·상태 이력은 남아 있다. 필요하면 `DELETE FROM RECPT_STTS_HSTRY WHERE RECPT_SN IN (520,521,523,524); DELETE FROM RECPT WHERE RECPT_SN IN (520,521,523,524);` 뒤 첨부파일(`SELECT ATCH_FILE_SN FROM RECPT …`로 먼저 확인)을 지운다. 지출 행이 소프트 삭제라 `EXPND`가 `RECPT_SN`을 잡고 있으면 먼저 지출을 지운다
 
 ## 다음에 할 것
 - SCR-MYP-040 YAY 알림: `signup/NicknameModal.jsx` 변경 없음. 회원정보 수정이 YAY의 `features/member/api.js` `checkNicknameAvailability`·`setupNickname`·`checkPhoneAvailability`와 `queries.js` 훅 `useCheckNicknameAvailability`·`useSetupNickname`·`useCheckPhoneAvailability`를 같이 쓴다. 이름·모양(응답 `{available}`, 오류 코드)을 바꾸지 말 것
@@ -15,7 +16,7 @@ SCR-MYP-040 회원정보 수정 · 조회·휴대폰 번호·프로필 사진 AP
 - SCR-MYP-010 3단계 팀에 확인: 확인용 동물 털색을 "흰색"으로 등록했는데 생성 캐릭터는 검은 강아지였다(사진을 따른 것으로 보임). 서버가 털색을 결과에 반영하는지 LJS에 확인한다. 안내 문구(사진 형식·용량, 중복 생성·주양육자만·실패 토스트)는 설계서에 없어 새로 썼다
 - SCR-MYP-010 2단계 팀 알림/확인: 공용 `utils/petCodes.js`의 `ITEM_PART`가 `MYPC0001~0005`로 바뀌었다(LJS 알림). 서버 상점이 `MYPC0006` 신발 4개도 주는데 프론트 부위는 5개라 [전체] 탭에만 나오고 담으면 부위 이름이 빈칸이다(사람 화면에는 신발이 없다고 함, 서버 DB가 다른지 확인). 상점 보유 포인트(`PointFake` 8,450 고정, 홈 2,049·상점 2,089 화면 값과 불일치)는 `PointService.use` 연결(LJS, 백엔드 마일스톤에 있음) 뒤 맞춘다. 꾸미기 [오류 문의] 판정 `pet.inqryRcptYn === 'Y'`는 서버 상세의 `inqryRcptYn`(boolean)으로 바꿀지 3단계에서 정한다
 - 문서 할 일(코드 아님, 기능명세서 담당): FN-MYP-010-13 "아이템은 부위별 이미지를 고정 좌표로 겹쳐 표시…" 문장을 서버 합성 방식(`POST /ai/characters/{pixelCharSn}/preview`가 만든 PNG를 보여 줌)으로, FN-MYP-010-17(규격 고정)·018(규격 일관성 검증)·019(규격 미확보 시 대체)를 서버 합성 방식에 맞게 고치거나 삭제 여부를 정한다. 상점 미리보기 설계서 확인 결과가 다르면 FN-MYP-011-01도 함께
-- SCR-MYP-010 1단계 뒤 남음: (a) 3단계 기다리는 것: 재생성 실패 뒤 다시 처리: LJS와 결정됨(자동 재시도 없음, 관리자 화면에서 같은 문의 재생성 허용, LJS 담당, SJM 할 일 없음. 재생성 실패·시간 초과여도 `BSC_CHAR_SBST_YN`은 'Y'라 "오류 확인 중" 판정은 그대로 둔다)과 FN-MYP-010-12 첫 생성 실패의 [캐릭터 만들기] 재노출·실패 안내 문구 확인(LJS) (b) 공용 파일 변경 알림: `components/PetFace.jsx`의 입력이 `chrcSttsCd`에서 `isError`로, `utils/petCodes.js`에 `CRT_JOB_STTS` 추가(LJS), `SummaryHero.jsx`(JAJ), `MainPage.jsx` `PetChip`을 `PetFace`로(YAY). 메인 대표 판별 `rprsYn === 'Y'`는 `rprsPetYn`으로(YAY) (c) 가계부 두 건은 1단계 뒤 따로 기획: 영수증 OCR `ckupYmd` null이면 지출 날짜 기본값(모달 날짜 vs 오늘은 기획 때 정함), 가계부 출처 영수증 다시 열기는 `GET /receipts/{recptSn}`이 `petSn` 필수라 LJS가 고칠 때까지 없이 진행 (d) 다음은 2단계(꾸미기·상점을 실제 API로)
+- SCR-MYP-010 1단계 뒤 남음: (a) 3단계 기다리는 것: 재생성 실패 뒤 다시 처리: LJS와 결정됨(자동 재시도 없음, 관리자 화면에서 같은 문의 재생성 허용, LJS 담당, SJM 할 일 없음. 재생성 실패·시간 초과여도 `BSC_CHAR_SBST_YN`은 'Y'라 "오류 확인 중" 판정은 그대로 둔다)과 FN-MYP-010-12 첫 생성 실패의 [캐릭터 만들기] 재노출·실패 안내 문구 확인(LJS) (b) 공용 파일 변경 알림: `components/PetFace.jsx`의 입력이 `chrcSttsCd`에서 `isError`로, `utils/petCodes.js`에 `CRT_JOB_STTS` 추가(LJS), `SummaryHero.jsx`(JAJ), `MainPage.jsx` `PetChip`을 `PetFace`로(YAY). 메인 대표 판별 `rprsYn === 'Y'`는 `rprsPetYn`으로(YAY) (c) 가계부 영수증: `ckupYmd` null 날짜는 SCR-MYP-031 영수증 인식에서 끝(클릭한 날짜). 가계부 출처 영수증 다시 열기는 `GET /receipts/{recptSn}`이 이제 `petSn` 없이 열리지만 명세에 진입점이 없어 하지 않았다(필요하면 명세에서 정한다) (d) 다음은 2단계(꾸미기·상점을 실제 API로)
 - SCR-MYP-030 팀에 확인: (a) 일괄 삭제 뒤에도 편집 모드가 유지된다(`handleDeleted`는 선택만 비운다). 명세 FN-MYP-030-21은 "목록·합계·통계에 즉시 반영"만 적고 편집 종료는 말하지 않는다 (b) 현재 쪽 [전체 선택]이 일부만 선택됐을 때 중간 상태(−) 표시가 없다(기존 동작, 명세에도 없음)
 - SCR-MYP-030 시드 데이터: `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(회원 1, 2026-10-05, 병원, 공용(PET_SN NULL), 42,000원)은 "병원은 공용 불가" 규칙에 어긋난다. 서버는 등록·수정(PATCH) 모두 `EXPENSE_PET_REQUIRED`로 막고 있어(`ExpenseService.validate`·`update`) 서버 수정은 필요 없다. 시드의 `PET_SN`을 채우거나 카테고리를 바꾼다(백엔드 저장소). 이 행은 수정 모달에서 반려동물을 고르기 전에는 저장되지 않는다
 - SCR-MYP-030 미래 날짜(사람 결정 2026-11-02: 오늘(KST)까지만 허용): 프론트는 추가-1로 반영됐다. 백엔드 저장소에서 `/start`로 `POST /expenses`·`PATCH /expenses/{expndSn}`(`ExpenseService.validate`·`update`)에 `EXPND_YMD > 오늘(KST)`이면 400(`INVALID_INPUT_VALUE`)을 추가한다. 서버가 막기 전에는 API를 직접 부르면 미래 날짜가 저장된다
