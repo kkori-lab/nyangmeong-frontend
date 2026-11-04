@@ -47,6 +47,9 @@ const AdminMemberSuspensionsPage = lazy(
 const AdminMembersWithdrawnPage = lazy(
   () => import('@/pages/admin/AdminMembersWithdrawnPage'),
 );
+const AdminProcessingPage = lazy(
+  () => import('@/pages/admin/AdminProcessingPage'),
+);
 const AdminNotificationLogsPage = lazy(
   () => import('@/pages/admin/AdminNotificationLogsPage'),
 );
@@ -102,6 +105,7 @@ export default [
       { path: PATHS.ADMIN_POINTS, Component: AdminPointsPage },
       { path: PATHS.ADMIN_AI_ROUTES, Component: AdminAiRoutesPage },
       { path: PATHS.ADMIN_AI_KEYWORDS, Component: AdminAiKeywordsPage },
+      { path: PATHS.ADMIN_PROCESSING, Component: AdminProcessingPage },
       {
         path: PATHS.ADMIN_NOTIFICATION_TEMPLATES,
         Component: AdminNotificationTemplatesPage,
