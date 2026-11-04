@@ -72,11 +72,9 @@ export default function UpcomingSchedules({
                 </span>
                 <span
                   aria-hidden="true"
-                  className="grid size-10 shrink-0 place-items-center rounded-[10px]"
-                  style={{
-                    backgroundColor: getScheduleTone(schedule).bg,
-                    color: getScheduleTone(schedule).fg,
-                  }}
+                  className={`grid size-10 shrink-0 place-items-center rounded-[10px] ${
+                    getScheduleTone(schedule).chip
+                  }`}
                 >
                   <Icon name={getScheduleIcon(schedule)} />
                 </span>
