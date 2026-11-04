@@ -2,10 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-ADM-071 케어미션 — 끝 (2026-11-03, 검증 2회차 `확인 못 함 있음`(연결 남음만), 사람 확인). `/admin/care-missions`에 미션 풀 탭·목록 표·수정 모달(보상 포인트·달성 기준 횟수·사용, 다음 날 00:00 반영 안내)을 가짜 응답으로 만들었다(`features/adminCareMission`, `AdminCareMissionsPage.jsx`)
+SCR-ADM-072 포인트 — 끝 (2026-11-04, 검증 1회차 `확인 못 함 있음`(연결 남음만), 사람 확인). `/admin/points`에 원장 표·필터(닉네임·거래 유형·기간, `?mbrSn=`)·조정 모달(지급/차감·사유 필수·잔액 0 미만 막음)을 가짜 응답으로 만들고, 회원 상세 [포인트 조정]을 켰다(`features/adminPoint`, `AdminPointsPage.jsx`, `MemberPointsTab.jsx`)
 
 ## 다음에 할 것
 
+- SCR-ADM-072 연결 남음: FN-ADM-072-01·02 (백엔드 연결 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments { mbrSn, dlngPnt, memoCn }`, 회원 보유 포인트 응답 필드, 상한(프론트 가정 1회 100,000P·사유 200자), 백엔드 저장소에서 /start). 나오면 `features/adminPoint/api.js` 가짜 본문(sessionStorage 보관, 가짜 회원 9001~9005)만 실제 요청으로, 상한은 `pointLabels.js`에서 맞춘다. FN-ADM-072-03은 그 뒤 회원 포인트 내역에 "관리자 조정"으로 보이는지 화면으로 확인
+- SCR-ADM-072 사람이 볼 것(판정 밖): ① 기획의 `nickNm`·`keyword=` 대신 서버 키 `mbrNcnm`·`q`를 썼다 ② 가짜 원장에 없는 실제 회원의 현재 잔액은 회원 상세 포인트 탭 API의 마지막 잔액으로 읽는다 ③ `routes/paths.js`에 `ADMIN_POINTS`를 기능 커밋에 같이 넣었다
 - SCR-ADM-071 연결 남음: FN-ADM-071-01·02 (백엔드 연결 `GET /api/admin/care-missions?msnPoolCd=`·`PATCH /api/admin/care-missions/{careMsnSn}`, 허용 범위(프론트 가정 1 이상 정수·보상 1000P·횟수 10회 이하), 출제 배치 `CareMissionJob`이 `CARE_MSN`의 `useYn`·값을 읽는지, 백엔드 저장소에서 /start). 나오면 `features/adminCareMission/api.js` 가짜 본문(sessionStorage 보관 포함)만 실제 요청으로, 상한은 `careMissionLabels.js`에서 맞춘다
 - SCR-ADM-071 사람이 볼 것(판정 밖): ① `routes/paths.js`에 `ADMIN_CARE_MISSIONS`를 기능 커밋에 같이 넣었다 ② 스켈레톤 높이는 행 높이로 계산한 값(풀마다 21·9·12행, `AdminCareMissionsPage.jsx`) ③ 조회 오류·저장 실패 문구는 가짜가 실패하지 않아 검증에서 응답을 바꿔서만 봤다 ④ 백엔드 마일스톤 SCR-ADM-071의 "`pet` 케어미션 협의 (SJM)"는 사람이 맞춘다
 - 대기 순서(사람 결정 2026-11-03): SCR-ADM-060 장소는 기획까지 했다가 넘김(백엔드에 관리자 장소 API·공공데이터 수집 배치 없음). SCR-ADM-001 페이지 틀·조회 오류 정리는 남은 관리자 화면 구현 뒤 맨 마지막
@@ -70,7 +72,6 @@ SCR-ADM-071 케어미션 — 끝 (2026-11-03, 검증 2회차 `확인 못 함 있
 - 마일스톤 정리: `SCR-ADM-113 … 목록과 지정 모달 연결`·`해제 버튼과 확인 모달 연결` 2개가 `대기`로 남아 있지만 커밋 `70c41a5`에서 실제 API로 만들어졌다. 다음 `/start`가 고르기 전에 사람이 확인해 `끝`으로 바꾼다
 - SCR-ADM-011 연결 남음: FN-ADM-011-01 백엔드 연결 `AdminMemberDetailResponse.mbrAuthrtCd`(백엔드 저장소에서 `/start`). 그동안 관리자 회원에게도 [정지]가 보이고 서버가 409로 거절한다. 필드가 들어오면 `AdminMemberDetailPage.jsx` 머리 주석의 해당 줄만 지운다
 - SCR-ADM-011 백엔드 병합 순서: 회원 상세·탭 API는 백엔드 작업 사본(커밋 전)에 있다. 백엔드가 develop에 병합돼야 배포에서 동작한다
-- SCR-ADM-072 때: `routes/paths.js`에 `ADMIN_POINTS`를 넣고 회원 상세 [포인트 조정]을 켠다(`MemberPointsTab.jsx`, `/admin/points?mbrSn=`). 지금 넣으면 사이드바에 없는 화면 메뉴가 생긴다
 - SCR-ADM-011 실제 확인이 남은 것: 반려동물 20건 초과 쪽 번호와 동의 기록 없는 약관 행은 조작 응답으로만 봤다(로컬 데이터에 없음). 스켈레톤은 화면으로 못 봤고 높이는 계산값이다(`AdminMemberDetailPage.jsx`). 범위를 벗어난 `?page=`는 빈 문구만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 기본 정보 한 줄에 가입일 `2026-10-21`과 최근 로그인 `2026.10.22 14:02` 표기가 섞여 있다(`MemberDetailInfo.jsx`)
 - 원인 안 봄: SCR-ADM-011 검증 중 `/api/auth/me` 401로 로그인 화면으로 한 번 넘어갔고 다시 로그인하니 정상이었다
 - SCR-ADM-113 실제 확인이 남은 것: 스켈레톤은 화면으로 못 봤고 높이 240px는 잰 값이 아니다(`AdminAdminsPage.jsx`). 범위를 벗어난 `?page=`는 "관리자가 없어요"만 나오고 쪽 번호가 없다(SCR-ADM-010과 같음). 마지막 관리자 [해제] 비활성은 내 행이 아닌 경우를 조작한 응답으로만 봤다
