@@ -521,7 +521,7 @@
 - 결정: 디자인은 화면설계서 기준 + 기존 관리자 화면 스타일(사람 2026-11-03 추천안대로). 지역은 관리자 전용 API 없이 실제 공용 `GET /api/regions`로 조회만. 읍면동 실제 값 확인은 1회차 실패 뒤 사람이 잠금을 풀고 조건에서 뺌(당시 DB 0건)
 - 추가 요청: 추가-1 지역 탭을 시도 고르기 없이 전북특별자치도(`admdstCd` 5200000000) 시군구 → 읍면동 조회로(`RegionBrowser.jsx`·`api.js`, 사람 요청 2026-11-03 "서비스는 전라북도만")
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-03, 연결 남음만, 품종은 가짜 응답 기준·지역은 실제 API), 사람 확인 2026-11-03
-- 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함), 백엔드 저장소에서 /start)
+- 연결 남음(2026-11-04 "품종 API 연결" 절에서 끝): FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함), 백엔드 저장소에서 /start)
 
 ## SCR-ADM-051 약관 — 끝
 - 기능: FN-ADM-051-01 약관 목록 조회, FN-ADM-051-02 약관 새 버전 등록, FN-ADM-051-03 약관 버전 이력 조회, FN-ADM-051-04 관리 대상 약관, FN-ADM-051-05 기존 회원 재동의
@@ -890,11 +890,12 @@
 - 완료 조건: 조회 오류 안내 + [다시 시도] 묶음(지금 36개 파일에 복사)을 `components/` 공통 컴포넌트 하나로 바꾸고, 가운데 정렬 틀(`mx-auto max-w-[1200px]`)·제목 `h1`·오른쪽 버튼 줄(27~29개 페이지에 복사)을 공통 페이지 틀로 묶는다. 바꾼 뒤에도 화면 모양과 동작(403 `AdminForbidden` 포함)은 그대로다. 기능 작업과 섞지 않는다(요청 2026-11-03)
 - 기획 초안(2026-11-03, 승인 전 보류): `components/LoadError.jsx`(`message`·`onRetry`·`className`) 38곳, `pages/admin/AdminPageFrame.jsx`(`title`·`actions`·`children`) 28개 파일 31곳
 
-## SCR-ADM-101 품종 · 품종 API 연결 — 대기
+## SCR-ADM-101 품종 · 품종 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-101-01
 - 기다리는 것: `GET /api/admin/breeds?petSeCd=`(사용 안 함 포함, 종·정렬순 `[{ vrtySn, vrtyCd, vrtyNm, petSeCd, sortSeq, useYn(true/false) }]`, 종 코드 없으면 전체), `POST /api/admin/breeds` `{ petSeCd, vrtyNm, sortSeq?, useYn? }` → 201 품종 행(`vrtyCd`는 서버가 매김, `sortSeq` 없으면 그 종 마지막 + 10), `PATCH /api/admin/breeds/{vrtySn}` `{ vrtyNm?, sortSeq?, useYn? }` → 200 품종 행 (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/breeds` 행)
 - 완료 조건: `features/adminBreed/api.js` 가짜를 실제 API로 바꿔 품종 목록·[품종 추가]·[수정]이 화면에서 동작한다. 이름 50자(가정 그대로), 같은 종 같은 이름(공백 무시) 409 `DUPLICATE_VRTY_NM`(가짜 그대로), 없는 품종은 가짜 `NOT_FOUND`가 아니라 404 `BREED_NOT_FOUND`, 모르는 종 코드·빈 이름·51자 400 `INVALID_INPUT_VALUE`. 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminBreed/api.js`(가짜 응답)
+- 완료 조건 결과: 검증 `통과`(2026-11-04 1회차), 사람 확인 2026-11-04
 
 ## SCR-ADM-050 펫뉴스 · 펫뉴스 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-050-01·02·03·05

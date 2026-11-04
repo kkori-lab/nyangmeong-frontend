@@ -2,11 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-ADM-051 약관 · 약관 API 연결 — 끝 (2026-11-04: 목록·이력·상세·새 버전 등록을 `/api/admin/terms` 실제 API로, 종류 키 `AGE_14`, 기능별 동의 2종 뺌, 400 칸별 오류, 검증 1회차 통과, 사람 확인)
+SCR-ADM-101 품종 · 품종 API 연결 — 끝 (2026-11-04: 목록·추가·수정을 `/api/admin/breeds` 실제 API로, 409·404 서버 문구, 400 칸별 오류, 검증 1회차 통과, 사람 확인)
 
 ## 다음에 할 것
 
-- 다음 추천(2026-11-04): `/start SCR-ADM-101`. 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 품종(101)·펫뉴스(050)·외부 API 사용량(112)·운영 설정(110)·발송 이력(091)·실종제보(021)·펫돌봄 거래(022)·노출 콘텐츠(023). 바로 아래 SCR-ADM-001 대시보드 연결은 백엔드 `/api/admin/dashboard`가 없어 막혀 있다
+- 다음 추천(2026-11-04): `/start SCR-ADM-050`. 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 펫뉴스(050)·외부 API 사용량(112)·운영 설정(110)·발송 이력(091)·실종제보(021)·펫돌봄 거래(022)·노출 콘텐츠(023). SCR-ADM-001 대시보드 연결은 백엔드 `/api/admin/dashboard`가 없어 막혀 있다
+- SCR-ADM-101 사람이 볼 것(판정 밖, 2026-11-04): ① 강아지 "확인용품종"(정렬 5) 등 로컬 DB 확인용 품종은 [수정]에서 사용을 끈다(삭제 API 없음) ② 400 `fields`에 `vrtyNm`·`sortSeq` 밖 칸만 오면 문구가 안 보인다(약관 폼과 같음)
 - SCR-ADM-001 연결 남음: FN-ADM-001-02·03 (백엔드 연결 `GET /api/admin/dashboard`(운영 현황 `totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs`·`recentPsts`, 처리 대기 `dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`, 가정 필드), 백엔드 저장소에서 /start). 나오면 `features/adminDashboard/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-001 연결 남음: FN-ADM-001-04·05 (백엔드 연결 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(`daily`[`ymd`·`joinCnt`·`whdwlCnt`·`aiChatCnt`·`ocrRqstCnt`]·`pstCntByBbs`·`expnsCntByCtgry`·`petDstrb`·`fvrtPlcs`, 가정 필드, 최대 90일), 백엔드 저장소에서 /start)
 - SCR-ADM-001 사람이 볼 것(판정 밖): ① 캐릭터 생성 실패 링크의 `jobSttsCd=TMP00044`는 SCR-ADM-082와 같은 임시 코드 ② 실패한 배치는 배치 화면에 실패 필터가 없어 필터 없이 간다 ③ 스켈레톤은 검증에서 코드로만 확인했다
@@ -31,7 +32,6 @@ SCR-ADM-051 약관 · 약관 API 연결 — 끝 (2026-11-04: 목록·이력·상
 - 대기 순서(사람 결정 2026-11-03): SCR-ADM-060 장소는 없앰(사람 결정 2026-11-04, 메뉴·`docs/routes.md` 행 삭제, 마일스톤 제외 절). 백엔드 `milestones/LJS.md`의 SCR-ADM-060 절도 백엔드 저장소에서 제외로 옮긴다. SCR-ADM-001 페이지 틀·조회 오류 정리는 남은 관리자 화면 구현 뒤 맨 마지막
 - SCR-ADM-051 사람이 볼 것(판정 밖): ① 같은 버전 값은 확인 모달을 누른 뒤에 막힌다 ② 로컬 DB `TRMS`의 `MARKETING`에 검증용 `v9.9-check`·`v9.9-verify`가 남아 있다(삭제 API 없음, 지우려면 두 행 삭제 후 `v1.0` 사용 여부를 되돌린다) ③ 기능별 동의 2종이 `TRMS`에 생기면 `termsKinds.js`에 다시 넣는다
 
-- SCR-ADM-101 연결 남음: FN-ADM-101-01 (백엔드 연결 `GET /api/admin/breeds?petSeCd=`·`POST /api/admin/breeds`·`PATCH /api/admin/breeds/{vrtySn}`(`useYn` 포함, 사용 안 함 품종도 목록에), 백엔드 저장소에서 /start). 나오면 `features/adminBreed/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-101 사람이 볼 것(판정 밖): ① 기능명세서 FN-ADM-101-02 지역 조회·화면설계서 SCR-ADM-101 지역 부분을 DMS에서 빼는 것은 문서 담당 몫(2026-11-03 결정) ② URL 변경(`docs/routes.md`·`routes/paths.js` `ADMIN_BREEDS`)은 `shared-files.md`상 따로 PR 대상이라 PR 본문에 팀 알림을 넣는다(2026-11-03 결정) ③ 옛 URL `/admin/breeds-regions` 리다이렉트는 두지 않았다 ④ 품종 이름 50자·중복 검사(공백 무시)는 가정
 
 - SCR-ADM-050 연결 남음: FN-ADM-050-01·02·03·05 (백엔드 연결 `GET /api/admin/news` 목록·출처·카테고리 필터·쪽, `POST /api/admin/news`·`PATCH /api/admin/news/{newsSn}`(관리자 등록 제목·요약·카테고리, 수집 기사 `useYn`·`newsClsfCd`)·썸네일 업로드 `atchFileSn`, `GET·POST /api/admin/news/keywords`·`DELETE /api/admin/news/keywords/{kwrdDictSn}`(KWRD_DICT 뉴스 분류 AIMC0039, 가정 필드 `kwrdDictSn`·`mpngCd`·`kwrdCn`·`sortSeq`), 백엔드 저장소에서 /start). 나오면 `features/adminNews/api.js` 가짜 본문만 실제 요청으로 바꾼다

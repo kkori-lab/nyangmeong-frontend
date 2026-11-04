@@ -74,9 +74,17 @@ export default function BreedFormModal({
   const update = useUpdateAdminBreed();
   const save = isEdit ? update : create;
 
-  const errors = isSubmitted
+  const clientErrors = isSubmitted
     ? validate({ vrtyNm, sortSeq, breeds, vrtySn: breed?.vrtySn })
     : {};
+  // 400 칸별 오류: 클라이언트 안내가 없는 칸에만 서버 문구
+  const serverFieldErrors = Object.fromEntries(
+    (save.error?.fields ?? []).map((item) => [item.field, item.message]),
+  );
+  const errors = {
+    vrtyNm: clientErrors.vrtyNm ?? serverFieldErrors.vrtyNm,
+    sortSeq: clientErrors.sortSeq ?? serverFieldErrors.sortSeq,
+  };
 
   const handleSaved = () => {
     showToast(isEdit ? '품종을 수정했어요' : '품종을 추가했어요');
@@ -205,7 +213,7 @@ export default function BreedFormModal({
           정렬 숫자가 작을수록 앞에 나오고, 사용을 끄면 회원 화면 품종 목록에서
           빠져요
         </p>
-        {save.isError && (
+        {save.isError && !save.error.fields && (
           <p role="alert" className="text-sm text-danger">
             {save.error.message}
           </p>
