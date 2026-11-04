@@ -1,6 +1,7 @@
-import { ChevronLeft, ChevronRight, Flag, Heart, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flag, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
+import Avatar from '@/components/Avatar';
 import ConfirmModal from '@/components/ConfirmModal';
 import PostBody from '@/components/PostBody';
 import ReportModal from '@/components/ReportModal';
@@ -47,12 +48,10 @@ export default function PostDetail({ post }) {
           </h2>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e7e7] pb-6 max-[760px]:pb-5">
             <p className="flex flex-wrap items-center gap-2 text-sm text-[#667374]">
-              <span
-                aria-hidden="true"
-                className="grid size-8 place-items-center rounded-full bg-[#e9f2f2] text-[#285a5c]"
-              >
-                <User size={18} />
-              </span>
+              <Avatar
+                src={publicFileUrl(post.mbrAtchFileSn)}
+                className="size-8"
+              />
               <b className="text-base leading-normal font-semibold text-[#1a3234]">
                 {post.mbrNcnm}
               </b>
@@ -85,7 +84,7 @@ export default function PostDetail({ post }) {
 
           <PostBody content={post.pstCn}>
             {post.imgs.length > 0 && (
-              <div className="mb-6 flex flex-col gap-3">
+              <div className="flex flex-col gap-3">
                 {post.imgs.map((img, index) => (
                   <img
                     key={img.atchFileSn}
