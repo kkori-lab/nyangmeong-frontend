@@ -44,11 +44,12 @@
 - 기다리는 것: 회원정보 수정 화면(SCR-MYP-040, SJM)의 탈퇴 진입 버튼
 - 완료 조건: "정말로 탈퇴하겠습니다."가 완전히 같을 때만 탈퇴하기가 켜지고, 완료 뒤 랜딩으로 간다
 
-## SCR-HOS-001 플레이스 — 대기
+## SCR-HOS-001 플레이스 — 끝
 - 기능: FN-HOS-001-33 로그인 필수 접근, FN-HOS-001-01 카테고리 탭, FN-HOS-001-03 지역·상호명·키워드 검색, FN-HOS-001-04 검색창 검색 버튼, FN-HOS-001-05 검색창 검색 결과 지도, FN-HOS-001-06 정렬 선택, FN-HOS-001-07 병원 결과 카드, FN-HOS-001-08 병원명, FN-HOS-001-09 즐겨찾기 저장·해제, FN-HOS-001-10 지도 핀, FN-HOS-001-11 지도 도구·이동, FN-HOS-001-29 즐겨찾기 고정 영역, FN-HOS-001-30 검색 결과 영역, FN-HOS-001-15 이동한 지도 영역, FN-HOS-001-16 이 지도 영역에서 다시 검색, FN-HOS-001-17 즐겨찾기, FN-HOS-001-31 이전 검색 결과, FN-HOS-001-18 재검색 지도 영역, FN-HOS-001-20 검색 결과 핀, FN-HOS-001-32 즐겨찾기(재검색 결과), FN-HOS-001-19 새 지도 범위의 검색 결과, FN-HOS-001-21 선택 병원 카드, FN-HOS-001-22 선택 병원명, FN-HOS-001-23 즐겨찾기 저장·해제(핀 선택), FN-HOS-001-24 선택 핀, FN-HOS-001-25 지도 요약 카드, FN-HOS-001-26 카카오맵 상세보기, FN-HOS-001-27 길찾기, FN-HOS-001-28 지도 도구·이동(핀 선택), FN-PLC-001-01 미용 탭·대상 데이터(화면은 SCR-PLC-001), FN-PLC-002-01 용품 탭·오프라인 매장 범위(화면은 SCR-PLC-002), FN-PLC-003-01 동반 탭·대상 데이터(화면은 SCR-PLC-003), FN-PLC-004-01 호텔 탭·정보 조회 범위(화면은 SCR-PLC-004)
 - 이미 만든 것: `features/place/`, `pages/place/PlacePage.jsx`(`/places`). 기능명세서 대조·`/end` 기록 없음
 - 기다리는 것: 장소 검색·즐겨찾기 API(YAY 백엔드 SCR-HOS-001, 대기), 카카오 지도 키(팀)
 - 완료 조건: 키워드로 검색하면 핀과 결과 카드가 같은 업체로 이어지고, 지도를 옮기면 "이 지도 영역에서 다시 검색"이 나온다. 즐겨찾기는 재검색해도 위에 남는다
+- 끝남: FN-HOS-001-33 승인 2026-11-04 16:10, 검증 통과, 사람 확인 2026-11-04. 나머지 기능 ID(FN-HOS-001-01~32, FN-PLC-001~004-01)는 "장소 검색·즐겨찾기 API 연결" 절에서 통과(사람 확인 2026-11-03). 명세 확인 필요(「전체」 탭, 즐겨찾기 실패 안내 기준)는 미정
 
 ## SCR-MAN-001 메인페이지 — 대기
 - 기능: FN-MAN-001 히어로 반려동물 캐릭터 노출, FN-MAN-002 AI매니저 검색바 진입 · 확장형 대화창 전환, FN-MAN-003 반려동물 프로필 요약 노출, FN-MAN-004 반려동물 선택 탭 전환, FN-MAN-005 건강 대시보드 기준일·업데이트 시각 표시, FN-MAN-006 건강 지표 위젯 노출, FN-MAN-007 건강 지표 위젯 순서 조정, FN-MAN-008 건강 지표 위젯 전체 보기 이동, FN-MAN-009 데일리 케어미션 미리보기 노출
@@ -96,7 +97,7 @@
 - 기다리는 것: 이 백엔드 작업(YAY SCR-HOS-001)의 PR 병합, 공유 `application.properties`의 `app.kakao-local.*`(키가 없으면 가짜 업체)
 - 완료 조건: 실제 서버로 병원 탭을 검색하면 카카오 업체가 카드·핀으로 나오고, 지도를 옮겨 재검색하면 새 범위 결과로 바뀐다. 별을 누르면 상단 즐겨찾기에 바로 들어오고 다시 누르면 빠진다
 - 끝남: 승인 2026-11-03, 검증 통과, 사람 확인 2026-11-03. 결과 카드·병원명·상세보기는 문서대로 카카오맵 상세 새 탭(지도 선택은 핀만)
-- 연결 남음: FN-HOS-001-33 (`routes/AppRoutes.jsx`의 `bare`+`member` 조립 별도 PR 뒤 `placeRoutes.js`를 `auth: 'member'`로, YAY)
+- 연결 끝: FN-HOS-001-33 (2026-11-04, SCR-HOS-001 플레이스 절)
 
 ## SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 대기
 - 백엔드 끝: SNS 로그인 `POST /auth/sns-login`(`snsOffrCd` USRC0007 네이버·0008 카카오·0009 구글, `code`, `state`(네이버 필수) → `snsLoginRslt` `LOGIN`(쿠키 발급, `ncnmReguide`·`mbrNcnm`) / `SIGNUP_REQUIRED`(`snsOffrCd`·`acntEml`·`mblTelno`·`ageCnfrmd`·`signupTkn`) / `EMAIL_DUPLICATE`(`acntEml`) / `RECOVERY_AVAILABLE`(`acntEml`)), SNS 가입 `POST /members`(`joinPathCd`=제공자, `signupTkn`, `mblTelno`, `trmsAgres`, `pswd`·`emlCertSn`·`certNo` 보내면 400) (백엔드 SCR-ACC-002 SNS 로그인 절의 "프론트 연결")

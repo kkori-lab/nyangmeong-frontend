@@ -22,7 +22,10 @@ const routes = [
   {
     /** 로그인 확인이 끝난 뒤에만 헤더·본문을 그린다(확인 중에는 스켈레톤) */
     element: <ProtectedRoute />,
-    children: [{ element: <UserLayout />, children: pick('user', 'member') }],
+    children: [
+      { element: <UserLayout />, children: pick('user', 'member') },
+      ...pick('bare', 'member'),
+    ],
   },
   ...pick('bare', 'public'),
   {
