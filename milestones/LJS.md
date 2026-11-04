@@ -597,10 +597,12 @@
 - 연결 남음: FN-ADM-082-02 (백엔드 연결 `GET /api/admin/processing/character-jobs`·CHAR_CRT_JOB 상태 공통코드, 백엔드 저장소에서 /start)
 - 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses`·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
 
-## SCR-ADM-001 대시보드 — 대기
+## SCR-ADM-001 대시보드 — 끝
 - 기능: FN-ADM-001-02 운영 현황 조회, FN-ADM-001-03 처리 대기 건수, FN-ADM-001-04 이용 통계 조회, FN-ADM-001-05 통계 기간 선택
 - 기다리는 것: `/api/admin/dashboard` (LJS 백엔드). 없으면 가짜 응답
 - 완료 조건: 운영 현황·처리 대기 건수·이용 통계가 보이고 처리 대기 건수를 누르면 필터를 건 관리 화면으로 간다
+- 연결 남음: FN-ADM-001-02·03 (백엔드 연결 `GET /api/admin/dashboard`, 백엔드 저장소에서 /start)
+- 연결 남음: FN-ADM-001-04·05 (백엔드 연결 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-111 배치 현황 · 배치 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(연결 작업). 걸치는 기능 FN-ADM-111-01 배치 목록 조회, FN-ADM-111-02 실행 이력 조회, FN-ADM-111-03 수동 실행
