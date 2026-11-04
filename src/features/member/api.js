@@ -6,12 +6,10 @@ export const getMe = () => api.get('/auth/me', { skipAuthRedirect: true });
 export const logout = () => api.post('/auth/logout');
 
 /**
- * [회원정보 수정 가짜 API]
- * - 회원 조회·수정 API(AIC) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
- * - 미확정 키: acntEml·mbrNcnm·mbrTelno·prflImgUrl·snsTyCd·dplctYn·mbrJoinPathCd·mbrRegDt·mbrLastLgnDt
- * - 주소에 ?fake=sns 가 있으면 소셜 로그인 회원으로 처리
- * - 비밀번호에 wrong 을 넣으면 실패, 닉네임 초코맘2·관리자와 번호 01099998888은 중복,
- *   번호 01000000000은 조회 실패
+ * [회원정보 수정]
+ * - 조회·본인 확인·비밀번호 변경은 실제 API
+ * - 아래 닉네임·휴대폰·사진은 아직 가짜(해당 API 연결 마일스톤에서 교체):
+ *   닉네임 초코맘2·관리자와 번호 01099998888은 중복, 번호 01000000000은 조회 실패
  */
 const FAKE_DELAY_MS = 200;
 const DUP_NICKNAMES = ['초코맘2', '관리자'];
@@ -19,16 +17,10 @@ const DUP_PHONES = ['01099998888'];
 const FAIL_PHONE = '01000000000';
 
 const profile = {
-  acntEml: 'chocomom@example.com',
   mbrNcnm: '초코맘',
   mbrTelno: '01012345678',
   prflImgUrl: null,
-  mbrRegDt: '2026-08-14 09:12:00',
-  mbrLastLgnDt: '2026-10-21 10:42:00',
 };
-
-const isFakeSns = () =>
-  new URLSearchParams(window.location.search).get('fake') === 'sns';
 
 const wait = (result) =>
   new Promise((resolve) => setTimeout(() => resolve(result), FAKE_DELAY_MS));
@@ -38,15 +30,12 @@ const fail = (code) =>
     throw Object.assign(new Error(code), { code });
   });
 
-export const getMyProfile = () =>
-  wait({
-    ...profile,
-    snsTyCd: isFakeSns() ? 'USRC0008' : null,
-    mbrJoinPathCd: isFakeSns() ? 'KAKAO' : 'EMAIL',
-  });
+/** 응답 { acntEml, mbrNcnm, mblTelno, atchFileSn, joinPathCd, snsAcntLinks, joinDt, lastLgnDt } */
+export const getMyProfile = () => api.get('/members/me');
 
+/** 본인 확인. 틀리면 CURRENT_PASSWORD_MISMATCH, SNS 전용 회원은 SNS_ONLY_MEMBER */
 export const verifyPassword = ({ pswd }) =>
-  pswd === 'wrong' ? fail('MISMATCH') : wait();
+  api.post('/members/me/password-verification', { pswd });
 
 export const updateProfileImage = ({ file }) => {
   profile.prflImgUrl = file ? URL.createObjectURL(file) : null;
@@ -73,8 +62,9 @@ export const updatePhone = ({ mbrTelno }) => {
   return wait();
 };
 
-export const updatePassword = ({ curPswd }) =>
-  curPswd === 'wrong' ? fail('MISMATCH') : wait();
+/** 오류: CURRENT_PASSWORD_MISMATCH · PASSWORD_MISMATCH · INVALID_INPUT_VALUE(fields에 pswd) */
+export const updatePassword = ({ currentPswd, pswd, pswdCnfrm }) =>
+  api.patch('/members/me/password', { currentPswd, pswd, pswdCnfrm });
 
 /** 실패 횟수·보안코드 요구 상태. 기록 없는 아이디도 false·0이라 가입 여부 비노출 */
 export const getLoginStatus = ({ acntEml }) =>
