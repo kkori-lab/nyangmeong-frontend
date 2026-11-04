@@ -39,6 +39,8 @@ const TIME_OPTIONS = (placeholder) => [
   ...CARE_TIMES.map((time) => ({ value: time, label: time })),
 ];
 
+const REGION_ERROR_CODE = 'CARE_REGION_NOT_ALLOWED';
+
 const snapshot = (values) =>
   JSON.stringify({
     ...values,
@@ -77,7 +79,7 @@ function BreedField({ petSeCd, label, value, error, onChange }) {
   return (
     <BreedCombobox
       label={label}
-      breeds={breeds}
+      breeds={breeds.map((row) => row.vrtyNm)}
       value={value}
       error={error}
       onChange={onChange}
@@ -127,18 +129,30 @@ export default function CareForm({
   mode,
   cancelTo,
   isPending,
-  errorMessage,
+  submitError,
   onSubmit,
   onLeave,
   onDirtyChange,
 }) {
+  const { data: dogBreeds = [] } = useBreeds(PET_SE.DOG);
+  const { data: catBreeds = [] } = useBreeds(PET_SE.CAT);
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState({});
   const [isPlaceOpen, setIsPlaceOpen] = useState(false);
+  /** 장소를 다시 고르면 그때의 서버 오류는 장소 칸에서 지운다 */
+  const [placeSeenError, setPlaceSeenError] = useState(null);
   const [initialSnap] = useState(() => snapshot(initial));
   const formRef = useRef(null);
 
   const isEdit = mode === 'edit';
+  /** 전북 밖 좌표는 서버 메시지를 장소 칸에, 그 밖의 서버 오류는 폼 아래에 */
+  const isRegionError = submitError?.code === REGION_ERROR_CODE;
+  const placeError =
+    errors.place ||
+    (isRegionError && submitError !== placeSeenError
+      ? submitError.message
+      : '');
+  const errorMessage = !isRegionError && submitError?.message;
   const isDirty = snapshot(values) !== initialSnap;
 
   useEffect(() => {
@@ -215,31 +229,36 @@ export default function CareForm({
     if (isPending) return;
     const { place } = values;
     const hasWhen = Boolean(values.fromDate);
-    const kindOf = (petSeCd, breed, petSizeCd) => ({
+    const kindOf = (petSeCd, breeds, breed, petSizeCd) => ({
       petSeCd,
       petSizeCd,
-      vrtyNm: breed.vrtyNm,
+      vrtySn: breeds.find((row) => row.vrtyNm === breed.vrtyNm)?.vrtySn ?? null,
       vrtyDrctInptNm: breed.vrtyDrctInptNm?.trim() ?? null,
     });
     onSubmit({
-      petKnds: [
+      pets: [
         ...(values.dog
-          ? [kindOf(PET_SE.DOG, values.dogBreed, values.dogSizeCd)]
+          ? [kindOf(PET_SE.DOG, dogBreeds, values.dogBreed, values.dogSizeCd)]
           : []),
-        ...(values.cat ? [kindOf(PET_SE.CAT, values.catBreed, null)] : []),
+        ...(values.cat
+          ? [kindOf(PET_SE.CAT, catBreeds, values.catBreed, null)]
+          : []),
       ],
       prtcShpCds: values.shapes,
       cstUnitCd: values.cstUnitCd,
       cstAmt: Number(values.amount),
-      prtcBgngDt: hasWhen ? `${values.fromDate} ${values.fromTime}:00` : null,
-      prtcEndDt: hasWhen ? `${values.toDate} ${values.toTime}:00` : null,
-      schdlCnsltnPsbltyYn: values.nego ? 'Y' : 'N',
+      prtcBgngDt: hasWhen ? `${values.fromDate}T${values.fromTime}:00` : null,
+      prtcEndDt: hasWhen ? `${values.toDate}T${values.toTime}:00` : null,
+      schdlCnsltnPsbltyYn: values.nego,
       pstTtl: values.title.trim(),
       pstCn: values.body.trim(),
-      atchFiles: values.images,
-      sggNm: place.sggNm,
-      emdNm: place.emdNm,
-      rlsRgnNm: `${place.emdNm} 인근`,
+      images: values.images
+        .filter((image) => image.file)
+        .map((image) => image.file),
+      keepAtchFileSns: values.images
+        .filter((image) => !image.file)
+        .map((image) => image.atchFileSn),
+      rlsRgnNm: [place.sggNm, place.emdNm].filter(Boolean).join(' '),
       ...(place.wtnsPlcLat == null
         ? {}
         : {
@@ -251,7 +270,7 @@ export default function CareForm({
   };
 
   const placeText = values.place
-    ? `전북 ${values.place.sggNm} ${values.place.emdNm} 인근`
+    ? `전북 ${[values.place.sggNm, values.place.emdNm].filter(Boolean).join(' ')} 인근`
     : '아직 고르지 않았어요';
 
   return (
@@ -569,7 +588,7 @@ export default function CareForm({
                   tabIndex={-1}
                   aria-labelledby="care-place-label"
                   onClick={() => setIsPlaceOpen(true)}
-                  className={`flex min-h-10 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-md border bg-surface-2 px-3 text-left hover:border-line-strong ${errors.place ? 'border-danger' : 'border-input-line'} ${values.place ? 'text-ink' : 'text-muted'}`}
+                  className={`flex min-h-10 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-md border bg-surface-2 px-3 text-left hover:border-line-strong ${placeError ? 'border-danger' : 'border-input-line'} ${values.place ? 'text-ink' : 'text-muted'}`}
                 >
                   <MapPin
                     size={16}
@@ -580,7 +599,7 @@ export default function CareForm({
                 </button>
                 <button
                   type="button"
-                  data-invalid={Boolean(errors.place)}
+                  data-invalid={Boolean(placeError)}
                   onClick={() => setIsPlaceOpen(true)}
                   className={`${BTN_SECONDARY} shrink-0`}
                 >
@@ -590,16 +609,17 @@ export default function CareForm({
               {values.place && (
                 <CareAreaMap
                   place={values.place}
-                  onMove={(next) =>
-                    set({ place: { ...values.place, ...next } })
-                  }
+                  onMove={(next) => {
+                    set({ place: { ...values.place, ...next } });
+                    setPlaceSeenError(submitError);
+                  }}
                 />
               )}
               <p className="text-sm text-muted">
                 개인정보 보호를 위해 게시글에는 동네까지만 보여요. 상세 주소는
                 채팅의 주소 공유로 전해 주세요.
               </p>
-              <FieldError message={errors.place} />
+              <FieldError message={placeError} />
             </div>
 
             <div
@@ -667,6 +687,7 @@ export default function CareForm({
           guide="돌봄 장소 근처의 장소나 동 이름 검색"
           onSelect={(place) => {
             set({ place }, ['place']);
+            setPlaceSeenError(submitError);
             setIsPlaceOpen(false);
           }}
           onClose={() => setIsPlaceOpen(false)}

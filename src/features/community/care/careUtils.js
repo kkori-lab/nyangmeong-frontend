@@ -4,6 +4,7 @@ import {
   getWeekdayIndex,
   WEEKDAYS,
 } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { PET_SE } from '@/utils/petCodes';
 import {
   CST_UNIT,
@@ -13,8 +14,14 @@ import {
 } from '../careCodes';
 
 /** 지역 표시: 「완산구 서곡동」처럼 전주시는 구부터 */
-export const formatArea = (post) =>
-  `${post.sggNm.replace('전주시 ', '')} ${post.emdNm}`;
+export const formatArea = (post) => post.rlsRgnNm.replace('전주시 ', '');
+
+/** 공개 동네명 「전주시 완산구 서곡동」 → { sggNm: '전주시 완산구', emdNm: '서곡동' }. 한 단어면 시·군·구만 */
+export const splitRegion = (rlsRgnNm) => {
+  const words = rlsRgnNm.split(' ');
+  if (words.length === 1) return { sggNm: rlsRgnNm, emdNm: '' };
+  return { sggNm: words.slice(0, -1).join(' '), emdNm: words.at(-1) };
+};
 
 const hm = (dateTime) => dateTime.slice(11, 16);
 
@@ -39,7 +46,7 @@ export const formatScheduleDetail = (post) => {
   const time = `${hm(post.prtcBgngDt)} ~ ${hm(post.prtcEndDt)}`;
   return {
     date,
-    time: post.schdlCnsltnPsbltyYn === 'Y' ? `${time} · 일정 협의 가능` : time,
+    time: post.schdlCnsltnPsbltyYn ? `${time} · 일정 협의 가능` : time,
   };
 };
 
@@ -48,7 +55,7 @@ export const getShapeNames = (post) => post.prtcShpCds.map(getShapeName);
 
 /** 상세 반려동물 줄: 「강아지 · 몰티즈 · 소형견」 여러 마리면 줄바꿈 */
 export const formatPetKinds = (post) =>
-  post.petKnds.map((kind) => {
+  post.pets.map((kind) => {
     const species = kind.petSeCd === PET_SE.CAT ? '고양이' : '강아지';
     return [species, getBreedName(kind), getSizeName(kind.petSizeCd)]
       .filter(Boolean)
@@ -89,13 +96,13 @@ export const EMPTY_FORM = {
 
 /** 서버 글 → 폼 값. 정확한 좌표는 응답에 없어 장소는 동네만 채우고, 다시 고르지 않으면 유지. 동의는 수정할 때도 재체크 */
 export const toFormValues = (post) => {
-  const dogKind = post.petKnds.find((kind) => kind.petSeCd === PET_SE.DOG);
-  const catKind = post.petKnds.find((kind) => kind.petSeCd === PET_SE.CAT);
+  const dogKind = post.pets.find((kind) => kind.petSeCd === PET_SE.DOG);
+  const catKind = post.pets.find((kind) => kind.petSeCd === PET_SE.CAT);
   const breedOf = (kind) =>
     kind
       ? {
-          vrtyNm: kind.vrtyNm,
-          vrtyDrctInptNm: kind.vrtyDrctInptNm,
+          vrtyNm: kind.vrtySn == null ? null : kind.vrtyNm,
+          vrtyDrctInptNm: kind.vrtySn == null ? kind.vrtyNm : null,
           typed: '',
         }
       : emptyBreed();
@@ -110,13 +117,18 @@ export const toFormValues = (post) => {
     fromTime: post.prtcBgngDt?.slice(11, 16) ?? '',
     toDate: post.prtcEndDt?.slice(0, 10) ?? '',
     toTime: post.prtcEndDt?.slice(11, 16) ?? '',
-    nego: post.schdlCnsltnPsbltyYn === 'Y',
+    nego: post.schdlCnsltnPsbltyYn,
     cstUnitCd: post.cstUnitCd,
     amount: String(post.cstAmt),
     title: post.pstTtl,
     body: post.pstCn,
-    images: post.atchFiles,
-    place: { sggNm: post.sggNm, emdNm: post.emdNm },
+    images: post.imgs.map(({ atchFileSn }, index) => ({
+      id: `file-${atchFileSn}`,
+      atchFileSn,
+      name: `첨부 이미지 ${index + 1}`,
+      url: publicFileUrl(atchFileSn),
+    })),
+    place: splitRegion(post.rlsRgnNm),
     agree: false,
   };
 };

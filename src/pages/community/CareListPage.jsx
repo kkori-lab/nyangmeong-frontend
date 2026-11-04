@@ -2,13 +2,10 @@ import { useSearchParams } from 'react-router-dom';
 import {
   PET_FILTERS,
   PET_SE_BY_FILTER,
-  REGION_OPTIONS,
   SIZE_BY_FILTER,
   SIZE_FILTERS,
   STATUS_TABS,
   STTS_BY_TAB,
-  DONG_BY_REGION,
-  hasDong,
 } from '@/features/community/careCodes';
 import { useCareList } from '@/features/community/careQueries';
 import CareList from '@/features/community/care/CareList';
@@ -30,11 +27,13 @@ export default function CareListPage() {
   const page = Number(searchParams.get('page')) || 1;
   const stts = pick(searchParams.get('stts'), STATUS_TABS);
   const mine = searchParams.get('mine') === '1';
-  const region = pick(searchParams.get('rgn'), REGION_OPTIONS);
-  const dongParam = searchParams.get('dong') ?? '';
+  /** 지역은 지역 번호(rgnSn). 숫자가 아니면 전체 */
+  const region = /^\d+$/.test(searchParams.get('rgn') ?? '')
+    ? searchParams.get('rgn')
+    : '';
   const dong =
-    hasDong(region) && DONG_BY_REGION[region].includes(dongParam)
-      ? dongParam
+    region && /^\d+$/.test(searchParams.get('dong') ?? '')
+      ? searchParams.get('dong')
       : '';
   const from = pickDate(searchParams.get('from'));
   const to = pickDate(searchParams.get('to'));
@@ -52,9 +51,8 @@ export default function CareListPage() {
     page,
     size: PAGE_SIZE,
     rcrtSttsCd: STTS_BY_TAB[stts] ?? '',
-    mineOnly: mine,
-    sggNm: region,
-    emdNm: dong,
+    mineYn: mine,
+    rgnSn: dong || region,
     fromDate: from,
     toDate: to,
     petSeCd: PET_SE_BY_FILTER[pet] ?? '',
