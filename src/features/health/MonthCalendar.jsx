@@ -169,12 +169,8 @@ export default function MonthCalendar({
                   key={schedule.schdlSn}
                   title={`${schedule.petNm} · ${getScheduleKindName(schedule)}`}
                   className={`block truncate rounded-[4px] px-1 text-[13px] leading-tight font-semibold max-[760px]:hidden ${
-                    isPast ? 'opacity-60' : ''
-                  }`}
-                  style={{
-                    backgroundColor: getScheduleTone(schedule).bg,
-                    color: getScheduleTone(schedule).fg,
-                  }}
+                    getScheduleTone(schedule).chip
+                  } ${isPast ? 'opacity-60' : ''}`}
                 >
                   <span className="block truncate">{schedule.petNm}</span>
                   <span className="block truncate">
@@ -188,10 +184,9 @@ export default function MonthCalendar({
                   aria-hidden="true"
                   className={`hidden h-[5px] rounded-[3px] max-[760px]:block ${
                     daySchedules.length > 1 ? 'w-3.5' : 'w-[5px]'
-                  } ${isPast ? 'opacity-60' : ''}`}
-                  style={{
-                    backgroundColor: getScheduleTone(daySchedules[0]).fg,
-                  }}
+                  } ${getScheduleTone(daySchedules[0]).bar} ${
+                    isPast ? 'opacity-60' : ''
+                  }`}
                 />
               )}
             </button>
