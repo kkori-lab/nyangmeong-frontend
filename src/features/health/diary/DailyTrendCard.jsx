@@ -11,7 +11,7 @@ import {
   findRecordType,
   findStoolState,
 } from '../diaryTypes';
-import { useDailyTrend } from '../queries';
+import { useDailyTrend, usePetDetail } from '../queries';
 import BarChart from './BarChart';
 import CountBars from './CountBars';
 import EmptyBox from './EmptyBox';
@@ -34,6 +34,8 @@ export default function DailyTrendCard({ pet, onAddRecord }) {
   const [typeCd, setTypeCd] = useState(WEIGHT);
   const type = findRecordType(typeCd);
   const trend = useDailyTrend(pet.petSn, typeCd);
+  /** 목표체중은 목록(GET /pets)에 없어 상세로 받는다. 실패하거나 오기 전이면 목표선 없이 그린다 */
+  const { data: petDetail } = usePetDetail(pet.petSn, typeCd === WEIGHT);
   const isPc = useMediaQuery('(min-width: 761px)');
   const rowRef = useRef(null);
   /** 줄 끝에 걸쳐 일부만 보이는 탭(모바일 가로 밀기) */
@@ -100,6 +102,7 @@ export default function DailyTrendCard({ pet, onAddRecord }) {
 
       <TrendBody
         pet={pet}
+        goalBdwg={petDetail?.goalBdwg}
         trend={trend}
         type={type}
         isPc={isPc}
@@ -109,7 +112,7 @@ export default function DailyTrendCard({ pet, onAddRecord }) {
   );
 }
 
-function TrendBody({ pet, trend, type, isPc, onAddRecord }) {
+function TrendBody({ pet, goalBdwg, trend, type, isPc, onAddRecord }) {
   const emptyBox = (
     <EmptyBox
       icon="monitoring"
@@ -192,11 +195,11 @@ function TrendBody({ pet, trend, type, isPc, onAddRecord }) {
     <LineChart
       points={chartPoints}
       band={
-        isWeight && pet.nrmlWghtMinVal != null && pet.nrmlWghtMaxVal != null
-          ? [pet.nrmlWghtMinVal, pet.nrmlWghtMaxVal]
+        isWeight && pet.minBdwg != null && pet.maxBdwg != null
+          ? [pet.minBdwg, pet.maxBdwg]
           : undefined
       }
-      goal={isWeight ? pet.goalWghtVal : undefined}
+      goal={isWeight ? goalBdwg : undefined}
       formatValue={(value) => formatAmount(type.cd, value)}
       formatTag={(value) => value.toFixed(1)}
       isLeftColumn={!isPc}
