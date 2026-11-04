@@ -2,7 +2,30 @@
 
 ## 지금 하는 것
 
-SCR-ADM-082 처리 현황 — 끝 (2026-11-04, 검증 1회 `통과`, 사람 확인). `/admin/processing`에 3탭(영수증 OCR·캐릭터 생성·검사결과지 분석) 건수 카드·필터·목록·영수증 원본 모달을 가짜 응답으로 만들었다(`features/adminProcessing`, `AdminProcessingPage.jsx`)
+SCR-ADM-001 대시보드 — 진행 (시작 2026-11-04). 기획 승인 전
+
+기준: 관리자_기능명세서_v0.4_20261101, 관리자_화면설계서_v0.3_20261101 (DMS)
+디자인: 없음(Figma 토큰 없음, `html/`에 SCR-ADM-001 파일 없음)
+질문: 디자인 파일이 없습니다. 디자인 HTML 경로를 알려 주시면 `html/SCR-ADM-001.html`로 복사해 씁니다. AI가 초안을 만들거나 화면설계서 기준으로 갈 수도 있습니다. (추천: 이전 관리자 화면처럼 화면설계서 기준 + 기존 관리자 화면 스타일)
+질문: 직접 입력 기간의 최대 길이 (추천: 90일, 넘으면 조회 버튼을 막고 칸 아래 오류)
+제외: FN-ADM-001-01 관리자 접근 제어(SCR-ADM-110·COM-003에서 이미 끝, 서버 403·역할별 홈·`AdminForbidden`)
+
+가짜 응답: `features/adminDashboard/api.js` 본문만 가짜(나중에 실제 요청으로). 가정 API `GET /api/admin/dashboard`(운영 현황·처리 대기, 기간 무관)·`GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(이용 통계). 백엔드 연결: 두 API와 응답 필드 (백엔드 저장소에서 /start)
+
+- FN-ADM-001-02 운영 현황: `features/adminDashboard/{api.js,queries.js,OverviewSection.jsx}`, `pages/admin/AdminHomePage.jsx`. 카드 4개(전체 회원 `totMbrCnt`(정상 `nrmlMbrCnt`·정지 `stopMbrCnt`)·오늘 가입·최근 7일 가입·전체 게시글, 가정 필드) + 최근 가입 회원 5명 표(닉네임·가입일, 행 → `ADMIN_MEMBER_DETAIL`) + 최근 게시글 5건 표(게시판·제목·작성일, 행 → `ADMIN_POST_DETAIL`). 백엔드 연결: `GET /api/admin/dashboard` (백엔드 저장소에서 /start)
+  - 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0
+  - 화면: `/admin`에 카드 4개와 표 2개가 가짜 값으로 보이고, 회원 행·게시글 행을 누르면 각 상세 URL로 간다. 불러오는 중 스켈레톤, 조회 오류 문구, 403이면 `AdminForbidden`
+- FN-ADM-001-03 처리 대기: `features/adminDashboard/PendingSection.jsx`, 링크 대상은 `pages/admin/AdminHomePage.jsx`에서 각 도메인 코드로 만들어 넘긴다(features끼리 import 안 함). 6칸: 접수 신고 → `/admin/reports?status=CMUC0015`, 미답변 문의 → `/admin/inquiries?inqryPrcsSttsCd=CSCC0012`(픽셀 캐릭터 건수는 따로 표시, 누르면 `&inqryTypeCd=CSCC0006`), 캐릭터 생성 실패 → `/admin/processing?tab=character&jobSttsCd=TMP00044`(임시 코드), OCR 인식 실패 → `/admin/processing?tab=ocr&ocrPrcsSttsCd=AIMC0004`, 알림 발송 실패(24시간) → `/admin/notification-logs?sndngRsltCd=AIMC0019&fromYmd=<어제>&toYmd=<오늘>`, 실패한 배치 → `/admin/batches`(배치 화면에 실패 필터가 없어 필터 없이). 0이면 숫자 0, 링크 없음. 백엔드 연결: 같은 API의 대기 건수 필드 (백엔드 저장소에서 /start)
+  - 명령: 위와 같음
+  - 화면: 6칸 숫자가 보이고 0이 아닌 칸을 누르면 위 URL로 가서 그 화면 필터가 걸려 있다. 0인 칸은 눌러도 이동하지 않는다
+- FN-ADM-001-04 이용 통계: `features/adminDashboard/StatsSection.jsx`, `components/CurveChart.jsx`(선택 prop `labelEvery` 추가, 기본 1이라 기존 사용처 그대로. 30일일 때 5일 간격만 글자), 공통 `components/BarChart.jsx`. 카드 5개: 일별 가입·탈퇴(선 그래프 2개), 게시판별 게시글(막대), AI 대화·OCR 요청(선 그래프 2개), 가계부 카테고리별 지출 건수(막대), 종·품종 분포 표 + 즐겨찾기 상위 장소 표(5곳). 건수만, 내용 없음. 데이터 0건이면 "기간 안에 데이터가 없어요". 백엔드 연결: `GET /api/admin/dashboard/stats` (백엔드 저장소에서 /start)
+  - 명령: 위와 같음
+  - 화면: 그래프 4종과 표 2개가 가짜 값으로 보이고 1440·390 폭에서 페이지 가로 스크롤이 없다
+- FN-ADM-001-05 통계 기간 선택: `features/adminDashboard/PeriodPicker.jsx`, 기간은 URL `?period=7|30|custom&fromYmd=&toYmd=`. 기본 최근 7일. 직접 입력은 시작~종료일 칸 + [조회], 시작 > 종료 또는 90일 초과면 오류 문구로 막는다. 이용 통계에만 적용
+  - 명령: 위와 같음
+  - 화면: 7일↔30일을 바꾸면 그래프 점 개수가 7↔30으로 바뀌고 운영 현황·처리 대기 값은 그대로다. 직접 입력에서 잘못된 기간은 오류가 보이고 조회되지 않는다. 새로고침해도 고른 기간이 남는다
+
+새 의존성: 없음
 
 ## 다음에 할 것
 
