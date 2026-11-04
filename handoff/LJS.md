@@ -2,7 +2,18 @@
 
 ## 지금 하는 것
 
-SCR-ADM-101 품종 · 품종 API 연결 — 끝 (2026-11-04: 목록·추가·수정을 `/api/admin/breeds` 실제 API로, 409·404 서버 문구, 400 칸별 오류, 검증 1회차 통과, 사람 확인)
+SCR-ADM-050 펫뉴스 · 펫뉴스 API 연결 — 진행 (시작 2026-11-04, 기획 승인 전)
+
+기획:
+- 기준: 관리자_기능명세서_v0.4_20261101(FN-ADM-050-01·02·03·05), 계약은 백엔드 `docs/api/community.md` `/admin/news` 행(develop). 디자인: 이미 만든 화면 그대로(SCR-ADM-050 펫뉴스 끝, 화면설계서 기준 + 기존 관리자 스타일). 화면 모양은 바꾸지 않는다
+- FN-ADM-050-01 뉴스 목록: `features/adminNews/api.js` `getAdminNewsList` → `GET /api/admin/news?newsSrcCd=&newsClsfCd=&page=&size=`(숨긴 기사 포함, 등록 최신순, `PageResponse`). `newsLabels.js` `getSourceLabel`의 수집 기사 언론사 없을 때 대체 문구를 응답 `newsSrcCdNm`으로. 완료 조건 `명령:` `yarn -s lint`·`yarn -s build` 0, `화면:` 관리자 로그인 → `/admin/news`에 실제 DB 뉴스가 나오고 출처·카테고리 필터와 쪽 이동이 목록을 바꾼다
+- FN-ADM-050-02 관리자 뉴스 등록·수정: `api.js`에 `uploadAdminNewsImage`(`POST /api/admin/news/images`, form-data `image` → `{ atchFileSn }`) 추가, `createAdminNews`·`updateAdminNews`는 썸네일 파일이 있으면 먼저 올리고 받은 `atchFileSn`을 `POST /api/admin/news` `{ newsTtl, newsCn, newsClsfCd, atchFileSn }`·`PATCH /api/admin/news/{newsSn}` 본문에 넣는다. `AdminNewsFormModal.jsx`: 수정 미리보기를 `thmbUrlPath` 대신 관리자 기사 `publicFileUrl(atchFileSn)`(`utils/fileUrl`)로, 400 `fields`(`newsTtl`·`newsCn`·`newsClsfCd`)는 클라이언트 안내가 없는 칸 아래 서버 문구(`BreedFormModal` 방식), 그 밖 오류(404 `NEWS_NOT_FOUND`·업로드 실패)는 폼 아래 서버 문구. 완료 조건 `화면:` 썸네일을 고르고 등록하면 목록 맨 위에 "관리자 등록"으로 나오고, [수정]을 열면 올린 썸네일이 보이며 제목·요약·카테고리·썸네일 수정이 목록과 새로고침 뒤에도 남는다
+- FN-ADM-050-03 수집 기사 관리: `updateAdminNews`의 `{ useYn }`·`{ newsClsfCd }`만 보내는 PATCH(코드는 위 줄과 같음, `AdminNewsPage.jsx`는 그대로). 완료 조건 `화면:` 수집 기사 사용 스위치 끄기·카테고리 바꾸기가 토스트 후 새로고침 뒤에도 남고, 숨긴 기사는 회원 `/community/news`(펫뉴스) 목록에서 빠진다. DB에 수집 기사가 없으면 [뉴스 수집 실행](실제 배치)으로 먼저 채우고, 그래도 없으면 확인 못 함으로 보고
+- FN-ADM-050-05 분류 키워드: `getAdminNewsKeywords`·`createAdminNewsKeyword`·`deleteAdminNewsKeyword` → `GET·POST /api/admin/news/keywords`, `DELETE /api/admin/news/keywords/{kwrdDictSn}`. 409 `DUPLICATE_NEWS_KEYWORD`·400·404 `NEWS_KEYWORD_NOT_FOUND`는 지금처럼 `error.message`를 칸 아래·패널 위에 보인다. `NewsKeywordPanel.jsx`에 서버 규칙인 쉼표 금지를 클라이언트 안내로 추가. 완료 조건 `화면:` 카테고리별 키워드 추가·삭제가 새로고침 뒤에도 남고, 같은 키워드는 막힌다
+- 가짜 응답: `api.js`의 메모리 배열·`fakeError`를 모두 지운다. 연결 남음 없음
+- 사람이 볼 것(판정 밖): 썸네일을 올린 뒤 등록이 실패하면 올린 파일은 서버에 남는다(정리 API 없음)
+
+새 의존성: 없음
 
 ## 다음에 할 것
 
