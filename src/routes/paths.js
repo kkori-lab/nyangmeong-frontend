@@ -95,6 +95,7 @@ export const PATHS = {
   ADMIN_ITEMS: '/admin/items',
   ADMIN_CARE_MISSIONS: '/admin/care-missions',
   ADMIN_POINTS: '/admin/points',
+  ADMIN_AI_ROUTES: '/admin/ai-routes',
   ADMIN_NOTIFICATION_TEMPLATES: '/admin/notification-templates',
   ADMIN_NOTIFICATION_LOGS: '/admin/notification-logs',
   ADMIN_BREEDS: '/admin/breeds',

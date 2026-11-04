@@ -2,10 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-072 포인트 — 끝 (2026-11-04, 검증 1회차 `확인 못 함 있음`(연결 남음만), 사람 확인). `/admin/points`에 원장 표·필터(닉네임·거래 유형·기간, `?mbrSn=`)·조정 모달(지급/차감·사유 필수·잔액 0 미만 막음)을 가짜 응답으로 만들고, 회원 상세 [포인트 조정]을 켰다(`features/adminPoint`, `AdminPointsPage.jsx`, `MemberPointsTab.jsx`)
+SCR-ADM-080 라우팅 매핑표 — 끝 (2026-11-04, 검증 2회 중 마지막 `통과`, 사람 확인). `/admin/ai-routes`에 매핑표 조회·지시어 검색·등록/수정/삭제 모달·우선순위 숫자 칸(추가-1, [순서 바꾸기] 대신)·같은 지시어 경고를 가짜 응답(부록 A 45행)으로 만들었다(`features/adminAiRoute`, `AdminAiRoutesPage.jsx`)
 
 ## 다음에 할 것
 
+- SCR-ADM-080 후속(사람 2026-11-04 "나중에 수정"): 순위 칸이 매핑 전체 우선순위처럼 읽힌다. 실제로는 같은 길이 지시어가 겹칠 때만 쓰는 판정 기준이다. 화면만 바꾸기(순위 칸을 앞에서 빼고 겹치는 행에 표시, 칸 이름을 "같은 지시어일 때 순서"로) 또는 구조 바꾸기(지시어별 우선순위, ERD·백엔드·AI 서버) 중 정한다. 겹침 경고의 조사 "'병원'는"을 받침에 맞춘다
+- SCR-ADM-080 연결 남음: FN-ADM-080-01·02·03 (백엔드 연결 `GET /api/admin/ai/routes?q=`·`POST /api/admin/ai/routes`·`PATCH`·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`(등록·수정 본문에 `prrtSeq`, 그 자리에 넣고 나머지를 민다), 화면 ID 선택지 출처, 지시어 저장 형식(가정 쉼표 구분), `domnNm` 정하는 규칙, 백엔드 저장소에서 /start). 나오면 `features/adminAiRoute/api.js` 가짜 본문(sessionStorage `fakeAdminAiRoutes`)만 실제 요청으로, 선택지는 `routeLabels.js`에서 맞춘다
+- SCR-ADM-080 연결 남음: FN-ADM-080-04·05 (백엔드 연결 AI 서버·대화창용 조회 API와 부록 A 초기 데이터 INSERT, 백엔드 저장소에서 /start. AI 서버가 `data/routing.yaml` 대신 그 API를 읽는 것은 ai 저장소 몫)
+- SCR-ADM-080 사람이 볼 것(판정 밖): ① 화면 ID 선택지에 `docs/routes.md` ✓가 아닌 `SCR-COM-009`·`SCR-MYP-031`을 더했다(부록 A 행이 씀) ② 저장 토스트는 기획 문구 그대로 "~했습니다" 말투라 다른 관리자 화면("~했어요")과 다르다 ③ `routes/paths.js`에 `ADMIN_AI_ROUTES`를 기능 커밋에 같이 넣었다 ④ 스켈레톤 높이(3330px)는 45행 어림값
 - SCR-ADM-072 연결 남음: FN-ADM-072-01·02 (백엔드 연결 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments { mbrSn, dlngPnt, memoCn }`, 회원 보유 포인트 응답 필드, 상한(프론트 가정 1회 100,000P·사유 200자), 백엔드 저장소에서 /start). 나오면 `features/adminPoint/api.js` 가짜 본문(sessionStorage 보관, 가짜 회원 9001~9005)만 실제 요청으로, 상한은 `pointLabels.js`에서 맞춘다. FN-ADM-072-03은 그 뒤 회원 포인트 내역에 "관리자 조정"으로 보이는지 화면으로 확인
 - SCR-ADM-072 사람이 볼 것(판정 밖): ① 기획의 `nickNm`·`keyword=` 대신 서버 키 `mbrNcnm`·`q`를 썼다 ② 가짜 원장에 없는 실제 회원의 현재 잔액은 회원 상세 포인트 탭 API의 마지막 잔액으로 읽는다 ③ `routes/paths.js`에 `ADMIN_POINTS`를 기능 커밋에 같이 넣었다
 - SCR-ADM-071 연결 남음: FN-ADM-071-01·02 (백엔드 연결 `GET /api/admin/care-missions?msnPoolCd=`·`PATCH /api/admin/care-missions/{careMsnSn}`, 허용 범위(프론트 가정 1 이상 정수·보상 1000P·횟수 10회 이하), 출제 배치 `CareMissionJob`이 `CARE_MSN`의 `useYn`·값을 읽는지, 백엔드 저장소에서 /start). 나오면 `features/adminCareMission/api.js` 가짜 본문(sessionStorage 보관 포함)만 실제 요청으로, 상한은 `careMissionLabels.js`에서 맞춘다
