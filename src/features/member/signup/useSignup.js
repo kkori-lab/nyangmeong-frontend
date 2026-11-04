@@ -1,23 +1,45 @@
 import { useState } from 'react';
-import { showToast } from '@/components/toastStore';
 import useCountdown from '@/hooks/useCountdown';
 import {
-  useCheckSignupPhone,
+  useCheckPhoneAvailability,
   useJoinMember,
   useSendSignupCode,
+  useTermsList,
   useVerifySignupCode,
 } from '../queries';
 import {
   isValidEmail,
-  isValidPassword,
+  isValidJoinPassword,
   isValidPhone,
   normalizePhone,
   sanitizePhoneInput,
 } from '../shared/validate';
-import { SIGNUP_MESSAGES as MSG, SIGNUP_TERMS } from './signupMessages';
+import { SIGNUP_MESSAGES as MSG } from './signupMessages';
+
+/** 서버 시각(LocalDateTime, 시간대 없음)을 ms로 */
+const toMs = (dateTime) => Date.parse(dateTime);
+
+// 가입 요청의 서버 검증 오류 field를 가입 화면 칸 이름으로
+const JOIN_FIELD_KEYS = { mblTelno: 'phone', certNo: 'code' };
+
+// 서버 쪽 오류(5xx)·네트워크 오류. 사용자가 고칠 수 없어 공통 실패 문구로 보인다
+const JOIN_FAILED_CODES = [
+  'SERVER_ERROR',
+  'NETWORK_ERROR',
+  'INTERNAL_SERVER_ERROR',
+];
 
 const PREV_STEP = { email: 'terms', phone: 'email', password: 'phone' };
 const ORDER = ['terms', 'email', 'phone', 'password', 'complete'];
+
+// 인증번호 발송 오류: 재전송 제한이면 서버 문구에 남은 시간을 붙인다
+const resendMessage = (error) => {
+  const resendAt = error.data?.resendAvailableDt;
+  const remain = resendAt
+    ? Math.max(0, Math.ceil((toMs(resendAt) - Date.now()) / 1000))
+    : 0;
+  return remain ? `${error.message} (${remain}초 남음)` : error.message;
+};
 
 // 이메일 가입 4단계(terms, email, phone, password)와 가입 뒤 완료 화면(complete)의 입력·확인 결과를 한곳에서 다룬다.
 // 단계를 오가도 약관·이메일·번호와 확인 결과는 남기고, 비밀번호는 단계를 벗어나면 비운다
@@ -26,6 +48,11 @@ export default function useSignup({ onBackToLogin, onRecover }) {
   // 단계 전환 모션의 방향(앞으로 가면 forward, 되돌아가면 back)
   const [direction, setDirection] = useState('forward');
   const [terms, setTerms] = useState({});
+  const [termsView, setTermsView] = useState(null);
+  const [emlCertSn, setEmlCertSn] = useState(null);
+  const [verifiedCode, setVerifiedCode] = useState('');
+  // 같은 가입 시도의 재요청(중복 클릭·응답 유실)을 서버가 알아보게 하는 값
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [isSent, setIsSent] = useState(false);
@@ -42,14 +69,21 @@ export default function useSignup({ onBackToLogin, onRecover }) {
   const [isNicknameOpen, setIsNicknameOpen] = useState(false);
   const sendCode = useSendSignupCode();
   const verifyCode = useVerifySignupCode();
-  const checkPhone = useCheckSignupPhone();
+  const checkPhone = useCheckPhoneAvailability();
   const join = useJoinMember();
+  const termsQuery = useTermsList();
   const countdown = useCountdown(expiresAt);
 
-  const isTermsOk = SIGNUP_TERMS.every(({ key, required }) =>
-    required ? terms[key] : true,
+  const termsList = [...(termsQuery.data ?? [])].sort(
+    (a, b) => a.sortSeq - b.sortSeq,
   );
-  const isAllChecked = SIGNUP_TERMS.every(({ key }) => terms[key]);
+  const isTermsOk =
+    termsList.length > 0 &&
+    termsList.every(({ trmsSn, esntlAgreYn }) =>
+      esntlAgreYn ? terms[trmsSn] : true,
+    );
+  const isAllChecked =
+    termsList.length > 0 && termsList.every(({ trmsSn }) => terms[trmsSn]);
   const normalizedPhone = normalizePhone(phone);
 
   const goStep = (next) => {
@@ -74,15 +108,13 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     goStep(PREV_STEP[step]);
   };
 
-  const toggleTerm = (key) =>
-    setTerms((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleTerm = (trmsSn) =>
+    setTerms((prev) => ({ ...prev, [trmsSn]: !prev[trmsSn] }));
 
   const toggleAll = () => {
     const next = !isAllChecked;
-    setTerms(Object.fromEntries(SIGNUP_TERMS.map(({ key }) => [key, next])));
+    setTerms(Object.fromEntries(termsList.map(({ trmsSn }) => [trmsSn, next])));
   };
-
-  const showTermsView = () => showToast(MSG.notReady);
 
   /* 이메일 */
   const changeEmail = (value) => {
@@ -90,6 +122,8 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     setCode('');
     setIsSent(false);
     setExpiresAt(0);
+    setEmlCertSn(null);
+    setVerifiedCode('');
     setIsEmailVerified(false);
     setErrors({});
     setNotice(null);
@@ -112,28 +146,27 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     }
     setNotice(null);
     sendCode.mutate(
-      { acntEml: trimmed },
+      { certTrgtEml: trimmed },
       {
         onSuccess: (result) => {
-          if (result.result === 'DUPLICATE') {
-            setErrors({ email: MSG.emailDuplicate });
-          } else if (result.result === 'RESTORE') {
-            onRecover(trimmed);
-          } else {
-            setEmail(trimmed);
-            setExpiresAt(result.expiresAt);
-            setCode('');
-            setIsSent(true);
-            setErrors({});
-          }
+          setEmail(trimmed);
+          setEmlCertSn(result.emlCertSn);
+          setExpiresAt(toMs(result.certExpryDt));
+          setCode('');
+          setIsSent(true);
+          setErrors({});
         },
         onError: (error) => {
           // 탈퇴 후 보관 기간 안의 이메일이면 서버가 409로 거절하고 재가입 복구로 보낸다
-          if (error?.code === 'MEMBER_RECOVERY_AVAILABLE') {
+          if (error.code === 'MEMBER_RECOVERY_AVAILABLE') {
             onRecover(trimmed);
-            return;
+          } else if (error.code === 'EMAIL_ALREADY_REGISTERED') {
+            setErrors({ email: MSG.emailDuplicate });
+          } else if (error.code === 'EMAIL_CERT_RESEND_NOT_YET') {
+            setNotice({ type: 'error', message: resendMessage(error) });
+          } else {
+            setNotice({ type: 'error', message: MSG.sendFailed });
           }
-          setNotice({ type: 'error', message: MSG.sendFailed });
         },
       },
     );
@@ -153,18 +186,21 @@ export default function useSignup({ onBackToLogin, onRecover }) {
       return;
     }
     verifyCode.mutate(
-      { acntEml: email, authCd: code },
+      { emlCertSn, certNo: code },
       {
-        onSuccess: ({ result }) => {
-          if (result === 'OK') {
+        onSuccess: ({ certRslt }) => {
+          if (certRslt === 'SIGNUP_READY') {
             setIsEmailVerified(true);
+            setVerifiedCode(code);
             setErrors({});
           } else {
-            setErrors({
-              code: result === 'EXPIRED' ? MSG.codeExpired : MSG.codeMismatch,
-            });
+            setErrors({ code: MSG.codeMismatch });
           }
         },
+        onError: (error) =>
+          error.code.startsWith('EMAIL_CERT_')
+            ? setErrors({ code: error.message })
+            : setNotice({ type: 'error', message: error.message }),
       },
     );
   };
@@ -186,13 +222,20 @@ export default function useSignup({ onBackToLogin, onRecover }) {
       return;
     }
     checkPhone.mutate(
-      { mbrTelno: normalizedPhone },
+      { mblTelno: normalizedPhone },
       {
-        onSuccess: ({ dplctYn }) => {
-          setIsPhoneChecked(!dplctYn);
-          setErrors(dplctYn ? { phone: MSG.phoneDuplicate } : {});
+        onSuccess: ({ available, normalizedMblTelno }) => {
+          setIsPhoneChecked(available);
+          setPhone(normalizedMblTelno);
+          setErrors(available ? {} : { phone: MSG.phoneDuplicate });
         },
-        onError: () => setErrors({ phone: MSG.phoneFailed }),
+        onError: (error) =>
+          setErrors({
+            phone:
+              error.code === 'INVALID_PHONE_NUMBER'
+                ? MSG.phoneFormat
+                : MSG.phoneFailed,
+          }),
       },
     );
   };
@@ -202,7 +245,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     ? ''
     : !password
       ? MSG.pwEmpty
-      : !isValidPassword(password)
+      : !isValidJoinPassword(password)
         ? MSG.pwRule
         : '';
   const confirmError = !touched.confirm
@@ -214,7 +257,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
         : '';
   const confirmSuccess =
     touched.confirm && confirm && password === confirm ? MSG.confirmMatch : '';
-  const canJoin = isValidPassword(password) && password === confirm;
+  const canJoin = isValidJoinPassword(password) && password === confirm;
 
   const changePassword = (value) => {
     setPassword(value);
@@ -230,33 +273,57 @@ export default function useSignup({ onBackToLogin, onRecover }) {
 
   const blurConfirm = () => setTouched((prev) => ({ ...prev, confirm: true }));
 
+  // 서버 검증 오류는 해당 칸으로, 그 밖은 서버 문구를 알림으로 보인다
+  const handleJoinError = (error) => {
+    const fieldErrors = {};
+    (error.fields ?? []).forEach(({ field, message }) => {
+      const key = JOIN_FIELD_KEYS[field];
+      if (key && !fieldErrors[key]) fieldErrors[key] = message;
+    });
+    if (fieldErrors.phone) {
+      goStep('phone');
+      setErrors({ phone: fieldErrors.phone });
+      return;
+    }
+    if (fieldErrors.code) {
+      goStep('email');
+      setErrors({ code: fieldErrors.code });
+      return;
+    }
+    // 400·409는 서버 문구, 서버 오류·네트워크 오류는 공통 실패 문구
+    setNotice({
+      type: 'error',
+      message: JOIN_FAILED_CODES.includes(error.code)
+        ? MSG.joinFailed
+        : error.message,
+    });
+  };
+
   // 앞 단계 확인 결과가 모두 유효할 때만 가입한다(서버도 다시 검사한다)
   const submitJoin = (event) => {
     event.preventDefault();
     if (!canJoin || !isTermsOk || !isEmailVerified || !isPhoneChecked) return;
     join.mutate(
       {
-        acntEml: email,
+        emlCertSn,
+        certNo: verifiedCode,
+        mblTelno: normalizedPhone,
         pswd: password,
-        mbrTelno: normalizedPhone,
-        termsAgreeList: SIGNUP_TERMS.map(({ key }) => ({
-          trmsKey: key,
-          agreeYn: Boolean(terms[key]),
+        trmsAgres: termsList.map(({ trmsSn }) => ({
+          trmsSn,
+          agreYn: Boolean(terms[trmsSn]),
         })),
+        idmptDmndId: idempotencyKey,
       },
       {
-        onSuccess: (result) => {
-          if (!result.ok) {
-            setNotice({ type: 'error', message: MSG.joinFailed });
-            return;
-          }
-          setNickname(result.mbrNcnm);
+        onSuccess: ({ mbrNcnm }) => {
+          setNickname(mbrNcnm);
           setPassword('');
           setConfirm('');
           goStep('complete');
           setIsNicknameOpen(true);
         },
-        onError: () => setNotice({ type: 'error', message: MSG.joinFailed }),
+        onError: handleJoinError,
       },
     );
   };
@@ -279,6 +346,13 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     step,
     direction,
     terms,
+    termsList,
+    isTermsLoading: termsQuery.isPending,
+    isTermsError: termsQuery.isError,
+    retryTerms: termsQuery.refetch,
+    termsView,
+    openTerms: setTermsView,
+    closeTerms: () => setTermsView(null),
     isTermsOk,
     isAllChecked,
     email,
@@ -307,7 +381,6 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     goStep,
     toggleTerm,
     toggleAll,
-    showTermsView,
     changeEmail,
     changeCode,
     submitSend,

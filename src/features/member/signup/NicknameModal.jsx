@@ -1,7 +1,7 @@
 import { User } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/Modal';
-import { useCheckNickname, useUpdateNickname } from '../queries';
+import { useCheckNicknameAvailability, useSetupNickname } from '../queries';
 import { PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
 import AuthField from '../shared/AuthField';
 import {
@@ -16,8 +16,8 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
   const [isEdited, setIsEdited] = useState(false);
   // idle | available | duplicate | failed
   const [status, setStatus] = useState('idle');
-  const check = useCheckNickname();
-  const save = useUpdateNickname();
+  const check = useCheckNicknameAvailability();
+  const save = useSetupNickname();
   const isBusy = check.isPending || save.isPending;
 
   const isSame = value === savedNickname;
@@ -48,23 +48,21 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
     check.mutate(
       { mbrNcnm: value },
       {
-        onSuccess: ({ dplctYn }) =>
-          setStatus(dplctYn ? 'duplicate' : 'available'),
+        onSuccess: ({ available }) =>
+          setStatus(available ? 'available' : 'duplicate'),
         onError: () => setStatus('failed'),
       },
     );
 
   const handleSave = () => {
-    if (isSame) {
-      onSaved(value);
-      return;
-    }
     save.mutate(
       { mbrNcnm: value },
       {
         onSuccess: () => onSaved(value),
         onError: (err) =>
-          setStatus(err.code === 'DUPLICATE' ? 'duplicate' : 'failed'),
+          setStatus(
+            err.code === 'NICKNAME_ALREADY_USED' ? 'duplicate' : 'failed',
+          ),
       },
     );
   };

@@ -1,15 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   checkNickname,
+  checkNicknameAvailability,
   checkPhone,
-  checkRecoveryPhone,
-  checkSignupPhone,
+  checkPhoneAvailability,
   getCaptcha,
   getLoginStatus,
   getMe,
   getMyProfile,
   getRecoveryInfo,
   getTerms,
+  getTermsList,
   invalidateRecoveryCode,
   joinMember,
   login,
@@ -19,6 +20,7 @@ import {
   sendMemberRecoveryCode,
   sendRecoveryCode,
   sendSignupCode,
+  setupNickname,
   updateNickname,
   updatePassword,
   updatePhone,
@@ -31,6 +33,7 @@ import {
 export const memberKeys = {
   me: ['members', 'me'],
   profile: ['members', 'profile'],
+  termsList: ['terms'],
   terms: (trmsSn) => ['terms', trmsSn],
 };
 
@@ -129,8 +132,11 @@ export const useRecoveryInfo = () =>
 export const useRecoverMember = () =>
   useMutation({ mutationFn: recoverMember });
 
-export const useCheckRecoveryPhone = () =>
-  useMutation({ mutationFn: checkRecoveryPhone });
+export const useCheckPhoneAvailability = () =>
+  useMutation({ mutationFn: checkPhoneAvailability });
+
+export const useTermsList = () =>
+  useQuery({ queryKey: memberKeys.termsList, queryFn: getTermsList });
 
 export const useTerms = (trmsSn) =>
   useQuery({
@@ -147,7 +153,15 @@ export const useSendSignupCode = () =>
 export const useVerifySignupCode = () =>
   useMutation({ mutationFn: verifySignupCode });
 
-export const useCheckSignupPhone = () =>
-  useMutation({ mutationFn: checkSignupPhone });
-
 export const useJoinMember = () => useMutation({ mutationFn: joinMember });
+
+export const useCheckNicknameAvailability = () =>
+  useMutation({ mutationFn: checkNicknameAvailability });
+
+export const useSetupNickname = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: setupNickname,
+    onSuccess: () => qc.invalidateQueries({ queryKey: memberKeys.me }),
+  });
+};

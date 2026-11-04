@@ -10,6 +10,10 @@ SCR-HOS-001 플레이스 · 장소 검색·즐겨찾기 API 연결 — 끝남 (�
 
 새 의존성: 없음
 
+### 추가 요청
+
+| 추가-1 | `features/member/signup/signupMessages.js`·`signup/SignupForm.jsx`·`password/passwordMessages.js` | 명령: `yarn -s lint`, `yarn -s build` / 화면: 회원가입 비밀번호 단계 부제·도움말·오류와 비밀번호 재설정 도움말·오류가 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)" | 요청 2026-11-04 12:32 "공용 isValidPassword가 서버 규칙(영문+숫자, 공백 없는 ASCII 8~64자)으로 바뀌었으니 가입·재설정 안내 문구를 마이페이지 문구에 맞춘다" |
+
 ## 다음에 할 것
 
 - 중단: SCR-ACC-001 회원가입 · 가입·인증·닉네임 API 연결 (승인 2026-11-03 10:50, 2026-11-03 플레이스 API 연결을 먼저 하려고 멈춤). 코드(`features/member/` 약관 `GET /terms`·`shared/TermsModal.jsx`, 발송·확인 `USRC0010`, 번호 `checkPhoneAvailability`, 가입 `POST /members`(`USRC0006`·`certNo`·`trmsAgres`·`idmptDmndId`), 닉네임 모달 `GET /members/nickname-availability`·`PATCH /members/me/nickname`, 가입 비밀번호 `isValidJoinPassword`). lint·build 통과. 검증 1회차는 환경 때문에 실패: `backend.log`가 없어 인증번호를 못 읽음, 탈퇴 보관 계정 없음(회원 204가 정상). 코드는 `git stash`("SCR-ACC-001 회원가입 연결 중단분", 새 파일 포함)에 보관했다. `git stash pop`으로 되돌린다. 다시 할 때 백엔드를 로그 파일로 띄우고 회원 204를 탈퇴 보관으로 되돌린 뒤 `/start SCR-ACC-001`로 이어 간다. 서버 약관에는 만 14세 항목이 없다(SERVICE·PRIVACY·LOCATION·MARKETING)

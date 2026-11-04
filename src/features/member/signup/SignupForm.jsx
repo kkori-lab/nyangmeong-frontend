@@ -3,6 +3,7 @@ import AuthCard from '../shared/AuthCard';
 import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
 import { PRIMARY_BTN, TEXT_LINK } from '../shared/authStyles';
+import TermsModal from '../shared/TermsModal';
 import EmailStep from './EmailStep';
 import NicknameModal from './NicknameModal';
 import PasswordStep from './PasswordStep';
@@ -33,7 +34,7 @@ const STEPS = {
   password: {
     no: 4,
     title: '비밀번호를 설정해 주세요',
-    subtitle: '8자 이상, 문자와 숫자를 조합해 주세요.',
+    subtitle: '영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외).',
     Body: PasswordStep,
   },
 };
@@ -110,6 +111,9 @@ export default function SignupForm({ onBackToLogin, onGoLogin, onRecover }) {
           로그인
         </button>
       </div>
+      {form.termsView && (
+        <TermsModal trmsSn={form.termsView} onClose={form.closeTerms} />
+      )}
     </AuthCard>
   );
 }
