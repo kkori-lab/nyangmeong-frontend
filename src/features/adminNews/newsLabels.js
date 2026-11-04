@@ -25,6 +25,8 @@ export const getCategoryName = (code) =>
 /** 관리자 등록 여부 */
 export const isAdminNews = (news) => news.newsSrcCd === NEWS_SRC.ADMIN;
 
-/** 출처 표기: 언론사 이름 또는 관리자 등록 */
+/** 출처 표기: 언론사 이름 또는 관리자 등록, 언론사 이름이 없으면 서버 출처 이름 */
 export const getSourceLabel = (news) =>
-  isAdminNews(news) ? ADMIN_SOURCE_LABEL : news.srcPressNm || '외부 언론사';
+  isAdminNews(news)
+    ? ADMIN_SOURCE_LABEL
+    : news.srcPressNm || news.newsSrcCdNm || '외부 언론사';
