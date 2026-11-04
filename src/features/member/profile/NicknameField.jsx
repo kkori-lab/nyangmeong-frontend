@@ -1,7 +1,12 @@
 import { useId, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
-import { useCheckNickname, useUpdateNickname } from '../queries';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  memberKeys,
+  useCheckNicknameAvailability,
+  useSetupNickname,
+} from '../queries';
 import { ACT_BTN, HELP, INPUT, SIDE_BTN } from '../shared/profileStyles';
 import {
   NICKNAME_MAX,
@@ -37,8 +42,9 @@ function NicknameEdit({ mbrNcnm, onClose }) {
   const [value, setValue] = useState(mbrNcnm);
   // idle | available | duplicate | failed
   const [status, setStatus] = useState('idle');
-  const check = useCheckNickname();
-  const save = useUpdateNickname();
+  const qc = useQueryClient();
+  const check = useCheckNicknameAvailability();
+  const save = useSetupNickname();
 
   const isBusy = check.isPending || save.isPending;
   const hasError = status === 'duplicate' || status === 'failed';
@@ -52,8 +58,8 @@ function NicknameEdit({ mbrNcnm, onClose }) {
     check.mutate(
       { mbrNcnm: value },
       {
-        onSuccess: ({ dplctYn }) =>
-          setStatus(dplctYn ? 'duplicate' : 'available'),
+        onSuccess: ({ available }) =>
+          setStatus(available ? 'available' : 'duplicate'),
         onError: () => setStatus('failed'),
       },
     );
@@ -63,11 +69,14 @@ function NicknameEdit({ mbrNcnm, onClose }) {
       { mbrNcnm: value },
       {
         onSuccess: () => {
+          qc.invalidateQueries({ queryKey: memberKeys.profile });
           showToast('닉네임을 저장했어요');
           onClose();
         },
         onError: (error) =>
-          setStatus(error.code === 'DUPLICATE' ? 'duplicate' : 'failed'),
+          setStatus(
+            error.code === 'NICKNAME_ALREADY_USED' ? 'duplicate' : 'failed',
+          ),
       },
     );
 

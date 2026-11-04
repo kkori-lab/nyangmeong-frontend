@@ -1,15 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  checkNickname,
-  checkPhone,
-  checkRecoveryPhone,
-  checkSignupPhone,
+  checkNicknameAvailability,
+  checkPhoneAvailability,
   getCaptcha,
   getLoginStatus,
   getMe,
   getMyProfile,
   getRecoveryInfo,
   getTerms,
+  getTermsList,
   invalidateRecoveryCode,
   joinMember,
   login,
@@ -19,7 +18,7 @@ import {
   sendMemberRecoveryCode,
   sendRecoveryCode,
   sendSignupCode,
-  updateNickname,
+  setupNickname,
   updatePassword,
   updatePhone,
   updateProfileImage,
@@ -31,6 +30,7 @@ import {
 export const memberKeys = {
   me: ['members', 'me'],
   profile: ['members', 'profile'],
+  termsList: ['terms'],
   terms: (trmsSn) => ['terms', trmsSn],
 };
 
@@ -70,22 +70,6 @@ export const useUpdateProfileImage = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: memberKeys.profile }),
   });
 };
-
-export const useCheckNickname = () =>
-  useMutation({ mutationFn: checkNickname });
-
-export const useUpdateNickname = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: updateNickname,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: memberKeys.profile });
-      qc.invalidateQueries({ queryKey: memberKeys.me });
-    },
-  });
-};
-
-export const useCheckPhone = () => useMutation({ mutationFn: checkPhone });
 
 export const useUpdatePhone = () => {
   const qc = useQueryClient();
@@ -129,8 +113,11 @@ export const useRecoveryInfo = () =>
 export const useRecoverMember = () =>
   useMutation({ mutationFn: recoverMember });
 
-export const useCheckRecoveryPhone = () =>
-  useMutation({ mutationFn: checkRecoveryPhone });
+export const useCheckPhoneAvailability = () =>
+  useMutation({ mutationFn: checkPhoneAvailability });
+
+export const useTermsList = () =>
+  useQuery({ queryKey: memberKeys.termsList, queryFn: getTermsList });
 
 export const useTerms = (trmsSn) =>
   useQuery({
@@ -147,7 +134,15 @@ export const useSendSignupCode = () =>
 export const useVerifySignupCode = () =>
   useMutation({ mutationFn: verifySignupCode });
 
-export const useCheckSignupPhone = () =>
-  useMutation({ mutationFn: checkSignupPhone });
-
 export const useJoinMember = () => useMutation({ mutationFn: joinMember });
+
+export const useCheckNicknameAvailability = () =>
+  useMutation({ mutationFn: checkNicknameAvailability });
+
+export const useSetupNickname = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: setupNickname,
+    onSuccess: () => qc.invalidateQueries({ queryKey: memberKeys.me }),
+  });
+};

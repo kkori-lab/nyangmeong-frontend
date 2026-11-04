@@ -1,5 +1,5 @@
 import { Mail, ShieldCheck } from 'lucide-react';
-import { PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
+import { OUTLINE_BTN, PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
 import AuthField from '../shared/AuthField';
 import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 
@@ -30,6 +30,15 @@ export default function EmailStep({ form }) {
             </button>
           }
         />
+        {form.errors.email === MSG.emailDuplicate && (
+          <button
+            type="button"
+            onClick={form.goLoginMethods}
+            className={OUTLINE_BTN}
+          >
+            기존 가입 방법으로 로그인
+          </button>
+        )}
         {form.isSent && (
           <AuthField
             id="signup-code"

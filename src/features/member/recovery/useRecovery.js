@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import useCountdown from '@/hooks/useCountdown';
 import {
-  useCheckRecoveryPhone,
+  useCheckPhoneAvailability,
   useInvalidateRecoveryCode,
   useRecoverMember,
   useRecoveryInfo,
@@ -53,7 +53,7 @@ export default function useRecovery(email, { onCancel }) {
   const send = useSendMemberRecoveryCode();
   const verify = useVerifyRecoveryCode();
   const loadInfo = useRecoveryInfo();
-  const checkPhone = useCheckRecoveryPhone();
+  const checkPhone = useCheckPhoneAvailability();
   const recover = useRecoverMember();
   const invalidate = useInvalidateRecoveryCode();
   const countdown = useCountdown(expiresAt);

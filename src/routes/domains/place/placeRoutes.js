@@ -7,7 +7,7 @@ const PlacePage = lazy(() => import('@/pages/place/PlacePage'));
 export default [
   {
     layout: 'bare',
-    auth: 'public',
+    auth: 'member',
     routes: [
       {
         Component: PlaceLayout,

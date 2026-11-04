@@ -1,6 +1,7 @@
 import { Check, ChevronRight } from 'lucide-react';
 import { PRIMARY_BTN } from '../shared/authStyles';
-import { SIGNUP_TERMS } from './signupMessages';
+import { hasTermsView } from '../shared/validate';
+import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 
 function CheckBox({ checked, onChange, children }) {
   return (
@@ -19,8 +20,21 @@ function CheckBox({ checked, onChange, children }) {
   );
 }
 
-// 1단계. 필수 3종에 동의해야 다음으로 간다. 선택(마케팅)은 진행 조건이 아니다
+// 1단계. 서버가 준 약관 중 필수 항목에 모두 동의해야 다음으로 간다. 선택(마케팅)은 진행 조건이 아니다
 export default function TermsStep({ form }) {
+  if (form.isTermsLoading) {
+    return <p className="text-muted">{MSG.termsLoading}</p>;
+  }
+  if (form.isTermsError) {
+    return (
+      <div className="flex flex-col items-start gap-3">
+        <p className="text-danger">{MSG.termsFailed}</p>
+        <button type="button" onClick={form.retryTerms} className={PRIMARY_BTN}>
+          다시 시도
+        </button>
+      </div>
+    );
+  }
   return (
     <>
       <div className="mb-2 flex min-h-[46px] items-center rounded-md border border-line px-4 font-semibold">
@@ -28,35 +42,40 @@ export default function TermsStep({ form }) {
           모두 동의
         </CheckBox>
       </div>
-      {SIGNUP_TERMS.map(({ key, label, required, hasView }) => (
-        <div key={key} className="flex min-h-10 items-center px-4 text-ink-2">
-          <CheckBox
-            checked={Boolean(form.terms[key])}
-            onChange={() => form.toggleTerm(key)}
+      {form.termsList.map(
+        ({ trmsSn, trmsFixIdntfKey, trmsTtl, esntlAgreYn }) => (
+          <div
+            key={trmsSn}
+            className="flex min-h-10 items-center px-4 text-ink-2"
           >
-            <span>
-              <em
-                className={`mr-1.5 font-semibold not-italic ${
-                  required ? 'text-brand-600' : 'text-subtle'
-                }`}
-              >
-                {required ? '[필수]' : '[선택]'}
-              </em>
-              {label}
-            </span>
-          </CheckBox>
-          {hasView && (
-            <button
-              type="button"
-              onClick={form.showTermsView}
-              aria-label={`${label} 내용보기`}
-              className="grid place-items-center text-subtle hover:text-ink"
+            <CheckBox
+              checked={Boolean(form.terms[trmsSn])}
+              onChange={() => form.toggleTerm(trmsSn)}
             >
-              <ChevronRight className="size-4" />
-            </button>
-          )}
-        </div>
-      ))}
+              <span>
+                <em
+                  className={`mr-1.5 font-semibold not-italic ${
+                    esntlAgreYn ? 'text-brand-600' : 'text-subtle'
+                  }`}
+                >
+                  {esntlAgreYn ? '[필수]' : '[선택]'}
+                </em>
+                {trmsTtl}
+              </span>
+            </CheckBox>
+            {hasTermsView(trmsFixIdntfKey) && (
+              <button
+                type="button"
+                onClick={() => form.openTerms(trmsSn)}
+                aria-label={`${trmsTtl} 내용보기`}
+                className="grid place-items-center text-subtle hover:text-ink"
+              >
+                <ChevronRight className="size-4" />
+              </button>
+            )}
+          </div>
+        ),
+      )}
       <p className="mt-2 text-sm leading-5 text-muted">
         필수 약관에 모두 동의하면 다음으로 넘어갈 수 있어요.
       </p>

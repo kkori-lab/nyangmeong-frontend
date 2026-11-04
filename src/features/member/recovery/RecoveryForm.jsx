@@ -6,14 +6,12 @@ import AuthField from '../shared/AuthField';
 import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
 import { OUTLINE_BTN, PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
+import TermsModal from '../shared/TermsModal';
+import { hasTermsView } from '../shared/validate';
 import SignupSummary from '../signup/SignupSummary';
 import { SIGNUP_MESSAGES as SIGNUP } from '../signup/signupMessages';
 import { RECOVERY_MESSAGES as MSG } from './recoveryMessages';
-import RecoveryTermsModal from './RecoveryTermsModal';
 import useRecovery from './useRecovery';
-
-/** 별도 전문이 없는 확인 항목(만 14세 이상 등 연령 확인)은 내용보기를 두지 않는다. 지금 서버 약관(SERVICE·PRIVACY·LOCATION·MARKETING)에는 없다 */
-const hasTermsView = (trmsFixIdntfKey) => !/AGE/i.test(trmsFixIdntfKey);
 
 const CONFIRM_BTN =
   '!border-transparent !bg-brand-50 !text-brand-600 hover:enabled:!bg-brand-100 disabled:!bg-surface-3 disabled:!text-line-strong';
@@ -255,7 +253,7 @@ export default function RecoveryForm({
         </button>
       </StepMotion>
       {form.termsView && (
-        <RecoveryTermsModal trmsSn={form.termsView} onClose={form.closeTerms} />
+        <TermsModal trmsSn={form.termsView} onClose={form.closeTerms} />
       )}
     </AuthCard>
   );

@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
-import { useCheckPhone, useUpdatePhone } from '../queries';
+import { useCheckPhoneAvailability, useUpdatePhone } from '../queries';
 import { ACT_BTN, INPUT, SIDE_BTN } from '../shared/profileStyles';
 import {
   formatPhone,
@@ -19,13 +19,13 @@ const MSG = {
   available: '사용 가능한 휴대전화번호입니다.',
 };
 
-export default function PhoneField({ mbrTelno, isEditing, onEdit, onClose }) {
+export default function PhoneField({ mblTelno, isEditing, onEdit, onClose }) {
   return (
     <AccountRow
       label="휴대폰 번호"
       value={
-        mbrTelno ? (
-          <span className="tabular-nums">{formatPhone(mbrTelno)}</span>
+        mblTelno ? (
+          <span className="tabular-nums">{formatPhone(mblTelno)}</span>
         ) : (
           <span className="text-subtle">미등록</span>
         )
@@ -34,18 +34,18 @@ export default function PhoneField({ mbrTelno, isEditing, onEdit, onClose }) {
       isEditing={isEditing}
       onEdit={onEdit}
     >
-      <PhoneEdit mbrTelno={mbrTelno} onClose={onClose} />
+      <PhoneEdit mblTelno={mblTelno} onClose={onClose} />
     </AccountRow>
   );
 }
 
 /** 펼쳐졌을 때만 렌더. 닫히면 입력과 확인 결과가 함께 사라짐 */
-function PhoneEdit({ mbrTelno, onClose }) {
+function PhoneEdit({ mblTelno, onClose }) {
   const inputId = useId();
   const [value, setValue] = useState('');
   // idle | available | invalid | duplicate | failed
   const [status, setStatus] = useState('idle');
-  const check = useCheckPhone();
+  const check = useCheckPhoneAvailability();
   const save = useUpdatePhone();
 
   const next = normalizePhone(value);
@@ -63,25 +63,30 @@ function PhoneEdit({ mbrTelno, onClose }) {
       return;
     }
     check.mutate(
-      { mbrTelno: next },
+      { mblTelno: next },
       {
-        onSuccess: ({ dplctYn }) =>
-          setStatus(dplctYn ? 'duplicate' : 'available'),
-        onError: () => setStatus('failed'),
+        onSuccess: ({ available }) =>
+          setStatus(available ? 'available' : 'duplicate'),
+        onError: (error) =>
+          setStatus(
+            error.code === 'INVALID_PHONE_NUMBER' ? 'invalid' : 'failed',
+          ),
       },
     );
   };
 
   const handleSave = () =>
     save.mutate(
-      { mbrTelno: next },
+      { mblTelno: next },
       {
         onSuccess: () => {
           showToast('휴대폰 번호를 저장했어요');
           onClose();
         },
         onError: (error) =>
-          setStatus(error.code === 'DUPLICATE' ? 'duplicate' : 'failed'),
+          setStatus(
+            error.code === 'PHONE_ALREADY_USED' ? 'duplicate' : 'failed',
+          ),
       },
     );
 
@@ -103,7 +108,7 @@ function PhoneEdit({ mbrTelno, onClose }) {
         />
         <button
           type="button"
-          disabled={!value || next === mbrTelno || isBusy}
+          disabled={!value || next === mblTelno || isBusy}
           onClick={handleCheck}
           className={`${BTN_SECONDARY} ${SIDE_BTN}`}
         >

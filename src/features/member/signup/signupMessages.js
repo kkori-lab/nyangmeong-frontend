@@ -18,35 +18,19 @@ export const SIGNUP_MESSAGES = {
   phoneNeedCheck: '휴대전화번호 중복확인을 해 주세요.',
   phoneHelp: '문자 인증 없이 중복 여부만 확인합니다.',
   pwEmpty: '비밀번호를 입력해 주세요.',
-  pwRule: '비밀번호는 8자 이상, 문자와 숫자를 함께 입력해 주세요.',
-  pwHelp: '8자 이상 · 문자와 숫자 조합',
+  pwRule: '영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)',
+  pwHelp: '영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)',
   confirmEmpty: '비밀번호를 다시 입력해 주세요.',
   confirmMismatch: '비밀번호가 일치하지 않습니다.',
   confirmMatch: '비밀번호가 일치합니다.',
   joinFailed: '회원가입을 완료하지 못했습니다. 다시 시도해 주세요.',
   nickEmpty: '닉네임을 입력해 주세요.',
+  nickTooLong: '닉네임은 최대 10글자까지 입력할 수 있습니다.',
   nickRule: '닉네임은 한글, 영문, 숫자만 사용할 수 있습니다.',
   nickDuplicate: '이미 사용 중인 닉네임입니다. 다른 닉네임을 입력해 주세요.',
   nickNeedCheck: '닉네임 중복 확인을 해 주세요.',
   nickFailed: '닉네임을 저장하지 못했어요. 다시 시도해 주세요.',
   nickAvailable: '사용 가능한 닉네임입니다.',
-  notReady: '준비 중이에요',
+  termsLoading: '약관을 불러오는 중입니다.',
+  termsFailed: '약관을 불러오지 못했습니다. 다시 시도해 주세요.',
 };
-
-/** 약관 동의 항목. 만 14세 확인은 별도 전문이 없어 내용보기 없음. 약관 전문은 연결 전이라 내용보기는 준비 중 안내만 표시 */
-export const SIGNUP_TERMS = [
-  { key: 'service', label: '서비스 이용약관', required: true, hasView: true },
-  {
-    key: 'privacy',
-    label: '개인정보 수집 및 이용',
-    required: true,
-    hasView: true,
-  },
-  { key: 'age', label: '만 14세 이상입니다', required: true, hasView: false },
-  {
-    key: 'marketing',
-    label: '마케팅 정보 수신 동의',
-    required: false,
-    hasView: true,
-  },
-];

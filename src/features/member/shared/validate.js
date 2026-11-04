@@ -30,3 +30,6 @@ export const isValidPassword = (value) =>
   /^(?=.*[A-Za-z])(?=.*\d)[!-~]{8,64}$/.test(value);
 
 export const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+/** 약관 내용보기가 없는 연령 확인 항목인지 */
+export const hasTermsView = (trmsFixIdntfKey) => !/AGE/i.test(trmsFixIdntfKey);
