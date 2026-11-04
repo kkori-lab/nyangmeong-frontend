@@ -1,8 +1,4 @@
-import { api } from '@/api/axios';
-import { getCurrentYm } from '@/utils/yearMonth';
-import { EXPND_CLSF_LIST } from './shared/expenseCodes';
-
-const [HOSPITAL] = EXPND_CLSF_LIST.map((clsf) => clsf.code);
+import { aiApi, api } from '@/api/axios';
 
 /** 연월 범위를 서버 날짜 조건으로 (null이면 날짜 조건 없음 = 전체 기간) */
 export const toDateCond = ({ fromYm, toYm }) => {
@@ -103,38 +99,24 @@ export const updateExpense = ({ expndSn, petSn, ...item }) =>
     ...(petSn == null ? { common: true } : { petSn }),
   });
 
+/** 가계부에서 올린 영수증의 요청 출처 (AIMC0027) */
+const OCR_SOURCE_EXPENSE = 'AIMC0027';
+
 /**
- * 영수증 인식 (POST /receipts/recognize)
- * 가짜 응답: YAY·LJS 영수증 인식 API가 나오면 교체. 파일 이름의 fail·partial·error에 따른 실패 상황
+ * 영수증 인식 (POST /ai/receipts, multipart)
+ * 응답 { recptSn, ocr }을 확인 모달이 쓰는 모양으로 바꾼다. 가계부 출처는 petSn을 보내지 않고 내용은 빈칸
  */
-export const recognizeReceipt = ({ file, signal }) =>
-  new Promise((resolve, reject) => {
-    const abort = () => reject(new DOMException('중단', 'AbortError'));
-    if (signal.aborted) return abort();
-    const timer = setTimeout(() => {
-      if (file.name.includes('error')) return reject(new Error('일시 오류'));
-      const recptSn = Date.now();
-      if (file.name.includes('fail')) {
-        return resolve({
-          recptSn,
-          expndYmd: null,
-          expndAmt: null,
-          dtlMttr: null,
-          expndPlcusNm: null,
-          expndClsfCd: null,
-        });
-      }
-      resolve({
-        recptSn,
-        expndYmd: `${getCurrentYm()}-03`,
-        expndAmt: file.name.includes('partial') ? null : 462000,
-        dtlMttr: null,
-        expndPlcusNm: '행복동물병원',
-        expndClsfCd: HOSPITAL,
-      });
-    }, 1500);
-    signal.addEventListener('abort', () => {
-      clearTimeout(timer);
-      abort();
-    });
-  });
+export const recognizeReceipt = async ({ file, signal }) => {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('ocrRqstSrcCd', OCR_SOURCE_EXPENSE);
+  const { recptSn, ocr } = await aiApi.post('/receipts', form, { signal });
+  return {
+    recptSn,
+    expndYmd: ocr.ckupYmd,
+    expndAmt: ocr.recptAmt,
+    dtlMttr: null,
+    expndPlcusNm: ocr.expndPlcusNm,
+    expndClsfCd: ocr.expndClsfCd,
+  };
+};
