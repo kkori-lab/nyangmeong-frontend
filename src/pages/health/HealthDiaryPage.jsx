@@ -298,8 +298,8 @@ export default function HealthDiaryPage() {
           pets={pets}
           defaultPetSn={selectedPetSn}
           onRecognized={(result) => setReceiptFlow({ step: 'result', result })}
-          onManualInput={({ rcptSn } = {}) =>
-            setReceiptFlow({ step: 'manual', recptSn: rcptSn })
+          onManualInput={({ recptSn } = {}) =>
+            setReceiptFlow({ step: 'manual', recptSn })
           }
           onClose={() => setReceiptFlow(null)}
         />
