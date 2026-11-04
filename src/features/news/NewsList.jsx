@@ -5,6 +5,7 @@ import BoardPagination from '@/components/BoardPagination';
 import SearchInput from '@/components/SearchInput';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import NewsCategoryBadge from './NewsCategoryBadge';
 import NewsThumb from './NewsThumb';
 import {
@@ -98,6 +99,11 @@ export default function NewsList({
           <ul className="flex flex-col gap-3 max-[760px]:gap-2.5">
             {content.map((item) => {
               const isAdmin = item.newsSrcCd === NEWS_SRC_ADMIN;
+              /** 관리자 글은 첨부 공개 파일, 수집 기사는 썸네일 URL. 사진 없는 관리자 글은 칸 없음 */
+              const thumbSrc = isAdmin
+                ? publicFileUrl(item.atchFileSn)
+                : item.thmbUrlPath;
+              const hasThumb = !isAdmin || thumbSrc != null;
               return (
                 <li key={item.newsSn}>
                   <Link
@@ -105,7 +111,7 @@ export default function NewsList({
                       newsSn: item.newsSn,
                     })}
                     state={{ listSearch: search }}
-                    className={`group grid gap-x-8 gap-y-3.5 rounded-[14px] border border-[#e2e7e7] bg-white px-7 py-6 shadow-[0_1px_2px_rgba(26,50,52,0.06)] transition hover:border-[#cfe2e2] hover:shadow-[0_4px_12px_rgba(26,50,52,0.1)] max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-[18px] ${isAdmin ? 'grid-cols-1' : 'grid-cols-[minmax(0,1fr)_200px]'}`}
+                    className={`group grid gap-x-8 gap-y-3.5 rounded-[14px] border border-[#e2e7e7] bg-white px-7 py-6 shadow-[0_1px_2px_rgba(26,50,52,0.06)] transition hover:border-[#cfe2e2] hover:shadow-[0_4px_12px_rgba(26,50,52,0.1)] max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-[18px] ${hasThumb ? 'grid-cols-[minmax(0,1fr)_200px]' : 'grid-cols-1'}`}
                   >
                     <div className="min-w-0 max-[760px]:order-2">
                       <NewsCategoryBadge news={item} />
@@ -118,9 +124,9 @@ export default function NewsList({
                         </p>
                       )}
                     </div>
-                    {!isAdmin && (
+                    {hasThumb && (
                       <NewsThumb
-                        src={item.thmbUrlPath}
+                        src={thumbSrc}
                         iconSize={40}
                         className="col-start-2 row-span-2 row-start-1 h-[150px] w-full self-start max-[760px]:order-1 max-[760px]:h-auto max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
                       />
