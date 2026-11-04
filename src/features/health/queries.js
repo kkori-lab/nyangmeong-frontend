@@ -108,6 +108,7 @@ export const healthKeys = {
     'photo',
     obsrvCyclSn,
   ],
+  receiptImage: (recptSn) => ['health', 'receipts', recptSn, 'image'],
   checkups: ['health', 'checkups'],
   checkupList: (params) => ['health', 'checkups', params],
   checkupYears: (petSn) => ['health', 'checkups', 'years', petSn],
