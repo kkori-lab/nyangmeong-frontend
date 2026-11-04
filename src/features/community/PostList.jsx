@@ -1,6 +1,7 @@
-import { Heart, MessageCircle, Pencil, SearchX, User } from 'lucide-react';
+import { Heart, MessageCircle, Pencil, SearchX } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
+import Avatar from '@/components/Avatar';
 import BoardPagination from '@/components/BoardPagination';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import DropdownSelect from '@/components/DropdownSelect';
@@ -133,12 +134,11 @@ export default function PostList({
                 )}
                 <div className="col-start-1 flex items-center justify-between gap-3 text-sm text-[#667374] max-[760px]:order-3">
                   <span className="inline-flex min-w-0 items-center gap-1.5">
-                    <span
-                      aria-hidden="true"
-                      className="grid size-6 shrink-0 place-items-center rounded-full bg-[#e9f2f2] text-[#285a5c]"
-                    >
-                      <User size={14} />
-                    </span>
+                    <Avatar
+                      src={publicFileUrl(item.mbrAtchFileSn)}
+                      className="size-6"
+                      iconSize={14}
+                    />
                     <span className="truncate font-medium text-[#3d4a4b]">
                       {item.mbrNcnm}
                     </span>
