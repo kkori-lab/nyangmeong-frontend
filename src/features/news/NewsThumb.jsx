@@ -2,7 +2,7 @@ import { Newspaper } from 'lucide-react';
 import { useState } from 'react';
 
 /**
- * 언론사 썸네일 URL로 표시. 없거나 불러오지 못하면 자리 표시(className 크기)
+ * 썸네일 주소(언론사 URL 또는 공개 파일)로 표시. 없거나 불러오지 못하면 자리 표시(className 크기)
  * - natural: 원본 비율·크기 그대로, 본문보다 크면 줄이고 작으면 가운데(상세)
  */
 export default function NewsThumb({
