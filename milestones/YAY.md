@@ -56,13 +56,14 @@
 - 기다리는 것: `pet` 목록·프로필 조회(SJM), 캐릭터 이미지 조회(LJS), 건강 지표·케어리스트(JAJ), AI 대화창 SCR-AIM-001·011(LJS 화면), 메인 조회 조합·위젯 순서 저장(YAY 백엔드)
 - 완료 조건: 반려동물 탭을 바꾸면 프로필·위젯·케어미션이 그 반려동물 기준으로 바뀐다. 위젯 순서를 바꾸고 새로고침해도 유지된다
 
-## SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결 — 대기
+## SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결 — 끝
 - 백엔드 끝: `GET /terms`, `GET /terms/{trmsSn}`, `POST /email-certifications`, `POST /email-certifications/{emlCertSn}/verify`, `GET /members/phone-availability`, `GET /members/nickname-availability`, `POST /members`, `PATCH /members/me/nickname` (백엔드 SCR-ACC-001 절의 "프론트 연결")
 - 기능: 명세 기능 ID 추가 없음. FN-ACC-001-03~14·24~30·38에 걸친다
 - 대상: `features/member/signup/`의 가짜 약관·이메일 인증·번호/닉네임 중복확인·가입·닉네임 저장 API
 - 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-001)의 PR 병합과 공용 DB 마이그레이션
 - 완료 조건: 실제 서버로 약관 → 인증번호 발송·확인 → 번호 중복확인 → 가입 → 닉네임 저장이 되고, 가입 뒤 로그인 쿠키 없이 닉네임 모달이 동작한다. 재전송 제한은 `resendAvailableDt`로 남은 시간을 보여 준다
 - 이어받은 확인: 가입 발송이 409 `MEMBER_RECOVERY_AVAILABLE`(탈퇴 보관 이메일)이면 재가입 복구 화면으로 바뀌는지 화면으로 확인한다(코드는 SCR-ACC-001 재가입 복구에서 넣음)
+- 끝남: 승인 2026-11-04, 검증 통과(7회차), 사람 확인 2026-11-04. 약관 내용보기에 버전 표시, 닉네임은 자르지 않고 길이·문자 오류 문구, 가입된 이메일에 [기존 가입 방법으로 로그인] 버튼, 409 복구 진입 확인. 가입 비밀번호는 공용 `isValidPassword`
 
 ## SCR-ACC-011 비밀번호 찾기 · 인증번호 API 연결 — 끝
 - 백엔드 끝: `POST /email-certifications`(목적 `USRC0011`), `POST /email-certifications/{emlCertSn}/verify`, `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-011 절의 "프론트 연결")

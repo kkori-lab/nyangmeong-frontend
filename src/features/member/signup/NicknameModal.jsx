@@ -4,11 +4,7 @@ import Modal from '@/components/Modal';
 import { useCheckNicknameAvailability, useSetupNickname } from '../queries';
 import { PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
 import AuthField from '../shared/AuthField';
-import {
-  NICKNAME_MAX,
-  isValidNickname,
-  sanitizeNickname,
-} from '../shared/validate';
+import { NICKNAME_MAX, isValidNickname } from '../shared/validate';
 import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 
 export default function NicknameModal({ savedNickname, onSaved, onClose }) {
@@ -21,17 +17,21 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
   const isBusy = check.isPending || save.isPending;
 
   const isSame = value === savedNickname;
-  const isValid = isValidNickname(value);
+  // 입력을 자르거나 지우지 않고 그대로 두고, 길이·문자 오류를 문구로 알린다
+  const isTooLong = value.length > NICKNAME_MAX;
+  const isValid = !isTooLong && isValidNickname(value);
   const error =
     isEdited && !value
       ? MSG.nickEmpty
-      : value && !isValid
-        ? MSG.nickRule
-        : status === 'duplicate'
-          ? MSG.nickDuplicate
-          : status === 'failed'
-            ? MSG.nickFailed
-            : '';
+      : isTooLong
+        ? MSG.nickTooLong
+        : value && !isValid
+          ? MSG.nickRule
+          : status === 'duplicate'
+            ? MSG.nickDuplicate
+            : status === 'failed'
+              ? MSG.nickFailed
+              : '';
   const help =
     isEdited && isValid && !isSame && status === 'idle'
       ? MSG.nickNeedCheck
@@ -39,7 +39,7 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
   const canSave = isValid && (isSame || status === 'available') && !isBusy;
 
   const change = (next) => {
-    setValue(sanitizeNickname(next));
+    setValue(next);
     setIsEdited(true);
     setStatus('idle');
   };

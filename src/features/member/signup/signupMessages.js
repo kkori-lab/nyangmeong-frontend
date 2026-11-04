@@ -25,6 +25,7 @@ export const SIGNUP_MESSAGES = {
   confirmMatch: '비밀번호가 일치합니다.',
   joinFailed: '회원가입을 완료하지 못했습니다. 다시 시도해 주세요.',
   nickEmpty: '닉네임을 입력해 주세요.',
+  nickTooLong: '닉네임은 최대 10글자까지 입력할 수 있습니다.',
   nickRule: '닉네임은 한글, 영문, 숫자만 사용할 수 있습니다.',
   nickDuplicate: '이미 사용 중인 닉네임입니다. 다른 닉네임을 입력해 주세요.',
   nickNeedCheck: '닉네임 중복 확인을 해 주세요.',

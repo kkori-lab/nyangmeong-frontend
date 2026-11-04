@@ -9,7 +9,7 @@ import {
 } from '../queries';
 import {
   isValidEmail,
-  isValidJoinPassword,
+  isValidPassword,
   isValidPhone,
   normalizePhone,
   sanitizePhoneInput,
@@ -245,7 +245,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     ? ''
     : !password
       ? MSG.pwEmpty
-      : !isValidJoinPassword(password)
+      : !isValidPassword(password)
         ? MSG.pwRule
         : '';
   const confirmError = !touched.confirm
@@ -257,7 +257,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
         : '';
   const confirmSuccess =
     touched.confirm && confirm && password === confirm ? MSG.confirmMatch : '';
-  const canJoin = isValidJoinPassword(password) && password === confirm;
+  const canJoin = isValidPassword(password) && password === confirm;
 
   const changePassword = (value) => {
     setPassword(value);
@@ -379,6 +379,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     guideTarget,
     goBack,
     goStep,
+    goLoginMethods: onBackToLogin,
     toggleTerm,
     toggleAll,
     changeEmail,

@@ -20,9 +20,12 @@ export default function TermsModal({ trmsSn, onClose }) {
       {terms.isPending && <p className="text-muted">{MSG.termsLoading}</p>}
       {terms.isError && <p className="text-danger">{terms.error.message}</p>}
       {terms.data && (
-        <div className="max-h-[50vh] overflow-y-auto leading-6 whitespace-pre-wrap text-ink-2">
-          {terms.data.trmsCn || MSG.termsEmpty}
-        </div>
+        <>
+          <p className="mb-3 text-sm text-muted">버전 {terms.data.trmsVerId}</p>
+          <div className="max-h-[50vh] overflow-y-auto leading-6 whitespace-pre-wrap text-ink-2">
+            {terms.data.trmsCn || MSG.termsEmpty}
+          </div>
+        </>
       )}
     </Modal>
   );

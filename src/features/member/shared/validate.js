@@ -31,9 +31,5 @@ export const isValidPassword = (value) =>
 
 export const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-/** 가입용 비밀번호: 8~64자, 영문·숫자를 함께 쓰는 공백 없는 ASCII(서버 규칙) */
-export const isValidJoinPassword = (value) =>
-  /^[!-~]{8,64}$/.test(value) && /[a-zA-Z]/.test(value) && /\d/.test(value);
-
 /** 약관 내용보기가 없는 연령 확인 항목인지 */
 export const hasTermsView = (trmsFixIdntfKey) => !/AGE/i.test(trmsFixIdntfKey);
