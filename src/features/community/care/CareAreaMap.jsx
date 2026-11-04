@@ -12,7 +12,7 @@ import { findDongCenter } from '../missing/placeSearch';
 export default function CareAreaMap({ place, onMove, className = '' }) {
   const { kakao } = useKakaoMap();
   const { sggNm, emdNm, wtnsPlcLat, wtnsPlcLot } = place;
-  const area = `${emdNm} 인근`;
+  const area = `${emdNm || sggNm} 인근`;
   const dongKey = `${sggNm} ${emdNm}`;
   const hasCoords = wtnsPlcLat != null && wtnsPlcLot != null;
   /** { key, coords }: coords가 null이면 못 찾음 */

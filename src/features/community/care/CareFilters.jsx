@@ -1,14 +1,8 @@
 import { RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import Select from '@/components/Select';
-import {
-  ALL_REGION,
-  DONG_BY_REGION,
-  hasDong,
-  PET_FILTERS,
-  REGION_OPTIONS,
-  SIZE_FILTERS,
-} from '../careCodes';
+import { ALL_REGION, PET_FILTERS, SIZE_FILTERS } from '../careCodes';
+import { useJeonbukRegions, useSubRegions } from '../missingQueries';
 
 const DATE_CLASS =
   'block h-10 min-w-0 flex-1 rounded-md border border-input-line bg-white px-3 text-base hover:border-line-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none';
@@ -79,12 +73,15 @@ export default function CareFilters({ filters, onChange, onReset }) {
   const [isOpen, setIsOpen] = useState(false);
   const { mine, region, dong, from, to, pet, size } = filters;
   const activeCount = countActive(filters);
+  const { data: sggs = [] } = useJeonbukRegions();
+  const { data: dongs = [] } = useSubRegions(region);
+  const regionOptions = [
+    { value: ALL_REGION, label: '전북 전체' },
+    ...sggs.map((row) => ({ value: String(row.rgnSn), label: row.sggNm })),
+  ];
   const dongOptions = [
     { value: '', label: '읍·면·동 전체' },
-    ...(DONG_BY_REGION[region] ?? []).map((name) => ({
-      value: name,
-      label: name,
-    })),
+    ...dongs.map((row) => ({ value: String(row.rgnSn), label: row.emdNm })),
   ];
 
   return (
@@ -118,13 +115,13 @@ export default function CareFilters({ filters, onChange, onReset }) {
             <Select
               label="시·군·구"
               value={region}
-              options={REGION_OPTIONS}
+              options={regionOptions}
               onChange={(next) => onChange({ region: next, dong: '' })}
               className="min-w-0 flex-[0_1_168px]"
             />
-            {/* 전북 전체·전주시 전체는 읍·면·동을 고를 수 없다: fieldset disabled로 select를 함께 잠근다 */}
+            {/* 전북 전체이거나 하위 읍·면·동이 없으면 고를 수 없다: fieldset disabled로 select를 함께 잠근다 */}
             <fieldset
-              disabled={!hasDong(region)}
+              disabled={dongs.length === 0}
               className="m-0 min-w-[140px] flex-[0_1_200px] border-0 p-0 disabled:opacity-45"
             >
               <Select

@@ -9,7 +9,7 @@ import { PATHS } from '@/routes/paths';
 
 export default function CareWritePage() {
   const navigate = useNavigate();
-  const { mutate, isPending, isError } = useCreateCare();
+  const { mutate, isPending, isError, error } = useCreateCare();
   const { setDirty, onLeave, leaveModal } = useLeaveGuard();
 
   /** 등록하면 별도 완료 모달 없이 상세로 이동해 올린 글 바로 확인 */
@@ -38,9 +38,7 @@ export default function CareWritePage() {
         initial={EMPTY_FORM}
         cancelTo={PATHS.COMMUNITY_PETCARE}
         isPending={isPending}
-        errorMessage={
-          isError && '게시글을 등록하지 못했어요. 잠시 뒤 다시 시도해 주세요'
-        }
+        submitError={isError ? error : null}
         onSubmit={handleSubmit}
         onLeave={onLeave}
         onDirtyChange={setDirty}
