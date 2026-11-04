@@ -1,4 +1,5 @@
 import {
+  keepPreviousData,
   useMutation,
   useQueries,
   useQuery,
@@ -15,19 +16,20 @@ import {
   deleteCaregiver,
   deletePet,
   getCaregivers,
-  getCharacterItems,
+  getCharacterPreview,
   getInvitation,
   getPet,
   getPets,
+  getPixelCharacter,
   getPixelCharacters,
   getShopItems,
   getSentInvitations,
   getVarieties,
   leavePet,
-  purchaseCharacterItems,
+  purchaseItems,
   rejectInvitation,
+  saveEquippedItems,
   setRepresentativePet,
-  updateCharacterWear,
   updatePet,
 } from './api';
 
@@ -36,9 +38,20 @@ export const petKeys = {
   list: () => ['pets', 'list'],
   detail: (petSn) => ['pets', petSn],
   caregivers: (petSn) => ['pets', petSn, 'caregivers'],
-  items: (petSn) => ['pets', petSn, 'items'],
   varieties: (petSeCd) => ['varieties', petSeCd],
-  shopItems: () => ['items', 'shop'],
+};
+
+/** 캐릭터 꾸미기 상세·상점·미리보기 (반려동물 캐시와 따로 둔다) */
+export const characterKeys = {
+  detail: (pixelCharSn) => ['pixel-character', pixelCharSn],
+  shopItems: (pixelCharSn) => ['pixel-character', pixelCharSn, 'shop-items'],
+  /** 같은 조합은 순서와 상관없이 같은 키 */
+  preview: (pixelCharSn, itemSns) => [
+    'pixel-character',
+    pixelCharSn,
+    'preview',
+    [...itemSns].sort((a, b) => a - b),
+  ],
 };
 
 export const invitationKeys = {
@@ -167,16 +180,18 @@ export const useLeavePet = () => {
     onSuccess: (_, { petSn }) => refreshAfterUnlink(petSn),
     /** 이미 해제된 연동이면 목록을 다시 읽어 맞춘다 */
     onError: (error, { petSn }) => {
-      if (error.code === 'CAREGIVER_NOT_FOUND') return refreshAfterUnlink(petSn);
+      if (error.code === 'CAREGIVER_NOT_FOUND')
+        return refreshAfterUnlink(petSn);
     },
   });
 };
 
-export const useCharacterItems = (petSn) =>
+/** 꾸미기 상세: 보유 아이템 heldItems와 착용 여부 equipYn */
+export const usePixelCharacter = (pixelCharSn) =>
   useQuery({
-    queryKey: petKeys.items(petSn),
-    queryFn: () => getCharacterItems(petSn),
-    enabled: petSn != null,
+    queryKey: characterKeys.detail(pixelCharSn),
+    queryFn: () => getPixelCharacter(pixelCharSn),
+    enabled: pixelCharSn != null,
   });
 
 /** 모달이 닫혀도 생성은 이어지므로 갱신은 여기(훅 옵션)에서 처리 */
@@ -196,28 +211,73 @@ export const useCreateCharacter = () => {
   });
 };
 
-export const useUpdateCharacterWear = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: updateCharacterWear,
-    onSuccess: (_, { petSn }) =>
-      qc.invalidateQueries({ queryKey: petKeys.items(petSn) }),
-  });
+/** 저장·구매 응답이 꾸미기 상세라 그대로 캐시에 넣는다 */
+const applyCharacter = (qc, pixelCharSn, character) => {
+  qc.setQueryData(characterKeys.detail(pixelCharSn), character);
+  qc.invalidateQueries({ queryKey: healthKeys.pixelCharacters });
 };
 
-export const useShopItems = () =>
-  useQuery({ queryKey: petKeys.shopItems(), queryFn: getShopItems });
-
-export const usePurchaseCharacterItems = () => {
+export const useSaveEquippedItems = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: purchaseCharacterItems,
-    onSuccess: (_, { petSn }) => {
-      qc.invalidateQueries({ queryKey: petKeys.items(petSn) });
-      qc.invalidateQueries({ queryKey: pointKeys.balance() });
+    mutationFn: saveEquippedItems,
+    onSuccess: (character, { pixelCharSn }) =>
+      applyCharacter(qc, pixelCharSn, character),
+    /** 오류 확인 중으로 바뀐 캐릭터는 목록 상태를 다시 읽는다 */
+    onError: (error) => {
+      if (error.code === 'PIXEL_CHARACTER_UNDER_REVIEW')
+        qc.invalidateQueries({ queryKey: healthKeys.pixelCharacters });
     },
   });
 };
+
+/** 상점 목록과 보유 포인트(주양육자만) */
+export const useShopItems = (pixelCharSn) =>
+  useQuery({
+    queryKey: characterKeys.shopItems(pixelCharSn),
+    queryFn: () => getShopItems(pixelCharSn),
+    enabled: pixelCharSn != null,
+  });
+
+export const usePurchaseItems = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: purchaseItems,
+    onSuccess: (character, { pixelCharSn }) => {
+      applyCharacter(qc, pixelCharSn, character);
+      qc.invalidateQueries({ queryKey: characterKeys.shopItems(pixelCharSn) });
+      qc.invalidateQueries({ queryKey: pointKeys.balance() });
+    },
+    /** 이미 보유한 아이템이 있으면 상점을 다시 읽어 보유중을 맞춘다 */
+    onError: (error, { pixelCharSn }) => {
+      if (error.code === 'ITEM_ALREADY_HELD') {
+        qc.invalidateQueries({ queryKey: characterKeys.detail(pixelCharSn) });
+        qc.invalidateQueries({
+          queryKey: characterKeys.shopItems(pixelCharSn),
+        });
+      }
+    },
+  });
+};
+
+/**
+ * 착용 미리보기(AI 서버 합성 PNG Blob)
+ * - 조합이 바뀌면 앞 요청은 취소되고, 새 이미지가 올 때까지 직전 이미지를 유지한다
+ */
+export const useCharacterPreview = ({ pixelCharSn, itemSns, enabled = true }) =>
+  useQuery({
+    queryKey: characterKeys.preview(pixelCharSn, itemSns),
+    queryFn: ({ signal }) =>
+      getCharacterPreview({
+        pixelCharSn,
+        itemSns: [...itemSns].sort((a, b) => a - b),
+        signal,
+      }),
+    enabled: enabled && pixelCharSn != null,
+    placeholderData: keepPreviousData,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
 
 export const useSetRepresentativePet = () => {
   const qc = useQueryClient();

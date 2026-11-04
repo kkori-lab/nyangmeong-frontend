@@ -1,5 +1,5 @@
-import { api } from '@/api/axios';
-import { CHRC_STTS, ITEM_PART, PET_REL, PET_SE } from './shared/petCodes';
+import { aiApi, api } from '@/api/axios';
+import { CHRC_STTS, PET_REL, PET_SE } from './shared/petCodes';
 
 /**
  * [반려동물 API]
@@ -193,9 +193,6 @@ let fakePets = [
   },
 ];
 
-const fakeDelay = (data) =>
-  new Promise((resolve) => setTimeout(() => resolve(data), 200));
-
 const getQueryParam = (name) =>
   import.meta.env.DEV
     ? new URLSearchParams(window.location.search).get(name)
@@ -236,109 +233,50 @@ export const leavePet = ({ petSn, brupRelSn }) =>
   api.delete(`/pets/${petSn}/caregivers/${brupRelSn}`);
 
 /**
- * [캐릭터 가짜 API]
- * - 캐릭터 API(LJS)·대표 지정 API(SJM 백엔드) 전까지 쓰는 가짜 응답, 나오면 본문만 api 요청으로 교체
- * - 미정 키: itemSn, itemNm, itemPartCd, itemImgUrl, wearYn
+ * [캐릭터 꾸미기·상점 API] (LJS 백엔드)
+ * - 아래 대표 지정·캐릭터 생성은 아직 가짜 응답(나오면 본문만 api 요청으로 교체)
  */
-const item = (itemSn, itemNm, itemPartCd, wearYn = 'N') => ({
-  itemSn,
-  itemNm,
-  itemPartCd,
-  itemImgUrl: null,
-  wearYn,
-});
 
-const defaultItems = () => [
-  item(12, '야구모자', ITEM_PART.HEAD),
-  item(14, '헤어핀', ITEM_PART.HEAD),
-  item(21, '동그란 안경', ITEM_PART.FACE),
-];
+/** 꾸미기 상세(보유 아이템 포함) GET /pixel-characters/{pixelCharSn} */
+export const getPixelCharacter = (pixelCharSn) =>
+  api.get(`/pixel-characters/${pixelCharSn}`);
 
-let fakeItems = {
-  1: [
-    item(11, '밀짚모자', ITEM_PART.HEAD, 'Y'),
-    item(12, '야구모자', ITEM_PART.HEAD),
-    item(13, '두건', ITEM_PART.HEAD),
-    item(14, '헤어핀', ITEM_PART.HEAD),
-    item(15, '헤어밴드', ITEM_PART.HEAD),
-    item(16, '겨울모자', ITEM_PART.HEAD),
-    item(17, '왕관', ITEM_PART.HEAD),
-    item(18, '리본핀', ITEM_PART.HEAD),
-    item(19, '털모자', ITEM_PART.HEAD),
-    item(20, '선글라스', ITEM_PART.FACE, 'Y'),
-    item(21, '동그란 안경', ITEM_PART.FACE),
-    item(22, '목도리', ITEM_PART.NECK),
-    item(23, '체크셔츠', ITEM_PART.CLOTHES, 'Y'),
-  ],
-};
+/** 착용 상태 저장 PUT /pixel-characters/{pixelCharSn}/equipped-items (보유번호 hldItemSns 전체) */
+export const saveEquippedItems = ({ pixelCharSn, hldItemSns }) =>
+  api.put(`/pixel-characters/${pixelCharSn}/equipped-items`, { hldItemSns });
 
-/** 보유 아이템 조회 GET /pets/{petSn}/character/items */
-export const getCharacterItems = (petSn) =>
-  fakeDelay(fakeItems[petSn] ?? defaultItems());
+/** 상점 아이템과 보유 포인트 GET /pixel-characters/{pixelCharSn}/shop-items -> { hldPnt, items } */
+export const getShopItems = (pixelCharSn) =>
+  api.get(`/pixel-characters/${pixelCharSn}/shop-items`);
+
+/** 아이템 구매 POST /pixel-characters/{pixelCharSn}/held-items (중복 결제 방지 idmptDmndId) */
+export const purchaseItems = ({ pixelCharSn, itemSns, idmptDmndId }) =>
+  api.post(`/pixel-characters/${pixelCharSn}/held-items`, {
+    idmptDmndId,
+    itemSns,
+  });
+
+/** Blob을 <img>용 data URL로(해제할 주소가 없어 캐시에 그대로 둔다) */
+const blobToDataUrl = (blob) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
 
 /**
- * 상점 아이템 조회 GET /items (LJS)
- * - 미정 키: itemPrc. itemSn은 보유 아이템(getCharacterItems)과 같은 번호
- * - 가격(500~900P)은 예시
+ * 착용 미리보기 POST /ai/characters/{pixelCharSn}/preview (AI 서버가 합성한 PNG -> data URL)
+ * - itemSns는 아이템 번호(보유번호 아님). 저장하지 않으며 주양육자만 가능
  */
-const shopItem = (itemSn, itemNm, itemPartCd, itemPrc) => ({
-  itemSn,
-  itemNm,
-  itemPartCd,
-  itemPrc,
-  itemImgUrl: null,
-});
-
-const SHOP_ITEMS = [
-  shopItem(11, '밀짚모자', ITEM_PART.HEAD, 600),
-  shopItem(12, '야구모자', ITEM_PART.HEAD, 600),
-  shopItem(13, '두건', ITEM_PART.HEAD, 500),
-  shopItem(14, '헤어핀', ITEM_PART.HEAD, 500),
-  shopItem(15, '헤어밴드', ITEM_PART.HEAD, 500),
-  shopItem(16, '겨울모자', ITEM_PART.HEAD, 700),
-  shopItem(17, '왕관', ITEM_PART.HEAD, 900),
-  shopItem(18, '리본핀', ITEM_PART.HEAD, 500),
-  shopItem(19, '털모자', ITEM_PART.HEAD, 700),
-  shopItem(20, '선글라스', ITEM_PART.FACE, 700),
-  shopItem(21, '동그란 안경', ITEM_PART.FACE, 600),
-  shopItem(22, '목도리', ITEM_PART.NECK, 800),
-  shopItem(24, '방울 목걸이', ITEM_PART.NECK, 600),
-  shopItem(23, '체크셔츠', ITEM_PART.CLOTHES, 900),
-  shopItem(25, '후드티', ITEM_PART.CLOTHES, 900),
-  shopItem(26, '한복', ITEM_PART.CLOTHES, 900),
-  shopItem(27, '작은가방', ITEM_PART.BAG, 800),
-  shopItem(28, '배낭', ITEM_PART.BAG, 900),
-  shopItem(29, '보냉백', ITEM_PART.BAG, 800),
-];
-
-export const getShopItems = () => fakeDelay(SHOP_ITEMS);
-
-/**
- * 아이템 구매 POST /pets/{petSn}/character/items (LJS, itemSn 목록)
- * - 산 아이템은 그 캐릭터의 보관함으로 이동. 포인트 차감은 서버 일이라 가짜는 잔액을 줄이지 않음
- */
-export const purchaseCharacterItems = ({ petSn, itemSns }) => {
-  const owned = fakeItems[petSn] ?? defaultItems();
-  const bought = SHOP_ITEMS.filter(
-    (it) =>
-      itemSns.includes(it.itemSn) &&
-      !owned.some((own) => own.itemSn === it.itemSn),
-  ).map((it) => item(it.itemSn, it.itemNm, it.itemPartCd));
-  fakeItems = { ...fakeItems, [petSn]: [...owned, ...bought] };
-  return fakeDelay(null);
-};
-
-/** 착용 저장 PUT /pets/{petSn}/character/items/wear (착용할 itemSn 목록) */
-export const updateCharacterWear = ({ petSn, itemSns }) => {
-  fakeItems = {
-    ...fakeItems,
-    [petSn]: (fakeItems[petSn] ?? defaultItems()).map((it) => ({
-      ...it,
-      wearYn: itemSns.includes(it.itemSn) ? 'Y' : 'N',
-    })),
-  };
-  return fakeDelay(null);
-};
+export const getCharacterPreview = ({ pixelCharSn, itemSns, signal }) =>
+  aiApi
+    .post(
+      `/characters/${pixelCharSn}/preview`,
+      { itemSns },
+      { responseType: 'blob', signal },
+    )
+    .then(blobToDataUrl);
 
 /** 대표 반려동물 지정 POST /pets/{petSn}/representative (주양육 동물만) */
 export const setRepresentativePet = (petSn) =>
