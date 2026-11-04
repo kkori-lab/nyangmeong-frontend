@@ -62,6 +62,20 @@ export const login = ({ acntEml, pswd, scrtyCd }) =>
     { skipAuthRedirect: true },
   );
 
+/**
+ * SNS 로그인. snsLoginRslt로 갈린다
+ * - LOGIN { ncnmReguide, mbrNcnm }: 로그인 쿠키가 심긴다
+ * - SIGNUP_REQUIRED { snsOffrCd, acntEml, mblTelno, ageCnfrmd, signupTkn }: SNS 가입 확인으로
+ * - EMAIL_DUPLICATE·RECOVERY_AVAILABLE { acntEml }
+ * - 오류: SNS_AUTH_FAILED · SNS_EMAIL_NOT_PROVIDED · MEMBER_INACTIVE(이 화면에서 안내하므로 이동 끔)
+ */
+export const snsLogin = ({ snsOffrCd, code, state }) =>
+  api.post(
+    '/auth/sns-login',
+    { snsOffrCd, code, state },
+    { skipAuthRedirect: true },
+  );
+
 /** 이메일 인증번호 목적 코드(공통코드 USRG04): 비밀번호 찾기 */
 const PASSWORD_RESET_PURPOSE = 'USRC0011';
 
@@ -186,6 +200,23 @@ export const joinMember = ({
       trmsAgres,
       idmptDmndId,
     },
+    { skipAuthRedirect: true },
+  );
+
+/**
+ * SNS 가입. 가입경로는 제공자 코드, 비밀번호·이메일 인증 없이 signupTkn으로 가입한다
+ * 응답·쿠키는 이메일 가입과 같다. 오류: SNS_SIGNUP_TOKEN_INVALID(만료) · SNS_ACCOUNT_ALREADY_LINKED · PHONE_ALREADY_USED
+ */
+export const joinSnsMember = ({
+  snsOffrCd,
+  signupTkn,
+  mblTelno,
+  trmsAgres,
+  idmptDmndId,
+}) =>
+  api.post(
+    '/members',
+    { joinPathCd: snsOffrCd, signupTkn, mblTelno, trmsAgres, idmptDmndId },
     { skipAuthRedirect: true },
   );
 
