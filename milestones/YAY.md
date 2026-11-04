@@ -56,13 +56,14 @@
 - 기다리는 것: `pet` 목록·프로필 조회(SJM), 캐릭터 이미지 조회(LJS), 건강 지표·케어리스트(JAJ), AI 대화창 SCR-AIM-001·011(LJS 화면), 메인 조회 조합·위젯 순서 저장(YAY 백엔드)
 - 완료 조건: 반려동물 탭을 바꾸면 프로필·위젯·케어미션이 그 반려동물 기준으로 바뀐다. 위젯 순서를 바꾸고 새로고침해도 유지된다
 
-## SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결 — 대기
+## SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결 — 끝
 - 백엔드 끝: `GET /terms`, `GET /terms/{trmsSn}`, `POST /email-certifications`, `POST /email-certifications/{emlCertSn}/verify`, `GET /members/phone-availability`, `GET /members/nickname-availability`, `POST /members`, `PATCH /members/me/nickname` (백엔드 SCR-ACC-001 절의 "프론트 연결")
 - 기능: 명세 기능 ID 추가 없음. FN-ACC-001-03~14·24~30·38에 걸친다
 - 대상: `features/member/signup/`의 가짜 약관·이메일 인증·번호/닉네임 중복확인·가입·닉네임 저장 API
 - 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-001)의 PR 병합과 공용 DB 마이그레이션
 - 완료 조건: 실제 서버로 약관 → 인증번호 발송·확인 → 번호 중복확인 → 가입 → 닉네임 저장이 되고, 가입 뒤 로그인 쿠키 없이 닉네임 모달이 동작한다. 재전송 제한은 `resendAvailableDt`로 남은 시간을 보여 준다
 - 이어받은 확인: 가입 발송이 409 `MEMBER_RECOVERY_AVAILABLE`(탈퇴 보관 이메일)이면 재가입 복구 화면으로 바뀌는지 화면으로 확인한다(코드는 SCR-ACC-001 재가입 복구에서 넣음)
+- 끝남: 승인 2026-11-04, 검증 통과(7회차), 사람 확인 2026-11-04. 약관 내용보기에 버전 표시, 닉네임은 자르지 않고 길이·문자 오류 문구, 가입된 이메일에 [기존 가입 방법으로 로그인] 버튼, 409 복구 진입 확인. 가입 비밀번호는 공용 `isValidPassword`
 
 ## SCR-ACC-011 비밀번호 찾기 · 인증번호 API 연결 — 끝
 - 백엔드 끝: `POST /email-certifications`(목적 `USRC0011`), `POST /email-certifications/{emlCertSn}/verify`, `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-011 절의 "프론트 연결")
@@ -96,6 +97,13 @@
 - 완료 조건: 실제 서버로 병원 탭을 검색하면 카카오 업체가 카드·핀으로 나오고, 지도를 옮겨 재검색하면 새 범위 결과로 바뀐다. 별을 누르면 상단 즐겨찾기에 바로 들어오고 다시 누르면 빠진다
 - 끝남: 승인 2026-11-03, 검증 통과, 사람 확인 2026-11-03. 결과 카드·병원명·상세보기는 문서대로 카카오맵 상세 새 탭(지도 선택은 핀만)
 - 연결 남음: FN-HOS-001-33 (`routes/AppRoutes.jsx`의 `bare`+`member` 조립 별도 PR 뒤 `placeRoutes.js`를 `auth: 'member'`로, YAY)
+
+## SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 대기
+- 백엔드 끝: SNS 로그인 `POST /auth/sns-login`(`snsOffrCd` USRC0007 네이버·0008 카카오·0009 구글, `code`, `state`(네이버 필수) → `snsLoginRslt` `LOGIN`(쿠키 발급, `ncnmReguide`·`mbrNcnm`) / `SIGNUP_REQUIRED`(`snsOffrCd`·`acntEml`·`mblTelno`·`ageCnfrmd`·`signupTkn`) / `EMAIL_DUPLICATE`(`acntEml`) / `RECOVERY_AVAILABLE`(`acntEml`)), SNS 가입 `POST /members`(`joinPathCd`=제공자, `signupTkn`, `mblTelno`, `trmsAgres`, `pswd`·`emlCertSn`·`certNo` 보내면 400) (백엔드 SCR-ACC-002 SNS 로그인 절의 "프론트 연결")
+- 기능: 명세 기능 ID 추가 없음. FN-ACC-002-09·10·11, FN-ACC-001-31·32에 걸친다
+- 대상: 버튼을 누르면 프론트가 `state`를 만들어 sessionStorage에 두고 제공자 인가 창을 연다. 콜백에서 `state`를 비교한 뒤 `code`를 넘긴다. `LOGIN`은 `ncnmReguide`면 닉네임 모달, 아니면 요청 화면. `SIGNUP_REQUIRED`는 SNS 가입 확인 화면(이메일 읽기 전용, `mblTelno`가 있으면 읽기 전용·없으면 입력, `ageCnfrmd`면 만 14세 "확인 완료" 표시이고 요청에는 동의 true). `EMAIL_DUPLICATE`는 "이미 가입된 이메일입니다. 기존에 가입한 방법으로 로그인해 주세요.", `RECOVERY_AVAILABLE`은 `acntEml`로 기존 이메일 복구 흐름. 오류: 400 `SNS_AUTH_FAILED`·`SNS_EMAIL_NOT_PROVIDED`·`SNS_SIGNUP_TOKEN_INVALID`(로그인 방법 선택에서 다시), 403 `MEMBER_INACTIVE`, 409 `SNS_ACCOUNT_ALREADY_LINKED`. 가입 성공은 이메일 가입과 같이 `ncnm_setup` 쿠키만, 자동 로그인 없음
+- 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-002 SNS 로그인)의 PR 병합, 공유 `application.properties`의 `/api/auth/sns-login` 열린 경로와 `app.sns.*`(키가 없으면 가짜 제공자: `code`를 `fake-이름`으로 보낸다), 제공자 콘솔 redirect-uri를 프론트 콜백 주소로 등록
+- 완료 조건: 실제 서버로 처음 보는 SNS 계정 → 가입 확인 화면 → 가입 완료 → 같은 SNS로 다시 로그인하면 로그인되고, 같은 이메일의 다른 가입 방식이면 중복 안내가 나온다
 
 ## 제외
 - 없음. 외부인증창 참고 행 6개(네이버·카카오·구글 외부 로그인·동의 창)는 명세에 기능 ID가 없다

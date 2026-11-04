@@ -150,12 +150,15 @@ export const recoverMember = ({
     { skipAuthRedirect: true },
   );
 
-/** 휴대전화번호 정규화·중복확인. 응답 { normalizedMblTelno, available } */
-export const checkRecoveryPhone = ({ mblTelno }) =>
+/** 휴대전화번호 정규화·중복확인(가입·복구 공용). 응답 { normalizedMblTelno, available } */
+export const checkPhoneAvailability = ({ mblTelno }) =>
   api.get('/members/phone-availability', {
     params: { mblTelno },
     skipAuthRedirect: true,
   });
+
+/** 사용 중인 약관 목록(가입 약관 동의). 응답 [{ trmsSn, trmsFixIdntfKey, trmsTtl, esntlAgreYn, sortSeq }] */
+export const getTermsList = () => api.get('/terms', { skipAuthRedirect: true });
 
 /** 약관 전문 */
 export const getTerms = (trmsSn) =>
@@ -171,48 +174,54 @@ export const getTerms = (trmsSn) =>
 export const resetPassword = ({ pswd }) =>
   wait(pswd.includes('fail') ? { ok: false, reason: 'FAILED' } : { ok: true });
 
-/**
- * [회원가입 가짜 API]
- * - 가입·인증·중복확인 API(YAY 백엔드) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
- * - 미확정 키: acntEml·authCd·expiresAt·mbrTelno·pswd·termsAgreeList·mbrNcnm, 중복·복구 대상 결과를 응답 본문으로 줄지 오류 응답으로 줄지
- * - 이메일 duplicate@example.com은 가입된 이메일, restore@example.com은 탈퇴 후 30일 이내 계정, fail@example.com은 발송 실패
- * - 인증번호 123456은 성공, 그 외는 불일치. 번호 01012345678은 중복, 01000000000은 조회 실패
- * - 비밀번호에 fail이 들어가면 가입 실패. 기본 닉네임은 가짜에서 고정값
- * - 유효시간 3분은 가짜에서만 쓴다(운영값 미확정)
- */
-const SIGNUP_CODE = '123456';
-const SIGNUP_TTL_MS = 3 * 60 * 1000;
-const SIGNUP_DUP_EMAIL = 'duplicate@example.com';
-const SIGNUP_RESTORE_EMAIL = 'restore@example.com';
-const SIGNUP_DUP_PHONE = '01012345678';
+/** 이메일 인증번호 목적 코드(공통코드 USRG04): 회원가입 */
+const SIGNUP_PURPOSE = 'USRC0010';
 
-let signup = { acntEml: '', expiresAt: 0 };
+/** 가입 인증번호 발송·재전송. 응답·오류는 비밀번호 찾기와 같고, 이미 가입은 409 EMAIL_ALREADY_REGISTERED, 탈퇴 보관 이메일은 409 MEMBER_RECOVERY_AVAILABLE */
+export const sendSignupCode = ({ certTrgtEml }) =>
+  api.post(
+    '/email-certifications',
+    { emlCertPrpsCd: SIGNUP_PURPOSE, certTrgtEml },
+    { skipAuthRedirect: true },
+  );
 
-/** 결과는 OK·DUPLICATE·RESTORE 중 하나. OK이면 expiresAt도 포함 */
-export const sendSignupCode = ({ acntEml }) => {
-  if (acntEml === 'fail@example.com') return fail('SEND_FAILED');
-  if (acntEml === SIGNUP_DUP_EMAIL) return wait({ result: 'DUPLICATE' });
-  if (acntEml === SIGNUP_RESTORE_EMAIL) return wait({ result: 'RESTORE' });
-  signup = { acntEml, expiresAt: Date.now() + SIGNUP_TTL_MS };
-  return wait({ result: 'OK', expiresAt: signup.expiresAt });
-};
+/** 가입 이메일 인증 확인. 성공이면 certRslt가 SIGNUP_READY */
+export const verifySignupCode = verifyRecoveryCode;
 
-/** 결과는 OK·MISMATCH·EXPIRED 중 하나 */
-export const verifySignupCode = ({ acntEml, authCd }) => {
-  if (acntEml !== signup.acntEml || Date.now() > signup.expiresAt) {
-    return wait({ result: 'EXPIRED' });
-  }
-  return wait({ result: authCd === SIGNUP_CODE ? 'OK' : 'MISMATCH' });
-};
+/** 이메일 가입 */
+const JOIN_PATH_EMAIL = 'USRC0006';
 
-export const checkSignupPhone = ({ mbrTelno }) =>
-  mbrTelno === FAIL_PHONE
-    ? fail('FAILED')
-    : wait({ dplctYn: mbrTelno === SIGNUP_DUP_PHONE });
+/** 가입. 응답 { mbrNcnm, … }, 닉네임 설정용 쿠키(ncnm_setup)가 심기고 로그인은 되지 않는다 */
+export const joinMember = ({
+  emlCertSn,
+  certNo,
+  mblTelno,
+  pswd,
+  trmsAgres,
+  idmptDmndId,
+}) =>
+  api.post(
+    '/members',
+    {
+      joinPathCd: JOIN_PATH_EMAIL,
+      emlCertSn,
+      certNo,
+      mblTelno,
+      pswd,
+      pswdCnfrm: pswd,
+      trmsAgres,
+      idmptDmndId,
+    },
+    { skipAuthRedirect: true },
+  );
 
-/** 성공이면 { ok: true, mbrNcnm }, 실패면 { ok: false, reason: 'FAILED' } */
-export const joinMember = ({ pswd }) => {
-  if (pswd.includes('fail')) return wait({ ok: false, reason: 'FAILED' });
-  signup = { acntEml: '', expiresAt: 0 };
-  return wait({ ok: true, mbrNcnm: '행복한집사4821' });
-};
+/** 닉네임 형식·중복 확인. 응답 { available } */
+export const checkNicknameAvailability = ({ mbrNcnm }) =>
+  api.get('/members/nickname-availability', {
+    params: { mbrNcnm },
+    skipAuthRedirect: true,
+  });
+
+/** 가입 직후(ncnm_setup 쿠키)나 로그인 뒤 닉네임 확정. 기본 닉네임을 그대로 둘 때도 보낸다 */
+export const setupNickname = ({ mbrNcnm }) =>
+  api.patch('/members/me/nickname', { mbrNcnm }, { skipAuthRedirect: true });
