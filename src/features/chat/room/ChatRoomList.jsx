@@ -25,7 +25,7 @@ const EMPTY_TEXT = {
   applied: '지원한 글의 채팅이 없어요',
 };
 
-const TAB_ROLE = { mine: ROLE.OWNER, applied: ROLE.SITTER };
+const TAB_ROLE = { mine: ROLE.GUARDIAN, applied: ROLE.SITTER };
 
 /** lastMsgDt 내림차순, 메시지 없는 방은 끝 */
 const sortByLastMessage = (rooms) =>

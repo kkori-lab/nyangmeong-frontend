@@ -2,6 +2,8 @@
 
 ## 지금 하는 것
 
+SCR-ACC-002 SNS 로그인 · 제공자별 콜백 주소 — 끝남 (승인 2026-11-05 09:49, 검증 통과 1회차, 사람 확인 2026-11-05: 구글·카카오 실제 계정으로 SNS 가입 확인 화면까지). 콜백은 `/login/sns/:provider/callback`(`PATHS.SNS_CALLBACK`, `docs/routes.md` ACC-002 줄)이 받고 처리 뒤 `/login`(+`?redirect=`)으로 replace. 백엔드 `app.sns.*.redirect-uri`·제공자 콘솔이 이 주소다. 앞의 "콜백은 `/login`" 결정을 바꿨다
+
 SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 끝남 (승인 2026-11-04 17:06, 검증 통과 2회차(1회차는 로컬 백엔드가 real 모드라 확인 못 함), 사람 확인 2026-11-04). 콜백은 새 URL 없이 `/login`이 받는다(`features/member/login/snsAuth.js`·`useSnsCallback.js`). state·제공자·`redirect`는 sessionStorage `snsLoginRequest`. 앱 ID(`VITE_NAVER_CLIENT_ID`·`VITE_KAKAO_REST_KEY`·`VITE_GOOGLE_CLIENT_ID`)가 비면 개발 서버에서 이름을 받아 `fake-이름`으로 돌아온다(백엔드 `app.sns.client=fake`). SNS 가입 확인은 `features/member/signup/SnsSignupForm.jsx`·`useSnsSignup.js`(router state `snsSignup`). `TermsChecklist`·`SignupComplete`를 떼어 이메일 가입과 같이 쓴다. 확인용 로컬 SNS 회원 `verifysnsk1104@example.com`(카카오)·`verifysnsg1104@example.com`(구글)이 로컬 DB에 남아 있다
 
 코드 정리 · 약관 체크박스 합치기 — 끝남 (승인 2026-11-04 16:48, 검증 통과 1회차(확인 못 함 없음, 연결 남음 없음), 사람 확인 2026-11-04). `features/member/signup/TermsStep.jsx`의 지역 `CheckBox`를 지우고 `features/member/shared/AuthCheckBox.jsx`를 쓴다. 모양·동작은 그대로(체크 색은 `brand-500` 진녹색, 기획 문구의 '주황'은 틀림)
@@ -14,7 +16,8 @@ SCR-HOS-001 플레이스 · FN-HOS-001-33 로그인 필수 접근 — 끝남 (�
 
 ## 다음에 할 것
 
-- SNS 실제 앱 키 연결(팀): 제공자 콘솔에 redirect-uri `http://localhost:5173/login`(배포는 그 도메인의 `/login`) 등록, 로컬 백엔드 `app.sns.*.redirect-uri`가 지금 `/login/sns/<제공자>/callback`이라 `/login`으로 맞춘다. 프론트 `.env.local`에 `VITE_*` 앱 ID 3개
+- SNS 배포 연결(팀): 배포 도메인의 `/login/sns/{naver|kakao|google}/callback`을 제공자 콘솔·배포 백엔드 `app.sns.*.redirect-uri`에 등록, 배포 프론트 환경에 `VITE_*` 앱 ID 3개. 카카오는 전화번호 동의항목 권한 신청 전이라 번호를 주지 않는다(직접 입력으로 감)
+- 팀 알림: 새 URL `/login/sns/:provider/callback`(`paths.js` `SNS_CALLBACK`)을 PR Breaking Changes에 적고 팀에 알린다
 - 코드 후보: SNS 가입 확인 화면에서 새로고침하면 history state가 남아 SNS 가입 확인이 그대로 나온다(`SignupPage.jsx` 주석 "새로고침으로 state가 없으면 이메일 가입"과 다름). SCR-ACC-002 SNS 검증 메모
 - 코드 후보: 390 폭에서 SNS 가입 확인의 "가입 계정 확인" 라벨이 두 줄로 꺾이고 이메일이 말줄임된다(`SnsSignupForm.jsx` 라벨 `shrink-0`)
 - PR Breaking Changes(SNS): `.env.example`에 `VITE_NAVER_CLIENT_ID`·`VITE_KAKAO_REST_KEY`·`VITE_GOOGLE_CLIENT_ID` 추가, `TermsStep.jsx`에서 `TermsChecklist`·`SignupForm.jsx`에서 `SignupComplete`를 떼어 냄

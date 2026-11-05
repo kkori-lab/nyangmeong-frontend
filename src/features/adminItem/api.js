@@ -1,4 +1,4 @@
-import { api } from '@/api/axios';
+import { aiApi, api } from '@/api/axios';
 
 /**
  * [관리자 아이템 API]
@@ -70,3 +70,9 @@ export const updateAdminItem = ({ itemSn, ...fields }) =>
 /** 부위 안 상점 순서 저장: 그 부위 아이템 전부(판매 중지 포함)를 빠짐·중복 없이, 순서대로 1부터 */
 export const saveAdminItemOrder = ({ itemRegnCd, itemSns }) =>
   api.put('/admin/items/order', { itemRegnCd, itemSns });
+
+/**
+ * 전체 굽기 한 묶음(AI 서버): 아직 안 구운 캐릭터를 최대 13개 굽고 답함(약 30초)
+ * { itemSn, bakedCnt, failedCnt, lastYn }, lastYn이 false면 다시 부름
+ */
+export const bakeAdminItem = (itemSn) => aiApi.post(`/items/${itemSn}/bake`);

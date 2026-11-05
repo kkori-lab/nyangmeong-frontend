@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from 'react';
 import { generatePath } from 'react-router-dom';
 import Icon from '@/components/Icon';
 import { PATHS } from '@/routes/paths';
-import { useDealAction, useSendChatMessage } from '../queries';
-import { MSG_TYPE, ROLE } from '../shared/chatCodes';
+import { useCareMatch, useDealAction } from '../queries';
+import { ROLE, ROOM_STTS } from '../shared/chatCodes';
 import DealBadge from './DealBadge';
 import {
   CANCEL_REASONS,
@@ -208,6 +208,23 @@ function ConfirmPanel({ ask, isPending, onClose, onConfirm }) {
   );
 }
 
+const CST_UNIT_LABEL = { PCAC0004: '시급', PCAC0005: '건당' };
+
+/** "2026-11-07T10:00:00" → "11.07 10:00" */
+const formatShortDt = (dt) =>
+  `${dt.slice(5, 7)}.${dt.slice(8, 10)} ${dt.slice(11, 16)}`;
+
+/** 합의 조건 한 줄: 일정 · 비용 (매칭 조회 cnd) */
+const formatCondition = (cnd) => {
+  const schedule =
+    cnd.acrdPrtcBgngDt && cnd.acrdPrtcEndDt
+      ? `${formatShortDt(cnd.acrdPrtcBgngDt)} ~ ${formatShortDt(cnd.acrdPrtcEndDt)}`
+      : '일정 협의';
+  const cost =
+    `${CST_UNIT_LABEL[cnd.cstUnitCd] ?? ''} ${cnd.acrdCstAmt.toLocaleString('ko-KR')}원`.trim();
+  return `${schedule} · ${cost}`;
+};
+
 const ACT_TONE = {
   todo: 'bg-[#f9eaa6] [&_.icon]:text-ink text-ink',
   done: 'bg-[#ebf3ee] [&_.icon]:text-[#2f6f57]',
@@ -216,20 +233,21 @@ const ACT_TONE = {
 };
 
 export default function CareDealCard({ room }) {
-  const { otoChatRoomSn, mtchDlngSttsCd: stage, myRole } = room;
+  const { mtchDlngSttsCd: stage, myRole } = room;
   const [isOpen, setIsOpen] = useState(false);
   const [askKey, setAskKey] = useState(null);
   const rootRef = useRef(null);
   const toggleRef = useRef(null);
-  const dealAction = useDealAction(otoChatRoomSn);
-  const sendMessage = useSendChatMessage(otoChatRoomSn);
+  const dealAction = useDealAction(room);
+  const { data: careMatch } = useCareMatch(room.petPrtcMtchSn);
+  const isActiveRoom = room.chatRoomSttsCd === ROOM_STTS.ACTIVE;
   const guide = getDealGuide(stage, myRole);
   const mainAction = guide.actions.find(
     (action) => action.variant === 'primary',
   );
   const otherActions = guide.actions.filter((action) => action !== mainAction);
   const ask = askKey ? DEAL_ASKS[askKey] : null;
-  const isPending = dealAction.isPending || sendMessage.isPending;
+  const { isPending } = dealAction;
 
   /** 펼침은 바깥을 누르거나 Esc로 접힌다(확인 칸이 열려 있으면 유지) */
   useEffect(() => {
@@ -260,25 +278,13 @@ export default function CareDealCard({ room }) {
       setIsOpen(true);
       return;
     }
-    if (!isPending) dealAction.mutate(key);
+    if (!isPending) dealAction.mutate({ action: key });
   };
 
-  const handleConfirm = async (reason) => {
+  const handleConfirm = (reason) => {
     if (isPending) return;
-    try {
-      await dealAction.mutateAsync(ask.action);
-    } catch {
-      return;
-    }
-    /** 요청 취소 사유는 내 채팅 메시지로 남는다 (화면설계서 SCR-CMU-005-03 ②) */
-    if (reason) {
-      sendMessage.mutate({
-        msgTypeCd: MSG_TYPE.TEXT,
-        msgCn: reason,
-        tagCn: '요청 취소',
-        idmptDmndId: crypto.randomUUID(),
-      });
-    }
+    /** 요청 취소 사유는 서버가 상태 이력과 채팅 시스템 안내에 남긴다 */
+    dealAction.mutate({ action: ask.action, cnclRsn: reason });
   };
 
   return (
@@ -304,12 +310,10 @@ export default function CareDealCard({ room }) {
               mainAction ? 'font-semibold text-ink' : 'text-muted'
             }`}
           >
-            {room.chatRoomSttsCd === 'OPEN'
-              ? guide.title
-              : '대화가 종료된 채팅방이에요'}
+            {isActiveRoom ? guide.title : '대화가 종료된 채팅방이에요'}
           </p>
         </div>
-        {mainAction && !isOpen && room.chatRoomSttsCd === 'OPEN' && (
+        {mainAction && !isOpen && isActiveRoom && (
           <DealButton
             action={mainAction}
             isSmall
@@ -342,7 +346,7 @@ export default function CareDealCard({ room }) {
           className="absolute inset-x-0 top-full max-h-[min(70vh,520px)] overflow-y-auto border-b border-line bg-white px-4 pt-1 pb-4 shadow-[0_12px_24px_-12px_rgba(26,50,52,0.25)]"
         >
           <p className="text-sm text-subtle">
-            {myRole === ROLE.OWNER
+            {myRole === ROLE.GUARDIAN
               ? '내가 올린 돌봄 글'
               : '내가 지원한 돌봄 글'}
           </p>
@@ -356,7 +360,11 @@ export default function CareDealCard({ room }) {
           >
             {room.pstTtl}
           </a>
-          <p className="mt-0.5 text-sm text-muted">{room.rcrtSummary}</p>
+          {careMatch && (
+            <p className="mt-0.5 text-sm text-muted">
+              {formatCondition(careMatch.cnd)}
+            </p>
+          )}
 
           <StepList stage={stage} />
 

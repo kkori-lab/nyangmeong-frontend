@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { PATHS } from '@/routes/paths';
 import { useSnsLogin } from '../queries';
 import { LOGIN_MESSAGES as MSG } from './loginMessages';
 import { isSnsCallback, takeSnsCallback } from './snsAuth';
@@ -18,12 +19,13 @@ const toSearch = (redirect) =>
   redirect ? `?${new URLSearchParams({ redirect })}` : '';
 
 /**
- * 인가 창에서 /login?code=&state=로 돌아오면 state를 맞춰 본 뒤 SNS 로그인을 부른다
- * - 주소의 code·state는 바로 지운다. 결과는 snsLoginRslt별 콜백으로 넘긴다
+ * 인가 창에서 콜백 주소로 돌아오면 state를 맞춰 본 뒤 SNS 로그인을 부른다
+ * - 콜백 주소(/login/sns/:provider/callback)는 바로 /login으로 바꾼다. 결과는 snsLoginRslt별 콜백으로 넘긴다
  * - 실패·중복 안내는 notice로 로그인 방법 선택 위에 보인다
  */
 export default function useSnsCallback({ onLogin, onSignup, onRecover }) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const snsLogin = useSnsLogin();
   const [notice, setNotice] = useState(null);
@@ -35,14 +37,11 @@ export default function useSnsCallback({ onLogin, onSignup, onRecover }) {
     if (!isCallback || handled.current) return;
     handled.current = true;
     const result = takeSnsCallback(searchParams);
-    // 취소·state 불일치는 주소를 지우며 이동 state로 남겨 안내한다
-    setSearchParams(
-      {},
-      {
-        replace: true,
-        state: result.status === 'ok' ? null : { snsResult: result.status },
-      },
-    );
+    // 콜백 주소를 /login(+?redirect=)으로 바꿔 기록에 남기지 않는다. 취소·state 불일치는 이동 state로 남겨 안내한다
+    navigate(`${PATHS.LOGIN}${toSearch(result.redirect)}`, {
+      replace: true,
+      state: result.status === 'ok' ? null : { snsResult: result.status },
+    });
     if (result.status !== 'ok') return;
 
     const { snsOffrCd, code, state, redirect } = result;

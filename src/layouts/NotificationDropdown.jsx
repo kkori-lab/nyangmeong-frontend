@@ -12,9 +12,10 @@ import {
 } from '@/features/notification/queries';
 import { useChatModal } from '@/context/chatModal';
 import { HEADER_ICON_CLASS } from './headerStyles';
+import { useMe } from '@/features/member/queries';
 
 /** 열릴 때만 마운트: 알림 목록 요청과 탭 상태를 열 때마다 초기화 */
-function NotificationPanel({ unreadCount, onClose }) {
+function NotificationPanel({ unreadCount, onClose, onDismiss }) {
   const [tab, setTab] = useState(NOTI_TABS[0]);
   const { data, isPending } = useNotifications(tab);
   const readNotification = useReadNotification();
@@ -55,9 +56,20 @@ function NotificationPanel({ unreadCount, onClose }) {
         <h2 className="text-base font-bold leading-[26px] text-[#1a3234]">
           알림
         </h2>
-        <p className="text-base font-medium leading-[26px] text-[#566465]">
-          미읽음 <span className="font-bold text-[#f44b21]">{unreadCount}</span>
-        </p>
+        <div className="flex items-center gap-1">
+          <p className="text-base font-medium leading-[26px] text-[#566465]">
+            미읽음{' '}
+            <span className="font-bold text-[#f44b21]">{unreadCount}</span>
+          </p>
+          <button
+            type="button"
+            className="-my-[3px] -mr-2 flex h-8 w-8 items-center justify-center rounded-full text-[#566465] hover:bg-[#f4f6f6]"
+            aria-label="알림 닫기"
+            onClick={onDismiss}
+          >
+            <Icon name="close" className="text-xl" />
+          </button>
+        </div>
       </div>
       <div className="flex gap-1.5 border-b border-[#edf1f1] px-[18px] pb-3">
         {NOTI_TABS.map((item) => (
@@ -76,30 +88,33 @@ function NotificationPanel({ unreadCount, onClose }) {
           </button>
         ))}
       </div>
-      {isPending && (
-        <div aria-busy="true">
-          {Array.from({ length: 5 }, (_, index) => (
-            <div
-              key={index}
-              className="border-b border-[#edf1f1] px-[18px] py-4 last:border-b-0"
-            >
-              <Skeleton className="my-[5px] h-4 w-4/5" />
-            </div>
-          ))}
-        </div>
-      )}
-      {data?.length === 0 && (
-        <p className="px-[18px] py-10 text-center text-base text-[#667374]">
-          새 알림이 없어요
-        </p>
-      )}
-      {data?.map((notification) => (
-        <NotificationItem
-          key={notification.inappNotiSn}
-          notification={notification}
-          onClick={handleItemClick}
-        />
-      ))}
+      {/** 목록 칸 높이 고정(4.5행): 알림 수·탭과 관계없이 패널 크기가 같고, 5건부터 칸 안에서만 스크롤 */}
+      <div className="h-[264px] overflow-y-auto overscroll-contain">
+        {isPending && (
+          <div aria-busy="true">
+            {Array.from({ length: 5 }, (_, index) => (
+              <div
+                key={index}
+                className="border-b border-[#edf1f1] px-[18px] py-4 last:border-b-0"
+              >
+                <Skeleton className="my-[5px] h-4 w-4/5" />
+              </div>
+            ))}
+          </div>
+        )}
+        {data?.length === 0 && (
+          <p className="flex h-full items-center justify-center px-[18px] text-base text-[#667374]">
+            새 알림이 없어요
+          </p>
+        )}
+        {data?.map((notification) => (
+          <NotificationItem
+            key={notification.inappNotiSn}
+            notification={notification}
+            onClick={handleItemClick}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -112,7 +127,15 @@ export default function NotificationDropdown({
 }) {
   const rootRef = useRef(null);
   const buttonRef = useRef(null);
-  const { data: unread } = useUnreadCount();
+  const { data: me } = useMe();
+  /** 로그인 전(공개 화면)에는 조회하지 않는다: 401이면 로그인 화면으로 이동하므로 */
+  const { data: unread } = useUnreadCount(Boolean(me));
+
+  /** 닫기 버튼: Esc와 같게 알림 버튼으로 포커스를 돌린다 */
+  const handleDismiss = () => {
+    onClose();
+    buttonRef.current.focus();
+  };
 
   /** 토글 버튼이 rootRef 안: 닫자마자 다시 열리는 것 방지 */
   useEffect(() => {
@@ -154,7 +177,11 @@ export default function NotificationDropdown({
         />
       </button>
       {isOpen && (
-        <NotificationPanel unreadCount={unread?.count ?? 0} onClose={onClose} />
+        <NotificationPanel
+          unreadCount={unread?.count ?? 0}
+          onClose={onClose}
+          onDismiss={handleDismiss}
+        />
       )}
     </div>
   );

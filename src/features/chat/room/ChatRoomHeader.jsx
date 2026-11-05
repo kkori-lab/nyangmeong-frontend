@@ -7,7 +7,7 @@ import { generatePath } from 'react-router-dom';
 import Icon from '@/components/Icon';
 import { PATHS } from '@/routes/paths';
 import {
-  MTCH_STTS_BADGE,
+  getDealBadge,
   ROLE,
   ROLE_LABEL,
   getOtherRole,
@@ -67,8 +67,8 @@ export default function ChatRoomHeader({ room, onBack, onLeaveAsk }) {
             </span>
           </p>
           <p className="truncate text-sm leading-[1.3] text-subtle">
-            {MTCH_STTS_BADGE[room.mtchDlngSttsCd].label} ·{' '}
-            {room.myRole === ROLE.OWNER ? '내 돌봄 글' : '돌봄 지원'}
+            {getDealBadge(room.mtchDlngSttsCd).label} ·{' '}
+            {room.myRole === ROLE.GUARDIAN ? '내 돌봄 글' : '돌봄 지원'}
           </p>
         </div>
       </div>
