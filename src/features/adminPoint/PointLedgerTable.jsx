@@ -1,5 +1,6 @@
 import { formatDate, getHmOf } from '@/utils/formatDate';
 import { formatPointChange } from './pointLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['일시', '회원', '거래 유형', '증감', '거래 후 잔액', '메모'];
 
@@ -13,7 +14,7 @@ const NUMBER_COLUMNS = ['증감', '거래 후 잔액'];
  */
 export default function PointLedgerTable({ ledgers }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[760px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

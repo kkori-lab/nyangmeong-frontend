@@ -1,4 +1,5 @@
 import { formatDate, getHmOf } from '@/utils/formatDate';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['닉네임', '이메일', '탈퇴 일시', '파기 예정일'];
 const DATE_OPTIONS = { separator: '-' };
@@ -10,7 +11,7 @@ const DATE_OPTIONS = { separator: '-' };
  */
 export default function WithdrawnTable({ members }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[640px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

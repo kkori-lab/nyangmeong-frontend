@@ -40,10 +40,12 @@
 - 기다리는 것: 없음
 - 완료 조건: 본인확인 뒤에만 복구 안내가 나오고, 복구 완료 뒤 로그인 방법 선택으로 간다(자동 로그인 없음)
 
-## SCR-ACC-020 회원탈퇴 — 대기
+## SCR-ACC-020 회원탈퇴 — 끝
 - 기능: FN-ACC-020-01 탈퇴 안내 확인, FN-ACC-020-02 반려동물·공동양육 영향 확인, FN-ACC-020-03 탈퇴 유의사항 확인 동의, FN-ACC-020-04 탈퇴 문구 입력으로 이동, FN-ACC-020-05 탈퇴 취소, FN-ACC-020-06 탈퇴 대상 계정, FN-ACC-020-12 최종 탈퇴·입력 문구 안내, FN-ACC-020-20 탈퇴 확인 문구 입력, FN-ACC-020-13 최종 확인 취소, FN-ACC-020-14 회원탈퇴 실행, FN-ACC-020-15 탈퇴 실패·확인 중 안내, FN-ACC-020-16 결과 확인 및 재시도, FN-ACC-020-17 처리 안내 닫기, FN-ACC-020-18 회원탈퇴 완료, FN-ACC-020-19 랜딩페이지로 이동
 - 기다리는 것: 회원정보 수정 화면(SCR-MYP-040, SJM)의 탈퇴 진입 버튼
 - 완료 조건: "정말로 탈퇴하겠습니다."가 완전히 같을 때만 탈퇴하기가 켜지고, 완료 뒤 랜딩으로 간다
+- 끝남: 승인 2026-11-05, 검증 2회차(확인 못 함 있음: 연결 남음만), 사람 확인 2026-11-05(실제 계정 탈퇴 → 완료 화면, 재로그인 시 탈퇴 안내)
+- 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당)
 
 ## SCR-HOS-001 플레이스 — 끝
 - 기능: FN-HOS-001-33 로그인 필수 접근, FN-HOS-001-01 카테고리 탭, FN-HOS-001-03 지역·상호명·키워드 검색, FN-HOS-001-04 검색창 검색 버튼, FN-HOS-001-05 검색창 검색 결과 지도, FN-HOS-001-06 정렬 선택, FN-HOS-001-07 병원 결과 카드, FN-HOS-001-08 병원명, FN-HOS-001-09 즐겨찾기 저장·해제, FN-HOS-001-10 지도 핀, FN-HOS-001-11 지도 도구·이동, FN-HOS-001-29 즐겨찾기 고정 영역, FN-HOS-001-30 검색 결과 영역, FN-HOS-001-15 이동한 지도 영역, FN-HOS-001-16 이 지도 영역에서 다시 검색, FN-HOS-001-17 즐겨찾기, FN-HOS-001-31 이전 검색 결과, FN-HOS-001-18 재검색 지도 영역, FN-HOS-001-20 검색 결과 핀, FN-HOS-001-32 즐겨찾기(재검색 결과), FN-HOS-001-19 새 지도 범위의 검색 결과, FN-HOS-001-21 선택 병원 카드, FN-HOS-001-22 선택 병원명, FN-HOS-001-23 즐겨찾기 저장·해제(핀 선택), FN-HOS-001-24 선택 핀, FN-HOS-001-25 지도 요약 카드, FN-HOS-001-26 카카오맵 상세보기, FN-HOS-001-27 길찾기, FN-HOS-001-28 지도 도구·이동(핀 선택), FN-PLC-001-01 미용 탭·대상 데이터(화면은 SCR-PLC-001), FN-PLC-002-01 용품 탭·오프라인 매장 범위(화면은 SCR-PLC-002), FN-PLC-003-01 동반 탭·대상 데이터(화면은 SCR-PLC-003), FN-PLC-004-01 호텔 탭·정보 조회 범위(화면은 SCR-PLC-004)
@@ -76,12 +78,14 @@
 - 끝남: 승인 2026-10-29, 검증 통과, 사람 확인 2026-10-29. 추가-1(인증 화면 제목 잘림 방지·AI 안내 서서히 표시), 추가-2(폼 위 알림 서서히 표시)
 - 연결 남음: 없음(재설정 API는 아래 SCR-ACC-012 연결 절)
 
-## SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 대기
+## SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 끝
 - 백엔드 끝: `POST /email-certifications/{emlCertSn}/password-reset`(`pswdInitTkn`·`pswd`·`pswdCnfrm`, 성공 200 데이터 없음), 취소는 `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-012 절의 "프론트 연결")
 - 기능: 명세 기능 ID 추가 없음. FN-ACC-012-01~06에 걸친다
 - 대상: `features/member/password/`와 `features/member/api.js`의 가짜 `resetPassword`. 인증 확인 응답의 `emlCertSn`·`pswdInitTkn`·`initAuthrtExpryDt`를 메모리로 넘기고(URL에 넣지 않는다), 토큰이 없거나 `initAuthrtExpryDt`가 지났거나 400 `PASSWORD_RESET_NOT_AVAILABLE`이면 만료 화면, 400 `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 입력칸 오류, 취소는 `invalidate`(본문 `certTrgtEml`). 성공해도 자동 로그인하지 않는다
-- 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-012)의 PR 병합과 공유 `application.properties`의 열린 경로 추가
+- 기다리는 것: 없음 (백엔드 PR #57 develop 병합, 열린 경로 있음, 2026-11-05 확인). 실패: 400 `PASSWORD_RESET_NOT_AVAILABLE`(만료 화면)·`PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`, 성공은 자동 로그인 없고 그 계정의 기존 로그인 모두 종료
 - 완료 조건: 실제 서버로 인증 확인 → 새 비밀번호 저장 → 로그인 화면으로 가고, 같은 토큰 재사용·만료·취소 뒤에는 만료 화면이 나온다
+- 끝남: 승인 2026-11-05, 검증 통과, 사람 확인 2026-11-05. 추가-1(이메일 로그인 폼의 [회원가입]을 `/signup`으로 연결)
+- 연결 남음: 없음
 
 ## SCR-ACC-001 재가입 복구 · 복구 API 연결 — 끝
 - 백엔드 끝: 복구 목적 발송 `POST /email-certifications`(`emlCertPrpsCd=USRC0012`), 확인 `POST /email-certifications/{emlCertSn}/verify`(`certRslt=RECOVERY_READY`·`rcvryAuthrtTkn`·`initAuthrtExpryDt`), 안내 `POST /members/recovery-info`(`emlCertSn`·`rcvryAuthrtTkn` → `acntEml`·`mbrNcnm`·`whdwlDt`·`rcvryExpryDt`·`maskedMblTelno`·`missingTrms`), 실행 `POST /members/recovery`(`emlCertSn`·`rcvryAuthrtTkn`·`trmsAgres`·`mblTelno`, 성공 200 데이터 없음), 취소 `POST /email-certifications/{emlCertSn}/invalidate`(본문 `certTrgtEml`) (백엔드 SCR-ACC-001 재가입 복구 절의 "프론트 연결")
@@ -116,6 +120,19 @@
 - 완료 조건: 네이버·카카오·구글 버튼 → 인가 창 → 콜백 → `POST /api/auth/sns-login`이 백엔드 로그에 찍히고, 기존 가입 계정은 로그인, 새 계정은 SNS 가입 확인 화면
 - 끝남: 승인 2026-11-05, 검증 통과, 사람 확인 2026-11-05(구글·카카오 실제 계정)
 - 연결 남음: FN-ACC-002-09·10·11 (배포 도메인 콜백 주소 등록·배포 앱 ID, 팀)
+
+## SCR-ACC-001 회원가입 (이메일) · 메일 발송 실패(502) 안내 — 대기
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-ACC-001-04 인증코드 발송(발송 실패 안내), FN-ACC-001-41 복구 인증번호 발송, 비밀번호 찾기 인증번호 발송(SCR-ACC-011)
+- 기다리는 것: 없음 (백엔드 YAY SCR-ACC-001 실제 메일 발송(SMTP) 끝, 2026-11-05)
+- 완료 조건: `POST /email-certifications`가 502 `MAIL_SEND_FAILED`면 가입·비밀번호 찾기·복구 이메일 단계 모두 서버 문구 "메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요."를 공통 알림으로 보이고, [인증코드 발송]을 곧바로 다시 누를 수 있으며 재전송 대기(N초 남음)를 시작하지 않는다
+- 이미 바뀐 것: 비밀번호 찾기·재가입 복구는 서버 문구를 그대로 보인다(2026-11-05 프론트 세션 확인). 회원가입만 프론트 공통 문구 "인증번호를 보내지 못했습니다. 다시 시도해 주세요."라 맞추면 된다
+
+## SCR-ACC-020 회원탈퇴 · 탈퇴 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-ACC-020-02 반려동물·공동양육 영향 확인, FN-ACC-020-03·14·20 유의사항 확인·문구 입력·탈퇴 실행, FN-ACC-020-15·16 실패·확인 중 안내와 결과 확인, FN-AIM-011-19 AI 매니저 탈퇴 진입, FN-MYP-002-08 마이페이지 탈퇴 진입
+- 기다리는 것: 없음 (백엔드 YAY `POST /api/members/me/withdraw` 끝, 2026-11-05). 반려동물 수는 `GET /api/pets`(SJM, 있음)
+- 완료 조건: 안내 2번은 `GET /pets`의 `brupRoleCd`로 "주양육 N마리 · 공동양육 N마리". [탈퇴하기]는 `{noticeConfirmed:true, confirmPhrase}`(입력 그대로, trim 하지 않음)를 보내고, 200이면 로그인 상태·화면 데이터를 비우고 완료 화면. 400 `WITHDRAW_PHRASE_MISMATCH`는 문구 입력칸, 400 `INVALID_INPUT_VALUE`(`noticeConfirmed`)는 확인 체크 영역, 그 밖의 실패는 "탈퇴를 처리하지 못했습니다. 계정은 유지됩니다." 응답이 끊기면 "탈퇴 처리 결과를 확인하고 있습니다." 뒤 `GET /auth/me`: 200이면 탈퇴 안 됨(안내부터 다시), 401이면 로그인 방법 선택(그 계정으로 로그인하면 403 `MEMBER_WITHDRAWN`으로 탈퇴 확인). 탈퇴 뒤 남은 쿠키는 401이다(403 `MEMBER_INACTIVE`가 아님). 확인 중에는 탈퇴 요청을 다시 보내지 않는다
+- 끝남: 승인 2026-11-05, 검증 2회차(확인 못 함 있음: 연결 남음만), 사람 확인 2026-11-05(실제 계정 탈퇴 → 완료 화면, 재로그인 시 탈퇴 안내)
+- 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당)
 
 ## 제외
 - 없음. 외부인증창 참고 행 6개(네이버·카카오·구글 외부 로그인·동의 창)는 명세에 기능 ID가 없다

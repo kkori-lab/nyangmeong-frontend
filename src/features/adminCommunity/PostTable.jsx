@@ -2,6 +2,7 @@ import { generatePath, Link } from 'react-router-dom';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { BBS_OPTIONS, getOptionLabel, POST_STATUS_OPTIONS } from './postLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['게시판', '제목', '작성자', '상태', '신고', '작성일'];
 
@@ -12,7 +13,7 @@ const COLUMNS = ['게시판', '제목', '작성자', '상태', '신고', '작성
  */
 export default function PostTable({ posts, onSelect }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[760px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">
