@@ -15,6 +15,7 @@ export default [
         Component: AuthLayout,
         children: [
           { path: PATHS.LOGIN, Component: AuthPage },
+          { path: PATHS.SNS_CALLBACK, Component: AuthPage },
           { path: PATHS.SIGNUP, Component: AuthPage },
           { path: PATHS.PASSWORD_FIND, Component: PasswordFindPage },
           { path: PATHS.PASSWORD_RESET, Component: PasswordResetPage },

@@ -27,7 +27,7 @@
 | --- | --- | --- | --- | --- |
 | MAN-002 | 랜딩 | `/` (`?redirect=`). 로그인 상태면 `/main` (COM-003-08) | YAY | |
 | MAN-001 | 메인 | `/main`. 복귀 경로 없을 때 목적지 (COM-003-06) | YAY | ✓ |
-| ACC-002 | 로그인 | `/login` (`?redirect=`) | YAY | |
+| ACC-002 | 로그인 | `/login` (`?redirect=`). SNS 인가 콜백 `/login/sns/:provider/callback`(provider: `naver`·`kakao`·`google`, 백엔드·제공자 콘솔 redirect URI와 같다)도 로그인 화면이 받고, 처리 뒤 `/login`으로 바꾼다 (2026-11-05) | YAY | |
 | ACC-001 | 회원가입 | `/signup`. 1~4단계·SNS 가입·재가입 복구는 같은 URL | YAY | |
 | ACC-011 | 비밀번호 찾기 | `/password/find` | YAY | |
 | ACC-012 | 비밀번호 재설정 | `/password/reset`. 비밀번호를 URL에 노출하지 않음 (ACC-012-08) | YAY | |
