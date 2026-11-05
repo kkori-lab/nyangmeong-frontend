@@ -10,7 +10,13 @@ import {
   PET_SE,
   PET_SE_OPTIONS,
 } from '@/utils/petCodes';
-import { useCreatePet, usePet, useUpdatePet, useVarieties } from '../queries';
+import {
+  useCreatePet,
+  useLastWeightRecord,
+  usePet,
+  useUpdatePet,
+  useVarieties,
+} from '../queries';
 
 /** 품종 [직접 입력] 선택 상태 */
 const VRTY_DRCT_INPT = 'DRCT_INPT';
@@ -132,7 +138,9 @@ const validate = ({ form, breedText, isWeightLocked }) => {
 };
 
 export default function PetFormModal({ petSn = null, onClose }) {
-  const { data: pet, isPending } = usePet(petSn);
+  const { data: pet, isPending: isPetPending } = usePet(petSn);
+  const { data: lastBdwgRcd = null, isPending: isWeightPending } =
+    useLastWeightRecord(petSn);
   const isEdit = petSn != null;
 
   return (
@@ -157,15 +165,19 @@ export default function PetFormModal({ petSn = null, onClose }) {
             <X className="size-5" />
           </button>
         </header>
-        {isEdit && isPending ? null : (
-          <PetForm pet={isEdit ? pet : null} onClose={onClose} />
+        {isEdit && (isPetPending || isWeightPending) ? null : (
+          <PetForm
+            pet={isEdit ? pet : null}
+            lastBdwgRcd={isEdit ? lastBdwgRcd : null}
+            onClose={onClose}
+          />
         )}
       </div>
     </div>
   );
 }
 
-function PetForm({ pet, onClose }) {
+function PetForm({ pet, lastBdwgRcd, onClose }) {
   const [form, setForm] = useState(() => (pet ? toForm(pet) : EMPTY_FORM));
   /** 품종 칸 표시 글자 */
   const [breedText, setBreedText] = useState(() => {
@@ -182,7 +194,6 @@ function PetForm({ pet, onClose }) {
   const updatePet = useUpdatePet();
 
   const isEdit = pet != null;
-  const lastBdwgRcd = pet?.lastBdwgRcd ?? null;
   const isVrtyDrctInpt = form.vrtySn === VRTY_DRCT_INPT;
   const isColrDrctInpt = form.colrCd === COLR_DRCT_INPT;
   const colrOptions = COLR_OPTIONS[form.petSeCd] ?? [];

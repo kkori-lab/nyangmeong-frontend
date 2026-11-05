@@ -2,23 +2,19 @@
 
 ## 지금 하는 것
 
-SCR-CMU-004 우리동네 펫돌봄 · API 연결 (2026-11-04) — 상태: 끝 (검증 3회차 `통과`, 추가-1 뒤 재검증 `확인 못 함 있음`(내 것 없음, 연결 남음만), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-04)
+SCR-CMU-004 우리동네 펫돌봄 · 채팅 여부·최저시급 연결 (2026-11-05) — 상태: 끝 (검증 1회차 `확인 못 함 있음`(내 것 없음, 연결 남음만), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-05)
 
-- 바꾼 것: `careApi.js` 가짜 응답을 `/care-recruitments`·좋아요·신고 API로 교체, 코드 값(비용 단위 `PCAC0004·0005`, 돌봄 형태 `PCAC0006~0011`, 크기 `SMALL·MEDIUM·LARGE`)과 응답 키 맞춤, 지역 필터 `rgnSn`, 장소는 `rlsRgnNm`(「전주시 완산구 서신동」)으로 저장·「전북 … 인근」 표시, 전북 밖 거절(`CARE_REGION_NOT_ALLOWED`)은 장소 칸에 표시
-- 추가-1: 상세·수정의 「게시글을 찾지 못했어요」를 `EmptyResult` 박스로(요청 2026-11-04)
-- 품종 콤보박스에 품종 객체 배열을 넘겨 글쓰기가 깨지던 기존 오류를 고침
+- 바꾼 것: `CareSideBox.jsx`에 방문자 「내 채팅」(상태 배지, 끝난 글은 [내 채팅 보기])·작성자 「매칭된 돌보미」 칸을 상세 응답 `chatting`·`mtchSitterNcnm`으로, 글쓰기·수정 최저시급 안내·검사·문구를 `GET /care-recruitments/minimum-wage` 값으로(상수 제거, 서버 `CARE_MIN_WAGE_NOT_MET`은 금액 칸에 표시)
 
 ## 다음에 할 것
 
-- 백엔드 연결(백엔드 저장소에서 /start): FN-CMU-004-05 펫돌봄 상세 응답에 내 채팅 여부(`chatYn`)·매칭 돌보미 닉네임. 생기면 `CareSideBox.jsx`에 방문자 「내 채팅」과 「매칭된 돌보미」 칸을 다시 넣는다
-- 백엔드 연결(백엔드 저장소에서 /start): FN-CMU-004-08 최저시급 설정값(`SYS_STNG.LOWST_HRWG_AMT`)·연도 일반 회원 조회 `GET` API(사람 결정 2026-11-04, 1안). 생기면 `careCodes.js` `MIN_HOURLY_WAGE`·`MIN_WAGE_YEAR` 상수를 API 값으로 바꾸고 글쓰기 안내·검사·메시지가 그 값을 쓰게 한다
-- 백엔드 연결(백엔드 저장소에서 /start): FN-CMU-004-07 펫돌봄 수정에서 `schdlCnsltnPsbltyYn=true`이고 시작·종료 일시가 둘 다 없으면 기존 일정을 비운다(사람 결정 2026-11-04, 추천안). 지금은 수정으로 일정을 지울 수 없다. 프론트는 고칠 것 없음
+- SCR-CMU-004 연결 남음: FN-CMU-004-05 끝난 글 [내 채팅 보기]·[채팅하기]가 기존 방을 여는 것(채팅 창 `features/chat/api.js`가 아직 가짜라 실제 방 대신 가짜 방으로 감, LJS 채팅 창 API 연결 뒤 확인)
 - 백엔드 데이터(사람, 백엔드 저장소에서 /start): 펫돌봄 시드 글 100건이 모두 전북 밖(`RLS_RGN_NM` 「강서구」 등)이라 전북 지역 필터가 0건, 상세 지도가 안 나온다. 시드 SQL과 공용 DB(`UPDATE`)의 `RGN_SN`·`RLS_RGN_NM`(「전주시 완산구 효자동」 형태)·좌표·`PRTC_PLC_DADDR_ENC`를 전북으로
 - 펫돌봄 검증 때 만든 데이터는 DB에서 직접 지운다(사람): 펫돌봄 글 102·103·104(화면에서 삭제, 숨김)와 첨부 4215~4219·업로드 파일, 글 49(pstSn 949)·51(pstSn 951) 신고, 채팅 방 11(채팅 창이 만든 것이면)
 - 실종센터·펫이야기 상세·수정, 펫뉴스 상세의 「…찾지 못했어요」도 펫돌봄처럼 `EmptyResult` 박스로 맞출지 정한다(펫돌봄만 바꿈 2026-11-04)
 - (낮은 우선순위) 공지 본문 맨 끝 줄이 못 불러오는 이미지면 그 앞 문단 아래 20px이 남는다(`PostBody` `last:mb-0`이 빈 fragment 때문에 안 걸림). 거슬리면 이미지 블록에 감싸는 요소를 둔다
 - 백엔드(같은 공유, 백엔드 저장소에서 /start): 파기 회원이 게시글·댓글에 `탈퇴회원#번호`(DB 닉네임 UK 때문)로 보인다. 커뮤니티 조회에서 파기 회원은 `mbrNcnm`을 「탈퇴한 회원」, `mbrAtchFileSn`을 null로 준다. 프론트는 고칠 것 없음
-- 백엔드(같은 공유): 펫돌봄 완료 사진이 `public/` 경로가 아니라 관리자 화면에서 404. 업로드 경로를 정할 때 관리자 열람 방법도 정한다. 채팅 실시간 제안(백엔드 `docs/api/community.md` 「실시간」) 검토
+- 펫돌봄 완료 사진 관리자 열람(사람 결정 2026-11-04, 1안): 완료 사진은 채팅 사진이라 비공개 저장(`ChatMessageService` `fileStore.store`)이고 관리자 화면(`adminCommunity/CareMatchDetailModal.jsx`)이 `publicFileUrl`로 열어 404. 백엔드에 관리자 전용 `GET /api/admin/care-matches/{…}/images/{atchFileSn}`(관리자 + 그 모집글 완료 요청 회차 사진일 때만, `AdminInquiryController` 이미지와 같은 방식)을 추가하고, 관리자 프론트는 `useFileImage`로 바꾼다. 백엔드는 KSJ(채팅·매칭, 백엔드 저장소에서 /start), 관리자 프론트는 LJS에 전달. 사용자 화면은 고칠 것 없음. 채팅 실시간 제안(백엔드 `docs/api/community.md` 「실시간」) 검토는 따로 남음
 - 데이터(사람): 공용 DB 「[실종]」 글이 `BBS_CD=CMUC0002`라 관리자 `CMUC0024` 필터가 0건. 사용자 화면은 `/lost-reports`라 영향 없음
 - 시드 이미지 묶음이 시드 SQL(`db/seed/20261028_seed_data.sql`, 백엔드)과 다른 생성본이다. 게시글 사진 3481~3529가 없고(번호가 49씩 밀림), 채팅·펫돌봄·1:1 문의·뉴스 시드 사진도 빠지거나 어긋난다. LJS에게 같은 생성본을 `public/seed/...` 구조로 받아 백엔드 `uploads/seed`·`uploads/public/seed`를 바꾼다(지금 `uploads/public/seed`의 `post`·`character`는 임시 복사본)
 - 실종센터 검증 때 만든 데이터(실종 글 110~114와 첨부 4219~4247, 글 57·21·9 신고, 112 종료일 연장)는 DB에서 아직 안 지웠으면 직접 지운다(사람)
