@@ -13,6 +13,7 @@ export const PATHS = {
   SIGNUP: '/signup',
   PASSWORD_FIND: '/password/find',
   PASSWORD_RESET: '/password/reset',
+  WITHDRAW_COMPLETE: '/withdraw/complete',
 
   /** settings */
   SETTINGS_NOTIFICATIONS: '/settings/notifications',

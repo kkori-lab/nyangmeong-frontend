@@ -2,6 +2,8 @@
 
 ## 지금 하는 것
 
+SCR-ACC-020 회원탈퇴 + 탈퇴 API 연결 — 끝남 (승인 2026-11-05 14:48, 검증 2회차 확인 못 함 있음(연결 남음만, 1회차 실패는 로그인 가능한 로컬 계정이 없어서), 사람 확인 2026-11-05). 안내·문구 모달·실패/확인 중은 `/mypage/withdraw`(`pages/mypage/WithdrawPage.jsx`가 `usePets`와 `features/member/withdraw/`를 조립), 완료는 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, 로그인 캐시는 완료 화면이 비움, 바로 열면 랜딩). `withdrawMember`는 문구를 trim 없이 보내고 timeout 15초(끊기면 `NETWORK_ERROR` → 확인 중, [결과 확인]은 `getMe`만 부름). 마이페이지 [회원 탈퇴](SJM 버튼)와 AI `screenPaths.js`에 연결. 검증이 로컬 확인용 회원 mbrSn 211·212를 탈퇴시켰다(개발용 토큰 `POST /api/auth/dev-tokens`로 로그인)
+
 SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 끝남 (승인 2026-11-05 10:30, 검증 통과(잠금을 버린 뒤 1회차, 앞의 2회 실패는 로컬 백엔드가 SMTP라 인증번호를 못 읽어서), 사람 확인 2026-11-05). `resetPassword`가 `POST /email-certifications/{emlCertSn}/password-reset`을 부른다. 비밀번호 찾기가 라우터 state로 `{ emlCertSn, pswdInitTkn, initAuthrtExpryDt, certTrgtEml }`을 넘긴다. 400 `PASSWORD_RESET_NOT_AVAILABLE`은 만료 화면, `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 칸 오류, 그 밖은 공통 알림. [취소]는 `invalidate` 뒤 결과와 상관없이 `/login`. 추가-1: 이메일 로그인 폼의 [회원가입]이 "준비 중" 토스트 대신 `/signup`으로 간다. 로컬 백엔드가 실제 메일(SMTP)을 보내면 인증번호를 로그로 읽을 수 없어, 받을 수 있는 메일 계정으로 사람이 번호를 넘겨 확인했다
 
 SCR-ACC-002 SNS 로그인 · 제공자별 콜백 주소 — 끝남 (승인 2026-11-05 09:49, 검증 통과 1회차, 사람 확인 2026-11-05: 구글·카카오 실제 계정으로 SNS 가입 확인 화면까지). 콜백은 `/login/sns/:provider/callback`(`PATHS.SNS_CALLBACK`, `docs/routes.md` ACC-002 줄)이 받고 처리 뒤 `/login`(+`?redirect=`)으로 replace. 백엔드 `app.sns.*.redirect-uri`·제공자 콘솔이 이 주소다. 앞의 "콜백은 `/login`" 결정을 바꿨다
@@ -18,6 +20,8 @@ SCR-HOS-001 플레이스 · FN-HOS-001-33 로그인 필수 접근 — 끝남 (�
 
 ## 다음에 할 것
 
+- 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당). 프론트 `screenPaths.js` 줄은 넣음
+- PR Breaking Changes(SCR-ACC-020): 새 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, `docs/routes.md`), SJM `ProfileEditPage.jsx` [회원 탈퇴] 이동 연결, LJS `screenPaths.js`에 `SCR-ACC-020` 행
 - SNS 배포 연결(팀): 배포 도메인의 `/login/sns/{naver|kakao|google}/callback`을 제공자 콘솔·배포 백엔드 `app.sns.*.redirect-uri`에 등록, 배포 프론트 환경에 `VITE_*` 앱 ID 3개. 카카오는 전화번호 동의항목 권한 신청 전이라 번호를 주지 않는다(직접 입력으로 감)
 - 팀 알림: 새 URL `/login/sns/:provider/callback`(`paths.js` `SNS_CALLBACK`)을 PR Breaking Changes에 적고 팀에 알린다
 - 코드 후보: SNS 가입 확인 화면에서 새로고침하면 history state가 남아 SNS 가입 확인이 그대로 나온다(`SignupPage.jsx` 주석 "새로고침으로 state가 없으면 이메일 가입"과 다름). SCR-ACC-002 SNS 검증 메모

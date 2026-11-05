@@ -225,3 +225,14 @@ export const checkNicknameAvailability = ({ mbrNcnm }) =>
 /** 가입 직후(ncnm_setup 쿠키)나 로그인 뒤 닉네임 확정. 기본 닉네임을 그대로 둘 때도 보낸다 */
 export const setupNickname = ({ mbrNcnm }) =>
   api.patch('/members/me/nickname', { mbrNcnm }, { skipAuthRedirect: true });
+
+/**
+ * 회원탈퇴. 문구는 입력 그대로(trim 하지 않음) 보낸다.
+ * 응답이 오지 않으면 결과를 확인해야 하므로 시간 제한을 둔다(timeout은 NETWORK_ERROR로 온다)
+ */
+export const withdrawMember = ({ confirmPhrase }) =>
+  api.post(
+    '/members/me/withdraw',
+    { noticeConfirmed: true, confirmPhrase },
+    { timeout: 15000 },
+  );
