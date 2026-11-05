@@ -786,10 +786,12 @@
 - 결정: 본문 이미지는 아래 "본문 이미지 연결" 절로 넘김(사람 2026-11-03)
 - 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
 
-## SCR-ADM-040 공지사항 · 본문 이미지 연결 — 대기
+## SCR-ADM-040 공지사항 · 본문 이미지 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-040-02 연결 작업)
 - 기다리는 것: 사용자 공지 상세가 `![](/api/files/public/{atchFileSn})` 줄을 이미지로 그리는 것(KSJ, 공용 `PostBody`), `POST /api/admin/notices/images`(multipart `image`, 201 `{atchFileSn}`) (LJS 백엔드, 끝)
 - 완료 조건: 본문 이미지는 올린 뒤 본문에 `![](/api/files/public/{atchFileSn})` 한 줄로 넣는다(HTML 저장 안 함). 사용자 공지 상세가 이 줄을 이미지로 그린다
+- 추가 요청: 추가-1 내용 칸 아래 미리보기(`PostBody` `fileImages`)로 이미지 줄을 이미지로 보인다(요청 2026-11-05)
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 로컬 8081 백엔드), 사람 확인 2026-11-05
 
 ## SCR-ADM-040 공지사항 · 알림 발송 모달 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-040-03 연결 작업)
@@ -1007,6 +1009,12 @@
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 검사결과지 분석 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/global.md` `/admin/processing/pdf-analyses` 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminPdfAnalyses` 가짜를 실제 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=&size=20`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, tmotCnt, errCnt }, content: [{ extlApiCallLogSn, callRsltCd, failRsn, callDt }], page, size, totalElements, totalPages, hasNext }`로 가짜와 같은 모양이다. 기간은 둘 다 선택(호출일 양끝 포함), `fromYmd`가 `toYmd`보다 뒤면 400 `INVALID_INPUT_VALUE`. 검사결과지가 아닌 파일은 Python이 성공(SYSC0021)으로 통지해 `scsCnt`·`totCnt`에 들어가고 실패 목록에는 없다. 결과 코드 SYSC0021 성공·SYSC0022 실패(API 오류)·SYSC0023 시간초과
 - 이미 바뀐 것: `features/adminProcessing/api.js`(가짜 `getAdminPdfAnalyses`)
+
+## SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-02·03
+- 기다리는 것: 백엔드 SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/admin.md` `/admin/dashboard` 행
+- 완료 조건: `features/adminDashboard/api.js`의 `getAdminDashboard` 가짜를 실제 `GET /api/admin/dashboard`로 바꾼다. 필드 이름·모양은 가짜 그대로(`totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs[{ mbrSn, mbrNcnm, regDt }]`·`recentPsts[{ pstSn, bbsCd, bbsNm, pstTtl, regDt }]`·`dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`). 회원 수는 일반 회원만(관리자 계정 제외), 게시글 수·최근 게시글은 관리자 게시글 목록 기본 조건과 같게 삭제 글 포함, 배치 실패는 마지막 실행이 실패한 배치 수. 처리 대기 건수를 누르면 같은 필터의 목록 건수와 같다. 이용 통계(`getAdminDashboardStats`)는 아직 가짜
+- 이미 바뀐 것: `features/adminDashboard/api.js`(가짜 `getAdminDashboard`), SCR-ADM-001 대시보드 화면(끝)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

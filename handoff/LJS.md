@@ -2,10 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 끝(2026-11-05). 768px 미만에서 관리자 표 34곳이 공통 상자 `ADMIN_TABLE_BOX`(`components/adminTableStyles.js`)로 높이 480px까지만 보이고 표 안에서 스크롤하며, 머리줄은 위에 붙는다
+SCR-ADM-040 공지사항 · 본문 이미지 연결 — 끝(2026-11-05). 공지 등록·수정 폼에 [이미지 넣기]로 올린 뒤 커서 자리에 `![](/api/files/public/N)` 한 줄을 넣고, 내용 아래 미리보기(공용 `PostBody` `fileImages`)에서 이미지로 보인다(추가-1)
 
 ## 다음에 할 것
 
+- SCR-ADM-040 사람이 볼 것(판정 밖, 2026-11-05): ① [이미지 넣기] 뒤 커서가 넣은 줄 끝이 아니라 내용 맨 끝으로 간다(`NoticeForm.jsx` `requestAnimationFrame` 뒤 다시 그려지며 밀림) ② 4,000자 초과 토스트는 코드로만 확인했다
+- SCR-ADM-040 공용 DB 검증 데이터(2026-11-05): 공지 39 "[검증] 본문 이미지 확인"·41 "검증 이미지 공지", 첨부 4316·4317·4330·4331. 삭제 API가 없어 수정 화면에서 [사용]을 끄면 비노출
 - SCR-ADM-001 사람이 볼 것(판정 밖, 2026-11-05): 390px 관리자 헤더에서 "관리자"와 옆 글자("냥멍관…")가 붙어 보인다(`layouts/` 관리자 헤더, 이번 범위 밖)
 - SCR-ADM-081 사람이 볼 것(2026-11-05): 삭제 확인 문구 "키워드를 삭제할까요?"와 [키워드 등록] 버튼에는 "키워드"가 남아 있다(기획 밖이라 그대로 둠). 실제 API 연결 때 `kwrdClsfNm`은 탭의 저장 값(`keywordLabels.js`)을 쓴다
 - SCR-ADM-021 사람이 볼 것(2026-11-05): 이 DB에 사진 있는 실종제보가 없어 상세 사진 표시와 404 문구는 응답을 바꿔서만 확인했다. 사진 있는 제보가 생기면 모달에서 사진이 열리는지 본다
@@ -78,7 +80,6 @@ SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 
 - SCR-ADM-040 사람이 정할 것: 폼이 [사용]을 끈 상태에서도 [알림 발송] 체크를 막지 않아 서버가 400 "입력값이 올바르지 않습니다."로 거절한다(`NoticeForm.jsx`). 막으려면 새 마일스톤이나 추가 요청으로
 - SCR-ADM-040 로컬 DB 검증 데이터(2026-11-03): 공지 37 "[검증] 알림 발송 공지"가 비노출로 남았다(삭제 API 없음). 회원 191명에게 공지 알림이 1건씩 갔다
 - SCR-ADM-040 실제 확인이 남은 것: 글자 수 400은 입력칸 `maxLength`가 막아 화면으로 못 봤다. 403은 코드로만 봤다. 스켈레톤 높이(목록 표 1025px, 폼 카드 600px)는 잰 값이 아니라 계산값이다
-- SCR-ADM-040 본문 이미지: 사용자 공지 상세(KSJ, 공용 `PostBody`)가 `![](/api/files/public/{atchFileSn})` 줄을 이미지로 그리게 되면 같이 한다(사람 결정 2026-11-03). 할 일: `NoticeForm.jsx` 이미지 버튼, `api.js` `uploadNoticeImage`(`POST /api/admin/notices/images`, multipart `image`, 201 `{ atchFileSn }`), 내용 커서 자리에 그 줄을 넣기
 
 - 8080 백엔드를 공용 DB로 되돌릴지: SCR-ADM-030 검증 때 사람이 `local` 프로필(로컬 DB)로 재시작했다. 지금 5173 화면도 로컬 데이터를 본다
 - SCR-ADM-030 백엔드 병합 순서: 신고 관리자 API(백엔드 `origin/LJS`, 조치 코드 커밋 `c96d29a`)가 develop에 병합되고 공용 DB에 `DCLR.DCLR_ACTN_CD`(v0.11 (9))가 적용돼야 배포에서 동작한다
@@ -228,7 +229,6 @@ SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 
 - SCR-AIM-006 연결 남음(가짜로 끝남): 006-01~08·10·15~18·20 사전 알림 배치(LJS 백엔드) — 매일 09:00 KST 스캔으로 케어 캘린더 병원 일정 D-N 대상 추출, 연동 양육자 전원(탈퇴 제외)별 설정(채널·D-0/1/3/7·케어 일정 유형) 적용, 이메일(가입 주소, 제목 `[냥멍케어] {반려동물명}의 {검진유형} 일정이 {D-N} 남았어요`, 당일은 "오늘이에요")·인앱(`CARE_SCHDL`, `mvmnPath` `/health/calendar`) 생성, 이력·10분 간격 3회 재시도·(회원+일정+일정일+시점+채널) 중복 방지. 메일 [케어 캘린더에서 확인하기]는 `/health/calendar`, 수신 해제는 `/settings/notifications`. 006-09·11·12 프론트는 알림 목록·미확인 수 API(LJS 백엔드)로 가짜를 바꿀 때 같이(SCR-COM-004 연결). 006-13 메일 링크 미인증 복귀는 로그인 연결 때 `ProtectedRoute`·`getRedirectPath`(YAY). 배지 1분 polling은 KSJ 채팅 안 읽은 수 방식이 정해지면 맞춘다
 - SCR-AIM-010 연결 남음(가짜로 끝남): 검진기록 등록·수정 모달(SCR-HLT-002, JAJ)이 `ReceiptUploadModal`의 `onManualInput({ rcptSn? })`으로 빈 폼을 연다. `rcptSn`이 있으면 저장 때 영수증 상태를 인식실패→저장완료로 바꾸는 일은 LJS 백엔드·JAJ 저장 API와 맞춘다(명세 10-06 [확인 필요]). 영수증 인식 결과 확인 모달(SCR-HLT-002, JAJ)은 `onRecognized(result)`를 받는다. 부분 인식은 `ckupYmd`·`ckupAmt`가 `null`일 수 있다
 - 사람이 고치는 문서(SCR-AIM-010 추가 요청): 기능명세서 v0.7 FN-AIM-010-03 [다시 촬영]→[다시 올리기], FN-AIM-010-07 문구 2종 "다시 촬영하거나"→"다시 올리거나". 화면설계서 v0.9 SCR-AIM-010 ② 라벨과 같은 문구도 같이
-- SCR-AIM-008 연결 남음(2026-10-29 AI 서버 연결로 끝남): 저장 전 확인·저장(`health/receiptApi.js` `prepareReceiptSave`·`saveReceiptCheckups`)은 가짜. Java 영수증 저장 API(LJS 백엔드)와 가계부 지출·중복 확인(SJM)이 나오면 바꾸고, 저장 때 `recptSn`을 넘긴다. 결과 모달 원본 썸네일(FN-AIM-009-01)은 분석 응답에 이미지 주소가 없어 아이콘. 반려동물 목록(SJM) `vrtyNm` 키 확정 대기
 - 반려동물 구역 없는 영수증·서버 400·409·504는 검증 때 응답을 가로채서만 확인했다. 실제 구역 없는 영수증이 생기면 건강 일지 [영수증으로 등록하기]로 고른 반려동물 탭 하나로 시작하는지 본다. 구역 없는 영수증의 구역 `dscntAmt`는 하단 할인과 합쳐 비율 배분한다(`getSplitDiscount`, 명세 FN-AIM-009-20 해석)
 - 팀에 알릴 것(SCR-AIM-008, PR 전): SJM에게 `receiptFile.js`를 `src/utils/`로 옮겼다고 PR에 적는다. `common.md` "비동기" 절 추가는 팀 합의 문서라 PR에서 알린다
 - 선택: `src/utils/formatDate.js`로 바꿀 수 있는 곳 — `ConversationHeader.jsx`의 `formatDate`는 `formatDate(crtDt)`, `features/expense/shared/expenseFormat.js`의 `formatMonthDay`는 `formatDate(expndYmd, { hasYear: false, separator: '-' })`. 이번에 안 건드렸다

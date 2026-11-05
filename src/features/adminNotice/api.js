@@ -18,3 +18,10 @@ export const createAdminNotice = (body) => api.post('/admin/notices', body);
 /** 공지 수정·비노출: 알림은 다시 보내지 않는다 */
 export const updateAdminNotice = ({ ntcMttrSn, ...body }) =>
   api.patch(`/admin/notices/${ntcMttrSn}`, body);
+
+/** 공지 본문 이미지 업로드(multipart image) -> { atchFileSn } */
+export const uploadNoticeImage = (file) => {
+  const body = new FormData();
+  body.append('image', file);
+  return api.post('/admin/notices/images', body);
+};
