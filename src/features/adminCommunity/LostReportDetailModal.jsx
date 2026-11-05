@@ -83,7 +83,9 @@ export default function LostReportDetailModal({ lostTpofSn, onClose }) {
     if (report.isError) {
       return (
         <div role="alert" className="flex flex-col items-center gap-3 py-8">
-          <p className="text-base text-subtle">실종제보를 불러오지 못했어요.</p>
+          <p className="text-base text-subtle">
+            {report.error?.message || '실종제보를 불러오지 못했어요.'}
+          </p>
           <button
             type="button"
             className={BTN_SECONDARY}

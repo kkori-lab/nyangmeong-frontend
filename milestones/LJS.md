@@ -869,11 +869,14 @@
 - 완료 조건 결과: 검증 `통과`(2026-11-05 1회차, 실제 API. [2]쪽 요청·대시보드 링크는 데이터가 모자라 Playwright 응답 가로채기로 확인), 사람 확인 2026-11-05
 - 연결 남음: 없음
 
-## SCR-ADM-021 실종제보 · 목록·상세 연결 — 대기
+## SCR-ADM-021 실종제보 · 목록·상세 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-021-01·02·03
 - 기다리는 것: `GET /api/admin/lost-reports?page=&size=20&lostTpofSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, mbrSn, mbrNcnm, expryCrtrDt, regDt }`, 만료 기준 일시가 지난 실종은 `CMUC0008`, 찾았어요 행은 `expryCrtrDt` null, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/lost-reports/{lostTpofSn}`(실종·만료는 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, dscvSwtcDt, mbrSn, mbrNcnm, regDt, pstCn, expryCrtrDt, imgs[{ atchFileSn, sortSeq }] }`, 찾았어요는 `lostTpofSn·pstSn·pstTtl·lostTpofSttsCd·dscvSwtcDt`만 있고 나머지 null, 없거나 정상 글이 아니면 404 `LOST_REPORT_NOT_FOUND`, 강제 만료·기간 조정 API 없음) (LJS 백엔드, 끝)
 - 완료 조건: `features/adminCommunity/api.js` 실종제보 목록·상세 가짜 본문을 실제 요청으로 바꾼다. 필드 이름은 가짜와 같은 `mbrNcnm`·`expryCrtrDt`. 블라인드·삭제 글은 목록에 나오지 않고, 상세에 연락처·반려동물 정보가 없다(가짜에 있으면 화면에서 뺀다). 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+- 결정: 디자인은 기존 SCR-ADM-021 화면 그대로, 데이터 모양만 바꿈(2026-11-05 기획 승인)
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 1회차), 사람 확인 2026-11-05
+- 연결 남음: 없음
 
 ## SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-022-01·02·03
@@ -987,6 +990,12 @@
 - 기다리는 것: 백엔드 SCR-ADM-080 라우팅 매핑표 · 프론트 연결 관리자 매핑표 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/ai.md` "관리자 API" 절의 `/admin/ai/routes` 네 행
 - 완료 조건: `features/adminAiRoute/api.js`의 가짜 네 함수를 실제 `GET /api/admin/ai/routes?q=`(배열, 페이지 없음)·`POST /api/admin/ai/routes`(201 `{ aiRoutMpngSn }`)·`PATCH /api/admin/ai/routes/{aiRoutMpngSn}`(보낸 칸만, 바뀐 행을 돌려줌)·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`로 바꾸고 sessionStorage 가짜를 지운다. 가정과 다른 것: `rprsChipYn`·`useYn`은 true/false('Y'/'N' 아님, `routeLabels.js`·모달·표의 비교를 고친다), `domnNm`은 보내지 않는다(서버가 화면 ID로 정함), 수정에서 화면 ID·파라미터·지시어·비고를 비우려면 빈 문자열을 보낸다(`null`은 그대로 둠), `prrtSeq`는 1 이상(수정에서 없으면 순위 그대로). 화면 이동(AIMC0032)·모달 열기(AIMC0033)인데 화면 ID·지시어가 없으면 400 `INVALID_INPUT_VALUE`, 없는 행 404 `AI_ROUTE_NOT_FOUND`(가짜와 같은 이름). 화면 ID 선택지는 `SCREEN_OPTIONS` 그대로(서버 API 없음). 이동 방식 AIMC0036 보류도 서버는 받는다
 - 이미 바뀐 것: `features/adminAiRoute/api.js`·`routeLabels.js`·`AiRouteFormModal.jsx`·`AiRouteTable.jsx`(가짜)
+
+## SCR-ADM-081 키워드 사전 · 관리자 키워드 사전 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-081-01·02
+- 기다리는 것: 백엔드 SCR-ADM-081 키워드 사전 · 프론트 연결 관리자 키워드 사전 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/ai.md` "관리자 API" 절의 `/admin/ai/keywords` 네 행과 DTO 절
+- 완료 조건: `features/adminAiKeyword/api.js`의 가짜 네 함수를 실제 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`(배열, 페이지 없음)·`POST /api/admin/ai/keywords`(201 `{ kwrdDictSn }`)·`PATCH /api/admin/ai/keywords/{kwrdDictSn}`(보낸 칸만, 바뀐 행을 돌려줌)·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`로 바꾸고 sessionStorage 가짜를 지운다. 가정과 다른 것: `useYn`은 true/false('Y' 아님), 행에 `mpngCdNm`(연결 코드 이름)이 더 있다, 없는 행 404 `AI_KEYWORD_NOT_FOUND`(가짜 `KEYWORD_NOT_FOUND` 아님), 수정에서 해석 결과·연결 코드·비고를 비우려면 빈 문자열(`null`은 그대로 둠), 용도·분류는 수정되지 않는다. 연결 코드는 `일정 종류`(HLTG19)·`검진유형`(HLTG01)·`가계부 카테고리`(MYPG05)만 필수이고 다른 분류에 보내면 400 `INVALID_INPUT_VALUE`. `kwrdClsfNm`은 서버가 글자 그대로 검사하므로 `SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로` 절에서 바꾸는 것은 화면 표시만이다. 가계부 카테고리 초기 데이터 6건(병원~돌봄, 기타 없음)은 공용 DB에 있다
+- 이미 바뀐 것: `features/adminAiKeyword/api.js`·`keywordLabels.js`(가짜)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
