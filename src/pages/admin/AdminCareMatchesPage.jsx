@@ -62,7 +62,7 @@ export default function AdminCareMatchesPage() {
       return (
         <div role="alert" className="flex flex-col items-center gap-3 py-16">
           <p className="text-base text-subtle">
-            펫돌봄 모집글을 불러오지 못했어요.
+            {recruits.error?.message || '펫돌봄 모집글을 불러오지 못했어요.'}
           </p>
           <button
             type="button"
