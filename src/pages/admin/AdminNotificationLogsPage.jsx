@@ -18,8 +18,8 @@ const PAGE_SIZE = 20;
 
 /** 필터 칸 이름(URL 쿼리와 같다) */
 const FILTER_NAMES = [
-  'fromYmd',
-  'toYmd',
+  'bgngYmd',
+  'endYmd',
   'notiChnlCd',
   'notiTypeCd',
   'sndngRsltCd',
@@ -62,7 +62,7 @@ export default function AdminNotificationLogsPage() {
   const handlePageChange = (nextPage) =>
     setSearchParams({ ...pickFilled(filter), page: nextPage });
 
-  /** 본문: 로딩 / 403 / 그 밖의 오류 / 목록 */
+  /** 본문: 로딩 / 403 / 입력값 오류(서버 문구) / 그 밖의 오류 / 목록 */
   const renderBody = () => {
     if (
       logs.isPending ||
@@ -85,7 +85,11 @@ export default function AdminNotificationLogsPage() {
           results={results.data}
           onSearch={handleSearch}
         />
-        {logs.isError ? (
+        {logs.error?.code === 'INVALID_INPUT_VALUE' ? (
+          <p role="alert" className="py-16 text-center text-base text-danger">
+            {logs.error.message}
+          </p>
+        ) : logs.isError ? (
           <div role="alert" className="flex flex-col items-center gap-3 py-16">
             <p className="text-base text-subtle">
               발송 이력을 불러오지 못했어요.

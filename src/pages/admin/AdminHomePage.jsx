@@ -83,8 +83,8 @@ const toPendingItems = (overview) => {
       value: overview.notiFailCnt,
       to: withQuery(PATHS.ADMIN_NOTIFICATION_LOGS, {
         sndngRsltCd: SNDNG_RSLT_FAIL,
-        fromYmd: addDays(todayYmd, -1),
-        toYmd: todayYmd,
+        bgngYmd: addDays(todayYmd, -1),
+        endYmd: todayYmd,
       }),
     },
     {

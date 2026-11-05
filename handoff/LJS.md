@@ -2,11 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-ADM-070 아이템 · 전체 굽기 나눠 호출 — 끝 (2026-11-05, 검증 1회차 통과·사람 확인). 관리자 아이템 화면에서 AI `POST /ai/items/{itemSn}/bake`를 `lastYn`까지 이어 부르는 전체 굽기(등록 뒤 자동 시작, 행별 [굽기], 진행 줄·[멈춤])를 넣었다
+SCR-ADM-091 발송 이력 · 목록 연결 — 끝 (2026-11-05, 검증 1회차 통과·사람 확인). 발송 이력 가짜를 실제 `GET /api/admin/notification-logs`로 바꾸고 기간 칸을 `bgngYmd`·`endYmd`로, 400은 서버 문구를 보인다
 
 ## 다음에 할 것
 
-- 다음 추천(2026-11-04): 백엔드 PR #149(backend-a9) 연결 남은 1건 — FN-MYP-010-16 착용 확정(`PUT /api/pixel-characters/{pixelCharSn}/equipped-items` 200) 뒤 Python `/ai/characters/{pixelCharSn}/equipped-image` 합성 요청, 끝나면 `character-image` 캐시 무효화, 409 `EQUIPPED_ITEMS_CHANGED`는 무시(꾸미기 화면). 마일스톤 절이 생기면 `/start`. 그 밖에 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 외부 API 사용량(112)·운영 설정(110)·발송 이력(091)·실종제보(021)·펫돌봄 거래(022)·노출 콘텐츠(023)
+- SCR-COM-004 알림 드롭다운 크기·스크롤·닫기 버튼(마일스톤 `대기`, 사람 2026-11-05): 웹·모바일 패널 크기 고정, 안 읽은 알림 5개 이상이면 목록 안 스크롤, 닫기 버튼. `/start COM-004`
+- SCR-ADM-091 사람이 볼 것(2026-11-05): 대시보드 "알림 발송 실패(24시간)" 링크는 대시보드가 아직 가짜(`notiFailCnt` 0)라 화면에 안 보여 응답을 바꿔서만 확인했다. [2]쪽 요청도 로컬 데이터가 4건이라 응답을 바꿔서만 확인했다
+- 다음 추천(2026-11-04): 백엔드 PR #149(backend-a9) 연결 남은 1건 — FN-MYP-010-16 착용 확정(`PUT /api/pixel-characters/{pixelCharSn}/equipped-items` 200) 뒤 Python `/ai/characters/{pixelCharSn}/equipped-image` 합성 요청, 끝나면 `character-image` 캐시 무효화, 409 `EQUIPPED_ITEMS_CHANGED`는 무시(꾸미기 화면). 마일스톤 절이 생기면 `/start`. 그 밖에 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 외부 API 사용량(112)·운영 설정(110)·실종제보(021)·펫돌봄 거래(022)·노출 콘텐츠(023)
 - SCR-ADM-070 사람이 볼 것(2026-11-05): ① 이 PC의 ai `.env.local`이 `CHARACTER_BAKE_ENABLED=true`라 실제 [굽기]는 이미지 API가 과금된다. 반복 호출·[멈춤]·화면 떠나기는 Playwright 가짜 응답으로만 확인했다 ② 본문 없는 502(AI 서버 꺼짐 등)는 "일시적인 오류가 발생했어요."로 보인다 ③ 390폭에서 굽기 칸이 늘어 이름 칸이 좁다
 - SCR-ADM-070 다음에(결정 2026-11-05): 굽기 지시를 고친 뒤 이미 구운 캐릭터 다시 굽기는 넣지 않았다. AI 서버는 안 구운 캐릭터만 굽는다(다시 굽기는 ai·백엔드 몫 포함)
 - SCR-ADM-070 새 아이템 등록 도구(마일스톤 `대기`, 사람 2026-11-05): 범위·흐름이 정해지면 `/start`
@@ -54,8 +56,6 @@ SCR-ADM-070 아이템 · 전체 굽기 나눠 호출 — 끝 (2026-11-05, 검증
 - SCR-ADM-021 사람이 볼 것(판정 밖): 가짜 만료 제보의 만료 기준일이 미래 날짜라 실제와 다르다(상세 모달에서만 보임). `routes/paths.js`에 `ADMIN_LOST_REPORTS`를 기능 커밋에 같이 넣었다. 백엔드 `docs/admin/implementation-plan.md`의 SCR-ADM-021 담당 KSJ → LJS는 사람이 고친다
 - PR 캡처 확인: SCR-ADM-021 캡처 `LJS-20261103-SCR-ADM-021-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
 
-- SCR-ADM-091 연결 남음: FN-ADM-091-01 (백엔드 연결 `GET /api/admin/notification-logs` 목록·필터·쪽, 수신 회원 닉네임 `mbrNcnm`(가정), 기간 파라미터 이름(가짜 `fromYmd`·`toYmd`, 감사 로그는 `bgngYmd`·`endYmd`), 백엔드 저장소에서 /start). 나오면 `features/adminNotificationLog/api.js` 가짜 본문만 실제 요청으로 바꾼다
-- SCR-ADM-091 사람이 정할 것: `routes/paths.js`에 `ADMIN_NOTIFICATION_LOGS`를 기능 커밋에 같이 넣었다(`docs/convention/shared-files.md`는 따로 PR). PR 때 나눌지 정한다. 대시보드 "알림 발송 실패" 링크(`?sndngRsltCd=AIMC0019&fromYmd=`)는 SCR-ADM-001 때 붙인다
 
 - SCR-ADM-090 사람이 볼 것(판정 밖): 목록 스켈레톤 높이(1108px, 모바일 1160px)는 20행 기준 계산값인데 실제 AIMG02는 9종이라 18행이다(`AdminNotificationTemplatesPage.jsx`). 템플릿 목록 자체 오류(403 아닌 것) 분기는 코드로만 봤다. 치환 변수 칩은 케어 일정 기준 목록을 모든 유형에 똑같이 보인다. 화면설계서의 `{변수}` 표기를 `{{변수}}`로 고치는 것은 사람 몫
 

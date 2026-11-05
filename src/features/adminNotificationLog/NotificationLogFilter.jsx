@@ -34,7 +34,7 @@ export default function NotificationLogFilter({
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (draft.fromYmd && draft.toYmd && draft.fromYmd > draft.toYmd) {
+    if (draft.bgngYmd && draft.endYmd && draft.bgngYmd > draft.endYmd) {
       setHasRangeError(true);
       return;
     }
@@ -48,17 +48,17 @@ export default function NotificationLogFilter({
           <input
             type="date"
             aria-label="기간 시작일"
-            value={draft.fromYmd}
+            value={draft.bgngYmd}
             className={`${INPUT_CLASS} tabular-nums min-[761px]:w-40`}
-            onChange={(event) => setField('fromYmd', event.target.value)}
+            onChange={(event) => setField('bgngYmd', event.target.value)}
           />
           <span className="text-subtle">~</span>
           <input
             type="date"
             aria-label="기간 종료일"
-            value={draft.toYmd}
+            value={draft.endYmd}
             className={`${INPUT_CLASS} tabular-nums min-[761px]:w-40`}
-            onChange={(event) => setField('toYmd', event.target.value)}
+            onChange={(event) => setField('endYmd', event.target.value)}
           />
         </div>
         <Select
