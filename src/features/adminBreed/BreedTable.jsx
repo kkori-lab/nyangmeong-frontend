@@ -1,4 +1,5 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['이름', '정렬', '사용', ''];
 
@@ -11,7 +12,7 @@ const CELL = 'px-4 py-2 max-[760px]:px-2';
  */
 export default function BreedTable({ breeds, onEdit }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full table-fixed text-left text-base max-[760px]:text-sm">
         <colgroup>
           <col />

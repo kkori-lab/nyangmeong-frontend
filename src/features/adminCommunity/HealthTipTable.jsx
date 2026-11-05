@@ -1,3 +1,4 @@
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 const COLUMNS = ['순서', '제목', '선정', ''];
 const CELL = 'px-4 py-3 max-[760px]:px-2';
 /** 행 안 작은 버튼: BTN_SECONDARY와 같은 색, 높이·여백만 작게 */
@@ -11,7 +12,7 @@ const ROW_BUTTON =
  */
 export default function HealthTipTable({ tips, onUnassign }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full table-fixed text-left text-base max-[760px]:text-sm">
         <colgroup>
           <col className="w-[80px] max-[760px]:w-[44px]" />

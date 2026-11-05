@@ -30,14 +30,14 @@ const tooLong = (max) => `${max}자 이하로 입력해 주세요`;
 /** 칸마다 틀린 값 안내: 없으면 빈 객체 */
 const validate = ({ tab, artclNm, kwrdCn, intrpRsltCn, mpngCd, rmrkCn }) => {
   const errors = {};
-  if (!artclNm.trim()) errors.artclNm = '항목명을 입력해 주세요';
+  if (!artclNm.trim()) errors.artclNm = '이름을 입력해 주세요';
   else if (artclNm.trim().length > ARTCL_NM_MAX) {
     errors.artclNm = tooLong(ARTCL_NM_MAX);
   }
   const joined = splitKeywords(kwrdCn).join(', ');
-  if (!joined) errors.kwrdCn = '키워드를 하나 이상 입력해 주세요';
+  if (!joined) errors.kwrdCn = '단어를 하나 이상 입력해 주세요';
   else if (joined.length > KWRD_CN_MAX) errors.kwrdCn = tooLong(KWRD_CN_MAX);
-  if (tab.codes != null && !mpngCd) errors.mpngCd = '연결할 코드를 골라 주세요';
+  if (tab.codes != null && !mpngCd) errors.mpngCd = '분류를 골라 주세요';
   if (tab.codes == null && intrpRsltCn.trim().length > INTRP_RSLT_CN_MAX) {
     errors.intrpRsltCn = tooLong(INTRP_RSLT_CN_MAX);
   }
@@ -114,7 +114,7 @@ export default function AiKeywordFormModal({ tab, keyword, onClose }) {
     };
     const payload = isEdit
       ? { kwrdDictSn: keyword.kwrdDictSn, ...body }
-      : { dictUsgCd: tab.dictUsgCd, kwrdClsfNm: tab.label, ...body };
+      : { dictUsgCd: tab.dictUsgCd, kwrdClsfNm: tab.kwrdClsfNm, ...body };
     save.mutate(payload, {
       onSuccess: () => {
         showToast(SAVED_MESSAGE);
@@ -182,13 +182,13 @@ export default function AiKeywordFormModal({ tab, keyword, onClose }) {
           className="space-y-5"
         >
           <div>
-            <p className={LABEL_CLASS}>용도</p>
+            <p className={LABEL_CLASS}>종류</p>
             <p className="text-base leading-[24px] text-ink-2">{tab.label}</p>
           </div>
 
           <div>
             <label htmlFor={`${formId}-name`} className={LABEL_CLASS}>
-              항목명
+              이름
             </label>
             <input
               id={`${formId}-name`}
@@ -210,7 +210,7 @@ export default function AiKeywordFormModal({ tab, keyword, onClose }) {
 
           <div>
             <label htmlFor={`${formId}-keywords`} className={LABEL_CLASS}>
-              키워드
+              단어
             </label>
             <textarea
               id={`${formId}-keywords`}
@@ -232,18 +232,18 @@ export default function AiKeywordFormModal({ tab, keyword, onClose }) {
 
           {hasCode ? (
             <div className="max-w-[320px]">
-              <p className={LABEL_CLASS}>연결 코드</p>
+              <p className={LABEL_CLASS}>분류</p>
               <Select
-                label="연결 코드"
+                label="분류"
                 value={mpngCd}
                 options={[
-                  { value: '', label: '코드 선택' },
+                  { value: '', label: '분류 선택' },
                   ...tab.codes.map((code) => ({
                     value: code.value,
-                    label: `${code.value} ${code.label}`,
+                    label: `${code.label} (${code.value})`,
                   })),
                 ]}
-                placeholder="연결할 코드를 골라 주세요"
+                placeholder="분류를 골라 주세요"
                 onChange={setMpngCd}
               />
               <FieldError id={`${formId}-code-error`} message={errors.mpngCd} />
@@ -251,7 +251,7 @@ export default function AiKeywordFormModal({ tab, keyword, onClose }) {
           ) : (
             <div>
               <label htmlFor={`${formId}-result`} className={LABEL_CLASS}>
-                해석 결과 (선택)
+                의미 (선택)
               </label>
               <input
                 id={`${formId}-result`}
@@ -274,7 +274,7 @@ export default function AiKeywordFormModal({ tab, keyword, onClose }) {
 
           <div>
             <label htmlFor={`${formId}-memo`} className={LABEL_CLASS}>
-              비고 (선택)
+              메모 (선택)
             </label>
             <textarea
               id={`${formId}-memo`}

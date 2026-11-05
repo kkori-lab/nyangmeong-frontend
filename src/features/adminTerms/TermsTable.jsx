@@ -1,5 +1,6 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { TERMS_KINDS } from './termsKinds';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['약관 종류', '현재 버전', '제목', '필수', '사용', ''];
 
@@ -16,7 +17,7 @@ export default function TermsTable({ terms, onHistory }) {
   );
 
   return (
-    <div className="relative overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={`relative ${ADMIN_TABLE_BOX}`}>
       <table className="w-full min-w-[640px] table-fixed text-left text-base max-[760px]:text-sm">
         <colgroup>
           <col className="w-[200px] max-[760px]:w-[148px]" />

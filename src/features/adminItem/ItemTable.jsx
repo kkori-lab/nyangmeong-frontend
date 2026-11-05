@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, Flame } from 'lucide-react';
 import FileImage from '@/components/FileImage';
 import { useAdminItemImage } from './queries';
 import { canBakeItem } from './useItemBake';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = [
   '순서',
@@ -51,7 +52,7 @@ export default function ItemTable({
   const lastIndex = items.length - 1;
 
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full table-fixed text-left text-base max-[760px]:text-sm">
         <colgroup>
           <col className="w-[72px] max-[760px]:w-[36px]" />

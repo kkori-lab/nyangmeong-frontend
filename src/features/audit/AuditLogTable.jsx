@@ -1,5 +1,6 @@
 import { formatDate, getHmOf } from '@/utils/formatDate';
 import { getTargetLabel } from './auditLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['일시', '관리자', '작업 유형', '대상', '요약'];
 
@@ -14,7 +15,7 @@ export default function AuditLogTable({ logs, taskTypes = [], onSelect }) {
     taskTypes.find(({ comCd }) => comCd === taskTypeCd)?.comCdNm ?? taskTypeCd;
 
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[720px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

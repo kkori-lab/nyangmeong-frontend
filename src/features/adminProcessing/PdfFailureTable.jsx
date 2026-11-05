@@ -1,5 +1,6 @@
 import { formatDate, getHmOf } from '@/utils/formatDate';
 import { CALL_RSLT } from './processingLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['호출 일시', '결과', '오류 메시지'];
 
@@ -14,7 +15,7 @@ const getResultName = (callRsltCd) =>
  */
 export default function PdfFailureTable({ failures }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[560px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

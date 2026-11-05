@@ -6,6 +6,7 @@ import {
   CHAR_JOB_STTS_FAIL,
   getCodeName,
 } from './processingLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['요청 일시', '회원', '상태', '실패 사유', '연결 문의'];
 
@@ -16,7 +17,7 @@ const COLUMNS = ['요청 일시', '회원', '상태', '실패 사유', '연결 �
  */
 export default function CharacterJobTable({ jobs }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[720px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

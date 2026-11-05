@@ -579,11 +579,14 @@
 - 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start)
 - 연결 남음: FN-ADM-081-01~03 (AI 서버가 사전을 DB 조회 API로 읽기, 백엔드 조회 API는 백엔드 저장소·AI 서버 전환은 ai 저장소. 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다)
 
-## SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로 — 대기
+## SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-081-01·02
 - 배경: "등록 동사"·"주기"·"해석 결과"·"연결 코드" 같은 말이 무슨 뜻인지 알기 어렵다(사람 2026-11-04)
 - 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04)
 - 완료 조건: 탭 이름·표 칸 이름·모달 칸 이름을 운영자가 읽고 무엇을 넣는지 알 수 있는 말로 바꾼다(`features/adminAiKeyword/keywordLabels.js`·`AiKeywordTable.jsx`·`AiKeywordFormModal.jsx`). 저장 값(`kwrdClsfNm` 등)은 기초 데이터 그대로 두고 화면 표시만 바꿀지 기획 때 정한다
+- 결정: 저장 값(`kwrdClsfNm`·코드 탭 `intrpRsltCn`)은 기초 데이터 그대로, 화면 표시만 바꿈. 이름은 사람 의견("AI스럽지 않게")대로 이름·단어·의미·분류(2026-11-05)
+- 완료 조건 결과: 검증 `통과`(2026-11-05 1회차, 가짜 응답 기준), 사람 확인 2026-11-05
+- 연결 남음: 없음
 
 ## SCR-ADM-082 처리 현황 — 끝
 - 기능: FN-ADM-082-01 영수증 OCR 현황, FN-ADM-082-02 캐릭터 생성 현황, FN-ADM-082-03 검사결과지 분석 현황
@@ -727,10 +730,12 @@
 - 완료 조건: `GET /api/admin/comments`(`pstSn`, `mbrSn`, `q`)로 삭제된 댓글도 원문과 `delYn`으로 나온다. `POST /api/admin/comments/{cmntSn}/deletion`(`delRsn` 필수) 뒤 목록이 갱신된다. 409 `ALREADY_PROCESSED`를 안내한다
 - 완료 조건 결과: SCR-ADM-020 게시글·댓글 절과 같은 검증(2026-11-02)
 
-## SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 대기
+## SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 끝
 - 기능: 명세 기능 ID 추가 없음. 회원 목록(SCR-ADM-010)처럼 한 쪽 20건을 보여 주는 관리자 목록 화면
 - 기다리는 것: 없음
 - 완료 조건: 390px에서 목록이 20건 때문에 세로로 너무 길어지지 않는다. 방식은 `/start` 기획에서 정한다(요청 2026-11-02)
+- 결정: 768px 미만 표 상자 높이 480px, 표 안 세로 스크롤·머리줄 고정, 쪽당 20건 유지(사람 2026-11-05)
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 1회차, 5180·8081), 사람 확인 2026-11-05
 
 ## SCR-ADM-030 신고 처리 · 목록 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-030-01 연결 작업)
@@ -996,6 +1001,12 @@
 - 기다리는 것: 백엔드 SCR-ADM-081 키워드 사전 · 프론트 연결 관리자 키워드 사전 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/ai.md` "관리자 API" 절의 `/admin/ai/keywords` 네 행과 DTO 절
 - 완료 조건: `features/adminAiKeyword/api.js`의 가짜 네 함수를 실제 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`(배열, 페이지 없음)·`POST /api/admin/ai/keywords`(201 `{ kwrdDictSn }`)·`PATCH /api/admin/ai/keywords/{kwrdDictSn}`(보낸 칸만, 바뀐 행을 돌려줌)·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`로 바꾸고 sessionStorage 가짜를 지운다. 가정과 다른 것: `useYn`은 true/false('Y' 아님), 행에 `mpngCdNm`(연결 코드 이름)이 더 있다, 없는 행 404 `AI_KEYWORD_NOT_FOUND`(가짜 `KEYWORD_NOT_FOUND` 아님), 수정에서 해석 결과·연결 코드·비고를 비우려면 빈 문자열(`null`은 그대로 둠), 용도·분류는 수정되지 않는다. 연결 코드는 `일정 종류`(HLTG19)·`검진유형`(HLTG01)·`가계부 카테고리`(MYPG05)만 필수이고 다른 분류에 보내면 400 `INVALID_INPUT_VALUE`. `kwrdClsfNm`은 서버가 글자 그대로 검사하므로 `SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로` 절에서 바꾸는 것은 화면 표시만이다. 가계부 카테고리 초기 데이터 6건(병원~돌봄, 기타 없음)은 공용 DB에 있다
 - 이미 바뀐 것: `features/adminAiKeyword/api.js`·`keywordLabels.js`(가짜)
+
+## SCR-ADM-082 처리 현황 · 검사결과지 분석 현황 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-03
+- 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 검사결과지 분석 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/global.md` `/admin/processing/pdf-analyses` 행
+- 완료 조건: `features/adminProcessing/api.js`의 `getAdminPdfAnalyses` 가짜를 실제 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=&size=20`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, tmotCnt, errCnt }, content: [{ extlApiCallLogSn, callRsltCd, failRsn, callDt }], page, size, totalElements, totalPages, hasNext }`로 가짜와 같은 모양이다. 기간은 둘 다 선택(호출일 양끝 포함), `fromYmd`가 `toYmd`보다 뒤면 400 `INVALID_INPUT_VALUE`. 검사결과지가 아닌 파일은 Python이 성공(SYSC0021)으로 통지해 `scsCnt`·`totCnt`에 들어가고 실패 목록에는 없다. 결과 코드 SYSC0021 성공·SYSC0022 실패(API 오류)·SYSC0023 시간초과
+- 이미 바뀐 것: `features/adminProcessing/api.js`(가짜 `getAdminPdfAnalyses`)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

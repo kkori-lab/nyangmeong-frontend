@@ -1,4 +1,5 @@
 import Toggle from '@/components/Toggle';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['문구', '사용', ''];
 const CELL = 'px-4 py-3 max-[760px]:px-2';
@@ -14,7 +15,7 @@ const ROW_BUTTON =
  */
 export default function PhraseTable({ phrases, pendingSn, onToggle, onEdit }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full table-fixed text-left text-base max-[760px]:text-sm">
         <colgroup>
           <col />
