@@ -944,11 +944,17 @@
 - 완료 조건: 실제 API로 관리자 회원(`mbrAuthrtCd` `USRC0005`) 상세를 열면 [정지]가 안 보이고, 정상 일반회원(`USRC0004`)은 보인다. 가짜 응답(`features/adminMember/api.js`)에도 `mbrAuthrtCd`가 있는지 맞춘다
 - 이미 바뀐 것: `pages/admin/AdminMemberDetailPage.jsx` `canSuspend`가 `mbrAuthrtCd !== ROLE_OPTIONS[1].value`로 판정(2026-11-02)
 
-## SCR-COM-004 알림 드롭다운 · 크기·스크롤·닫기 버튼 — 대기
+## SCR-COM-004 알림 드롭다운 · 크기·스크롤·닫기 버튼 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-COM-004-01·05·15
 - 배경: 헤더 알림을 열면 웹·모바일 모두 패널 크기가 알림 개수에 따라 달라진다. 패널을 닫는 버튼이 없다(사람 2026-11-05)
 - 기다리는 것: 없음(화면만, `layouts/NotificationDropdown.jsx`)
 - 완료 조건: 웹(1440)·모바일(390) 모두 알림 개수(0건 포함)·탭이 달라도 패널 크기가 같다. 안 읽은 알림이 5개 이상이면 목록 안에서만 세로로 스크롤된다(패널·페이지는 늘지 않는다). 웹·모바일 모두 패널에 닫기 버튼이 있고 누르면 패널이 닫힌다. 고정 높이 값과 "5개 이상"을 안 읽은 알림 기준으로 할지 목록 전체 기준으로 할지는 `/start` 기획에서 정한다
+
+## SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-072-01·02
+- 기다리는 것: 백엔드 SCR-ADM-072 포인트 · 프론트 연결 관리자 포인트 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/points` 두 행
+- 완료 조건: `features/adminPoint/api.js`의 가짜 원장 목록·조정을 실제 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments` `{ mbrSn, dlngPnt, memoCn }`(201, 응답은 원장 한 줄)로 바꾸고 sessionStorage 가짜를 지운다. 조정 모달 현재 잔액은 `GET /api/admin/members/{mbrSn}`의 `hldPnt`(가짜의 원장 마지막 잔액 대신). 잔액 부족은 `POINT_BALANCE_NOT_ENOUGH`가 아니라 400 `POINT_NOT_ENOUGH`, 탈퇴·없는 회원 404 `MEMBER_NOT_FOUND`, 형식 오류 400 `INVALID_INPUT_VALUE`. 같은 요청을 두 번 보내면 두 건이 되므로 조정 버튼을 요청 중 잠근다
+- 이미 바뀐 것: `features/adminPoint/api.js`(가짜, 목록 필드는 실제와 같음)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
