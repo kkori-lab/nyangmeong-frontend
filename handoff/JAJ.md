@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-003 케어 캘린더 · 일정 뱃지 색상 연결 (2026-11-04). 검증 통과, 사람 확인 끝. 일정 모달에 뱃지 색 칩 5개(HLTG21 HLTC0079 보라·0080 초록·0081 빨강·0082 파랑·0083 회색)를 켜고 `cldrBadgeColrCd`로 보낸다(안 고르면 `''`, 다시 누르면 해제). 색은 `scheduleTypes.js` `TONE_CLASSES`(`index.css` `--color-tone-*` 토큰 클래스)로 그린다. 추가-1 종합 건강기록 타임라인도 같은 클래스, 추가-2 선택 링 `outline` medium currentColor·offset `--spacing`, 추가-3 칩 간격 `gap-3`
+끝남: SCR-HLT-011·002 종합 건강기록·건강 일지 · 화면 다듬기 (2026-11-05). 대화로 받은 추가-1~26(명령 0, Playwright 확인, 사람 확인 끝). 줄별 내용은 마일스톤 `milestones/JAJ.md` 같은 절에 요약
 
 ## 결정
 
@@ -11,31 +11,40 @@
 
 ## 다음에 할 것
 
-1. 다음 작업: 없음(JAJ 프론트 마일스톤 모두 끝). 남은 것은 아래 "결정 기다림"과 참고 항목
+1. 다음 작업: 없음. 남은 것은 아래 연결·결정 기다림
+2. 연결 남음: FN-HLT-011-03 타임라인 상세 줄 (백엔드 연결 `ckupCn`, 백엔드 저장소에서 /start, 백엔드 마일스톤 "SCR-HLT-011 종합 건강기록 · 검진기록 목록 진료 내용 — 대기"). 백엔드 연결(SCR-HLT-011 추가-6): 검진기록 목록 `GET /pets/{petSn}/checkups` 응답 content에 `ckupCn`(진료 내용)을 더한다. 프론트 타임라인은 이미 `ckupCn`을 읽어 첫 줄만 상세 줄로 그린다. nyangmeong-backend에서 `/start`로 한다
+3. 나중에(사람, 2026-11-05): 건강 일지 지속 관찰 모바일(`diary/ObservationMobile.jsx`)도 PC처럼 다듬는다. 목록 증감 "변화 없음"·굵게 `brand-500`(PC는 `getItemDiffText` 사용), 색·굵기, 사진 줄 최신 5개·[+N], 사진 원본 창 넘기기. 지금 모바일은 손대지 않았다
+4. 백엔드 확인(캐릭터 이미지, 2026-11-05): 캐릭터가 있는 반려동물(여름 petSn 22·까미 petSn 1)의 `GET /pets/{petSn}/character-image?part=face`가 404 `FILE_NOT_FOUND`라 종별 아이콘으로 나오고, 캐릭터가 없는 반려동물(누리·구름·라떼)은 서버 기본 도트 그림(200)을 받아 오히려 캐릭터처럼 보인다. 로컬 파일 저장 경로·파일 유무를 백엔드에서 본다
+
+- 결정 기다림(2026-11-05 추가-18): 건강 일지 반려동물 패널은 최대 높이 없이 펼친다(20마리면 533px, 375×800에서 아래 끝 794px). 더 많으면 화면 밖으로 넘칠 수 있어 최대 높이·스크롤을 둘지 정한다. 열린 버튼 링 `shadow-[0_0_0_3px_rgba(249,234,166,0.6)]`은 공용 `DropdownSelect` 알약형 값을 옮긴 것으로 토큰이 아니다
+- 결정 기다림(2026-11-05 추가-21): 지속 관찰 삭제 확인 문구는 PC·모바일 공용(`ObservationCard.jsx`)이라 모바일도 바뀌어 있다(사람 요청). 모바일을 "나중에" 다듬을 때 그대로 둘지 확인한다
+- 참고(2026-11-05 추가-24): 사진 줄은 전체 회차 기준 최신 5개, 차트는 크기 입력 회차 기준 최신 5개라 크기 없는 회차가 섞이면 두 곳이 어긋날 수 있다(사람 결정). 회차를 삭제하면 백엔드는 회차만 `DEL_YN='Y'`로 두고 사진 파일·첨부 기록은 지우지 않는다(`ObservationService.deleteCycle`). 사진 안내 문구는 넣지 않았다
+- 참고(2026-11-05 추가-17): 탭 → 첫 카드 간격이 종합 건강기록·건강 일지는 페이지 `gap-7`(28px, 건강 일지 측정 29px)인데 케어 캘린더는 패널 `mt-5`가 더해져 48px다. 맞출지 정하지 않았다
+- 참고(Tailwind 4 기준 폭): `max-[1100px]`은 폭 1100 미만이라 정확히 1100px은 `max-[1100px]`·`min-[1101px]` 어느 쪽에도 들지 않는다(사이트 전체 이전부터). 추가-14 히어로 위 여백은 `sm:pt-9`가 빌드 CSS에서 `min-[1101px]:pt-8` 뒤에 나와 덮어써서 `sm:max-[1101px]:pt-9`로 범위를 나눴다
 
 - 참고(SCR-HLT-003 뱃지 색상): hex 색 표(`TONES`·`BADGE_COLORS` hex·`CHECKUP_TYPES[].color`·`DEFAULT_SCHEDULE_COLOR`)는 지웠다. 톤은 `TONE_CLASSES[tone].chip`(연한 바탕+진한 글자)·`.bar`(진한 색). 앱 CSS에는 `--space-*` 토큰이 없어(퍼블리싱 `html/nyangmung.css`에만 있음) 링 틈은 같은 값의 Tailwind `--spacing`(4px)을 썼다(사람 결정). 고른 칩에 키보드 포커스가 있으면 같은 `outline` 속성이라 브랜드색 가는 선만 보인다. 390px 수정 모달 하단 [새 일정 등록] 글자가 왼쪽으로 잘린다(이전부터, 이번엔 안 고침)
 - 참고(검증 세션): Playwright 검증 중 로그인 세션이 만료되면 화면 확인을 못 해 실패로 나온다. 검증 전에 다시 로그인한다(계정은 저장소에 적지 않는다). 첫 실패 뒤에는 핸드오프 완료 조건을 고치지 않는다(기준 변경으로 실패)
 - 참고(SCR-HLT-002 체중 그래프): 범위 태그는 `LineChart` 기존 문구 "상한/하한"이다. 시안 범례는 "정상범위 최소/최대"라 다르다(이번엔 안 바꿈)
-- 전달함(LJS, 2026-11-04): `features/health/CareItemMenu.jsx`는 마이페이지 가계부 `ExpenseMenu.jsx`의 여는 방식·모양을 복사했다(아이콘만 `size-4.5`). 둘 중 하나를 바꾸면 다른 쪽도 맞춘다
+- 전달함(LJS, 2026-11-04): `features/health/CareItemMenu.jsx`는 마이페이지 가계부 `ExpenseMenu.jsx`의 여는 방식·모양을 복사했다(아이콘만 `size-4.5`). 둘 중 하나를 바꾸면 다른 쪽도 맞춘다. 2026-11-05 추가-20에서 `CareItemMenu`에 선택 props `leadingItems`([수정] 앞 항목, `whitespace-nowrap`)를 더했다(안 넘기면 그대로). LJS에게 알릴 것
 - 전달함(LJS, 2026-11-04): `features/ai/receipt/ReceiptUploadModal.jsx` `onManualInput` 인자 키를 `rcptSn` → `recptSn`으로 바꿨다(받는 쪽 `HealthDiaryPage`도 같이). 브라우저 쪽 시간 초과(요청 중단)는 영수증 번호를 알 수 없어 일반 저장으로 남는다
 - 전달함(공용 DB, DB 담당, 2026-11-04): 검증 계정 누리(petSn 20)의 확인용 영수증 504·506·507·509·510·511·512·513·516·517(지우는 API 없음, 512는 Vision 키 없이 올린 일시 오류 영수증으로 보임). 검진기록 1002·처방약 443·가계부 10401·일정 4916은 지웠다
 - 참고(로컬 확인): AI 서버 영수증 인식은 nyangmeong-ai `.env.local`의 `GOOGLE_VISION_API_KEY`가 없으면 502. 검증은 백엔드 내부 API(`POST /internal/ai/receipts` → `/{recptSn}/result` RECOGNIZED)로 영수증을 만들고 `/ai/receipts` 응답만 route로 줬다. 백엔드가 DevTools 재시작만 되고 옛 클래스로 돌면 새 API가 404이니 완전히 다시 띄운다
 - 참고(SCR-HLT-007 PDF 분석): 분석 항목 이름은 목록 12종 코드면 약어, 아니면 `inspArtclDrctInptNm`. 둘 다 없으면 `inspArtclCd`를 그대로 보인다(`labInput/labRows.js` `getAnalyzedName`, 실제 응답에서는 안 나옴). 이때 보일 이름은 정하지 않았다. 저장 제외 행(혈액검사 아님)에도 "인식 실패" placeholder가 붙는다. 실패 안내는 `useAnalyzeLabPdf` 토스트 대신 화면이 보인다
-- 참고(SCR-HLT-011 캐릭터 상태): 히어로 큰 이미지는 `GET /pixel-characters`(LJS) 행의 `pixelCharSn`이 없는 주양육 반려동물만 "캐릭터 만들기" 카드, 행이 없거나 조회 실패면 `PetFace`. 칩은 그대로. 생성 중(`CHRC0001`·`0002`)·실패(`CHRC0004`)는 백엔드 `character-image`가 종별 기본 캐릭터를 주므로 따로 표시하지 않는다(사람 결정)
+- 참고(SCR-HLT-011 캐릭터 상태): 히어로 큰 이미지는 `GET /pixel-characters`(LJS) 행의 `pixelCharSn`이 없는 주양육 반려동물만 "캐릭터 만들기" 카드, 행이 없거나 조회 실패면 `PetFace`. 칩은 그대로. 생성 중(`CHRC0001`·`0002`)·실패(`CHRC0004`)는 백엔드 `character-image`가 종별 기본 캐릭터를 주므로 따로 표시하지 않는다(사람 결정). 마이페이지 캐릭터 화면(`features/pet/shared/charState.js`)도 같은 기준이다. 서버 기본 그림을 캐릭터로 볼지는 정하지 않았다(다음에 할 것 4 참고)
 - 전달함(명세 담당, 2026-11-04): 지속 관찰 회차 수정에서 사진은 바꿀 수만 있고 뺄 수 없다(수정 모달 보조 문구 "사진은 바꿀 수만 있어요"). 기능명세서 FN-HLT-002-22에 반영을 요청한다
-- 참고(SCR-HLT-011): 타임라인 검진기록 행의 내용 줄은 목록 응답에 `ckupCn`이 없어 비어 있다. 예방접종 이력 이름은 `ckupTypeCdNm`. 예방접종은 `size=2`, 타임라인 검진기록은 `size=5`로 받은 뒤 오늘 이전만 거르므로 미래 날짜 검진기록이 있으면 표시 건수가 줄 수 있다. 첨부 썸네일·미리보기는 `summary/AttachmentImage.jsx`(검진상세 영상검사와 같은 캐시 키), PDF는 Blob으로 내려받는다. `PhotoModal`은 비공개 이미지를 `children`으로 받는다. 캐릭터가 없는 반려동물은 `character-image` 404가 콘솔에 남는다
+- 참고(SCR-HLT-011): 타임라인 검진기록 행의 내용 줄은 목록 응답에 `ckupCn`이 없어 비어 있다(다음에 할 것 2). 예방접종 이력 이름은 `ckupTypeCdNm`. 예방접종은 `size=2`, 타임라인 검진기록은 `size=5`로 받은 뒤 오늘 이전만 거르므로 미래 날짜 검진기록이 있으면 표시 건수가 줄 수 있다. 첨부 썸네일·미리보기는 `summary/AttachmentImage.jsx`(검진상세 영상검사와 같은 캐시 키), PDF는 Blob으로 내려받는다. `PhotoModal`은 비공개 이미지를 `children`으로 받는다. 캐릭터가 없는 반려동물은 `character-image` 404가 콘솔에 남는다
 - 검증용 데이터(공용 DB): 핸드오프에 적었던 예전 검증 데이터(검진기록 1001·1026·1016, 처방약 443, 케어 항목 3272, 첨부 430, 지속 관찰 사진)는 2026-11-03 확인 때 검증 계정의 구름(petSn 17)에 없음. 지금 구름에는 검진기록 274와 그 처방약·첨부·연동 케어 항목만 있다. 계정은 저장소에 적지 않는다
 - 전달함(공용 `api/axios.js`·백엔드 인증 담당, 2026-11-04): 지속 관찰 검증 중 액세스 쿠키가 만료되자 POST가 `TOKEN_EXPIRED`가 아닌 401을 받아 재발급 없이 로그인 화면으로 갔다(뒤에 `/auth/refresh`는 200)
 - 전달함(백엔드 기준 데이터, 2026-11-04): SDMA `HLTC0078`이 백엔드 `db/20261030_insert_base_data_v0.11.sql` HLTG12에 없다. 공용 DB에는 사람이 넣었다. 새로 DB를 만들면 SDMA 저장이 500이 난다
 - 전달함(팀, 2026-11-04): 검진상세·검사 수치 입력 주소가 `/health/pets/:petSn/checkups/:ckupRcdSn`(`/inspections`)로 바뀌었다(`routes/paths.js`, `docs/routes.md` HLT-005·007). `docs/routes.md` 0장 규칙은 JAJ가 직접 고치고 팀에 공유한다
 - 참고(SCR-HLT-002·005): 관찰 사진 캐시 키는 `healthKeys.observationPhoto`(사진을 바꾼 수정만 다시 받음). 일상 기록 그래프는 선택 지표만 `size=14`, 식사량·음수량·산책은 `fromYmd`로 한 번 더. 검진기록 연도 목록은 `size=1` 두 번. 첨부 목록은 서버 최대 50건. 기능 태그는 `labInput/bloodItems.js`에서 약어로 찾는다. 반복 예방 "처방약 연동" 배지는 이전 문구 그대로
 - 참고(SCR-HLT-002, 실패 아님): 최근 건강기록 모바일 한 줄 요약은 기록 있는 종류만 잇는다. 390px 그래프 x축 날짜 글자가 붙는다. 폭이 정확히 760px이면 `isLarge` 모달이 기본 크기로 열린다(이전부터)
-- 전달함(시안 담당, 2026-11-04): 건강 일지 반려동물 선택이 칩 막대 → 초록 알약형 셀렉트로 바뀌었다(추가-1~3). 오늘 기록하기 한 줄, 검진기록 제목 옆 연도 선택, 모바일 지속 관찰 목록→상세, 관찰 0건에도 카드 머리 등록 버튼, 상세 기록 모달 높이 맞춤·✕ 없음, 검진상세 [건강 일지로 돌아가기] 삭제(추가-4)가 시안(`html/hlt-diary.html`)과 다르다. 사람이 시안을 갱신하기로 함. 페이지 바탕색 `#faf8f5`는 토큰이 없어 `DiaryPetBar.jsx`에 직접 썼다
-- 전달함(공용 파일 담당, 2026-11-04): `components/Modal.jsx` `isAutoHeight`·`isCloseIconHidden`, `components/DropdownSelect.jsx` `isPill`, `components/Card.jsx` `leading`을 더했다(모두 기본값 꺼짐). `Card.jsx`는 `aria-labelledby` id를 제목 `<span>`으로 옮겼다. `features/health/PetTabs.jsx`는 지웠다
+- 전달함(시안 담당, 2026-11-04): 건강 일지 반려동물 선택이 칩 막대 → 초록 알약형 셀렉트로 바뀌었다(추가-1~3). 2026-11-05 추가-18에서 다시 "얼굴+이름 버튼 → 전체 반려동물 패널"(`DiaryPetPicker.jsx`)로 바뀌었다. 오늘 기록하기 한 줄, 검진기록 제목 옆 연도 선택, 모바일 지속 관찰 목록→상세, 관찰 0건에도 카드 머리 등록 버튼, 상세 기록 모달 높이 맞춤·✕ 없음, 검진상세 [건강 일지로 돌아가기] 삭제(추가-4)가 시안(`html/hlt-diary.html`)과 다르다. 사람이 시안을 갱신하기로 함. 페이지 바탕색 `#faf8f5`는 토큰이 없어 `DiaryPetBar.jsx`에 직접 썼다
+- 전달함(공용 파일 담당, 2026-11-04): `components/Modal.jsx` `isAutoHeight`·`isCloseIconHidden`, `components/DropdownSelect.jsx` `isPill`(2026-11-05부터 케어 캘린더 `CareList.jsx`만 씀), `components/Card.jsx` `leading`을 더했다(모두 기본값 꺼짐). `Card.jsx`는 `aria-labelledby` id를 제목 `<span>`으로 옮겼다. `features/health/PetTabs.jsx`는 지웠다
 - 참고(케어미션): 케어 완료·일상 기록·지속 관찰 저장 때 백엔드가 `careMissionService.reflect`로 반영한다(프론트 할 일 없음). 건강기록 저장 뒤 `pointKeys` 캐시는 무효화하지 않는다
 
 - 결정 기다림(SCR-HLT-011, 디자인 담당, 2026-11-04 전달함): 명세와 디자인이 다르다. 사람이 디자인 파일이 맞다고 했다. 명세를 디자인에 맞게 고칠지 정한다. (1) FN-HLT-011-02 "캐릭터 없으면 예시 그림" vs 지금 디자인의 "캐릭터 만들기" 카드(주양육·미생성, 2026-11-01 되살림), (2) FN-HLT-011-07 "이탈 판정 없음" vs 범위를 벗어난 구간·점·마지막 값 빨간색, (3) 모바일 히어로·묶음 탭·검사 수치·관찰 기록 배치(추가-11~18)와 그래프 최대·최소 왼쪽 눈금은 시안·명세에 없다
-- 참고(SCR-HLT-011): 칩 줄이 여러 줄로 꺾이면 세로 구분선·등록 버튼이 마지막 줄 맨 앞으로 내려간다(10마리 계정에서 보임). 390px에서는 칩 줄이 가로로 밀려 등록 버튼이 화면 밖에 있다. `ConditionCard` 목록 key가 같은 항목이 두 번이면 겹칠 수 있다. `diary/LineChart.jsx` 선택 속성: `bandLabelSide`, `isLeftColumn`, `activeIndex`. 모바일 프로필 태그는 긴 값이면 넘칠 수 있다
+- 참고(SCR-HLT-011): 칩 줄은 모든 폭에서 한 줄 가로 스크롤이다(추가-1·9). 주양육 10마리면 등록 버튼·구분선이 없다(추가-2). 열 때는 항상 첫 반려동물이 선택된다. `ConditionCard` 목록 key가 같은 항목이 두 번이면 겹칠 수 있다. `diary/LineChart.jsx` 선택 속성: `bandLabelSide`, `isLeftColumn`, `activeIndex`, `labelFill`(아래 날짜 색), `isEdgeToEdge`(좌우 라벨 자리 없이 폭 전체). 값 말풍선은 SVG 가장자리에서 `TIP_INSET`(2px) 안쪽으로만 움직인다(추가-26, 라벨 자리가 있는 그래프는 계산값이 전과 같음). 모바일 프로필 태그는 긴 값이면 넘칠 수 있다. 검사 결과 분류(신장·혈구 등)는 API 필드가 아니라 `labInput/bloodItems.js`에서 약어로 찾는다. 이 계정의 검사 수치 11건은 누리가 아니라 까미(petSn 1)에 있다
 - 결정 기다림(LJS, 2026-11-04 전달함): 히어로 색 `#f9eaa6`(선택 칩·기준일 점)·`#dbe8e8`(글자)은 토큰이 없다. 공용 `assets/index.css`에 토큰을 더할지 정한다
 - 결정 기다림(SCR-HLT-003 추가 요청, 2026-11-04 전달함): 명세 v1.1·시안과 달라졌다. 한 화면 세로 배치 → 탭 둘(추가-6), [새 일정 등록]이 날짜 상세 카드 오른쪽 위(추가-1), 카드 머리·빈 상태 버튼이 채운 주 버튼 색(추가-2·5), 오른쪽 열 높이 배분(추가-3), 굵은 구분선(추가-7·8)을 고칠지 정한다. 시안은 퍼블리싱 담당에게 알린다
 - 결정 기다림(SCR-HLT-003 결함 정리 추가 요청, 디자인 담당, 2026-11-04 전달함): FN-HLT-003-30 날짜 칸 80px → 88px(추가-5), 760px 이하는 점·막대(추가-12). FN-HLT-003-12 [출처 보기] 삭제(추가-4). FN-HLT-003-01 반려동물 선택 탭 → 알약형 셀렉트(추가-13). 모바일 케어 목록 둥근 칸·더보기 3칸·"오늘 n/N 완료" 숨김(추가-14·15), 처방약 연동 배지를 이름 옆으로(추가-10·17). 시안(`html/hlt-calendar.html`)은 퍼블리싱 담당에게 알린다
