@@ -88,6 +88,7 @@ export default function LoginPage() {
           <EmailLoginForm
             onBack={backToChoice}
             onSuccess={(result) => finishLogin(result)}
+            onSignup={() => navigate(PATHS.SIGNUP)}
           />
         ) : (
           <LoginMethodChoice
