@@ -25,7 +25,8 @@ export default function LabSection({ lab, trends, initialItemNm }) {
   });
 
   return (
-    <div className="grid items-stretch gap-5 min-[1101px]:grid-cols-2">
+    // 태블릿은 검사 수치 추이를 검사 결과 위에, PC는 왼쪽에 (추가 요청)
+    <div className="grid items-stretch gap-5 min-[761px]:[&>*:last-child]:order-first min-[1101px]:grid-cols-2">
       <LabResultCard
         lab={lab}
         selectedNm={selectedNm}

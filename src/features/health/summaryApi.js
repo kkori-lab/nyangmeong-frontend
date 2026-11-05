@@ -137,6 +137,8 @@ export const getHealthSummary = async (petSn) => {
       ckupRcdSn: checkup.ckupRcdSn,
       ckupTypeCd: checkup.ckupTypeCd,
       hsptlNm: checkup.hsptlNm,
+      // 진료 내용: 목록 응답에 아직 없음(백엔드 연결 대기). 오면 타임라인 상세 줄
+      ckupCn: checkup.ckupCn,
     })),
     ...repeatPreventions
       .filter((prevention) => prevention.bgngYmd <= today)

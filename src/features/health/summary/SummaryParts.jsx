@@ -45,10 +45,10 @@ export function SummaryEmpty({ icon, description, action, to }) {
   );
 }
 
-/** 영역 묶음 제목 */
+/** 영역 묶음 제목. PC는 탭 이름과 겹쳐 숨김(탭 내용은 aria-labelledby로 탭 이름을 읽음) (추가 요청) */
 export function SectionHead({ title, description }) {
   return (
-    <div>
+    <div className="min-[1101px]:hidden">
       <h2 className="text-[22px] leading-[1.35] font-bold tracking-[-0.02em] text-ink">
         {title}
       </h2>

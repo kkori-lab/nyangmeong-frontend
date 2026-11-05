@@ -55,3 +55,13 @@ export const getItemValueText = (item) => {
   }
   return lastCycle.obsrvChgCdNm ?? null;
 };
+
+/**
+ * PC 목록 크기 뒤 증감: "▼1.3", 0이면 "변화 없음" (추가 요청)
+ * - 종료 항목·크기 없음·비교할 회차 없음(lastSzDiff 없음)이면 빈 문자열
+ */
+export const getItemDiffText = (item) => {
+  if (isEndedItem(item) || item.lastCycle.obsrvSz == null) return '';
+  if (item.lastSzDiff == null) return '';
+  return formatDiff(item.lastSzDiff) || '변화 없음';
+};

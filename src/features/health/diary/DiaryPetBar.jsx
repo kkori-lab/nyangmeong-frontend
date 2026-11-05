@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import DropdownSelect from '@/components/DropdownSelect';
+import DiaryPetPicker from './DiaryPetPicker';
 import DiaryTabs from './DiaryTabs';
 
 /**
- * [건강 일지 반려동물 셀렉트박스 + 앵커 탭 막대]
+ * [건강 일지 반려동물 선택 버튼(DiaryPetPicker) + 앵커 탭 막대]
  * - 1101px 이상: 셀렉트박스 | 세로 구분선 | 탭 순서의 한 줄 막대. 상단 메뉴(h-16) 바로 아래에 붙어 따라옴
  * - 1100px 이하: 첫 줄 셀렉트박스, 둘째 줄 탭의 두 줄 막대. 위에 붙지 않고 세로 구분선도 없음
  * - 평소 배경은 투명, 아래 구분선만 둠. 상단 메뉴 아래에 붙었을 때만 페이지 바탕색을 깔아 아래 내용 비침 방지
  * - 반려동물이 1마리 이하면 셀렉트박스와 세로 구분선을 그리지 않음
- * - pets: [{ petSn, petNm }], tabs: DiaryTabs의 items
+ * - pets: GET /pets 행({ petSn, petNm, petSeCd, bscCharSbstYn }), tabs: DiaryTabs의 items
  */
 export default function DiaryPetBar({
   pets,
@@ -45,16 +45,10 @@ export default function DiaryPetBar({
     >
       {hasPets && (
         <>
-          <DropdownSelect
-            label="반려동물 선택"
-            isPill
-            value={selectedPetSn}
-            options={pets.map((pet) => ({
-              value: pet.petSn,
-              label: pet.petNm,
-            }))}
-            onChange={onSelectPet}
-            className="my-0.5 w-[calc(3em+3.75rem)] shrink-0"
+          <DiaryPetPicker
+            pets={pets}
+            selectedPetSn={selectedPetSn}
+            onSelect={onSelectPet}
           />
           <span
             aria-hidden="true"
