@@ -2,12 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝 (2026-11-04, 검증 판정 `통과` 1회차, 사람 확인 완료). lint·build 종료 코드 0. 기획은 `milestones/SJM.md`의 같은 이름 절
+SCR-MYP-020 포인트 관리/케어미션 · [건강 일지] 버튼을 건강 일지 화면으로 연결 — 끝 (2026-11-05, 검증 판정 `통과`, 사람 확인 완료). 마일스톤은 `milestones/SJM.md`의 같은 이름 절
 
-- 한 것: 영수증 인식을 가짜에서 AI 서버 `POST /ai/receipts`(가계부 출처 `AIMC0027`, `petSn` 없음)로 바꿨다. 인식 0건·500·시간 초과(20초)는 실패 안내와 [직접 입력](영수증 연결), 서버 파일 거절은 업로드 칸 사유 문구, 409 `OCR_IN_PROGRESS`는 업로드 상태로 돌아가 토스트. `ckupYmd`가 null이면 클릭한 날짜(사람 결정). `api.js`·`ExpenseReceiptUpload.jsx` 2개 파일
-- 새로 정한 문구(설계서에 없음): 토스트 "이전 분석이 아직 진행 중이에요. 잠시 후 다시 시도해 주세요"(사람 요청)
-- 확인 범위: 오류·파일 거절·취소·409는 요청을 가로채서만 확인했다
-- 검증 계정 정리: 지출 3건(1/23, 1/17, `EXPND_SN=10447`)은 화면에서 삭제했다(소프트 삭제). `RECPT` 520·521·523·524와 원본 첨부파일·상태 이력은 남아 있다. 필요하면 `DELETE FROM RECPT_STTS_HSTRY WHERE RECPT_SN IN (520,521,523,524); DELETE FROM RECPT WHERE RECPT_SN IN (520,521,523,524);` 뒤 첨부파일(`SELECT ATCH_FILE_SN FROM RECPT …`로 먼저 확인)을 지운다. 지출 행이 소프트 삭제라 `EXPND`가 `RECPT_SN`을 잡고 있으면 먼저 지출을 지운다
+한 것:
+- FN-MYP-020-09 [건강 일지]: `pages/mypage/PointPage.jsx`의 `onGoHealth`를 토스트에서 `navigate(PATHS.HEALTH_DIARY)`로 바꾼다. API 없음. 완료 조건 — 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0. 화면: `/mypage/points`에서 [건강 일지]를 누르면 `/health/diary`로 이동한다
+- FN-MYP-003-01 [건강 일지에서 기록하기]: `features/pet/list/PetFormModal.jsx`의 버튼에 `useNavigate`로 `PATHS.HEALTH_DIARY` 이동을 붙이고 "경로 연결 예정" 주석을 지운다. API 없음. 완료 조건 — 명령: 위와 같음. 화면: 확인 불가 예상. 이 버튼은 `pet.lastBdwgRcd`가 있을 때만 나오는데 서버 반려동물 응답에 이 키가 없다(체중 잠금은 건강기록 API(JAJ) 연결 항목으로 남아 있음). 코드 검토로만 확인한다
+- 하지 않는 것: `ProfileEditPage.jsx`의 [회원 탈퇴]는 `PATHS.MYPAGE_WITHDRAW`만 있고 라우트·페이지(YAY)가 없어 토스트를 그대로 둔다. 건강 일지에 반려동물을 골라 들어가는 파라미터가 없어 `petSn`은 넘기지 않는다
+- 디자인: 없음(버튼 모양은 그대로, 동작만 바꿈)
+- 새 의존성: 없음
+
+이전: SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝 (2026-11-04). 검증 계정 정리: `RECPT` 520·521·523·524와 원본 첨부파일·상태 이력이 남아 있다. 필요하면 `DELETE FROM RECPT_STTS_HSTRY WHERE RECPT_SN IN (520,521,523,524); DELETE FROM RECPT WHERE RECPT_SN IN (520,521,523,524);` 뒤 첨부파일(`SELECT ATCH_FILE_SN FROM RECPT …`로 먼저 확인)을 지운다
 
 ## 다음에 할 것
 - SCR-MYP-040 YAY 알림: `signup/NicknameModal.jsx` 변경 없음. 회원정보 수정이 YAY의 `features/member/api.js` `checkNicknameAvailability`·`setupNickname`·`checkPhoneAvailability`와 `queries.js` 훅 `useCheckNicknameAvailability`·`useSetupNickname`·`useCheckPhoneAvailability`를 같이 쓴다. 이름·모양(응답 `{available}`, 오류 코드)을 바꾸지 말 것
@@ -31,7 +35,7 @@ SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝
 - SCR-MYP-005 연결 남음: 초대 API(SJM 백엔드)가 나오면 `features/pet/api.js`의 가짜(`createInvitation`·`getSentInvitations`·`getInvitation`·`acceptInvitation`·`rejectInvitation`, 추정 키 `invtSn`·`invitationToken`·`invtEml`·`invtSttsCd`·`invtDt`·`expryDt`·`mbrYn`·`invtrNcnm`·`pets`, 상태 `INVT_STTS`)를 실제 요청으로 바꾸고 만료 판정(`withExpiry`)을 서버 상태로 바꾼다. 인앱 알림·메일 발송(알림 저장 YAY), 알림 드롭다운 진입(SCR-COM-004), 가입 직후 자동 노출(SCR-ACC-001, YAY·AIC)과 맞춘다 10-24 시안 v0.2·v0.3 반영으로 가짜가 바뀌었다: 보낸 초대의 상태는 동물별(`pets[].invtSttsCd`), 수락은 `{ invitationToken, petSns }`로 고른 동물만 연동하고 나머지는 거절, 이메일 불일치는 받은 초대의 추정 키 `emlMtchYn: 'N'`·`invtEmlMskd`(마스킹은 서버가 하는지 맞춘다). 불일치 안내의 [초대받은 계정으로 로그인]은 로그아웃(`useLogout`, 가짜) 뒤 `/login?redirect=<초대 주소>`로 보내므로 로그인(AIC)이 `redirect`를 받는지 맞춘다. 가짜 토큰 `demo-mismatch`는 서버 연결 때 지운다 SCR-MYP-005: 경로 변수 이름 `invitationToken`은 백엔드와 확정 필요(`docs/routes.md` 4장 10번). 새 URL은 PR #57로 develop에 들어갔다 SCR-MYP-005 팀에 확인: 수락·거절·만료 초대 안내 문구와 "초대를 찾을 수 없어요"는 화면설계서에 없어 새로 썼다. 거절 팝업은 공용 `components/Modal`(isConfirm)을 썼다
 - SCR-MYP-004 연결 남음: 로그인(AIC)이 나오면 `/mypage/pets`는 `ProtectedRoute` 아래로(기존 항목). 팀에 확인: 슬라이드 정보 영역과 가족 구분선 사이는 시안(56px)보다 좁힌 32px(사람 요청). 모바일 밀어 넘기기는 시안 문구대로 넣었다. 기능명세서 16:00판은 DMS에 아직 14시판만 있다 로그인(AIC)이 나오면 `/mypage/expenses`·`/mypage/expenses/all`도 `ProtectedRoute` 아래로 옮긴다
 - SCR-MYP-040 남음: 팀에 알림: `isValidPassword`(회원가입·비밀번호 재설정도 사용)가 서버 규칙으로 엄격해졌고 그쪽 안내 문구는 그대로다. 설계서(SJM): 새 비밀번호 칸 안내와 휴대폰 "미등록" 표기 반영. 회원 탈퇴 화면(SCR-ACC-020, YAY) 경로가 생기면 [회원 탈퇴 ›] 토스트를 이동으로 바꾼다. 로그인(AIC)이 나오면 `/mypage/profile`을 `ProtectedRoute` 아래로 옮긴다
-- SCR-MYP-020 남음: 미션 출제·정산·검진기록 20P(FN-MYP-020-05·06·08)는 서버 일이다 (health JAJ, 커뮤니티 KSJ). 건강 일지(SCR-HLT-002, JAJ) 경로가 생기면 [건강 일지] 토스트를 이동으로 바꾼다. 팀에 확인: 지난 날짜에도 "오늘 획득"으로 나오는 문구(시안 문구 그대로), 요약 카드를 눌러 스크롤하면 sticky 헤더에 제목이 가려지므로 `scroll-mt`를 넣을지, 설계서에 없는 안내 문구("이 날은 출제된 미션이 없어요"·"오늘 출제된 미션이 없어요"·"미션을 불러오지 못했어요")를 설계서에 반영할지. 서버가 동물마다 미션을 3개만 출제해(기획의 8개와 다름) 탭이 `완료/3`으로 보인다. 이번 달 사용이 0이면 "+0P"로 보인다. 시안 v5(`nmcare-design-v5`)에서 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`로 바뀌었는데 `UserLayout.jsx`·`UserFooter.jsx`(LJS)는 옛 값 그대로
+- SCR-MYP-020 남음: 미션 출제·정산·검진기록 20P(FN-MYP-020-05·06·08)는 서버 일이다 (health JAJ, 커뮤니티 KSJ). 팀에 확인: 지난 날짜에도 "오늘 획득"으로 나오는 문구(시안 문구 그대로), 요약 카드를 눌러 스크롤하면 sticky 헤더에 제목이 가려지므로 `scroll-mt`를 넣을지, 설계서에 없는 안내 문구("이 날은 출제된 미션이 없어요"·"오늘 출제된 미션이 없어요"·"미션을 불러오지 못했어요")를 설계서에 반영할지. 서버가 동물마다 미션을 3개만 출제해(기획의 8개와 다름) 탭이 `완료/3`으로 보인다. 이번 달 사용이 0이면 "+0P"로 보인다. 시안 v5(`nmcare-design-v5`)에서 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`로 바뀌었는데 `UserLayout.jsx`·`UserFooter.jsx`(LJS)는 옛 값 그대로
 - SCR-MYP-031 연결 남음: 영수증 인식(YAY, OCR 호출부 LJS)이 나오면 `features/expense/api.js`의 가짜 `recognizeReceipt`를 실제 요청으로 바꾼다(결과 키는 `recptSn`·`expndPlcusNm`으로 맞춰 둠). 그 전까지 인식 결과로 저장(또는 인식 실패 뒤 [직접 입력])은 가짜 `recptSn`을 서버가 거부해 실패한다. SCR-MYP-030 연결 남음: FN-MYP-030-08 한도 알림 발송(서버 인앱 알림, 알림 저장 YAY·가계부 API SJM 백엔드)
 - 건강 일지에서 병원 영수증을 저장하면 가계부에 1건이 자동 기록된다(FN-AIM-009-10, JAJ·YAY). 이 기록이 `recptSn`으로 연결되는지 팀과 맞춘다
 - SCR-MYP-030 명세가 모호해 정한 것을 팀에 확인한다: 금액순 정렬은 서버가 전체를 금액순으로 주고 같은 날짜가 이어진 것만 묶는다(날짜 머리가 여러 번 나올 수 있음). 전체 내역 상단 합계·건수는 필터와 무관하게 그 달 전체다. 편집 중 필터·정렬을 바꾸면 편집이 풀린다(FN-MYP-030-17). 반려동물별 지출 비율은 반올림 때문에 합이 101%가 될 수 있다. 반려동물별 지출은 명세대로 등록순이라 금액이 큰 동물이 [더보기] 안에 있을 수 있다. 기능명세서 FN-MYP-030-10·FN-MYP-002-07 문구가 "이름(삭제됨)" 표기와 맞는지 확인한다
@@ -39,4 +43,4 @@ SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝
 - `index.css`의 그림자 토큰을 시안 이름에 맞춰 바꿨다(2026-10-20 사람 결정): `shadow-depth-sm`·`md`·`lg`(구 card·pop·modal), `ring-focus`·`ring-error`(`@utility`, 구 focus·error). Tailwind 기본 `shadow-sm`·`lg`를 쓰는 다른 화면이 있어 `depth`를 붙였다. `OPEN_ISSUES.md` 스타일링 항목에 제안으로 적었고, 팀이 합의하면 확정한다
 - 디자인 반영 때 정한 스타일 결정(토큰을 `@theme`에, Pretendard CDN, 브랜드 색 #285a5c 계열, 아이콘은 lucide 대응, 가계부용 tone·warn 색 토큰 추가)을 팀과 맞춘 뒤 `docs/OPEN_ISSUES.md` 스타일링 항목을 갱신한다
 - 털색 신규 6개(강아지 황색·세이블·멀, 고양이 젖소·카오스·포인트)는 백엔드가 코드 번호를 정하면 `features/pet/shared/petCodes.js`의 `COLR`와 `COLR_OPTIONS`에 넣는다. 이름 변경(블랙탄·파티)과 순서는 커밋 08c33cf에 반영됨
-- 건강 일지(SCR-HLT-002, JAJ) 경로가 생기면 [건강 일지에서 기록하기]를 연결한다
+- SCR-MYP-003 연결 남음: [건강 일지에서 기록하기] 이동은 연결했다(2026-11-05). 서버 반려동물 응답에 `lastBdwgRcd`가 없어 버튼이 실제로는 나오지 않는다. 건강기록 체중 조회(JAJ)가 나오면 화면으로 확인한다(응답 가로채기로만 확인함)

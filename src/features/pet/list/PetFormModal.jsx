@@ -1,6 +1,8 @@
 import { Check, ChevronDown, CircleAlert, Lock, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { showToast } from '@/components/toastStore';
+import { PATHS } from '@/routes/paths';
 import {
   COLR_DRCT_INPT,
   COLR_OPTIONS,
@@ -175,6 +177,7 @@ function PetForm({ pet, onClose }) {
   const [isOptOpen, setIsOptOpen] = useState(pet != null);
   const optRef = useRef(null);
   const { data: varieties = [] } = useVarieties(form.petSeCd);
+  const navigate = useNavigate();
   const createPet = useCreatePet();
   const updatePet = useUpdatePet();
 
@@ -540,9 +543,9 @@ function PetForm({ pet, onClose }) {
                   건강 일지에 기록된 체중이에요 (
                   {formatRecordDate(lastBdwgRcd.rcdDt)} 기록)
                 </p>
-                {/** 건강 일지(SCR-HLT-002) 경로 연결 예정 */}
                 <button
                   type="button"
+                  onClick={() => navigate(PATHS.HEALTH_DIARY)}
                   className="inline-flex h-10 items-center justify-center self-start rounded-md border border-line bg-white px-4 font-semibold hover:border-line-strong hover:bg-surface-2"
                 >
                   건강 일지에서 기록하기

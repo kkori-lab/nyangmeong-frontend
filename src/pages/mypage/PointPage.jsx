@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { showToast } from '@/components/toastStore';
 import PetFormModal from '@/features/pet/list/PetFormModal';
 import { usePets } from '@/features/pet/queries';
 import { BRUP_ROLE } from '@/features/pet/shared/petCodes';
@@ -37,7 +36,7 @@ export default function PointPage() {
         <PointSummary
           todayYmd={todayYmd}
           onScrollTo={scrollToSection}
-          onGoHealth={() => showToast('준비 중인 기능이에요')}
+          onGoHealth={() => navigate(PATHS.HEALTH_DIARY)}
           onGoCharacter={goCharacter}
         />
         <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
