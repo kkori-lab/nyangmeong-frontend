@@ -30,7 +30,8 @@ export default function PreventionHistoryCard({ prevention }) {
           to={PATHS.HEALTH_CALENDAR}
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        // 태블릿은 타임라인 옆 반쪽 카드라 두 칸을 위아래로 (추가 요청)
+        <div className="grid gap-3 sm:max-[760px]:grid-cols-2 min-[1101px]:grid-cols-2">
           <Box icon="vaccines" title="예방접종">
             {vaccinations.map((checkup) => (
               <Row key={checkup.ckupRcdSn} name={checkup.ckupTypeCdNm}>

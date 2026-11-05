@@ -113,9 +113,10 @@ export default function HealthSummaryPage() {
             title="진료 · 예방 이력"
             description="병원 방문과 접종·검진 기록을 시간순으로 모았어요"
           />
-          <div className="grid items-stretch gap-5 min-[1101px]:grid-cols-2">
+          {/* 태블릿은 타임라인 | 예방·정기검진, 알레르기·기저질환은 아래 전체 폭 (추가 요청) */}
+          <div className="grid items-stretch gap-5 min-[761px]:grid-cols-2">
             <TimelineCard timeline={summary.timeline} />
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 min-[761px]:max-[1100px]:contents min-[761px]:max-[1100px]:[&>*:last-child]:col-span-2">
               <PreventionHistoryCard prevention={summary.prevention} />
               <ConditionCard pet={summary.pet} />
             </div>

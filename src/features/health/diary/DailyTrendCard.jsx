@@ -89,7 +89,7 @@ export default function DailyTrendCard({ pet, onAddRecord }) {
                 clipped[index] ? 'opacity-50' : ''
               } ${
                 isSelected
-                  ? 'border-brand-500 bg-brand-500 text-white'
+                  ? 'border-transparent bg-brand-50 text-brand-500'
                   : 'border-line bg-white text-ink-2 hover:border-line-strong hover:text-ink'
               }`}
               onClick={() => setTypeCd(item.cd)}

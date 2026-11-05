@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
@@ -11,7 +12,7 @@ import {
   BTN_SECONDARY,
 } from '@/components/buttonStyles';
 import useMediaQuery from '@/hooks/useMediaQuery';
-import { formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
+import { formatDate, formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
 import {
   useDeleteObservationCycle,
   useEndObservationItem,
@@ -26,7 +27,12 @@ import {
 } from './ObservationMobile';
 import ObservationModal from './ObservationModal';
 import ObservationPhoto from './ObservationPhoto';
-import { formatPart, getItemValueText, isEndedItem } from './observationUtils';
+import {
+  formatSize,
+  getItemDiffText,
+  getItemValueText,
+  isEndedItem,
+} from './observationUtils';
 
 /**
  * [지속 관찰 카드]
@@ -70,6 +76,14 @@ export default function ObservationCard({
   const foundIndex = cycles
     ? cycles.findIndex((cycle) => cycle.obsrvCyclSn === selection.obsrvCyclSn)
     : -1;
+  /** 사진 원본 창에서 보는 회차의 순번. PC는 앞뒤로 넘기고 [이 회차 선택]으로 고름 (추가 요청) */
+  const photoIndex =
+    photoTarget && cycles
+      ? cycles.findIndex(
+          (cycle) => cycle.obsrvCyclSn === photoTarget.obsrvCyclSn,
+        )
+      : -1;
+  const canPagePhoto = isPc && photoIndex >= 0;
   /** 고른 회차가 없으면 최신 회차 */
   const selectedIndex =
     foundIndex >= 0 ? foundIndex : (cycles?.length ?? 1) - 1;
@@ -148,6 +162,7 @@ export default function ObservationCard({
           obsrvCyclSn: cycle.obsrvCyclSn,
           obsrvArtclSn: selectedItem.obsrvArtclSn,
           obsrvArtclNm: selectedItem.obsrvArtclNm,
+          cyclNo: cycle.cyclNo,
           isOnlyCycle: cycles.length === 1,
         }),
       onAddCycle: () => setModal({ mode: 'B' }),
@@ -181,11 +196,19 @@ export default function ObservationCard({
       {deleteTarget && (
         <Modal
           isConfirm
-          title="이 회차를 삭제할까요?"
+          // 대상 회차를 제목에, 원래 안내 + 되돌릴 수 없다는 한 줄(위험 색) (추가 요청)
+          title={`${deleteTarget.cyclNo}회차 기록을 삭제할까요?`}
           description={
-            deleteTarget.isOnlyCycle
-              ? `마지막 기록이라 '${deleteTarget.obsrvArtclNm}' 항목도 함께 삭제돼요`
-              : '남은 회차는 관찰일 순으로 1회차부터 다시 번호를 매겨요'
+            <>
+              <span className="block">
+                {deleteTarget.isOnlyCycle
+                  ? `마지막 기록이라 '${deleteTarget.obsrvArtclNm}' 항목도 함께 삭제돼요`
+                  : '남은 회차는 1회차부터 다시 번호를 매겨요'}
+              </span>
+              <span className="block text-danger">
+                삭제한 기록은 되돌릴 수 없어요.
+              </span>
+            </>
           }
           isPending={deleteCycle.isPending}
           onClose={() => setDeleteTarget(null)}
@@ -217,13 +240,31 @@ export default function ObservationCard({
           title="사진 원본"
           onClose={() => setPhotoTarget(null)}
           footer={
-            <button
-              type="button"
-              className={BTN_PRIMARY}
-              onClick={() => setPhotoTarget(null)}
-            >
-              닫기
-            </button>
+            <>
+              {/* PC는 넘겨 본 회차를 선택 회차로 고를 수 있음 (추가 요청) */}
+              {canPagePhoto && (
+                <button
+                  type="button"
+                  className={BTN_SECONDARY}
+                  onClick={() => {
+                    setSelection({
+                      obsrvArtclSn: selectedItem.obsrvArtclSn,
+                      obsrvCyclSn: photoTarget.obsrvCyclSn,
+                    });
+                    setPhotoTarget(null);
+                  }}
+                >
+                  이 회차 선택
+                </button>
+              )}
+              <button
+                type="button"
+                className={BTN_PRIMARY}
+                onClick={() => setPhotoTarget(null)}
+              >
+                닫기
+              </button>
+            </>
           }
         >
           <ObservationPhoto
@@ -231,6 +272,30 @@ export default function ObservationCard({
             obsrvCyclSn={photoTarget.obsrvCyclSn}
             className="w-full rounded-[10px]"
           />
+          {/* PC는 회차를 앞뒤로 넘겨 봄 (추가 요청). 모바일은 한 장만 */}
+          {canPagePhoto && (
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <PhotoPageButton
+                label="이전 회차"
+                isDisabled={photoIndex <= 0}
+                onClick={() => setPhotoTarget(cycles[photoIndex - 1])}
+              >
+                <ChevronLeft className="size-5" aria-hidden="true" />
+              </PhotoPageButton>
+              <p className="text-sm/[1.6] text-subtle tabular-nums">
+                {photoTarget.cyclNo}회차 ·{' '}
+                {formatDate(getYmdOf(photoTarget.obsrvDt))} ({photoIndex + 1} /{' '}
+                {cycles.length})
+              </p>
+              <PhotoPageButton
+                label="다음 회차"
+                isDisabled={photoIndex >= cycles.length - 1}
+                onClick={() => setPhotoTarget(cycles[photoIndex + 1])}
+              >
+                <ChevronRight className="size-5" aria-hidden="true" />
+              </PhotoPageButton>
+            </div>
+          )}
         </Modal>
       )}
     </>
@@ -274,7 +339,11 @@ export default function ObservationCard({
   return (
     <Card
       title="지속 관찰"
-      sub={`관찰중 ${activeCount}건 · 종료 ${items.length - activeCount}건`}
+      sub={
+        <span className="font-normal text-placeholder">
+          관찰중 {activeCount}건 · 종료 {items.length - activeCount}건
+        </span>
+      }
       className="min-w-0"
       action={registerButton(`${BTN_PRIMARY} h-8! px-3!`)}
     >
@@ -282,7 +351,7 @@ export default function ObservationCard({
         emptyBox
       ) : (
         <>
-          <p className="mb-4 text-muted">
+          <p className="mb-4 text-placeholder">
             피부·눈·상처 등 지속적으로 확인할 항목을 기록하고 변화를 비교해요
           </p>
           <div className="grid gap-5 min-[1101px]:grid-cols-[242px_minmax(0,1fr)]">
@@ -294,7 +363,6 @@ export default function ObservationCard({
               {items.map((item) => (
                 <ItemButton
                   key={item.obsrvArtclSn}
-                  petSn={petSn}
                   item={item}
                   isSelected={item.obsrvArtclSn === selectedItem.obsrvArtclSn}
                   onSelect={() =>
@@ -324,9 +392,18 @@ export default function ObservationCard({
   );
 }
 
-function ItemButton({ petSn, item, isSelected, onSelect }) {
+/**
+ * 왼쪽 관찰 항목 한 줄: 이름 / 최신 크기 + 증감(또는 변화·관찰 기간) / 오른쪽 날짜 (추가 요청)
+ * - 사진·위치 글은 오른쪽 상세에만
+ */
+function ItemButton({ item, isSelected, onSelect }) {
   const isEnded = isEndedItem(item);
-  const valueText = getItemValueText(item);
+  const hasSize = !isEnded && item.lastCycle.obsrvSz != null;
+  /** 크기가 있으면 크기만 쓰고 증감은 따로 굵게 그림, 없으면 변화·관찰 기간 */
+  const valueText = hasSize
+    ? formatSize(item.lastCycle.obsrvSz)
+    : getItemValueText(item);
+  const diffText = getItemDiffText(item);
 
   return (
     <button
@@ -339,34 +416,39 @@ function ItemButton({ petSn, item, isSelected, onSelect }) {
       } ${isEnded ? 'opacity-55' : ''}`}
       onClick={onSelect}
     >
-      <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-[6px] bg-surface-3 text-line-strong">
-        <ObservationPhoto
-          petSn={petSn}
-          obsrvCyclSn={item.lastCycle.obsrvCyclSn}
-          className="size-full object-cover"
-          fallback={<Icon name="image" />}
-        />
-      </span>
       <span className="min-w-0 flex-1">
-        <span className={`block ${isSelected ? 'text-brand-600' : 'text-ink'}`}>
-          {item.obsrvArtclNm}
-        </span>
-        <span className="block text-sm/[1.6] text-subtle">
-          {formatPart(item)}
-        </span>
+        <span className="block font-bold text-ink">{item.obsrvArtclNm}</span>
         {valueText && (
           <span className="block text-sm/[1.6] text-ink-2 tabular-nums">
             {valueText}
+            {diffText && (
+              <span className="font-bold text-brand-500"> {diffText}</span>
+            )}
           </span>
         )}
       </span>
       {isEnded ? (
         <Badge tone="gray">종료</Badge>
       ) : (
-        <Badge tone="outline" className="tabular-nums">
+        <span className="shrink-0 text-badge text-placeholder tabular-nums">
           {formatMonthDayDot(getYmdOf(item.lastCycle.obsrvDt))}
-        </Badge>
+        </span>
       )}
+    </button>
+  );
+}
+
+/** 사진 원본 창의 이전·다음 회차 버튼 */
+function PhotoPageButton({ label, isDisabled, onClick, children }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={isDisabled}
+      onClick={onClick}
+      className="grid size-10 shrink-0 place-items-center rounded-full border border-line bg-white text-ink-2 hover:border-line-strong hover:text-ink disabled:pointer-events-none disabled:opacity-40"
+    >
+      {children}
     </button>
   );
 }
