@@ -2,10 +2,11 @@
 
 ## 지금 하는 것
 
-SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 끝(2026-11-05). 가짜 펫돌봄 목록·매칭 상세를 실제 `/api/admin/care-matches` API로 바꾸고, 매칭 상태를 PCAG05·PCAG06 코드로, 완료 사진을 관리자 이미지 API(`useFileImage`)로 바꿨다
+SCR-ADM-021 실종제보 · 목록·상세 연결 — 끝(2026-11-05). 가짜 실종제보 목록·상세를 실제 `/api/admin/lost-reports` API로 바꾸고, 목록·상세 조회 오류에 서버 문구를 보인다
 
 ## 다음에 할 것
 
+- SCR-ADM-021 사람이 볼 것(2026-11-05): 이 DB에 사진 있는 실종제보가 없어 상세 사진 표시와 404 문구는 응답을 바꿔서만 확인했다. 사진 있는 제보가 생기면 모달에서 사진이 열리는지 본다
 - SCR-ADM-022 사람이 볼 것(2026-11-05): ① 이 PC는 완료 사진 파일이 없어 모두 404라, 실제 사진이 열리는 것은 응답을 바꿔서만 확인했다(파일이 있는 DB에서 모집 71의 3916·3917 확인) ② 조건 버전은 모든 버전을 펼치고 최신만 굵게 보인다(기획 문구는 "최신 펼침 + 이전 목록")
 - SCR-CMU-005 연결 남음: FN-COM-009-08 주소 공유의 장소 검색 `searchChatPlaces` (장소 검색 API 미정, 가짜로 남김)
 - SCR-COM-009 연결 남음: FN-COM-009-18 열린 방 알림 억제 (서버 알림 쪽, YAY)
@@ -14,7 +15,7 @@ SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 끝(2026-11-05)
 - 돌봄 장소 찾기(KSJ `PlaceSearchModal`) 지도 오류 원인 조사(2026-11-05, 말만): 키 없음·서버 재시작 안 함, 카카오 Web 도메인에 `localhost:5180` 미등록, JS 키 대신 REST 키, 카카오맵 사용 설정 OFF, 네트워크·광고 차단. 공용 `hooks/useKakaoMap.js`는 `onload` 안에서 예외가 나면 Promise가 끝나지 않아 안내 없이 검색 버튼만 비활성으로 남는다
 - SCR-ADM-080 사람이 볼 것(판정 밖, 2026-11-05): ① 페이지 머리 안내문(`AdminAiRoutesPage.jsx`)에 "우선순위가 높은(숫자가 작은) 행이 먼저예요"가 남아 모달의 "같은 지시어일 때 순서"와 말이 어긋난다 ② 모달 겹침 경고는 사용 안 함 행도 센다(표는 안 셈) ③ 매핑표 API가 가짜 응답이고 처음 값에는 겹치는 지시어가 없다
 - SCR-ADM-091 사람이 볼 것(2026-11-05): 대시보드 "알림 발송 실패(24시간)" 링크는 대시보드가 아직 가짜(`notiFailCnt` 0)라 화면에 안 보여 응답을 바꿔서만 확인했다. [2]쪽 요청도 로컬 데이터가 4건이라 응답을 바꿔서만 확인했다
-- 다음 추천(2026-11-04): 백엔드 PR #149(backend-a9) 연결 남은 1건 — FN-MYP-010-16 착용 확정(`PUT /api/pixel-characters/{pixelCharSn}/equipped-items` 200) 뒤 Python `/ai/characters/{pixelCharSn}/equipped-image` 합성 요청, 끝나면 `character-image` 캐시 무효화, 409 `EQUIPPED_ITEMS_CHANGED`는 무시(꾸미기 화면). 마일스톤 절이 생기면 `/start`. 그 밖에 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 외부 API 사용량(112)·운영 설정(110)·실종제보(021)·펫돌봄 거래(022)·노출 콘텐츠(023)
+- 다음 추천(2026-11-04): 백엔드 PR #149(backend-a9) 연결 남은 1건 — FN-MYP-010-16 착용 확정(`PUT /api/pixel-characters/{pixelCharSn}/equipped-items` 200) 뒤 Python `/ai/characters/{pixelCharSn}/equipped-image` 합성 요청, 끝나면 `character-image` 캐시 무효화, 409 `EQUIPPED_ITEMS_CHANGED`는 무시(꾸미기 화면). 마일스톤 절이 생기면 `/start`. 그 밖에 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 외부 API 사용량(112)·운영 설정(110)·노출 콘텐츠(023)
 - SCR-ADM-070 사람이 볼 것(2026-11-05): ① 이 PC의 ai `.env.local`이 `CHARACTER_BAKE_ENABLED=true`라 실제 [굽기]는 이미지 API가 과금된다. 반복 호출·[멈춤]·화면 떠나기는 Playwright 가짜 응답으로만 확인했다 ② 본문 없는 502(AI 서버 꺼짐 등)는 "일시적인 오류가 발생했어요."로 보인다 ③ 390폭에서 굽기 칸이 늘어 이름 칸이 좁다
 - SCR-ADM-070 다음에(결정 2026-11-05): 굽기 지시를 고친 뒤 이미 구운 캐릭터 다시 굽기는 넣지 않았다. AI 서버는 안 구운 캐릭터만 굽는다(다시 굽기는 ai·백엔드 몫 포함)
 - SCR-ADM-070 새 아이템 등록 도구(마일스톤 `대기`, 사람 2026-11-05): 범위·흐름이 정해지면 `/start`
@@ -54,12 +55,9 @@ SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 끝(2026-11-05)
 
 - SCR-ADM-090 로컬 DB 검증 데이터(2026-11-03): 템플릿 `notiTmpltSn` 5(케어 일정·이메일, 제목 "검증 등록", 미사용)가 남았다(삭제 API 없음). 3번은 원래 값으로 되돌렸다. 수정 모달은 제목을 필수로 검사하지만 서버는 선택 값이다(DB에 제목 null 템플릿 3번)
 
-- SCR-ADM-022 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세, 가정 필드 이름 `ctptNcnm`·`agreVerNo`·`agreDt`·`agreCn`·`cmplReqDt`·`cmplImgs`·`ownerCfmtnRsltCd`·`ownerCfmtnDt`, 매칭 거래 상태 코드(가짜 `REQUESTED` 등)·보호자 확인 코드, 실제 완료 사진, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 펫돌봄 가짜 본문과 `careMatchLabels.js` 코드만 바꾼다
 - SCR-ADM-022 사람이 볼 것(판정 밖): 비용 단위 코드가 백엔드 `CareCostUnit`(PCAC0004·0005)과 회원용 펫돌봄 화면(PCAC0011·0012)이 다르다. 관리자 화면은 백엔드 값을 따랐다. `routes/paths.js`에 `ADMIN_CARE_MATCHES`를 기능 커밋에 같이 넣었다. 백엔드 마일스톤 SCR-ADM-022 절의 "KSJ 협의" 표기는 사람이 맞춘다
 
-- SCR-ADM-021 연결 남음: FN-ADM-021-01·02·03 (백엔드 연결 `GET /api/admin/lost-reports` 목록·상태 필터·쪽, `GET /api/admin/lost-reports/{lostTpofSn}` 상세(찾았어요는 제목·상태·처리 시각·`pstSn`만), 관리자에게 `mbrNcnm`·`expryCrtrDt` 노출, 실제 사진 `atchFileSn`·`pstSn`, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 실종제보 가짜 본문만 실제 요청으로 바꾼다
-- SCR-ADM-021 사람이 볼 것(판정 밖): 가짜 만료 제보의 만료 기준일이 미래 날짜라 실제와 다르다(상세 모달에서만 보임). `routes/paths.js`에 `ADMIN_LOST_REPORTS`를 기능 커밋에 같이 넣었다. 백엔드 `docs/admin/implementation-plan.md`의 SCR-ADM-021 담당 KSJ → LJS는 사람이 고친다
-- PR 캡처 확인: SCR-ADM-021 캡처 `LJS-20261103-SCR-ADM-021-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
+- SCR-ADM-021 사람이 고치는 문서: 백엔드 `docs/admin/implementation-plan.md`의 SCR-ADM-021 담당 KSJ → LJS
 
 
 - SCR-ADM-090 사람이 볼 것(판정 밖): 목록 스켈레톤 높이(1108px, 모바일 1160px)는 20행 기준 계산값인데 실제 AIMG02는 9종이라 18행이다(`AdminNotificationTemplatesPage.jsx`). 템플릿 목록 자체 오류(403 아닌 것) 분기는 코드로만 봤다. 치환 변수 칩은 케어 일정 기준 목록을 모든 유형에 똑같이 보인다. 화면설계서의 `{변수}` 표기를 `{{변수}}`로 고치는 것은 사람 몫
