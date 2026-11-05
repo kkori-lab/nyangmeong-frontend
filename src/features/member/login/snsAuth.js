@@ -1,3 +1,4 @@
+import { generatePath } from 'react-router-dom';
 import {
   GOOGLE_CLIENT_ID,
   IS_DEV,
@@ -9,25 +10,31 @@ import { PATHS } from '@/routes/paths';
 /** 인가 창에 넘긴 state·제공자·로그인 뒤 갈 곳. 콜백에서 한 번 읽고 지운다 */
 const STORAGE_KEY = 'snsLoginRequest';
 
-/** 제공자 코드(snsOffrCd, 서버 공통코드 USRG03) -> 인가 창 */
+/** 제공자 코드(snsOffrCd, 서버 공통코드 USRG03) -> 인가 창, 콜백 경로의 provider */
 const AUTHORIZE = {
   USRC0007: {
+    provider: 'naver',
     url: 'https://nid.naver.com/oauth2.0/authorize',
     clientId: NAVER_CLIENT_ID,
   },
   USRC0008: {
+    provider: 'kakao',
     url: 'https://kauth.kakao.com/oauth/authorize',
     clientId: KAKAO_REST_KEY,
   },
   USRC0009: {
+    provider: 'google',
     url: 'https://accounts.google.com/o/oauth2/v2/auth',
     clientId: GOOGLE_CLIENT_ID,
     scope: 'openid email',
   },
 };
 
-/** 백엔드 redirect-uri와 같은 값이어야 한다. 콜백은 로그인 화면이 받는다 */
-const redirectUri = () => `${window.location.origin}${PATHS.LOGIN}`;
+/** 백엔드 app.sns.*.redirect-uri·제공자 콘솔과 같은 값이어야 한다. 콜백 경로도 로그인 화면이 받는다 */
+const redirectUri = (snsOffrCd) =>
+  `${window.location.origin}${generatePath(PATHS.SNS_CALLBACK, {
+    provider: AUTHORIZE[snsOffrCd].provider,
+  })}`;
 
 const readRequest = () => {
   try {
@@ -54,7 +61,7 @@ export const startSnsLogin = ({ snsOffrCd, redirect }) => {
   if (clientId) {
     params.set('response_type', 'code');
     params.set('client_id', clientId);
-    params.set('redirect_uri', redirectUri());
+    params.set('redirect_uri', redirectUri(snsOffrCd));
     if (scope) params.set('scope', scope);
   } else {
     const name = window.prompt('가짜 SNS 계정 이름(개발용)', 'snsuser');
@@ -67,7 +74,7 @@ export const startSnsLogin = ({ snsOffrCd, redirect }) => {
     JSON.stringify({ state, snsOffrCd, redirect }),
   );
   window.location.assign(
-    clientId ? `${url}?${params}` : `${redirectUri()}?${params}`,
+    clientId ? `${url}?${params}` : `${redirectUri(snsOffrCd)}?${params}`,
   );
 };
 

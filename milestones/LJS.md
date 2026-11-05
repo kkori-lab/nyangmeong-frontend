@@ -858,11 +858,13 @@
 - 완료 조건: 저장 전에 제목·본문의 `{{…}}`를 치환 변수 목록과 견주어, 모르는 변수가 있으면 요청을 보내지 않고 그 칸 아래에 "쓸 수 없는 치환 변수예요: {{없는변수}}"처럼 칸과 변수 이름을 보인다. 서버 400이 와도 일반 문구 대신 무엇을 고칠지 알 수 있는 문구를 보인다
 - 사람이 볼 것: 수정 모달이 제목을 필수로 검사하지만 서버는 제목을 선택 값으로 받는다(DB에 제목 null 템플릿이 있다). 같이 고칠지 기획 때 정한다
 
-## SCR-ADM-091 발송 이력 · 목록 연결 — 대기
+## SCR-ADM-091 발송 이력 · 목록 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-091-01·02
 - 기다리는 것: `GET /api/admin/notification-logs?page=&size=20&bgngYmd=&endYmd=&notiChnlCd=&notiTypeCd=&sndngRsltCd=`(최신순 `SNDNG_DT DESC`, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ notiSndngLogSn, mbrSn, mbrNcnm, notiTypeCd, notiChnlCd, sndngRsltCd, rtryNmtm, failRsn, sndngDt }`, 알림 본문 없음, 조건 모두 선택, 종료일 그날 끝까지 포함, 모르는 채널·유형·결과 코드와 기간 역전 400 `INVALID_INPUT_VALUE`, 재발송 API 없음) (LJS 백엔드, 끝)
 - 완료 조건: `features/adminNotificationLog/api.js` 가짜 본문을 실제 요청으로 바꾼다. 기간 파라미터는 가짜 `fromYmd`·`toYmd`가 아니라 `bgngYmd`·`endYmd`. 대시보드 "알림 발송 실패"에서 오면 `bgngYmd`=어제·`endYmd`=오늘·`sndngRsltCd=AIMC0019`로 건다. 400 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminNotificationLog/api.js`(가짜 응답, `fromYmd`·`toYmd` 가정)
+- 완료 조건 결과: 검증 `통과`(2026-11-05 1회차, 실제 API. [2]쪽 요청·대시보드 링크는 데이터가 모자라 Playwright 응답 가로채기로 확인), 사람 확인 2026-11-05
+- 연결 남음: 없음
 
 ## SCR-ADM-021 실종제보 · 목록·상세 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-021-01·02·03
@@ -941,6 +943,18 @@
 - 기다리는 것: 백엔드 SCR-ADM-011 회원 상세 · 응답에 회원 권한 추가(LJS, 끝 2026-11-05)
 - 완료 조건: 실제 API로 관리자 회원(`mbrAuthrtCd` `USRC0005`) 상세를 열면 [정지]가 안 보이고, 정상 일반회원(`USRC0004`)은 보인다. 가짜 응답(`features/adminMember/api.js`)에도 `mbrAuthrtCd`가 있는지 맞춘다
 - 이미 바뀐 것: `pages/admin/AdminMemberDetailPage.jsx` `canSuspend`가 `mbrAuthrtCd !== ROLE_OPTIONS[1].value`로 판정(2026-11-02)
+
+## SCR-COM-004 알림 드롭다운 · 크기·스크롤·닫기 버튼 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-COM-004-01·05·15
+- 배경: 헤더 알림을 열면 웹·모바일 모두 패널 크기가 알림 개수에 따라 달라진다. 패널을 닫는 버튼이 없다(사람 2026-11-05)
+- 기다리는 것: 없음(화면만, `layouts/NotificationDropdown.jsx`)
+- 완료 조건: 웹(1440)·모바일(390) 모두 알림 개수(0건 포함)·탭이 달라도 패널 크기가 같다. 안 읽은 알림이 5개 이상이면 목록 안에서만 세로로 스크롤된다(패널·페이지는 늘지 않는다). 웹·모바일 모두 패널에 닫기 버튼이 있고 누르면 패널이 닫힌다. 고정 높이 값과 "5개 이상"을 안 읽은 알림 기준으로 할지 목록 전체 기준으로 할지는 `/start` 기획에서 정한다
+
+## SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-072-01·02
+- 기다리는 것: 백엔드 SCR-ADM-072 포인트 · 프론트 연결 관리자 포인트 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/points` 두 행
+- 완료 조건: `features/adminPoint/api.js`의 가짜 원장 목록·조정을 실제 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments` `{ mbrSn, dlngPnt, memoCn }`(201, 응답은 원장 한 줄)로 바꾸고 sessionStorage 가짜를 지운다. 조정 모달 현재 잔액은 `GET /api/admin/members/{mbrSn}`의 `hldPnt`(가짜의 원장 마지막 잔액 대신). 잔액 부족은 `POINT_BALANCE_NOT_ENOUGH`가 아니라 400 `POINT_NOT_ENOUGH`, 탈퇴·없는 회원 404 `MEMBER_NOT_FOUND`, 형식 오류 400 `INVALID_INPUT_VALUE`. 같은 요청을 두 번 보내면 두 건이 되므로 조정 버튼을 요청 중 잠근다
+- 이미 바뀐 것: `features/adminPoint/api.js`(가짜, 목록 필드는 실제와 같음)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
