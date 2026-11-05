@@ -21,6 +21,7 @@ import {
   getCharacterPreview,
   getInvitation,
   getPet,
+  getLatestWeightRecord,
   getPets,
   getPixelCharacter,
   getPixelCharacters,
@@ -40,6 +41,7 @@ export const petKeys = {
   all: ['pets'],
   list: () => ['pets', 'list'],
   detail: (petSn) => ['pets', petSn],
+  lastWeight: (petSn) => ['pets', petSn, 'last-weight'],
   caregivers: (petSn) => ['pets', petSn, 'caregivers'],
   varieties: (petSeCd) => ['varieties', petSeCd],
 };
@@ -112,6 +114,18 @@ export const usePet = (petSn) =>
     queryKey: petKeys.detail(petSn),
     queryFn: () => getPet(petSn),
     enabled: petSn != null,
+  });
+
+/**
+ * 건강 일지의 최신 체중 기록(수정 모달의 체중 잠금 판단)
+ * - 조회에 실패하면 기록 없음으로 본다(재시도 없이 바로)
+ */
+export const useLastWeightRecord = (petSn) =>
+  useQuery({
+    queryKey: petKeys.lastWeight(petSn),
+    queryFn: () => getLatestWeightRecord(petSn),
+    enabled: petSn != null,
+    retry: false,
   });
 
 export const useVarieties = (petSeCd) =>
