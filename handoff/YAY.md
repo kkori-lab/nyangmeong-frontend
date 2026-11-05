@@ -2,6 +2,8 @@
 
 ## 지금 하는 것
 
+SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 끝남 (승인 2026-11-05 10:30, 검증 통과(잠금을 버린 뒤 1회차, 앞의 2회 실패는 로컬 백엔드가 SMTP라 인증번호를 못 읽어서), 사람 확인 2026-11-05). `resetPassword`가 `POST /email-certifications/{emlCertSn}/password-reset`을 부른다. 비밀번호 찾기가 라우터 state로 `{ emlCertSn, pswdInitTkn, initAuthrtExpryDt, certTrgtEml }`을 넘긴다. 400 `PASSWORD_RESET_NOT_AVAILABLE`은 만료 화면, `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 칸 오류, 그 밖은 공통 알림. [취소]는 `invalidate` 뒤 결과와 상관없이 `/login`. 추가-1: 이메일 로그인 폼의 [회원가입]이 "준비 중" 토스트 대신 `/signup`으로 간다. 로컬 백엔드가 실제 메일(SMTP)을 보내면 인증번호를 로그로 읽을 수 없어, 받을 수 있는 메일 계정으로 사람이 번호를 넘겨 확인했다
+
 SCR-ACC-002 SNS 로그인 · 제공자별 콜백 주소 — 끝남 (승인 2026-11-05 09:49, 검증 통과 1회차, 사람 확인 2026-11-05: 구글·카카오 실제 계정으로 SNS 가입 확인 화면까지). 콜백은 `/login/sns/:provider/callback`(`PATHS.SNS_CALLBACK`, `docs/routes.md` ACC-002 줄)이 받고 처리 뒤 `/login`(+`?redirect=`)으로 replace. 백엔드 `app.sns.*.redirect-uri`·제공자 콘솔이 이 주소다. 앞의 "콜백은 `/login`" 결정을 바꿨다
 
 SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 끝남 (승인 2026-11-04 17:06, 검증 통과 2회차(1회차는 로컬 백엔드가 real 모드라 확인 못 함), 사람 확인 2026-11-04). 콜백은 새 URL 없이 `/login`이 받는다(`features/member/login/snsAuth.js`·`useSnsCallback.js`). state·제공자·`redirect`는 sessionStorage `snsLoginRequest`. 앱 ID(`VITE_NAVER_CLIENT_ID`·`VITE_KAKAO_REST_KEY`·`VITE_GOOGLE_CLIENT_ID`)가 비면 개발 서버에서 이름을 받아 `fake-이름`으로 돌아온다(백엔드 `app.sns.client=fake`). SNS 가입 확인은 `features/member/signup/SnsSignupForm.jsx`·`useSnsSignup.js`(router state `snsSignup`). `TermsChecklist`·`SignupComplete`를 떼어 이메일 가입과 같이 쓴다. 확인용 로컬 SNS 회원 `verifysnsk1104@example.com`(카카오)·`verifysnsg1104@example.com`(구글)이 로컬 DB에 남아 있다
@@ -26,7 +28,6 @@ SCR-HOS-001 플레이스 · FN-HOS-001-33 로그인 필수 접근 — 끝남 (�
 - 코드 후보: `src/features/member/api.js` 92줄 주석 "랜딩 이동을 끈다"가 지금 동작(로그인 화면 이동)과 다르다
 - 연결 남음: (기반) 메인·마이페이지 라우트 `auth: 'member'` 전환 (팀과 정한 뒤, 각 라우트 담당)
 - 백엔드: `DevTokenController` 삭제(백엔드 마일스톤 SCR-ACC-002 절에 이미 있음)
-- SCR-ACC-012 연결 남음: 백엔드 SCR-ACC-012가 끝나면 가짜 `resetPassword`를 `POST /email-certifications/{emlCertSn}/password-reset`(`pswdInitTkn`·`pswd`·`pswdCnfrm`, 라우터 state로 넘겨받은 값)으로 바꾸고, 재설정 취소 때 `invalidate`(FN-ACC-012-04)를 부른다
 - PR Breaking Changes: `api/axios.js` 오류 객체에 `data` 추가(`docs/convention/api.md`), `snsCodes.js` 키를 서버 코드(`USRC0007~0009`)로 변경, 인증 화면 겉틀(`layouts/AuthLayout.jsx`·`AuthSlider.jsx`) 정렬 변경, `components/AiErrorGuide.jsx` 나타남 효과
 - 코드 후보: 재전송 제한 알림이 떠 있을 때 인증번호 확인에 실패하면 그 알림이 남는다(검증 메모)
 - 코드 후보: 가입을 마치고 [로그인 화면으로] → [회원가입]으로 다시 들어오면 새 가입이 아니라 앞 가입의 완료 화면이 남는다(`useSignup` 상태가 슬라이더 안에 남음, 새로고침하면 처음부터). SCR-ACC-001 검증 메모

@@ -14,7 +14,7 @@ const FIELD_KEYS = { certTrgtEml: 'email', certNo: 'code' };
 /** 서버 시각(LocalDateTime, 시간대 없음)을 ms로 */
 const toMs = (dateTime) => Date.parse(dateTime);
 
-// 비밀번호 찾기 화면의 단계(email, code, sns)와 입력·오류를 한곳에서 다룬다. 재설정 대상이 인증되면 onVerified({ emlCertSn, pswdInitTkn, initAuthrtExpryDt })를 부른다
+// 비밀번호 찾기 화면의 단계(email, code, sns)와 입력·오류를 한곳에서 다룬다. 재설정 대상이 인증되면 onVerified({ emlCertSn, pswdInitTkn, initAuthrtExpryDt, certTrgtEml })를 부른다
 export default function usePasswordFind(onVerified) {
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
@@ -117,7 +117,12 @@ export default function usePasswordFind(onVerified) {
   }) => {
     setNotice(null);
     if (certRslt === 'PASSWORD_RESET_READY') {
-      onVerified({ emlCertSn, pswdInitTkn, initAuthrtExpryDt });
+      onVerified({
+        emlCertSn,
+        pswdInitTkn,
+        initAuthrtExpryDt,
+        certTrgtEml: email,
+      });
     } else if (certRslt === 'SNS_ONLY') {
       setSnsOffrCds(providers ?? []);
       setStep('sns');

@@ -5,12 +5,6 @@ export const getMe = () => api.get('/auth/me', { skipAuthRedirect: true });
 
 export const logout = () => api.post('/auth/logout');
 
-/** 가짜 응답 대기(비밀번호 재설정 가짜가 쓴다) */
-const FAKE_DELAY_MS = 200;
-
-const wait = (result) =>
-  new Promise((resolve) => setTimeout(() => resolve(result), FAKE_DELAY_MS));
-
 /** 응답 { acntEml, mbrNcnm, mblTelno, atchFileSn, joinPathCd, snsAcntLinks, joinDt, lastLgnDt } */
 export const getMyProfile = () => api.get('/members/me');
 
@@ -153,14 +147,15 @@ export const getTerms = (trmsSn) =>
   api.get(`/terms/${trmsSn}`, { skipAuthRedirect: true });
 
 /**
- * [비밀번호 재설정 가짜 API]
- * - 재설정 API(`POST /email-certifications/{emlCertSn}/password-reset`, YAY 백엔드 SCR-ACC-012) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
- * - 새 비밀번호에 fail이 들어가면 저장 실패
- * - 본인확인(`pswdInitTkn`) 여부는 호출 전에 PasswordResetPage가 판단
+ * 비밀번호 재설정. 성공 200은 데이터 없음(자동 로그인 없음, 그 계정의 기존 로그인은 모두 종료).
+ * 실패: 400 PASSWORD_RESET_NOT_AVAILABLE(만료·사용 완료·무효화), PASSWORD_MISMATCH, INVALID_INPUT_VALUE(error.fields)
  */
-/** 성공이면 { ok: true }, 실패면 { ok: false, reason: 'EXPIRED' | 'FAILED' } */
-export const resetPassword = ({ pswd }) =>
-  wait(pswd.includes('fail') ? { ok: false, reason: 'FAILED' } : { ok: true });
+export const resetPassword = ({ emlCertSn, pswdInitTkn, pswd, pswdCnfrm }) =>
+  api.post(
+    `/email-certifications/${emlCertSn}/password-reset`,
+    { pswdInitTkn, pswd, pswdCnfrm },
+    { skipAuthRedirect: true },
+  );
 
 /** 이메일 인증번호 목적 코드(공통코드 USRG04): 회원가입 */
 const SIGNUP_PURPOSE = 'USRC0010';
