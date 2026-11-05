@@ -36,6 +36,8 @@ export default function AdminAiRoutesPage() {
   const [editing, setEditing] = useState(null);
 
   const routes = useAdminAiRoutes(q ? { q } : {});
+  /** 지시어 겹침은 검색과 상관없이 전체 매핑표로 */
+  const allRoutes = useAdminAiRoutes({});
 
   const handleSearch = () => {
     const next = keyword.trim();
@@ -90,7 +92,13 @@ export default function AdminAiRoutesPage() {
         </p>
       );
     }
-    return <AiRouteTable routes={routes.data} onSelect={setEditing} />;
+    return (
+      <AiRouteTable
+        routes={routes.data}
+        allRoutes={allRoutes.data}
+        onSelect={setEditing}
+      />
+    );
   };
 
   /** 본문: 로딩 / 403 / 목록 */
