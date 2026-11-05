@@ -878,7 +878,7 @@
 ## SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-022-01·02·03
 - 기다리는 것: `GET /api/admin/care-matches?page=&size=20&rcrtSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ petPrtcRcrtSn, pstSn, pstTtl, rcrtSttsCd, mbrSn, mbrNcnm, cstAmt, cstUnitCd, regDt }`, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/care-matches/{petPrtcRcrtSn}`(목록 행 + `mtchs[]` 최신순·없으면 빈 배열, 매칭마다 `{ petPrtcMtchSn, ctptMbrSn, ctptNcnm, mtchDlngSttsCd, rcvYn, rcvIdntyDt, regDt, cndVers[{ cndVerNo, cstUnitCd, acrdCstAmt, acrdPrtcCn, acrdPrtcBgngDt, acrdPrtcEndDt, regDt }](버전 내림차순), sttsHstry[{ bfrSttsCd, aftrSttsCd, cndVerNo, chgRsn, regDt }](오래된 순), cmptnDmnds[{ dmndCycl, cmptnCn, spclMttrCn, prtcEndDt, prtcrIdntyRsltCd, prtcrIdntyDt, splmntDmndRsn, regDt, imgs[{ atchFileSn, sortSeq }] }](회차 순) }`, 블라인드 글도 열림, 없거나 삭제 글 404 `CARE_RECRUITMENT_NOT_FOUND`, 채팅 내용 없음) (LJS 백엔드, 끝)
-- 완료 조건: `features/adminCommunity/api.js` 펫돌봄 목록·매칭 상세 가짜 본문을 실제 요청으로 바꾼다. 가짜와 다른 점: 조건 버전·완료 요청은 한 건이 아니라 목록(`cndVers`·`cmptnDmnds`, 가짜 `agreVerNo·agreDt·agreCn`·`cmplReqDt·cmplImgs·ownerCfmtnRsltCd·ownerCfmtnDt` 대신), 매칭 거래 상태는 가짜 `REQUESTED·MATCHED·DONE_REQ·COMPLETE·CANCELED` 대신 공통코드 PCAG05(PCAC0012 수락 대기·0013 매칭 완료·0014 확인 대기·0015 수령 대기·0016 거래 완료·0017 요청 취소·0018 무응답 종료), 보호자 확인 결과는 가짜 `CONFIRMED·REJECTED` 대신 PCAG06(PCAC0019 완료 확인·PCAC0020 보완 요청). 매칭이 여럿이면 탭으로 나눈다. 완료 사진은 지금 `/api/files/public/{atchFileSn}`으로 열리지 않는다(백엔드 연결 남음, KSJ와 정함). 400·404 오류 문구를 화면에 보인다
+- 완료 조건: `features/adminCommunity/api.js` 펫돌봄 목록·매칭 상세 가짜 본문을 실제 요청으로 바꾼다. 가짜와 다른 점: 조건 버전·완료 요청은 한 건이 아니라 목록(`cndVers`·`cmptnDmnds`, 가짜 `agreVerNo·agreDt·agreCn`·`cmplReqDt·cmplImgs·ownerCfmtnRsltCd·ownerCfmtnDt` 대신), 매칭 거래 상태는 가짜 `REQUESTED·MATCHED·DONE_REQ·COMPLETE·CANCELED` 대신 공통코드 PCAG05(PCAC0012 수락 대기·0013 매칭 완료·0014 확인 대기·0015 수령 대기·0016 거래 완료·0017 요청 취소·0018 무응답 종료), 보호자 확인 결과는 가짜 `CONFIRMED·REJECTED` 대신 PCAG06(PCAC0019 완료 확인·PCAC0020 보완 요청). 매칭이 여럿이면 탭으로 나눈다. 완료 사진은 `/api/files/public/{atchFileSn}` 대신 `GET /api/admin/care-matches/{petPrtcRcrtSn}/images/{atchFileSn}`(관리자 로그인, 이미지 바이트, 백엔드 PR #158)을 `useFileImage`로 받는다(시드 93장 중 15장만 파일 있음). 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
 
 ## SCR-ADM-051 약관 · 390 폭 가로 스크롤 + SCR-ADM-101 지역 탭 빼기 — 끝
@@ -958,6 +958,24 @@
 - 기다리는 것: 백엔드 SCR-ADM-072 포인트 · 프론트 연결 관리자 포인트 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/points` 두 행
 - 완료 조건: `features/adminPoint/api.js`의 가짜 원장 목록·조정을 실제 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments` `{ mbrSn, dlngPnt, memoCn }`(201, 응답은 원장 한 줄)로 바꾸고 sessionStorage 가짜를 지운다. 조정 모달 현재 잔액은 `GET /api/admin/members/{mbrSn}`의 `hldPnt`(가짜의 원장 마지막 잔액 대신). 잔액 부족은 `POINT_BALANCE_NOT_ENOUGH`가 아니라 400 `POINT_NOT_ENOUGH`, 탈퇴·없는 회원 404 `MEMBER_NOT_FOUND`, 형식 오류 400 `INVALID_INPUT_VALUE`. 같은 요청을 두 번 보내면 두 건이 되므로 조정 버튼을 요청 중 잠근다
 - 이미 바뀐 것: `features/adminPoint/api.js`(가짜, 목록 필드는 실제와 같음)
+
+## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-01
+- 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/receipt.md` `/admin/processing/receipts` 두 행
+- 완료 조건: `features/adminProcessing/api.js`의 `getAdminReceipts` 가짜를 실제 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrDmndSrcCd=&ocrPrcsSttsCd=&page=&size=`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, failCnt, prcsCnt, errCnt }, content: [{ recptSn, mbrSn, mbrNcnm, ocrDmndSrcCd, ocrPrcsSttsCd, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 출처 `ocrRqstSrcCd` → `ocrDmndSrcCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` 가계부 출처 `TMP00031` → `AIMC0027`. 가짜의 처리 중 `AIMC0002`·성공 `AIMC0003`은 틀렸다(분석중 AIMC0001, 인식성공 AIMC0002, 부분인식 AIMC0003). summary는 현재 상태 기준(성공 = 인식성공·부분인식·저장완료, 실패 = 인식실패 AIMC0004, 처리 중 = 분석중, `errCnt` = 일시오류 AIMC0005는 새 키). 실패율은 `failCnt / totCnt`. 모르는 코드·`fromYmd > toYmd`는 400 `INVALID_INPUT_VALUE`. `ReceiptImageModal.jsx`의 원본 보기 `GET /api/admin/processing/receipts/{recptSn}/image`(경로 가정 그대로), 없는 영수증 404 `RECEIPT_NOT_FOUND`
+- 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`(가짜)
+
+## SCR-CMU-005 우리동네 펫돌봄 채팅 · 채팅 API 연결 — 진행
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-CMU-005-01~11, FN-COM-009-02·05~08·13~17·19
+- 기다리는 것: 백엔드 펫돌봄 채팅·채팅 모달 API (develop `845613d`, 끝. 계약은 백엔드 `docs/api/community.md`, 실시간 절은 2026-10-22 제안 상태)
+- 완료 조건: `features/chat/api.js` 가짜를 실제 `/chat-rooms`·`/care-matches` API로 바꾼다. 채팅 사진은 `/chat-rooms/{otoChatRoomSn}/images/{atchFileSn}`을 쿠키 인증으로 받아 그린다. 펫돌봄 상세 [채팅하기]·[내 채팅 보기]가 `POST /chat-rooms`로 기존 방을 연다(회원 152 `/community/petcare/3` → 방 8, 회원 146 `/community/petcare/1` → 기존 방). 세부는 핸드오프 "다음에 할 것" 1순위
+- 이미 바뀐 것: `features/chat/api.js`(가짜 응답)
+
+## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-02
+- 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/processing/character-jobs` 행
+- 완료 조건: `features/adminProcessing/api.js`의 `getAdminCharacterJobs` 가짜를 실제 `GET /api/admin/processing/character-jobs?crtJobSttsCd=&page=&size=`로 바꾼다. 응답은 `{ sttsCnts: [{ crtJobSttsCd, cnt }], content: [{ charCrtJobSn, mbrSn, mbrNcnm, crtJobSttsCd, failRsn, otoInqrySn, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 상태 `jobSttsCd` → `crtJobSttsCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` `CHAR_JOB_STTS`는 CHRG01(CHRC0001 요청·CHRC0002 생성 중·CHRC0003 생성 완료·CHRC0004 생성 실패), `CHAR_JOB_STTS_FAIL` `TMP00044` → `CHRC0004`. `sttsCnts`는 상태 필터와 무관하게 네 줄을 순서대로 주고 없는 상태는 0. 모르는 상태 코드 400 `INVALID_INPUT_VALUE`. `CharacterJobTable.jsx`의 문의 링크는 `otoInqrySn` 그대로
+- 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`·`CharacterJobTable.jsx`(가짜)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
