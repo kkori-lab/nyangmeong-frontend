@@ -2,6 +2,7 @@ import { Check, ChevronDown, CircleAlert, Lock, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '@/components/toastStore';
+import useScrollLock from '@/hooks/useScrollLock';
 import { PATHS } from '@/routes/paths';
 import {
   COLR_DRCT_INPT,
@@ -142,6 +143,7 @@ export default function PetFormModal({ petSn = null, onClose }) {
   const { data: lastBdwgRcd = null, isPending: isWeightPending } =
     useLastWeightRecord(petSn);
   const isEdit = petSn != null;
+  useScrollLock();
 
   return (
     <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">

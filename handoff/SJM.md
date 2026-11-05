@@ -2,20 +2,19 @@
 
 ## 지금 하는 것
 
-SCR-MYP-010 픽셀 캐릭터 관리 · [오류 문의] 접수 판정과 문의 연결 값 고치기 — 끝 (2026-11-05, 검증 `통과` 1회차, 사람 확인 완료). 마일스톤은 `milestones/SJM.md`의 같은 이름 절. 검증 계정 정리: 없음(응답 가로채기만 함)
-
-기획:
-- FN-MYP-010 꾸미기 [오류 문의]: `src/features/pet/character/CharacterDecorate.jsx`만 고친다. (1) 접수 판정 `pet.inqryRcptYn === 'Y'`를 `character?.inqryRcptYn === true`로 바꾼다. `inqryRcptYn`(boolean)은 꾸미기 상세 `GET /pixel-characters/{pixelCharSn}`에만 있고 `pet`에는 없어 지금은 항상 거짓이다. 이미 부르는 `usePixelCharacter`의 `character`를 쓴다. (2) [오류 문의] 링크 state에 `pixelCharSn: pet.pixelCharSn`을 더한다(기존 `inquiryType`·`petSn`·`imageUrl`은 그대로). 서버는 문의 등록 때 `pixelCharSn`이 있어야 `PixelCharacterService.receiveErrorInquiry`로 캐릭터 작업에 문의를 연결한다
-- 하지 않음: `InquiryWritePage`·문의 등록 API(KSJ 담당)
-- 완료 조건 — 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0. 화면: `/mypage/characters` 꾸미기에서 상세 응답(`GET /pixel-characters/{pixelCharSn}`)을 가로채 `inqryRcptYn: true`로 바꾸면 [문의 접수됨](비활성)이 보이고, `false`면 [오류 문의] 링크가 보인다. 공용 DB라 실제 문의는 만들지 않는다
-- 디자인: 없음(기존 버튼 그대로). 새 의존성: 없음
-
-이전: SCR-MYP-003 반려동물 등록/수정 · 체중 입력 잠금을 건강 일지 체중 기록 조회로 연결 — 끝 (2026-11-05, 검증 `통과`, 사람 확인 완료)
-이전: SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝 (2026-11-04). 검증 계정 정리: `RECPT` 520·521·523·524와 원본 첨부파일·상태 이력이 남아 있다. 필요하면 `DELETE FROM RECPT_STTS_HSTRY WHERE RECPT_SN IN (520,521,523,524); DELETE FROM RECPT WHERE RECPT_SN IN (520,521,523,524);` 뒤 첨부파일(`SELECT ATCH_FILE_SN FROM RECPT …`로 먼저 확인)을 지운다
+SCR-MYP-002 반려동물 프로필 목록 · 가족 영역 반응형 개편과 슬라이드 레이아웃 — 끝 (2026-11-05, 검증 `통과`, 사람 확인 완료). 기획 1~10과 추가 요청 상세는 `milestones/SJM.md`의 같은 이름 절과 이 날짜 커밋 본문에 있다
+- 기획 1~10: 공동양육 동물은 761px 이상에서 이름 줄 아래 "주양육자 닉네임"(`OwnerLine`), 모바일은 `주양육자 | 닉네임` 한 줄. 주양육 동물은 카드마다 "공동양육" 배지, 이름 말줄임+`title`, 모바일 한 줄 카드·더보기·`[+ 초대]`·5명 토스트. 태블릿(761~1280px)도 같은 구조, 사진 원 140px(데스크톱 160px), 슬라이드 높이 전환 0.28초(`prefers-reduced-motion`이면 즉시), 점 줄 `+` 세로 가운데
+- 추가-1: 공동양육 카드 두 단계 높이 전환 수정(`OwnerLine` Skeleton, `useCaregiversOf` 미리 받기)
+- 추가-2: 모바일 가족 영역 다듬기("가족 1/5"·옅은 칩 [+ 초대]), 정보 영역(종·성별 보조 줄, 인식 번호 `<wbr>`, 두 칸 같은 폭), 가족 초대·확인 창 3개를 공용 `Modal`로(폭 옵션·`isSheet`·`isConfirm`), 스크롤 잠금 훅 `useScrollLock`
+- 추가-3·4·5: `PetFace` 얼굴 배치 변경은 사람 요청(2026-11-05)으로 되돌림. `PetFace.jsx`는 작업 전 상태
+- 추가-6: 확인 창 접근성(`isConfirm` Modal `role="alertdialog"`, `aria-describedby`)
+- 설계서·명세와 달라지는 곳은 사람이 설계서를 고친다(FN-MYP-004-01·02·03·04, FN-MYP-002-02, 설계서 SCR-MYP-004 4-1·4-2, SCR-MYP-002 2-1). 명세의 "인원 수(N/5명)는 따로 표시하지 않음"은 모바일 "가족 N/5" 표시와 충돌한다
 
 ## 다음에 할 것
+- SCR-MYP-003 털색 문제(SJM, FN-MYP-003-03): 탄이(고양이)의 `colrCd`가 강아지 전용 `PETC0011`이라 마이페이지 슬라이드 털색 칸이 비고, 수정 모달은 목록 첫 값 "검정"으로 보여서 다른 칸만 고쳐 저장해도 털색이 조용히 검정으로 바뀔 수 있다. 할 일: 수정 모달(`PetFormModal.jsx`)이 종에 맞지 않는 털색을 만나면 다른 값으로 바꾸지 말고 원래 값을 보여 주거나 다시 고르라고 안내한다. `utils/petCodes.js`의 `PETC0011` 이름을 서버 공통코드와 맞춘다("파티" → "얼룩"). 이번에는 코드를 고치지 않았다. 팀 알림: 공용 DB 시드 데이터에서 고양이에 강아지 전용 털색이 들어간 행이 있는지 확인을 요청한다(탄이가 그 예)
+- SCR-MYP-003 PetFormModal을 공용 Modal로(모바일 바텀시트): 필요한 것은 폭 720px 옵션, 바깥 클릭·Esc로 닫지 않는 옵션(입력 유실 방지), 품종 목록(listbox)이 시트 안에서 잘리지 않는지와 Esc 충돌 확인. 이번에는 스크롤 잠금만 `useScrollLock`으로 붙였다
+- 팀 알림(LJS 등): 공용 `components/Modal.jsx`에 폭 옵션과 스크롤 잠금(`hooks/useScrollLock.js`)을 추가했다. 모든 사용처(건강기록 등)에 적용된다. 스크롤 잠금이 없는 곳의 담당자에게 알린다: `layouts/ChatModal.jsx`(모바일 전체 화면인데 잠금 없음, 데스크톱 잠금 여부 결정 필요), `features/ai/chat/ConversationSidebar.jsx`(모바일 서랍, 열렸을 때만 `aria-modal`·잠금 필요), `features/landing/LandingHeader.jsx`(모바일 메뉴 잠금 없음), 건강기록의 자체 `FormModal`(검진기록 등록 등, JAJ, 공용 Modal이 아니라 잠금 없음). 또 `isSheet`의 모바일 위치를 `relative`에서 `fixed`로 고쳤다(스크롤한 채 열면 페이지가 맨 위로 튀던 결함). `isSheet`를 쓰는 가계부 시트 모달(`ExpenseForm`·`ExpenseAddModal`·`ExpenseReceiptUpload`·`ExpenseReceiptReview`)에도 적용되며 375px에서 아래에 붙는 것을 확인했다. 확인 창은 `isConfirm`일 때 `role="alertdialog"`·`aria-describedby`가 붙는다
 - 연결 남음 KSJ(SCR-MYP-010): `/inquiries/new`로 가는 router state에 `pixelCharSn`이 추가됐다(`{ inquiryType: 'PIXEL_CHARACTER', petSn, pixelCharSn, imageUrl }`). `InquiryWritePage`가 state의 `pixelCharSn`을 문의 등록 요청에 실어 줘야 서버(`InquiryService.create` → `PixelCharacterService.receiveErrorInquiry`)가 캐릭터 작업에 문의를 연결한다
-- SCR-MYP-002 공동양육자 카드 [✕] 겹침(기획만 있음, 승인 전): `FamilySection.jsx`의 `MemberCard`에서 이름 `<p>`의 `break-keep` 때문에 띄어쓰기 없는 닉네임("말랑한간식왕")이 칸 밖으로 넘쳐 [✕] 아래로 들어간다. 이름을 한 줄 `truncate`(+`title`)로 하고 [✕]가 있을 때 오른쪽 여백을 버튼 폭 이상으로 둔다. 화면 확인은 tester로 `/mypage/pets`의 탄·까미 가족 카드를 375·768·1280px에서 본다
 - YAY 화면 대기: 회원 탈퇴(SCR-ACC-020). 탈퇴 화면(`/mypage/withdraw`)과 탈퇴 API(`POST /members/me/withdraw`)는 YAY 담당이고 아직 없다. [회원 탈퇴 ›] 버튼은 이미 있다(`ProfileEditForm.jsx`). 화면이 생기면 `ProfileEditPage.jsx`의 토스트를 `navigate(PATHS.MYPAGE_WITHDRAW)`로 바꾸는 것만 내 일이다
 - SCR-MYP-040 YAY 알림: `signup/NicknameModal.jsx` 변경 없음. 회원정보 수정이 YAY의 `features/member/api.js` `checkNicknameAvailability`·`setupNickname`·`checkPhoneAvailability`와 `queries.js` 훅 `useCheckNicknameAvailability`·`useSetupNickname`·`useCheckPhoneAvailability`를 같이 쓴다. 이름·모양(응답 `{available}`, 오류 코드)을 바꾸지 말 것
 - SCR-MYP-010 착용 이미지(LJS 담당, 내 할 일 아님): 합성 미리보기·대표 이미지 굽기는 `CHARACTER_BAKE_ENABLED`(LJS)가 켜져야 한다. 안 구운 아이템은 미리보기·`equipped-image` 모두 409 `ITEM_BAKING`. 켜지면 LJS와 같이 `/mypage/characters`·홈 얼굴이 착용 모습인지 화면만 확인한다
