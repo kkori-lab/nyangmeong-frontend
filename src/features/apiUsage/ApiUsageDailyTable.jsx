@@ -1,5 +1,6 @@
 import { formatDate } from '@/utils/formatDate';
 import { formatFailRate, formatResponseTime } from './apiUsageLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['날짜', '호출', '실패율', '평균 응답'];
 
@@ -9,7 +10,7 @@ const COLUMNS = ['날짜', '호출', '실패율', '평균 응답'];
  */
 export default function ApiUsageDailyTable({ days }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[560px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

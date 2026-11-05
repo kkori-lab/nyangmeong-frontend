@@ -7,6 +7,7 @@ import {
   REPORT_REASON_OPTIONS,
   REPORT_STATUS_OPTIONS,
 } from './reportLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = [
   '대상',
@@ -25,7 +26,7 @@ const COLUMNS = [
  */
 export default function ReportTable({ reports, onSelect }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[860px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

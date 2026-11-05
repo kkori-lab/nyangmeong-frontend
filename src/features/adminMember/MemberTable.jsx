@@ -5,6 +5,7 @@ import {
   ROLE_OPTIONS,
   STATUS_OPTIONS,
 } from './memberLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = [
   '닉네임',
@@ -29,7 +30,7 @@ const formatLastLogin = (lastLgnDt) =>
  */
 export default function MemberTable({ members, onSelect }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[840px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

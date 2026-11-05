@@ -1,5 +1,6 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { MSN_POOL_LABELS } from './careMissionLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['풀', '미션명', '보상', '달성 기준', '이동 경로', '사용', ''];
 
@@ -12,7 +13,7 @@ const CELL = 'px-4 py-3 max-[760px]:px-2';
  */
 export default function CareMissionTable({ missions, onEdit }) {
   return (
-    <div className="relative overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={`relative ${ADMIN_TABLE_BOX}`}>
       <table className="w-full min-w-[720px] table-fixed text-left text-base max-[760px]:text-sm">
         <colgroup>
           <col className="w-[104px]" />

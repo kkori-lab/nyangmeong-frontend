@@ -1,5 +1,6 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { codeLabel } from './keywordLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const CELL = 'px-4 py-3 align-top';
 
@@ -14,7 +15,7 @@ export default function AiKeywordTable({ tab, keywords, onEdit }) {
   const columns = ['이름', '단어', hasCode ? '분류' : '의미', ''];
 
   return (
-    <div className="relative overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={`relative ${ADMIN_TABLE_BOX}`}>
       <table className="w-full min-w-[760px] table-fixed text-left text-base">
         <colgroup>
           <col className="w-[160px]" />
