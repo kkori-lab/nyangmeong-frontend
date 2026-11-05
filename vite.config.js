@@ -17,6 +17,8 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': { target: apiUrl, changeOrigin: true },
+        /** 채팅 실시간(STOMP over WebSocket) */
+        '/ws': { target: apiUrl, changeOrigin: true, ws: true },
         /** 화면 URL /ai(PATHS.AI)는 제외 */
         '^/ai/': { target: aiUrl, changeOrigin: true },
       },
