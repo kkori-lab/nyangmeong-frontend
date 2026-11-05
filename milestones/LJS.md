@@ -875,11 +875,14 @@
 - 완료 조건: `features/adminCommunity/api.js` 실종제보 목록·상세 가짜 본문을 실제 요청으로 바꾼다. 필드 이름은 가짜와 같은 `mbrNcnm`·`expryCrtrDt`. 블라인드·삭제 글은 목록에 나오지 않고, 상세에 연락처·반려동물 정보가 없다(가짜에 있으면 화면에서 뺀다). 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
 
-## SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 대기
+## SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-022-01·02·03
 - 기다리는 것: `GET /api/admin/care-matches?page=&size=20&rcrtSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ petPrtcRcrtSn, pstSn, pstTtl, rcrtSttsCd, mbrSn, mbrNcnm, cstAmt, cstUnitCd, regDt }`, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/care-matches/{petPrtcRcrtSn}`(목록 행 + `mtchs[]` 최신순·없으면 빈 배열, 매칭마다 `{ petPrtcMtchSn, ctptMbrSn, ctptNcnm, mtchDlngSttsCd, rcvYn, rcvIdntyDt, regDt, cndVers[{ cndVerNo, cstUnitCd, acrdCstAmt, acrdPrtcCn, acrdPrtcBgngDt, acrdPrtcEndDt, regDt }](버전 내림차순), sttsHstry[{ bfrSttsCd, aftrSttsCd, cndVerNo, chgRsn, regDt }](오래된 순), cmptnDmnds[{ dmndCycl, cmptnCn, spclMttrCn, prtcEndDt, prtcrIdntyRsltCd, prtcrIdntyDt, splmntDmndRsn, regDt, imgs[{ atchFileSn, sortSeq }] }](회차 순) }`, 블라인드 글도 열림, 없거나 삭제 글 404 `CARE_RECRUITMENT_NOT_FOUND`, 채팅 내용 없음) (LJS 백엔드, 끝)
 - 완료 조건: `features/adminCommunity/api.js` 펫돌봄 목록·매칭 상세 가짜 본문을 실제 요청으로 바꾼다. 가짜와 다른 점: 조건 버전·완료 요청은 한 건이 아니라 목록(`cndVers`·`cmptnDmnds`, 가짜 `agreVerNo·agreDt·agreCn`·`cmplReqDt·cmplImgs·ownerCfmtnRsltCd·ownerCfmtnDt` 대신), 매칭 거래 상태는 가짜 `REQUESTED·MATCHED·DONE_REQ·COMPLETE·CANCELED` 대신 공통코드 PCAG05(PCAC0012 수락 대기·0013 매칭 완료·0014 확인 대기·0015 수령 대기·0016 거래 완료·0017 요청 취소·0018 무응답 종료), 보호자 확인 결과는 가짜 `CONFIRMED·REJECTED` 대신 PCAG06(PCAC0019 완료 확인·PCAC0020 보완 요청). 매칭이 여럿이면 탭으로 나눈다. 완료 사진은 `/api/files/public/{atchFileSn}` 대신 `GET /api/admin/care-matches/{petPrtcRcrtSn}/images/{atchFileSn}`(관리자 로그인, 이미지 바이트, 백엔드 PR #158)을 `useFileImage`로 받는다(시드 93장 중 15장만 파일 있음). 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+- 결정: 디자인은 기존 SCR-ADM-022 화면 그대로, 데이터 모양만 바꿈(2026-11-05 기획 승인)
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 1회차), 사람 확인 2026-11-05
+- 연결 남음: 없음
 
 ## SCR-ADM-051 약관 · 390 폭 가로 스크롤 + SCR-ADM-101 지역 탭 빼기 — 끝
 - 기능: 명세 기능 ID 없음(2026-11-03 SCR-ADM-051 검증에서 나온 것, 사람 결정 "다음에서 수정") + FN-ADM-101-02 지역 조회 제거(사람 결정 2026-11-03 "다음에서 빼버리는 걸로"). 둘을 묶음(사람 요청 2026-11-03)
