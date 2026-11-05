@@ -29,7 +29,8 @@ function KeywordListSkeleton() {
 
 /**
  * [키워드 사전] SCR-ADM-081
- * - 탭은 ?tab=verb|date|cycle|schedule|checkup|expense, 없거나 모르면 등록 동사
+ * - 탭은 ?tab=verb|date|cycle|schedule|checkup|expense, 없거나 모르면 등록 표현
+ * - 탭 아래 한 줄은 그 탭 단어 예시(tab.hint)
  * - [키워드 등록] -> 지금 탭에 등록 모달, 행 [수정] -> 수정 모달(삭제 포함)
  * - 뉴스 분류 키워드는 펫뉴스 화면(SCR-ADM-050), 시각은 서버 규칙이라 탭이 없다
  */
@@ -41,7 +42,7 @@ export default function AdminAiKeywordsPage() {
 
   const keywords = useAdminAiKeywords({
     dictUsgCd: tab.dictUsgCd,
-    kwrdClsfNm: tab.label,
+    kwrdClsfNm: tab.kwrdClsfNm,
   });
 
   const handleTabSelect = (nextKey) =>
@@ -126,7 +127,10 @@ export default function AdminAiKeywordsPage() {
           );
         })}
       </div>
-      <div role="tabpanel">{renderBody()}</div>
+      <div role="tabpanel">
+        <p className="mb-4 text-sm leading-[22px] text-subtle">{tab.hint}</p>
+        {renderBody()}
+      </div>
       {editing != null && (
         <AiKeywordFormModal
           key={tab.key}
