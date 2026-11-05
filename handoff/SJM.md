@@ -2,16 +2,15 @@
 
 ## 지금 하는 것
 
-SCR-MYP-002 반려동물 프로필 목록 · 가족 영역 반응형 개편과 슬라이드 레이아웃 — 끝 (2026-11-05, 검증 `통과`, 사람 확인 완료). 기획 1~10과 추가 요청 상세는 `milestones/SJM.md`의 같은 이름 절과 이 날짜 커밋 본문에 있다
-- 기획 1~10: 공동양육 동물은 761px 이상에서 이름 줄 아래 "주양육자 닉네임"(`OwnerLine`), 모바일은 `주양육자 | 닉네임` 한 줄. 주양육 동물은 카드마다 "공동양육" 배지, 이름 말줄임+`title`, 모바일 한 줄 카드·더보기·`[+ 초대]`·5명 토스트. 태블릿(761~1280px)도 같은 구조, 사진 원 140px(데스크톱 160px), 슬라이드 높이 전환 0.28초(`prefers-reduced-motion`이면 즉시), 점 줄 `+` 세로 가운데
-- 추가-1: 공동양육 카드 두 단계 높이 전환 수정(`OwnerLine` Skeleton, `useCaregiversOf` 미리 받기)
-- 추가-2: 모바일 가족 영역 다듬기("가족 1/5"·옅은 칩 [+ 초대]), 정보 영역(종·성별 보조 줄, 인식 번호 `<wbr>`, 두 칸 같은 폭), 가족 초대·확인 창 3개를 공용 `Modal`로(폭 옵션·`isSheet`·`isConfirm`), 스크롤 잠금 훅 `useScrollLock`
-- 추가-3·4·5: `PetFace` 얼굴 배치 변경은 사람 요청(2026-11-05)으로 되돌림. `PetFace.jsx`는 작업 전 상태
-- 추가-6: 확인 창 접근성(`isConfirm` Modal `role="alertdialog"`, `aria-describedby`)
-- 설계서·명세와 달라지는 곳은 사람이 설계서를 고친다(FN-MYP-004-01·02·03·04, FN-MYP-002-02, 설계서 SCR-MYP-004 4-1·4-2, SCR-MYP-002 2-1). 명세의 "인원 수(N/5명)는 따로 표시하지 않음"은 모바일 "가족 N/5" 표시와 충돌한다
+SCR-MYP-003 반려동물 등록/수정 · 종에 맞지 않는 털색 표시와 털색 이름 맞추기 — 끝 (2026-11-05, 검증 `통과` 2회차, 사람 확인 완료)
+- 1 FN-MYP-002-02: 슬라이드 털색 칸이 종 목록에 없는 털색도 이름을 보인다(`getColrName` 폴백, `findColrName`). `CharacterCreateModal`도 `getColrName`을 쓴다
+- 2 FN-MYP-003-03: 수정 모달이 종에 맞지 않는 저장 털색을 "얼룩 (강아지 털색)"으로 보이고 안내하며, 다시 고르기 전에는 저장을 막는다
+- 3 털색 코드: PETC0011 얼룩(`SPOTTED`), 파티 PETC0029, 황색 0028·세이블 0030·멀 0031·젖소 0032·카오스 0033·포인트 0034 추가. 목록 순서는 명세를 따르고 얼룩은 강아지 파티 뒤에 남김. 파티와 얼룩은 합치지 않는다(사람 결정). TC 184·185줄 정리
 
 ## 다음에 할 것
-- SCR-MYP-003 털색 문제(SJM, FN-MYP-003-03): 탄이(고양이)의 `colrCd`가 강아지 전용 `PETC0011`이라 마이페이지 슬라이드 털색 칸이 비고, 수정 모달은 목록 첫 값 "검정"으로 보여서 다른 칸만 고쳐 저장해도 털색이 조용히 검정으로 바뀔 수 있다. 할 일: 수정 모달(`PetFormModal.jsx`)이 종에 맞지 않는 털색을 만나면 다른 값으로 바꾸지 말고 원래 값을 보여 주거나 다시 고르라고 안내한다. `utils/petCodes.js`의 `PETC0011` 이름을 서버 공통코드와 맞춘다("파티" → "얼룩"). 이번에는 코드를 고치지 않았다. 팀 알림: 공용 DB 시드 데이터에서 고양이에 강아지 전용 털색이 들어간 행이 있는지 확인을 요청한다(탄이가 그 예)
+- 팀 알림(SCR-MYP-003 털색): (a) 시드에서 종-털색 불일치는 고양이+PETC0011 55마리뿐이다(PET 1000행 기준). 공용 DB도 같은지 확인을 요청한다(탄이가 그 예). (b) 지금까지 화면에서 파티를 골라 저장한 강아지는 PETC0011로 들어가 있어서 이번 수정 뒤 얼룩으로 보인다. 팀에 알린다. (c) 공용 `utils/petCodes.js`의 `PARTI` 코드가 PETC0029로 바뀌고 `SPOTTED`(PETC0011)와 새 털색 코드 6개가 추가됐다. LJS 등에 알린다. (d) 명세·설계서 FN-MYP-003-03에 얼룩 추가는 설계서 담당(SJM)이 정리한다
+- 연결 남음 SCR-MYP-003 FN-MYP-003-03 (백엔드 연결 `PetService` 털색 검증: 종에 맞지 않는 털색 코드 거절, 백엔드 저장소에서 /start)
+- SCR-MYP-003 반려동물 등록 모달의 선택 칸(`PetFormModal.jsx`의 select, `invalid:text-placeholder`)이 값을 고르기 전이면 열린 목록의 선택지까지 회색으로 보인다. 이번 변경과는 무관하다
 - SCR-MYP-003 PetFormModal을 공용 Modal로(모바일 바텀시트): 필요한 것은 폭 720px 옵션, 바깥 클릭·Esc로 닫지 않는 옵션(입력 유실 방지), 품종 목록(listbox)이 시트 안에서 잘리지 않는지와 Esc 충돌 확인. 이번에는 스크롤 잠금만 `useScrollLock`으로 붙였다
 - 팀 알림(LJS 등): 공용 `components/Modal.jsx`에 폭 옵션과 스크롤 잠금(`hooks/useScrollLock.js`)을 추가했다. 모든 사용처(건강기록 등)에 적용된다. 스크롤 잠금이 없는 곳의 담당자에게 알린다: `layouts/ChatModal.jsx`(모바일 전체 화면인데 잠금 없음, 데스크톱 잠금 여부 결정 필요), `features/ai/chat/ConversationSidebar.jsx`(모바일 서랍, 열렸을 때만 `aria-modal`·잠금 필요), `features/landing/LandingHeader.jsx`(모바일 메뉴 잠금 없음), 건강기록의 자체 `FormModal`(검진기록 등록 등, JAJ, 공용 Modal이 아니라 잠금 없음). 또 `isSheet`의 모바일 위치를 `relative`에서 `fixed`로 고쳤다(스크롤한 채 열면 페이지가 맨 위로 튀던 결함). `isSheet`를 쓰는 가계부 시트 모달(`ExpenseForm`·`ExpenseAddModal`·`ExpenseReceiptUpload`·`ExpenseReceiptReview`)에도 적용되며 375px에서 아래에 붙는 것을 확인했다. 확인 창은 `isConfirm`일 때 `role="alertdialog"`·`aria-describedby`가 붙는다
 - 연결 남음 KSJ(SCR-MYP-010): `/inquiries/new`로 가는 router state에 `pixelCharSn`이 추가됐다(`{ inquiryType: 'PIXEL_CHARACTER', petSn, pixelCharSn, imageUrl }`). `InquiryWritePage`가 state의 `pixelCharSn`을 문의 등록 요청에 실어 줘야 서버(`InquiryService.create` → `PixelCharacterService.receiveErrorInquiry`)가 캐릭터 작업에 문의를 연결한다
@@ -42,4 +41,3 @@ SCR-MYP-002 반려동물 프로필 목록 · 가족 영역 반응형 개편과 �
 - 목표체중 오류 문구 "0보다 큰 숫자로 입력해 주세요"는 화면설계서에 없지만 필요해서 유지한다(2026-10-20 사람 결정). 명세에 문구를 넣을지는 팀에 확인한다
 - `index.css`의 그림자 토큰을 시안 이름에 맞춰 바꿨다(2026-10-20 사람 결정): `shadow-depth-sm`·`md`·`lg`(구 card·pop·modal), `ring-focus`·`ring-error`(`@utility`, 구 focus·error). Tailwind 기본 `shadow-sm`·`lg`를 쓰는 다른 화면이 있어 `depth`를 붙였다. `OPEN_ISSUES.md` 스타일링 항목에 제안으로 적었고, 팀이 합의하면 확정한다
 - 디자인 반영 때 정한 스타일 결정(토큰을 `@theme`에, Pretendard CDN, 브랜드 색 #285a5c 계열, 아이콘은 lucide 대응, 가계부용 tone·warn 색 토큰 추가)을 팀과 맞춘 뒤 `docs/OPEN_ISSUES.md` 스타일링 항목을 갱신한다
-- 털색 신규 6개(강아지 황색·세이블·멀, 고양이 젖소·카오스·포인트)는 백엔드가 코드 번호를 정하면 `features/pet/shared/petCodes.js`의 `COLR`와 `COLR_OPTIONS`에 넣는다. 이름 변경(블랙탄·파티)과 순서는 커밋 08c33cf에 반영됨

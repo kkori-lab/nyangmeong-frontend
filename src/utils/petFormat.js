@@ -1,6 +1,7 @@
 import {
   COLR_DRCT_INPT,
   COLR_OPTIONS,
+  findColrName,
   PET_GNDR_OPTIONS,
   PET_SE_OPTIONS,
 } from './petCodes';
@@ -23,7 +24,13 @@ export const getGndrName = (pet) => findName(PET_GNDR_OPTIONS, pet.petGndrCd);
 export const getColrName = (pet) =>
   pet.colrCd === COLR_DRCT_INPT
     ? (pet.colrDrctInptNm ?? '')
-    : findName(COLR_OPTIONS[pet.petSeCd], pet.colrCd);
+    : findName(COLR_OPTIONS[pet.petSeCd], pet.colrCd) ||
+      findColrName(pet.colrCd);
+
+/** 저장된 털색이 그 종의 선택지에 없으면 true (직접 입력은 어느 종에서나 맞다) */
+export const isColrMismatch = (pet) =>
+  pet.colrCd !== COLR_DRCT_INPT &&
+  !COLR_OPTIONS[pet.petSeCd]?.some((colr) => colr.code === pet.colrCd);
 
 export const formatWeight = (kg) => `${kg}kg`;
 
