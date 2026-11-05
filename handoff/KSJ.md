@@ -2,15 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-CMU-004 우리동네 펫돌봄 · 채팅 여부·최저시급 연결 (2026-11-05) — 상태: 끝 (검증 1회차 `확인 못 함 있음`(내 것 없음, 연결 남음만), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-05)
+SCR-CSC-003 1:1 문의 · 상세 본문 PostBody·로그인 연결 정리 (2026-11-05) — 상태: 끝 (검증 2회차 통과, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-05)
 
-- 바꾼 것: `CareSideBox.jsx`에 방문자 「내 채팅」(상태 배지, 끝난 글은 [내 채팅 보기])·작성자 「매칭된 돌보미」 칸을 상세 응답 `chatting`·`mtchSitterNcnm`으로, 글쓰기·수정 최저시급 안내·검사·문구를 `GET /care-recruitments/minimum-wage` 값으로(상수 제거, 서버 `CARE_MIN_WAGE_NOT_MET`은 금액 칸에 표시)
+- 바꾼 것: 문의 상세 본문·첨부를 `PostBody`로, 상세 오류를 `EmptyResult` 박스로, 캐릭터 오류 문의 등록에 `pixelCharSn` 전송, 그때 첨부 한도 9장(`ImageAttach`에 `max` prop, 기본 10), `communityRoutes.js` 주석 정리. 로그인 연결 남음(CMU-001·002·004, CSC-003-16)을 마일스톤에서 닫음
 
 ## 다음에 할 것
 
-### 내가 할 것(프론트, 마일스톤 절 없음. `/start`가 새로 만든다)
-- 1:1 문의 상세(CSC-003)에 `components/PostBody` 적용. 펫이야기·공지·펫뉴스·실종센터·펫돌봄은 적용됨(최소 200px은 사진과 글을 합친 영역 기준, 아래 여백 없음. 「‹ 목록으로」와 구분선은 각 상세가 둔다)
-- 로그인 관련 연결 남음 정리: 커뮤니티 경로 전체가 `auth: 'member'`이고 `ProtectedRoute`가 로그인 뒤 원래 화면으로 돌려보낸다(LJS 0adaaa4). 로그아웃 상태로 확인한 뒤 CMU-001(FN-001-09·11·14·15 로그인 이동)·CMU-002(FN-002-05·10 연락처·로그인 이동)·CMU-004(FN-004-11) 연결 남음을 마일스톤에서 닫고, `communityRoutes.js`의 「로그인 구현 전 public」 주석을 고친다
+### 내가 할 것(프론트, 낮은 우선순위)
 - (낮은 우선순위) 공지 본문 맨 끝 줄이 못 불러오는 이미지면 그 앞 문단 아래 20px이 남는다(`PostBody` `last:mb-0`이 빈 fragment 때문에 안 걸림). 거슬리면 이미지 블록에 감싸는 요소를 둔다
 - (낮은 우선순위) 문의를 수정해 저장하면 `inquiryKeys.all` 무효화가 이미지 쿼리까지 다시 받아 방금 지운 첨부에 404 요청이 한 번 나간다(화면 영향 없음). 거슬리면 무효화 범위를 목록·상세로 좁힌다
 
@@ -27,7 +25,7 @@ SCR-CMU-004 우리동네 펫돌봄 · 채팅 여부·최저시급 연결 (2026-1
 - SCR-CMU-001: 댓글 알림 저장(FN-CMU-001-11, YAY `notification`)
 - SCR-CMU-002: 장소 검색을 YAY `GET /places`로 교체(FN-CMU-002-11, YAY), 종료 알림(FN-CMU-002-09, YAY). 읍·면·동 필터는 DB `RGN` 전주시 아래 행이 생기면 다시 본다
 - SCR-CMU-003: FN-CMU-003-04 관리자 글 첨부 이미지 실제 표시(시드 첨부 4061~4074가 공개 주소에서 404, LJS 관리자 뉴스 등록이 공개 파일로 저장하는지). 비공개 파일이면 `NewsDetail.jsx`를 `useFileImage`로 바꾼다
-- SCR-CSC-003: FN-CSC-003-10 `pixelCharSn`·`charPhotoSn` 전송(SJM 캐릭터 화면이 `petSn`만 넘김), 003-14 답변 알림(YAY), 003-16 로그인 화면 쿠키 뒤 동작 확인(YAY)
+- SCR-CSC-003: FN-CSC-003-14 답변 알림(YAY). 003-10 `charPhotoSn`은 SJM 캐릭터 화면이 넘기면 `createInquiry`에 더한다(서버 선택 값)
 - 375px 페이지 가로 스크롤은 공용 푸터가 원인(`UserFooter.jsx`, LJS). LJS 반응형 작업이 들어오면 다시 본다(CSC 추가-4). 푸터 일러스트와 내용 사이 여백도 LJS가 정한다
 
 ### 백엔드(백엔드 저장소에서 /start)

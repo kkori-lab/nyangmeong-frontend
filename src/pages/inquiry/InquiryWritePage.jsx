@@ -49,11 +49,17 @@ export default function InquiryWritePage() {
     );
   }
 
+  /** 캐릭터 화면에서 넘겨받은 pixelCharSn은 유형이 픽셀 캐릭터 그대로일 때만 보낸다 */
   const handleSubmit = (values) =>
-    mutate(values, {
-      onSuccess: ({ otoInqrySn }) =>
-        navigate(generatePath(PATHS.INQUIRY_DETAIL, { otoInqrySn })),
-    });
+    mutate(
+      values.inqryTypeCd === INQUIRY_TYPE_PIXEL_CHARACTER
+        ? { ...values, pixelCharSn: state?.pixelCharSn }
+        : values,
+      {
+        onSuccess: ({ otoInqrySn }) =>
+          navigate(generatePath(PATHS.INQUIRY_DETAIL, { otoInqrySn })),
+      },
+    );
 
   return (
     <InquiryForm
@@ -73,6 +79,7 @@ export default function InquiryWritePage() {
       isPending={isPending}
       errorMessage={error?.message}
       fieldErrors={error?.fields}
+      characterLinked={state?.pixelCharSn != null}
       onSubmit={handleSubmit}
     />
   );

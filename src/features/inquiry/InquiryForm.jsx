@@ -5,8 +5,9 @@ import AutoTextarea from '@/components/AutoTextarea';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import ConfirmModal from '@/components/ConfirmModal';
 import DropdownSelect from '@/components/DropdownSelect';
-import ImageAttach from '@/components/ImageAttach';
+import ImageAttach, { MAX_IMAGES } from '@/components/ImageAttach';
 import { PATHS } from '@/routes/paths';
+import { INQUIRY_TYPE_PIXEL_CHARACTER } from './api';
 import { useInquiryImageUrls } from './queries';
 
 const TITLE_MAX = 50;
@@ -41,6 +42,7 @@ function FieldError({ message }) {
  * - initial: { inqryTypeCd, inqryTtl, inqryCn, imgs }. 수정은 서버 상세 응답을 그대로 전달
  * - types: 문의 유형 공통코드 [{ comCd, comCdNm }]
  * - errorMessage·fieldErrors: 서버 오류의 message와 입력값 검증 오류 fields([{ field, message }])
+ * - characterLinked: 캐릭터 화면에서 넘겨받은 캐릭터가 있음. 유형이 픽셀 캐릭터면 서버가 캐릭터 이미지를 첫 첨부로 붙이므로 사용자 첨부는 1장 적게
  * - onSubmit({ inqryTypeCd, inqryTtl, inqryCn, images(새 File들), keepAtchFileSns(남길 기존 첨부) })
  */
 export default function InquiryForm({
@@ -51,6 +53,7 @@ export default function InquiryForm({
   isPending,
   errorMessage,
   fieldErrors,
+  characterLinked = false,
   onSubmit,
 }) {
   const navigate = useNavigate();
@@ -68,6 +71,10 @@ export default function InquiryForm({
   const [leaveTo, setLeaveTo] = useState(null);
 
   const isEdit = mode === 'edit';
+  const maxImages =
+    characterLinked && type === INQUIRY_TYPE_PIXEL_CHARACTER
+      ? MAX_IMAGES - 1
+      : MAX_IMAGES;
   const isDirty =
     type !== initial.inqryTypeCd ||
     title !== initial.inqryTtl ||
@@ -103,6 +110,8 @@ export default function InquiryForm({
     if (!type) nextErrors.type = '문의 유형을 골라 주세요';
     if (!title.trim()) nextErrors.title = '제목을 입력해 주세요';
     if (!body.trim()) nextErrors.body = '내용을 입력해 주세요';
+    if (images.length > maxImages)
+      nextErrors.images = `캐릭터 오류 문의는 이미지를 최대 ${maxImages}장까지 올릴 수 있어요`;
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0 || isPending) return;
     onSubmit({
@@ -259,9 +268,14 @@ export default function InquiryForm({
               ? { ...image, url: existingUrls[image.atchFileSn] ?? null }
               : image,
           )}
-          onChange={setImages}
+          onChange={(next) => {
+            setImages(next);
+            clearError('images');
+          }}
+          max={maxImages}
           hint="화면 캡처를 함께 올려 주시면 확인이 빨라요."
         />
+        <FieldError message={errors.images} />
       </form>
 
       {errorMessage && (
