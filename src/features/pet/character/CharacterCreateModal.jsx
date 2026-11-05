@@ -6,13 +6,9 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
 import { useCharacterImage } from '@/hooks/useCharacterImage';
 import { PATHS } from '@/routes/paths';
+import { getColrName } from '@/utils/petFormat';
 import { useCreateCharacter } from '../queries';
-import {
-  CHRC_STTS,
-  COLR_DRCT_INPT,
-  COLR_OPTIONS,
-  PET_SE,
-} from '../shared/petCodes';
+import { CHRC_STTS, PET_SE } from '../shared/petCodes';
 
 const PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
@@ -25,12 +21,6 @@ const getPhotoError = (file) => {
   if (!PHOTO_EXTENSIONS.includes(ext)) return MSG_PHOTO_TYPE;
   if (file.size > PHOTO_MAX_BYTES) return MSG_PHOTO_SIZE;
   return null;
-};
-
-/** 반려동물 등록 정보에서 읽기 전용으로 보여 줄 털색 */
-const getColrNm = (pet) => {
-  if (pet.colrCd === COLR_DRCT_INPT) return pet.colrDrctInptNm;
-  return COLR_OPTIONS[pet.petSeCd]?.find((c) => c.code === pet.colrCd)?.name;
 };
 
 /**
@@ -47,7 +37,7 @@ export default function CharacterCreateModal({ pet, onClose }) {
   const { mutate, isPending } = useCreateCharacter();
   const characterImage = useCharacterImage(pet.petSn, 'full');
 
-  const colrNm = getColrNm(pet);
+  const colrNm = getColrName(pet);
 
   const handlePhotoChange = (event) => {
     const file = event.target.files[0] ?? null;

@@ -7,10 +7,12 @@ import { PATHS } from '@/routes/paths';
 import {
   COLR_DRCT_INPT,
   COLR_OPTIONS,
+  findColrName,
   PET_GNDR_OPTIONS,
   PET_SE,
   PET_SE_OPTIONS,
 } from '@/utils/petCodes';
+import { isColrMismatch } from '@/utils/petFormat';
 import {
   useCreatePet,
   useLastWeightRecord,
@@ -69,6 +71,23 @@ const normalizeList = (value) =>
 const toNumberOrNull = (value) => (value === '' ? null : Number(value));
 const toTextOrNull = (value) => value.trim() || null;
 
+const PET_SE_NAME = Object.fromEntries(
+  PET_SE_OPTIONS.map(({ code, name }) => [code, name]),
+);
+
+/** 저장된 털색이 그 종 목록에 없을 때 선택지로 보여 줄 원래 값. 없으면 null */
+const getOrphanColr = (pet) => {
+  if (!pet || !isColrMismatch(pet)) return null;
+  const owner = PET_SE_OPTIONS.find(({ code }) =>
+    COLR_OPTIONS[code]?.some((colr) => colr.code === pet.colrCd),
+  );
+  const name = findColrName(pet.colrCd) || '알 수 없는 털색';
+  return {
+    code: pet.colrCd,
+    label: owner ? `${name} (${owner.name} 털색)` : name,
+  };
+};
+
 const formatRecordDate = (rcdDt) => rcdDt.slice(5, 10);
 
 /** 서버 필드명 -> 화면 오류 자리 매핑 */
@@ -83,7 +102,7 @@ const ERROR_KEY = {
 const errorKeyOf = (field) => ERROR_KEY[field] ?? field;
 
 /** 오류 목록 (화면 순서) */
-const validate = ({ form, breedText, isWeightLocked }) => {
+const validate = ({ form, breedText, isWeightLocked, isColrMismatched }) => {
   const errors = [];
   const isVrtyDrctInpt = form.vrtySn === VRTY_DRCT_INPT;
   const isColrDrctInpt = form.colrCd === COLR_DRCT_INPT;
@@ -132,6 +151,8 @@ const validate = ({ form, breedText, isWeightLocked }) => {
   }
   if (form.colrCd === '') {
     errors.push(['colr', '털색을 골라 주세요', 'pet-colr']);
+  } else if (isColrMismatched) {
+    errors.push(['colr', '털색을 다시 골라 주세요', 'pet-colr']);
   } else if (isColrDrctInpt && !form.colrDrctInptNm.trim()) {
     errors.push(['colr', '털색을 직접 입력해 주세요', 'pet-colr-self']);
   }
@@ -199,6 +220,15 @@ function PetForm({ pet, lastBdwgRcd, onClose }) {
   const isVrtyDrctInpt = form.vrtySn === VRTY_DRCT_INPT;
   const isColrDrctInpt = form.colrCd === COLR_DRCT_INPT;
   const colrOptions = COLR_OPTIONS[form.petSeCd] ?? [];
+  /** 수정 진입 때 저장된 털색이 그 종 목록에 없으면 원래 값을 보여 주고 다시 고르게 한다 */
+  const [orphanColr] = useState(() => getOrphanColr(pet));
+  const isOrphanSelected =
+    orphanColr != null &&
+    form.petSeCd === pet.petSeCd &&
+    form.colrCd === orphanColr.code;
+  const orphanNotice = isOrphanSelected
+    ? `${PET_SE_NAME[form.petSeCd]} 털색 목록에 없는 값이에요. 다시 골라 주세요`
+    : null;
   const isPending = createPet.isPending || updatePet.isPending;
 
   const clearError = (...fields) =>
@@ -265,6 +295,7 @@ function PetForm({ pet, lastBdwgRcd, onClose }) {
       form,
       breedText,
       isWeightLocked: lastBdwgRcd != null,
+      isColrMismatched: isOrphanSelected,
     });
     if (found.length > 0) {
       setErrors(
@@ -474,6 +505,8 @@ function PetForm({ pet, lastBdwgRcd, onClose }) {
               id="pet-colr"
               label="털색"
               required
+              help={orphanNotice}
+              helpId="pet-colr-h"
               error={errors.colr}
             >
               <div className="relative">
@@ -483,13 +516,18 @@ function PetForm({ pet, lastBdwgRcd, onClose }) {
                   value={form.colrCd}
                   onChange={handleChange}
                   aria-invalid={errors.colr ? 'true' : undefined}
-                  aria-describedby="pet-colr-e"
+                  aria-describedby={
+                    orphanNotice ? 'pet-colr-h pet-colr-e' : 'pet-colr-e'
+                  }
                   className={`${INPUT} cursor-pointer appearance-none pr-9 invalid:text-placeholder`}
                   required
                 >
                   <option value="" disabled>
                     털색 선택
                   </option>
+                  {isOrphanSelected && (
+                    <option value={orphanColr.code}>{orphanColr.label}</option>
+                  )}
                   {colrOptions.map((colr) => (
                     <option key={colr.code} value={colr.code}>
                       {colr.name}
