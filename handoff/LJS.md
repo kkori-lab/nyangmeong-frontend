@@ -2,41 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-CMU-005·SCR-COM-009 채팅 · 채팅 API 연결 — 진행 중 (중간 저장 2026-11-05). 코드는 다 바꿨고(실제 API·STOMP 실시간·추가-1·2), 사람이 두 계정 화면을 확인했다. 검증 판정이 `실패`(회차 2, 두 계정 화면을 검증 에이전트가 확인 못 함)라 `끝`이 아니다
-
-기획 근거: 백엔드 develop `docs/api/community.md`(채팅방·메시지·매칭 DTO, 「실시간」 절)와 코드값 enum(`ChatMessageType`·`CareMatchStatus`·`ChatRoomStatus`). 명세 기능 ID 추가가 없는 연결 작업이라 기능명세서·화면설계서는 다시 뽑지 않았다. 디자인: 없음(기존 화면 그대로, 모양은 바꾸지 않는다).
-
-- 코드값(`features/chat/shared/chatCodes.js`와 쓰는 곳): 메시지 유형 CHTC0005 텍스트·0006 사진·0007 주소·0008 거래 카드·0009 시스템. 역할 `OWNER`→`GUARDIAN`(서버 값). 거래 상태 PCAC0012 수락 대기~0018 무응답 종료, 매칭 전은 `null`(가짜 `PRE`·`ABORTED` 없앰, 나가기로 바뀌는 상태는 요청 취소 PCAC0017). 방 상태 CHTC0001 이용 중·0002 읽기 전용(가짜 `'OPEN'` 비교를 고친다). 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`. 화면: 목록 거래 배지와 닉네임 옆 「돌보미/보호자」가 실제 방 값대로 나온다
-- FN-CMU-005-02·03, FN-COM-009-02·05·06 목록·안 읽은 수·방 정보(`features/chat/api.js`, `queries.js`): `GET /chat-rooms?unreadOnly=`, `GET /chat-rooms/unread-count`, `GET /chat-rooms/{otoChatRoomSn}`(KSJ). 완료 조건 — 화면: 로그인 뒤 헤더 채팅 배지 수가 unread-count 응답과 같고, 채팅 모달 목록에 실제 방이 마지막 대화 최신순으로 나오며 [안 읽은 것만]이 걸러진다. 참여자가 아닌 방 번호로 열면 기존 접근 불가 화면이 나온다(오류 코드는 실제 응답 코드로 맞춘다)
-- FN-CMU-005-04·05, FN-COM-009-07·08·13~15 메시지(`api.js`, `queries.js`, `room/ChatConversation.jsx`, `room/ChatMessageInput.jsx`): `GET /chat-rooms/{otoChatRoomSn}/messages?beforeChatMsgSn=&size=30`를 `useInfiniteQuery`로(최신순 응답을 뒤집어 그리고, 맨 위로 올리면 이전 30건), `POST .../messages`는 multipart(`images`에 File, `idmptDmndId` 재시도 그대로), `POST .../read`(`lastPrslMsgSeq`=표시된 마지막 `msgSeq`). 사진은 `photos[].atchFileSn`으로 `GET /chat-rooms/{otoChatRoomSn}/images/{atchFileSn}`를 `useFileImage`로 받아 그린다(보내기 전 미리보기만 로컬 주소). 가짜 필드 `tagCn`·`photos[].url`을 없앤다. 완료 조건 — 화면: 텍스트·사진·주소를 보내면 대화에 나오고 새로고침해도 남는다. 사진이 열린다. 방을 열면 그 방 안 읽은 수가 0이 된다. 30건 넘는 방에서 위로 올리면 이전 메시지가 이어 붙는다(30건 넘는 방이 없으면 이유와 함께 확인 못 함)
-- FN-CMU-005-01, FN-COM-009-16 방 열기(`api.js`, `features/community/care/CareDetail.jsx`는 그대로): `POST /chat-rooms { pstSn }`(KSJ) 응답의 `otoChatRoomSn`으로 연다. 완료 조건 — 화면: 남의 모집중 펫돌봄 글 [채팅하기]로 방이 열리고, 같은 글에서 다시 누르면 같은 방이 열린다
-- FN-CMU-005-06~11 거래(`api.js`, `queries.js`, `room/CareDealCard.jsx`): 매칭 요청 `POST /care-matches { otoChatRoomSn, idmptDmndId }`, 나머지는 방의 `petPrtcMtchSn`으로 `accept`·`cancel { cnclRsn }`·`completion-requests { idmptDmndId }`·`confirm-completion`·`confirm-receipt { rcvYn }`. 취소 사유는 지금 `tagCn` 메시지로 보내던 것을 `cnclRsn`으로. 카드의 조건 요약(가짜 `rcrtSummary`)과 수령 확인 금액은 `GET /care-matches/{petPrtcMtchSn}`의 `cnd`(일정·`acrdCstAmt`·`acrdPrtcCn`)로 만들고, 매칭 전이면 요약 줄을 숨긴다. 시스템 메시지 강조(가짜 `sysToneCd`)는 서버에 없어 한 가지 안내 줄 모양으로 그린다. 나가기 `POST /chat-rooms/{otoChatRoomSn}/leave`. 완료 조건 — 화면: 보호자로 매칭 요청 → 배지 「수락 대기」, 시스템 안내 줄이 생긴다. 요청 취소에 사유를 넣으면 「요청 취소」가 된다. 수락~수령 확인은 상대 계정이 필요해 아래 질문의 계정으로 확인한다
-- 실시간(결정 (1)로 바뀜, FN-COM-009-17·19): `@stomp/stompjs`로 백엔드 `/ws`(쿠키 인증)에 붙는다. `features/chat/realtime.js`(연결·`/user/queue/chat` 구독·`/app/chat/view` 보내기)와 `queries.js`의 훅: `MESSAGE`면 그 방 메시지 캐시에 붙이고 목록·안 읽은 수를 무효화, `READ`면 목록·안 읽은 수를 무효화. 방을 열면 `{ otoChatRoomSn }`, 닫거나 창이 포커스를 잃으면 `{ otoChatRoomSn: null }`을 보낸다. 거래 단계가 바뀐 시스템 메시지를 받으면 방 정보도 무효화한다. dev 서버에서 `/ws`를 백엔드로 넘기도록 `vite.config.js` 프록시에 `ws: true`로 붙인다. 연결이 끊기면 라이브러리 재연결을 쓴다. 완료 조건 — 화면: 다른 브라우저 컨텍스트(상대 계정)가 보낸 메시지가 새로고침 없이 대화에 나타나고, 목록 마지막 대화·안 읽은 수가 바뀐다
-- 가짜 정리: `api.js`의 가짜 방·메시지·전이표·localStorage 읽음, `?fakeChat*` 쿼리, `room/FakePeerTools.jsx`와 `fakePeerAct`를 지운다. 장소 검색 `searchChatPlaces`는 실제 API가 정해지지 않아 가짜로 남긴다(주석에 남김). 완료 조건 — 명령: `yarn -s lint`, `yarn -s build`, `grep -rn "fakeChat\|FakePeerTools\|sysToneCd\|tagCn\|rcrtSummary" src`가 비어 있다
-- 질문: (1) 실시간을 이번에 STOMP로 붙일까요? 그러면 `@stomp/stompjs`를 새로 넣어야 해 팀 확인이 필요합니다. (추천: 이번은 주기 조회, STOMP는 팀 확인 뒤 따로) (2) 두 계정 확인(회원 152 → `/community/petcare/3` 방 8, 회원 146 → `/community/petcare/1`, 거래 수락~수령)에 쓸 두 회원의 로그인 방법을 알려 주세요. 없으면 검증 계정 하나로 되는 것만 확인하고 나머지는 이유와 함께 "확인 못 함"으로 둡니다. (추천: 로컬 DB에서 두 회원 비밀번호를 검증용으로 맞춰 주기)
-  - 결정 (1): `@stomp/stompjs` 추가(사람 2026-11-05, 백엔드 STOMP는 이미 있다)
-  - 결정 (2): 사람이 준 회원 검증 계정 두 개로 한다(계정 값은 `CLAUDE.local.md`). 회원 152·146 계정을 쓸 수 있으면 그것으로, 아니면 두 계정 사이의 실제 방으로 확인한다. DB는 공용 서버라 비밀번호를 바꾸지 않는다
-- 새 의존성: `@stomp/stompjs` 7.x(실시간 수신, 결정 (1)). `package.json`·`yarn.lock`, `vite.config.js`(`/ws` 프록시)를 고친다
-
-### 추가 요청
-
-| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
-| --- | --- | --- | --- |
-| 추가-1 | `layouts/UserHeader.jsx`, `features/chat/queries.js`(`useChatUnreadCount`에 켜기 값), `pages/dev/ChatDevPage.jsx`(가짜 방 링크 삭제) | 명령: `yarn -s lint`, `yarn -s build`. 화면: 로그아웃 상태로 공개 화면(예: `/login` 밖의 public 화면)을 열면 로그인 화면으로 튕기지 않고 `/api/chat-rooms/unread-count` 요청과 `/ws` 연결이 없다. 로그인하면 헤더 채팅 배지가 나온다 | 요청 2026-11-05 12:20 "헤더에서 useMe로 로그인일 때만 안 읽은 수·소켓을 켜기로 승인, 개발 화면 가짜 링크 삭제 확인" |
-| 추가-2 | `features/notification/queries.js`(`useUnreadCount`에 켜기 값), `layouts/NotificationDropdown.jsx`(`useMe`로 로그인일 때만), `CLAUDE.local.md`(회원 검증 계정 두 개 줄을 "화면 검증 로그인" 절 맨 앞으로) | 명령: `yarn -s lint`, `yarn -s build`. 화면: 로그아웃 상태로 public 화면(예: `/dev/chat`)을 열면 `/api/notifications/unread-count` 요청이 없고 로그인 화면으로 튕기지 않는다. 로그인하면 헤더 알림 배지가 나온다 | 요청 2026-11-05 12:24 "검증 1회차 실패 뒤 알림 unread-count도 로그인일 때만 조회, 검증 계정 줄 옮기기 둘 다 진행" |
+SCR-CMU-005·SCR-COM-009 채팅 · 채팅 API 연결 — 끝(2026-11-05). 가짜 채팅 API를 실제 채팅방·메시지·매칭 API와 STOMP 실시간 수신으로 바꿨고, 추가-1·2(로그아웃일 때 채팅·알림 안 읽은 수와 소켓 끄기)까지 사람이 두 계정으로 확인했다
 
 ## 다음에 할 것
 
-- 다음 작업 1순위: SCR-CMU-005·SCR-COM-009 채팅 API 연결 마무리. 검증 루프 2회차 실패로 보관 중. 기획은 고치지 않는다. 루프를 버리려면 `! sh scripts/verify-loop.sh clear`
-  - 1회차: 검증 에이전트의 회원 검증 계정 로그인이 권한 분류기에 거부됨(Playwright 코드 실행 로그인. 화면 입력 로그인은 2회차에 됨)
-  - 2회차: 두 회원 검증 계정 사이에 방·모집글이 없어 보내기·방 열기·거래(수락~수령)·주소 공유·상대 계정 실시간·30건 페이지를 확인 못 함. 공용 DB에 글·방·메시지를 만들 허용이 없었다
-  - 다시 검증하기 전에: 사람이 회원 검증 계정 하나로 모집중 펫돌봄 글을 쓰고 다른 계정으로 [채팅하기]를 눌러 방을 만들어 두거나, 검증 에이전트가 공용 DB에 검증용 글·방·메시지·매칭을 만들어도 된다고 `CLAUDE.local.md`에 적는다. 그다음 `/verify`(3회차에서도 실패하면 사람에게 넘어간다)
-  - 사람 확인(2026-11-05): 위 확인 못 한 화면을 사람이 두 계정으로 확인했다고 답함
-  - 공용 DB 검증 데이터: 방 1에 "[검증]…"·"[검증2]…" 메시지와 사진 4312·4314, 매칭 101 요청·취소 이력, 모집글 49에 방 260. 메시지는 앱에서 지울 수 없어 DB에서 지운다
-  - 남은 가짜: 주소 공유의 장소 검색 `searchChatPlaces`(실제 API 미정). 009-18 알림 억제는 서버(YAY)
-  - 기존 시드 채팅 사진(예: 3530·3866)은 서버가 404 `FILE_NOT_FOUND`(파일이 이 PC에 없음). 코드 문제 아님
-  - 돌봄 장소 찾기(KSJ `PlaceSearchModal`) 지도 오류 원인 조사(2026-11-05, 말만): 키 없음·서버 재시작 안 함, 카카오 Web 도메인에 `localhost:5180` 미등록, JS 키 대신 REST 키, 카카오맵 사용 설정 OFF, 네트워크·광고 차단. 공용 `hooks/useKakaoMap.js`는 `onload` 안에서 예외가 나면 Promise가 끝나지 않아 안내 없이 검색 버튼만 비활성으로 남는다
-- 다음 작업 2순위(사람 2026-11-05): SCR-ADM-022 펫돌봄 거래 완료 사진(마일스톤 `대기` 절에 같이). 백엔드 PR #158로 `GET /api/admin/care-matches/{petPrtcRcrtSn}/images/{atchFileSn}`(관리자 로그인, 응답은 이미지 바이트)가 생겼다. 완료 사진을 `publicFileUrl`로 부르던 곳을 이 경로(`useFileImage`)로 바꾼다. 시드 완료 사진 93장 중 파일이 있는 15장만 열리고 나머지는 404(예: 모집 5의 3555~3557)
+- SCR-CMU-005 연결 남음: FN-COM-009-08 주소 공유의 장소 검색 `searchChatPlaces` (장소 검색 API 미정, 가짜로 남김)
+- SCR-COM-009 연결 남음: FN-COM-009-18 열린 방 알림 억제 (서버 알림 쪽, YAY)
+- SCR-CMU-005 공용 DB 검증 데이터: 방 1에 "[검증]…"·"[검증2]…" 메시지와 사진 4312·4314, 매칭 101 요청·취소 이력, 모집글 49에 방 260. 메시지는 앱에서 지울 수 없어 DB에서 지운다
+- SCR-CMU-005 참고: 기존 시드 채팅 사진(예: 3530·3866)은 서버가 404 `FILE_NOT_FOUND`(파일이 이 PC에 없음). 코드 문제 아님
+- 돌봄 장소 찾기(KSJ `PlaceSearchModal`) 지도 오류 원인 조사(2026-11-05, 말만): 키 없음·서버 재시작 안 함, 카카오 Web 도메인에 `localhost:5180` 미등록, JS 키 대신 REST 키, 카카오맵 사용 설정 OFF, 네트워크·광고 차단. 공용 `hooks/useKakaoMap.js`는 `onload` 안에서 예외가 나면 Promise가 끝나지 않아 안내 없이 검색 버튼만 비활성으로 남는다
+- 다음 작업 1순위(사람 2026-11-05): SCR-ADM-022 펫돌봄 거래 완료 사진(마일스톤 `대기` 절에 같이). 백엔드 PR #158로 `GET /api/admin/care-matches/{petPrtcRcrtSn}/images/{atchFileSn}`(관리자 로그인, 응답은 이미지 바이트)가 생겼다. 완료 사진을 `publicFileUrl`로 부르던 곳을 이 경로(`useFileImage`)로 바꾼다. 시드 완료 사진 93장 중 파일이 있는 15장만 열리고 나머지는 404(예: 모집 5의 3555~3557)
 - SCR-ADM-080 사람이 볼 것(판정 밖, 2026-11-05): ① 페이지 머리 안내문(`AdminAiRoutesPage.jsx`)에 "우선순위가 높은(숫자가 작은) 행이 먼저예요"가 남아 모달의 "같은 지시어일 때 순서"와 말이 어긋난다 ② 모달 겹침 경고는 사용 안 함 행도 센다(표는 안 셈) ③ 매핑표 API가 가짜 응답이고 처음 값에는 겹치는 지시어가 없다
 - SCR-ADM-091 사람이 볼 것(2026-11-05): 대시보드 "알림 발송 실패(24시간)" 링크는 대시보드가 아직 가짜(`notiFailCnt` 0)라 화면에 안 보여 응답을 바꿔서만 확인했다. [2]쪽 요청도 로컬 데이터가 4건이라 응답을 바꿔서만 확인했다
 - 다음 추천(2026-11-04): 백엔드 PR #149(backend-a9) 연결 남은 1건 — FN-MYP-010-16 착용 확정(`PUT /api/pixel-characters/{pixelCharSn}/equipped-items` 200) 뒤 Python `/ai/characters/{pixelCharSn}/equipped-image` 합성 요청, 끝나면 `character-image` 캐시 무효화, 409 `EQUIPPED_ITEMS_CHANGED`는 무시(꾸미기 화면). 마일스톤 절이 생기면 `/start`. 그 밖에 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 외부 API 사용량(112)·운영 설정(110)·실종제보(021)·펫돌봄 거래(022)·노출 콘텐츠(023)

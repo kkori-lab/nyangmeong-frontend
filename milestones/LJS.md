@@ -965,17 +965,25 @@
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminReceipts` 가짜를 실제 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrDmndSrcCd=&ocrPrcsSttsCd=&page=&size=`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, failCnt, prcsCnt, errCnt }, content: [{ recptSn, mbrSn, mbrNcnm, ocrDmndSrcCd, ocrPrcsSttsCd, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 출처 `ocrRqstSrcCd` → `ocrDmndSrcCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` 가계부 출처 `TMP00031` → `AIMC0027`. 가짜의 처리 중 `AIMC0002`·성공 `AIMC0003`은 틀렸다(분석중 AIMC0001, 인식성공 AIMC0002, 부분인식 AIMC0003). summary는 현재 상태 기준(성공 = 인식성공·부분인식·저장완료, 실패 = 인식실패 AIMC0004, 처리 중 = 분석중, `errCnt` = 일시오류 AIMC0005는 새 키). 실패율은 `failCnt / totCnt`. 모르는 코드·`fromYmd > toYmd`는 400 `INVALID_INPUT_VALUE`. `ReceiptImageModal.jsx`의 원본 보기 `GET /api/admin/processing/receipts/{recptSn}/image`(경로 가정 그대로), 없는 영수증 404 `RECEIPT_NOT_FOUND`
 - 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`(가짜)
 
-## SCR-CMU-005 우리동네 펫돌봄 채팅 · 채팅 API 연결 — 진행
+## SCR-CMU-005 우리동네 펫돌봄 채팅 · 채팅 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-CMU-005-01~11, FN-COM-009-02·05~08·13~17·19
 - 기다리는 것: 백엔드 펫돌봄 채팅·채팅 모달 API (develop `845613d`, 끝. 계약은 백엔드 `docs/api/community.md`, 실시간 절은 2026-10-22 제안 상태)
 - 완료 조건: `features/chat/api.js` 가짜를 실제 `/chat-rooms`·`/care-matches` API로 바꾼다. 채팅 사진은 `/chat-rooms/{otoChatRoomSn}/images/{atchFileSn}`을 쿠키 인증으로 받아 그린다. 펫돌봄 상세 [채팅하기]·[내 채팅 보기]가 `POST /chat-rooms`로 기존 방을 연다(회원 152 `/community/petcare/3` → 방 8, 회원 146 `/community/petcare/1` → 기존 방). 세부는 핸드오프 "다음에 할 것" 1순위
 - 이미 바뀐 것: `features/chat/api.js`(가짜 응답)
+- 연결 남음: FN-COM-009-08 주소 공유 장소 검색 (장소 검색 API, 담당 미정)
+- 연결 남음: FN-COM-009-18 열린 방 알림 억제 (서버 알림, YAY)
 
 ## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-02
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/processing/character-jobs` 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminCharacterJobs` 가짜를 실제 `GET /api/admin/processing/character-jobs?crtJobSttsCd=&page=&size=`로 바꾼다. 응답은 `{ sttsCnts: [{ crtJobSttsCd, cnt }], content: [{ charCrtJobSn, mbrSn, mbrNcnm, crtJobSttsCd, failRsn, otoInqrySn, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 상태 `jobSttsCd` → `crtJobSttsCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` `CHAR_JOB_STTS`는 CHRG01(CHRC0001 요청·CHRC0002 생성 중·CHRC0003 생성 완료·CHRC0004 생성 실패), `CHAR_JOB_STTS_FAIL` `TMP00044` → `CHRC0004`. `sttsCnts`는 상태 필터와 무관하게 네 줄을 순서대로 주고 없는 상태는 0. 모르는 상태 코드 400 `INVALID_INPUT_VALUE`. `CharacterJobTable.jsx`의 문의 링크는 `otoInqrySn` 그대로
 - 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`·`CharacterJobTable.jsx`(가짜)
+
+## SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·02·03
+- 기다리는 것: 백엔드 SCR-ADM-080 라우팅 매핑표 · 프론트 연결 관리자 매핑표 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/ai.md` "관리자 API" 절의 `/admin/ai/routes` 네 행
+- 완료 조건: `features/adminAiRoute/api.js`의 가짜 네 함수를 실제 `GET /api/admin/ai/routes?q=`(배열, 페이지 없음)·`POST /api/admin/ai/routes`(201 `{ aiRoutMpngSn }`)·`PATCH /api/admin/ai/routes/{aiRoutMpngSn}`(보낸 칸만, 바뀐 행을 돌려줌)·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`로 바꾸고 sessionStorage 가짜를 지운다. 가정과 다른 것: `rprsChipYn`·`useYn`은 true/false('Y'/'N' 아님, `routeLabels.js`·모달·표의 비교를 고친다), `domnNm`은 보내지 않는다(서버가 화면 ID로 정함), 수정에서 화면 ID·파라미터·지시어·비고를 비우려면 빈 문자열을 보낸다(`null`은 그대로 둠), `prrtSeq`는 1 이상(수정에서 없으면 순위 그대로). 화면 이동(AIMC0032)·모달 열기(AIMC0033)인데 화면 ID·지시어가 없으면 400 `INVALID_INPUT_VALUE`, 없는 행 404 `AI_ROUTE_NOT_FOUND`(가짜와 같은 이름). 화면 ID 선택지는 `SCREEN_OPTIONS` 그대로(서버 API 없음). 이동 방식 AIMC0036 보류도 서버는 받는다
+- 이미 바뀐 것: `features/adminAiRoute/api.js`·`routeLabels.js`·`AiRouteFormModal.jsx`·`AiRouteTable.jsx`(가짜)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
