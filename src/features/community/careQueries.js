@@ -9,6 +9,7 @@ import {
   deleteCare,
   getCare,
   getCareList,
+  getMinimumWage,
   updateCare,
 } from './careApi';
 import { reportPost, togglePostLike } from './api';
@@ -17,6 +18,7 @@ export const careKeys = {
   all: ['care'],
   list: (params) => ['care', 'list', params],
   detail: (petPrtcRcrtSn) => ['care', petPrtcRcrtSn],
+  minimumWage: ['care', 'minimumWage'],
 };
 
 export const useCareList = (params) =>
@@ -32,6 +34,14 @@ export const useCare = (petPrtcRcrtSn) =>
     queryKey: careKeys.detail(petPrtcRcrtSn),
     queryFn: () => getCare(petPrtcRcrtSn),
     retry: false,
+  });
+
+/** 관리자가 바꾸면 다음 조회부터 바뀐 값이라 글쓰기·수정을 열 때마다 다시 받는다 */
+export const useMinimumWage = () =>
+  useQuery({
+    queryKey: careKeys.minimumWage,
+    queryFn: getMinimumWage,
+    staleTime: 0,
   });
 
 /** 글·좋아요가 바뀌면 목록·상세를 모두 재조회 */

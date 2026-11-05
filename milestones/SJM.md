@@ -189,6 +189,13 @@
 - 기다리는 것: AI 서버 `POST /ai/receipts`(가계부 출처 `AIMC0027`, LJS), 백엔드 `POST /internal/ai/receipts`(LJS, `docs/api/receipt.md`)
 - 완료 조건: `recognizeReceipt` 가짜를 지우고 실제 요청으로 인식한다. 인식 결과로 저장하면 `recptSn`이 붙는다. 인식 0건·일시 오류·시간 초과는 실패 안내와 [직접 입력](영수증 연결), 서버 파일 거절은 사유 문구
 
+## SCR-MYP-020 포인트 관리/케어미션 · [건강 일지] 버튼을 건강 일지 화면으로 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. FN-MYP-020-09의 [건강 일지] 이동, FN-MYP-003-01의 [건강 일지에서 기록하기] 이동을 닫는다
+- 기다리는 것: 없음. 건강 일지 경로 `PATHS.HEALTH_DIARY`(JAJ)가 develop에 있다
+- 완료 조건: 두 버튼이 토스트·빈 동작 대신 `/health/diary`로 이동한다
+- 연결 남음: FN-MYP-003-01 (건강기록 체중 조회로 `lastBdwgRcd`가 와야 버튼이 보임, JAJ)
+
 ## 제외
 
 - 없음. 마이페이지 명세의 화면은 모두 SJM 담당이다
