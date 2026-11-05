@@ -1,5 +1,6 @@
-import { CircleAlert, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { CircleAlert } from 'lucide-react';
+import { useState } from 'react';
+import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
 import { getYmdOf } from '@/utils/formatDate';
 import { useCaregiversOf, useCreateInvitation } from '../queries';
@@ -95,14 +96,6 @@ export default function InviteModal({ pets, initialPetSn, onClose }) {
     if (!createInvitation.isPending) onClose();
   };
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') close();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  });
-
   const handleEmailChange = (event) => {
     setInvtnTrgtEml(event.target.value);
     setConflict(null);
@@ -153,126 +146,14 @@ export default function InviteModal({ pets, initialPetSn, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
-      <div className="fixed inset-0 bg-[rgba(15,23,35,0.45)]" onClick={close} />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="invite-title"
-        className="relative m-auto flex w-full max-w-[560px] shrink-0 flex-col rounded-modal bg-white shadow-depth-lg"
-      >
-        <header className="flex items-start gap-3.5 border-b border-line-strong px-7 pt-4 pb-2">
-          <h2 id="invite-title" className="text-xl leading-[1.35] font-bold">
-            가족 초대하기
-          </h2>
-          <button
-            type="button"
-            onClick={close}
-            aria-label="닫기"
-            className="-mt-1 -mr-2 ml-auto grid size-9 shrink-0 place-items-center rounded-box text-muted hover:bg-surface-3 hover:text-ink"
-          >
-            <X className="size-5" />
-          </button>
-        </header>
-        <form
-          id="invite-form"
-          onSubmit={handleSubmit}
-          noValidate
-          className="flex flex-col gap-6 px-7 pt-6 pb-7"
-        >
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="invite-email" className={LABEL}>
-              초대할 상대의 이메일
-            </label>
-            <input
-              id="invite-email"
-              type="email"
-              value={invtnTrgtEml}
-              onChange={handleEmailChange}
-              onBlur={() => invtnTrgtEml.trim() && setIsEmailTouched(true)}
-              placeholder="이메일 주소 입력"
-              aria-invalid={
-                isEmailInvalid || serverEmailError ? 'true' : undefined
-              }
-              aria-describedby={
-                isEmailInvalid || serverEmailError
-                  ? 'invite-email-h invite-email-e'
-                  : 'invite-email-h'
-              }
-              className={INPUT}
-            />
-            <p id="invite-email-h" className="text-sm text-subtle">
-              가입한 회원에게는 알림으로, 아직 가입하지 않았다면 이메일로 초대가
-              가요
-            </p>
-            {(isEmailInvalid || serverEmailError) && (
-              <p
-                id="invite-email-e"
-                className="flex items-center gap-1 text-sm text-danger"
-              >
-                <CircleAlert className="size-4 shrink-0" />
-                <span>
-                  {isEmailInvalid
-                    ? '이메일 형식이 올바르지 않아요'
-                    : serverEmailError}
-                </span>
-              </p>
-            )}
-          </div>
-
-          <fieldset className="m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0">
-            <legend className={`${LABEL} mb-1.5 p-0`}>초대할 반려동물</legend>
-            <div className="flex flex-col overflow-hidden rounded-lg border border-line">
-              {ownPets.map((pet) => {
-                const count = coParentCounts[pet.petSn];
-                const conflictLabel = conflictLabelOf(pet.petSn);
-                const disabled =
-                  count == null || isFull(pet.petSn) || conflictLabel != null;
-                const checked = !disabled && selectedPetSns.includes(pet.petSn);
-                return (
-                  <label
-                    key={pet.petSn}
-                    className={`flex min-h-12 items-center gap-3 border-t border-line-soft px-4 first:border-t-0 ${
-                      disabled
-                        ? 'cursor-not-allowed bg-surface-2 text-subtle'
-                        : checked
-                          ? 'cursor-pointer bg-brand-50'
-                          : 'cursor-pointer'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      disabled={disabled}
-                      onChange={() => handleTogglePet(pet.petSn)}
-                      className="size-5 cursor-pointer accent-brand-500 disabled:cursor-not-allowed"
-                    />
-                    {pet.petNm}
-                    {count != null && (
-                      <span className="ml-auto text-sm text-subtle">
-                        {count}/{MAX_CAREGIVERS}명
-                        {isFull(pet.petSn) && ' · 초대 불가'}
-                        {conflictLabel && ` · ${conflictLabel}`}
-                      </span>
-                    )}
-                  </label>
-                );
-              })}
-            </div>
-            {conflict &&
-              conflictMessages(conflict).map((message) => (
-                <p
-                  key={message}
-                  role="alert"
-                  className="flex items-center gap-1 text-sm text-danger"
-                >
-                  <CircleAlert className="size-4 shrink-0" />
-                  <span>{message}</span>
-                </p>
-              ))}
-          </fieldset>
-        </form>
-        <footer className="flex items-center justify-end gap-2 rounded-b-modal border-t border-line bg-[#fbfcfd] px-7 py-4">
+    <Modal
+      isSheet
+      width={560}
+      isPending={createInvitation.isPending}
+      title="가족 초대하기"
+      onClose={close}
+      footer={
+        <div className="flex w-full items-center justify-end gap-2">
           <button
             type="button"
             onClick={close}
@@ -288,8 +169,107 @@ export default function InviteModal({ pets, initialPetSn, onClose }) {
           >
             초대 보내기
           </button>
-        </footer>
-      </div>
-    </div>
+        </div>
+      }
+    >
+      <form
+        id="invite-form"
+        onSubmit={handleSubmit}
+        noValidate
+        className="flex flex-col gap-6"
+      >
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="invite-email" className={LABEL}>
+            초대할 상대의 이메일
+          </label>
+          <input
+            id="invite-email"
+            type="email"
+            value={invtnTrgtEml}
+            onChange={handleEmailChange}
+            onBlur={() => invtnTrgtEml.trim() && setIsEmailTouched(true)}
+            placeholder="이메일 주소 입력"
+            aria-invalid={
+              isEmailInvalid || serverEmailError ? 'true' : undefined
+            }
+            aria-describedby={
+              isEmailInvalid || serverEmailError
+                ? 'invite-email-h invite-email-e'
+                : 'invite-email-h'
+            }
+            className={INPUT}
+          />
+          <p id="invite-email-h" className="text-sm text-subtle">
+            가입한 회원에게는 알림으로, 아직 가입하지 않았다면 이메일로 초대가
+            가요
+          </p>
+          {(isEmailInvalid || serverEmailError) && (
+            <p
+              id="invite-email-e"
+              className="flex items-center gap-1 text-sm text-danger"
+            >
+              <CircleAlert className="size-4 shrink-0" />
+              <span>
+                {isEmailInvalid
+                  ? '이메일 형식이 올바르지 않아요'
+                  : serverEmailError}
+              </span>
+            </p>
+          )}
+        </div>
+
+        <fieldset className="m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0">
+          <legend className={`${LABEL} mb-1.5 p-0`}>초대할 반려동물</legend>
+          <div className="flex flex-col overflow-hidden rounded-lg border border-line">
+            {ownPets.map((pet) => {
+              const count = coParentCounts[pet.petSn];
+              const conflictLabel = conflictLabelOf(pet.petSn);
+              const disabled =
+                count == null || isFull(pet.petSn) || conflictLabel != null;
+              const checked = !disabled && selectedPetSns.includes(pet.petSn);
+              return (
+                <label
+                  key={pet.petSn}
+                  className={`flex min-h-12 items-center gap-3 border-t border-line-soft px-4 first:border-t-0 ${
+                    disabled
+                      ? 'cursor-not-allowed bg-surface-2 text-subtle'
+                      : checked
+                        ? 'cursor-pointer bg-brand-50'
+                        : 'cursor-pointer'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={disabled}
+                    onChange={() => handleTogglePet(pet.petSn)}
+                    className="size-5 cursor-pointer accent-brand-500 disabled:cursor-not-allowed"
+                  />
+                  {pet.petNm}
+                  {count != null && (
+                    <span className="ml-auto text-sm text-subtle">
+                      {count}/{MAX_CAREGIVERS}명
+                      {isFull(pet.petSn) && ' · 초대 불가'}
+                      {conflictLabel && ` · ${conflictLabel}`}
+                    </span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+          {conflict &&
+            conflictMessages(conflict).map((message) => (
+              <p
+                key={message}
+                role="alert"
+                className="flex items-center gap-1 text-sm text-danger"
+              >
+                <CircleAlert className="size-4 shrink-0" />
+                <span>{message}</span>
+              </p>
+            ))}
+        </fieldset>
+      </form>
+    </Modal>
   );
 }
