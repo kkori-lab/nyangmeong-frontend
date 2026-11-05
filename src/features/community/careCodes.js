@@ -66,10 +66,12 @@ export const SIZE_BY_FILTER = Object.fromEntries(
   PET_SIZE_OPTIONS.map((option) => [option.filter, option.code]),
 );
 
-/** 시급 최저 기준. 연 1회 관리자가 갱신하는 설정값이지만 공개 조회 API가 없어 상수로 둔다(서버가 다시 검증) */
-export const MIN_HOURLY_WAGE = 10320;
-export const MIN_WAGE_YEAR = 2026;
-export const MIN_WAGE_MESSAGE = `최저임금을 준수해 주세요. ${MIN_WAGE_YEAR}년 최저 시급은 ${MIN_HOURLY_WAGE.toLocaleString()}원이에요.`;
+/** 서버가 시급이 최저시급보다 적다고 거절할 때의 오류 코드 */
+export const MIN_WAGE_ERROR_CODE = 'CARE_MIN_WAGE_NOT_MET';
+
+/** 시급 미달 문구. 연도·금액은 관리자 설정값(GET /care-recruitments/minimum-wage) */
+export const minWageMessage = ({ lowstHrwgAplcnYr, lowstHrwgAmt }) =>
+  `최저임금을 준수해 주세요. ${lowstHrwgAplcnYr}년 최저 시급은 ${lowstHrwgAmt.toLocaleString()}원이에요.`;
 
 export const isOpen = (post) => post.rcrtSttsCd === RCRT_STTS.OPEN;
 
