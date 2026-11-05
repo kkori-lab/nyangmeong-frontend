@@ -10,12 +10,12 @@ import { PET_SE } from '@/utils/petCodes';
 import {
   CST_UNIT,
   CST_UNIT_OPTIONS,
-  MIN_HOURLY_WAGE,
-  MIN_WAGE_MESSAGE,
-  MIN_WAGE_YEAR,
+  MIN_WAGE_ERROR_CODE,
+  minWageMessage,
   PET_SIZE_OPTIONS,
   PRTC_SHP_OPTIONS,
 } from '../careCodes';
+import { useMinimumWage } from '../careQueries';
 import { useBreeds } from '../missingQueries';
 import BreedCombobox from '../missing/BreedCombobox';
 import PlaceSearchModal from '../missing/PlaceSearchModal';
@@ -136,11 +136,15 @@ export default function CareForm({
 }) {
   const { data: dogBreeds = [] } = useBreeds(PET_SE.DOG);
   const { data: catBreeds = [] } = useBreeds(PET_SE.CAT);
+  /** 받기 전·실패면 안내를 숨기고 화면 검사는 건너뛴다(서버가 다시 검사) */
+  const { data: minWage } = useMinimumWage();
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState({});
   const [isPlaceOpen, setIsPlaceOpen] = useState(false);
   /** 장소를 다시 고르면 그때의 서버 오류는 장소 칸에서 지운다 */
   const [placeSeenError, setPlaceSeenError] = useState(null);
+  /** 금액을 고치면 그때의 서버 최저시급 오류는 금액 칸에서 지운다 */
+  const [amountSeenError, setAmountSeenError] = useState(null);
   const [initialSnap] = useState(() => snapshot(initial));
   const formRef = useRef(null);
 
@@ -152,7 +156,17 @@ export default function CareForm({
     (isRegionError && submitError !== placeSeenError
       ? submitError.message
       : '');
-  const errorMessage = !isRegionError && submitError?.message;
+  /** 서버의 최저시급 거절은 금액 칸 아래에 */
+  const isWageError = submitError?.code === MIN_WAGE_ERROR_CODE;
+  const amountError =
+    errors.amount ||
+    (isWageError && submitError !== amountSeenError
+      ? minWage
+        ? minWageMessage(minWage)
+        : submitError.message
+      : '');
+  const errorMessage =
+    !isRegionError && !isWageError && submitError?.message;
   const isDirty = snapshot(values) !== initialSnap;
 
   useEffect(() => {
@@ -205,8 +219,12 @@ export default function CareForm({
     if (when) next.when = when;
     const amount = Number(values.amount);
     if (!amount) next.amount = '비용을 입력해 주세요';
-    else if (values.cstUnitCd === CST_UNIT.HOUR && amount < MIN_HOURLY_WAGE) {
-      next.amount = MIN_WAGE_MESSAGE;
+    else if (
+      minWage &&
+      values.cstUnitCd === CST_UNIT.HOUR &&
+      amount < minWage.lowstHrwgAmt
+    ) {
+      next.amount = minWageMessage(minWage);
     }
     if (!values.title.trim()) next.title = '제목을 입력해 주세요';
     if (!values.body.trim()) next.body = '상세 설명을 입력해 주세요';
@@ -476,7 +494,7 @@ export default function CareForm({
 
             <fieldset
               tabIndex={-1}
-              data-invalid={Boolean(errors.amount)}
+              data-invalid={Boolean(amountError)}
               className="m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0"
             >
               <legend className={`${LABEL_CLASS} mb-1.5`}>
@@ -495,9 +513,10 @@ export default function CareForm({
                       name="cstUnitCd"
                       value={option.code}
                       checked={values.cstUnitCd === option.code}
-                      onChange={() =>
-                        set({ cstUnitCd: option.code }, ['amount'])
-                      }
+                      onChange={() => {
+                        set({ cstUnitCd: option.code }, ['amount']);
+                        setAmountSeenError(submitError);
+                      }}
                     >
                       {option.name}
                     </RadioOption>
@@ -508,15 +527,21 @@ export default function CareForm({
                   label="금액"
                   maxDigits={9}
                   value={values.amount}
-                  onChange={(amount) => set({ amount }, ['amount'])}
+                  onChange={(amount) => {
+                    set({ amount }, ['amount']);
+                    setAmountSeenError(submitError);
+                  }}
                   className="w-[200px] max-[760px]:w-full"
                 />
               </div>
-              <p className="text-sm text-muted">
-                시급은 {MIN_WAGE_YEAR}년 최저시급{' '}
-                {MIN_HOURLY_WAGE.toLocaleString()}원 이상으로 적어 주세요
-              </p>
-              <FieldError message={errors.amount} />
+              {minWage && (
+                <p className="text-sm text-muted">
+                  시급은 {minWage.lowstHrwgAplcnYr}년 최저시급{' '}
+                  {minWage.lowstHrwgAmt.toLocaleString()}원 이상으로 적어
+                  주세요
+                </p>
+              )}
+              <FieldError message={amountError} />
             </fieldset>
           </Section>
 
