@@ -2,15 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-MYP-003 반려동물 등록/수정 · 종에 맞지 않는 털색 표시와 털색 이름 맞추기 — 끝 (2026-11-05, 검증 `통과` 2회차, 사람 확인 완료)
-- 1 FN-MYP-002-02: 슬라이드 털색 칸이 종 목록에 없는 털색도 이름을 보인다(`getColrName` 폴백, `findColrName`). `CharacterCreateModal`도 `getColrName`을 쓴다
-- 2 FN-MYP-003-03: 수정 모달이 종에 맞지 않는 저장 털색을 "얼룩 (강아지 털색)"으로 보이고 안내하며, 다시 고르기 전에는 저장을 막는다
-- 3 털색 코드: PETC0011 얼룩(`SPOTTED`), 파티 PETC0029, 황색 0028·세이블 0030·멀 0031·젖소 0032·카오스 0033·포인트 0034 추가. 목록 순서는 명세를 따르고 얼룩은 강아지 파티 뒤에 남김. 파티와 얼룩은 합치지 않는다(사람 결정). TC 184·185줄 정리
+SCR-MYP-003 반려동물 등록/수정 · 털색 선택 칸의 선택지 글자색 — 끝 (2026-11-05, 검증 `통과`, 사람 확인 완료)
+- 1 FN-MYP-003-03: `PetFormModal.jsx`의 털색 `<select>`가 열린 목록에서 "털색 선택"만 회색이고 나머지 선택지는 본문색이다. 닫힌 칸 색은 그대로다. 코드는 한 줄이다(`[&>option]:text-ink [&>option:disabled]:text-placeholder`)
 
 ## 다음에 할 것
+- 연결 남음 SCR-MYP-003 FN-MYP-003-03 (백엔드 연결 시드와 공용 DB의 고양이+PETC0011 55마리를 고양이 털색으로 수정, 백엔드 저장소에서 /start). 공용 DB는 팀에 알린 뒤 진행하고, 시드 파일은 백엔드 저장소에서 고친다. 어떤 고양이 털색으로 바꿀지는 정해야 한다
 - 팀 알림(SCR-MYP-003 털색): (a) 시드에서 종-털색 불일치는 고양이+PETC0011 55마리뿐이다(PET 1000행 기준). 공용 DB도 같은지 확인을 요청한다(탄이가 그 예). (b) 지금까지 화면에서 파티를 골라 저장한 강아지는 PETC0011로 들어가 있어서 이번 수정 뒤 얼룩으로 보인다. 팀에 알린다. (c) 공용 `utils/petCodes.js`의 `PARTI` 코드가 PETC0029로 바뀌고 `SPOTTED`(PETC0011)와 새 털색 코드 6개가 추가됐다. LJS 등에 알린다. (d) 명세·설계서 FN-MYP-003-03에 얼룩 추가는 설계서 담당(SJM)이 정리한다
 - 연결 남음 SCR-MYP-003 FN-MYP-003-03 (백엔드 연결 `PetService` 털색 검증: 종에 맞지 않는 털색 코드 거절, 백엔드 저장소에서 /start)
-- SCR-MYP-003 반려동물 등록 모달의 선택 칸(`PetFormModal.jsx`의 select, `invalid:text-placeholder`)이 값을 고르기 전이면 열린 목록의 선택지까지 회색으로 보인다. 이번 변경과는 무관하다
 - SCR-MYP-003 PetFormModal을 공용 Modal로(모바일 바텀시트): 필요한 것은 폭 720px 옵션, 바깥 클릭·Esc로 닫지 않는 옵션(입력 유실 방지), 품종 목록(listbox)이 시트 안에서 잘리지 않는지와 Esc 충돌 확인. 이번에는 스크롤 잠금만 `useScrollLock`으로 붙였다
 - 팀 알림(LJS 등): 공용 `components/Modal.jsx`에 폭 옵션과 스크롤 잠금(`hooks/useScrollLock.js`)을 추가했다. 모든 사용처(건강기록 등)에 적용된다. 스크롤 잠금이 없는 곳의 담당자에게 알린다: `layouts/ChatModal.jsx`(모바일 전체 화면인데 잠금 없음, 데스크톱 잠금 여부 결정 필요), `features/ai/chat/ConversationSidebar.jsx`(모바일 서랍, 열렸을 때만 `aria-modal`·잠금 필요), `features/landing/LandingHeader.jsx`(모바일 메뉴 잠금 없음), 건강기록의 자체 `FormModal`(검진기록 등록 등, JAJ, 공용 Modal이 아니라 잠금 없음). 또 `isSheet`의 모바일 위치를 `relative`에서 `fixed`로 고쳤다(스크롤한 채 열면 페이지가 맨 위로 튀던 결함). `isSheet`를 쓰는 가계부 시트 모달(`ExpenseForm`·`ExpenseAddModal`·`ExpenseReceiptUpload`·`ExpenseReceiptReview`)에도 적용되며 375px에서 아래에 붙는 것을 확인했다. 확인 창은 `isConfirm`일 때 `role="alertdialog"`·`aria-describedby`가 붙는다
 - 연결 남음 KSJ(SCR-MYP-010): `/inquiries/new`로 가는 router state에 `pixelCharSn`이 추가됐다(`{ inquiryType: 'PIXEL_CHARACTER', petSn, pixelCharSn, imageUrl }`). `InquiryWritePage`가 state의 `pixelCharSn`을 문의 등록 요청에 실어 줘야 서버(`InquiryService.create` → `PixelCharacterService.receiveErrorInquiry`)가 캐릭터 작업에 문의를 연결한다

@@ -519,7 +519,7 @@ function PetForm({ pet, lastBdwgRcd, onClose }) {
                   aria-describedby={
                     orphanNotice ? 'pet-colr-h pet-colr-e' : 'pet-colr-e'
                   }
-                  className={`${INPUT} cursor-pointer appearance-none pr-9 invalid:text-placeholder`}
+                  className={`${INPUT} cursor-pointer appearance-none pr-9 invalid:text-placeholder [&>option]:text-ink [&>option:disabled]:text-placeholder`}
                   required
                 >
                   <option value="" disabled>
