@@ -27,6 +27,7 @@ import {
   verifyPassword,
   verifyRecoveryCode,
   verifySignupCode,
+  withdrawMember,
 } from './api';
 
 export const memberKeys = {
@@ -164,3 +165,6 @@ export const useSetupNickname = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: memberKeys.me }),
   });
 };
+
+export const useWithdrawMember = () =>
+  useMutation({ mutationFn: withdrawMember });
