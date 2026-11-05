@@ -141,7 +141,7 @@ export default function CharacterDecorate({ pet }) {
   return (
     <>
       <div className="flex justify-end max-[760px]:mb-4 max-[760px]:-translate-y-3">
-        {pet.inqryRcptYn === 'Y' ? (
+        {character?.inqryRcptYn === true ? (
           <button type="button" disabled className={BTN_SECONDARY}>
             문의 접수됨
           </button>
@@ -151,6 +151,7 @@ export default function CharacterDecorate({ pet }) {
             state={{
               inquiryType: 'PIXEL_CHARACTER',
               petSn: pet.petSn,
+              pixelCharSn: pet.pixelCharSn,
               imageUrl: characterImage,
             }}
             className={BTN_SECONDARY}

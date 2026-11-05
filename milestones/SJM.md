@@ -272,3 +272,10 @@
 - 기다리는 것: 없음. `GET /api/pets/{petSn}/daily-health-records?dailyRcdIdctCd=HLTC0014&size=1`(JAJ)이 develop에 있다
 - 완료 조건: 건강 일지에 체중 기록이 있는 동물의 수정 모달은 체중이 읽기 전용(값·기록일·[건강 일지에서 기록하기])이고, 기록이 없는 동물은 입력 가능하다
 - 연결 남음: 없음
+
+## SCR-MYP-010 픽셀 캐릭터 관리 · [오류 문의] 접수 판정과 문의 연결 값 고치기 — 끝
+
+- 기능: FN-MYP-010 꾸미기의 [오류 문의]/[문의 접수됨] 판정, 문의 작성 화면으로 넘기는 state
+- 기다리는 것: 없음(문의 등록 쪽 `pixelCharSn` 전달은 KSJ 알림)
+- 완료 조건: 상세 응답의 `inqryRcptYn`이 true면 [문의 접수됨](비활성), false면 [오류 문의]. 링크 state에 `pixelCharSn`이 있다
+- 연결 남음: FN-MYP-010 (문의 등록 요청에 state의 `pixelCharSn`을 실어 보내기, KSJ의 `InquiryWritePage`·문의 등록 API)
