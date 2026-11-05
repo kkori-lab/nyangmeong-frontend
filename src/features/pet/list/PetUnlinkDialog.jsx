@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
 import { BRUP_ROLE } from '@/utils/petCodes';
 import { useCaregivers, useLeavePet } from '../queries';
@@ -24,14 +24,6 @@ export default function PetUnlinkDialog({ pet, onClose }) {
     if (!leavePet.isPending) onClose();
   };
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') close();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  });
-
   const handleLeave = () =>
     leavePet.mutate(
       { petSn: pet.petSn, brupRelSn: myRelation.brupRelSn },
@@ -48,34 +40,15 @@ export default function PetUnlinkDialog({ pet, onClose }) {
     );
 
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
-      <div
-        className="fixed inset-0 bg-[rgba(15,23,35,0.45)]"
-        onClick={close}
-      />
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="pet-unlink-title"
-        aria-describedby="pet-unlink-desc"
-        className="relative m-auto flex w-full max-w-[440px] shrink-0 flex-col rounded-modal bg-white shadow-depth-lg"
-      >
-        <div className="px-10 pt-10 pb-8 text-center">
-          <h2
-            id="pet-unlink-title"
-            className="text-lg leading-[1.35] font-bold break-keep"
-          >
-            {withTogetherParticle(pet.petNm)}의 가족 연동을 해제할까요?
-          </h2>
-          <p
-            id="pet-unlink-desc"
-            className="mt-2 leading-[1.6] break-keep text-muted"
-          >
-            해제하면 {pet.petNm}의 건강기록·프로필에 더 이상 접근할 수
-            없어요. 다시 연동하려면 재요청이 필요해요.
-          </p>
-        </div>
-        <div className="flex gap-2 px-10 pb-6">
+    <Modal
+      isConfirm
+      isSpacious
+      isPending={leavePet.isPending}
+      title={`${withTogetherParticle(pet.petNm)}의 가족 연동을 해제할까요?`}
+      description={`해제하면 ${pet.petNm}의 건강기록·프로필에 더 이상 접근할 수 없어요. 다시 연동하려면 재요청이 필요해요.`}
+      onClose={close}
+      footer={
+        <>
           <button
             type="button"
             onClick={close}
@@ -92,8 +65,8 @@ export default function PetUnlinkDialog({ pet, onClose }) {
           >
             해제
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }

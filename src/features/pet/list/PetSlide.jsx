@@ -11,13 +11,14 @@ import {
 import { useLayoutEffect, useRef, useState } from 'react';
 import PetFace from '@/components/PetFace';
 import { BRUP_ROLE, MAX_OWN_PETS, PET_SE } from '@/utils/petCodes';
-import FamilySection from './FamilySection';
+import { useCaregiversOf } from '../queries';
+import FamilySection, { OwnerLine } from './FamilySection';
 import {
   formatAge,
-  formatSpecies,
   formatWeight,
   getColrName,
   getGndrName,
+  getPetSeName,
   getVrtyName,
   splitList,
 } from '@/utils/petFormat';
@@ -30,6 +31,9 @@ const NAV_BUTTON =
 
 /** 좌우로 밀어서 넘기는 최소 이동 거리(px) */
 const SWIPE_DISTANCE = 50;
+
+/** 슬라이드 높이 전환 시간(ms). SlideHeight의 duration과 같아야 한다 */
+const TRANSITION_MS = 280;
 
 /**
  * 슬라이드는 반려동물 + 마지막 등록 슬라이드(index === pets.length)
@@ -47,6 +51,8 @@ export default function PetSlide({
   isFull,
 }) {
   const total = pets.length + 1;
+  /** 넘길 때 가족 영역이 캐시에서 바로 그려지도록 모든 동물의 양육자를 미리 받아 둔다 */
+  useCaregiversOf(pets.map((pet) => pet.petSn));
   const isAddSlide = index === pets.length;
   const touchStartX = useRef(null);
 
@@ -74,22 +80,24 @@ export default function PetSlide({
         }}
         onTouchEnd={handleTouchEnd}
       >
-        {isAddSlide ? (
-          <AddSlide isFull={isFull} onAdd={onAdd}>
-            {dots}
-          </AddSlide>
-        ) : (
-          <PetCard
-            key={pets[index].petSn}
-            pet={pets[index]}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onUnlink={onUnlink}
-            onInvite={onInvite}
-          >
-            {dots}
-          </PetCard>
-        )}
+        <SlideHeight>
+          {isAddSlide ? (
+            <AddSlide isFull={isFull} onAdd={onAdd}>
+              {dots}
+            </AddSlide>
+          ) : (
+            <PetCard
+              key={pets[index].petSn}
+              pet={pets[index]}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onUnlink={onUnlink}
+              onInvite={onInvite}
+            >
+              {dots}
+            </PetCard>
+          )}
+        </SlideHeight>
         <button
           type="button"
           onClick={() => move(index - 1)}
@@ -111,6 +119,77 @@ export default function PetSlide({
   );
 }
 
+/** 전환 중 그림자가 잘리지 않게 두는 여백(px). className의 -m-3·p-3과 같아야 한다 */
+const HEIGHT_PAD = 12;
+
+/**
+ * 슬라이드를 넘기면 카드 높이가 달라지므로 높이를 부드럽게 바꾼다.
+ * overflow-hidden은 전환 중에만 걸고 끝나면 풀어, 카드 안 팝업(⋮ 메뉴·"외 N개"·특징 레이어)이 잘리지 않게 한다.
+ * prefers-reduced-motion이면 전환 없이 바로 바뀐다.
+ */
+function SlideHeight({ children }) {
+  const outerRef = useRef(null);
+  const innerRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const outer = outerRef.current;
+    const inner = innerRef.current;
+    if (!outer || !inner) return undefined;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let lastHeight = null;
+    let fallbackTimer = 0;
+
+    const finish = () => {
+      window.clearTimeout(fallbackTimer);
+      outer.style.height = '';
+      outer.style.overflow = '';
+    };
+
+    const observer = new ResizeObserver(() => {
+      const nextHeight = inner.getBoundingClientRect().height + HEIGHT_PAD * 2;
+      const prevHeight = lastHeight;
+      lastHeight = nextHeight;
+      if (prevHeight === null || prevHeight === nextHeight) return;
+      if (reduceMotion.matches) {
+        finish();
+        return;
+      }
+      /** 전환 중이면 지금 보이는 높이에서, 아니면 직전 높이에서 시작한다(이 시점에 outer는 이미 새 높이다) */
+      const fromHeight = outer.style.height
+        ? outer.getBoundingClientRect().height
+        : prevHeight;
+      outer.style.overflow = 'hidden';
+      outer.style.height = `${fromHeight}px`;
+      void outer.offsetHeight;
+      outer.style.height = `${nextHeight}px`;
+      window.clearTimeout(fallbackTimer);
+      fallbackTimer = window.setTimeout(finish, TRANSITION_MS + 120);
+    });
+    observer.observe(inner);
+
+    const handleEnd = (event) => {
+      if (event.target === outer && event.propertyName === 'height') finish();
+    };
+    outer.addEventListener('transitionend', handleEnd);
+
+    return () => {
+      observer.disconnect();
+      outer.removeEventListener('transitionend', handleEnd);
+      window.clearTimeout(fallbackTimer);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={outerRef}
+      className="-m-3 p-3 transition-[height] duration-[280ms] ease-in-out motion-reduce:transition-none"
+    >
+      <div ref={innerRef}>{children}</div>
+    </div>
+  );
+}
+
 /** 현재 위치 점. 맨 끝은 + (한도에 차면 일반 점) */
 function PetDots({ pets, index, isFull, onMove }) {
   const dotClass = (isCurrent) =>
@@ -119,7 +198,7 @@ function PetDots({ pets, index, isFull, onMove }) {
   return (
     <nav
       aria-label="반려동물 선택"
-      className="absolute inset-x-0 bottom-5 z-[1] flex justify-center gap-2"
+      className="absolute inset-x-0 bottom-5 z-[1] flex items-center justify-center gap-2"
     >
       {pets.map((dotPet, dotIndex) => (
         <button
@@ -145,7 +224,7 @@ function PetDots({ pets, index, isFull, onMove }) {
           onClick={() => onMove(pets.length)}
           aria-label="반려동물 등록"
           aria-current={index === pets.length ? 'true' : undefined}
-          className={`grid h-2 place-items-center ${index === pets.length ? 'text-brand-600' : 'text-line-strong'}`}
+          className={`grid size-3.5 place-items-center ${index === pets.length ? 'text-brand-600' : 'text-line-strong'}`}
         >
           <Plus className="size-3.5" />
         </button>
@@ -191,7 +270,7 @@ function AddSlide({ isFull, onAdd, children }) {
 
 function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
   const isCoParent = pet.brupRoleCd === BRUP_ROLE.CO_PARENT;
-  const gndrText = `${getGndrName(pet)}${pet.nutrYn ? '(중성화 완료)' : ''}`;
+  const vrtyName = getVrtyName(pet);
   const metaText = [
     formatAge(pet.petBrdt),
     getVrtyName(pet),
@@ -203,7 +282,7 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
   return (
     <article
       aria-labelledby="pet-name"
-      className="relative grid gap-5 rounded-modal border border-line bg-white p-5 pt-10 pb-16 shadow-depth-sm max-[760px]:grid-cols-[84px_minmax(0,1fr)] max-[760px]:gap-x-4 max-[760px]:gap-y-0 min-[761px]:grid-cols-[180px_minmax(0,1fr)] min-[761px]:gap-x-8 min-[761px]:gap-y-6 min-[761px]:px-8 min-[1101px]:grid-cols-[220px_minmax(0,1fr)] min-[1101px]:gap-x-14 min-[1101px]:px-12"
+      className="relative grid gap-5 rounded-modal border border-line bg-white p-5 pt-10 pb-16 shadow-depth-sm max-[760px]:grid-cols-[84px_minmax(0,1fr)] max-[760px]:gap-x-4 max-[760px]:gap-y-0 min-[761px]:grid-cols-[140px_minmax(0,1fr)] min-[761px]:gap-x-8 min-[761px]:gap-y-6 min-[761px]:px-8 min-[1281px]:grid-cols-[220px_minmax(0,1fr)] min-[1281px]:gap-x-14 min-[1281px]:px-12"
     >
       <div className="flex items-center justify-center max-[760px]:self-center">
         <PetFace
@@ -211,8 +290,8 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
           petSeCd={pet.petSeCd}
           isError={pet.bscCharSbstYn}
           alt={`${pet.petNm} 캐릭터`}
-          className="size-28 shrink-0 rounded-full bg-surface-2 text-line-strong shadow-[inset_0_0_0_1px_var(--color-line-strong)] max-[760px]:size-[84px]"
-          iconClassName="size-14 max-[760px]:size-9"
+          className="size-[140px] shrink-0 rounded-full bg-surface-2 text-line-strong shadow-[inset_0_0_0_1px_var(--color-line-strong)] max-[760px]:size-[84px] min-[1281px]:size-40"
+          iconClassName="size-[70px] max-[760px]:size-9 min-[1281px]:size-20"
         />
       </div>
       <div className="flex min-w-0 flex-col max-[760px]:contents">
@@ -241,6 +320,7 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
             <p className="mt-1 hidden text-sm break-keep text-muted max-[760px]:block">
               {metaText}
             </p>
+            {isCoParent && <OwnerLine pet={pet} />}
           </div>
           <PetMenu
             isCoParent={isCoParent}
@@ -248,15 +328,26 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
             onRemove={() => (isCoParent ? onUnlink(pet) : onDelete(pet))}
           />
         </div>
-        <div className="grid grid-cols-1 gap-x-12 max-[760px]:hidden min-[1281px]:grid-cols-[300px_minmax(0,1fr)]">
-          <InfoGroup className="max-[1280px]:[&>div:last-child]:border-b">
-            <InfoRow label="종">{formatSpecies(pet)}</InfoRow>
-            <InfoRow label="성별">{gndrText}</InfoRow>
+        <div className="grid grid-cols-2 gap-x-6 max-[760px]:hidden min-[1281px]:gap-x-12">
+          <InfoGroup>
+            <InfoRow label="종">
+              {vrtyName || getPetSeName(pet)}
+              {vrtyName && <SubText>{getPetSeName(pet)}</SubText>}
+            </InfoRow>
+            <InfoRow label="성별">
+              {getGndrName(pet)}
+              {pet.nutrYn && <SubText>중성화 완료</SubText>}
+            </InfoRow>
             <InfoRow label="체중">{formatWeight(pet.petBdwg)}</InfoRow>
             <InfoRow label="털색">{getColrName(pet)}</InfoRow>
           </InfoGroup>
-          <InfoGroup className="max-[1280px]:border-t-0">
-            <InfoRow label="인식 번호">{pet.chipNo}</InfoRow>
+          <InfoGroup>
+            <InfoRow
+              label="인식 번호"
+              valueClassName="tabular-nums [overflow-wrap:normal]"
+            >
+              <ChipNo value={pet.chipNo} />
+            </InfoRow>
             <ChrcRow value={pet.chrcCn} />
             <ListRow label="알레르기" value={pet.algyCn} />
             <ListRow label="기저질환" value={pet.dssCn} />
@@ -295,7 +386,10 @@ function PetMenu({ isCoParent, onEdit, onRemove }) {
       </button>
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
           <div
             role="menu"
             className="absolute top-[calc(100%+6px)] right-0 z-20 min-w-[168px] rounded-box border border-line bg-white p-1.5 shadow-depth-md"
@@ -427,14 +521,37 @@ const ROW =
   'col-span-full grid grid-cols-subgrid items-baseline gap-x-6 border-b border-line-soft py-4 last:border-b-0';
 const DT = 'min-w-20 text-subtle';
 
-function InfoRow({ label, children }) {
+/** 값 아래 줄에 작고 옅게 붙는 보조 설명 */
+function SubText({ children }) {
+  return (
+    <span className="block text-sm font-normal text-subtle">{children}</span>
+  );
+}
+
+/** 인식 번호: 띄어쓰기 없이 이어 쓴다. 15자리는 국가번호(앞 3자리) 뒤에서만 줄이 바뀔 수 있다 */
+function ChipNo({ value }) {
+  if (!value) return null;
+  const digits = value.replace(/\s/g, '');
+  if (digits.length !== 15) return digits;
+  return (
+    <>
+      {digits.slice(0, 3)}
+      <wbr />
+      {digits.slice(3)}
+    </>
+  );
+}
+
+function InfoRow({
+  label,
+  valueClassName = '[overflow-wrap:anywhere]',
+  children,
+}) {
   return (
     <div className={ROW}>
       <dt className={DT}>{label}</dt>
       {children && (
-        <dd className="m-0 font-semibold [overflow-wrap:anywhere]">
-          {children}
-        </dd>
+        <dd className={`m-0 font-semibold ${valueClassName}`}>{children}</dd>
       )}
     </div>
   );

@@ -1,10 +1,15 @@
-import { Plus, User, X } from 'lucide-react';
+import { ChevronDown, Plus, User, X } from 'lucide-react';
 import { useState } from 'react';
 import Badge from '@/components/Badge';
+import Modal from '@/components/Modal';
 import Skeleton from '@/components/Skeleton';
 import { showToast } from '@/components/toastStore';
 import { useCaregivers, useDeleteCaregiver } from '../queries';
 import { BRUP_ROLE, MAX_CAREGIVERS } from '@/utils/petCodes';
+
+/** 모바일에서 3명 이하면 전부, 그보다 많으면 앞 2명만 보이고 나머지는 더보기 */
+const MOBILE_VISIBLE_THRESHOLD = 3;
+const MOBILE_COLLAPSED_COUNT = 2;
 
 /** 'YYYY-MM-DD' → 'MM-DD' */
 const formatLinkDate = (linkYmd) => linkYmd.slice(5);
@@ -29,31 +34,15 @@ function CaregiverDeleteDialog({ pet, caregiver, onClose }) {
     );
 
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
-      <div className="fixed inset-0 bg-[rgba(15,23,35,0.45)]" />
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="caregiver-delete-title"
-        aria-describedby="caregiver-delete-desc"
-        className="relative m-auto flex w-full max-w-[440px] shrink-0 flex-col rounded-modal bg-white shadow-depth-lg"
-      >
-        <div className="px-10 pt-10 pb-8 text-center">
-          <h2
-            id="caregiver-delete-title"
-            className="text-lg leading-[1.35] font-bold break-keep"
-          >
-            {caregiver.mbrNcnm}님과의 연동을 해제할까요?
-          </h2>
-          <p
-            id="caregiver-delete-desc"
-            className="mt-2 leading-[1.6] break-keep text-muted"
-          >
-            해제하면 {caregiver.mbrNcnm}님은 {pet.petNm}의 기록을 더 이상 볼 수
-            없어요.
-          </p>
-        </div>
-        <div className="flex gap-2 px-10 pb-6">
+    <Modal
+      isConfirm
+      isSpacious
+      isPending={deleteCaregiver.isPending}
+      title={`${caregiver.mbrNcnm}님과의 연동을 해제할까요?`}
+      description={`해제하면 ${caregiver.mbrNcnm}님은 ${pet.petNm}의 기록을 더 이상 볼 수 없어요.`}
+      onClose={onClose}
+      footer={
+        <>
           <button
             type="button"
             onClick={onClose}
@@ -69,139 +58,252 @@ function CaregiverDeleteDialog({ pet, caregiver, onClose }) {
           >
             해제
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }
 
 const MEMBER_CARD =
   'relative flex min-w-0 items-center gap-2.5 rounded-card border border-line bg-white px-3.5 py-3 text-left';
 
-function Avatar({ children }) {
+/** 모바일 한 줄 카드: 이름 자리를 넓히려 여백을 줄인다 */
+const MOBILE_CARD =
+  'relative flex min-w-0 items-center gap-1.5 rounded-card border border-line bg-white py-2.5 pr-2 pl-3 text-left';
+
+const CO_PARENT_BADGE = (
+  <Badge className="bg-tone-gray-bg text-tone-gray-fg">공동양육</Badge>
+);
+
+function Avatar({ className = 'size-9' }) {
   return (
-    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-surface-3 text-muted">
-      {children ?? <User className="size-[18px]" aria-hidden="true" />}
+    <span
+      className={`grid ${className} shrink-0 place-items-center rounded-full bg-surface-3 text-muted`}
+    >
+      <User className="size-[18px]" aria-hidden="true" />
     </span>
   );
 }
 
-function MemberCard({ name, badge, lines, onRemove, removeLabel }) {
+const REMOVE_BUTTON =
+  'grid size-7 place-items-center rounded-full text-subtle hover:bg-surface-2 hover:text-ink';
+
+/** 761px 이상: 이름·배지·연동일을 세로로 쌓은 카드. 이름은 한 줄 말줄임, [✕]는 오른쪽 위 */
+function MemberCard({ caregiver, onRemove }) {
   return (
     <li className={MEMBER_CARD}>
       <Avatar />
-      <div className={`flex min-w-0 flex-col ${onRemove ? 'pr-5' : ''}`}>
-        <p className="font-semibold break-keep">{name}</p>
-        {badge && <div className="mt-1 mb-0.5 flex">{badge}</div>}
-        {lines.map((line) => (
-          <p key={line} className="truncate text-xs text-subtle">
-            {line}
-          </p>
-        ))}
+      <div className="flex min-w-0 flex-col pr-5">
+        <p className="truncate font-semibold" title={caregiver.mbrNcnm}>
+          {caregiver.mbrNcnm}
+        </p>
+        <div className="mt-1 mb-0.5 flex">{CO_PARENT_BADGE}</div>
+        <p className="truncate text-xs text-subtle">
+          {formatLinkDate(caregiver.linkYmd)} 연동
+        </p>
       </div>
-      {onRemove && (
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`${caregiver.mbrNcnm} 가족에서 삭제`}
+        className={`${REMOVE_BUTTON} absolute top-1 right-1`}
+      >
+        <X className="size-4" aria-hidden="true" />
+      </button>
+    </li>
+  );
+}
+
+/** 모바일: 한 줄에 하나씩, 카드 안은 줄바꿈 없이 한 줄 */
+function MobileCaregiverList({ caregivers, onRemove }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isCollapsible = caregivers.length > MOBILE_VISIBLE_THRESHOLD;
+  const visible =
+    isCollapsible && !isExpanded
+      ? caregivers.slice(0, MOBILE_COLLAPSED_COUNT)
+      : caregivers;
+
+  return (
+    <div className="hidden max-[760px]:block">
+      <ul className="flex flex-col gap-2">
+        {visible.map((caregiver) => (
+          <li key={caregiver.brupRelSn} className={MOBILE_CARD}>
+            <Avatar className="size-8" />
+            <span
+              className="min-w-0 truncate font-semibold"
+              title={caregiver.mbrNcnm}
+            >
+              {caregiver.mbrNcnm}
+            </span>
+            <span className="shrink-0">{CO_PARENT_BADGE}</span>
+            <span className="ml-auto shrink-0 text-xs whitespace-nowrap text-subtle">
+              {formatLinkDate(caregiver.linkYmd)} 연동
+            </span>
+            <button
+              type="button"
+              onClick={() => onRemove(caregiver)}
+              aria-label={`${caregiver.mbrNcnm} 가족에서 삭제`}
+              className={`${REMOVE_BUTTON} shrink-0`}
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          </li>
+        ))}
+      </ul>
+      {isCollapsible && (
         <button
           type="button"
-          onClick={onRemove}
-          aria-label={removeLabel}
-          className="absolute top-1 right-1 grid size-7 place-items-center rounded-full text-subtle hover:bg-surface-2 hover:text-ink"
+          onClick={() => setIsExpanded((open) => !open)}
+          aria-expanded={isExpanded}
+          className="mt-2 flex w-full items-center justify-center gap-1 p-1.5 font-semibold text-brand-600"
         >
-          <X className="size-4" aria-hidden="true" />
+          {isExpanded
+            ? '접기'
+            : `${caregivers.length - MOBILE_COLLAPSED_COUNT}명 더보기`}
+          <ChevronDown
+            className={`size-4 ${isExpanded ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
         </button>
       )}
-    </li>
+    </div>
   );
 }
 
 const GRID =
   'grid grid-cols-2 gap-3 min-[761px]:grid-cols-3 min-[1101px]:grid-cols-5';
 
-/** 슬라이드 카드 안 가족 영역: 주양육자는 공동양육자 전원, 공동양육자는 주양육자와 본인 연동 1건 */
+/** 공동양육자 시점, 761px 이상: 이름·배지 줄 아래에 주양육자 닉네임 한 줄 (가족 섹션 대신) */
+export function OwnerLine({ pet }) {
+  const { data: caregivers = [], isPending } = useCaregivers(pet.petSn);
+  const owner = caregivers.find(
+    (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.PRIMARY,
+  );
+
+  /** 불러오는 동안에도 라벨과 같은 줄 높이를 차지해 카드 높이가 바뀌지 않게 한다 */
+  if (isPending) {
+    return (
+      <div
+        aria-busy="true"
+        className="mt-1.5 flex min-w-0 items-baseline gap-2 max-[760px]:hidden"
+      >
+        <span className="shrink-0 text-muted">주양육자</span>
+        <Skeleton className="h-4 w-24" />
+      </div>
+    );
+  }
+  if (!owner) return null;
+
+  return (
+    <p className="mt-1.5 flex min-w-0 items-baseline gap-2 max-[760px]:hidden">
+      <span className="shrink-0 text-muted">주양육자</span>
+      <strong className="min-w-0 truncate font-semibold" title={owner.mbrNcnm}>
+        {owner.mbrNcnm}
+      </strong>
+    </p>
+  );
+}
+
+/** 슬라이드 카드 안 가족 영역: 주양육자는 공동양육자 전원, 공동양육자는 모바일에서만 주양육자 한 줄 */
 export default function FamilySection({ pet, onInvite }) {
   const { data: caregivers = [], isPending } = useCaregivers(pet.petSn);
   const [deletingCaregiver, setDeletingCaregiver] = useState(null);
+  const isCoParent = pet.brupRoleCd === BRUP_ROLE.CO_PARENT;
 
   if (isPending) {
     return (
-      <div aria-busy="true">
+      <div
+        aria-busy="true"
+        className={isCoParent ? 'hidden max-[760px]:block' : undefined}
+      >
         <Skeleton lines={3} />
       </div>
     );
   }
 
-  const owner = caregivers.find(
-    (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.PRIMARY,
-  );
-  const coParents = caregivers.filter(
-    (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.CO_PARENT,
-  );
-
-  /** 공동양육자 시점: 주양육자와 나만, 삭제·초대 없음 (서버가 공동양육자에게는 본인 1건만 준다) */
-  if (pet.brupRoleCd === BRUP_ROLE.CO_PARENT) {
-    const mine = coParents[0];
+  /** 공동양육자 시점: 761px 이상은 이름 줄 아래 한 줄(OwnerLine)이라 섹션이 없고, 모바일만 한 줄 항목. 삭제·초대 없음 */
+  if (isCoParent) {
+    const owner = caregivers.find(
+      (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.PRIMARY,
+    );
     return (
       <section
         aria-labelledby="family-title"
-        className="col-span-full mt-2 border-t border-line-strong pt-6"
+        className="col-span-full mt-2 hidden border-t border-line-strong pt-6 max-[760px]:block"
       >
-        <h3 id="family-title" className="mb-3 text-lg font-bold">
+        <h3 id="family-title" className="mb-2 text-lg font-bold">
           가족
         </h3>
-        <ul className={GRID}>
-          <MemberCard
-            name={owner?.mbrNcnm ?? ''}
-            badge={
-              <Badge className="bg-tone-green-bg text-tone-green-fg">
-                주양육
-              </Badge>
-            }
-            lines={['등록한 사람']}
-          />
-          {mine && (
-            <MemberCard
-              name={`나 (${mine.mbrNcnm})`}
-              badge={
-                <Badge className="bg-tone-gray-bg text-tone-gray-fg">
-                  공동양육
-                </Badge>
-              }
-              lines={[`${formatLinkDate(mine.linkYmd)} 연동`]}
-            />
-          )}
-        </ul>
+        <p className="flex min-w-0 items-baseline gap-2.5 px-0.5 py-1.5">
+          <span className="shrink-0 text-muted">주양육자</span>
+          <span className="shrink-0 text-line-strong" aria-hidden="true">
+            |
+          </span>
+          <strong
+            className="min-w-0 truncate font-semibold"
+            title={owner?.mbrNcnm}
+          >
+            {owner?.mbrNcnm ?? ''}
+          </strong>
+        </p>
       </section>
     );
   }
 
-  /** 주양육자 시점: 연동된 공동양육자 전원 + 남은 자리만큼 점선 초대 카드, 상한 5명 */
+  /** 주양육자 시점: 연동된 공동양육자 전원, 상한 5명. 761px 이상은 점선 초대 카드, 모바일은 제목 옆 [+ 초대] */
+  const coParents = caregivers.filter(
+    (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.CO_PARENT,
+  );
   const remaining = MAX_CAREGIVERS - coParents.length;
+  const isFull = remaining <= 0;
+
+  const handleMobileInvite = () => {
+    if (isFull) {
+      showToast(`최대 ${MAX_CAREGIVERS}명까지 함께할 수 있어요`);
+      return;
+    }
+    onInvite(pet);
+  };
+
   return (
     <section
       aria-labelledby="family-title"
       className="col-span-full mt-2 border-t border-line-strong pt-6"
     >
-      <h3
-        id="family-title"
-        className="mb-3 flex items-baseline gap-2 text-lg font-bold"
-      >
-        가족
-        {remaining <= 0 && (
-          <small className="text-sm font-medium text-subtle">
-            {MAX_CAREGIVERS}명이 모두 연동돼 더 초대할 수 없어요
-          </small>
-        )}
-      </h3>
-      <ul className={GRID}>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3
+          id="family-title"
+          className="flex items-baseline gap-2 text-lg font-bold"
+        >
+          가족
+          <span className="hidden text-sm font-medium text-subtle max-[760px]:inline">
+            {coParents.length}/{MAX_CAREGIVERS}
+          </span>
+          {isFull && (
+            <small className="text-sm font-medium text-subtle max-[760px]:hidden">
+              {MAX_CAREGIVERS}명이 모두 연동돼 더 초대할 수 없어요
+            </small>
+          )}
+        </h3>
+        <button
+          type="button"
+          onClick={handleMobileInvite}
+          aria-disabled={isFull}
+          className={`relative hidden h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold before:absolute before:-inset-y-1.5 before:inset-x-0 before:content-[''] max-[760px]:inline-flex ${isFull ? 'bg-surface-3 text-subtle' : 'bg-brand-50 text-brand-600'}`}
+        >
+          <Plus className="size-3.5" aria-hidden="true" />
+          초대
+        </button>
+      </div>
+      <ul className={`${GRID} max-[760px]:hidden`}>
         {coParents.map((caregiver) => (
           <MemberCard
             key={caregiver.brupRelSn}
-            name={caregiver.mbrNcnm}
-            lines={[`${formatLinkDate(caregiver.linkYmd)} 연동`]}
+            caregiver={caregiver}
             onRemove={() => setDeletingCaregiver(caregiver)}
-            removeLabel={`${caregiver.mbrNcnm} 가족에서 삭제`}
           />
         ))}
-        {remaining > 0 && (
+        {!isFull && (
           <li className="flex">
             <button
               type="button"
@@ -223,6 +325,10 @@ export default function FamilySection({ pet, onInvite }) {
           </li>
         )}
       </ul>
+      <MobileCaregiverList
+        caregivers={coParents}
+        onRemove={setDeletingCaregiver}
+      />
       {deletingCaregiver && (
         <CaregiverDeleteDialog
           pet={pet}
