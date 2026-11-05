@@ -4,6 +4,7 @@ import logo from '@/assets/nm_logo.svg';
 import CountBadge from '@/components/CountBadge';
 import Icon from '@/components/Icon';
 import { useChatUnreadCount } from '@/features/chat/queries';
+import { useMe } from '@/features/member/queries';
 import { useChatModal } from '@/context/chatModal';
 import { PATHS } from '@/routes/paths';
 import GnbDropdown from './GnbDropdown';
@@ -32,7 +33,9 @@ export default function UserHeader() {
   /** GNB 카드를 보여 줄 1차 메뉴 순번 */
   const [gnbIndex, setGnbIndex] = useState(0);
   const { open: openChatModal } = useChatModal();
-  const { data: chatUnread } = useChatUnreadCount();
+  const { data: me } = useMe();
+  /** 로그인 전(공개 화면)에는 안 읽은 수 조회·실시간 연결을 하지 않는다 */
+  const { data: chatUnread } = useChatUnreadCount(Boolean(me));
 
   const gnbRef = useRef(null);
   const gnbTimer = useRef(null);

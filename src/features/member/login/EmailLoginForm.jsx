@@ -1,6 +1,5 @@
 import { Lock, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import CaptchaBlock from './CaptchaBlock';
 import AuthCard from '../shared/AuthCard';
@@ -10,7 +9,7 @@ import AuthNotice from '../shared/AuthNotice';
 import { LOGIN_MESSAGES as MSG } from './loginMessages';
 import useEmailLogin from './useEmailLogin';
 
-export default function EmailLoginForm({ onBack, onSuccess }) {
+export default function EmailLoginForm({ onBack, onSuccess, onSignup }) {
   const navigate = useNavigate();
   const form = useEmailLogin(onSuccess);
   const target = form.guideTarget;
@@ -86,7 +85,7 @@ export default function EmailLoginForm({ onBack, onSuccess }) {
         아직 회원이 아니신가요?
         <button
           type="button"
-          onClick={() => showToast(MSG.notReady)}
+          onClick={onSignup}
           className="font-semibold text-brand-600 hover:underline hover:underline-offset-[3px]"
         >
           회원가입

@@ -71,11 +71,18 @@ const toFormData = ({
   return body;
 };
 
-export const createInquiry = ({ inqryTypeCd, inqryTtl, inqryCn, images }) =>
-  api.post(
-    '/inquiries',
-    toFormData({ inqryTypeCd, inqryTtl, inqryCn, images }),
-  );
+/** 등록 POST /inquiries. pixelCharSn은 캐릭터 오류 문의만(서버가 캐릭터 오류 접수와 연결) */
+export const createInquiry = ({
+  inqryTypeCd,
+  inqryTtl,
+  inqryCn,
+  images,
+  pixelCharSn,
+}) => {
+  const body = toFormData({ inqryTypeCd, inqryTtl, inqryCn, images });
+  if (pixelCharSn != null) body.append('pixelCharSn', pixelCharSn);
+  return api.post('/inquiries', body);
+};
 
 export const updateInquiry = ({
   otoInqrySn,

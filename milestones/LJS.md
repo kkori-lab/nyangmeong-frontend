@@ -559,12 +559,15 @@
 - 연결 남음: FN-ADM-080-01·02·03 (백엔드 연결 `GET·POST /api/admin/ai/routes`·`PATCH·DELETE /api/admin/ai/routes/{aiRoutMpngSn}`(본문 `prrtSeq`), 화면 ID 선택지·지시어 저장 형식·`domnNm`, 백엔드 저장소에서 /start)
 - 연결 남음: FN-ADM-080-04·05 (백엔드 연결 AI 서버·대화창용 조회 API·부록 A 초기 데이터, 백엔드 저장소에서 /start. AI 서버 전환은 ai 저장소)
 
-## SCR-ADM-080 라우팅 매핑표 · 순위 칸을 같은 지시어 순서로 — 대기
+## SCR-ADM-080 라우팅 매핑표 · 순위 칸을 같은 지시어 순서로 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·03
 - 배경: 순위 칸이 매핑 전체 우선순위처럼 읽힌다. 실제로는 같은 길이 지시어가 겹칠 때만 쓰는 판정 기준이다(FN-ADM-080-03 "같은 길이로 일치하면 위쪽 행이 먼저", 사람 2026-11-04 "나중에 수정")
 - 기다리는 것: 없음(화면만). 지시어별 우선순위로 구조를 바꾸면 ERD·백엔드·AI 서버 몫
 - 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04 "후순위로 미루고 화면 구현부터"). 2026-11-04 기획 초안은 핸드오프 "다음에 할 것"
 - 완료 조건: 표 맨 앞 순위 칸이 없고 지시어가 겹치는 행에만 겹치는 지시어와 그 안의 순서가 보인다. 모달 칸 이름이 "같은 지시어일 때 순서"다. 겹침 경고 조사가 받침에 맞는다
+- 결정: 화면만 바꾼다(`prrtSeq`는 매핑표 전체 순서 값 그대로). 사용 안 함 행은 겹침 셈에서 뺀다(사람 2026-11-05 추천안대로)
+- 완료 조건 결과: 검증 `통과`(2026-11-05 1회차, 매핑표 가짜 응답 기준), 사람 확인 2026-11-05
+- 연결 남음: 없음
 
 ## SCR-ADM-081 키워드 사전 — 끝
 - 기능: FN-ADM-081-01 키워드 조회, FN-ADM-081-02 키워드 등록·수정·삭제, FN-ADM-081-03 초기 데이터
@@ -576,11 +579,14 @@
 - 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start)
 - 연결 남음: FN-ADM-081-01~03 (AI 서버가 사전을 DB 조회 API로 읽기, 백엔드 조회 API는 백엔드 저장소·AI 서버 전환은 ai 저장소. 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다)
 
-## SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로 — 대기
+## SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-081-01·02
 - 배경: "등록 동사"·"주기"·"해석 결과"·"연결 코드" 같은 말이 무슨 뜻인지 알기 어렵다(사람 2026-11-04)
 - 기다리는 것(순서): 후순위. 남은 화면 구현을 먼저 한다(사람 2026-11-04)
 - 완료 조건: 탭 이름·표 칸 이름·모달 칸 이름을 운영자가 읽고 무엇을 넣는지 알 수 있는 말로 바꾼다(`features/adminAiKeyword/keywordLabels.js`·`AiKeywordTable.jsx`·`AiKeywordFormModal.jsx`). 저장 값(`kwrdClsfNm` 등)은 기초 데이터 그대로 두고 화면 표시만 바꿀지 기획 때 정한다
+- 결정: 저장 값(`kwrdClsfNm`·코드 탭 `intrpRsltCn`)은 기초 데이터 그대로, 화면 표시만 바꿈. 이름은 사람 의견("AI스럽지 않게")대로 이름·단어·의미·분류(2026-11-05)
+- 완료 조건 결과: 검증 `통과`(2026-11-05 1회차, 가짜 응답 기준), 사람 확인 2026-11-05
+- 연결 남음: 없음
 
 ## SCR-ADM-082 처리 현황 — 끝
 - 기능: FN-ADM-082-01 영수증 OCR 현황, FN-ADM-082-02 캐릭터 생성 현황, FN-ADM-082-03 검사결과지 분석 현황
@@ -724,10 +730,12 @@
 - 완료 조건: `GET /api/admin/comments`(`pstSn`, `mbrSn`, `q`)로 삭제된 댓글도 원문과 `delYn`으로 나온다. `POST /api/admin/comments/{cmntSn}/deletion`(`delRsn` 필수) 뒤 목록이 갱신된다. 409 `ALREADY_PROCESSED`를 안내한다
 - 완료 조건 결과: SCR-ADM-020 게시글·댓글 절과 같은 검증(2026-11-02)
 
-## SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 대기
+## SCR-ADM-001 관리자 목록 화면 · 모바일 세로 스크롤 줄이기 — 끝
 - 기능: 명세 기능 ID 추가 없음. 회원 목록(SCR-ADM-010)처럼 한 쪽 20건을 보여 주는 관리자 목록 화면
 - 기다리는 것: 없음
 - 완료 조건: 390px에서 목록이 20건 때문에 세로로 너무 길어지지 않는다. 방식은 `/start` 기획에서 정한다(요청 2026-11-02)
+- 결정: 768px 미만 표 상자 높이 480px, 표 안 세로 스크롤·머리줄 고정, 쪽당 20건 유지(사람 2026-11-05)
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 1회차, 5180·8081), 사람 확인 2026-11-05
 
 ## SCR-ADM-030 신고 처리 · 목록 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-030-01 연결 작업)
@@ -778,10 +786,12 @@
 - 결정: 본문 이미지는 아래 "본문 이미지 연결" 절로 넘김(사람 2026-11-03)
 - 완료 조건 결과: 검증 `통과`(2026-11-03, 1회차, 로컬 8080 백엔드 LJS 브랜치), 사람 확인 2026-11-03
 
-## SCR-ADM-040 공지사항 · 본문 이미지 연결 — 대기
+## SCR-ADM-040 공지사항 · 본문 이미지 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-040-02 연결 작업)
 - 기다리는 것: 사용자 공지 상세가 `![](/api/files/public/{atchFileSn})` 줄을 이미지로 그리는 것(KSJ, 공용 `PostBody`), `POST /api/admin/notices/images`(multipart `image`, 201 `{atchFileSn}`) (LJS 백엔드, 끝)
 - 완료 조건: 본문 이미지는 올린 뒤 본문에 `![](/api/files/public/{atchFileSn})` 한 줄로 넣는다(HTML 저장 안 함). 사용자 공지 상세가 이 줄을 이미지로 그린다
+- 추가 요청: 추가-1 내용 칸 아래 미리보기(`PostBody` `fileImages`)로 이미지 줄을 이미지로 보인다(요청 2026-11-05)
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 로컬 8081 백엔드), 사람 확인 2026-11-05
 
 ## SCR-ADM-040 공지사항 · 알림 발송 모달 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(FN-ADM-040-03 연결 작업)
@@ -866,17 +876,23 @@
 - 완료 조건 결과: 검증 `통과`(2026-11-05 1회차, 실제 API. [2]쪽 요청·대시보드 링크는 데이터가 모자라 Playwright 응답 가로채기로 확인), 사람 확인 2026-11-05
 - 연결 남음: 없음
 
-## SCR-ADM-021 실종제보 · 목록·상세 연결 — 대기
+## SCR-ADM-021 실종제보 · 목록·상세 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-021-01·02·03
 - 기다리는 것: `GET /api/admin/lost-reports?page=&size=20&lostTpofSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, mbrSn, mbrNcnm, expryCrtrDt, regDt }`, 만료 기준 일시가 지난 실종은 `CMUC0008`, 찾았어요 행은 `expryCrtrDt` null, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/lost-reports/{lostTpofSn}`(실종·만료는 `{ lostTpofSn, pstSn, pstTtl, lostTpofSttsCd, dscvSwtcDt, mbrSn, mbrNcnm, regDt, pstCn, expryCrtrDt, imgs[{ atchFileSn, sortSeq }] }`, 찾았어요는 `lostTpofSn·pstSn·pstTtl·lostTpofSttsCd·dscvSwtcDt`만 있고 나머지 null, 없거나 정상 글이 아니면 404 `LOST_REPORT_NOT_FOUND`, 강제 만료·기간 조정 API 없음) (LJS 백엔드, 끝)
 - 완료 조건: `features/adminCommunity/api.js` 실종제보 목록·상세 가짜 본문을 실제 요청으로 바꾼다. 필드 이름은 가짜와 같은 `mbrNcnm`·`expryCrtrDt`. 블라인드·삭제 글은 목록에 나오지 않고, 상세에 연락처·반려동물 정보가 없다(가짜에 있으면 화면에서 뺀다). 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+- 결정: 디자인은 기존 SCR-ADM-021 화면 그대로, 데이터 모양만 바꿈(2026-11-05 기획 승인)
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 1회차), 사람 확인 2026-11-05
+- 연결 남음: 없음
 
-## SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 대기
+## SCR-ADM-022 펫돌봄 거래 · 목록·매칭 상세 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-022-01·02·03
 - 기다리는 것: `GET /api/admin/care-matches?page=&size=20&rcrtSttsCd=`(정상 게시글만, 최신순, `{ content, page, size, totalElements, totalPages, hasNext }`, 행 `{ petPrtcRcrtSn, pstSn, pstTtl, rcrtSttsCd, mbrSn, mbrNcnm, cstAmt, cstUnitCd, regDt }`, 모르는 상태 코드 400 `INVALID_INPUT_VALUE`)와 `GET /api/admin/care-matches/{petPrtcRcrtSn}`(목록 행 + `mtchs[]` 최신순·없으면 빈 배열, 매칭마다 `{ petPrtcMtchSn, ctptMbrSn, ctptNcnm, mtchDlngSttsCd, rcvYn, rcvIdntyDt, regDt, cndVers[{ cndVerNo, cstUnitCd, acrdCstAmt, acrdPrtcCn, acrdPrtcBgngDt, acrdPrtcEndDt, regDt }](버전 내림차순), sttsHstry[{ bfrSttsCd, aftrSttsCd, cndVerNo, chgRsn, regDt }](오래된 순), cmptnDmnds[{ dmndCycl, cmptnCn, spclMttrCn, prtcEndDt, prtcrIdntyRsltCd, prtcrIdntyDt, splmntDmndRsn, regDt, imgs[{ atchFileSn, sortSeq }] }](회차 순) }`, 블라인드 글도 열림, 없거나 삭제 글 404 `CARE_RECRUITMENT_NOT_FOUND`, 채팅 내용 없음) (LJS 백엔드, 끝)
-- 완료 조건: `features/adminCommunity/api.js` 펫돌봄 목록·매칭 상세 가짜 본문을 실제 요청으로 바꾼다. 가짜와 다른 점: 조건 버전·완료 요청은 한 건이 아니라 목록(`cndVers`·`cmptnDmnds`, 가짜 `agreVerNo·agreDt·agreCn`·`cmplReqDt·cmplImgs·ownerCfmtnRsltCd·ownerCfmtnDt` 대신), 매칭 거래 상태는 가짜 `REQUESTED·MATCHED·DONE_REQ·COMPLETE·CANCELED` 대신 공통코드 PCAG05(PCAC0012 수락 대기·0013 매칭 완료·0014 확인 대기·0015 수령 대기·0016 거래 완료·0017 요청 취소·0018 무응답 종료), 보호자 확인 결과는 가짜 `CONFIRMED·REJECTED` 대신 PCAG06(PCAC0019 완료 확인·PCAC0020 보완 요청). 매칭이 여럿이면 탭으로 나눈다. 완료 사진은 지금 `/api/files/public/{atchFileSn}`으로 열리지 않는다(백엔드 연결 남음, KSJ와 정함). 400·404 오류 문구를 화면에 보인다
+- 완료 조건: `features/adminCommunity/api.js` 펫돌봄 목록·매칭 상세 가짜 본문을 실제 요청으로 바꾼다. 가짜와 다른 점: 조건 버전·완료 요청은 한 건이 아니라 목록(`cndVers`·`cmptnDmnds`, 가짜 `agreVerNo·agreDt·agreCn`·`cmplReqDt·cmplImgs·ownerCfmtnRsltCd·ownerCfmtnDt` 대신), 매칭 거래 상태는 가짜 `REQUESTED·MATCHED·DONE_REQ·COMPLETE·CANCELED` 대신 공통코드 PCAG05(PCAC0012 수락 대기·0013 매칭 완료·0014 확인 대기·0015 수령 대기·0016 거래 완료·0017 요청 취소·0018 무응답 종료), 보호자 확인 결과는 가짜 `CONFIRMED·REJECTED` 대신 PCAG06(PCAC0019 완료 확인·PCAC0020 보완 요청). 매칭이 여럿이면 탭으로 나눈다. 완료 사진은 `/api/files/public/{atchFileSn}` 대신 `GET /api/admin/care-matches/{petPrtcRcrtSn}/images/{atchFileSn}`(관리자 로그인, 이미지 바이트, 백엔드 PR #158)을 `useFileImage`로 받는다(시드 93장 중 15장만 파일 있음). 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+- 결정: 디자인은 기존 SCR-ADM-022 화면 그대로, 데이터 모양만 바꿈(2026-11-05 기획 승인)
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 1회차), 사람 확인 2026-11-05
+- 연결 남음: 없음
 
 ## SCR-ADM-051 약관 · 390 폭 가로 스크롤 + SCR-ADM-101 지역 탭 빼기 — 끝
 - 기능: 명세 기능 ID 없음(2026-11-03 SCR-ADM-051 검증에서 나온 것, 사람 결정 "다음에서 수정") + FN-ADM-101-02 지역 조회 제거(사람 결정 2026-11-03 "다음에서 빼버리는 걸로"). 둘을 묶음(사람 요청 2026-11-03)
@@ -955,6 +971,50 @@
 - 기다리는 것: 백엔드 SCR-ADM-072 포인트 · 프론트 연결 관리자 포인트 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/points` 두 행
 - 완료 조건: `features/adminPoint/api.js`의 가짜 원장 목록·조정을 실제 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments` `{ mbrSn, dlngPnt, memoCn }`(201, 응답은 원장 한 줄)로 바꾸고 sessionStorage 가짜를 지운다. 조정 모달 현재 잔액은 `GET /api/admin/members/{mbrSn}`의 `hldPnt`(가짜의 원장 마지막 잔액 대신). 잔액 부족은 `POINT_BALANCE_NOT_ENOUGH`가 아니라 400 `POINT_NOT_ENOUGH`, 탈퇴·없는 회원 404 `MEMBER_NOT_FOUND`, 형식 오류 400 `INVALID_INPUT_VALUE`. 같은 요청을 두 번 보내면 두 건이 되므로 조정 버튼을 요청 중 잠근다
 - 이미 바뀐 것: `features/adminPoint/api.js`(가짜, 목록 필드는 실제와 같음)
+
+## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-01
+- 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/receipt.md` `/admin/processing/receipts` 두 행
+- 완료 조건: `features/adminProcessing/api.js`의 `getAdminReceipts` 가짜를 실제 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrDmndSrcCd=&ocrPrcsSttsCd=&page=&size=`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, failCnt, prcsCnt, errCnt }, content: [{ recptSn, mbrSn, mbrNcnm, ocrDmndSrcCd, ocrPrcsSttsCd, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 출처 `ocrRqstSrcCd` → `ocrDmndSrcCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` 가계부 출처 `TMP00031` → `AIMC0027`. 가짜의 처리 중 `AIMC0002`·성공 `AIMC0003`은 틀렸다(분석중 AIMC0001, 인식성공 AIMC0002, 부분인식 AIMC0003). summary는 현재 상태 기준(성공 = 인식성공·부분인식·저장완료, 실패 = 인식실패 AIMC0004, 처리 중 = 분석중, `errCnt` = 일시오류 AIMC0005는 새 키). 실패율은 `failCnt / totCnt`. 모르는 코드·`fromYmd > toYmd`는 400 `INVALID_INPUT_VALUE`. `ReceiptImageModal.jsx`의 원본 보기 `GET /api/admin/processing/receipts/{recptSn}/image`(경로 가정 그대로), 없는 영수증 404 `RECEIPT_NOT_FOUND`
+- 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`(가짜)
+
+## SCR-CMU-005 우리동네 펫돌봄 채팅 · 채팅 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-CMU-005-01~11, FN-COM-009-02·05~08·13~17·19
+- 기다리는 것: 백엔드 펫돌봄 채팅·채팅 모달 API (develop `845613d`, 끝. 계약은 백엔드 `docs/api/community.md`, 실시간 절은 2026-10-22 제안 상태)
+- 완료 조건: `features/chat/api.js` 가짜를 실제 `/chat-rooms`·`/care-matches` API로 바꾼다. 채팅 사진은 `/chat-rooms/{otoChatRoomSn}/images/{atchFileSn}`을 쿠키 인증으로 받아 그린다. 펫돌봄 상세 [채팅하기]·[내 채팅 보기]가 `POST /chat-rooms`로 기존 방을 연다(회원 152 `/community/petcare/3` → 방 8, 회원 146 `/community/petcare/1` → 기존 방). 세부는 핸드오프 "다음에 할 것" 1순위
+- 이미 바뀐 것: `features/chat/api.js`(가짜 응답)
+- 연결 남음: FN-COM-009-08 주소 공유 장소 검색 (장소 검색 API, 담당 미정)
+- 연결 남음: FN-COM-009-18 열린 방 알림 억제 (서버 알림, YAY)
+
+## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-02
+- 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/processing/character-jobs` 행
+- 완료 조건: `features/adminProcessing/api.js`의 `getAdminCharacterJobs` 가짜를 실제 `GET /api/admin/processing/character-jobs?crtJobSttsCd=&page=&size=`로 바꾼다. 응답은 `{ sttsCnts: [{ crtJobSttsCd, cnt }], content: [{ charCrtJobSn, mbrSn, mbrNcnm, crtJobSttsCd, failRsn, otoInqrySn, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 상태 `jobSttsCd` → `crtJobSttsCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` `CHAR_JOB_STTS`는 CHRG01(CHRC0001 요청·CHRC0002 생성 중·CHRC0003 생성 완료·CHRC0004 생성 실패), `CHAR_JOB_STTS_FAIL` `TMP00044` → `CHRC0004`. `sttsCnts`는 상태 필터와 무관하게 네 줄을 순서대로 주고 없는 상태는 0. 모르는 상태 코드 400 `INVALID_INPUT_VALUE`. `CharacterJobTable.jsx`의 문의 링크는 `otoInqrySn` 그대로
+- 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`·`CharacterJobTable.jsx`(가짜)
+
+## SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·02·03
+- 기다리는 것: 백엔드 SCR-ADM-080 라우팅 매핑표 · 프론트 연결 관리자 매핑표 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/ai.md` "관리자 API" 절의 `/admin/ai/routes` 네 행
+- 완료 조건: `features/adminAiRoute/api.js`의 가짜 네 함수를 실제 `GET /api/admin/ai/routes?q=`(배열, 페이지 없음)·`POST /api/admin/ai/routes`(201 `{ aiRoutMpngSn }`)·`PATCH /api/admin/ai/routes/{aiRoutMpngSn}`(보낸 칸만, 바뀐 행을 돌려줌)·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`로 바꾸고 sessionStorage 가짜를 지운다. 가정과 다른 것: `rprsChipYn`·`useYn`은 true/false('Y'/'N' 아님, `routeLabels.js`·모달·표의 비교를 고친다), `domnNm`은 보내지 않는다(서버가 화면 ID로 정함), 수정에서 화면 ID·파라미터·지시어·비고를 비우려면 빈 문자열을 보낸다(`null`은 그대로 둠), `prrtSeq`는 1 이상(수정에서 없으면 순위 그대로). 화면 이동(AIMC0032)·모달 열기(AIMC0033)인데 화면 ID·지시어가 없으면 400 `INVALID_INPUT_VALUE`, 없는 행 404 `AI_ROUTE_NOT_FOUND`(가짜와 같은 이름). 화면 ID 선택지는 `SCREEN_OPTIONS` 그대로(서버 API 없음). 이동 방식 AIMC0036 보류도 서버는 받는다
+- 이미 바뀐 것: `features/adminAiRoute/api.js`·`routeLabels.js`·`AiRouteFormModal.jsx`·`AiRouteTable.jsx`(가짜)
+
+## SCR-ADM-081 키워드 사전 · 관리자 키워드 사전 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-081-01·02
+- 기다리는 것: 백엔드 SCR-ADM-081 키워드 사전 · 프론트 연결 관리자 키워드 사전 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/ai.md` "관리자 API" 절의 `/admin/ai/keywords` 네 행과 DTO 절
+- 완료 조건: `features/adminAiKeyword/api.js`의 가짜 네 함수를 실제 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`(배열, 페이지 없음)·`POST /api/admin/ai/keywords`(201 `{ kwrdDictSn }`)·`PATCH /api/admin/ai/keywords/{kwrdDictSn}`(보낸 칸만, 바뀐 행을 돌려줌)·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`로 바꾸고 sessionStorage 가짜를 지운다. 가정과 다른 것: `useYn`은 true/false('Y' 아님), 행에 `mpngCdNm`(연결 코드 이름)이 더 있다, 없는 행 404 `AI_KEYWORD_NOT_FOUND`(가짜 `KEYWORD_NOT_FOUND` 아님), 수정에서 해석 결과·연결 코드·비고를 비우려면 빈 문자열(`null`은 그대로 둠), 용도·분류는 수정되지 않는다. 연결 코드는 `일정 종류`(HLTG19)·`검진유형`(HLTG01)·`가계부 카테고리`(MYPG05)만 필수이고 다른 분류에 보내면 400 `INVALID_INPUT_VALUE`. `kwrdClsfNm`은 서버가 글자 그대로 검사하므로 `SCR-ADM-081 키워드 사전 · 탭·칸 이름을 쉬운 말로` 절에서 바꾸는 것은 화면 표시만이다. 가계부 카테고리 초기 데이터 6건(병원~돌봄, 기타 없음)은 공용 DB에 있다
+- 이미 바뀐 것: `features/adminAiKeyword/api.js`·`keywordLabels.js`(가짜)
+
+## SCR-ADM-082 처리 현황 · 검사결과지 분석 현황 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-03
+- 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 검사결과지 분석 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/global.md` `/admin/processing/pdf-analyses` 행
+- 완료 조건: `features/adminProcessing/api.js`의 `getAdminPdfAnalyses` 가짜를 실제 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=&size=20`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, tmotCnt, errCnt }, content: [{ extlApiCallLogSn, callRsltCd, failRsn, callDt }], page, size, totalElements, totalPages, hasNext }`로 가짜와 같은 모양이다. 기간은 둘 다 선택(호출일 양끝 포함), `fromYmd`가 `toYmd`보다 뒤면 400 `INVALID_INPUT_VALUE`. 검사결과지가 아닌 파일은 Python이 성공(SYSC0021)으로 통지해 `scsCnt`·`totCnt`에 들어가고 실패 목록에는 없다. 결과 코드 SYSC0021 성공·SYSC0022 실패(API 오류)·SYSC0023 시간초과
+- 이미 바뀐 것: `features/adminProcessing/api.js`(가짜 `getAdminPdfAnalyses`)
+
+## SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-02·03
+- 기다리는 것: 백엔드 SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/admin.md` `/admin/dashboard` 행
+- 완료 조건: `features/adminDashboard/api.js`의 `getAdminDashboard` 가짜를 실제 `GET /api/admin/dashboard`로 바꾼다. 필드 이름·모양은 가짜 그대로(`totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs[{ mbrSn, mbrNcnm, regDt }]`·`recentPsts[{ pstSn, bbsCd, bbsNm, pstTtl, regDt }]`·`dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`). 회원 수는 일반 회원만(관리자 계정 제외), 게시글 수·최근 게시글은 관리자 게시글 목록 기본 조건과 같게 삭제 글 포함, 배치 실패는 마지막 실행이 실패한 배치 수. 처리 대기 건수를 누르면 같은 필터의 목록 건수와 같다. 이용 통계(`getAdminDashboardStats`)는 아직 가짜
+- 이미 바뀐 것: `features/adminDashboard/api.js`(가짜 `getAdminDashboard`), SCR-ADM-001 대시보드 화면(끝)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

@@ -1,6 +1,7 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDate, getHmOf } from '@/utils/formatDate';
 import { EMPTY_LABEL, EXCN_RSLT } from './batchLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['배치', '마지막 실행', '결과'];
 
@@ -34,7 +35,7 @@ export default function BatchTable({
   onRun,
 }) {
   return (
-    <div className="relative overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={`relative ${ADMIN_TABLE_BOX}`}>
       <table className="w-full min-w-[720px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

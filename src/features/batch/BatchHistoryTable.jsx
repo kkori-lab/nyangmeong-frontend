@@ -1,5 +1,6 @@
 import { formatDate, getHmOf } from '@/utils/formatDate';
 import { EMPTY_LABEL, EXCN_SE } from './batchLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['시작', '종료', '처리', '사유', '구분'];
 
@@ -18,7 +19,7 @@ const formatExcnSe = ({ excnSeCd, mbrNcnm }) => {
  */
 export default function BatchHistoryTable({ histories }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[720px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

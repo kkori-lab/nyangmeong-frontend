@@ -1,4 +1,4 @@
-import { MTCH_STTS_BADGE } from '../shared/chatCodes';
+import { getDealBadge } from '../shared/chatCodes';
 
 const TONES = {
   gray: 'bg-tone-gray-bg text-tone-gray-fg',
@@ -9,7 +9,7 @@ const TONES = {
 
 /** 거래 상태 배지(매칭 전·수락 대기·거래 완료 등) */
 export default function DealBadge({ stage, className = '' }) {
-  const { label, tone } = MTCH_STTS_BADGE[stage];
+  const { label, tone } = getDealBadge(stage);
 
   return (
     <span

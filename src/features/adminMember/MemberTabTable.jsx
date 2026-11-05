@@ -1,6 +1,7 @@
 import BoardPagination from '@/components/BoardPagination';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import SkeletonCard from '@/components/SkeletonCard';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 /**
  * [회원 상세 탭 표]
@@ -45,7 +46,7 @@ export default function MemberTabTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+      <div className={ADMIN_TABLE_BOX}>
         <table className="w-full min-w-[720px] text-left text-base">
           <thead>
             <tr className="border-b border-line text-sm text-subtle">

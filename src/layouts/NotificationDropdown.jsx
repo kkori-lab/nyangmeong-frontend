@@ -12,6 +12,7 @@ import {
 } from '@/features/notification/queries';
 import { useChatModal } from '@/context/chatModal';
 import { HEADER_ICON_CLASS } from './headerStyles';
+import { useMe } from '@/features/member/queries';
 
 /** 열릴 때만 마운트: 알림 목록 요청과 탭 상태를 열 때마다 초기화 */
 function NotificationPanel({ unreadCount, onClose, onDismiss }) {
@@ -126,7 +127,9 @@ export default function NotificationDropdown({
 }) {
   const rootRef = useRef(null);
   const buttonRef = useRef(null);
-  const { data: unread } = useUnreadCount();
+  const { data: me } = useMe();
+  /** 로그인 전(공개 화면)에는 조회하지 않는다: 401이면 로그인 화면으로 이동하므로 */
+  const { data: unread } = useUnreadCount(Boolean(me));
 
   /** 닫기 버튼: Esc와 같게 알림 버튼으로 포커스를 돌린다 */
   const handleDismiss = () => {

@@ -1,6 +1,7 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDate, getHmOf } from '@/utils/formatDate';
 import { getCodeName, OCR_SOURCES, OCR_STTS_FAIL } from './processingLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['요청 일시', '출처', '상태', '회원', '원본'];
 
@@ -11,7 +12,7 @@ const COLUMNS = ['요청 일시', '출처', '상태', '회원', '원본'];
  */
 export default function ReceiptTable({ receipts, statuses, onOpenImage }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[640px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

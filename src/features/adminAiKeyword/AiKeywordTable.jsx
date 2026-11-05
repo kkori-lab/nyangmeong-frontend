@@ -1,20 +1,21 @@
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { codeLabel } from './keywordLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const CELL = 'px-4 py-3 align-top';
 
 /**
  * [키워드 사전 표]
- * - 결과가 코드인 탭은 연결 코드("HLTC0057 병원"), 아니면 해석 결과 칸
+ * - 결과가 코드인 탭은 분류 칸(연결 코드 "HLTC0057 병원"), 아니면 의미 칸(해석 결과)
  * - [수정] -> 수정 모달(삭제도 거기서)
  * - 좁은 폭에서는 표 안에서만 가로 스크롤
  */
 export default function AiKeywordTable({ tab, keywords, onEdit }) {
   const hasCode = tab.codes != null;
-  const columns = ['항목', '키워드', hasCode ? '연결 코드' : '해석 결과', ''];
+  const columns = ['이름', '단어', hasCode ? '분류' : '의미', ''];
 
   return (
-    <div className="relative overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={`relative ${ADMIN_TABLE_BOX}`}>
       <table className="w-full min-w-[760px] table-fixed text-left text-base">
         <colgroup>
           <col className="w-[160px]" />

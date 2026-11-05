@@ -16,6 +16,7 @@ export default function PasswordResetPage() {
   return (
     <PasswordResetForm
       isVerified={isVerified}
+      grant={state}
       onGoLogin={() => navigate(PATHS.LOGIN)}
       onRetryAuth={() => navigate(PATHS.PASSWORD_FIND)}
     />
