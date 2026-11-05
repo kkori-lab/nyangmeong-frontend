@@ -2,13 +2,20 @@
 
 ## 지금 하는 것
 
-SCR-ADM-091 발송 이력 · 목록 연결 — 끝 (2026-11-05, 검증 1회차 통과·사람 확인). 발송 이력 가짜를 실제 `GET /api/admin/notification-logs`로 바꾸고 기간 칸을 `bgngYmd`·`endYmd`로, 400은 서버 문구를 보인다
+SCR-ADM-021 실종제보 · 목록·상세 연결 — 끝(2026-11-05). 가짜 실종제보 목록·상세를 실제 `/api/admin/lost-reports` API로 바꾸고, 목록·상세 조회 오류에 서버 문구를 보인다
 
 ## 다음에 할 것
 
-- SCR-COM-004 알림 드롭다운 크기·스크롤·닫기 버튼(마일스톤 `대기`, 사람 2026-11-05): 웹·모바일 패널 크기 고정, 안 읽은 알림 5개 이상이면 목록 안 스크롤, 닫기 버튼. `/start COM-004`
+- SCR-ADM-021 사람이 볼 것(2026-11-05): 이 DB에 사진 있는 실종제보가 없어 상세 사진 표시와 404 문구는 응답을 바꿔서만 확인했다. 사진 있는 제보가 생기면 모달에서 사진이 열리는지 본다
+- SCR-ADM-022 사람이 볼 것(2026-11-05): ① 이 PC는 완료 사진 파일이 없어 모두 404라, 실제 사진이 열리는 것은 응답을 바꿔서만 확인했다(파일이 있는 DB에서 모집 71의 3916·3917 확인) ② 조건 버전은 모든 버전을 펼치고 최신만 굵게 보인다(기획 문구는 "최신 펼침 + 이전 목록")
+- SCR-CMU-005 연결 남음: FN-COM-009-08 주소 공유의 장소 검색 `searchChatPlaces` (장소 검색 API 미정, 가짜로 남김)
+- SCR-COM-009 연결 남음: FN-COM-009-18 열린 방 알림 억제 (서버 알림 쪽, YAY)
+- SCR-CMU-005 공용 DB 검증 데이터: 방 1에 "[검증]…"·"[검증2]…" 메시지와 사진 4312·4314, 매칭 101 요청·취소 이력, 모집글 49에 방 260. 메시지는 앱에서 지울 수 없어 DB에서 지운다
+- SCR-CMU-005 참고: 기존 시드 채팅 사진(예: 3530·3866)은 서버가 404 `FILE_NOT_FOUND`(파일이 이 PC에 없음). 코드 문제 아님
+- 돌봄 장소 찾기(KSJ `PlaceSearchModal`) 지도 오류 원인 조사(2026-11-05, 말만): 키 없음·서버 재시작 안 함, 카카오 Web 도메인에 `localhost:5180` 미등록, JS 키 대신 REST 키, 카카오맵 사용 설정 OFF, 네트워크·광고 차단. 공용 `hooks/useKakaoMap.js`는 `onload` 안에서 예외가 나면 Promise가 끝나지 않아 안내 없이 검색 버튼만 비활성으로 남는다
+- SCR-ADM-080 사람이 볼 것(판정 밖, 2026-11-05): ① 페이지 머리 안내문(`AdminAiRoutesPage.jsx`)에 "우선순위가 높은(숫자가 작은) 행이 먼저예요"가 남아 모달의 "같은 지시어일 때 순서"와 말이 어긋난다 ② 모달 겹침 경고는 사용 안 함 행도 센다(표는 안 셈) ③ 매핑표 API가 가짜 응답이고 처음 값에는 겹치는 지시어가 없다
 - SCR-ADM-091 사람이 볼 것(2026-11-05): 대시보드 "알림 발송 실패(24시간)" 링크는 대시보드가 아직 가짜(`notiFailCnt` 0)라 화면에 안 보여 응답을 바꿔서만 확인했다. [2]쪽 요청도 로컬 데이터가 4건이라 응답을 바꿔서만 확인했다
-- 다음 추천(2026-11-04): 백엔드 PR #149(backend-a9) 연결 남은 1건 — FN-MYP-010-16 착용 확정(`PUT /api/pixel-characters/{pixelCharSn}/equipped-items` 200) 뒤 Python `/ai/characters/{pixelCharSn}/equipped-image` 합성 요청, 끝나면 `character-image` 캐시 무효화, 409 `EQUIPPED_ITEMS_CHANGED`는 무시(꾸미기 화면). 마일스톤 절이 생기면 `/start`. 그 밖에 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 외부 API 사용량(112)·운영 설정(110)·실종제보(021)·펫돌봄 거래(022)·노출 콘텐츠(023)
+- 다음 추천(2026-11-04): 백엔드 PR #149(backend-a9) 연결 남은 1건 — FN-MYP-010-16 착용 확정(`PUT /api/pixel-characters/{pixelCharSn}/equipped-items` 200) 뒤 Python `/ai/characters/{pixelCharSn}/equipped-image` 합성 요청, 끝나면 `character-image` 캐시 무효화, 409 `EQUIPPED_ITEMS_CHANGED`는 무시(꾸미기 화면). 마일스톤 절이 생기면 `/start`. 그 밖에 백엔드 API가 develop에 있는데 프론트가 가짜인 화면: 외부 API 사용량(112)·운영 설정(110)·노출 콘텐츠(023)
 - SCR-ADM-070 사람이 볼 것(2026-11-05): ① 이 PC의 ai `.env.local`이 `CHARACTER_BAKE_ENABLED=true`라 실제 [굽기]는 이미지 API가 과금된다. 반복 호출·[멈춤]·화면 떠나기는 Playwright 가짜 응답으로만 확인했다 ② 본문 없는 502(AI 서버 꺼짐 등)는 "일시적인 오류가 발생했어요."로 보인다 ③ 390폭에서 굽기 칸이 늘어 이름 칸이 좁다
 - SCR-ADM-070 다음에(결정 2026-11-05): 굽기 지시를 고친 뒤 이미 구운 캐릭터 다시 굽기는 넣지 않았다. AI 서버는 안 구운 캐릭터만 굽는다(다시 굽기는 ai·백엔드 몫 포함)
 - SCR-ADM-070 새 아이템 등록 도구(마일스톤 `대기`, 사람 2026-11-05): 범위·흐름이 정해지면 `/start`
@@ -26,7 +33,6 @@ SCR-ADM-091 발송 이력 · 목록 연결 — 끝 (2026-11-05, 검증 1회차 �
 - SCR-ADM-081 연결 남음: AI 서버가 사전을 DB 조회 API로 읽기(백엔드 조회 API는 백엔드 저장소, AI 서버 전환은 ai 저장소). 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다. 가계부 분류는 지금 OCR(`ai/app/ocr/clients.py`)의 고정 표가 쓴다
 - SCR-ADM-081 사람이 볼 것(판정 밖): ① 화면설계서 예시 `EXPC0001` 대신 실제 코드 MYPC0012~0018(MYPG05)을 썼다 ② 글자 수는 입력을 막지 않고 칸 아래 오류로 알린다(라우팅 매핑표 모달은 `maxLength`로 막는다) ③ `routes/paths.js`에 `ADMIN_AI_KEYWORDS`를 기능 커밋에 같이 넣었다
 - SCR-ADM-081 탭·칸 이름 쉬운 말로(후순위, 사람 2026-11-04): 마일스톤 절 참고
-- SCR-ADM-080 후속(사람 2026-11-04 "나중에 수정", 같은 날 "후순위로 미루고 화면 구현부터". 2026-11-04 기획 초안: 표에서 순위 칸을 빼고 겹치는 행에만 "'병원' 같은 지시어 3건 중 1번째" 표시, 모달 칸 이름 "같은 지시어일 때 순서", `utils/josa.js`로 조사 맞춤, 화면만 바꾸기 추천): 순위 칸이 매핑 전체 우선순위처럼 읽힌다. 실제로는 같은 길이 지시어가 겹칠 때만 쓰는 판정 기준이다. 화면만 바꾸기(순위 칸을 앞에서 빼고 겹치는 행에 표시, 칸 이름을 "같은 지시어일 때 순서"로) 또는 구조 바꾸기(지시어별 우선순위, ERD·백엔드·AI 서버) 중 정한다. 겹침 경고의 조사 "'병원'는"을 받침에 맞춘다
 - SCR-ADM-080 연결 남음: FN-ADM-080-01·02·03 (백엔드 연결 `GET /api/admin/ai/routes?q=`·`POST /api/admin/ai/routes`·`PATCH`·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`(등록·수정 본문에 `prrtSeq`, 그 자리에 넣고 나머지를 민다), 화면 ID 선택지 출처, 지시어 저장 형식(가정 쉼표 구분), `domnNm` 정하는 규칙, 백엔드 저장소에서 /start). 나오면 `features/adminAiRoute/api.js` 가짜 본문(sessionStorage `fakeAdminAiRoutes`)만 실제 요청으로, 선택지는 `routeLabels.js`에서 맞춘다
 - SCR-ADM-080 연결 남음: FN-ADM-080-04·05 (백엔드 연결 AI 서버·대화창용 조회 API와 부록 A 초기 데이터 INSERT, 백엔드 저장소에서 /start. AI 서버가 `data/routing.yaml` 대신 그 API를 읽는 것은 ai 저장소 몫)
 - SCR-ADM-080 사람이 볼 것(판정 밖): ① 화면 ID 선택지에 `docs/routes.md` ✓가 아닌 `SCR-COM-009`·`SCR-MYP-031`을 더했다(부록 A 행이 씀) ② 저장 토스트는 기획 문구 그대로 "~했습니다" 말투라 다른 관리자 화면("~했어요")과 다르다 ③ `routes/paths.js`에 `ADMIN_AI_ROUTES`를 기능 커밋에 같이 넣었다 ④ 스켈레톤 높이(3330px)는 45행 어림값
@@ -49,12 +55,9 @@ SCR-ADM-091 발송 이력 · 목록 연결 — 끝 (2026-11-05, 검증 1회차 �
 
 - SCR-ADM-090 로컬 DB 검증 데이터(2026-11-03): 템플릿 `notiTmpltSn` 5(케어 일정·이메일, 제목 "검증 등록", 미사용)가 남았다(삭제 API 없음). 3번은 원래 값으로 되돌렸다. 수정 모달은 제목을 필수로 검사하지만 서버는 선택 값이다(DB에 제목 null 템플릿 3번)
 
-- SCR-ADM-022 연결 남음: FN-ADM-022-01·02 (백엔드 연결 `GET /api/admin/care-matches` 목록·상태 필터·쪽, `GET /api/admin/care-matches/{petPrtcRcrtSn}` 상세, 가정 필드 이름 `ctptNcnm`·`agreVerNo`·`agreDt`·`agreCn`·`cmplReqDt`·`cmplImgs`·`ownerCfmtnRsltCd`·`ownerCfmtnDt`, 매칭 거래 상태 코드(가짜 `REQUESTED` 등)·보호자 확인 코드, 실제 완료 사진, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 펫돌봄 가짜 본문과 `careMatchLabels.js` 코드만 바꾼다
 - SCR-ADM-022 사람이 볼 것(판정 밖): 비용 단위 코드가 백엔드 `CareCostUnit`(PCAC0004·0005)과 회원용 펫돌봄 화면(PCAC0011·0012)이 다르다. 관리자 화면은 백엔드 값을 따랐다. `routes/paths.js`에 `ADMIN_CARE_MATCHES`를 기능 커밋에 같이 넣었다. 백엔드 마일스톤 SCR-ADM-022 절의 "KSJ 협의" 표기는 사람이 맞춘다
 
-- SCR-ADM-021 연결 남음: FN-ADM-021-01·02·03 (백엔드 연결 `GET /api/admin/lost-reports` 목록·상태 필터·쪽, `GET /api/admin/lost-reports/{lostTpofSn}` 상세(찾았어요는 제목·상태·처리 시각·`pstSn`만), 관리자에게 `mbrNcnm`·`expryCrtrDt` 노출, 실제 사진 `atchFileSn`·`pstSn`, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 실종제보 가짜 본문만 실제 요청으로 바꾼다
-- SCR-ADM-021 사람이 볼 것(판정 밖): 가짜 만료 제보의 만료 기준일이 미래 날짜라 실제와 다르다(상세 모달에서만 보임). `routes/paths.js`에 `ADMIN_LOST_REPORTS`를 기능 커밋에 같이 넣었다. 백엔드 `docs/admin/implementation-plan.md`의 SCR-ADM-021 담당 KSJ → LJS는 사람이 고친다
-- PR 캡처 확인: SCR-ADM-021 캡처 `LJS-20261103-SCR-ADM-021-after-1440.png`·`-390.png`는 가짜 데이터만 찍혔다
+- SCR-ADM-021 사람이 고치는 문서: 백엔드 `docs/admin/implementation-plan.md`의 SCR-ADM-021 담당 KSJ → LJS
 
 
 - SCR-ADM-090 사람이 볼 것(판정 밖): 목록 스켈레톤 높이(1108px, 모바일 1160px)는 20행 기준 계산값인데 실제 AIMG02는 9종이라 18행이다(`AdminNotificationTemplatesPage.jsx`). 템플릿 목록 자체 오류(403 아닌 것) 분기는 코드로만 봤다. 치환 변수 칩은 케어 일정 기준 목록을 모든 유형에 똑같이 보인다. 화면설계서의 `{변수}` 표기를 `{{변수}}`로 고치는 것은 사람 몫
@@ -194,8 +197,6 @@ SCR-ADM-091 발송 이력 · 목록 연결 — 끝 (2026-11-05, 검증 1회차 �
   - 공용(LJS): `components/Pagination`(카드 쪽 번호, 가계부 전체 내역·건강 일지 검진 카드)도 누르면 맨 위로 간다
   - PR 전 디스코드 알림: "페이지를 이동하면 스크롤이 맨 위로 가도록 `UserLayout`·`AdminLayout`에 넣었어요(뒤로가기는 원래 위치로 돌아가요). 쪽 번호(`BoardPagination`·`Pagination`)를 눌러도 맨 위로 가요. 첫 진입에 깜빡이던 '불러오는 중이에요'와 로딩 중 `return null`은 각 페이지의 실제 카드 배치 스켈레톤(`PageSkeleton`·`SkeletonCard`·`Skeleton`)으로 바꿨어요. 위 파일들이 바뀌었으니 화면 배치를 바꾸면 그 페이지의 `XxxSkeleton`도 같이 고쳐 주세요. 규칙은 `docs/convention/ui.md` '로딩 표시' 절, 사용법은 `handoff/LJS.md`에 있어요"
 
-- SCR-CMU-005·COM-009 연결 남음: 채팅·매칭 API(KSJ, 백엔드 `docs/api/community.md`)로 `features/chat/api.js` 가짜를 바꾸고 가짜 읽음 위치 `localStorage['fake-chat-read-seq']` 코드를 지운다. 붙인 뒤 `room/FakePeerTools.jsx`·`fakePeerAct`·`/dev/chat`(`pages/dev/ChatDevPage.jsx`)·`fakeChat*` 쿼리 코드를 지운다. 009-18 알림 억제는 서버(YAY). 장소 검색은 YAY(`searchChatPlaces` → `GET /places`, 주소 검색 범위는 백엔드 issues 99번 13)
-- KSJ에 물을 것(CMU-005 가짜가 추정한 것): ① 목록 `ChatRoomSummary`에 내 역할(`myRole`)·거래 상태(`mtchDlngSttsCd`)가 없다(탭·배지에 필요) ② 방 응답에 모집글 일정·비용 요약이 없다(카드 펼침 `rcrtSummary`) ③ 메시지 보낸 시각 필드(사람이 DDL 확인 후 정함) ④ 시스템 안내 메시지 유형과 강조(`sysToneCd`), 요청 취소 사유 표시(`tagCn`) ⑤ 주소 공유 필드 배치(가짜는 `shrnAddr`=장소, `msgCn`=상세 주소) ⑥ 매칭 요청 `CareMatchCreateRequest`의 조건 필드를 화면이 어디서 받나(시안은 "현재 모집글 조건으로 요청") ⑦ 완료 요청이 입력 없이 가능한지(백엔드는 회차·종료 시각·내용·사진을 받는다) ⑧ 채팅방 나가기·다시 요청·무응답 종료 API 없음(백엔드 issues 17) ⑨ 사진 업로드 방식(issues 15)
 - 게시글 상세(SCR-CMU-004, KSJ): [채팅하기]는 `@/context/chatModal`의 `useChatModal().open({ pstSn })`, 보호자 [채팅 목록 보기]는 `open({ listPstSn })`로 채팅 모달을 연다(SCR-COM-009 채팅 모달 복귀, 2026-10-22). 모달의 [새 창으로 띄우기]가 새 창을 연다
 - 사람이 고치는 문서: 백엔드 저장소 `docs/convention/milestone.md` 담당 표에 채팅 화면 LJS 이관 반영(채팅은 다시 모달, 2026-10-22. 명세 FN-COM-009-03 "모달"과 맞다)
 - SCR-CMU-005 남은 화면 일(선택): 거래 버튼을 아주 빠르게 두 번 누르면 두 번째 요청이 서버에 가 거절 토스트가 뜬다(`useDealAction`의 `onSettled`가 `invalidateQueries`를 반환하지 않음). 메시지 시각·날짜 구분선은 `msgDt`가 정해지면 `ChatConversation.jsx`에 날짜 구분선 추가
