@@ -1,4 +1,5 @@
 import { formatDate, getYmdOf } from '@/utils/formatDate';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['고정', '제목', '사용', '조회수', '알림 발송', '등록일'];
 
@@ -19,7 +20,7 @@ const formatSending = ({ notiSndngDt, notiTrgtCnt }) => {
  */
 export default function NoticeTable({ notices, onSelect }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[760px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

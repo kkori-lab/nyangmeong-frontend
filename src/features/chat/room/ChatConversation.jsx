@@ -2,24 +2,27 @@
  * [채팅방]
  * - 상단 바, 거래 카드, 대화(텍스트·사진·주소·시스템 안내), 입력 (FN-COM-009-20, FN-CMU-005-01·04)
  * - 창이 보일 때 표시된 마지막 메시지까지 읽음 처리 (FN-COM-009-14·16)
+ * - 맨 위로 올리면 이전 30건을 이어 붙이고 보던 자리 유지
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import FileImage from '@/components/FileImage';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
 import Skeleton from '@/components/Skeleton';
 import { BTN_DANGER, BTN_SECONDARY } from '@/components/buttonStyles';
 import {
+  useChatImage,
   useChatMessages,
   useChatRoom,
   useLeaveChatRoom,
   useReadChatRoom,
+  useViewingChatRoom,
 } from '../queries';
-import { MSG_TYPE, SYS_TONE } from '../shared/chatCodes';
+import { MSG_TYPE, ROOM_STTS } from '../shared/chatCodes';
 import CareDealCard from './CareDealCard';
 import ChatAvatar from './ChatAvatar';
 import ChatMessageInput from './ChatMessageInput';
 import ChatRoomHeader from './ChatRoomHeader';
-import FakePeerTools from './FakePeerTools';
 import { getLeaveText } from './dealSteps';
 
 const BUBBLE_BASE =
@@ -27,49 +30,49 @@ const BUBBLE_BASE =
 const BUBBLE_PEER = `${BUBBLE_BASE} rounded-[4px_18px_18px_18px] border-line bg-white text-ink`;
 const BUBBLE_MINE = `${BUBBLE_BASE} rounded-[18px_4px_18px_18px] border-brand-500 bg-brand-500 text-white`;
 
-/** 보낸 시각(msgDt)이 있을 때만 "14:20" */
+/** 보낸 시각 "14:20" */
 const MessageTime = ({ message }) =>
-  message.msgDt ? (
+  message.regDt ? (
     <time className="shrink-0 text-xs text-placeholder tabular-nums">
-      {message.msgDt.slice(11, 16)}
+      {message.regDt.slice(11, 16)}
     </time>
   ) : null;
 
+/** 거래 단계 안내(요청·수락·완료 등). 서버가 강조 구분을 주지 않아 한 모양 */
 function SystemNotice({ message }) {
-  const isEnd = message.sysToneCd === SYS_TONE.END;
-  const isKey = message.sysToneCd === SYS_TONE.KEY;
-  let icon = 'check';
-  if (isEnd) icon = 'info';
-  if (isKey) icon = 'check_circle';
-
   return (
     <li className="my-3 flex justify-center">
-      <span
-        className={`inline-flex max-w-[88%] items-center gap-1.5 text-center text-sm leading-normal ${
-          isKey ? 'font-bold text-[#2f6f57]' : 'text-muted'
-        }`}
-      >
-        <Icon
-          name={icon}
-          filled={isKey}
-          className={`text-lg ${isKey ? 'text-xl text-[#2f6f57]' : 'text-subtle'}`}
-        />
+      <span className="inline-flex max-w-[88%] items-center gap-1.5 text-center text-sm leading-normal text-muted">
+        <Icon name="info" className="text-lg text-subtle" />
         {message.msgCn}
       </span>
     </li>
   );
 }
 
-function MessageBody({ message }) {
+/** 비공개 채팅 사진: 참여자 쿠키로 받아 그린다 */
+function ChatPhoto({ otoChatRoomSn, atchFileSn }) {
+  const { src, isPending } = useChatImage(otoChatRoomSn, atchFileSn);
+
+  return (
+    <FileImage
+      src={src}
+      pending={isPending}
+      alt="보낸 사진"
+      className="aspect-[4/3] w-[200px] rounded-[14px] border border-line object-cover"
+    />
+  );
+}
+
+function MessageBody({ message, otoChatRoomSn }) {
   if (message.msgTypeCd === MSG_TYPE.IMAGE) {
     return (
       <span className="flex flex-wrap gap-1.5">
         {message.photos.map((photo) => (
-          <img
+          <ChatPhoto
             key={photo.atchFileSn}
-            src={photo.url}
-            alt="보낸 사진"
-            className="aspect-[4/3] w-[200px] rounded-[14px] border border-line object-cover"
+            otoChatRoomSn={otoChatRoomSn}
+            atchFileSn={photo.atchFileSn}
           />
         ))}
       </span>
@@ -87,24 +90,18 @@ function MessageBody({ message }) {
           주소 공유
         </b>
         {message.shrnAddr}
-        {message.msgCn && <span>{message.msgCn}</span>}
+        {message.dtlAddr && <span>{message.dtlAddr}</span>}
       </span>
     );
   }
   return (
     <span className={message.mine ? BUBBLE_MINE : BUBBLE_PEER}>
-      {message.tagCn && (
-        <span className="mb-1 flex items-center gap-1 text-sm font-bold">
-          <Icon name="block" className="text-base" />
-          {message.tagCn}
-        </span>
-      )}
       {message.msgCn}
     </span>
   );
 }
 
-function MessageItem({ message, isContinued, ctptMbrNcnm }) {
+function MessageItem({ message, isContinued, ctptMbrNcnm, otoChatRoomSn }) {
   if (message.msgTypeCd === MSG_TYPE.SYSTEM) {
     return <SystemNotice message={message} />;
   }
@@ -129,7 +126,7 @@ function MessageItem({ message, isContinued, ctptMbrNcnm }) {
         {!message.mine && !isContinued && (
           <span className="text-sm text-subtle">{ctptMbrNcnm}</span>
         )}
-        <MessageBody message={message} />
+        <MessageBody message={message} otoChatRoomSn={otoChatRoomSn} />
       </div>
       {!message.mine && <MessageTime message={message} />}
     </li>
@@ -151,18 +148,36 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
     isError,
     error,
     refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   } = useChatMessages(otoChatRoomSn);
+  useViewingChatRoom(otoChatRoomSn);
   const { mutate: readChatRoom } = useReadChatRoom();
   const { mutate: leaveRoom, isPending: isLeaving } =
     useLeaveChatRoom(otoChatRoomSn);
   const listRef = useRef(null);
+  /** 이전 메시지를 받기 직전의 스크롤 { height, top }: 받은 뒤 보던 자리로 */
+  const restoreRef = useRef(null);
   const lastMsgSeq = messages?.at(-1)?.msgSeq;
 
-  /** 마지막 메시지가 보이도록 맨 아래로 */
-  useEffect(() => {
+  /** 이전 메시지를 붙였으면 보던 자리, 그 밖에는 마지막 메시지가 보이도록 맨 아래 */
+  useLayoutEffect(() => {
     const list = listRef.current;
-    if (list) list.scrollTop = list.scrollHeight;
+    if (!list) return;
+    const restore = restoreRef.current;
+    restoreRef.current = null;
+    list.scrollTop = restore
+      ? list.scrollHeight - restore.height + restore.top
+      : list.scrollHeight;
   }, [messages]);
+
+  const handleScroll = (event) => {
+    const list = event.currentTarget;
+    if (list.scrollTop > 80 || !hasNextPage || isFetchingNextPage) return;
+    restoreRef.current = { height: list.scrollHeight, top: list.scrollTop };
+    fetchNextPage();
+  };
 
   /** 창이 보일 때만 읽음 처리: 다른 탭에 가려진 동안 도착한 메시지 제외 */
   useEffect(() => {
@@ -210,7 +225,7 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
   const [leaveTitle, leaveDescription] = room
     ? getLeaveText(room.mtchDlngSttsCd)
     : [];
-  const isClosed = room && room.chatRoomSttsCd !== 'OPEN';
+  const isClosed = room && room.chatRoomSttsCd !== ROOM_STTS.ACTIVE;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -222,7 +237,6 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
             onLeaveAsk={() => setIsLeaveOpen(true)}
           />
           <CareDealCard key={room.mtchDlngSttsCd} room={room} />
-          <FakePeerTools otoChatRoomSn={otoChatRoomSn} />
         </>
       )}
 
@@ -232,7 +246,13 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
         aria-live="polite"
         aria-label="대화 내용"
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#fdfcfb] px-4 pt-4 pb-2"
+        onScroll={handleScroll}
       >
+        {isFetchingNextPage && (
+          <div aria-busy="true" className="mb-3 flex justify-center">
+            <Skeleton className="h-8 w-2/5 rounded-2xl" />
+          </div>
+        )}
         {isPending && (
           <div aria-busy="true" className="flex flex-col gap-3">
             <Skeleton className="h-10 w-1/2 rounded-2xl" />
@@ -271,6 +291,7 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
                   message={message}
                   isContinued={isContinued}
                   ctptMbrNcnm={room?.ctptMbrNcnm}
+                  otoChatRoomSn={otoChatRoomSn}
                 />
               );
             })}

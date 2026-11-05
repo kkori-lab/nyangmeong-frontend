@@ -20,7 +20,7 @@ const CareEditPage = lazy(() => import('@/pages/community/CareEditPage'));
 const NewsListPage = lazy(() => import('@/pages/news/NewsListPage'));
 const NewsDetailPage = lazy(() => import('@/pages/news/NewsDetailPage'));
 
-/** 펫이야기·실종센터·펫뉴스·펫돌봄(KSJ). 로그인 구현 전 public: 연결 때 member로 전환 */
+/** 펫이야기·실종센터·펫뉴스·펫돌봄(KSJ). 전체 member: 비로그인은 ProtectedRoute가 로그인으로 보내고 로그인 뒤 돌려보낸다 */
 export default [
   {
     layout: 'user',

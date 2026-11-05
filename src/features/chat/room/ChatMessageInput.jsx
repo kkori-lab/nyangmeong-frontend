@@ -79,10 +79,14 @@ export default function ChatMessageInput({
       send(
         {
           msgTypeCd: MSG_TYPE.IMAGE,
-          photoUrls: photos.map((photo) => photo.url),
+          images: photos.map((photo) => photo.file),
           idmptDmndId: crypto.randomUUID(),
         },
-        () => setPhotos([]),
+        () =>
+          setPhotos((prev) => {
+            prev.forEach((photo) => URL.revokeObjectURL(photo.url));
+            return [];
+          }),
       );
       return;
     }
@@ -121,6 +125,7 @@ export default function ChatMessageInput({
       ...prev,
       ...files.map((file) => ({
         id: crypto.randomUUID(),
+        file,
         url: URL.createObjectURL(file),
       })),
     ]);
@@ -145,7 +150,7 @@ export default function ChatMessageInput({
       {
         msgTypeCd: MSG_TYPE.ADDRESS,
         shrnAddr,
-        msgCn: detail || null,
+        dtlAddr: detail || null,
         idmptDmndId: crypto.randomUUID(),
       },
       {

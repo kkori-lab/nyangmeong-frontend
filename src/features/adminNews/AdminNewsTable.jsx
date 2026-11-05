@@ -7,6 +7,7 @@ import {
   isAdminNews,
   NEWS_CATEGORIES,
 } from './newsLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['출처', '카테고리', '제목', '사용', '등록일', '관리'];
 
@@ -29,7 +30,7 @@ export default function AdminNewsTable({
   onEdit,
 }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[760px] table-fixed text-left text-base">
         <colgroup>
           <col className="w-[132px]" />

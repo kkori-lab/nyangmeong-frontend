@@ -19,11 +19,12 @@ export const notificationKeys = {
   settings: ['notifications', 'settings'],
 };
 
-/** 배치(09:00) 생성 알림을 열린 창에도 반영하는 1분 주기 조회 */
-export const useUnreadCount = () =>
+/** 배치(09:00) 생성 알림을 열린 창에도 반영하는 1분 주기 조회. 로그인 전에는 enabled=false */
+export const useUnreadCount = (enabled = true) =>
   useQuery({
     queryKey: notificationKeys.unreadCount,
     queryFn: getUnreadCount,
+    enabled,
     refetchInterval: 60_000,
   });
 

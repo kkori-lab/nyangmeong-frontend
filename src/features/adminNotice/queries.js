@@ -11,6 +11,7 @@ import {
   getAdminNotices,
   getNoticeTargetCount,
   updateAdminNotice,
+  uploadNoticeImage,
 } from './api';
 
 export const adminNoticeKeys = {
@@ -61,3 +62,7 @@ export const useUpdateAdminNotice = () => {
   const invalidate = useInvalidateNotices();
   return useMutation({ mutationFn: updateAdminNotice, onSuccess: invalidate });
 };
+
+/** 본문 이미지 업로드: 캐시는 건드리지 않는다(본문에 줄을 넣어 저장할 때 반영) */
+export const useUploadNoticeImage = () =>
+  useMutation({ mutationFn: uploadNoticeImage });

@@ -1,4 +1,6 @@
+import { FileX } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
+import EmptyResult from '@/components/EmptyResult';
 import PageSkeleton from '@/components/PageSkeleton';
 import SkeletonCard from '@/components/SkeletonCard';
 import InquiryDetail from '@/features/inquiry/InquiryDetail';
@@ -16,16 +18,21 @@ export default function InquiryDetailPage() {
       </PageSkeleton>
     );
   }
+  /** 남의 문의·없는 문의: 서버 문구를 결과 없음 박스로 */
   if (error) {
     return (
-      <div role="alert" className="text-[#566465]">
-        <p>{error.message}</p>
-        <Link
-          to={PATHS.INQUIRIES}
-          className="mt-3 inline-block font-medium underline"
+      <div role="alert">
+        <EmptyResult
+          icon={<FileX size={32} aria-hidden="true" />}
+          title={error.message}
         >
-          목록으로
-        </Link>
+          <Link
+            to={PATHS.INQUIRIES}
+            className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:bg-surface-2"
+          >
+            1:1 문의 목록으로
+          </Link>
+        </EmptyResult>
       </div>
     );
   }

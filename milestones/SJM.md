@@ -147,9 +147,9 @@
 - 완료 조건: `features/expense/api.js`의 가짜가 실제 요청을 부르고, 사용처 키를 `expndPlcusNm`으로 확정한다. 삭제된 반려동물은 `petDelYn`으로 "이름 (삭제됨)"이 보인다. `?fake=more-fail`을 지운다
 - 연결 남음: FN-MYP-030-18·19·21 조건 일괄 삭제에서 개별 해제한 건 제외 (백엔드 연결 `POST /expenses/bulk-delete`에 `excludeExpndSn`, 건수 검사 "전체 − 제외 수", 불일치 응답 409, 백엔드 저장소에서 /start)
 - 연결 남음: FN-MYP-031-02 미래 날짜 검증 (백엔드 연결 `POST /expenses`·`PATCH /expenses/{expndSn}`에서 `EXPND_YMD` > 오늘(KST)이면 400, 백엔드 저장소에서 /start)
-- 연결 남음: FN-MYP-031-03·05 영수증 인식 (YAY, OCR 호출부 LJS)
-- 연결 남음(LJS 답변, 픽셀 캐릭터 1단계 뒤 따로 기획): FN-MYP-031-03 영수증 OCR에서 `ckupYmd`가 null이면 지출 날짜를 오늘로 채우고 수정 가능하게 둔다(계약상 null이 맞음, LJS 확인)
-- 연결 남음(LJS 답변, 픽셀 캐릭터 1단계 뒤 따로 기획): 가계부 출처 영수증 다시 열기. `GET /api/receipts/{recptSn}`이 `petSn` 필수라 지금은 열 수 없다. LJS가 백엔드를 고칠 때까지 다시 열기 없이 진행한다
+- 연결 남음: FN-MYP-031-03·05 영수증 인식 → "SCR-MYP-031 영수증 인식을 실제 API로" 절에서 끝
+- 끝남(SCR-MYP-031 영수증 인식 절, 클릭한 날짜로 결정): FN-MYP-031-03 영수증 OCR에서 `ckupYmd`가 null이면 지출 날짜를 오늘로 채우고 수정 가능하게 둔다(계약상 null이 맞음, LJS 확인)
+- 하지 않음(명세에 다시 열기 진입점 없음): 가계부 출처 영수증 다시 열기. `GET /api/receipts/{recptSn}`이 `petSn` 필수라 지금은 열 수 없다. LJS가 백엔드를 고칠 때까지 다시 열기 없이 진행한다
 - 연결 남음: FN-MYP-030-08 한도 알림 발송 (알림 저장 YAY, 가계부 API SJM 백엔드)
 
 ## SCR-MYP-040 회원정보 수정 · 조회·휴대폰 번호·프로필 사진 API 연결 — 끝
@@ -182,6 +182,19 @@
 - 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MYP-030-18·19·21
 - 기다리는 것: 백엔드 `POST /api/expenses/bulk-delete`의 `excludeExpndSn`(SJM 백엔드, 2026-11-03 완료)
 - 완료 조건: 편집 모드에서 [조회 결과 전체 선택] 뒤 개별 해제한 번호를 `excludeExpndSn`으로 보내고, `expectedCnt`는 "조건에 맞는 건수 − 해제한 수"로 보낸다. 409 `EXPENSE_BULK_DELETE_CHANGED`면 목록을 다시 불러온 뒤 다시 선택하게 안내한다(잘못된 제외 번호도 같은 409)
+
+## SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. FN-MYP-031-03·04·05와 걸친다. SCR-MYP-030 실제 API 절의 "연결 남음: FN-MYP-031-03·05 영수증 인식"과 `ckupYmd` null 날짜 항목을 닫는다
+- 기다리는 것: AI 서버 `POST /ai/receipts`(가계부 출처 `AIMC0027`, LJS), 백엔드 `POST /internal/ai/receipts`(LJS, `docs/api/receipt.md`)
+- 완료 조건: `recognizeReceipt` 가짜를 지우고 실제 요청으로 인식한다. 인식 결과로 저장하면 `recptSn`이 붙는다. 인식 0건·일시 오류·시간 초과는 실패 안내와 [직접 입력](영수증 연결), 서버 파일 거절은 사유 문구
+
+## SCR-MYP-020 포인트 관리/케어미션 · [건강 일지] 버튼을 건강 일지 화면으로 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. FN-MYP-020-09의 [건강 일지] 이동, FN-MYP-003-01의 [건강 일지에서 기록하기] 이동을 닫는다
+- 기다리는 것: 없음. 건강 일지 경로 `PATHS.HEALTH_DIARY`(JAJ)가 develop에 있다
+- 완료 조건: 두 버튼이 토스트·빈 동작 대신 `/health/diary`로 이동한다
+- 연결 남음: FN-MYP-003-01 (건강기록 체중 조회로 `lastBdwgRcd`가 와야 버튼이 보임, JAJ)
 
 ## 제외
 
@@ -252,3 +265,23 @@
 - 기다리는 것: AI 서버 `POST /ai/characters/{pixelCharSn}/equipped-image`(LJS, `nyangmeong-ai` origin/develop 27b1496 PR #37 머지), 백엔드 `PUT /internal/ai/characters/{pixelCharSn}/equipped-image`·`character-image` 저장본 우선(LJS, 백엔드 origin/develop 97f6d5e PR #149 머지, 공용 DB v0.13 (1) 실행됨)
 - 완료 조건: [장착] 성공 뒤 같은 착용 아이템 번호(`itemSns`)로 AI 서버 대표 이미지 저장을 부르고, 끝나면(200·409 모두) 그 동물의 `character-image`(전신·얼굴) 캐시를 다시 읽고 실패 토스트는 없다. 아이템 0개면 AI를 부르지 않는다. 화면은 `equipped-image` 가로채기로 확인한다(`CHARACTER_BAKE_ENABLED=false`라 실제로는 409 `ITEM_BAKING`)
 - 연결 남음: FN-MYP-010-16 실제 착용 이미지 표시(꾸미기 밖 화면) 확인 (굽기 `CHARACTER_BAKE_ENABLED` 켜짐, LJS)
+
+## SCR-MYP-003 반려동물 등록/수정 · 체중 입력 잠금을 건강 일지 체중 기록 조회로 연결 — 끝
+
+- 기능: FN-MYP-003-01 (수정 모달의 체중 읽기 전용 잠금, 마지막 체중 기록 표시, [건강 일지에서 기록하기])
+- 기다리는 것: 없음. `GET /api/pets/{petSn}/daily-health-records?dailyRcdIdctCd=HLTC0014&size=1`(JAJ)이 develop에 있다
+- 완료 조건: 건강 일지에 체중 기록이 있는 동물의 수정 모달은 체중이 읽기 전용(값·기록일·[건강 일지에서 기록하기])이고, 기록이 없는 동물은 입력 가능하다
+- 연결 남음: 없음
+
+## SCR-MYP-010 픽셀 캐릭터 관리 · [오류 문의] 접수 판정과 문의 연결 값 고치기 — 끝
+
+- 기능: FN-MYP-010 꾸미기의 [오류 문의]/[문의 접수됨] 판정, 문의 작성 화면으로 넘기는 state
+- 기다리는 것: 없음(문의 등록 쪽 `pixelCharSn` 전달은 KSJ 알림)
+- 완료 조건: 상세 응답의 `inqryRcptYn`이 true면 [문의 접수됨](비활성), false면 [오류 문의]. 링크 state에 `pixelCharSn`이 있다
+- 연결 남음: FN-MYP-010 (문의 등록 요청에 state의 `pixelCharSn`을 실어 보내기, KSJ의 `InquiryWritePage`·문의 등록 API)
+
+## SCR-MYP-002 반려동물 프로필 목록 · 가족 영역 반응형 개편과 슬라이드 레이아웃 — 끝
+
+- 기능: FN-MYP-004-01 가족 목록(공동양육 배지·이름 말줄임·모바일 한 줄 카드와 더보기), FN-MYP-004-02 가족 초대(모바일 [+ 초대]·5명 토스트), FN-MYP-004-03·04 주양육자 표시(공동양육자 시점), FN-MYP-002-02 슬라이드(태블릿 구조·사진 원 크기·높이 전환·점 정렬)
+- 기다리는 것: 없음
+- 완료 조건: 폭 375/768/1024/1180/1440에서 주양육·공동양육 화면이 기획대로 보이고, 4명 이상·5명 꽉 찬 경우와 슬라이드 높이 전환(reduced-motion 포함)이 맞는다

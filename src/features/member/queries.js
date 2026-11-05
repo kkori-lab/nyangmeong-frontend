@@ -11,6 +11,7 @@ import {
   getTermsList,
   invalidateRecoveryCode,
   joinMember,
+  joinSnsMember,
   login,
   logout,
   recoverMember,
@@ -19,12 +20,14 @@ import {
   sendRecoveryCode,
   sendSignupCode,
   setupNickname,
+  snsLogin,
   updatePassword,
   updatePhone,
   updateProfileImage,
   verifyPassword,
   verifyRecoveryCode,
   verifySignupCode,
+  withdrawMember,
 } from './api';
 
 export const memberKeys = {
@@ -91,6 +94,19 @@ export const useLogin = () => {
   });
 };
 
+/** 로그인 결과일 때 쿠키가 바뀌므로 내 정보(헤더) 재조회 */
+export const useSnsLogin = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: snsLogin,
+    onSuccess: ({ snsLoginRslt }) => {
+      if (snsLoginRslt === 'LOGIN') {
+        queryClient.invalidateQueries({ queryKey: memberKeys.me });
+      }
+    },
+  });
+};
+
 export const useLoginStatus = () => useMutation({ mutationFn: getLoginStatus });
 
 export const useNewCaptcha = () => useMutation({ mutationFn: getCaptcha });
@@ -136,6 +152,9 @@ export const useVerifySignupCode = () =>
 
 export const useJoinMember = () => useMutation({ mutationFn: joinMember });
 
+export const useJoinSnsMember = () =>
+  useMutation({ mutationFn: joinSnsMember });
+
 export const useCheckNicknameAvailability = () =>
   useMutation({ mutationFn: checkNicknameAvailability });
 
@@ -146,3 +165,6 @@ export const useSetupNickname = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: memberKeys.me }),
   });
 };
+
+export const useWithdrawMember = () =>
+  useMutation({ mutationFn: withdrawMember });

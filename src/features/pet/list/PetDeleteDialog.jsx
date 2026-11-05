@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
 import { useDeletePet } from '../queries';
 
@@ -17,14 +17,6 @@ export default function PetDeleteDialog({ pet, onClose }) {
     if (!deletePet.isPending) onClose();
   };
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') close();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  });
-
   const handleDelete = () =>
     deletePet.mutate(pet.petSn, {
       onSuccess: () => {
@@ -38,39 +30,15 @@ export default function PetDeleteDialog({ pet, onClose }) {
     });
 
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
-      <div
-        className="fixed inset-0 bg-[rgba(15,23,35,0.45)]"
-        onClick={close}
-      />
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="pet-delete-title"
-        aria-describedby="pet-delete-desc"
-        className="relative m-auto flex w-full max-w-[440px] shrink-0 flex-col rounded-modal bg-white shadow-depth-lg"
-      >
-        <div className="px-10 pt-10 pb-8 text-center">
-          <h2
-            id="pet-delete-title"
-            className="text-lg leading-[1.35] font-bold break-keep"
-          >
-            {withObjectParticle(pet.petNm)} 삭제하시겠습니까?
-          </h2>
-          <p
-            id="pet-delete-desc"
-            className="mt-2 leading-[1.6] break-keep text-muted"
-          >
-            삭제하면 건강기록·픽셀 캐릭터 등 연결된 데이터도 함께 사라지고
-            복구할 수 없어요
-          </p>
-          <p className="mt-1 leading-[1.6] break-keep text-muted">
-            가계부 지출 기록은 유지되고 반려동물 이름 옆에{' '}
-            <span className="whitespace-nowrap">&quot;(삭제됨)&quot;으로</span>{' '}
-            표기돼요
-          </p>
-        </div>
-        <div className="flex gap-2 px-10 pb-6">
+    <Modal
+      isConfirm
+      isSpacious
+      isPending={deletePet.isPending}
+      title={`${withObjectParticle(pet.petNm)} 삭제하시겠습니까?`}
+      description="삭제하면 건강기록·픽셀 캐릭터 등 연결된 데이터도 함께 사라지고 복구할 수 없어요"
+      onClose={close}
+      footer={
+        <>
           <button
             type="button"
             onClick={close}
@@ -87,8 +55,14 @@ export default function PetDeleteDialog({ pet, onClose }) {
           >
             삭제
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <p className="mt-1 leading-[1.6] break-keep text-muted">
+        가계부 지출 기록은 유지되고 반려동물 이름 옆에{' '}
+        <span className="whitespace-nowrap">&quot;(삭제됨)&quot;으로</span>{' '}
+        표기돼요
+      </p>
+    </Modal>
   );
 }

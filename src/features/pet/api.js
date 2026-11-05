@@ -11,6 +11,20 @@ export const getPixelCharacters = () => api.get('/pixel-characters');
 /** 상세 조회 GET /pets/{petSn} */
 export const getPet = (petSn) => api.get(`/pets/${petSn}`);
 
+/** 건강 일지의 체중 지표 코드(일상기록지표공통코드) */
+const DAILY_RCD_WEIGHT = 'HLTC0014';
+
+/**
+ * 최신 체중 기록 GET /pets/{petSn}/daily-health-records (JAJ)
+ * - 응답은 기록일시 오름차순이라 마지막 원소가 최신이다. 기록이 없으면 null
+ */
+export const getLatestWeightRecord = async (petSn) => {
+  const records = await api.get(`/pets/${petSn}/daily-health-records`, {
+    params: { dailyRcdIdctCd: DAILY_RCD_WEIGHT, size: 1 },
+  });
+  return records.length > 0 ? records[records.length - 1] : null;
+};
+
 /** 등록 POST /pets */
 export const createPet = (body) => api.post('/pets', body);
 

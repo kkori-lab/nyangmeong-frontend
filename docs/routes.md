@@ -27,11 +27,11 @@
 | --- | --- | --- | --- | --- |
 | MAN-002 | 랜딩 | `/` (`?redirect=`). 로그인 상태면 `/main` (COM-003-08) | YAY | |
 | MAN-001 | 메인 | `/main`. 복귀 경로 없을 때 목적지 (COM-003-06) | YAY | ✓ |
-| ACC-002 | 로그인 | `/login` (`?redirect=`) | YAY | |
+| ACC-002 | 로그인 | `/login` (`?redirect=`). SNS 인가 콜백 `/login/sns/:provider/callback`(provider: `naver`·`kakao`·`google`, 백엔드·제공자 콘솔 redirect URI와 같다)도 로그인 화면이 받고, 처리 뒤 `/login`으로 바꾼다 (2026-11-05) | YAY | |
 | ACC-001 | 회원가입 | `/signup`. 1~4단계·SNS 가입·재가입 복구는 같은 URL | YAY | |
 | ACC-011 | 비밀번호 찾기 | `/password/find` | YAY | |
 | ACC-012 | 비밀번호 재설정 | `/password/reset`. 비밀번호를 URL에 노출하지 않음 (ACC-012-08) | YAY | |
-| ACC-020 | 회원탈퇴 | `/mypage/withdraw` | YAY | |
+| ACC-020 | 회원탈퇴 | `/mypage/withdraw`. 완료는 탈퇴 뒤 비로그인이라 공개 URL `/withdraw/complete`(탈퇴 직후 이동으로만 열림, 바로 열면 랜딩) (2026-11-05) | YAY | |
 | COM-008 | 알림 설정 | `/settings/notifications` | LJS | ✓ |
 | AIM-011 | AI 대화창(새 창) | `/ai-chat` (COM-007 런처가 엶) | LJS | |
 | COM-009 · CMU-005 | 채팅(새 창) | `/chat` (`?otoChatRoomSn=`). 새 창 확정 (기능 분배 3.1절 20번) | LJS | |

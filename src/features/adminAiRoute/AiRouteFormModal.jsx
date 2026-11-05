@@ -5,6 +5,7 @@ import Modal from '@/components/Modal';
 import Select from '@/components/Select';
 import { showToast } from '@/components/toastStore';
 import Toggle from '@/components/Toggle';
+import { pickJosa } from '@/utils/josa';
 import {
   useAdminAiRoutes,
   useCreateAdminAiRoute,
@@ -23,6 +24,7 @@ import {
   isRoutable,
   splitKeywords,
 } from './routeLabels';
+import { findDuplicates } from './routeOverlap';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
@@ -40,22 +42,6 @@ const SAVED_MESSAGE = '저장했습니다. 다음 요청부터 반영됩니다';
 /** 1 이상 정수 */
 const POSITIVE_INT_PATTERN = /^[1-9]\d*$/;
 
-const removeSpaces = (value) => value.replace(/\s/g, '');
-
-/** 이 행의 지시어 중 다른 행에도 있는 것(공백 무시): [{ keyword, route }] */
-const findDuplicates = (instKwrdCn, routes, aiRoutMpngSn) => {
-  const keywords = [...new Set(splitKeywords(instKwrdCn).map(removeSpaces))];
-  return keywords.flatMap((keyword) =>
-    routes
-      .filter(
-        (other) =>
-          other.aiRoutMpngSn !== aiRoutMpngSn &&
-          splitKeywords(other.instKwrdCn).map(removeSpaces).includes(keyword),
-      )
-      .map((other) => ({ keyword, route: other })),
-  );
-};
-
 /** 칸마다 틀린 값 안내: 없으면 빈 객체 */
 const validate = ({
   trgtScrnNm,
@@ -69,9 +55,12 @@ const validate = ({
   const errors = {};
   const seq = prrtSeq.trim();
   if (!POSITIVE_INT_PATTERN.test(seq)) {
-    errors.prrtSeq = '우선순위는 1 이상 정수로 입력해 주세요';
+    errors.prrtSeq =
+      maxSeq == null
+        ? '순서는 1 이상 정수로 입력해 주세요'
+        : `순서는 1~${maxSeq} 사이 정수로 입력해 주세요`;
   } else if (maxSeq != null && Number(seq) > maxSeq) {
-    errors.prrtSeq = `우선순위는 1~${maxSeq} 사이로 입력해 주세요`;
+    errors.prrtSeq = `순서는 1~${maxSeq} 사이 정수로 입력해 주세요`;
   }
   const routable = isRoutable(mvmnMthdCd);
   if (!trgtScrnNm.trim()) errors.trgtScrnNm = '대상 화면명을 입력해 주세요';
@@ -110,14 +99,15 @@ function DuplicateWarning({ duplicates }) {
       <ul>
         {shown.map(({ keyword, route }) => (
           <li key={`${keyword}-${route.aiRoutMpngSn}`}>
-            '{keyword}'는 {route.prrtSeq}순위 '{route.trgtScrnNm}'에도 있어요
+            '{keyword}'{pickJosa(keyword, '은/는')} '{route.trgtScrnNm}'에도
+            있어요
           </li>
         ))}
       </ul>
       {duplicates.length > shown.length && (
         <p>그 밖에 {duplicates.length - shown.length}건 더 겹쳐요</p>
       )}
-      <p>같은 지시어는 우선순위가 높은(숫자가 작은) 행이 먼저 걸려요</p>
+      <p>같은 지시어는 순서 숫자가 작은 행이 먼저 걸려요</p>
     </div>
   );
 }
@@ -136,7 +126,7 @@ function CharCount({ value, max }) {
  * - route가 없으면 등록, 있으면 수정 + [삭제](확인 모달)
  * - 화면 이동·모달 열기면 화면 ID(선택)·지시어 필수, 대상 아님·제외면 화면 ID는 메모처럼 자유 입력
  * - 지시어는 쉼표로 나눠 적는다. 다른 행과 같은 지시어가 있으면 경고만 한다(전체 매핑표 기준)
- * - 우선순위: 1~행 수(등록은 행 수+1, 기본값은 맨 아래). 저장하면 그 자리에 넣고 나머지를 한 칸씩 민다
+ * - 같은 지시어일 때 순서(prrtSeq): 1~행 수(등록은 행 수+1, 기본값은 맨 아래). 저장하면 그 자리에 넣고 나머지를 한 칸씩 민다
  * - [저장]을 누르면 칸마다 검사하고, 저장하면 토스트 후 닫음. 실패하면 입력 유지 + 서버 문구
  */
 export default function AiRouteFormModal({ route, onClose }) {
@@ -154,7 +144,7 @@ export default function AiRouteFormModal({ route, onClose }) {
   const [rmrkCn, setRmrkCn] = useState(route?.rmrkCn ?? '');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  /** 겹침 검사·우선순위 범위는 검색과 상관없이 전체 매핑표로 */
+  /** 겹침 검사·순서 범위는 검색과 상관없이 전체 매핑표로 */
   const allRoutes = useAdminAiRoutes({});
   const routeCount = allRoutes.data?.length;
   const maxSeq = routeCount == null ? null : routeCount + (isEdit ? 0 : 1);
@@ -386,9 +376,9 @@ export default function AiRouteFormModal({ route, onClose }) {
           </div>
 
           <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
-            <div className="w-[160px]">
+            <div className="w-[200px]">
               <label htmlFor={`${formId}-seq`} className={LABEL_CLASS}>
-                우선순위
+                같은 지시어일 때 순서
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -404,14 +394,13 @@ export default function AiRouteFormModal({ route, onClose }) {
                     setPrrtSeq(event.target.value);
                   }}
                 />
-                <span className="shrink-0 text-base text-ink-2">순위</span>
               </div>
               {maxSeq != null && (
                 <p
                   id={`${formId}-seq-help`}
                   className="mt-1.5 text-sm text-subtle"
                 >
-                  1~{maxSeq}
+                  1~{maxSeq} · 숫자가 작을수록 먼저
                 </p>
               )}
               <FieldError id={`${formId}-seq-error`} message={errors.prrtSeq} />
@@ -452,8 +441,8 @@ export default function AiRouteFormModal({ route, onClose }) {
 
           <p className="text-sm leading-[22px] text-subtle">
             저장하면 AI 대화창의 다음 요청부터 반영돼요. 공백은 빼고 비교하고,
-            가장 길게 일치한 지시어가 먼저예요. 길이가 같으면 우선순위가
-            높은(숫자가 작은) 행이 먼저예요.
+            가장 길게 일치한 지시어가 먼저예요. 길이가 같으면 같은 지시어일 때
+            순서가 작은 행이 먼저예요.
           </p>
           {save.isError && (
             <p role="alert" className="text-sm text-danger">

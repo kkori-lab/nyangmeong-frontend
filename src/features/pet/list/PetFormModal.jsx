@@ -1,6 +1,9 @@
 import { Check, ChevronDown, CircleAlert, Lock, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { showToast } from '@/components/toastStore';
+import useScrollLock from '@/hooks/useScrollLock';
+import { PATHS } from '@/routes/paths';
 import {
   COLR_DRCT_INPT,
   COLR_OPTIONS,
@@ -8,7 +11,13 @@ import {
   PET_SE,
   PET_SE_OPTIONS,
 } from '@/utils/petCodes';
-import { useCreatePet, usePet, useUpdatePet, useVarieties } from '../queries';
+import {
+  useCreatePet,
+  useLastWeightRecord,
+  usePet,
+  useUpdatePet,
+  useVarieties,
+} from '../queries';
 
 /** 품종 [직접 입력] 선택 상태 */
 const VRTY_DRCT_INPT = 'DRCT_INPT';
@@ -130,8 +139,11 @@ const validate = ({ form, breedText, isWeightLocked }) => {
 };
 
 export default function PetFormModal({ petSn = null, onClose }) {
-  const { data: pet, isPending } = usePet(petSn);
+  const { data: pet, isPending: isPetPending } = usePet(petSn);
+  const { data: lastBdwgRcd = null, isPending: isWeightPending } =
+    useLastWeightRecord(petSn);
   const isEdit = petSn != null;
+  useScrollLock();
 
   return (
     <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
@@ -155,15 +167,19 @@ export default function PetFormModal({ petSn = null, onClose }) {
             <X className="size-5" />
           </button>
         </header>
-        {isEdit && isPending ? null : (
-          <PetForm pet={isEdit ? pet : null} onClose={onClose} />
+        {isEdit && (isPetPending || isWeightPending) ? null : (
+          <PetForm
+            pet={isEdit ? pet : null}
+            lastBdwgRcd={isEdit ? lastBdwgRcd : null}
+            onClose={onClose}
+          />
         )}
       </div>
     </div>
   );
 }
 
-function PetForm({ pet, onClose }) {
+function PetForm({ pet, lastBdwgRcd, onClose }) {
   const [form, setForm] = useState(() => (pet ? toForm(pet) : EMPTY_FORM));
   /** 품종 칸 표시 글자 */
   const [breedText, setBreedText] = useState(() => {
@@ -175,11 +191,11 @@ function PetForm({ pet, onClose }) {
   const [isOptOpen, setIsOptOpen] = useState(pet != null);
   const optRef = useRef(null);
   const { data: varieties = [] } = useVarieties(form.petSeCd);
+  const navigate = useNavigate();
   const createPet = useCreatePet();
   const updatePet = useUpdatePet();
 
   const isEdit = pet != null;
-  const lastBdwgRcd = pet?.lastBdwgRcd ?? null;
   const isVrtyDrctInpt = form.vrtySn === VRTY_DRCT_INPT;
   const isColrDrctInpt = form.colrCd === COLR_DRCT_INPT;
   const colrOptions = COLR_OPTIONS[form.petSeCd] ?? [];
@@ -540,9 +556,9 @@ function PetForm({ pet, onClose }) {
                   건강 일지에 기록된 체중이에요 (
                   {formatRecordDate(lastBdwgRcd.rcdDt)} 기록)
                 </p>
-                {/** 건강 일지(SCR-HLT-002) 경로 연결 예정 */}
                 <button
                   type="button"
+                  onClick={() => navigate(PATHS.HEALTH_DIARY)}
                   className="inline-flex h-10 items-center justify-center self-start rounded-md border border-line bg-white px-4 font-semibold hover:border-line-strong hover:bg-surface-2"
                 >
                   건강 일지에서 기록하기

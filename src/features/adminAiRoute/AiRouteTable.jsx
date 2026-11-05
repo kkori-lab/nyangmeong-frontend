@@ -1,16 +1,31 @@
 import { MVMN_MTHD, MVMN_MTHD_LABELS, isRoutable } from './routeLabels';
+import { buildOverlapMap } from './routeOverlap';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
-const COLUMNS = [
-  '순위',
-  '지시어',
-  '화면 ID',
-  '파라미터',
-  '이동 방식',
-  '제외',
-  '사용',
-];
+const COLUMNS = ['지시어', '화면 ID', '파라미터', '이동 방식', '제외', '사용'];
 
 const CELL = 'px-4 py-3 align-top';
+
+/** 행마다 보이는 겹침 줄 수 */
+const OVERLAP_SHOWN = 2;
+
+/** 지시어 칸 아래 같은 지시어 안의 순서 */
+function OverlapNote({ overlaps }) {
+  if (!overlaps || overlaps.length === 0) return null;
+  const shown = overlaps.slice(0, OVERLAP_SHOWN);
+  return (
+    <ul className="mt-1 text-sm leading-[22px] text-subtle">
+      {shown.map(({ keyword, count, order }) => (
+        <li key={keyword} className="break-keep">
+          '{keyword}' 같은 지시어 {count}건 중 {order}번째
+        </li>
+      ))}
+      {overlaps.length > shown.length && (
+        <li>외 {overlaps.length - shown.length}개</li>
+      )}
+    </ul>
+  );
+}
 
 /** 제외 칸: 이동하는 행은 —, 아니면 그 이유 */
 const EXCLUDE_LABELS = {
@@ -20,15 +35,16 @@ const EXCLUDE_LABELS = {
 
 /**
  * [라우팅 매핑표 표]
- * - 행 클릭·Enter -> 수정 모달(우선순위도 거기서 바꾼다), 사용 안 함 행은 흐리게
+ * - 행 클릭·Enter -> 수정 모달, 사용 안 함 행은 흐리게
+ * - 지시어가 다른 사용 중 행과 겹치면 그 지시어 안의 순서(검색과 상관없이 allRoutes 기준)
  * - 칸이 많아 좁은 폭에서는 표 안에서만 가로 스크롤
  */
-export default function AiRouteTable({ routes, onSelect }) {
+export default function AiRouteTable({ routes, allRoutes, onSelect }) {
+  const overlapMap = buildOverlapMap(allRoutes ?? []);
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
-      <table className="w-full min-w-[960px] table-fixed text-left text-base">
+    <div className={ADMIN_TABLE_BOX}>
+      <table className="w-full min-w-[888px] table-fixed text-left text-base">
         <colgroup>
-          <col className="w-[72px]" />
           <col />
           <col className="w-[220px]" />
           <col className="w-[160px]" />
@@ -64,11 +80,11 @@ export default function AiRouteTable({ routes, onSelect }) {
                   if (event.key === 'Enter') onSelect(route);
                 }}
               >
-                <td className={`${CELL} tabular-nums`}>{route.prrtSeq}</td>
                 <td className={CELL}>
                   <p className="line-clamp-2 leading-[24px] break-keep">
                     {route.instKwrdCn || '—'}
                   </p>
+                  <OverlapNote overlaps={overlapMap.get(route.aiRoutMpngSn)} />
                 </td>
                 <td className={CELL}>
                   <p className="truncate leading-[24px]">

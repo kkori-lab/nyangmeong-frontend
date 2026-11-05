@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import StepMotion from '@/components/StepMotion';
 import EmailLoginForm from '@/features/member/login/EmailLoginForm';
 import LoginMethodChoice from '@/features/member/login/LoginMethodChoice';
+import useSnsCallback from '@/features/member/login/useSnsCallback';
 import NicknameModal from '@/features/member/signup/NicknameModal';
 import { PATHS } from '@/routes/paths';
 import { getLoginDestination } from '@/routes/redirect';
@@ -17,8 +18,8 @@ export default function LoginPage() {
   // 이메일 로그인으로 들어가면 forward, 방법 선택으로 돌아오면 back (전환 모션의 방향)
   const [prevIsEmail, setPrevIsEmail] = useState(isEmail);
   const [direction, setDirection] = useState('forward');
-  /** 가입 후 첫 로그인인데 닉네임 설정이 안 끝났으면 서버가 준 닉네임으로 모달 표시 */
-  const [reguideNickname, setReguideNickname] = useState(null);
+  /** 가입 후 첫 로그인인데 닉네임 설정이 안 끝났으면 서버가 준 닉네임으로 모달 표시. search는 모달 뒤 갈 곳 */
+  const [reguide, setReguide] = useState(null);
   if (prevIsEmail !== isEmail) {
     setPrevIsEmail(isEmail);
     setDirection(isEmail ? 'forward' : 'back');
@@ -46,45 +47,65 @@ export default function LoginPage() {
     );
   };
 
-  const goAfterLogin = async () => {
+  const goAfterLogin = async (search = location.search) => {
     let mbrAuthrtCd;
     try {
       ({ mbrAuthrtCd } = await fetchMe());
     } catch {
       /** 역할 조회 실패: 회원 기준 이동 */
     }
-    navigate(getLoginDestination(mbrAuthrtCd, location.search), {
+    navigate(getLoginDestination(mbrAuthrtCd, search), {
       replace: true,
     });
   };
 
-  const finishLogin = ({ ncnmReguide, mbrNcnm }) => {
+  /** search: SNS 로그인은 인가 창을 다녀오며 주소가 바뀌어 저장해 둔 ?redirect=를 넘긴다 */
+  const finishLogin = ({ ncnmReguide, mbrNcnm }, search = location.search) => {
     if (ncnmReguide) {
-      setReguideNickname(mbrNcnm);
+      setReguide({ mbrNcnm, search });
       return;
     }
-    goAfterLogin();
+    goAfterLogin(search);
   };
+
+  const sns = useSnsCallback({
+    onLogin: finishLogin,
+    onSignup: ({ snsOffrCd, acntEml, mblTelno, ageCnfrmd, signupTkn }) =>
+      navigate(PATHS.SIGNUP, {
+        replace: true,
+        state: {
+          snsSignup: { snsOffrCd, acntEml, mblTelno, ageCnfrmd, signupTkn },
+        },
+      }),
+    onRecover: (recoveryEmail) =>
+      navigate(PATHS.SIGNUP, { replace: true, state: { recoveryEmail } }),
+  });
 
   return (
     <>
       <StepMotion stepKey={isEmail ? 'email' : 'choice'} direction={direction}>
         {isEmail ? (
-          <EmailLoginForm onBack={backToChoice} onSuccess={finishLogin} />
+          <EmailLoginForm
+            onBack={backToChoice}
+            onSuccess={(result) => finishLogin(result)}
+            onSignup={() => navigate(PATHS.SIGNUP)}
+          />
         ) : (
           <LoginMethodChoice
             onBack={() => navigate(PATHS.HOME)}
             onSelectEmail={selectEmail}
             onSignup={() => navigate(PATHS.SIGNUP)}
             isJoined={searchParams.get('joined') === '1'}
+            snsNotice={sns.notice}
+            isSnsPending={sns.isPending}
           />
         )}
       </StepMotion>
-      {reguideNickname !== null && (
+      {reguide && (
         <NicknameModal
-          savedNickname={reguideNickname}
-          onSaved={goAfterLogin}
-          onClose={goAfterLogin}
+          savedNickname={reguide.mbrNcnm}
+          onSaved={() => goAfterLogin(reguide.search)}
+          onClose={() => goAfterLogin(reguide.search)}
         />
       )}
     </>

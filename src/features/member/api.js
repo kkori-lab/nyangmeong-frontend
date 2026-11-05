@@ -5,12 +5,6 @@ export const getMe = () => api.get('/auth/me', { skipAuthRedirect: true });
 
 export const logout = () => api.post('/auth/logout');
 
-/** 가짜 응답 대기(비밀번호 재설정 가짜가 쓴다) */
-const FAKE_DELAY_MS = 200;
-
-const wait = (result) =>
-  new Promise((resolve) => setTimeout(() => resolve(result), FAKE_DELAY_MS));
-
 /** 응답 { acntEml, mbrNcnm, mblTelno, atchFileSn, joinPathCd, snsAcntLinks, joinDt, lastLgnDt } */
 export const getMyProfile = () => api.get('/members/me');
 
@@ -59,6 +53,20 @@ export const login = ({ acntEml, pswd, scrtyCd }) =>
   api.post(
     '/auth/login',
     { acntEml, pswd, scrtyCd },
+    { skipAuthRedirect: true },
+  );
+
+/**
+ * SNS 로그인. snsLoginRslt로 갈린다
+ * - LOGIN { ncnmReguide, mbrNcnm }: 로그인 쿠키가 심긴다
+ * - SIGNUP_REQUIRED { snsOffrCd, acntEml, mblTelno, ageCnfrmd, signupTkn }: SNS 가입 확인으로
+ * - EMAIL_DUPLICATE·RECOVERY_AVAILABLE { acntEml }
+ * - 오류: SNS_AUTH_FAILED · SNS_EMAIL_NOT_PROVIDED · MEMBER_INACTIVE(이 화면에서 안내하므로 이동 끔)
+ */
+export const snsLogin = ({ snsOffrCd, code, state }) =>
+  api.post(
+    '/auth/sns-login',
+    { snsOffrCd, code, state },
     { skipAuthRedirect: true },
   );
 
@@ -139,14 +147,15 @@ export const getTerms = (trmsSn) =>
   api.get(`/terms/${trmsSn}`, { skipAuthRedirect: true });
 
 /**
- * [비밀번호 재설정 가짜 API]
- * - 재설정 API(`POST /email-certifications/{emlCertSn}/password-reset`, YAY 백엔드 SCR-ACC-012) 전까지 사용 -> 나오면 본문만 api 요청으로 교체
- * - 새 비밀번호에 fail이 들어가면 저장 실패
- * - 본인확인(`pswdInitTkn`) 여부는 호출 전에 PasswordResetPage가 판단
+ * 비밀번호 재설정. 성공 200은 데이터 없음(자동 로그인 없음, 그 계정의 기존 로그인은 모두 종료).
+ * 실패: 400 PASSWORD_RESET_NOT_AVAILABLE(만료·사용 완료·무효화), PASSWORD_MISMATCH, INVALID_INPUT_VALUE(error.fields)
  */
-/** 성공이면 { ok: true }, 실패면 { ok: false, reason: 'EXPIRED' | 'FAILED' } */
-export const resetPassword = ({ pswd }) =>
-  wait(pswd.includes('fail') ? { ok: false, reason: 'FAILED' } : { ok: true });
+export const resetPassword = ({ emlCertSn, pswdInitTkn, pswd, pswdCnfrm }) =>
+  api.post(
+    `/email-certifications/${emlCertSn}/password-reset`,
+    { pswdInitTkn, pswd, pswdCnfrm },
+    { skipAuthRedirect: true },
+  );
 
 /** 이메일 인증번호 목적 코드(공통코드 USRG04): 회원가입 */
 const SIGNUP_PURPOSE = 'USRC0010';
@@ -189,6 +198,23 @@ export const joinMember = ({
     { skipAuthRedirect: true },
   );
 
+/**
+ * SNS 가입. 가입경로는 제공자 코드, 비밀번호·이메일 인증 없이 signupTkn으로 가입한다
+ * 응답·쿠키는 이메일 가입과 같다. 오류: SNS_SIGNUP_TOKEN_INVALID(만료) · SNS_ACCOUNT_ALREADY_LINKED · PHONE_ALREADY_USED
+ */
+export const joinSnsMember = ({
+  snsOffrCd,
+  signupTkn,
+  mblTelno,
+  trmsAgres,
+  idmptDmndId,
+}) =>
+  api.post(
+    '/members',
+    { joinPathCd: snsOffrCd, signupTkn, mblTelno, trmsAgres, idmptDmndId },
+    { skipAuthRedirect: true },
+  );
+
 /** 닉네임 형식·중복 확인. 응답 { available } */
 export const checkNicknameAvailability = ({ mbrNcnm }) =>
   api.get('/members/nickname-availability', {
@@ -199,3 +225,14 @@ export const checkNicknameAvailability = ({ mbrNcnm }) =>
 /** 가입 직후(ncnm_setup 쿠키)나 로그인 뒤 닉네임 확정. 기본 닉네임을 그대로 둘 때도 보낸다 */
 export const setupNickname = ({ mbrNcnm }) =>
   api.patch('/members/me/nickname', { mbrNcnm }, { skipAuthRedirect: true });
+
+/**
+ * 회원탈퇴. 문구는 입력 그대로(trim 하지 않음) 보낸다.
+ * 응답이 오지 않으면 결과를 확인해야 하므로 시간 제한을 둔다(timeout은 NETWORK_ERROR로 온다)
+ */
+export const withdrawMember = ({ confirmPhrase }) =>
+  api.post(
+    '/members/me/withdraw',
+    { noticeConfirmed: true, confirmPhrase },
+    { timeout: 15000 },
+  );

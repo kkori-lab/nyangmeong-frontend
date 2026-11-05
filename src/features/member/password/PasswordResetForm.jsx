@@ -9,10 +9,11 @@ import usePasswordReset from './usePasswordReset';
 
 export default function PasswordResetForm({
   isVerified,
+  grant,
   onGoLogin,
   onRetryAuth,
 }) {
-  const form = usePasswordReset();
+  const form = usePasswordReset(grant);
   const target = form.guideTarget;
 
   if (form.isDone) {
@@ -111,7 +112,11 @@ export default function PasswordResetForm({
         </button>
       </form>
       <div className="mt-6 flex justify-center">
-        <button type="button" onClick={onGoLogin} className={TEXT_LINK}>
+        <button
+          type="button"
+          onClick={() => form.cancel(onGoLogin)}
+          className={TEXT_LINK}
+        >
           취소
         </button>
       </div>

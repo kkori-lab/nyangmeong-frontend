@@ -9,9 +9,11 @@ export const PATHS = {
 
   /** account */
   LOGIN: '/login',
+  SNS_CALLBACK: '/login/sns/:provider/callback',
   SIGNUP: '/signup',
   PASSWORD_FIND: '/password/find',
   PASSWORD_RESET: '/password/reset',
+  WITHDRAW_COMPLETE: '/withdraw/complete',
 
   /** settings */
   SETTINGS_NOTIFICATIONS: '/settings/notifications',
