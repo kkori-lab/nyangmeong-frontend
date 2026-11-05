@@ -1,8 +1,8 @@
-import { Check, ChevronDown, CircleAlert, Lock, X } from 'lucide-react';
+import { Check, ChevronDown, CircleAlert, Lock } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
-import useScrollLock from '@/hooks/useScrollLock';
 import { PATHS } from '@/routes/paths';
 import {
   COLR_DRCT_INPT,
@@ -163,44 +163,56 @@ export default function PetFormModal({ petSn = null, onClose }) {
   const { data: pet, isPending: isPetPending } = usePet(petSn);
   const { data: lastBdwgRcd = null, isPending: isWeightPending } =
     useLastWeightRecord(petSn);
+  const createPet = useCreatePet();
+  const updatePet = useUpdatePet();
   const isEdit = petSn != null;
-  useScrollLock();
+  const isPending = createPet.isPending || updatePet.isPending;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
-      <div className="fixed inset-0 bg-[rgba(15,23,35,0.45)]" />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pet-form-title"
-        className="relative m-auto flex w-full max-w-[720px] shrink-0 flex-col rounded-modal bg-white shadow-depth-lg"
-      >
-        <header className="flex items-start gap-3.5 border-b border-line-strong px-7 pt-4 pb-2">
-          <h2 id="pet-form-title" className="text-xl leading-[1.35] font-bold">
-            {isEdit ? '반려동물 수정' : '반려동물 등록'}
-          </h2>
+    <Modal
+      title={isEdit ? '반려동물 수정' : '반려동물 등록'}
+      isLarge
+      isAutoHeight
+      isSheet
+      width={720}
+      isDismissDisabled
+      isPending={isPending}
+      onClose={onClose}
+      footer={
+        <div className="ml-auto flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            aria-label="닫기"
-            className="-mt-1 -mr-2 ml-auto grid size-9 shrink-0 place-items-center rounded-box text-muted hover:bg-surface-3 hover:text-ink"
+            disabled={isPending}
+            className="inline-flex h-10 min-w-24 items-center justify-center rounded-md border border-line bg-white px-4 font-semibold hover:border-line-strong hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <X className="size-5" />
+            취소
           </button>
-        </header>
-        {isEdit && (isPetPending || isWeightPending) ? null : (
-          <PetForm
-            pet={isEdit ? pet : null}
-            lastBdwgRcd={isEdit ? lastBdwgRcd : null}
-            onClose={onClose}
-          />
-        )}
-      </div>
-    </div>
+          <button
+            type="submit"
+            form="pet-form"
+            disabled={isPending}
+            className="inline-flex h-10 min-w-24 items-center justify-center rounded-md bg-brand-500 px-4 font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-line-strong"
+          >
+            {isEdit ? '저장' : '등록하기'}
+          </button>
+        </div>
+      }
+    >
+      {isEdit && (isPetPending || isWeightPending) ? null : (
+        <PetForm
+          pet={isEdit ? pet : null}
+          lastBdwgRcd={isEdit ? lastBdwgRcd : null}
+          createPet={createPet}
+          updatePet={updatePet}
+          onClose={onClose}
+        />
+      )}
+    </Modal>
   );
 }
 
-function PetForm({ pet, lastBdwgRcd, onClose }) {
+function PetForm({ pet, lastBdwgRcd, createPet, updatePet, onClose }) {
   const [form, setForm] = useState(() => (pet ? toForm(pet) : EMPTY_FORM));
   /** 품종 칸 표시 글자 */
   const [breedText, setBreedText] = useState(() => {
@@ -213,8 +225,6 @@ function PetForm({ pet, lastBdwgRcd, onClose }) {
   const optRef = useRef(null);
   const { data: varieties = [] } = useVarieties(form.petSeCd);
   const navigate = useNavigate();
-  const createPet = useCreatePet();
-  const updatePet = useUpdatePet();
 
   const isEdit = pet != null;
   const isVrtyDrctInpt = form.vrtySn === VRTY_DRCT_INPT;
@@ -229,7 +239,6 @@ function PetForm({ pet, lastBdwgRcd, onClose }) {
   const orphanNotice = isOrphanSelected
     ? `${PET_SE_NAME[form.petSeCd]} 털색 목록에 없는 값이에요. 다시 골라 주세요`
     : null;
-  const isPending = createPet.isPending || updatePet.isPending;
 
   const clearError = (...fields) =>
     setErrors((prev) => {
@@ -787,23 +796,6 @@ function PetForm({ pet, lastBdwgRcd, onClose }) {
           </details>
         </form>
       </div>
-      <footer className="z-[2] flex items-center justify-end gap-2 rounded-b-modal border-t border-line bg-[#fbfcfd] px-7 py-4 max-[760px]:sticky max-[760px]:bottom-0">
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-10 min-w-24 items-center justify-center rounded-md border border-line bg-white px-4 font-semibold hover:border-line-strong hover:bg-surface-2"
-        >
-          취소
-        </button>
-        <button
-          type="submit"
-          form="pet-form"
-          disabled={isPending}
-          className="inline-flex h-10 min-w-24 items-center justify-center rounded-md bg-brand-500 px-4 font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-line-strong"
-        >
-          {isEdit ? '저장' : '등록하기'}
-        </button>
-      </footer>
     </>
   );
 }
@@ -1063,6 +1055,8 @@ function BreedCombo({ varieties, selected, text, invalid, onType, onSelect }) {
       e.preventDefault();
       pick(active);
     } else if (e.key === 'Escape' && isOpen) {
+      /** 모달(dialog)의 Esc 처리까지 가지 않게 목록만 닫는다 */
+      e.preventDefault();
       e.stopPropagation();
       close();
     }
