@@ -2,14 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-MYP-020 포인트 관리/케어미션 · [건강 일지] 버튼을 건강 일지 화면으로 연결 — 끝 (2026-11-05, 검증 판정 `통과`, 사람 확인 완료). 마일스톤은 `milestones/SJM.md`의 같은 이름 절
+SCR-MYP-003 반려동물 등록/수정 · 체중 입력 잠금을 건강 일지 체중 기록 조회로 연결 — 끝 (2026-11-05, 검증 판정 `통과`, 사람 확인 완료). 마일스톤은 `milestones/SJM.md`의 같은 이름 절
 
 한 것:
-- FN-MYP-020-09 [건강 일지]: `pages/mypage/PointPage.jsx`의 `onGoHealth`를 토스트에서 `navigate(PATHS.HEALTH_DIARY)`로 바꾼다. API 없음. 완료 조건 — 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0. 화면: `/mypage/points`에서 [건강 일지]를 누르면 `/health/diary`로 이동한다
-- FN-MYP-003-01 [건강 일지에서 기록하기]: `features/pet/list/PetFormModal.jsx`의 버튼에 `useNavigate`로 `PATHS.HEALTH_DIARY` 이동을 붙이고 "경로 연결 예정" 주석을 지운다. API 없음. 완료 조건 — 명령: 위와 같음. 화면: 확인 불가 예상. 이 버튼은 `pet.lastBdwgRcd`가 있을 때만 나오는데 서버 반려동물 응답에 이 키가 없다(체중 잠금은 건강기록 API(JAJ) 연결 항목으로 남아 있음). 코드 검토로만 확인한다
-- 하지 않는 것: `ProfileEditPage.jsx`의 [회원 탈퇴]는 `PATHS.MYPAGE_WITHDRAW`만 있고 라우트·페이지(YAY)가 없어 토스트를 그대로 둔다. 건강 일지에 반려동물을 골라 들어가는 파라미터가 없어 `petSn`은 넘기지 않는다
-- 디자인: 없음(버튼 모양은 그대로, 동작만 바꿈)
-- 새 의존성: 없음
+- FN-MYP-003-01 체중 잠금: `features/pet/api.js`에 `getLatestWeightRecord(petSn)` 추가(`GET /pets/{petSn}/daily-health-records`, params `{ dailyRcdIdctCd: 'HLTC0014', size: 1 }`, 응답 배열 마지막 원소의 `rcdNvl`·`rcdDt`, 없으면 null). `features/pet/queries.js`에 `petKeys.lastWeight(petSn)`·`useLastWeightRecord(petSn)` 추가. `list/PetFormModal.jsx`(PetForm이 아니라 모달)에서 `useLastWeightRecord`를 부르고, 수정일 때는 `usePet`과 체중 조회가 둘 다 끝난 뒤에 PetForm을 그린다(기존 `isEdit && isPending` 조건에 체중 조회 대기 포함). 값은 prop(`lastBdwgRcd`)으로 PetForm에 넘긴다(지금은 `pet?.lastBdwgRcd`라 항상 null). 체중 조회가 실패하면 기록 없음(입력 가능)으로 처리한다. 읽기 전용 UI·검증(`isWeightLocked`)은 그대로. 완료 조건 — 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0. 화면: 체중 기록이 있는 동물 수정 모달이 읽기 전용+기록일+[건강 일지에서 기록하기]로 나오고, 기록이 없는 동물은 입력 가능
+- 주의: `features/pet`은 `features/health`를 import 하지 않으므로 API 호출을 pet에 따로 둔다(체중 코드 `HLTC0014`는 pet 쪽 상수로)
+- 디자인: 없음(읽기 전용 UI는 이미 있음). 새 의존성: 없음
+- 제외: [회원 탈퇴] 이동(SCR-ACC-020)은 백엔드에 탈퇴 API·화면이 아직 없어 그대로 둔다
 
 이전: SCR-MYP-031 가계부 등록/수정 · 영수증 인식을 실제 API로 — 끝 (2026-11-04). 검증 계정 정리: `RECPT` 520·521·523·524와 원본 첨부파일·상태 이력이 남아 있다. 필요하면 `DELETE FROM RECPT_STTS_HSTRY WHERE RECPT_SN IN (520,521,523,524); DELETE FROM RECPT WHERE RECPT_SN IN (520,521,523,524);` 뒤 첨부파일(`SELECT ATCH_FILE_SN FROM RECPT …`로 먼저 확인)을 지운다
 
@@ -27,7 +26,7 @@ SCR-MYP-020 포인트 관리/케어미션 · [건강 일지] 버튼을 건강 �
 - SCR-MYP-005 수락 카드 품종: 백엔드 `CaregiverInvitationPetSummary`에 `vrtyNm`·`vrtyDrctInptNm` 추가(백엔드 저장소에서 /start). 프론트는 직접입력 우선으로 읽는 코드가 이미 있어 값이 오면 줄이 나온다. 나이 줄은 뺐다. 팀에 확인: 설계서 수락 카드에 품종·나이가 필요한지
 - SCR-MYP-002 삭제 후 남음: (a) FN-MYP-002-08은 DB 수동 연결로 `USE_YN`·`RPRS_PET_YN`이 'N'이 되는 것까지 확인했다. 공동양육자에게 알림이 실제로 갔는지는 확인하지 못했으니 백엔드 알림 테스트로 확인한다. (b) 초대(SCR-MYP-005) 실연결 때 "초대 → 수락 → 삭제 → 자동 해제" 흐름을 화면으로 확인한다. (c) 삭제 성공 토스트는 설계서에 없는 추가라 팀에 설계서 후속 반영을 알린다. (d) 10마리 보유 때 삭제하면 등록 카드로 바뀌는 것은 데이터가 없어 화면으로 확인하지 못했다
 - SCR-MYP-002 가족 영역 후 남음: (a) 화면: 공동양육자 카드에서 [✕]가 이름 글자 위에 겹친다(탄이 "말랑한간식왕", 까미 "수줍은집사", 사람 확인 2026-11-01). 원래 있던 `MemberCard` 레이아웃 문제라 이번엔 고치지 않았다. (b) 명세 확인: 서버에 권한(`authrtNm`)이 없어 카드에서 권한 줄을 뺐다. 기능명세서 FN-MYP-004-01의 "이름·권한·연동일"을 팀에서 고칠지 정한다. (c) 알림: 공용 `utils/petCodes.js`의 `CGVR_ROLE`을 지웠다(`BRUP_ROLE`로 대체). LJS 등에 알린다
-- SCR-MYP-003 연결 후 남음: (a) 끝: 슬라이드가 `PetSummary` 값을 쓰고 상세 조회는 수정 모달만 한다(2026-11-02). (b) 체중 입력 잠금: 서버는 체중 PATCH를 막지 않는다. 건강기록 API(JAJ)로 프론트에서 판단해 `PetFormModal`의 체중 읽기 전용·`lastBdwgRcd` 표시를 연결한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
+- SCR-MYP-003 연결 후 남음: (a) 끝: 슬라이드가 `PetSummary` 값을 쓰고 상세 조회는 수정 모달만 한다(2026-11-02). (b) 끝(2026-11-05): 체중 잠금은 건강 일지 체중 조회로 연결했다. 서버는 체중 PATCH를 막지 않으므로 잠금은 프론트에서만 한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
 - 마이페이지 10-24 시안 반영 중 공통 모바일 여백 2건은 공용 레이아웃(LJS)이라 손대지 않았다. LJS에 요청 보냄(2026-10-25): (1) 하단 여백: 앱에서 `SubPageLayout`의 `pb-[126px]`이 `UserLayout` main의 앱 여백(`144px+safe-area`)과 겹친다. 시안은 마이페이지 앱에서 콘텐츠 끝과 하단 여백을 줄이고 푸터 위 여백을 56px로 둔다. (2) 상단 여백: 앱에서 헤더와 제목 사이를 약 40→20으로 줄인다. `contentClassName`은 본문 래퍼에만 걸려 제목 위 여백에는 쓸 수 없다 연결 남음: 포인트 내역 날짜 키 `pntHstYmd`는 가짜 API의 추정 키다. 백엔드 키가 정해지면 `features/point/api.js`와 `PointHistory.jsx`를 맞춘다. `index.css`에 `--color-cat-*` 토큰을 더했으니 공용 파일 변경으로 LJS에 알린다
 - SCR-MYP-001 연결 남음: 얼굴 실제 이미지는 로그인(AIC)이 나온 뒤 화면으로 확인한다(지금은 401이라 기본 얼굴만 보임, 가로채기로만 확인). 초대 수락 카드(`InvitationAccept`)는 초대받는 사람이 아직 양육자가 아니라 서버가 얼굴을 막으면(403) 기본 아이콘이 계속 보인다. 백엔드(LJS)에 확인한다. 공용 파일 변경 알림(LJS): `components/Modal.jsx`에 `isSheet`(앱에서 아래 시트), `PetFace`가 공용이라 건강기록(JAJ)·건강일지·메인(YAY)에서 쓸 수 있다. SCR-MYP-001 남음: 메인 반려동물 칩(`pages/main/MainPage.jsx`, YAY)이 `chrcFaceUrl`을 따로 그린다. `PetFace`가 생기면 YAY에게 알리고 한 줄 교체를 부탁한다(캐시를 같이 쓴다) SCR-MYP-001 팀에 확인: 홈 반려동물 영역은 불러오는 동안 아무것도 그리지 않는다(기획의 로딩 자리표시보다 약함). 0마리 안내 버튼은 등록 모달을 바로 열지 않고 `/mypage/pets`로 이동만 한다. `?fake=empty`는 이동하면 사라져 가짜 데이터에서는 관리 화면이 10마리로 뜨는데 서버 연결 뒤에는 생기지 않는다. 로그인(AIC)이 나오면 `/mypage`도 `ProtectedRoute` 아래로 옮긴다
 - SCR-MYP-011 연결 남음: 상점 API(LJS)가 나오면 `features/pet/api.js`의 가짜 `getShopItems`·`purchaseCharacterItems`(추정 `GET /items`, `POST /pets/{petSn}/character/items`, 추정 키 `itemPrc`)를 실제 요청으로 바꾼다. 포인트 차감은 서버 일이라 가짜는 잔액이 줄지 않는다. 캐릭터·아이템 이미지(LJS)가 나오면 미리보기 겹침을 화면으로 확인한다(지금은 이미지가 없어 안 보임) SCR-MYP-011 팀에 확인: 기준 문서 `v0.6_20261022`가 DMS에 없어 FN-MYP-011-03·04를 사람이 준 수치(760×660, 카드 간격 등)로 만들었다. 문서가 올라오면 대조한다. 공용 `Modal`에 `isLarge`를 더했으니(LJS 공용) 공용 파일 변경으로 알린다
@@ -43,4 +42,3 @@ SCR-MYP-020 포인트 관리/케어미션 · [건강 일지] 버튼을 건강 �
 - `index.css`의 그림자 토큰을 시안 이름에 맞춰 바꿨다(2026-10-20 사람 결정): `shadow-depth-sm`·`md`·`lg`(구 card·pop·modal), `ring-focus`·`ring-error`(`@utility`, 구 focus·error). Tailwind 기본 `shadow-sm`·`lg`를 쓰는 다른 화면이 있어 `depth`를 붙였다. `OPEN_ISSUES.md` 스타일링 항목에 제안으로 적었고, 팀이 합의하면 확정한다
 - 디자인 반영 때 정한 스타일 결정(토큰을 `@theme`에, Pretendard CDN, 브랜드 색 #285a5c 계열, 아이콘은 lucide 대응, 가계부용 tone·warn 색 토큰 추가)을 팀과 맞춘 뒤 `docs/OPEN_ISSUES.md` 스타일링 항목을 갱신한다
 - 털색 신규 6개(강아지 황색·세이블·멀, 고양이 젖소·카오스·포인트)는 백엔드가 코드 번호를 정하면 `features/pet/shared/petCodes.js`의 `COLR`와 `COLR_OPTIONS`에 넣는다. 이름 변경(블랙탄·파티)과 순서는 커밋 08c33cf에 반영됨
-- SCR-MYP-003 연결 남음: [건강 일지에서 기록하기] 이동은 연결했다(2026-11-05). 서버 반려동물 응답에 `lastBdwgRcd`가 없어 버튼이 실제로는 나오지 않는다. 건강기록 체중 조회(JAJ)가 나오면 화면으로 확인한다(응답 가로채기로만 확인함)
