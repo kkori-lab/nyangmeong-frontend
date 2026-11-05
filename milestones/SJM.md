@@ -9,7 +9,7 @@
 - 함께 만드는 것: `features/pet`(api·queries)
 - 기다리는 것: member 로그인·회원 조회 (AIC), 품종 마스터 (KSJ), 건강 일지 체중 기록 조회 (JAJ)
 - 완료 조건: 필수값(이름·품종·생년월일·체중·정상범위·털색)이 비어 있으면 [등록하기]·[저장]을 눌렀을 때 저장하지 않고 항목 아래에 오류 문구를 띄운 뒤 첫 오류 항목으로 이동한다. 수정으로 열면 기존 값이 채워지고, 체중 기록이 있으면 체중 입력란이 읽기 전용이다
-- 연결 남음: FN-MYP-003-02 품종 목록 (품종 마스터, KSJ), FN-MYP-003-01 체중 기록 (건강 일지 조회, JAJ)
+- 연결 남음: FN-MYP-003-02 품종 목록 (품종 마스터, KSJ), FN-MYP-003-01 체중 기록 (건강 일지 조회, JAJ) → 품종 목록은 `features/pet/api.js` `getVarieties`·`queries.js` `useVarieties`에서, 체중 기록은 "체중 입력 잠금을 건강 일지 체중 기록 조회로 연결" 절에서 끝
 
 ## SCR-MYP-002 반려동물 프로필 목록 — 끝
 
@@ -17,14 +17,14 @@
 - API가 남의 것: FN-MYP-002-02 캐릭터 얼굴 (LJS)
 - 기다리는 것: member 로그인·회원 조회 (AIC), pet 캐릭터 이미지 조회 (LJS), notification 알림 저장 (YAY)
 - 완료 조건: 슬라이드 ◀▶로 동물이 바뀌고 N/총마리가 갱신된다. 10마리면 [＋ 반려동물 등록]이 비활성이고 안내가 보인다
-- 연결 남음: FN-MYP-002-02 캐릭터 얼굴 (pet 캐릭터 이미지 조회, LJS)
+- 연결 남음: FN-MYP-002-02 캐릭터 얼굴 (pet 캐릭터 이미지 조회, LJS) → `components/PetFace.jsx`·`hooks/useCharacterImage.js`에서 끝
 
 ## SCR-MYP-030 가계부 목록 — 끝
 
 - 기능: FN-MYP-030-01 총 지출·월 한도·진행률, FN-MYP-030-02 월간 달력, FN-MYP-030-03 날짜별 상세·수정·삭제, FN-MYP-030-04 카테고리별 지출, FN-MYP-030-05 반려동물별 지출, FN-MYP-030-06 이번달 주요 지출, FN-MYP-030-07 이번달 전체 내역 보기, FN-MYP-030-08 한도 알림, FN-MYP-030-09 기간 조회·월 전환, FN-MYP-030-10 필터, FN-MYP-030-11 정렬, FN-MYP-030-12 내역 리스트, FN-MYP-030-13 한도 설정 모달, FN-MYP-030-14 한도 미설정 상태, FN-MYP-030-15 삭제 확인 모달, FN-MYP-030-16 월 피커, FN-MYP-030-17 편집 모드·삭제 범위, FN-MYP-030-18 선택·전체 선택, FN-MYP-030-19 선택 요약·삭제, FN-MYP-030-20 페이지네이션, FN-MYP-030-21 다중 삭제 확인 모달, FN-MYP-030-22 사용처
 - 기다리는 것: member 로그인·회원 조회 (AIC), notification 알림 저장 (YAY)
 - 완료 조건: ◀▶로 달을 바꾸면 총 지출·달력·그래프가 그 달 기준으로 바뀌고 미래 달은 비활성이다. 전체 내역에서 필터·정렬을 바꾸면 1페이지로 돌아간다
-- 연결 남음: FN-MYP-030-08 한도 알림 (알림 저장 YAY, 가계부 API SJM 백엔드), 가계부 API 전체 (SJM 백엔드, 지금은 가짜 응답)
+- 연결 남음: FN-MYP-030-08 한도 알림 (알림 저장 YAY, 가계부 API SJM 백엔드), 가계부 API 전체 (SJM 백엔드, 지금은 가짜 응답) → 한도 알림은 백엔드 끝(`ExpenseService.java` `notifyLimit`), 화면 미확인. 가계부 API는 "가계부 가짜 응답을 실제 API로" 절에서 끝
 
 ## SCR-MYP-031 가계부 등록/수정 — 끝
 
@@ -32,14 +32,14 @@
 - API가 남의 것: FN-MYP-031-03·05 영수증 인식 (YAY, OCR 호출부 LJS)
 - 기다리는 것: 영수증 인식 (YAY), global/external OCR 호출부 (LJS)
 - 완료 조건: 병원 카테고리를 고르면 반려동물 목록에서 "공용"이 사라지고 [저장]이 비활성이 된다. 같은 반려동물·날짜·금액·카테고리로 저장하면 중복 확인 모달이 뜬다
-- 연결 남음: FN-MYP-031-02·06 가계부 API (SJM 백엔드), FN-MYP-031-03·05 영수증 인식 (YAY, OCR 호출부 LJS), FN-MYP-031-02·03 사용처 서버 필드 (지출 API·DB, SJM 백엔드). 지금은 모두 가짜 응답
+- 연결 남음: FN-MYP-031-02·06 가계부 API (SJM 백엔드), FN-MYP-031-03·05 영수증 인식 (YAY, OCR 호출부 LJS), FN-MYP-031-02·03 사용처 서버 필드 (지출 API·DB, SJM 백엔드). 지금은 모두 가짜 응답 → 가계부 API는 "가계부 가짜 응답을 실제 API로" 절, 영수증 인식은 "영수증 인식을 실제 API로" 절, 사용처 서버 필드는 `ExpenseResponse.java`·`ExpenseCreateRequest.java`의 `expndPlcusNm`에서 끝
 
 ## SCR-MYP-020 포인트 관리/케어미션 — 끝
 
 - 기능: FN-MYP-020-01 보유 포인트, FN-MYP-020-02 적립·사용 내역, FN-MYP-020-03 케어미션 동물 탭, FN-MYP-020-04 케어미션 기록·날짜 이동, FN-MYP-020-05 미션 포인트 지급 규칙, FN-MYP-020-06 공동양육자 수행분 처리, FN-MYP-020-07 케어미션 0마리 안내, FN-MYP-020-08 검진기록 등록 포인트, FN-MYP-020-09 포인트 요약, FN-MYP-020-10 포인트 적립 안내
 - 기다리는 것: health 일정·검진기록 등록 (JAJ), 커뮤니티 글·댓글 (KSJ)
 - 완료 조건: 동물 탭을 바꾸면 그 동물의 미션 8개와 진행률이 보인다. 포인트 내역 ◀▶로 월을 바꾸면 그 달 합계와 목록이 바뀌고 미래 달은 비활성이다
-- 연결 남음: FN-MYP-020-01~10 포인트·케어미션 API (SJM 백엔드), 미션 출제·정산·검진기록 포인트 (health JAJ, 커뮤니티 KSJ). 지금은 모두 가짜 응답
+- 연결 남음: FN-MYP-020-01~10 포인트·케어미션 API (SJM 백엔드), 미션 출제·정산·검진기록 포인트 (health JAJ, 커뮤니티 KSJ). 지금은 모두 가짜 응답 → 포인트·케어미션 API는 "포인트·케어미션 가짜 응답을 실제 API로" 절, 미션 출제·정산은 `CareMissionJob.java:52-53`, 검진기록 포인트는 `CheckupService.java:283`에서 끝. 펫이야기 글·댓글(KSJ)의 `reflectRepresentative`는 안 됨: 호출하는 곳 없음(백엔드 `CareMissionService.java:110·114`에 정의만 있고 main 코드의 community 참조가 없으며, 부르는 곳은 테스트뿐)
 
 ## SCR-MYP-040 회원정보 수정 — 끝
 
@@ -47,7 +47,7 @@
 - API가 남의 것: FN-MYP-040-04·05·06·10·11 닉네임·휴대전화·비밀번호 검증 (AIC)
 - 기다리는 것: member 로그인·회원 조회 (AIC)
 - 완료 조건: 새 비밀번호와 확인이 다르면 "비밀번호가 일치하지 않아요"가 보이고 [저장]이 비활성이다. 닉네임을 바꾸면 [중복확인]이 나타난다
-- 연결 남음: FN-MYP-040-01~06·08~13 회원 조회·수정·검증 API (member, AIC), FN-MYP-040-07·12 회원 탈퇴 화면 이동 (SCR-ACC-020, YAY)
+- 연결 남음: FN-MYP-040-01~06·08~13 회원 조회·수정·검증 API (member, AIC), FN-MYP-040-07·12 회원 탈퇴 화면 이동 (SCR-ACC-020, YAY) → 회원 API는 "회원정보 수정" 절들, 탈퇴 화면 이동은 `ProfileEditPage.jsx` `navigate(PATHS.MYPAGE_WITHDRAW)`에서 끝
 
 ## SCR-MYP-004 공동양육자 목록 — 끝
 
@@ -61,14 +61,14 @@
 - 기능: FN-MYP-006-01 연동 해제 확인 팝업 노출, FN-MYP-006-02 공동양육 연동 자진 해제, FN-MYP-006-03 취소 처리, FN-MYP-006-04 목록 즉시 반영, FN-MYP-006-05 해제 완료 안내
 - 기다리는 것: member 로그인·회원 조회 (AIC)
 - 완료 조건: [취소]는 상태를 바꾸지 않고 닫힌다. 확인하면 목록에서 그 동물이 빠지고 토스트가 뜬다
-- 연결 남음: FN-MYP-006-02 자진 해제 API (SJM 백엔드, 지금은 가짜 응답), FN-MYP-006-01~05 로그인·회원 조회 (AIC)
+- 연결 남음: FN-MYP-006-02 자진 해제 API (SJM 백엔드, 지금은 가짜 응답), FN-MYP-006-01~05 로그인·회원 조회 (AIC) → 자진 해제 API는 "공동양육 연동 해제 · 확인 팝업·토스트를 실제 API로" 절, 로그인·회원 조회는 `routes/domains/mypage/mypageRoutes.js` `auth: 'member'`(`ProtectedRoute`)에서 끝
 
 ## SCR-MYP-005 공동양육자 추가 — 끝
 
 - 기능: FN-MYP-005-01 이메일 초대, FN-MYP-005-02 초대 대상 반려동물 선택, FN-MYP-005-03 보낸 초대, FN-MYP-005-04 초대 만료, FN-MYP-005-05 초대 수락 화면, FN-MYP-005-06 나중에 하기, FN-MYP-005-07 거절, FN-MYP-005-08 거절 확인 모달, FN-MYP-005-09 이메일 불일치 안내, FN-MYP-005-10 만료·처리된 초대 안내
 - 기다리는 것: notification 알림 저장 (YAY)
 - 완료 조건: 5명이 찬 동물은 체크박스가 비활성이다. 보낸 초대의 대기중 항목에 만료 예정일이 보인다
-- 연결 남음: FN-MYP-005-01~08 초대 API (SJM 백엔드, 지금은 가짜 응답), FN-MYP-005-01 알림·메일 발송 (알림 저장 YAY)
+- 연결 남음: FN-MYP-005-01~08 초대 API (SJM 백엔드, 지금은 가짜 응답), FN-MYP-005-01 알림·메일 발송 (알림 저장 YAY) → 초대 API는 "초대 가짜 응답을 실제 API로" 절, 알림·메일 발송은 `CaregiverInvitationService.java` `createInvitation`이 `publishInvitation`을 불러 가입 회원에게 인앱 알림, 비회원에게 메일을 발행하는 것으로 끝
 
 ## SCR-MYP-010 픽셀 캐릭터 관리 — 끝 (1~3단계 모두 끝)
 
@@ -76,21 +76,21 @@
 - API가 남의 것: FN-MYP-010-01~04·07~24 (LJS). 010-05 대표 지정은 SJM
 - 기다리는 것: pet 캐릭터 이미지 조회 (LJS), notification 알림 저장 (YAY), 고객센터 1:1 문의 작성 화면 (KSJ)
 - 완료 조건: 같은 부위 아이템을 고르면 기존 아이템이 해제된다. [되돌리기]는 진입 시점 착용 상태로 돌아간다. 만들기 1단계에서 품종·털색·특징이 읽기 전용으로 보이고, 생성 요청은 사진과 `petSn`만 보낸다(품종·털색·특징은 서버가 등록값을 읽는다)
-- 연결 남음: FN-MYP-010-08~10·12~14·16 캐릭터 생성·아이템·착용 API (LJS, 머지됨. 아래 1~3단계로 연결), FN-MYP-010-05 대표 지정 API (SJM 백엔드), FN-MYP-010-09·23 완료·오류 처리 인앱 알림 (알림 저장 LJS), FN-MYP-010-24 문의 작성 화면 미리 채우기 (KSJ)
+- 연결 남음: FN-MYP-010-08~10·12~14·16 캐릭터 생성·아이템·착용 API (LJS, 머지됨. 아래 1~3단계로 연결), FN-MYP-010-05 대표 지정 API (SJM 백엔드), FN-MYP-010-09·23 완료·오류 처리 인앱 알림 (알림 저장 LJS), FN-MYP-010-24 문의 작성 화면 미리 채우기 (KSJ) → 생성·아이템·착용 API는 아래 1~3단계 절, 대표 지정은 `features/pet/api.js` `POST /pets/{petSn}/representative`, 완료 알림은 `CharacterCreationService.java:165`, 오류 처리 알림은 `PixelCharacterService.java:245`, 문의 미리 채우기는 `InquiryWritePage.jsx`에서 끝(생성 실패 알림은 확인 안 함)
 
 ## SCR-MYP-011 아이템 상점 모달 — 끝
 
 - 기능: FN-MYP-011-01 미리보기·원래대로, FN-MYP-011-02 카테고리 탭, FN-MYP-011-03 아이템 목록·보유중 표시, FN-MYP-011-04 담은 아이템 목록, FN-MYP-011-05 구매, FN-MYP-011-06 권한
 - API가 남의 것: FN-MYP-011-01~06 (LJS)
 - 기다리는 것: 아이템 상점 (LJS)
-- 연결 남음: FN-MYP-011-01~06 상점 목록·구매 API (LJS, 지금은 가짜 응답), FN-MYP-011-01 미리보기에 착용 이미지가 덮이는지는 이미지 API(LJS) 뒤 확인
+- 연결 남음: FN-MYP-011-01~06 상점 목록·구매 API (LJS, 지금은 가짜 응답), FN-MYP-011-01 미리보기에 착용 이미지가 덮이는지는 이미지 API(LJS) 뒤 확인 → 상점 목록·구매 API는 "2단계 꾸미기·상점을 실제 API로" 절에서 끝(`features/pet/api.js`). 미리보기에 착용 이미지가 덮이는지는 남음
 - 완료 조건: 총액이 보유 포인트를 넘으면 "포인트가 부족해요"가 보이고 [구매하기]가 비활성이다. 보유중 아이템은 클릭에 반응하지 않는다
 
 ## SCR-MYP-001 마이페이지 홈 — 끝
 
 - 기능: FN-MYP-001-01 내 반려동물 카드 조회, FN-MYP-001-02 더보기, FN-MYP-001-03 포인트·지출 한눈에 보기, FN-MYP-001-04 오늘의 케어미션 요약, FN-MYP-001-05 반려동물 0마리 안내
 - API가 남의 것: FN-MYP-001-01 캐릭터 얼굴 (LJS)
-- 연결 남음: FN-MYP-001-01 캐릭터 얼굴 실제 이미지 (로그인 쿠키, AIC)
+- 연결 남음: FN-MYP-001-01 캐릭터 얼굴 실제 이미지 (로그인 쿠키, AIC) → `components/PetFace.jsx`, `routes/AppRoutes.jsx` `ProtectedRoute`에서 끝
 - 완료 조건: 7마리 이상이면 6마리만 보이고 [더보기 +N]으로 나머지가 펼쳐진다(기능명세서 v0.4_20261021 기준). 0마리면 등록 유도 안내가 보인다
 
 ## SCR-MYP-002 반려동물 프로필 목록 · 가족 영역 가짜 응답을 실제 API로 — 끝
@@ -110,8 +110,8 @@
 - 기능: 명세 기능 ID 추가 없음. FN-MYP-001-01, FN-MYP-002-02·04, FN-MYP-003-01~07, FN-MYP-010-05와 걸친다
 - 기다리는 것: 백엔드 `GET·POST /pets`, `GET·PATCH /pets/{petSn}`, `POST /pets/{petSn}/representative` (SJM 백엔드, 끝남)
 - 완료 조건: `features/pet/api.js`의 `getPets`·`getPet`·`createPet`·`updatePet`·`setRepresentativePet`이 실제 요청을 부르고 응답 키(`brupRoleCd`·`rprsPetYn`·`caregiverCount`·`bscCharSbstYn`)에 맞춰 화면이 그대로 보인다
-- 연결 남음: FN-MYP-002-02 (백엔드 연결 `PetSummary`에 `nutrYn`·`minBdwg`·`maxBdwg` 추가, 백엔드 저장소에서 /start)
-- 연결 남음: FN-MYP-003-01 (체중 입력 잠금 판단용 건강기록 체중 조회, JAJ)
+- 연결 남음: FN-MYP-002-02 (백엔드 연결 `PetSummary`에 `nutrYn`·`minBdwg`·`maxBdwg` 추가, 백엔드 저장소에서 /start) → 백엔드 `PetSummary.java:25-27`에서 끝
+- 연결 남음: FN-MYP-003-01 (체중 입력 잠금 판단용 건강기록 체중 조회, JAJ) → "체중 입력 잠금을 건강 일지 체중 기록 조회로 연결" 절에서 끝
 - 연결 남음: FN-MYP-001-01 (메인 대표 반려동물 칩 `rprsYn` → `rprsPetYn`, YAY)
 
 ## SCR-MYP-002 반려동물 프로필 목록 · 반려동물 삭제를 실제 API로 — 끝
@@ -132,7 +132,7 @@
 - 기다리는 것: 백엔드 `POST·GET /caregiver-invitations`, `GET /caregiver-invitations/{jntBrupInvtnSn}`, `POST …/accept`(`petSns`)·`…/reject` (SJM 백엔드, 끝남)
 - 완료 조건: 초대 발송·보낸 초대·수락·거절·이메일 불일치·만료 안내가 실제 응답(`jntBrupInvtnSn`·`invtnSttsCd`·`emailMatched`·`invtnTrgtEmlMask`·`rcvrJoined`)으로 동작하고 `withExpiry`·가짜 토큰(`demo-*`)을 지운다. 초대 주소는 `/mypage/invitations/{jntBrupInvtnSn}`
 
-- 연결 남음: FN-MYP-005-05 (백엔드 연결 `CaregiverInvitationPetSummary`에 `vrtyNm`·`vrtyDrctInptNm` 추가, 백엔드 저장소에서 /start)
+- 연결 남음: FN-MYP-005-05 (백엔드 연결 `CaregiverInvitationPetSummary`에 `vrtyNm`·`vrtyDrctInptNm` 추가, 백엔드 저장소에서 /start) → 백엔드 `CaregiverInvitationPetSummary.java:16`, 프론트 `InvitationAccept.jsx:27`에서 끝
 
 ## SCR-MYP-020 포인트 관리/케어미션 · 포인트·케어미션 가짜 응답을 실제 API로 — 끝
 
@@ -145,12 +145,12 @@
 - 기능: 명세 기능 ID 추가 없음. FN-MYP-030-01~06·09~22, FN-MYP-031-02·03·05·06과 걸친다
 - 기다리는 것: 백엔드 `/expenses`(등록·목록·통계·합계·월·반려동물·수정·삭제·조건 삭제·중복 확인), `PUT /members/me/expense-limit` (SJM 백엔드, 끝남)
 - 완료 조건: `features/expense/api.js`의 가짜가 실제 요청을 부르고, 사용처 키를 `expndPlcusNm`으로 확정한다. 삭제된 반려동물은 `petDelYn`으로 "이름 (삭제됨)"이 보인다. `?fake=more-fail`을 지운다
-- 연결 남음: FN-MYP-030-18·19·21 조건 일괄 삭제에서 개별 해제한 건 제외 (백엔드 연결 `POST /expenses/bulk-delete`에 `excludeExpndSn`, 건수 검사 "전체 − 제외 수", 불일치 응답 409, 백엔드 저장소에서 /start)
-- 연결 남음: FN-MYP-031-02 미래 날짜 검증 (백엔드 연결 `POST /expenses`·`PATCH /expenses/{expndSn}`에서 `EXPND_YMD` > 오늘(KST)이면 400, 백엔드 저장소에서 /start)
+- 연결 남음: FN-MYP-030-18·19·21 조건 일괄 삭제에서 개별 해제한 건 제외 (백엔드 연결 `POST /expenses/bulk-delete`에 `excludeExpndSn`, 건수 검사 "전체 − 제외 수", 불일치 응답 409, 백엔드 저장소에서 /start) → `excludeExpndSn`은 프론트 `expense/api.js:59-62`와 백엔드 `ExpenseBulkDeleteRequest.java`에서 끝(건수 검사·409는 확인 안 함)
+- 연결 남음: FN-MYP-031-02 미래 날짜 검증 (백엔드 연결 `POST /expenses`·`PATCH /expenses/{expndSn}`에서 `EXPND_YMD` > 오늘(KST)이면 400, 백엔드 저장소에서 /start) → `ExpenseService.java:111, 165, 241` `checkNotFuture`에서 끝
 - 연결 남음: FN-MYP-031-03·05 영수증 인식 → "SCR-MYP-031 영수증 인식을 실제 API로" 절에서 끝
 - 끝남(SCR-MYP-031 영수증 인식 절, 클릭한 날짜로 결정): FN-MYP-031-03 영수증 OCR에서 `ckupYmd`가 null이면 지출 날짜를 오늘로 채우고 수정 가능하게 둔다(계약상 null이 맞음, LJS 확인)
 - 하지 않음(명세에 다시 열기 진입점 없음): 가계부 출처 영수증 다시 열기. `GET /api/receipts/{recptSn}`이 `petSn` 필수라 지금은 열 수 없다. LJS가 백엔드를 고칠 때까지 다시 열기 없이 진행한다
-- 연결 남음: FN-MYP-030-08 한도 알림 발송 (알림 저장 YAY, 가계부 API SJM 백엔드)
+- 연결 남음: FN-MYP-030-08 한도 알림 발송 (알림 저장 YAY, 가계부 API SJM 백엔드) → 백엔드 끝(`ExpenseService.java` `notifyLimit`), 화면 미확인
 
 ## SCR-MYP-040 회원정보 수정 · 조회·휴대폰 번호·프로필 사진 API 연결 — 끝
 
@@ -175,7 +175,7 @@
   - 화면 검증(Playwright, 비밀번호가 있는 검증 계정): 변경 200 직후 `GET /auth/me`가 200이고, 새로고침해도 `/mypage/profile`에서 로그인이 유지된다. 변경 전에 따로 연 두 번째 브라우저 컨텍스트는 access 만료 뒤 `/auth/refresh`가 401이다. 옛 비밀번호 로그인은 실패하고 새 비밀번호 로그인은 성공한다
   - 검증 뒤 원래 해시로 되돌리는 SQL을 보고의 "정리"에 적는다(DB 실행은 사람이 한다)
 - 화면설계서 대조(v0.6_20261025, SCR-MYP-040): 문구·동작이 기능명세서 v0.5와 다른 곳은 없다. 설계서에 6-1 불일치 문구가 없어 위 문구는 새로 정한 것이다. 설계서 새 비밀번호 칸 안내 "8자 이상, 문자·숫자 조합"은 서버가 영문을 요구하는 것과 달라, 칸 안내를 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)"로 맞추기로 했다(SJM 결정 2026-11-04, 설계서 수정은 SJM이 직접)
-- 연결 남음: 닉네임·휴대폰·프로필 사진 API 연결 (위 "조회·휴대폰 번호·프로필 사진 API 연결" 마일스톤, SJM)
+- 연결 남음: 닉네임·휴대폰·프로필 사진 API 연결 (위 "조회·휴대폰 번호·프로필 사진 API 연결" 마일스톤, SJM) → 그 절에서 끝
 
 ## SCR-MYP-030 가계부 목록 · 전체 선택 뒤 해제한 건을 제외하고 삭제 — 끝
 
@@ -194,7 +194,7 @@
 - 기능: 명세 기능 ID 추가 없음. FN-MYP-020-09의 [건강 일지] 이동, FN-MYP-003-01의 [건강 일지에서 기록하기] 이동을 닫는다
 - 기다리는 것: 없음. 건강 일지 경로 `PATHS.HEALTH_DIARY`(JAJ)가 develop에 있다
 - 완료 조건: 두 버튼이 토스트·빈 동작 대신 `/health/diary`로 이동한다
-- 연결 남음: FN-MYP-003-01 (건강기록 체중 조회로 `lastBdwgRcd`가 와야 버튼이 보임, JAJ)
+- 연결 남음: FN-MYP-003-01 (건강기록 체중 조회로 `lastBdwgRcd`가 와야 버튼이 보임, JAJ) → "체중 입력 잠금을 건강 일지 체중 기록 조회로 연결" 절에서 끝
 
 ## 제외
 
@@ -219,8 +219,8 @@
 - 기다리는 것: character-image 착용 합성 반영(LJS) — 반영되면 착용 저장 후 이미지 새로 불러오기 추가
 - 완료 조건: 꾸미기 상세·보유·상점·구매·착용 저장이 실제 요청을 부르고 `POINT_NOT_ENOUGH`(400)·`PET_PRIMARY_ONLY`(403)·`ITEM_ALREADY_HELD`(409)를 처리한다. `fakeItems`·`SHOP_ITEMS`를 지운다
 - 연결 남음: FN-MYP-010-13·FN-MYP-011-01 실제 합성 이미지 확인은 3단계 생성 후 실제 캐릭터로 한다(LJS 의견 2026-11-04: 맨몸 시트는 캐릭터 생성 성공 때 만들어져, 지금 공용 DB의 캐릭터 1·2·3은 `BODY_SHEET_FILE_SN`이 없어 미리보기가 404 `PIXEL_CHARACTER_NOT_FOUND`)
-- 연결 남음: FN-MYP-011-05 구매 포인트 차감 (`ItemService`의 `PointFake`를 `PointService.use`로, LJS. 백엔드 마일스톤 SCR-MYP-020 연결 남음에 이미 있어 별도 절은 만들지 않음)
-- 연결 남음: FN-MYP-010-16 [장착] 뒤 `character-image` 착용 합성 반영 (LJS)
+- 연결 남음: FN-MYP-011-05 구매 포인트 차감 (`ItemService`의 `PointFake`를 `PointService.use`로, LJS. 백엔드 마일스톤 SCR-MYP-020 연결 남음에 이미 있어 별도 절은 만들지 않음) → 안 됨: `ItemService.java:63, 85`가 아직 `pointFake`
+- 연결 남음: FN-MYP-010-16 [장착] 뒤 `character-image` 착용 합성 반영 (LJS) → "[장착] 뒤 착용 모습 대표 이미지 저장" 절(`pet/api.js:100-105`, `pet/queries.js:265-275`)에서 끝
 
 ## SCR-MYP-010 픽셀 캐릭터 관리 · 3단계 캐릭터 생성을 실제 API로 — 끝
 
@@ -278,7 +278,7 @@
 - 기능: FN-MYP-010 꾸미기의 [오류 문의]/[문의 접수됨] 판정, 문의 작성 화면으로 넘기는 state
 - 기다리는 것: 없음(문의 등록 쪽 `pixelCharSn` 전달은 KSJ 알림)
 - 완료 조건: 상세 응답의 `inqryRcptYn`이 true면 [문의 접수됨](비활성), false면 [오류 문의]. 링크 state에 `pixelCharSn`이 있다
-- 연결 남음: FN-MYP-010 (문의 등록 요청에 state의 `pixelCharSn`을 실어 보내기, KSJ의 `InquiryWritePage`·문의 등록 API)
+- 연결 남음: FN-MYP-010 (문의 등록 요청에 state의 `pixelCharSn`을 실어 보내기, KSJ의 `InquiryWritePage`·문의 등록 API) → `InquiryWritePage.jsx:52-56`, `features/inquiry/api.js:80-83`에서 끝
 
 ## SCR-MYP-002 반려동물 프로필 목록 · 가족 영역 반응형 개편과 슬라이드 레이아웃 — 끝
 
@@ -291,11 +291,17 @@
 - 기능: FN-MYP-003-03 털색 선택(수정 모달이 종 목록에 없는 저장 털색을 만났을 때), FN-MYP-002-02 슬라이드 털색 칸
 - 기다리는 것: 없음
 - 완료 조건: 고양이인데 강아지 전용 털색(`PETC0011`)이 저장된 동물(탄이)의 슬라이드 털색 칸에 이름이 보이고, 수정 모달은 "검정"이 아니라 원래 털색과 다시 고르라는 안내를 보이며, 다시 고르기 전에는 저장되지 않는다. `PETC0011` 이름이 서버 공통코드와 같다
-- 연결 남음: FN-MYP-003-03 (백엔드 연결 `PetService` 털색 검증, 백엔드 저장소에서 /start)
+- 연결 남음: FN-MYP-003-03 (백엔드 연결 `PetService` 털색 검증, 백엔드 저장소에서 /start) → 안 됨: 백엔드 저장소 `milestones/SJM.md`의 "종에 맞지 않는 털색 코드 거절"(진행) 절에 있음
 
 ## SCR-MYP-003 반려동물 등록/수정 · 털색 선택 칸의 선택지 글자색 — 끝
 
 - 기능: FN-MYP-003-03 털색 선택(값을 고르기 전 열린 목록의 선택지가 회색으로 보이는 결함)
 - 기다리는 것: 없음
 - 완료 조건: 등록 모달에서 `getComputedStyle`로 option color를 확인해 "털색 선택"만 placeholder 색, 나머지는 ink 색이다. 닫힌 칸은 고르기 전 회색, 고른 뒤 본문색이다. 열린 목록의 실제 모습은 사람 확인 항목이다
-- 연결 남음: FN-MYP-003-03 (백엔드 연결 시드와 공용 DB의 고양이+PETC0011 55마리를 고양이 털색으로 수정, 백엔드 저장소에서 /start)
+- 연결 남음: FN-MYP-003-03 (백엔드 연결 시드와 공용 DB의 고양이+PETC0011 55마리를 고양이 털색으로 수정, 백엔드 저장소에서 /start) → 안 됨: 백엔드 저장소 `milestones/SJM.md`의 "종에 맞지 않는 털색 데이터 정리"(대기) 절에 있음. 55마리는 시드 기준이고 공용 DB는 미확인
+
+## SCR-MYP-003 반려동물 등록/수정 · 등록/수정 모달을 공용 Modal로(모바일 아래 시트) — 진행
+
+- 기능: FN-MYP-003-01 반려동물 등록/수정(같은 모달 재사용)의 모달 겉틀
+- 기다리는 것: 없음
+- 완료 조건: 등록·수정 모달이 공용 `components/Modal`로 열린다. 761px 이상은 가운데 720px, 760px 이하는 아래에서 올라오는 시트다. 배경 클릭·Esc로 닫히지 않고 [✕]·[취소]로만 닫힌다. 품종 목록에서 Esc는 목록만 닫는다. 머리·바닥은 고정이고 본문만 스크롤된다
