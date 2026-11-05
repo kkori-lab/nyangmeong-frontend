@@ -1,3 +1,4 @@
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 const COLUMNS = ['카테고리', '질문', '정렬', '사용'];
 
 /**
@@ -7,7 +8,7 @@ const COLUMNS = ['카테고리', '질문', '정렬', '사용'];
  */
 export default function FaqTable({ faqs, onSelect }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full table-fixed text-left text-base">
         <colgroup>
           <col className="w-[140px] max-[760px]:w-[88px]" />

@@ -1,3 +1,4 @@
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 const COLUMNS = ['알림 유형', '채널', '제목', '사용', ''];
 const CELL = 'px-4 py-2 max-[760px]:px-1.5';
 /** 행 안 작은 버튼: BTN_SECONDARY와 같은 색, 높이·여백만 작게 */
@@ -20,7 +21,7 @@ const getUseLabel = (template) => {
  */
 export default function TemplateTable({ rows, onEdit }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full table-fixed text-left text-base max-[760px]:text-sm">
         <colgroup>
           <col className="w-[160px] max-[760px]:w-[76px]" />

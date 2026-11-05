@@ -1,5 +1,6 @@
 import { MVMN_MTHD, MVMN_MTHD_LABELS, isRoutable } from './routeLabels';
 import { buildOverlapMap } from './routeOverlap';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['지시어', '화면 ID', '파라미터', '이동 방식', '제외', '사용'];
 
@@ -41,7 +42,7 @@ const EXCLUDE_LABELS = {
 export default function AiRouteTable({ routes, allRoutes, onSelect }) {
   const overlapMap = buildOverlapMap(allRoutes ?? []);
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[888px] table-fixed text-left text-base">
         <colgroup>
           <col />
