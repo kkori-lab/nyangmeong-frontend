@@ -265,3 +265,10 @@
 - 기다리는 것: AI 서버 `POST /ai/characters/{pixelCharSn}/equipped-image`(LJS, `nyangmeong-ai` origin/develop 27b1496 PR #37 머지), 백엔드 `PUT /internal/ai/characters/{pixelCharSn}/equipped-image`·`character-image` 저장본 우선(LJS, 백엔드 origin/develop 97f6d5e PR #149 머지, 공용 DB v0.13 (1) 실행됨)
 - 완료 조건: [장착] 성공 뒤 같은 착용 아이템 번호(`itemSns`)로 AI 서버 대표 이미지 저장을 부르고, 끝나면(200·409 모두) 그 동물의 `character-image`(전신·얼굴) 캐시를 다시 읽고 실패 토스트는 없다. 아이템 0개면 AI를 부르지 않는다. 화면은 `equipped-image` 가로채기로 확인한다(`CHARACTER_BAKE_ENABLED=false`라 실제로는 409 `ITEM_BAKING`)
 - 연결 남음: FN-MYP-010-16 실제 착용 이미지 표시(꾸미기 밖 화면) 확인 (굽기 `CHARACTER_BAKE_ENABLED` 켜짐, LJS)
+
+## SCR-MYP-003 반려동물 등록/수정 · 체중 입력 잠금을 건강 일지 체중 기록 조회로 연결 — 끝
+
+- 기능: FN-MYP-003-01 (수정 모달의 체중 읽기 전용 잠금, 마지막 체중 기록 표시, [건강 일지에서 기록하기])
+- 기다리는 것: 없음. `GET /api/pets/{petSn}/daily-health-records?dailyRcdIdctCd=HLTC0014&size=1`(JAJ)이 develop에 있다
+- 완료 조건: 건강 일지에 체중 기록이 있는 동물의 수정 모달은 체중이 읽기 전용(값·기록일·[건강 일지에서 기록하기])이고, 기록이 없는 동물은 입력 가능하다
+- 연결 남음: 없음
