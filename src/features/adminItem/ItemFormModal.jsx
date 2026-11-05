@@ -16,8 +16,10 @@ import { useCreateAdminItem, useUpdateAdminItem } from './queries';
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
 
-const TEXTAREA_CLASS = INPUT_CLASS.replace('h-10', 'min-h-[88px] resize-y py-2')
-  .replace('leading-[1.4]', 'leading-6');
+const TEXTAREA_CLASS = INPUT_CLASS.replace(
+  'h-10',
+  'min-h-[88px] resize-y py-2',
+).replace('leading-[1.4]', 'leading-6');
 
 /** 굽기 지시 최대 글자 수(서버와 같음) */
 const BAKE_HINT_MAX = 300;
@@ -50,8 +52,9 @@ const validate = ({ itemRegnCd, itemNm, needPnt, image, isEdit }) => ({
  * - item이 있으면 그 행 값으로 채운 수정, 없으면 등록
  * - 삭제는 없고 판매를 끄면 판매 중지: 이미 산 회원의 아이템은 남음
  * - [등록]·[저장]을 누르면 칸마다 검사하고, 저장하면 토스트 후 닫음. 실패하면 입력 유지 + 서버 문구
+ * - 등록 성공 뒤 onCreated({ itemSn, ...보낸 값 }): 화면이 전체 굽기를 시작할지 정함
  */
-export default function ItemFormModal({ item, parts, onClose }) {
+export default function ItemFormModal({ item, parts, onClose, onCreated }) {
   const formId = useId();
   const isEdit = Boolean(item);
 
@@ -119,7 +122,12 @@ export default function ItemFormModal({ item, parts, onClose }) {
       );
       return;
     }
-    create.mutate(body, { onSuccess: handleSaved });
+    create.mutate(body, {
+      onSuccess: ({ itemSn }) => {
+        handleSaved();
+        onCreated?.({ itemSn, ...body });
+      },
+    });
   };
 
   return (

@@ -1,6 +1,7 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Flame } from 'lucide-react';
 import FileImage from '@/components/FileImage';
 import { useAdminItemImage } from './queries';
+import { canBakeItem } from './useItemBake';
 
 const COLUMNS = [
   '순서',
@@ -10,6 +11,7 @@ const COLUMNS = [
   '포인트',
   '판매',
   '보유 회원',
+  '굽기',
 ];
 const EDIT_COLUMNS = ['순서', '이미지', '부위', '이름', '포인트', '이동'];
 
@@ -35,12 +37,15 @@ export function ItemImage({ item, className = '' }) {
  * - 보기: 행 클릭·Enter -> 수정 모달
  * - 순서 편집(isOrdering): 행 클릭 대신 [위]·[아래]로 onMove(인덱스, -1|1), 판매·보유 회원 칸 대신 이동 칸
  * - 좁은 폭에서는 이름만 줄여 표 폭을 화면에 맞춘다
+ * - 굽기 칸: 굽기 대상 행만 [굽기] -> onBake(아이템), 굽는 중(isBaking)에는 막음. 행 클릭과 겹치지 않게 전파를 끊음
  */
 export default function ItemTable({
   items,
   isOrdering = false,
   onSelect,
   onMove,
+  onBake,
+  isBaking = false,
 }) {
   const columns = isOrdering ? EDIT_COLUMNS : COLUMNS;
   const lastIndex = items.length - 1;
@@ -60,6 +65,7 @@ export default function ItemTable({
             <>
               <col className="w-[80px] max-[760px]:w-[38px]" />
               <col className="w-[104px] max-[760px]:w-[44px]" />
+              <col className="w-[72px] max-[760px]:w-[40px]" />
             </>
           )}
         </colgroup>
@@ -139,6 +145,28 @@ export default function ItemTable({
                   </td>
                   <td className={`${CELL} tabular-nums`}>
                     {item.hldMbrCnt.toLocaleString()}
+                  </td>
+                  <td className={CELL}>
+                    {canBakeItem(item) ? (
+                      <button
+                        type="button"
+                        aria-label={`${item.itemNm} 굽기`}
+                        title="안 구운 캐릭터에 굽기"
+                        className={MOVE_BUTTON}
+                        disabled={isBaking}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onBake(item);
+                        }}
+                        onKeyDown={(event) => event.stopPropagation()}
+                      >
+                        <Flame className="size-4" aria-hidden="true" />
+                      </button>
+                    ) : (
+                      <span className="text-subtle" aria-label="굽기 대상 아님">
+                        -
+                      </span>
+                    )}
                   </td>
                 </>
               )}

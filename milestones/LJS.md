@@ -922,6 +922,26 @@
 - 완료 조건: `features/adminCareMission/api.js` 가짜를 실제 API로 바꿔 목록(풀 탭)·수정 모달이 화면에서 동작한다. `useYn`은 'Y'/'N' 가정이 아니라 true/false. 모달의 "다음 날 00:00 출제부터 반영" 안내 그대로. 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCareMission/api.js`(가짜 응답)
 
+## SCR-ADM-070 아이템 · 전체 굽기 나눠 호출 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-070-02
+- 기다리는 것: 백엔드 SCR-MYP-010 착용 모습 대표 이미지·전체 굽기 관리자 허용 (LJS 백엔드, 끝, PR #149 병합). 관리자 쿠키면 시트 내부 API 4개(item-sheets PUT·failure POST·sheets GET·sheet-files GET)가 남의 캐릭터도 허용. 쿠키 없는 내부 호출은 받지 않음(401). AI 쪽 나눠 굽기 전환(ai 저장소, #149 병합 뒤 /start)
+- 완료 조건: 관리자 아이템 화면의 전체 굽기가 `GET /internal/ai/items/{itemSn}/bake-targets?page=0,1,…`(관리자 쿠키, 100개씩 `{ pixelCharSns, last }`)로 대상을 받아 쿠키(30분) 안에 끝나는 단위로 Python 굽기를 여러 번 호출한다. 진행·실패 건수를 보여 준다. 계약은 백엔드 `docs/api/pet.md` 내부 API 행, Python 경로는 ai 저장소 계약 기준
+- 대조: ai 저장소 PR #38로 계약이 바뀌어 프론트는 `bake-targets`를 직접 읽지 않고 Python `POST /ai/items/{itemSn}/bake`를 `lastYn`이 true일 때까지 다시 부른다(대상 목록은 Python이 관리자 쿠키로 읽는다)
+- 결정: 등록 성공 뒤 굽기 대상이면 자동 시작 + 행별 [굽기]로 이어 하기. 굽기 지시 수정 뒤 다시 굽기는 넣지 않음(사람 2026-11-05 "추천안대로")
+- 완료 조건 결과: 검증 `통과`(2026-11-05, 1회차, 반복·멈춤·오류 문구는 Playwright 가짜 응답, 실제 AI 굽기는 과금이라 부르지 않음), 사람 확인 2026-11-05
+
+## SCR-ADM-070 아이템 · 새 아이템 등록 도구 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-070-02
+- 배경: 아이템 등록은 새 등록 도구를 따로 추가한다(사람 2026-11-05)
+- 기다리는 것: 등록 도구의 범위·흐름(지금 등록 모달을 바꿀지, 따로 둘지)이 정해지는 것. 백엔드·AI 서버 API가 더 필요한지는 기획 때 본다
+- 완료 조건: 기획 때 정한다
+
+## SCR-ADM-011 회원 상세 · 관리자 [정지] 숨김 확인 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-011-01
+- 기다리는 것: 백엔드 SCR-ADM-011 회원 상세 · 응답에 회원 권한 추가(LJS, 끝 2026-11-05)
+- 완료 조건: 실제 API로 관리자 회원(`mbrAuthrtCd` `USRC0005`) 상세를 열면 [정지]가 안 보이고, 정상 일반회원(`USRC0004`)은 보인다. 가짜 응답(`features/adminMember/api.js`)에도 `mbrAuthrtCd`가 있는지 맞춘다
+- 이미 바뀐 것: `pages/admin/AdminMemberDetailPage.jsx` `canSuspend`가 `mbrAuthrtCd !== ROLE_OPTIONS[1].value`로 판정(2026-11-02)
+
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)
