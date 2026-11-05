@@ -35,6 +35,9 @@ export const getCareList = ({
     },
   });
 
+/** 최저시급: 관리자 설정의 현재 적용 연도·시간당 금액 { lowstHrwgAplcnYr, lowstHrwgAmt } */
+export const getMinimumWage = () => api.get('/care-recruitments/minimum-wage');
+
 export const getCare = (petPrtcRcrtSn) =>
   api.get(`/care-recruitments/${petPrtcRcrtSn}`);
 
