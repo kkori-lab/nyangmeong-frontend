@@ -6,6 +6,7 @@ import Skeleton from '@/components/Skeleton';
 import { showToast } from '@/components/toastStore';
 import Toggle from '@/components/Toggle';
 import { useAdminFaq, useCreateAdminFaq, useUpdateAdminFaq } from './queries';
+import { toFieldErrors } from '@/utils/fieldErrors';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
@@ -93,9 +94,7 @@ function FaqEditor({ faq, categories, onClose }) {
   ];
 
   /** 서버 400의 칸별 오류: { 필드명: 메시지 } */
-  const fieldErrors = Object.fromEntries(
-    (save.error?.fields ?? []).map((item) => [item.field, item.message]),
-  );
+  const fieldErrors = toFieldErrors(save.error);
 
   const trimmedQstn = qstnTtl.trim();
   const canSubmit =

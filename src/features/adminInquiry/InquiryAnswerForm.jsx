@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
+import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import { formatDateTime } from '@/utils/formatDate';
 import {
   useCreateAdminInquiryAnswer,
@@ -8,7 +9,7 @@ import {
 } from './queries';
 
 const TEXTAREA_CLASS =
-  'block min-h-40 w-full resize-y rounded-[6px] border border-[#d3dae2] bg-white px-3 py-2 text-base leading-[1.5] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
+  'block min-h-40 w-full resize-y rounded-[6px] border border-[#d3dae2] bg-white px-3 py-2 text-base leading-[1.5] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
 
 /** 답변 최대 글자 수 */
 const MAX_ANSWER_LENGTH = 4000;
@@ -23,6 +24,9 @@ function AnswerEditor({
 }) {
   const [ansCn, setAnsCn] = useState(defaultValue);
   const trimmed = ansCn.trim();
+  // 400 칸별 오류는 답변 칸 아래, 그 밖의 오류는 아래 줄
+  const fieldError = toFieldErrors(mutation.error).ansCn;
+  const formError = toFormError(mutation.error, ['ansCn']);
   const canSubmit = trimmed && trimmed !== defaultValue.trim();
 
   return (
@@ -33,16 +37,22 @@ function AnswerEditor({
           value={ansCn}
           maxLength={MAX_ANSWER_LENGTH}
           placeholder="답변을 입력해 주세요"
+          aria-invalid={Boolean(fieldError)}
           className={`${TEXTAREA_CLASS} mt-1.5 font-normal`}
           onChange={(event) => setAnsCn(event.target.value)}
         />
+        {fieldError && (
+          <span className="mt-1.5 block font-normal text-danger">
+            {fieldError}
+          </span>
+        )}
       </label>
       <p className="text-right text-sm text-subtle tabular-nums">
         {ansCn.length.toLocaleString()} / {MAX_ANSWER_LENGTH.toLocaleString()}
       </p>
-      {mutation.isError && (
+      {formError && (
         <p role="alert" className="text-sm text-danger">
-          {mutation.error.message}
+          {formError}
         </p>
       )}
       <div className="flex justify-end gap-2">

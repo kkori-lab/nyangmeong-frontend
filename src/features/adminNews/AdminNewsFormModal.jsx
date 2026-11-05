@@ -12,6 +12,7 @@ import {
 } from '@/utils/receiptFile';
 import { ADMIN_SOURCE_LABEL, NEWS_CATEGORIES } from './newsLabels';
 import { useCreateAdminNews, useUpdateAdminNews } from './queries';
+import { toFieldErrors } from '@/utils/fieldErrors';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
@@ -90,9 +91,7 @@ export default function AdminNewsFormModal({ news, onClose }) {
   const clientErrors = isSubmitted
     ? validate({ newsClsfCd, newsTtl, newsCn })
     : {};
-  const serverFieldErrors = Object.fromEntries(
-    (save.error?.fields ?? []).map((item) => [item.field, item.message]),
-  );
+  const serverFieldErrors = toFieldErrors(save.error);
   const errors = {
     newsClsfCd: clientErrors.newsClsfCd ?? serverFieldErrors.newsClsfCd,
     newsTtl: clientErrors.newsTtl ?? serverFieldErrors.newsTtl,

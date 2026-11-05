@@ -5,6 +5,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import PostBody from '@/components/PostBody';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
+import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import {
   RECEIPT_ACCEPT,
   RECEIPT_HELP,
@@ -18,9 +19,9 @@ import {
 } from './queries';
 
 const INPUT_CLASS =
-  'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
+  'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
 const TEXTAREA_CLASS =
-  'block min-h-[320px] w-full resize-y rounded-[6px] border border-[#d3dae2] bg-white px-3 py-2 text-base leading-[1.6] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
+  'block min-h-[320px] w-full resize-y rounded-[6px] border border-[#d3dae2] bg-white px-3 py-2 text-base leading-[1.6] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
 
 /** 제목 최대 글자 수 */
 const MAX_TTL_LENGTH = 200;
@@ -44,6 +45,19 @@ function FieldLabel({ htmlFor, label, length, maxLength, action }) {
         </span>
       </div>
     </div>
+  );
+}
+
+/** 폼 칸(서버 fields 이름) */
+const FORM_FIELDS = ['ntcMttrTtl', 'ntcMttrCn'];
+
+/** 칸 아래 서버 안내 */
+function FieldError({ id, message }) {
+  if (!message) return null;
+  return (
+    <p id={id} className="mt-1.5 text-sm text-danger">
+      {message}
+    </p>
   );
 }
 
@@ -87,6 +101,10 @@ export default function NoticeForm({ notice }) {
   const save = isEdit ? update : create;
   const upload = useUploadNoticeImage();
   const contentRef = useRef(null);
+
+  // 400 칸별 오류는 그 칸 아래, 폼에 없는 칸·그 밖의 오류는 폼 아래
+  const fieldErrors = toFieldErrors(save.error);
+  const formError = toFormError(save.error, FORM_FIELDS);
 
   const trimmedTtl = ntcMttrTtl.trim();
   const canSubmit =
@@ -183,9 +201,12 @@ export default function NoticeForm({ notice }) {
           value={ntcMttrTtl}
           maxLength={MAX_TTL_LENGTH}
           placeholder="제목을 입력해 주세요"
+          aria-invalid={Boolean(fieldErrors.ntcMttrTtl)}
+          aria-describedby="ntcMttrTtl-error"
           className={INPUT_CLASS}
           onChange={(event) => setNtcMttrTtl(event.target.value)}
         />
+        <FieldError id="ntcMttrTtl-error" message={fieldErrors.ntcMttrTtl} />
       </div>
       <div>
         <FieldLabel
@@ -225,9 +246,12 @@ export default function NoticeForm({ notice }) {
           value={ntcMttrCn}
           maxLength={MAX_CN_LENGTH}
           placeholder="내용을 입력해 주세요"
+          aria-invalid={Boolean(fieldErrors.ntcMttrCn)}
+          aria-describedby="ntcMttrCn-error"
           className={TEXTAREA_CLASS}
           onChange={(event) => setNtcMttrCn(event.target.value)}
         />
+        <FieldError id="ntcMttrCn-error" message={fieldErrors.ntcMttrCn} />
         {ntcMttrCn.trim() && (
           <section
             aria-label="미리보기"
@@ -251,9 +275,9 @@ export default function NoticeForm({ notice }) {
           </CheckOption>
         )}
       </div>
-      {save.isError && !isConfirmOpen && (
+      {formError && !isConfirmOpen && (
         <p role="alert" className="text-sm text-danger">
-          {save.error.message}
+          {formError}
         </p>
       )}
       <div className="flex justify-end gap-2 max-[760px]:[&>*]:flex-1">
@@ -266,7 +290,7 @@ export default function NoticeForm({ notice }) {
       </div>
       {isConfirmOpen && (
         <NoticeSendConfirmModal
-          errorMessage={create.isError ? create.error.message : null}
+          errorMessage={toFormError(create.error)}
           isPending={create.isPending}
           onConfirm={handleSave}
           onCancel={handleConfirmCancel}
