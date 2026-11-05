@@ -6,16 +6,37 @@ export const DICT_USG = {
 
 /**
  * 탭: 사전용도(dictUsgCd) + 키워드분류명(kwrdClsfNm) 한 묶음
+ * - kwrdClsfNm은 기초 데이터에 저장된 값 그대로, label·hint는 화면 표시만
  * - codeGroup이 있으면 결과가 코드인 용도: 연결 코드(mpngCd)를 고른다
  * - 판정 규칙·시간 행은 서버 규칙이라 탭에 두지 않는다
  */
 export const KEYWORD_TABS = [
-  { key: 'verb', label: '등록 동사', dictUsgCd: DICT_USG.SCHEDULE },
-  { key: 'date', label: '날짜', dictUsgCd: DICT_USG.SCHEDULE },
-  { key: 'cycle', label: '주기', dictUsgCd: DICT_USG.SCHEDULE },
+  {
+    key: 'verb',
+    kwrdClsfNm: '등록 동사',
+    label: '등록 표현',
+    hint: '예: 잡아줘, 등록해줘',
+    dictUsgCd: DICT_USG.SCHEDULE,
+  },
+  {
+    key: 'date',
+    kwrdClsfNm: '날짜',
+    label: '날짜 표현',
+    hint: '예: 오늘, 내일, 다음 주 ○요일',
+    dictUsgCd: DICT_USG.SCHEDULE,
+  },
+  {
+    key: 'cycle',
+    kwrdClsfNm: '주기',
+    label: '반복 표현',
+    hint: '예: 매일, 매주, 2주마다',
+    dictUsgCd: DICT_USG.SCHEDULE,
+  },
   {
     key: 'schedule',
+    kwrdClsfNm: '일정 종류',
     label: '일정 종류',
+    hint: '예: 동물병원, 목욕, 투약',
     dictUsgCd: DICT_USG.SCHEDULE,
     codeGroup: 'HLTG19',
     codes: [
@@ -26,7 +47,9 @@ export const KEYWORD_TABS = [
   },
   {
     key: 'checkup',
-    label: '검진유형',
+    kwrdClsfNm: '검진유형',
+    label: '검진 종류',
+    hint: '예: 건강검진, 예방접종, 진료',
     dictUsgCd: DICT_USG.SCHEDULE,
     codeGroup: 'HLTG01',
     codes: [
@@ -39,7 +62,9 @@ export const KEYWORD_TABS = [
   },
   {
     key: 'expense',
-    label: '가계부 카테고리',
+    kwrdClsfNm: '가계부 카테고리',
+    label: '가계부 분류',
+    hint: '예: 사료, 병원비, 간식',
     dictUsgCd: DICT_USG.EXPENSE,
     codeGroup: 'MYPG05',
     codes: [
@@ -66,7 +91,7 @@ export const codeLabel = (tab, mpngCd) =>
 
 /** 결과가 코드인 탭의 해석 결과: 기초 데이터와 같은 꼴 "일정 종류 = 병원(HLTG19)" */
 export const codeResult = (tab, mpngCd) =>
-  `${tab.label} = ${codeLabel(tab, mpngCd)}(${tab.codeGroup})`;
+  `${tab.kwrdClsfNm} = ${codeLabel(tab, mpngCd)}(${tab.codeGroup})`;
 
 /** 칸 글자 수: 백엔드 DDL KWRD_DICT 컬럼 길이 */
 export const ARTCL_NM_MAX = 100;
