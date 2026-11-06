@@ -2,27 +2,29 @@
 
 ## 지금 하는 것
 
-SCR-MYP-002 가족 영역 · 모바일(760px 이하) 공동양육자 카드의 [✕] 눌림 영역을 넓히기 — 끝 (2026-11-06, 검증 `통과`, 사람 확인 완료. 넓힌 영역은 40×44: 왼쪽 4px, 위·아래·오른쪽 8px)
+SCR-MYP-040 회원정보 수정 · SNS 계정 연동 버튼 추가(FN-MYP-040-09) — 끝 (2026-11-06, 검증 `확인 못 함 있음`(성공 뒤 전환은 API 병합 뒤), 사람 확인 완료. 검증 1회 실패는 카카오·구글 요청에 `state`가 실린 것이라 고침)
 
-"다음에 할 것" 맨 위 항목이다(사람 요청 2026-11-06). 모바일 카드는 `MOBILE_CARD`가 `relative`라 버튼에도 `relative`를 붙여 `::before`가 버튼 기준으로 잡히게 한다. 카드 높이는 54px(아바타 32 + 위아래 10 + 테두리 2)라 44px 영역은 카드 안에 들어간다.
+사람 요청 2026-11-06. API는 YAY가 만드는 중이라 develop에 아직 없다(`POST /api/members/me/sns-links`, 로그인 필요, 요청 `{ snsOffrCd, code, state }`, `state`는 네이버만 보냄, 응답·오류 형식 미정). 가짜 응답은 만들지 않았다.
 
-- 디자인: 없음(겉모습·카드 높이는 그대로). 근거: 지금 [✕]는 `size-7`(28px)이라 터치 목표가 작다
-- 1 FN-MYP-004-01 가족 목록 (`src/features/pet/list/FamilySection.jsx`의 `MobileCaregiverList`, `REMOVE_BUTTON`)
-  - 모바일 [✕] 버튼에만 보이지 않는 눌림 영역을 덧붙인다: `relative`와 `before:absolute before:-inset-y-2 before:-right-2 before:-left-1.5 before:content-['']`(가로 6+28+8=42px, 세로 8+28+8=44px). 연동일과 [✕] 사이 간격이 `gap-1.5`(6px)라 왼쪽만 6px로 처음부터 줄인다(사람 결정 2026-11-06, 조건부 아님). 모바일 [초대] 버튼의 `before:absolute before:-inset-y-1.5` 방식과 같다. 버튼 크기·아이콘·카드 높이(아바타 32px + 위아래 10px)는 바꾸지 않는다
-  - 761px 이상 `MemberCard`의 [✕]는 손대지 않는다. `REMOVE_BUTTON`은 두 곳이 같이 쓰므로 `before` 클래스는 모바일 버튼 줄에만 붙인다(`REMOVE_BUTTON`에 넣지 않는다)
-  - 위·아래·오른쪽 8px은 카드 안에 들어간다: 44px < 카드 높이 54px, 오른쪽 8px = 카드 안쪽 여백 `pr-2`
-  - 부를 API: 없음
-  - 완료 조건 `명령:` `yarn -s lint`, `yarn -s build`
-  - 완료 조건 `화면:` tester(mbrSn 1)로 `/mypage/pets`의 공동양육자가 있는 슬라이드(탄이)를 375px에서 열고 (a) [✕] 버튼 크기·카드 높이가 고치기 전과 같고 넓힌 영역(`::before`)이 가로 42 × 세로 44다(`getComputedStyle(btn, '::before')`) (b) 버튼 중심에서 위·아래·오른쪽 21px, 왼쪽 20px 안쪽 점 8곳에서 `document.elementFromPoint`가 [✕] 버튼이다 (c) 연동일 글자 칸 안의 점과 카드 밖 점(카드 위·아래 간격, 옆 카드)에서는 [✕] 버튼이 아니다 (d) 761px 이상 `MemberCard`의 [✕]에는 `::before`가 없다 (e) [✕]를 눌러 삭제 확인 창이 열리면 [취소]로 닫는다. 삭제는 하지 않아 DB를 바꾸지 않는다
+- 디자인: 없음(시안에 연동 영역 없음). 기존 회원정보 카드 행 스타일을 쓴다
+- 1 FN-MYP-040-09 SNS 연동 버튼 (`src/features/member/`)
+  - `login/snsAuth.js`: `startSnsLogin`의 `mode: 'link'`를 `sessionStorage` 요청(`snsLoginRequest`)에 저장, `takeSnsCallback` 결과에 `mode`, 읽기만 하는 `isSnsLinkCallback`. 콜백 주소는 로그인과 같은 `/login/sns/:provider/callback`
+  - `api.js`·`queries.js`: `linkSns` → `POST /members/me/sns-links`(네이버만 `state`), `useLinkSns`(성공 시 회원정보 무효화)
+  - `login/useSnsCallback.js`·`pages/auth/LoginPage.jsx`: 연동 모드는 `sns-login` 대신 `sns-links`를 부르고 `PATHS.MYPAGE_PROFILE`로 `replace` 이동, 성공·실패(서버 `message`)·취소·state 불일치는 토스트. 처리하는 동안 로그인 폼 대신 `PageLoading`. 취소·불일치 문구는 연동 전용으로 새로 썼다(`loginMessages.js`)
+  - `profile/SnsLinkCard.jsx`(새 파일)·`ProfileEditForm.jsx`·`AccountRow.jsx`(`action` prop): "SNS 계정 연동" 절. 가입 제공자는 "가입 계정"(버튼 없음), 연동한 것은 "연동됨", 나머지는 "연동 안 됨" + [연동하기]. 이메일·SNS 회원 모두에게 보인다. 해제 버튼 없음
+  - 사람 결정: 명세·설계서 FN-MYP-040-09 수정은 사람이 따로 정리한다. 이메일 회원은 연동 뒤 돌아오면 비밀번호 본인 확인을 다시 거친다(그대로 둠)
 - 새 의존성: 없음
 
 ### 추가 요청
 
 | 번호 | 바꿀 파일 | 완료 조건 | 요청 |
 | --- | --- | --- | --- |
-| 추가-1 | `src/features/pet/list/FamilySection.jsx` | `명령:` `yarn -s lint`, `yarn -s build`. `화면:` 375px에서 넓힌 영역(`::before`)이 가로 40 × 세로 44(`before:-left-1`, 위·아래·오른쪽 8px 그대로). 버튼 중심에서 위·아래·오른쪽 21px, 왼쪽 18px 안쪽 점 8곳이 [✕]. 연동일 글자 오른쪽 끝(마지막 글자 "동" 위)을 눌러도 삭제 확인 창이 뜨지 않는다 | 요청 2026-11-06 10:52 "375px에서 '09-11 연동'의 '동'을 누르면 삭제 확인 창이 뜬다. 왼쪽 확장을 4px로 줄여 글자와 2px 여유를 둔다" |
+| 추가-1 | `src/features/member/profile/SnsLinkCard.jsx` | `명령:` `yarn -s lint`, `yarn -s build`. `화면:` 375px·1280px에서 SNS 계정 연동 세 줄의 왼쪽 항목명 자리에 `SnsLogos.jsx`의 네이버·카카오·구글 로고(20px 안팎, 세 줄 같은 크기)가 "[로고] 이름"으로 보이고, 가운데에는 `SnsBadge` 없이 "연동 안 됨"·"연동됨"·"가입 계정" 글자만 있다. `SnsLogos.jsx`는 옮기지 않고 import만 한다 | 요청 2026-11-06 15:11 "연동 줄 왼쪽 항목명 자리에 로그인 화면 로고를 붙여 '[로고] 네이버' 형태로, 가운데 SnsBadge는 빼고 글자만, 로고는 20px 안팎 같은 크기, 375px·1280px 확인" |
 
 ## 다음에 할 것
+- 연결 남음 SCR-MYP-040 FN-MYP-040-09 (`POST /api/members/me/sns-links` 병합 뒤 확인, YAY): 성공 토스트·"연동됨" 전환, 이미 다른 계정에 연동된 SNS 등 서버 오류 `message`, 응답·오류 형식이 정해지면 `useSnsCallback` 오류 처리를 맞춘다
+- 확인 필요(백엔드): 화면 검증 때 dev-token을 mbrSn 1~60에 차례로 발급했다. dev-token이 `lastLgnDt`를 갱신하면 그 회원들의 마지막 로그인 일시가 바뀌었을 수 있다(복구 SQL 없음)
+- 문서 할 일(코드 아님, 사람이 정리): 기능명세서·화면설계서 FN-MYP-040-09에 SNS 계정 연동 버튼을 추가한다(연동됨/가입 계정 표시, [연동하기], 해제 없음, 이메일·SNS 회원 모두 노출, 실패 시 서버 message 토스트)
 - 팀 알림(LJS 등): 공용 `components/Modal.jsx`에 `isDismissDisabled`(배경 클릭·Esc·Esc 연타로 닫지 않음, keydown에서 막음)를 더했고 `isLarge`가 `width`·`isSheet`와 함께 쓰인다(760px 이하 아래 시트). 기존 `isLarge` 사용처(상점 모달, 건강 일지 최근 기록 모달)는 모양이 그대로다. 저장 중(`isPending`)에도 Esc가 같이 막힌다. 기획에 적은 `SummaryHero`는 Modal이 아니라 `PetImage`의 자체 prop이다
 - 연결 남음 SCR-MYP-003 FN-MYP-003-03 (백엔드 연결 시드와 공용 DB의 고양이+PETC0011 55마리를 고양이 털색으로 수정, 백엔드 저장소에서 /start). 공용 DB는 팀에 알린 뒤 진행하고, 시드 파일은 백엔드 저장소에서 고친다. 어떤 고양이 털색으로 바꿀지는 정해야 한다 [안 됨: 백엔드 저장소 `milestones/SJM.md`의 "종에 맞지 않는 털색 데이터 정리"(대기) 절에 있음. 55마리는 시드 기준이고 공용 DB는 미확인]
 - 팀 알림(SCR-MYP-003 털색): (a) 시드에서 종-털색 불일치는 고양이+PETC0011 55마리뿐이다(PET 1000행 기준). 공용 DB도 같은지 확인을 요청한다(탄이가 그 예). (b) 지금까지 화면에서 파티를 골라 저장한 강아지는 PETC0011로 들어가 있어서 이번 수정 뒤 얼룩으로 보인다. 팀에 알린다. (c) 공용 `utils/petCodes.js`의 `PARTI` 코드가 PETC0029로 바뀌고 `SPOTTED`(PETC0011)와 새 털색 코드 6개가 추가됐다. LJS 등에 알린다. (d) 명세·설계서 FN-MYP-003-03에 얼룩 추가는 설계서 담당(SJM)이 정리한다
