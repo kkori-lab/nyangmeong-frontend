@@ -2,29 +2,27 @@
 
 ## 지금 하는 것
 
-SCR-MYP-020 포인트 관리/케어미션 · 요약 카드를 눌러 이동할 때 sticky 헤더에 섹션 제목이 가려지는 것 고치기 — 끝 (2026-11-06, 검증 `통과`(1회차), 사람 확인 완료)
+SCR-MYP-002 가족 영역 · 모바일(760px 이하) 공동양육자 카드의 [✕] 눌림 영역을 넓히기 — 끝 (2026-11-06, 검증 `통과`, 사람 확인 완료. 넓힌 영역은 40×44: 왼쪽 4px, 위·아래·오른쪽 8px)
 
-"다음에 할 것" 25번의 `scroll-mt` 건이다. 내 담당 화면이고 공용 레이아웃은 건드리지 않아 팀 확인 없이 넣는다(사람 결정).
+"다음에 할 것" 맨 위 항목이다(사람 요청 2026-11-06). 모바일 카드는 `MOBILE_CARD`가 `relative`라 버튼에도 `relative`를 붙여 `::before`가 버튼 기준으로 잡히게 한다. 카드 높이는 54px(아바타 32 + 위아래 10 + 테두리 2)라 44px 영역은 카드 안에 들어간다.
 
-- 디자인: 없음(스크롤 여백만 바꾼다. 보이는 모양은 그대로)
-- 1 FN-MYP-020 요약 카드 이동 (`src/features/point/history/PointHistory.jsx`, `src/features/point/mission/CareMission.jsx`)
-  - 이동 대상 `<section id="point-history">`와 `<section id="care-mission">`에만 `scroll-mt-20`(80px)을 붙인다. 근거: 공용 헤더 `UserHeader`는 `sticky top-0 h-16`(64px)이고 375px에서도 64px이다(2026-11-06 확인). 헤더 64px + 틈 16px. 이동 코드(`PointPage.jsx`의 `scrollToSection`)와 공용 레이아웃은 고치지 않는다
+- 디자인: 없음(겉모습·카드 높이는 그대로). 근거: 지금 [✕]는 `size-7`(28px)이라 터치 목표가 작다
+- 1 FN-MYP-004-01 가족 목록 (`src/features/pet/list/FamilySection.jsx`의 `MobileCaregiverList`, `REMOVE_BUTTON`)
+  - 모바일 [✕] 버튼에만 보이지 않는 눌림 영역을 덧붙인다: `relative`와 `before:absolute before:-inset-y-2 before:-right-2 before:-left-1.5 before:content-['']`(가로 6+28+8=42px, 세로 8+28+8=44px). 연동일과 [✕] 사이 간격이 `gap-1.5`(6px)라 왼쪽만 6px로 처음부터 줄인다(사람 결정 2026-11-06, 조건부 아님). 모바일 [초대] 버튼의 `before:absolute before:-inset-y-1.5` 방식과 같다. 버튼 크기·아이콘·카드 높이(아바타 32px + 위아래 10px)는 바꾸지 않는다
+  - 761px 이상 `MemberCard`의 [✕]는 손대지 않는다. `REMOVE_BUTTON`은 두 곳이 같이 쓰므로 `before` 클래스는 모바일 버튼 줄에만 붙인다(`REMOVE_BUTTON`에 넣지 않는다)
+  - 위·아래·오른쪽 8px은 카드 안에 들어간다: 44px < 카드 높이 54px, 오른쪽 8px = 카드 안쪽 여백 `pr-2`
   - 부를 API: 없음
   - 완료 조건 `명령:` `yarn -s lint`, `yarn -s build`
-  - 완료 조건 `화면:` tester(mbrSn 1)로 `/mypage/points`를 375px·1280px에서 열고 요약 카드의 포인트 내역 이동 버튼(2곳)과 케어미션 이동 버튼을 눌러 스크롤이 멈춘 뒤, 각 섹션 카드의 위쪽 끝이 헤더 아래 끝(64px)보다 아래이고 제목(`h2`)이 헤더에 가려지지 않는다(`getBoundingClientRect`로 `section.top >= 64`, `h2.top >= 64`). 섹션 2개가 모두 화면에서 위로 스크롤될 만큼 페이지가 길지 않으면 그 이유와 함께 보고한다. 데이터를 바꾸는 동작은 하지 않는다
+  - 완료 조건 `화면:` tester(mbrSn 1)로 `/mypage/pets`의 공동양육자가 있는 슬라이드(탄이)를 375px에서 열고 (a) [✕] 버튼 크기·카드 높이가 고치기 전과 같고 넓힌 영역(`::before`)이 가로 42 × 세로 44다(`getComputedStyle(btn, '::before')`) (b) 버튼 중심에서 위·아래·오른쪽 21px, 왼쪽 20px 안쪽 점 8곳에서 `document.elementFromPoint`가 [✕] 버튼이다 (c) 연동일 글자 칸 안의 점과 카드 밖 점(카드 위·아래 간격, 옆 카드)에서는 [✕] 버튼이 아니다 (d) 761px 이상 `MemberCard`의 [✕]에는 `::before`가 없다 (e) [✕]를 눌러 삭제 확인 창이 열리면 [취소]로 닫는다. 삭제는 하지 않아 DB를 바꾸지 않는다
 - 새 의존성: 없음
 
+### 추가 요청
+
+| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
+| --- | --- | --- | --- |
+| 추가-1 | `src/features/pet/list/FamilySection.jsx` | `명령:` `yarn -s lint`, `yarn -s build`. `화면:` 375px에서 넓힌 영역(`::before`)이 가로 40 × 세로 44(`before:-left-1`, 위·아래·오른쪽 8px 그대로). 버튼 중심에서 위·아래·오른쪽 21px, 왼쪽 18px 안쪽 점 8곳이 [✕]. 연동일 글자 오른쪽 끝(마지막 글자 "동" 위)을 눌러도 삭제 확인 창이 뜨지 않는다 | 요청 2026-11-06 10:52 "375px에서 '09-11 연동'의 '동'을 누르면 삭제 확인 창이 뜬다. 왼쪽 확장을 4px로 줄여 글자와 2px 여유를 둔다" |
+
 ## 다음에 할 것
-- SCR-MYP-002 가족 영역 · 모바일(760px 이하) 공동양육자 카드의 [✕] 눌림 영역을 44px로 넓히기 — 기획(승인 전, 사람 요청 2026-11-06)
-  - 디자인: 없음(겉모습·카드 높이는 그대로). 근거: 지금 [✕]는 `size-7`(28px)이라 터치 목표가 작다
-  - 1 FN-MYP-004-01 가족 목록 (`src/features/pet/list/FamilySection.jsx`의 `MobileCaregiverList`, `REMOVE_BUTTON`)
-    - 모바일 [✕] 버튼에만 보이지 않는 눌림 영역을 덧붙인다: `relative`와 `before:absolute before:-inset-2 before:content-['']`(28+8+8=44px). 모바일 [초대] 버튼의 `before:absolute before:-inset-y-1.5` 방식과 같다. 버튼 크기·아이콘·카드 높이(아바타 32px + 위아래 10px)는 바꾸지 않는다
-    - 761px 이상 `MemberCard`의 [✕]는 손대지 않는다. `REMOVE_BUTTON`은 두 곳이 같이 쓰므로 `before` 클래스는 모바일 버튼 줄에만 붙인다(`REMOVE_BUTTON`에 넣지 않는다)
-    - 모바일 카드는 연동일과 [✕] 사이 간격이 `gap-1.5`(6px)라 `-inset-2`면 왼쪽 2px이 연동일 글자 칸과 겹친다. 겹치면 왼쪽만 6px 안쪽으로 줄인다(예: `before:left-[-6px]`을 더한다). 위·아래·오른쪽은 8px 그대로다(카드 안에 들어간다: 44px < 카드 높이 52px, 오른쪽 8px 여백 = 카드 안쪽)
-    - 부를 API: 없음
-    - 완료 조건 `명령:` `yarn -s lint`, `yarn -s build`
-    - 완료 조건 `화면:` tester(mbrSn 1)로 `/mypage/pets`의 공동양육자가 있는 슬라이드(탄이)를 375px에서 열고 (a) [✕] 버튼 크기·카드 높이가 고치기 전과 같고 `::before`의 크기가 44×44다(`getComputedStyle(btn, '::before')`) (b) 버튼 중심에서 사방 21px 안쪽 점 8곳에서 `document.elementFromPoint`가 [✕] 버튼이다 (c) 연동일 글자 칸 안의 점과 카드 밖 점(카드 위·아래 간격, 옆 카드)에서는 [✕] 버튼이 아니다 (d) 761px 이상 `MemberCard`의 [✕]에는 `::before`가 없다 (e) [✕]를 눌러 삭제 확인 창이 열리면 [취소]로 닫는다. 삭제는 하지 않아 DB를 바꾸지 않는다
-  - 새 의존성: 없음
 - 팀 알림(LJS 등): 공용 `components/Modal.jsx`에 `isDismissDisabled`(배경 클릭·Esc·Esc 연타로 닫지 않음, keydown에서 막음)를 더했고 `isLarge`가 `width`·`isSheet`와 함께 쓰인다(760px 이하 아래 시트). 기존 `isLarge` 사용처(상점 모달, 건강 일지 최근 기록 모달)는 모양이 그대로다. 저장 중(`isPending`)에도 Esc가 같이 막힌다. 기획에 적은 `SummaryHero`는 Modal이 아니라 `PetImage`의 자체 prop이다
 - 연결 남음 SCR-MYP-003 FN-MYP-003-03 (백엔드 연결 시드와 공용 DB의 고양이+PETC0011 55마리를 고양이 털색으로 수정, 백엔드 저장소에서 /start). 공용 DB는 팀에 알린 뒤 진행하고, 시드 파일은 백엔드 저장소에서 고친다. 어떤 고양이 털색으로 바꿀지는 정해야 한다 [안 됨: 백엔드 저장소 `milestones/SJM.md`의 "종에 맞지 않는 털색 데이터 정리"(대기) 절에 있음. 55마리는 시드 기준이고 공용 DB는 미확인]
 - 팀 알림(SCR-MYP-003 털색): (a) 시드에서 종-털색 불일치는 고양이+PETC0011 55마리뿐이다(PET 1000행 기준). 공용 DB도 같은지 확인을 요청한다(탄이가 그 예). (b) 지금까지 화면에서 파티를 골라 저장한 강아지는 PETC0011로 들어가 있어서 이번 수정 뒤 얼룩으로 보인다. 팀에 알린다. (c) 공용 `utils/petCodes.js`의 `PARTI` 코드가 PETC0029로 바뀌고 `SPOTTED`(PETC0011)와 새 털색 코드 6개가 추가됐다. LJS 등에 알린다. (d) 명세·설계서 FN-MYP-003-03에 얼룩 추가는 설계서 담당(SJM)이 정리한다
