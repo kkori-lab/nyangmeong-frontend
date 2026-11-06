@@ -195,8 +195,9 @@ function PetDashboard({ pets, pet, onSelect, hasSwitched }) {
       <CarePreview key={pet.petSn} petSn={pet.petSn} />
 
       <Reveal as="p" className="mt-8 flex justify-center">
+        {/** FN-MAN-008: 메인에서 고른 반려동물로 연다. 시작 탭을 고르는 것은 HLT-011(JAJ) 연결 */}
         <Link
-          to={PATHS.HEALTH}
+          to={`${PATHS.HEALTH}?${new URLSearchParams({ petSn: pet.petSn })}`}
           className="inline-flex h-[46px] items-center rounded-md bg-brand-500 px-8 font-semibold text-white hover:bg-brand-600"
         >
           건강기록 전체 보기
