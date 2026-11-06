@@ -2,9 +2,10 @@
 
 ## 지금 하는 것
 
-SCR-CMU-001 펫이야기 · 상세 없음 안내 EmptyResult (2026-11-06) — 상태: 끝 (검증 1회차 통과, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-06)
+SCR-CMU-002 실종센터 · 찾았어요 글 수정 숨김·목록 이전 값 유지·품종 선택 (2026-11-06) — 상태: 끝 (검증 4회차 `확인 못 함 있음`(연결 남음만), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-06)
 
-- 바꾼 것: 펫이야기 상세·수정, 실종센터 상세·수정, 펫뉴스 상세의 「…찾지 못했어요」를 펫돌봄·1:1 문의와 같은 `EmptyResult` 흰 박스(아이콘·제목·보조 문구·목록 버튼)로
+- 바꾼 것: 찾았어요 글 상세 [수정] 숨김(작성자 메뉴는 작성자 줄 오른쪽), 목록 `keepPreviousData`, 실종 글쓰기·수정 품종을 선택 항목으로(`BreedCombobox` `required`), 찾았어요·만료 글 수정 주소 직접 진입은 토스트 뒤 상세로, 품종 없는 글 수정 폼은 미선택으로 열림
+- 이 프론트 PR은 백엔드 `POST·PATCH /lost-reports`가 품종 없는 요청을 받는 변경이 `develop`에 들어간 뒤에 합친다(그전에는 품종을 비우면 서버 400)
 
 ## 다음에 할 것
 
@@ -12,11 +13,7 @@ SCR-CMU-001 펫이야기 · 상세 없음 안내 EmptyResult (2026-11-06) — �
 - 관리자 1:1 문의 `features/adminInquiry/queries.js` `useAdminInquiryImageUrls`도 화면을 떠날 때 캐시 blob 주소를 바로 해제한다(사용자 문의에서 고친 것과 같은 패턴). 관리자 화면에서 상세↔수정처럼 같은 첨부를 이어 쓰면 깨질 수 있어 담당에게 알린다
 
 ### 정할 것(사람)
-- 실종센터 목록에 펫돌봄처럼 `placeholderData: keepPreviousData`(`missingQueries.js` `useMissingList`)를 넣어 필터를 바꿀 때 필터 영역이 사라지지 않게 할지
-- 실종센터 작성자가 찾았어요로 바꾼 글 상세에 [수정]이 보이는 것(서버는 실종 상태만 수정 허용)을 숨길지
-- SCR-CMU-002: 실종 기간 필터 기준(화면설계서·기능명세서는 목격 날짜, ERD 비고 2026-09-23은 등록일시 `PST.REG_DT`), 품종 필수 여부(명세는 필수, ERD·디자인은 선택), FN-CMU-002-09 자동 댓글 이모지·「찾았어요!」 문구(디자인은 「찾았어요」)
 - LJS 요청: `SubPageLayout`에 `back={false}`를 넘기면 머리에 목록용 메뉴 전환 ▾(761~1100px)가 켜진다(`hasSwitch = !title && !hasBack`). 본문 하단에 「목록으로」를 두는 상세(펫뉴스·공지)에 ▾와 위 「목록으로」를 모두 끄는 prop(예: `back="none"`)이 필요한지
-- 펫뉴스 「많이 본 뉴스」 레일: 디자인에는 있으나 기능명세서에 FN이 없고 ERD에 조회수 컬럼도 없어 뺐다(2026-10-22). 기능명세서 FN(조회수 집계·기준 기간)과 ERD 컬럼이 생기면 목록 오른쪽(1100px 이하는 목록 아래)과 상세 레일에 넣는다(디자인 `.st-rail`·`.rank`)
 
 ### 남을 기다리는 것(연결 남음)
 - 채팅 API 연결(LJS, 2026-11-05 전달): `features/chat/api.js` 가짜를 백엔드 채팅·매칭 API로. 연결 뒤 SCR-CMU-004 FN-CMU-004-05 [내 채팅 보기]·[채팅하기]가 기존 방을 여는지 확인(회원 152 글 3 → 방 8). 같이 남은 것: 헤더 안 읽은 수 배지(COM-002-11), 004-09 펫돌봄 알림이 채팅방을 여는 방 식별자(`otoChatRoomSn`, YAY), 마지막에 본 방을 새로고침 뒤에도 기억할지. `/dev/chat`·`ChatDevPage`(「[채팅하기]가 생기면 지움」)와 `/dev/sub-page`(고객센터 이관 끝) 삭제도 LJS에 알린다
@@ -27,6 +24,8 @@ SCR-CMU-001 펫이야기 · 상세 없음 안내 EmptyResult (2026-11-06) — �
 - 375px 페이지 가로 스크롤은 공용 푸터가 원인(`UserFooter.jsx`, LJS). LJS 반응형 작업이 들어오면 다시 본다(CSC 추가-4). 푸터 일러스트와 내용 사이 여백도 LJS가 정한다
 
 ### 백엔드(백엔드 저장소에서 /start)
+- SCR-CMU-002: FN-CMU-002-10·13 `POST·PATCH /lost-reports`가 `vrtySn`·`vrtyDrctInptNm` 둘 다 없는 요청을 받게(`LostReportService` 「둘 중 하나만」 검사). 이것이 들어간 뒤 품종 없는 글의 상세(「강아지」만)·카드(품종 줄 없음)·수정 폼(미선택으로 열림)을 확인하고 프론트 PR을 합친다
+- 관리자 설정 `dscvAutoCmntCn`(찾았어요 자동 댓글)이 저장만 되고 댓글에는 반영되지 않는다. `LostReportService.FOUND_COMMENT` 상수가 쓰인다. 설정값을 쓰게 하면 프론트 미리보기(`missingCodes.js` `foundCommentText`)도 설정값을 받아야 한다
 - 펫돌봄 완료 사진 관리자 열람(SCR-ADM-022, 진행): 관리자 전용 `GET /api/admin/care-matches/{petPrtcRcrtSn}/images/{atchFileSn}` 구현은 로컬에 있고 커밋 전. 끝나면 LJS에 `CareMatchDetailModal.jsx` `publicFileUrl` → `useFileImage` 전달. 채팅 실시간 제안(`docs/api/community.md` 「실시간」) 검토는 따로
 - 파기 회원이 게시글·댓글에 `탈퇴회원#번호`로 보인다. 커뮤니티 조회에서 파기 회원은 `mbrNcnm`을 「탈퇴한 회원」, `mbrAtchFileSn`을 null로 준다(프론트는 고칠 것 없음)
 - SCR-CMU-002: FN-CMU-002-10·11 전북 밖 좌표 거절(`POST·PATCH /lost-reports`, 낮은 우선순위)
@@ -38,7 +37,8 @@ SCR-CMU-001 펫이야기 · 상세 없음 안내 EmptyResult (2026-11-06) — �
 - 업로드 한도 100MB는 백엔드 `application.properties.example`에 들어감. 팀원·디스코드의 `application.properties`도 `max-request-size=100MB`로 바꾼다
 - 시드 이미지 묶음이 시드 SQL(`db/seed/20261028_seed_data.sql`)과 다른 생성본이다(게시글 사진 3481~3529 없음, 번호가 49씩 밀림, 채팅·펫돌봄·1:1 문의·뉴스 사진도 어긋남). LJS에게 같은 생성본을 `public/seed/...` 구조로 받아 백엔드 `uploads/seed`·`uploads/public/seed`를 바꾼다
 - 검증 데이터 삭제(아직 안 지웠으면): 펫돌봄 글 102·103·104와 첨부 4215~4219·업로드 파일, 글 49(pstSn 949)·51(pstSn 951) 신고, 채팅 방 11 / 실종 글 110~114와 첨부 4219~4247, 글 57·21·9 신고, 112 종료일 연장 / 펫이야기 글 1001~1006과 그 댓글·신고·좋아요·첨부 / 테스트 문의(회원 1의 201·204·205·215·217~227, 회원 2의 216, `OTO_INQRY`·`OTO_INQRY_STTS_HSTRY`·`INQRY_ATCH_PHOTO`·`ATCH_FILE`과 업로드 파일)
-- 기능명세서: FN-CSC-002-01 카테고리 배지 문장 삭제, FN-CSC-003-18 「표시하고다」 오타, FN-CSC-003-13 「[문의 수정] 비활성」→「버튼 숨김 + 안내 문구」, FN-CSC-001-03 「공지 제목 검색」→ 제목·내용 검색, FN-CSC-001-01 「제목·작성일만 노출」→ 번호 포함, FN-CSC-001-05 조회수 삭제, FN-CMU-001 「내 댓글 삭제」 보완
+- 기능명세서: FN-CMU-002-10·13 「품종 필수·미선택 시 저장 차단」→ 선택(사람 결정 2026-11-06), FN-CSC-002-01 카테고리 배지 문장 삭제, FN-CSC-003-18 「표시하고다」 오타, FN-CSC-003-13 「[문의 수정] 비활성」→「버튼 숨김 + 안내 문구」, FN-CSC-001-03 「공지 제목 검색」→ 제목·내용 검색, FN-CSC-001-01 「제목·작성일만 노출」→ 번호 포함, FN-CSC-001-05 조회수 삭제, FN-CMU-001 「내 댓글 삭제」 보완
+- ERD 비고 2026-09-23 「실종 기간 필터는 등록일시 `PST.REG_DT`」→ 최종 목격 날짜 기준으로 정정(화면·서버는 이미 목격 날짜)
 - 화면설계서: SCR-CSC-003-03에 [삭제] 버튼·확인 모달 추가와 ③ 「[문의 수정] 비활성」 문구, SCR-CSC-001-01 ② 검색 문구
 
 ### 참고

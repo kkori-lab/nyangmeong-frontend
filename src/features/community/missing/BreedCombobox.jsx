@@ -9,6 +9,7 @@ const norm = (text) => text.replace(/\s/g, '').toLowerCase();
  * - value: { vrtyNm, vrtyDrctInptNm, typed } (목록 품종이면 vrtyNm, 직접 입력이면 vrtyDrctInptNm, 둘 다 null이면 미선택,
  *   목록에 없는 글자를 쳐 둔 채면 typed에 그 글자)
  * - breeds: 반려동물 구분에 맞는 품종명 배열. 구분이 바뀌면 부모가 value 초기화
+ * - required: false면 필수 표시 `*` 대신 「선택」(실종센터)
  * - 직접 입력값은 품종 마스터에 올리지 않고 그 글에만 저장
  */
 export default function BreedCombobox({
@@ -16,6 +17,7 @@ export default function BreedCombobox({
   breeds,
   value,
   error,
+  required = true,
   onChange,
 }) {
   const id = useId();
@@ -98,9 +100,13 @@ export default function BreedCombobox({
     <div className="flex flex-col gap-1.5">
       <label htmlFor={inputId} className="text-base font-semibold text-ink">
         {label}
-        <span aria-hidden="true" className="ml-0.5 font-bold text-danger">
-          *
-        </span>
+        {required ? (
+          <span aria-hidden="true" className="ml-0.5 font-bold text-danger">
+            *
+          </span>
+        ) : (
+          <span className="ml-1 text-sm font-medium text-muted">선택</span>
+        )}
       </label>
       <div ref={rootRef} className="relative max-w-[420px]">
         <Search
