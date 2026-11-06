@@ -27,7 +27,7 @@ const navButtonClass =
   'grid size-9 place-items-center rounded-full text-[#566465] hover:bg-[#ebf0f0] hover:text-[#1a3234] disabled:opacity-40 disabled:hover:bg-transparent';
 
 // 월간 캘린더 카드(FN-HLT-003-29·30). schedules는 이미 표시 반려동물 필터를 거친 그 달 일정이다
-// children은 달력 위에 놓는 표시 반려동물 필터다
+// petFilter는 제목 자리에 놓는 표시 반려동물 필터다(FN-HLT-003-39). 있으면 제목 글자는 화면에서 숨긴다
 export default function MonthCalendar({
   year,
   month,
@@ -36,7 +36,7 @@ export default function MonthCalendar({
   canMoveMonth,
   onMoveMonth,
   onSelectDate,
-  children,
+  petFilter,
 }) {
   const todayYmd = getTodayYmd();
   const daysInMonth = getDaysInMonth(year, month);
@@ -64,6 +64,8 @@ export default function MonthCalendar({
   return (
     <Card
       title="통합 케어 캘린더"
+      leading={petFilter || undefined}
+      isTitleHidden={Boolean(petFilter)}
       action={
         <div className="flex items-center gap-1">
           <button
@@ -90,7 +92,6 @@ export default function MonthCalendar({
         </div>
       }
     >
-      {children}
       <div
         role="grid"
         aria-label={`${year}년 ${month}월`}

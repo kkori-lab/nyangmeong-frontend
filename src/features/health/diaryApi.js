@@ -28,7 +28,7 @@ export const getDailyRecords = ({ petSn }) =>
   });
 
 /**
- * 그래프용 한 지표의 최근 기록 14개
+ * 그래프용 한 지표의 최근 기록 5개
  * - 식사량·음수량·산책은 하루 합계로 그리므로 받은 기록 중 가장 이른 날짜의 기록을 모두 받아 합친다
  */
 export const getDailyTrend = async ({ petSn, dailyRcdIdctCd }) => {

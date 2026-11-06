@@ -6,7 +6,7 @@ import SkeletonCard from '@/components/SkeletonCard';
 import CareList from '@/features/health/CareList';
 import DiaryTabs from '@/features/health/diary/DiaryTabs';
 import MonthCalendar from '@/features/health/MonthCalendar';
-import PetFilterChips from '@/features/health/PetFilterChips';
+import DiaryPetPicker from '@/features/health/diary/DiaryPetPicker';
 import ScheduleDayDetail from '@/features/health/ScheduleDayDetail';
 import ScheduleModal from '@/features/health/ScheduleModal';
 import UpcomingSchedules from '@/features/health/UpcomingSchedules';
@@ -118,8 +118,11 @@ export default function CareCalendarPage() {
   const monthSchedules = filterByPet(monthData);
   const upcomingSchedules = filterByPet(upcomingData);
 
+  // null(전체)이거나 모든 반려동물을 골랐으면 전체로 둔다
   const handleFilterChange = (petSns) =>
-    setFilterPetSns(petSns.length === allPetSns.length ? null : petSns);
+    setFilterPetSns(
+      !petSns || petSns.length === allPetSns.length ? null : petSns,
+    );
 
   // 인라인 상세는 보고 있는 달의 일정으로 그리므로, 달을 옮기면 선택 날짜도 그 달로 옮긴다(이번 달이면 오늘)
   const handleMoveMonth = (offset) => {
@@ -164,13 +167,17 @@ export default function CareCalendarPage() {
             canMoveMonth={(anyData?.length ?? 0) > 0}
             onMoveMonth={handleMoveMonth}
             onSelectDate={setSelectedYmd}
-          >
-            <PetFilterChips
-              pets={pets}
-              selectedPetSns={visiblePetSns}
-              onChange={handleFilterChange}
-            />
-          </MonthCalendar>
+            petFilter={
+              pets.length > 1 && (
+                <DiaryPetPicker
+                  pets={pets}
+                  isMulti
+                  selectedPetSns={filterPetSns}
+                  onChange={handleFilterChange}
+                />
+              )
+            }
+          />
 
           {/* 넓은 화면에서는 이 열의 높이를 캘린더 카드에 맞추고, 다가오는 일정 카드는 내용 높이로 맨 아래에 붙고 남는 높이는 날짜 상세 카드가 채운다 */}
           <div className="flex min-w-0 flex-col gap-5 min-[1101px]:h-0 min-[1101px]:min-h-full min-[1101px]:self-stretch">
