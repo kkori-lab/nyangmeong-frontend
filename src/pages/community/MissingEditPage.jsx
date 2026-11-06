@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { FileX } from 'lucide-react';
 import {
   generatePath,
   Link,
@@ -7,6 +8,7 @@ import {
   useParams,
 } from 'react-router-dom';
 import { showToast } from '@/components/toastStore';
+import EmptyResult from '@/components/EmptyResult';
 import MissingForm from '@/features/community/missing/MissingForm';
 import { toFormValues } from '@/features/community/missing/missingUtils';
 import {
@@ -53,14 +55,19 @@ export default function MissingEditPage() {
     body = <p className="text-muted">불러오는 중이에요</p>;
   } else if (isError) {
     body = (
-      <div role="alert" className="flex flex-col items-start gap-3">
-        <p className="text-muted">게시글을 찾지 못했어요</p>
-        <Link
-          to={PATHS.COMMUNITY_MISSING}
-          className="text-base font-medium text-brand-500 hover:underline"
+      <div role="alert">
+        <EmptyResult
+          icon={<FileX size={32} aria-hidden="true" />}
+          title="게시글을 찾지 못했어요"
+          description="삭제되었거나 주소가 잘못되었을 수 있어요"
         >
-          실종센터 목록으로
-        </Link>
+          <Link
+            to={PATHS.COMMUNITY_MISSING}
+            className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:bg-surface-2"
+          >
+            실종센터 목록으로
+          </Link>
+        </EmptyResult>
       </div>
     );
   } else {
