@@ -2,7 +2,7 @@ import { ROW_BTN } from '../shared/profileStyles';
 
 /**
  * 항목명 | 값 | 오른쪽 끝 버튼 한 줄. isEditing이면 값과 버튼 자리에 children(입력 영역)이 펼쳐짐.
- * actionLabel이 없으면 조회 전용 줄
+ * actionLabel이 없으면 조회 전용 줄. action을 주면 actionLabel 버튼 대신 그 요소를 버튼 자리에 둔다
  */
 export default function AccountRow({
   label,
@@ -10,6 +10,7 @@ export default function AccountRow({
   actionLabel,
   isEditing = false,
   onEdit,
+  action,
   children,
 }) {
   return (
@@ -34,6 +35,7 @@ export default function AccountRow({
       ) : (
         <>
           <span className="min-w-0 font-medium">{value}</span>
+          {action}
           {actionLabel && (
             <button type="button" onClick={onEdit} className={ROW_BTN}>
               {actionLabel}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import PageLoading from '@/components/PageLoading';
 import StepMotion from '@/components/StepMotion';
 import EmailLoginForm from '@/features/member/login/EmailLoginForm';
 import LoginMethodChoice from '@/features/member/login/LoginMethodChoice';
@@ -80,6 +81,9 @@ export default function LoginPage() {
     onRecover: (recoveryEmail) =>
       navigate(PATHS.SIGNUP, { replace: true, state: { recoveryEmail } }),
   });
+
+  // 회원정보에서 시작한 SNS 연동을 처리하는 동안 로그인한 사람에게 로그인 폼을 보이지 않는다
+  if (sns.isLinking) return <PageLoading />;
 
   return (
     <>

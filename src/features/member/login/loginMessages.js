@@ -9,6 +9,10 @@ export const LOGIN_MESSAGES = {
   snsCancelled: 'SNS 로그인이 취소되었습니다. 다시 시도해 주세요.',
   snsMismatch: 'SNS 로그인을 확인하지 못했습니다. 다시 시도해 주세요.',
   snsFailed: 'SNS 계정 정보를 불러오지 못했습니다. 다시 시도해 주세요.',
+  snsLinked: 'SNS 계정을 연동했어요',
+  snsLinkCancelled: 'SNS 계정 연동이 취소되었습니다. 다시 시도해 주세요.',
+  snsLinkMismatch: 'SNS 계정 연동을 확인하지 못했습니다. 다시 시도해 주세요.',
+  snsLinkFailed: '잠시 후 다시 시도해 주세요.',
   snsEmailDuplicate:
     '이미 가입된 이메일입니다. 기존에 가입한 방법으로 로그인해 주세요.',
 };

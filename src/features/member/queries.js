@@ -12,6 +12,7 @@ import {
   invalidateRecoveryCode,
   joinMember,
   joinSnsMember,
+  linkSns,
   login,
   logout,
   recoverMember,
@@ -104,6 +105,16 @@ export const useSnsLogin = () => {
         queryClient.invalidateQueries({ queryKey: memberKeys.me });
       }
     },
+  });
+};
+
+/** 연동되면 회원정보의 snsAcntLinks를 다시 불러온다 */
+export const useLinkSns = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: linkSns,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: memberKeys.profile }),
   });
 };
 
