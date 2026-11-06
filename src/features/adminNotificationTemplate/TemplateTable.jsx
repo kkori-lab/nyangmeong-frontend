@@ -64,7 +64,8 @@ export default function TemplateTable({ rows, onEdit }) {
                   className={`${CELL} truncate ${template?.notiTtl ? '' : 'text-subtle'}`}
                   title={template?.notiTtl || undefined}
                 >
-                  {template?.notiTtl || '—'}
+                  {/* 제목이 비면 서버가 발송 때 기본 제목을 쓴다 */}
+                  {template?.notiTtl || (template ? '기본 제목' : '—')}
                 </td>
                 <td
                   className={`${CELL} max-[760px]:break-keep ${isUsed ? '' : 'text-subtle'}`}

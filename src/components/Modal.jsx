@@ -1,14 +1,27 @@
 import { X } from 'lucide-react';
 import { useEffect, useId, useRef } from 'react';
+import useScrollLock from '@/hooks/useScrollLock';
+
+/** width 옵션 → 폭 클래스(정적 문자열이어야 Tailwind가 만든다). 기본은 440px */
+const WIDTH_CLASSES = {
+  560: 'w-[min(560px,calc(100vw-2rem))]',
+  688: 'w-[min(688px,calc(100vw-2rem))]',
+  720: 'w-[min(720px,calc(100vw-2rem))]',
+};
 
 /**
- * isConfirm: 가운데 정렬 확인 팝업, 아니면 제목 줄과 ✕가 있는 입력 모달
+ * isConfirm: 가운데 정렬 확인 팝업(role="alertdialog", description이 있으면 aria-describedby로 연결), 아니면 제목 줄과 ✕가 있는 입력 모달
  * isLarge: 화면을 크게 덮는 모달. 본문(children)이 남는 높이를 차지하고 푸터는 맨 아래에 구분선과 함께 고정,
  *          760px 이하에서는 화면 전체
  * isAutoHeight: isLarge와 함께 쓴다. 높이를 내용에 맞추고 화면을 넘으면 본문 안쪽에서 스크롤, 760px 이하는 화면 전체 그대로
  * isCloseIconHidden: 제목 줄 오른쪽 위 ✕를 숨긴다. 배경 클릭·ESC 닫기는 그대로
- * isSheet: 760px 이하에서만 아래에서 올라오는 시트(손잡이 막대 포함), 그 위 폭은 가운데 모달 그대로
+ * isSheet: 760px 이하에서만 아래에서 올라오는 시트(손잡이 막대 포함), 그 위 폭은 가운데 모달 그대로.
+ *          isLarge와 함께 쓰면 760px 이하에서 화면 전체 대신 이 시트(높이는 화면 − 2rem까지, 넘치면 본문 안쪽 스크롤)
  * isWide: 가로 688px(본문 640px) 입력 모달. 제목 줄 위아래 8px, 푸터 버튼은 내용 너비로 오른쪽 정렬
+ * width: 가로 폭(px) 560·688·720, 없으면 440(isLarge는 760). isWide(688)보다 우선. 화면보다 좁으면 양옆 1rem을 남긴다
+ * isDismissDisabled: 배경 클릭·ESC로 닫지 않는다(입력 유실 방지). ✕·푸터 버튼으로만 닫힌다
+ * isSpacious: isConfirm과 함께 쓴다. 본문 안쪽 여백을 넓혀(가로 40px, 위 40px) 좁은 문구 확인 창에 맞춘다
+ * 열려 있는 동안 페이지 스크롤을 잠근다(useScrollLock, 창이 겹쳐도 마지막이 닫힐 때 풀린다)
  * isTop: 가운데 대신 화면 위에서 80px 떨어져 고정. 내용 높이가 바뀌어도(검색 결과 등) 위치가 고정.
  *        dialog를 화면 전체 투명 스크롤 영역으로 두고 흰 판을 그 안에 놓아, 길어지면 모달 안이 아니라 화면 전체 스크롤
  */
@@ -22,13 +35,18 @@ export default function Modal({
   isCloseIconHidden = false,
   isSheet = false,
   isWide = false,
+  width = null,
+  isSpacious = false,
   isTop = false,
+  isDismissDisabled = false,
   isPending = false,
   onClose,
   children,
 }) {
   const dialogRef = useRef(null);
   const titleId = useId();
+  const descId = useId();
+  useScrollLock();
 
   /** ConfirmModal과 같은 showModal·cleanup 방식 */
   useEffect(() => {
@@ -39,12 +57,22 @@ export default function Modal({
 
   const handleCancel = (event) => {
     event.preventDefault();
-    if (!isPending) onClose();
+    if (!isPending && !isDismissDisabled) onClose();
+  };
+
+  /**
+   * 닫을 수 없는 동안(isDismissDisabled·isPending) Esc는 keydown에서 막는다.
+   * cancel의 preventDefault만으로는 Esc를 연달아 누르면 Chrome이 dialog를 강제로 닫는다
+   */
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape' && (isDismissDisabled || isPending))
+      event.preventDefault();
   };
 
   /** 배경(backdrop) 클릭 판별. isTop은 dialog의 스크롤바를 잡는 것도 dialog 클릭이라 그 영역은 제외 */
   const handleMouseDown = (event) => {
-    if (event.target !== event.currentTarget || isPending) return;
+    if (event.target !== event.currentTarget || isPending || isDismissDisabled)
+      return;
     const dialog = event.currentTarget;
     if (
       event.clientX >=
@@ -55,14 +83,25 @@ export default function Modal({
     onClose();
   };
 
-  const width = isWide
-    ? 'w-[min(688px,calc(100vw-2rem))]'
-    : 'w-[min(440px,calc(100vw-2rem))]';
+  /** 확인 창은 alertdialog, 설명이 있으면 그 문구를 aria-describedby로 연결 */
+  const dialogProps = {
+    'aria-labelledby': titleId,
+    ...(isConfirm && {
+      role: 'alertdialog',
+      ...(description && { 'aria-describedby': descId }),
+    }),
+  };
+
+  const widthClass =
+    WIDTH_CLASSES[width] ??
+    (isWide ? WIDTH_CLASSES[688] : 'w-[min(440px,calc(100vw-2rem))]');
 
   const content = (
     <>
       {isConfirm ? (
-        <div className="px-8 pt-8 pb-6 text-center">
+        <div
+          className={`text-center ${isSpacious ? 'px-10 pt-10 pb-8' : 'px-8 pt-8 pb-6'}`}
+        >
           <h2
             id={titleId}
             className="text-lg leading-[1.35] font-bold break-keep"
@@ -70,7 +109,7 @@ export default function Modal({
             {title}
           </h2>
           {description && (
-            <p className="mt-2 leading-[1.6] break-keep text-muted">
+            <p id={descId} className="mt-2 leading-[1.6] break-keep text-muted">
               {description}
             </p>
           )}
@@ -119,7 +158,7 @@ export default function Modal({
             ? 'flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line px-6 py-2.5'
             : isWide
               ? 'flex justify-end gap-2 px-6 pb-6'
-              : 'flex gap-2 px-6 pb-6 *:min-w-0 *:flex-1'
+              : `flex gap-2 pb-6 *:min-w-0 *:flex-1 ${isConfirm && isSpacious ? 'px-10' : 'px-6'}`
         }
       >
         {footer}
@@ -131,13 +170,14 @@ export default function Modal({
     return (
       <dialog
         ref={dialogRef}
-        aria-labelledby={titleId}
+        {...dialogProps}
         className="m-0 size-full max-h-none max-w-none overflow-y-auto overscroll-contain bg-transparent p-0 backdrop:bg-[rgba(15,23,35,0.45)]"
         onCancel={handleCancel}
+        onKeyDown={handleKeyDown}
         onMouseDown={handleMouseDown}
       >
         <div
-          className={`mx-auto mt-20 mb-10 rounded-modal bg-white shadow-depth-lg ${width}`}
+          className={`mx-auto mt-20 mb-10 rounded-modal bg-white shadow-depth-lg ${widthClass}`}
         >
           {content}
         </div>
@@ -148,21 +188,26 @@ export default function Modal({
   return (
     <dialog
       ref={dialogRef}
-      aria-labelledby={titleId}
+      {...dialogProps}
       className={`m-auto bg-white p-0 shadow-depth-lg backdrop:bg-[rgba(15,23,35,0.45)] ${
         isLarge
           ? `${
               isAutoHeight
                 ? 'max-h-[calc(100dvh-2rem)] min-[761px]:h-fit'
                 : 'h-[min(660px,calc(100dvh-2rem))] max-h-none'
-            } w-[min(760px,calc(100vw-2rem))] max-w-none flex-col rounded-modal open:flex max-[760px]:h-dvh max-[760px]:max-h-none max-[760px]:w-screen max-[760px]:rounded-none`
-          : `max-h-[calc(100vh-2rem)] rounded-modal ${width}`
+            } ${WIDTH_CLASSES[width] ?? 'w-[min(760px,calc(100vw-2rem))]'} max-w-none flex-col rounded-modal open:flex ${
+              isSheet
+                ? ''
+                : 'max-[760px]:h-dvh max-[760px]:max-h-none max-[760px]:w-screen max-[760px]:rounded-none'
+            }`
+          : `max-h-[calc(100vh-2rem)] rounded-modal ${widthClass}`
       } ${
         isSheet
-          ? 'max-[760px]:relative max-[760px]:m-0 max-[760px]:mt-auto max-[760px]:max-h-[calc(100dvh-2rem)] max-[760px]:w-full max-[760px]:max-w-none max-[760px]:rounded-b-none'
+          ? 'max-[760px]:fixed max-[760px]:m-0 max-[760px]:mt-auto max-[760px]:max-h-[calc(100dvh-2rem)] max-[760px]:w-full max-[760px]:max-w-none max-[760px]:rounded-b-none'
           : ''
       }`}
       onCancel={handleCancel}
+      onKeyDown={handleKeyDown}
       onMouseDown={handleMouseDown}
     >
       {content}

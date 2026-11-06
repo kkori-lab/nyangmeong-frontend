@@ -3,6 +3,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
 import Toggle from '@/components/Toggle';
+import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import {
   useCreateAdminNotificationTemplate,
   useUpdateAdminNotificationTemplate,
@@ -31,6 +32,33 @@ const VARIABLES = [
   '{{캘린더링크}}',
 ];
 
+/** {{이름}} 표기(서버 NotificationTemplateType.VARIABLE과 같은 패턴) */
+const VARIABLE_PATTERN = /\{\{([^{}]*)\}\}/g;
+
+/** 문구 안의 모르는 변수: 처음 나온 순서, 중복은 한 번 */
+const findUnknownVariables = (text) => [
+  ...new Set(
+    [...text.matchAll(VARIABLE_PATTERN)]
+      .map(([variable]) => variable)
+      .filter((variable) => !VARIABLES.includes(variable)),
+  ),
+];
+
+/** 모르는 변수 안내: 없으면 null */
+const unknownVariableMessage = (text) => {
+  const unknown = findUnknownVariables(text);
+  return unknown.length > 0
+    ? `쓸 수 없는 치환 변수예요: ${unknown.join(', ')}`
+    : null;
+};
+
+/** 서버가 칸 정보 없이 400을 보냈을 때: 서버는 모르는 변수를 칸 없이 거절한다 */
+const INVALID_VARIABLE_MESSAGE =
+  '제목·본문에 쓸 수 없는 치환 변수가 있어요. 아래 치환 변수 목록에 있는 것만 쓸 수 있어요';
+
+/** 폼 칸(서버 fields 이름) */
+const FORM_FIELDS = ['notiTtl', 'notiCn'];
+
 /** 칸 아래 안내 */
 function FieldError({ id, message }) {
   if (!message) return null;
@@ -41,21 +69,25 @@ function FieldError({ id, message }) {
   );
 }
 
-/** 칸마다 빠졌거나 긴 값 안내: 없으면 빈 객체 */
-const validate = ({ notiTtl, notiCn }) => ({
-  ...(!notiTtl.trim()
-    ? { notiTtl: '제목을 입력해 주세요' }
-    : notiTtl.length > MAX_TTL_LENGTH
-      ? { notiTtl: `제목은 ${MAX_TTL_LENGTH}자 이하로 입력해 주세요` }
-      : {}),
-  ...(!notiCn.trim()
-    ? { notiCn: '본문을 입력해 주세요' }
+/**
+ * 칸마다 빠졌거나 길거나 모르는 변수가 든 값 안내: 없으면 빈 객체
+ * - 제목은 선택: 비우면 서버가 기본 제목으로 보낸다
+ */
+const validate = ({ notiTtl, notiCn }) => {
+  const ttlError =
+    notiTtl.length > MAX_TTL_LENGTH
+      ? `제목은 ${MAX_TTL_LENGTH}자 이하로 입력해 주세요`
+      : unknownVariableMessage(notiTtl);
+  const cnError = !notiCn.trim()
+    ? '본문을 입력해 주세요'
     : notiCn.length > MAX_CN_LENGTH
-      ? {
-          notiCn: `본문은 ${MAX_CN_LENGTH.toLocaleString()}자 이하로 입력해 주세요`,
-        }
-      : {}),
-});
+      ? `본문은 ${MAX_CN_LENGTH.toLocaleString()}자 이하로 입력해 주세요`
+      : unknownVariableMessage(notiCn);
+  return {
+    ...(ttlError ? { notiTtl: ttlError } : {}),
+    ...(cnError ? { notiCn: cnError } : {}),
+  };
+};
 
 /**
  * [알림 템플릿 등록·수정 모달]
@@ -83,7 +115,17 @@ export default function TemplateFormModal({ row, onClose }) {
   const update = useUpdateAdminNotificationTemplate();
   const save = isEdit ? update : create;
 
-  const errors = isSubmitted ? validate({ notiTtl, notiCn }) : {};
+  const clientErrors = isSubmitted ? validate({ notiTtl, notiCn }) : {};
+  // 400 칸별 오류: 클라이언트 안내가 없는 칸에만 서버 문구
+  const serverFieldErrors = toFieldErrors(save.error);
+  const errors = {
+    notiTtl: clientErrors.notiTtl ?? serverFieldErrors.notiTtl,
+    notiCn: clientErrors.notiCn ?? serverFieldErrors.notiCn,
+  };
+  const formError =
+    save.error?.code === 'INVALID_INPUT_VALUE' && !save.error.fields?.length
+      ? INVALID_VARIABLE_MESSAGE
+      : toFormError(save.error, FORM_FIELDS);
 
   const handleInsert = (variable) => {
     const isTitle = targetRef.current === 'notiTtl';
@@ -194,7 +236,19 @@ export default function TemplateFormModal({ row, onClose }) {
             }}
             onChange={(event) => setNotiTtl(event.target.value)}
           />
-          <FieldError id={`${formId}-notiTtl-error`} message={errors.notiTtl} />
+          {errors.notiTtl ? (
+            <FieldError
+              id={`${formId}-notiTtl-error`}
+              message={errors.notiTtl}
+            />
+          ) : (
+            <p
+              id={`${formId}-notiTtl-error`}
+              className="mt-1.5 text-sm text-subtle"
+            >
+              비우면 기본 제목으로 보내요
+            </p>
+          )}
         </div>
         <div>
           <label
@@ -256,9 +310,9 @@ export default function TemplateFormModal({ row, onClose }) {
             </span>
           </div>
         </div>
-        {save.isError && (
+        {save.isError && formError && (
           <p role="alert" className="text-sm text-danger">
-            {save.error.message}
+            {formError}
           </p>
         )}
       </form>
