@@ -13,7 +13,7 @@ import {
  */
 
 /** 건강기록 변화 그래프에 쓰는 최근 기록 수 */
-export const RECENT_RECORD_COUNT = 14;
+export const RECENT_RECORD_COUNT = 5;
 
 const roundValue = (value) => Math.round(value * 10) / 10;
 
@@ -53,7 +53,7 @@ export const summarizeType = (dayRecords, typeCd) => {
   };
 };
 
-/** 그래프 점. 체중은 기록마다, 식사량·음수량·산책은 최근 14개 기록이 걸친 날의 하루 합계(첫 날도 그날 기록 전부) */
+/** 그래프 점. 체중은 기록마다, 식사량·음수량·산책은 최근 5개 기록이 걸친 날의 하루 합계(첫 날도 그날 기록 전부) */
 export const getTrendPoints = (records, typeCd) => {
   const all = pickType(records, typeCd);
   const recent = all.slice(-RECENT_RECORD_COUNT);
