@@ -20,18 +20,16 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
   // 입력을 자르거나 지우지 않고 그대로 두고, 길이·문자 오류를 문구로 알린다
   const isTooLong = value.length > NICKNAME_MAX;
   const isValid = !isTooLong && isValidNickname(value);
-  const error =
-    isEdited && !value
-      ? MSG.nickEmpty
-      : isTooLong
-        ? MSG.nickTooLong
-        : value && !isValid
-          ? MSG.nickRule
-          : status === 'duplicate'
-            ? MSG.nickDuplicate
-            : status === 'failed'
-              ? MSG.nickFailed
-              : '';
+  // 빈 칸이면 오류를 띄우지 않는다. [중복 확인]·[설정 완료]가 isValid로 막힌다(추가-1)
+  const error = isTooLong
+    ? MSG.nickTooLong
+    : value && !isValid
+      ? MSG.nickRule
+      : status === 'duplicate'
+        ? MSG.nickDuplicate
+        : status === 'failed'
+          ? MSG.nickFailed
+          : '';
   const help =
     isEdited && isValid && !isSame && status === 'idle'
       ? MSG.nickNeedCheck

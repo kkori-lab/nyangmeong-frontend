@@ -196,6 +196,11 @@ export default function useEmailLogin(onSuccess) {
     captchaImg: captcha.data?.captchaImg,
     isCaptchaLoading: captcha.isPending,
     isPending: login.isPending,
+    // 빈 칸이 있으면 [로그인]을 막아 빈 칸 오류를 띄우지 않는다(추가-1)
+    isFilled:
+      Boolean(email.trim()) &&
+      Boolean(password) &&
+      (!isCaptchaOn || Boolean(captchaInput)),
     guideTarget,
     changeEmail,
     changePassword,
