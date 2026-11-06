@@ -12,6 +12,7 @@ import {
   TERMS_REAGREE_GUIDE,
   getTermsKindName,
 } from './termsKinds';
+import { toFieldErrors } from '@/utils/fieldErrors';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
@@ -109,13 +110,11 @@ export default function TermsVersionForm({ initialKind, currentByKind }) {
     trmsTtl: '제목을 입력해 주세요',
     trmsCn: '내용을 입력해 주세요',
   };
-  const serverFieldErrors = new Map(
-    (create.error?.fields ?? []).map((item) => [item.field, item.message]),
-  );
+  const serverFieldErrors = toFieldErrors(create.error);
   const getError = (field) =>
     touched[field] && !values[field]
       ? emptyMessages[field]
-      : (serverFieldErrors.get(field) ?? null);
+      : (serverFieldErrors[field] ?? null);
   const isFilled = Object.keys(emptyMessages).every((field) => values[field]);
   const duplicateMessage =
     create.error?.code === 'DUPLICATE_TRMS_VER' ? create.error.message : null;

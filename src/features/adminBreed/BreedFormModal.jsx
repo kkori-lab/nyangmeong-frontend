@@ -5,6 +5,7 @@ import { showToast } from '@/components/toastStore';
 import Toggle from '@/components/Toggle';
 import { VRTY_NM_MAX } from './api';
 import { useCreateAdminBreed, useUpdateAdminBreed } from './queries';
+import { toFieldErrors } from '@/utils/fieldErrors';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
@@ -78,9 +79,7 @@ export default function BreedFormModal({
     ? validate({ vrtyNm, sortSeq, breeds, vrtySn: breed?.vrtySn })
     : {};
   // 400 칸별 오류: 클라이언트 안내가 없는 칸에만 서버 문구
-  const serverFieldErrors = Object.fromEntries(
-    (save.error?.fields ?? []).map((item) => [item.field, item.message]),
-  );
+  const serverFieldErrors = toFieldErrors(save.error);
   const errors = {
     vrtyNm: clientErrors.vrtyNm ?? serverFieldErrors.vrtyNm,
     sortSeq: clientErrors.sortSeq ?? serverFieldErrors.sortSeq,

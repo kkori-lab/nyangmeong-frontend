@@ -5,6 +5,7 @@ import Card from '@/components/Card';
 import { showToast } from '@/components/toastStore';
 import { useUpdateAdminSettings } from '../queries';
 import { SETTING_GROUPS, toBody, toDraft } from '../shared/settingFields';
+import { toFieldErrors } from '@/utils/fieldErrors';
 
 /**
  * [운영 설정 수정 폼]
@@ -188,9 +189,7 @@ export default function SettingForm({ settings }) {
 
   const body = toBody(draft, base);
   const isDirty = Object.keys(body).length > 0;
-  const fieldErrors = Object.fromEntries(
-    (save.error?.fields ?? []).map((item) => [item.field, item.message]),
-  );
+  const fieldErrors = toFieldErrors(save.error);
   const formError =
     save.isError && !save.error.fields ? save.error.message : null;
 
