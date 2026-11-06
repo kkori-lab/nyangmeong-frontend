@@ -4,6 +4,12 @@
 
 SCR-MAN-001 메인페이지 · 위젯 순서·건강 대시보드 API 연결 — 끝남 (승인 2026-11-05 16:07, 검증 통과 2회차(잠금을 버린 뒤, 앞 1회차 실패는 '메인은 공개 URL' 기획 전제가 틀려서), 사람 확인 2026-11-06). 메인은 회원 전용(`auth: 'member'` 그대로). 히어로는 대표 반려동물(`rprsPetYn`) `character-image` 전신 + 캡션, 없거나 실패면 기본 캐릭터. 탭·프로필·요약 3칸은 HLT-011 `SummaryHero`를 그대로(추가-1, `useHealthSummary`), 기준일·지표 5종은 `features/dashboard/IndicatorWidgets.jsx`(`GET /pets/{petSn}/health-indicators`, null이면 "기록이 없어요", `prevDiff` null이면 비교 숨김), 위젯 순서는 [순서 편집](끌어 놓기·앞뒤 버튼) → `PUT /members/me/dashboard-widgets` 7개(MANC0006은 그리드 밖 제자리), MANC0007은 "준비 중" 카드. 토탈 케어리스트는 `features/health/CarePreview.jsx`(읽기 전용 최대 6개). 가짜 `dashboardSample`·`MissionList`·`HealthSummary`와 안 쓰는 `AiReportCard`·`PetProfileCard`(추가-2) 지움. 로컬 백엔드에서 `character-image`·`daily-health-records` POST·`care-completions` POST가 500이라 캐릭터 있음·지표 값은 가짜 응답으로 검증했다
 
+### 추가 요청
+
+| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
+| --- | --- | --- | --- |
+| 추가-3 | `features/health/CarePreview.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 메인 토탈 케어리스트 항목이 1개여도 줄을 꽉 채우지 않고 한 칸 크기(PC 6칸 중 1칸), 폭을 줄이면 1100px 이하 3칸·700px 이하 2칸으로 바뀐다. 6개면 전처럼 한 줄 | 요청 2026-11-06 10:16 "한개일 때 꽉 차지 말고 기본 크기, 화면을 줄이거나 늘릴 때만 반응형" |
+
 SCR-ACC-020 회원탈퇴 + 탈퇴 API 연결 — 끝남 (승인 2026-11-05 14:48, 검증 2회차 확인 못 함 있음(연결 남음만, 1회차 실패는 로그인 가능한 로컬 계정이 없어서), 사람 확인 2026-11-05). 안내·문구 모달·실패/확인 중은 `/mypage/withdraw`(`pages/mypage/WithdrawPage.jsx`가 `usePets`와 `features/member/withdraw/`를 조립), 완료는 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, 로그인 캐시는 완료 화면이 비움, 바로 열면 랜딩). `withdrawMember`는 문구를 trim 없이 보내고 timeout 15초(끊기면 `NETWORK_ERROR` → 확인 중, [결과 확인]은 `getMe`만 부름). 마이페이지 [회원 탈퇴](SJM 버튼)와 AI `screenPaths.js`에 연결. 검증이 로컬 확인용 회원 mbrSn 211·212를 탈퇴시켰다(개발용 토큰 `POST /api/auth/dev-tokens`로 로그인)
 
 SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 끝남 (승인 2026-11-05 10:30, 검증 통과(잠금을 버린 뒤 1회차, 앞의 2회 실패는 로컬 백엔드가 SMTP라 인증번호를 못 읽어서), 사람 확인 2026-11-05). `resetPassword`가 `POST /email-certifications/{emlCertSn}/password-reset`을 부른다. 비밀번호 찾기가 라우터 state로 `{ emlCertSn, pswdInitTkn, initAuthrtExpryDt, certTrgtEml }`을 넘긴다. 400 `PASSWORD_RESET_NOT_AVAILABLE`은 만료 화면, `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 칸 오류, 그 밖은 공통 알림. [취소]는 `invalidate` 뒤 결과와 상관없이 `/login`. 추가-1: 이메일 로그인 폼의 [회원가입]이 "준비 중" 토스트 대신 `/signup`으로 간다. 로컬 백엔드가 실제 메일(SMTP)을 보내면 인증번호를 로그로 읽을 수 없어, 받을 수 있는 메일 계정으로 사람이 번호를 넘겨 확인했다

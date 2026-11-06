@@ -91,7 +91,7 @@ function CareBody({ data, isPending, isError }) {
   }
 
   return (
-    <ul className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3 px-6 py-8 max-[700px]:grid-cols-2 max-[700px]:px-4">
+    <ul className="grid grid-cols-6 gap-3 px-6 py-8 max-[1100px]:grid-cols-3 max-[700px]:grid-cols-2 max-[700px]:px-4">
       {mainItems.map((item) => {
         const isDone = isDoneToday(item);
         const Mark = isDone ? CircleCheck : Circle;
