@@ -75,7 +75,7 @@ export default function EmailLoginForm({ onBack, onSuccess, onSignup }) {
         </div>
         <button
           type="submit"
-          disabled={form.isPending}
+          disabled={!form.isFilled || form.isPending}
           className="mt-3 inline-flex h-[50px] w-full items-center justify-center rounded-xl bg-brand-500 text-[15px] font-bold text-white transition hover:enabled:-translate-y-px hover:enabled:bg-brand-600 disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-line-strong"
         >
           로그인
