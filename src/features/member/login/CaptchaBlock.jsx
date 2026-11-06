@@ -45,10 +45,11 @@ export default function CaptchaBlock({
         </button>
       </div>
       <div
-        className={`flex h-12 items-center rounded-xl border bg-white px-3 focus-within:ring-focus ${
+        className={`flex h-12 items-center rounded-xl border bg-white px-3 ${
+          // 오류면 초록 링을 붙이지 않는다(두 링이 겹치면 초록이 이김, 추가-2)
           error
             ? 'border-danger focus-within:ring-error'
-            : 'border-input-line focus-within:border-brand-500'
+            : 'border-input-line focus-within:border-brand-500 focus-within:ring-focus'
         }`}
       >
         <input

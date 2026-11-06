@@ -25,7 +25,7 @@ export default function PhoneStep({ form }) {
             <button
               type="button"
               onClick={form.submitPhoneCheck}
-              disabled={form.isPhoneChecking}
+              disabled={!form.phone.trim() || form.isPhoneChecking}
               className={SIDE_BTN}
             >
               중복확인

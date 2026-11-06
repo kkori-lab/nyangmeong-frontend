@@ -23,7 +23,7 @@ export default function EmailStep({ form }) {
             <button
               type="button"
               onClick={form.submitSend}
-              disabled={form.isSending}
+              disabled={!form.email.trim() || form.isSending}
               className={SIDE_BTN}
             >
               {form.isSent ? '다시 보내기' : '인증코드 발송'}
@@ -66,7 +66,9 @@ export default function EmailStep({ form }) {
               <button
                 type="button"
                 onClick={form.submitVerify}
-                disabled={form.isVerifying || form.isEmailVerified}
+                disabled={
+                  !form.code || form.isVerifying || form.isEmailVerified
+                }
                 className={`${SIDE_BTN} !border-transparent !bg-brand-50 !text-brand-600 hover:enabled:!bg-brand-100 disabled:!bg-surface-3 disabled:!text-line-strong`}
               >
                 인증 확인
