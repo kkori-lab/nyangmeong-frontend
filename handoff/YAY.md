@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 진행 중 (승인 2026-11-06 10:54, 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인 2026-11-06). 메인 [건강기록 전체 보기]가 `/health?petSn=<선택한 반려동물>`로 간다. HLT-011 시작 탭은 JAJ 연결, FN-MAN-002는 LJS 대화창 부품 대기로 마일스톤은 진행
+SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 진행 중 (승인 2026-11-06 10:54, 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인 2026-11-06, 추가-1·2 검증 통과·사람 확인 2026-11-06). 메인 [건강기록 전체 보기]가 `/health?petSn=<선택한 반려동물>`로 간다. HLT-011 시작 탭은 JAJ 연결, FN-MAN-002는 LJS 대화창 부품 대기로 마일스톤은 진행
 
 기준: 메인페이지_기능명세서_v0.10_20261103, 메인페이지_화면설계서_v0.10_20261103 (DMS)
 디자인: 없음, 화면설계서 기준 (화면 모양은 바꾸지 않는다)
@@ -20,15 +20,12 @@ SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 진행 중 (�
 
 새 의존성: 없음
 
-SCR-MAN-001 메인페이지 · 위젯 순서·건강 대시보드 API 연결 — 끝남 (승인 2026-11-05 16:07, 검증 통과 2회차(잠금을 버린 뒤, 앞 1회차 실패는 '메인은 공개 URL' 기획 전제가 틀려서), 사람 확인 2026-11-06). 메인은 회원 전용(`auth: 'member'` 그대로). 히어로는 대표 반려동물(`rprsPetYn`) `character-image` 전신 + 캡션, 없거나 실패면 기본 캐릭터. 탭·프로필·요약 3칸은 HLT-011 `SummaryHero`를 그대로(추가-1, `useHealthSummary`), 기준일·지표 5종은 `features/dashboard/IndicatorWidgets.jsx`(`GET /pets/{petSn}/health-indicators`, null이면 "기록이 없어요", `prevDiff` null이면 비교 숨김), 위젯 순서는 [순서 편집](끌어 놓기·앞뒤 버튼) → `PUT /members/me/dashboard-widgets` 7개(MANC0006은 그리드 밖 제자리), MANC0007은 "준비 중" 카드. 토탈 케어리스트는 `features/health/CarePreview.jsx`(읽기 전용 최대 6개). 가짜 `dashboardSample`·`MissionList`·`HealthSummary`와 안 쓰는 `AiReportCard`·`PetProfileCard`(추가-2) 지움. 로컬 백엔드에서 `character-image`·`daily-health-records` POST·`care-completions` POST가 500이라 캐릭터 있음·지표 값은 가짜 응답으로 검증했다
-
 ### 추가 요청
 
 | 번호 | 바꿀 파일 | 완료 조건 | 요청 |
 | --- | --- | --- | --- |
-| 추가-3 | `features/health/CarePreview.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 메인 토탈 케어리스트 항목이 1개여도 줄을 꽉 채우지 않고 한 칸 크기(PC 6칸 중 1칸), 폭을 줄이면 1100px 이하 3칸·700px 이하 2칸으로 바뀐다. 6개면 전처럼 한 줄 | 요청 2026-11-06 10:16 "한개일 때 꽉 차지 말고 기본 크기, 화면을 줄이거나 늘릴 때만 반응형" |
-
-SCR-ACC-020 회원탈퇴 + 탈퇴 API 연결 — 끝남 (승인 2026-11-05 14:48, 검증 2회차 확인 못 함 있음(연결 남음만, 1회차 실패는 로그인 가능한 로컬 계정이 없어서), 사람 확인 2026-11-05). 안내·문구 모달·실패/확인 중은 `/mypage/withdraw`(`pages/mypage/WithdrawPage.jsx`가 `usePets`와 `features/member/withdraw/`를 조립), 완료는 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, 로그인 캐시는 완료 화면이 비움, 바로 열면 랜딩). `withdrawMember`는 문구를 trim 없이 보내고 timeout 15초(끊기면 `NETWORK_ERROR` → 확인 중, [결과 확인]은 `getMe`만 부름). 마이페이지 [회원 탈퇴](SJM 버튼)와 AI `screenPaths.js`에 연결. 검증이 로컬 확인용 회원 mbrSn 211·212를 탈퇴시켰다(개발용 토큰 `POST /api/auth/dev-tokens`로 로그인)
+| 추가-1 | `features/member/login/EmailLoginForm.jsx`·`useEmailLogin.js`, `features/member/signup/EmailStep.jsx`·`PhoneStep.jsx`·`PasswordStep.jsx`·`SnsSignupForm.jsx`·`NicknameModal.jsx`·`useSignup.js` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 로그인(`/login?method=email`)은 아이디·비밀번호(보안코드가 열리면 보안코드까지) 중 빈 칸이 있으면 [로그인]이 비활성이다. 회원가입(`/signup`)은 이메일이 비면 [인증코드 발송], 인증번호가 비면 [확인], 휴대전화번호가 비면 [중복확인], 비밀번호·비밀번호 확인 중 하나라도 비면 [회원가입]이 비활성이다(SNS 가입 확인의 휴대전화번호도 같다). 닉네임 모달은 닉네임이 비면 [중복 확인]·[설정 완료]가 비활성이다. 칸을 비운 채 나가거나 적었다 지워도 "…입력해 주세요" 빈 칸 오류가 나오지 않는다. 형식 오류(이메일 형식·비밀번호 규칙·닉네임 글자 수 등)와 서버 오류는 지금처럼 나온다 | 요청 2026-11-06 11:25 "로그인·회원가입·닉네임에서 아무것도 안 적었을 때는 유효성 검사가 나오지 않게(빈 칸이면 버튼 비활성)" |
+| 추가-2 | `features/member/shared/AuthField.jsx`, `features/member/login/CaptchaBlock.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 로그인·회원가입 입력칸이 오류일 때 포커스해도 빨간 테두리에 빨간 링만 보이고 초록 링이 겹치지 않는다(예: `/signup` 이메일에 이미 가입한 이메일로 [인증코드 발송]). 오류가 없을 때 포커스하면 지금처럼 초록 테두리·초록 링 | 요청 2026-11-06 "회원가입·로그인 인풋박스에서 초록 보더라인과 빨간색이 겹치지 않게" |
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
@@ -36,10 +33,14 @@ SCR-ACC-020 회원탈퇴 + 탈퇴 API 연결 — 끝남 (승인 2026-11-05 14:48
 
 ## 다음에 할 것
 
+- 로컬 계정: `yay315@naver.com`이 검증 중 로그인 실패 7회로 보안코드 상태다. 문서의 비밀번호로도 실패해 비밀번호가 바뀌었는지 확인하고 맞는 비밀번호로 한 번 로그인해 푼다
+- 백엔드 후보(로그인 몇 분 뒤 풀림): `access_token` 쿠키 수명이 토큰 수명(30분)과 같아 만료 뒤 쿠키가 사라지고, 서버가 `TOKEN_EXPIRED`가 아닌 `UNAUTHORIZED`를 보내 프론트 `api/axios.js`가 재발급하지 않는다. 쿠키 수명을 refresh 수명에 맞추는 안(백엔드 `TokenCookies`, 백엔드 저장소에서 /start, 인증 담당 확인). 탭 여럿이 동시에 재발급할 때 진 요청이 쿠키를 지우는지도 같이 본다
+- 코드 후보: 휴대전화번호에 `---`만 적으면 [중복확인]이 켜지고 누르면 "휴대전화번호를 입력해 주세요."가 나온다(추가-1 검증 메모, `phone.trim()` 기준)
+
 - PR Breaking Changes(SCR-MAN-001): `features/pet/PetProfileCard.jsx`(SJM) 삭제, 메인이 HLT-011 `SummaryHero`(JAJ)를 그대로 씀(메인에서 `useHealthSummary` 호출), `features/health/CarePreview.jsx` 새 파일(JAJ 도메인). JAJ·SJM에게 알린다
 - 팀 알림: 로컬 백엔드 500 — `GET /pets/{petSn}/character-image`(LJS), `POST /pets/{petSn}/daily-health-records`·`POST /pets/{petSn}/care-completions`(JAJ). 실제 기록·캐릭터로 메인 지표·히어로를 다시 본다
-- 연결 남음: FN-MAN-008 (HLT-011 `HealthSummaryPage.jsx`가 `?petSn=`으로 시작 탭을 고른다, JAJ). 메인 링크는 이미 `/health?petSn=<번호>`. JAJ에게 요청한다
-- 메인 남은 것: FN-MAN-002 AI 확장형 대화창(메인에 끼울 SCR-AIM-001 대화창 부품, LJS에게 요청. 받으면 `HeroAsk` 아래에 조립), MANC0007 AI 건강분석 리포트(명세 미결)
+- 연결 남음: FN-MAN-008 (HLT-011 `HealthSummaryPage.jsx`가 `?petSn=`으로 시작 탭을 고른다, JAJ). 메인 링크는 이미 `/health?petSn=<번호>`. JAJ에게 요청함(2026-11-06)
+- 메인 남은 것: FN-MAN-002 AI 확장형 대화창(메인에 끼울 SCR-AIM-001 대화창 부품, LJS에게 요청함(2026-11-06). 마일스톤을 닫으려면 `/start SCR-MAN-001`로 FN-MAN-002를 새 마일스톤(대기)으로 넘긴다. 받으면 `HeroAsk` 아래에 조립), MANC0007 AI 건강분석 리포트(명세 미결)
 - 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당). 프론트 `screenPaths.js` 줄은 넣음
 - PR Breaking Changes(SCR-ACC-020): 새 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, `docs/routes.md`), SJM `ProfileEditPage.jsx` [회원 탈퇴] 이동 연결, LJS `screenPaths.js`에 `SCR-ACC-020` 행
 - SNS 배포 연결(팀): 배포 도메인의 `/login/sns/{naver|kakao|google}/callback`을 제공자 콘솔·배포 백엔드 `app.sns.*.redirect-uri`에 등록, 배포 프론트 환경에 `VITE_*` 앱 ID 3개. 카카오는 전화번호 동의항목 권한 신청 전이라 번호를 주지 않는다(직접 입력으로 감)

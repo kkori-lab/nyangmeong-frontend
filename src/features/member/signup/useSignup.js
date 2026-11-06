@@ -241,17 +241,16 @@ export default function useSignup({ onBackToLogin, onRecover }) {
   };
 
   /* 비밀번호 */
-  const passwordError = !touched.password
-    ? ''
-    : !password
-      ? MSG.pwEmpty
+  // 빈 칸이면 오류를 띄우지 않는다. [회원가입]이 canJoin으로 막힌다(추가-1)
+  const passwordError =
+    !touched.password || !password
+      ? ''
       : !isValidPassword(password)
         ? MSG.pwRule
         : '';
-  const confirmError = !touched.confirm
-    ? ''
-    : !confirm
-      ? MSG.confirmEmpty
+  const confirmError =
+    !touched.confirm || !confirm
+      ? ''
       : password !== confirm
         ? MSG.confirmMismatch
         : '';

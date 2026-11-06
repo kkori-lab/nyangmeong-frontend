@@ -3,8 +3,9 @@ import { ArrowBigUpDash, Eye, EyeOff } from 'lucide-react';
 import AiErrorGuide from '@/components/AiErrorGuide';
 import useCapsLock from '@/hooks/useCapsLock';
 
+// 포커스 링은 상태별로 하나만 붙인다(초록·빨강 링이 겹치면 초록이 이김, 추가-2)
 const WRAP =
-  'flex h-12 items-center gap-2.5 rounded-xl border bg-white px-3.5 text-sm focus-within:ring-focus';
+  'flex h-12 items-center gap-2.5 rounded-xl border bg-white px-3.5 text-sm';
 
 export default function AuthField({
   id,
@@ -47,7 +48,7 @@ export default function AuthField({
           className={`${WRAP} min-w-0 flex-1 ${
             error
               ? 'border-danger focus-within:ring-error'
-              : 'border-input-line focus-within:border-brand-500'
+              : 'border-input-line focus-within:border-brand-500 focus-within:ring-focus'
           } ${readOnly ? 'bg-surface-2' : ''}`}
         >
           {Icon && <Icon className="size-5 shrink-0 text-subtle" />}
