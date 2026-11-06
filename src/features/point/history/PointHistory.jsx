@@ -40,7 +40,7 @@ export default function PointHistory() {
     <section
       id="point-history"
       aria-labelledby="point-history-title"
-      className={`${CARD} flex flex-col`}
+      className={`${CARD} flex scroll-mt-20 flex-col`}
     >
       <div className={CARD_HEAD}>
         <h2 id="point-history-title" className={CARD_TITLE}>
