@@ -11,6 +11,7 @@ import { showToast } from '@/components/toastStore';
 import EmptyResult from '@/components/EmptyResult';
 import MissingForm from '@/features/community/missing/MissingForm';
 import { toFormValues } from '@/features/community/missing/missingUtils';
+import { isExpired, isFound } from '@/features/community/missingCodes';
 import {
   useMissing,
   useUpdateMissing,
@@ -30,12 +31,15 @@ export default function MissingEditPage() {
   });
   /** 본인 글이 아니면 안내 후 상세로 이동 */
   const isDenied = Boolean(post) && !post.owner;
+  /** 찾았어요·기간 만료 글은 서버가 수정을 받지 않아 주소로 들어와도 상세로 보낸다 */
+  const isClosed = Boolean(post) && (isFound(post) || isExpired(post));
 
   useEffect(() => {
     if (isDenied) showToast('수정 권한이 없어요');
-  }, [isDenied]);
+    else if (isClosed) showToast('실종 상태의 글만 수정할 수 있어요');
+  }, [isDenied, isClosed]);
 
-  if (isDenied) return <Navigate to={detailPath} replace />;
+  if (isDenied || isClosed) return <Navigate to={detailPath} replace />;
 
   /** 저장하면 별도 완료 모달 없이 상세로 이동해 바뀐 내용 바로 확인 */
   const handleSubmit = (values) =>

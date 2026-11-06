@@ -76,7 +76,8 @@ function InfoRow({ icon, label, children }) {
 }
 
 /** 제목 위: 상태 · 반려동물 종류 배지, 제목, 작성자 · 등록일시 · 조회수 */
-function PostHead({ post, children }) {
+/** actions: 작성자 줄 오른쪽(좁은 폭에서는 아래)에 두는 작성자 메뉴 */
+function PostHead({ post, children, actions }) {
   return (
     <>
       <div className="flex flex-wrap gap-1.5">
@@ -101,6 +102,7 @@ function PostHead({ post, children }) {
           )}
           {children}
         </p>
+        {actions}
       </div>
     </>
   );
@@ -249,36 +251,40 @@ export default function MissingDetail({ post }) {
     <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
       <div className="flex min-w-0 flex-col gap-4">
         <article className={ARTICLE_CLASS} aria-labelledby="missing-title">
-          <PostHead post={post}>
+          <PostHead
+            post={post}
+            actions={
+              isMine && (
+                <p className="flex items-center gap-2 text-sm font-medium text-muted">
+                  {!expired && !found && (
+                    <>
+                      <Link
+                        to={generatePath(PATHS.COMMUNITY_MISSING_EDIT, {
+                          lostTpofSn: post.lostTpofSn,
+                        })}
+                        className="hover:text-ink"
+                      >
+                        수정
+                      </Link>
+                      <i className="text-input-line not-italic">·</i>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setModal('delete')}
+                    className="cursor-pointer hover:text-ink"
+                  >
+                    삭제
+                  </button>
+                </p>
+              )
+            }
+          >
             <Dot />
             <time>{formatDateTime(post.regDt)} 등록</time>
             <Dot />
             <span>조회 {post.inqCnt}</span>
           </PostHead>
-          {isMine && (
-            <p className="mt-1 flex items-center gap-2 text-sm font-medium text-muted">
-              {!expired && (
-                <>
-                  <Link
-                    to={generatePath(PATHS.COMMUNITY_MISSING_EDIT, {
-                      lostTpofSn: post.lostTpofSn,
-                    })}
-                    className="hover:text-ink"
-                  >
-                    수정
-                  </Link>
-                  <i className="text-input-line not-italic">·</i>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => setModal('delete')}
-                className="cursor-pointer hover:text-ink"
-              >
-                삭제
-              </button>
-            </p>
-          )}
 
           {expiringSoon && (
             <p

@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   createComment,
   deleteComment,
@@ -35,6 +40,8 @@ export const useMissingList = (params) =>
   useQuery({
     queryKey: missingKeys.list(params),
     queryFn: () => getMissingList(params),
+    /** 필터를 바꾸는 동안 이전 목록 유지로 필터 영역 보존 */
+    placeholderData: keepPreviousData,
   });
 
 export const useMissingRail = () =>
