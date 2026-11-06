@@ -35,10 +35,14 @@ const LAYOUT_PROPS = {
  * [종합 건강기록 SCR-HLT-011]
  * - 반려동물별 기록을 모아 보여 주는 조회 전용 화면. 등록·수정·삭제는 원천 화면(SCR-HLT-002·003·005)에서만
  * - ?inspection=<검사 항목>이면 검사 수치 추이를 그 항목으로 시작(검진상세에서 들어옴)
+ * - ?petSn=<반려동물 번호>이면 그 반려동물로 시작(내 목록에 없으면 첫 반려동물)
  */
 export default function HealthSummaryPage() {
   const [searchParams] = useSearchParams();
-  const [tabPetSn, setTabPetSn] = useState(null);
+  /** ?petSn=으로 들어오면 그 반려동물부터. 목록에 없으면 아래 selectedPet이 첫 반려동물로 */
+  const [tabPetSn, setTabPetSn] = useState(
+    Number(searchParams.get('petSn')) || null,
+  );
   /** 검진상세에서 ?inspection=으로 들어오면 검사 · 수치 묶음부터 */
   const [sectionId, setSectionId] = useState(
     searchParams.get('inspection') ? 'hlt011-lab' : ANCHORS[0].id,
