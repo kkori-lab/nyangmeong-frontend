@@ -2,14 +2,15 @@ import {
   MapPin,
   MessageCircle,
   PawPrint,
-  User,
   CalendarDays,
   Wallet,
 } from 'lucide-react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
+import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { getCostLabel, getPetBadges, isOpen } from '../careCodes';
 import CareStatusBadge from './CareStatusBadge';
 import { formatArea, formatScheduleShort, getShapeNames } from './careUtils';
@@ -29,7 +30,7 @@ export default function CareCard({ post }) {
     >
       <span className="col-start-1 row-start-1 min-w-0 max-[760px]:order-2 max-[760px]:row-start-auto">
         <span className="mb-2.5 flex flex-wrap gap-1.5">
-          {post.mineYn === 'Y' && <Badge tone="amber">내 글</Badge>}
+          {post.owner && <Badge tone="amber">내 글</Badge>}
           <CareStatusBadge post={post} />
           {badges.map((name) => (
             <Badge key={name} tone="outline">
@@ -66,26 +67,25 @@ export default function CareCard({ post }) {
         aria-hidden="true"
         className={`relative col-start-2 row-span-2 row-start-1 grid min-h-[132px] place-items-center self-stretch overflow-hidden max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0 rounded-[10px] border border-dashed border-line-strong bg-surface-2 text-line-strong ${isOpen(post) ? '' : 'opacity-60'}`}
       >
-        {post.thmbUrlPath ? (
+        {post.thumbnailAtchFileSn == null ? (
+          <PawPrint size={40} />
+        ) : (
           <img
-            src={post.thmbUrlPath}
+            src={publicFileUrl(post.thumbnailAtchFileSn)}
             alt=""
             loading="lazy"
             className="absolute inset-0 size-full object-cover"
           />
-        ) : (
-          <PawPrint size={40} />
         )}
       </span>
       <span className="col-start-1 row-start-2 flex flex-wrap items-center max-[760px]:order-3 max-[760px]:row-start-auto gap-x-3 gap-y-1.5 border-t border-line pt-3.5 text-sm text-subtle">
         <span className="flex min-w-0 items-center gap-1.5">
-          <span
-            aria-hidden="true"
-            className="grid size-6 place-items-center rounded-full bg-brand-50 text-brand-500"
-          >
-            <User size={14} />
-          </span>
-          {post.wrtrNcknm}
+          <Avatar
+            src={publicFileUrl(post.mbrAtchFileSn)}
+            className="size-6"
+            iconSize={14}
+          />
+          {post.mbrNcnm}
           <i className="text-line-strong not-italic">·</i>
           <time>{formatRelativeTime(post.regDt)}</time>
         </span>
@@ -95,7 +95,7 @@ export default function CareCard({ post }) {
             aria-hidden="true"
             className="text-placeholder"
           />
-          채팅 {post.chatCnt}명
+          채팅 {post.aplcntCnt}명
         </span>
       </span>
     </Link>

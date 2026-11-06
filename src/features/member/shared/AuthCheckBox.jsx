@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react';
 
-// 약관 동의 같은 체크박스 한 줄. 가입 약관 단계(TermsStep)의 것과 모양이 같다
+// 약관 동의 같은 체크박스 한 줄. 가입 약관 단계(TermsStep)와 재가입 복구(RecoveryForm)에서 쓴다
 export default function AuthCheckBox({ checked, onChange, children }) {
   return (
     <label className="flex flex-1 cursor-pointer items-center gap-3">

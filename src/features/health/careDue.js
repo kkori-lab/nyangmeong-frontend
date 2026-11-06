@@ -16,7 +16,7 @@ export const CARE_CYCLES = [
 
 export const MAX_MAIN_CARE = 6;
 
-/** 검진상세 반복 예방(가짜 응답 필드)의 주기 이름 */
+/** 검진상세 반복 예방의 주기 이름 */
 export const getCycleName = (item) =>
   item.rptCycleCd === CUSTOM_CYCLE
     ? `${item.rptCycleDayCnt}일`

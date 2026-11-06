@@ -14,7 +14,7 @@ export const DEAL_STEPS = [
   '비용 수령',
 ];
 
-/** 진행 위치. 종료 상태(요청 취소·무응답 종료·매칭 취소)는 제외 */
+/** 진행 위치. 종료 상태(요청 취소·무응답 종료)는 제외 */
 const POSITION = {
   [PRE]: 0,
   [REQUESTED]: 1,
@@ -28,7 +28,6 @@ const POSITION = {
 const ENDED_DONE_COUNT = {
   [MTCH_STTS.CANCELED]: 1,
   [MTCH_STTS.EXPIRED]: 3,
-  [MTCH_STTS.ABORTED]: 2,
 };
 
 /** 단계 점 상태: doneCount 이하는 지남, current는 지금 단계(0이면 없음) */
@@ -88,7 +87,7 @@ export const OTHER_REASON_MAX_LENGTH = 50;
  * - tone: todo 내 차례, done 거래 완료, end 종료, '' 기다림
  */
 export const getDealGuide = (stage, role) => {
-  const isOwner = role === ROLE.OWNER;
+  const isOwner = role === ROLE.GUARDIAN;
 
   switch (stage) {
     case PRE:

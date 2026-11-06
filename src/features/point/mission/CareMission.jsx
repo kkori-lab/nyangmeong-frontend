@@ -166,7 +166,7 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
     <section
       id="care-mission"
       aria-labelledby="care-mission-title"
-      className={CARD}
+      className={`${CARD} scroll-mt-20`}
     >
       <div className={CARD_HEAD}>
         <h2 id="care-mission-title" className={CARD_TITLE}>

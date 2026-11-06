@@ -2,6 +2,7 @@ import { generatePath, Link } from 'react-router-dom';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { getOptionLabel, INQUIRY_CATEGORY_OPTIONS } from './inquiryLabels';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['유형', '내부 분류', '제목', '작성자', '상태', '접수일'];
 
@@ -13,7 +14,7 @@ const COLUMNS = ['유형', '내부 분류', '제목', '작성자', '상태', '�
  */
 export default function InquiryTable({ inquiries, onSelect }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[760px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

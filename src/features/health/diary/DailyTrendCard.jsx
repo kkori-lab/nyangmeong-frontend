@@ -11,7 +11,7 @@ import {
   findRecordType,
   findStoolState,
 } from '../diaryTypes';
-import { useDailyTrend } from '../queries';
+import { useDailyTrend, usePetDetail } from '../queries';
 import BarChart from './BarChart';
 import CountBars from './CountBars';
 import EmptyBox from './EmptyBox';
@@ -26,7 +26,7 @@ import {
 
 /**
  * [건강기록 변화 카드]
- * - 지표 탭 5종 단일 선택, 최근 14개 기록 기준 그래프 (FN-HLT-002-09·10)
+ * - 지표 탭 5종 단일 선택, 최근 5개 기록 기준 그래프 (FN-HLT-002-09·10)
  * - 0건·1건은 그래프 대신 안내
  * - 760px 이하: 지표 탭이 한 줄 가로 밀기이고 줄 끝에 걸쳐 잘린 탭은 반투명, 체중 그래프의 상한·목표·하한은 왼쪽 한 열
  */
@@ -34,6 +34,8 @@ export default function DailyTrendCard({ pet, onAddRecord }) {
   const [typeCd, setTypeCd] = useState(WEIGHT);
   const type = findRecordType(typeCd);
   const trend = useDailyTrend(pet.petSn, typeCd);
+  /** 목표체중은 목록(GET /pets)에 없어 상세로 받는다. 실패하거나 오기 전이면 목표선 없이 그린다 */
+  const { data: petDetail } = usePetDetail(pet.petSn, typeCd === WEIGHT);
   const isPc = useMediaQuery('(min-width: 761px)');
   const rowRef = useRef(null);
   /** 줄 끝에 걸쳐 일부만 보이는 탭(모바일 가로 밀기) */
@@ -87,7 +89,7 @@ export default function DailyTrendCard({ pet, onAddRecord }) {
                 clipped[index] ? 'opacity-50' : ''
               } ${
                 isSelected
-                  ? 'border-brand-500 bg-brand-500 text-white'
+                  ? 'border-transparent bg-brand-50 text-brand-500'
                   : 'border-line bg-white text-ink-2 hover:border-line-strong hover:text-ink'
               }`}
               onClick={() => setTypeCd(item.cd)}
@@ -100,6 +102,7 @@ export default function DailyTrendCard({ pet, onAddRecord }) {
 
       <TrendBody
         pet={pet}
+        goalBdwg={petDetail?.goalBdwg}
         trend={trend}
         type={type}
         isPc={isPc}
@@ -109,7 +112,7 @@ export default function DailyTrendCard({ pet, onAddRecord }) {
   );
 }
 
-function TrendBody({ pet, trend, type, isPc, onAddRecord }) {
+function TrendBody({ pet, goalBdwg, trend, type, isPc, onAddRecord }) {
   const emptyBox = (
     <EmptyBox
       icon="monitoring"
@@ -192,11 +195,11 @@ function TrendBody({ pet, trend, type, isPc, onAddRecord }) {
     <LineChart
       points={chartPoints}
       band={
-        isWeight && pet.nrmlWghtMinVal != null && pet.nrmlWghtMaxVal != null
-          ? [pet.nrmlWghtMinVal, pet.nrmlWghtMaxVal]
+        isWeight && pet.minBdwg != null && pet.maxBdwg != null
+          ? [pet.minBdwg, pet.maxBdwg]
           : undefined
       }
-      goal={isWeight ? pet.goalWghtVal : undefined}
+      goal={isWeight ? goalBdwg : undefined}
       formatValue={(value) => formatAmount(type.cd, value)}
       formatTag={(value) => value.toFixed(1)}
       isLeftColumn={!isPc}

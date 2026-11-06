@@ -5,6 +5,7 @@ import { showToast } from '@/components/toastStore';
 import Toggle from '@/components/Toggle';
 import { VRTY_NM_MAX } from './api';
 import { useCreateAdminBreed, useUpdateAdminBreed } from './queries';
+import { toFieldErrors } from '@/utils/fieldErrors';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
@@ -74,9 +75,15 @@ export default function BreedFormModal({
   const update = useUpdateAdminBreed();
   const save = isEdit ? update : create;
 
-  const errors = isSubmitted
+  const clientErrors = isSubmitted
     ? validate({ vrtyNm, sortSeq, breeds, vrtySn: breed?.vrtySn })
     : {};
+  // 400 칸별 오류: 클라이언트 안내가 없는 칸에만 서버 문구
+  const serverFieldErrors = toFieldErrors(save.error);
+  const errors = {
+    vrtyNm: clientErrors.vrtyNm ?? serverFieldErrors.vrtyNm,
+    sortSeq: clientErrors.sortSeq ?? serverFieldErrors.sortSeq,
+  };
 
   const handleSaved = () => {
     showToast(isEdit ? '품종을 수정했어요' : '품종을 추가했어요');
@@ -205,7 +212,7 @@ export default function BreedFormModal({
           정렬 숫자가 작을수록 앞에 나오고, 사용을 끄면 회원 화면 품종 목록에서
           빠져요
         </p>
-        {save.isError && (
+        {save.isError && !save.error.fields && (
           <p role="alert" className="text-sm text-danger">
             {save.error.message}
           </p>

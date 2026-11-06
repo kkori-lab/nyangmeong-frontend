@@ -1,4 +1,6 @@
+import { FileX } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
+import EmptyResult from '@/components/EmptyResult';
 import CareDetail from '@/features/community/care/CareDetail';
 import { useCare } from '@/features/community/careQueries';
 import SubPageLayout from '@/layouts/SubPageLayout';
@@ -15,14 +17,19 @@ export default function CareDetailPage() {
     body = <p className="text-muted">불러오는 중이에요</p>;
   } else if (isError) {
     body = (
-      <div role="alert" className="flex flex-col items-start gap-3">
-        <p className="text-muted">게시글을 찾지 못했어요</p>
-        <Link
-          to={PATHS.COMMUNITY_PETCARE}
-          className="text-base font-medium text-brand-500 hover:underline"
+      <div role="alert">
+        <EmptyResult
+          icon={<FileX size={32} aria-hidden="true" />}
+          title="게시글을 찾지 못했어요"
+          description="삭제되었거나 주소가 잘못되었을 수 있어요"
         >
-          우리동네 펫돌봄 목록으로
-        </Link>
+          <Link
+            to={PATHS.COMMUNITY_PETCARE}
+            className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-sm font-medium text-ink hover:bg-surface-2"
+          >
+            우리동네 펫돌봄 목록으로
+          </Link>
+        </EmptyResult>
       </div>
     );
   } else {

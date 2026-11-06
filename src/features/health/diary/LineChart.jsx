@@ -63,6 +63,8 @@ const getCurvePath = (points, slopes) => {
  * - bandLabelSide: 'left'(기본, 오른쪽 라벨 없이 왼쪽 눈금을 상한·하한으로) / 'right'(오른쪽 최대·최소 라벨)
  * - activeIndex: 말풍선을 띄울 점(points의 순번). 없으면 마지막 점, null이면 말풍선 없이 점만
  * - isLeftColumn: 상한·목표·하한을 모두 왼쪽 한 열의 라벨로 두고 오른쪽 라벨은 없앤다(모바일 건강기록 변화). bandLabelSide보다 우선
+ * - labelFill: 아래 날짜 글자 색. 기본은 subtle(지속 관찰 PC는 placeholder 토큰, 추가 요청)
+ * - isEdgeToEdge: 범위·목표 라벨이 없는 그래프에서 좌우 라벨 자리를 비우지 않고 폭 전체를 씀(지속 관찰, 추가 요청)
  */
 export default function LineChart({
   points,
@@ -75,6 +77,8 @@ export default function LineChart({
   activeIndex,
   height,
   ariaLabel,
+  labelFill = COLORS.subtle,
+  isEdgeToEdge = false,
 }) {
   const [ref, width] = useElementWidth();
 
@@ -93,11 +97,16 @@ export default function LineChart({
           isLeftColumn={isLeftColumn}
           activeIndex={activeIndex}
           ariaLabel={ariaLabel}
+          labelFill={labelFill}
+          isEdgeToEdge={isEdgeToEdge}
         />
       )}
     </div>
   );
 }
+
+/** 말풍선이 SVG 가장자리에서 떨어질 최소 거리(테두리 1.5의 반 + 여유) */
+const TIP_INSET = 2;
 
 /** 왼쪽 한 열 라벨(글자 14) 사이 최소 간격 */
 const LABEL_GAP = 24;
@@ -114,6 +123,8 @@ function Chart({
   isLeftColumn,
   activeIndex,
   ariaLabel,
+  labelFill,
+  isEdgeToEdge,
 }) {
   const gradientId = useId();
   const isBandLeft = bandLabelSide === 'left' || isLeftColumn;
@@ -122,19 +133,29 @@ function Chart({
   const isSmall = width < 600;
   const hasTag =
     !isLeftColumn && ((band != null && !isBandLeft) || goal != null);
-  const left = isBandLeft ? (isSmall ? 64 : 80) : isSmall ? 40 : 56;
-  // 왼쪽 라벨일 때는 마지막 날짜 글자가 잘리지 않게 오른쪽을 조금 남김
-  const right = hasTag
-    ? isSmall
-      ? 76
-      : 92
+  const left = isEdgeToEdge
+    ? 0
     : isBandLeft
       ? isSmall
-        ? 28
-        : 32
+        ? 64
+        : 80
       : isSmall
-        ? 12
-        : 24;
+        ? 40
+        : 56;
+  // 왼쪽 라벨일 때는 마지막 날짜 글자가 잘리지 않게 오른쪽을 조금 남김
+  const right = isEdgeToEdge
+    ? 0
+    : hasTag
+      ? isSmall
+        ? 76
+        : 92
+      : isBandLeft
+        ? isSmall
+          ? 28
+          : 32
+        : isSmall
+          ? 12
+          : 24;
   const top = 52;
   const bottom = 34;
   const pad = isSmall ? 16 : 28;
@@ -167,10 +188,10 @@ function Chart({
   const tipValue = hasTip ? values[tipIndex] : 0;
   const tipLabel = hasTip ? formatValue(tipValue) : '';
   const tipWidth = Math.max(52, tipLabel.length * 9 + 24);
-  const tipX = Math.min(
-    Math.max(tipPointX, left + tipWidth / 2),
-    width - right - tipWidth / 2 + 4,
-  );
+  /** 말풍선 가로 범위: 기존 라벨 자리 기준이되 SVG 밖으로는 나가지 않게(테두리 두께만큼 안쪽, 추가 요청) */
+  const tipMinX = Math.max(left, TIP_INSET) + tipWidth / 2;
+  const tipMaxX = Math.min(width - right + 4, width - TIP_INSET) - tipWidth / 2;
+  const tipX = Math.min(Math.max(tipPointX, tipMinX), tipMaxX);
   const tipY = tipPointY - 48;
   const tagWidth = right - 12;
 
@@ -394,7 +415,7 @@ function Chart({
           y={height - 8}
           textAnchor="middle"
           fontSize="14"
-          fill={COLORS.subtle}
+          fill={labelFill}
         >
           {point.label}
         </text>

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { generatePath, Link, useNavigate } from 'react-router-dom';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
+import PostBody from '@/components/PostBody';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
@@ -42,38 +43,38 @@ export default function InquiryDetail({ inquiry }) {
         <time>{formatDateTime(inquiry.regDt)}</time>
       </p>
 
-      <p className="mt-6 text-base leading-[1.7] whitespace-pre-line text-[#1a3234] max-[760px]:mt-5">
-        {inquiry.inqryCn}
-      </p>
-      {imgs.length > 0 && (
-        <>
-          <p className="mt-6 text-sm font-semibold text-[#566465]">
-            첨부 이미지 {imgs.length}
-          </p>
-          <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(120px,148px))] gap-3 max-[760px]:grid-cols-3 max-[760px]:gap-2">
-            {imgs.map((img, index) => (
-              <li key={img.atchFileSn}>
-                <button
-                  type="button"
-                  aria-label={`첨부 이미지 ${index + 1} 크게 보기`}
-                  onClick={() => setViewerIndex(index)}
-                  className="grid aspect-square w-full cursor-pointer place-items-center overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#f4f6f6] text-[#b9c4c4]"
-                >
-                  {urls[img.atchFileSn] ? (
-                    <img
-                      src={urls[img.atchFileSn]}
-                      alt=""
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <ImageIcon size={32} aria-hidden="true" />
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+      <PostBody content={inquiry.inqryCn}>
+        {imgs.length > 0 && (
+          <>
+            <p className="text-sm font-semibold text-[#566465]">
+              첨부 이미지 {imgs.length}
+            </p>
+            <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(120px,148px))] gap-3 max-[760px]:grid-cols-3 max-[760px]:gap-2">
+              {imgs.map((img, index) => (
+                <li key={img.atchFileSn}>
+                  <button
+                    type="button"
+                    aria-label={`첨부 이미지 ${index + 1} 크게 보기`}
+                    onClick={() => setViewerIndex(index)}
+                    className="grid aspect-square w-full cursor-pointer place-items-center overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#f4f6f6] text-[#b9c4c4]"
+                  >
+                    {urls[img.atchFileSn] ? (
+                      <img
+                        src={urls[img.atchFileSn]}
+                        alt=""
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <ImageIcon size={32} aria-hidden="true" />
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </PostBody>
+
       {viewerIndex !== null && (
         <InquiryImageViewer
           imgs={imgs}
@@ -86,7 +87,7 @@ export default function InquiryDetail({ inquiry }) {
 
       <section
         aria-labelledby="inquiry-answer"
-        className="mt-10 border-t border-[#b9c4c4] pt-6 max-[760px]:mt-8 max-[760px]:pt-5"
+        className="border-t border-[#b9c4c4] pt-6 max-[760px]:pt-5"
       >
         <h3
           id="inquiry-answer"

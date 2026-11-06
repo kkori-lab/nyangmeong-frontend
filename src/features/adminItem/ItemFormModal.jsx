@@ -5,6 +5,7 @@ import Modal from '@/components/Modal';
 import Select from '@/components/Select';
 import { showToast } from '@/components/toastStore';
 import Toggle from '@/components/Toggle';
+import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import {
   RECEIPT_ACCEPT,
   RECEIPT_HELP,
@@ -16,14 +17,19 @@ import { useCreateAdminItem, useUpdateAdminItem } from './queries';
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
 
-const TEXTAREA_CLASS = INPUT_CLASS.replace('h-10', 'min-h-[88px] resize-y py-2')
-  .replace('leading-[1.4]', 'leading-6');
+const TEXTAREA_CLASS = INPUT_CLASS.replace(
+  'h-10',
+  'min-h-[88px] resize-y py-2',
+).replace('leading-[1.4]', 'leading-6');
 
 /** 굽기 지시 최대 글자 수(서버와 같음) */
 const BAKE_HINT_MAX = 300;
 
 /** 필요 포인트: 0 이상 정수 */
 const NEED_PNT_PATTERN = /^\d+$/;
+
+/** 폼 칸(서버 fields 이름) */
+const FORM_FIELDS = ['itemRegnCd', 'itemNm', 'image', 'bakeHint', 'needPnt'];
 
 /** 칸 아래 안내 */
 function FieldError({ id, message }) {
@@ -50,8 +56,9 @@ const validate = ({ itemRegnCd, itemNm, needPnt, image, isEdit }) => ({
  * - item이 있으면 그 행 값으로 채운 수정, 없으면 등록
  * - 삭제는 없고 판매를 끄면 판매 중지: 이미 산 회원의 아이템은 남음
  * - [등록]·[저장]을 누르면 칸마다 검사하고, 저장하면 토스트 후 닫음. 실패하면 입력 유지 + 서버 문구
+ * - 등록 성공 뒤 onCreated({ itemSn, ...보낸 값 }): 화면이 전체 굽기를 시작할지 정함
  */
-export default function ItemFormModal({ item, parts, onClose }) {
+export default function ItemFormModal({ item, parts, onClose, onCreated }) {
   const formId = useId();
   const isEdit = Boolean(item);
 
@@ -69,9 +76,18 @@ export default function ItemFormModal({ item, parts, onClose }) {
   const update = useUpdateAdminItem();
   const save = isEdit ? update : create;
 
-  const errors = isSubmitted
+  const clientErrors = isSubmitted
     ? validate({ itemRegnCd, itemNm, needPnt, image, isEdit })
     : {};
+  // 400 칸별 오류: 클라이언트 안내가 없는 칸에만 서버 문구
+  const serverFieldErrors = toFieldErrors(save.error);
+  const errors = Object.fromEntries(
+    FORM_FIELDS.map((field) => [
+      field,
+      clientErrors[field] ?? serverFieldErrors[field],
+    ]),
+  );
+  const formError = toFormError(save.error, FORM_FIELDS);
   const imageMessage = imageError || errors.image;
 
   const partOptions = [
@@ -119,7 +135,12 @@ export default function ItemFormModal({ item, parts, onClose }) {
       );
       return;
     }
-    create.mutate(body, { onSuccess: handleSaved });
+    create.mutate(body, {
+      onSuccess: ({ itemSn }) => {
+        handleSaved();
+        onCreated?.({ itemSn, ...body });
+      },
+    });
   };
 
   return (
@@ -233,7 +254,8 @@ export default function ItemFormModal({ item, parts, onClose }) {
             maxLength={BAKE_HINT_MAX}
             rows={3}
             placeholder="예: Place the hat on top of the head."
-            aria-describedby={`${formId}-bakeHint-help`}
+            aria-invalid={Boolean(errors.bakeHint)}
+            aria-describedby={`${formId}-bakeHint-help ${formId}-bakeHint-error`}
             className={TEXTAREA_CLASS}
             onChange={(event) => setBakeHint(event.target.value)}
           />
@@ -246,6 +268,10 @@ export default function ItemFormModal({ item, parts, onClose }) {
               {bakeHint.length}/{BAKE_HINT_MAX}
             </span>
           </p>
+          <FieldError
+            id={`${formId}-bakeHint-error`}
+            message={errors.bakeHint}
+          />
         </div>
         <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
           <div className="w-[160px]">
@@ -286,9 +312,9 @@ export default function ItemFormModal({ item, parts, onClose }) {
             판매를 멈춰도 이미 산 회원의 아이템은 남아요
           </p>
         )}
-        {save.isError && (
+        {formError && (
           <p role="alert" className="text-sm text-danger">
-            {save.error.message}
+            {formError}
           </p>
         )}
       </form>

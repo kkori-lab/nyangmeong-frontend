@@ -10,12 +10,12 @@ import { PET_SE } from '@/utils/petCodes';
 import {
   CST_UNIT,
   CST_UNIT_OPTIONS,
-  MIN_HOURLY_WAGE,
-  MIN_WAGE_MESSAGE,
-  MIN_WAGE_YEAR,
+  MIN_WAGE_ERROR_CODE,
+  minWageMessage,
   PET_SIZE_OPTIONS,
   PRTC_SHP_OPTIONS,
 } from '../careCodes';
+import { useMinimumWage } from '../careQueries';
 import { useBreeds } from '../missingQueries';
 import BreedCombobox from '../missing/BreedCombobox';
 import PlaceSearchModal from '../missing/PlaceSearchModal';
@@ -38,6 +38,8 @@ const TIME_OPTIONS = (placeholder) => [
   { value: '', label: placeholder },
   ...CARE_TIMES.map((time) => ({ value: time, label: time })),
 ];
+
+const REGION_ERROR_CODE = 'CARE_REGION_NOT_ALLOWED';
 
 const snapshot = (values) =>
   JSON.stringify({
@@ -77,7 +79,7 @@ function BreedField({ petSeCd, label, value, error, onChange }) {
   return (
     <BreedCombobox
       label={label}
-      breeds={breeds}
+      breeds={breeds.map((row) => row.vrtyNm)}
       value={value}
       error={error}
       onChange={onChange}
@@ -127,18 +129,44 @@ export default function CareForm({
   mode,
   cancelTo,
   isPending,
-  errorMessage,
+  submitError,
   onSubmit,
   onLeave,
   onDirtyChange,
 }) {
+  const { data: dogBreeds = [] } = useBreeds(PET_SE.DOG);
+  const { data: catBreeds = [] } = useBreeds(PET_SE.CAT);
+  /** 받기 전·실패면 안내를 숨기고 화면 검사는 건너뛴다(서버가 다시 검사) */
+  const { data: minWage } = useMinimumWage();
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState({});
   const [isPlaceOpen, setIsPlaceOpen] = useState(false);
+  /** 장소를 다시 고르면 그때의 서버 오류는 장소 칸에서 지운다 */
+  const [placeSeenError, setPlaceSeenError] = useState(null);
+  /** 금액을 고치면 그때의 서버 최저시급 오류는 금액 칸에서 지운다 */
+  const [amountSeenError, setAmountSeenError] = useState(null);
   const [initialSnap] = useState(() => snapshot(initial));
   const formRef = useRef(null);
 
   const isEdit = mode === 'edit';
+  /** 전북 밖 좌표는 서버 메시지를 장소 칸에, 그 밖의 서버 오류는 폼 아래에 */
+  const isRegionError = submitError?.code === REGION_ERROR_CODE;
+  const placeError =
+    errors.place ||
+    (isRegionError && submitError !== placeSeenError
+      ? submitError.message
+      : '');
+  /** 서버의 최저시급 거절은 금액 칸 아래에 */
+  const isWageError = submitError?.code === MIN_WAGE_ERROR_CODE;
+  const amountError =
+    errors.amount ||
+    (isWageError && submitError !== amountSeenError
+      ? minWage
+        ? minWageMessage(minWage)
+        : submitError.message
+      : '');
+  const errorMessage =
+    !isRegionError && !isWageError && submitError?.message;
   const isDirty = snapshot(values) !== initialSnap;
 
   useEffect(() => {
@@ -191,8 +219,12 @@ export default function CareForm({
     if (when) next.when = when;
     const amount = Number(values.amount);
     if (!amount) next.amount = '비용을 입력해 주세요';
-    else if (values.cstUnitCd === CST_UNIT.HOUR && amount < MIN_HOURLY_WAGE) {
-      next.amount = MIN_WAGE_MESSAGE;
+    else if (
+      minWage &&
+      values.cstUnitCd === CST_UNIT.HOUR &&
+      amount < minWage.lowstHrwgAmt
+    ) {
+      next.amount = minWageMessage(minWage);
     }
     if (!values.title.trim()) next.title = '제목을 입력해 주세요';
     if (!values.body.trim()) next.body = '상세 설명을 입력해 주세요';
@@ -215,31 +247,36 @@ export default function CareForm({
     if (isPending) return;
     const { place } = values;
     const hasWhen = Boolean(values.fromDate);
-    const kindOf = (petSeCd, breed, petSizeCd) => ({
+    const kindOf = (petSeCd, breeds, breed, petSizeCd) => ({
       petSeCd,
       petSizeCd,
-      vrtyNm: breed.vrtyNm,
+      vrtySn: breeds.find((row) => row.vrtyNm === breed.vrtyNm)?.vrtySn ?? null,
       vrtyDrctInptNm: breed.vrtyDrctInptNm?.trim() ?? null,
     });
     onSubmit({
-      petKnds: [
+      pets: [
         ...(values.dog
-          ? [kindOf(PET_SE.DOG, values.dogBreed, values.dogSizeCd)]
+          ? [kindOf(PET_SE.DOG, dogBreeds, values.dogBreed, values.dogSizeCd)]
           : []),
-        ...(values.cat ? [kindOf(PET_SE.CAT, values.catBreed, null)] : []),
+        ...(values.cat
+          ? [kindOf(PET_SE.CAT, catBreeds, values.catBreed, null)]
+          : []),
       ],
       prtcShpCds: values.shapes,
       cstUnitCd: values.cstUnitCd,
       cstAmt: Number(values.amount),
-      prtcBgngDt: hasWhen ? `${values.fromDate} ${values.fromTime}:00` : null,
-      prtcEndDt: hasWhen ? `${values.toDate} ${values.toTime}:00` : null,
-      schdlCnsltnPsbltyYn: values.nego ? 'Y' : 'N',
+      prtcBgngDt: hasWhen ? `${values.fromDate}T${values.fromTime}:00` : null,
+      prtcEndDt: hasWhen ? `${values.toDate}T${values.toTime}:00` : null,
+      schdlCnsltnPsbltyYn: values.nego,
       pstTtl: values.title.trim(),
       pstCn: values.body.trim(),
-      atchFiles: values.images,
-      sggNm: place.sggNm,
-      emdNm: place.emdNm,
-      rlsRgnNm: `${place.emdNm} 인근`,
+      images: values.images
+        .filter((image) => image.file)
+        .map((image) => image.file),
+      keepAtchFileSns: values.images
+        .filter((image) => !image.file)
+        .map((image) => image.atchFileSn),
+      rlsRgnNm: [place.sggNm, place.emdNm].filter(Boolean).join(' '),
       ...(place.wtnsPlcLat == null
         ? {}
         : {
@@ -251,7 +288,7 @@ export default function CareForm({
   };
 
   const placeText = values.place
-    ? `전북 ${values.place.sggNm} ${values.place.emdNm} 인근`
+    ? `전북 ${[values.place.sggNm, values.place.emdNm].filter(Boolean).join(' ')} 인근`
     : '아직 고르지 않았어요';
 
   return (
@@ -457,7 +494,7 @@ export default function CareForm({
 
             <fieldset
               tabIndex={-1}
-              data-invalid={Boolean(errors.amount)}
+              data-invalid={Boolean(amountError)}
               className="m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0"
             >
               <legend className={`${LABEL_CLASS} mb-1.5`}>
@@ -476,9 +513,10 @@ export default function CareForm({
                       name="cstUnitCd"
                       value={option.code}
                       checked={values.cstUnitCd === option.code}
-                      onChange={() =>
-                        set({ cstUnitCd: option.code }, ['amount'])
-                      }
+                      onChange={() => {
+                        set({ cstUnitCd: option.code }, ['amount']);
+                        setAmountSeenError(submitError);
+                      }}
                     >
                       {option.name}
                     </RadioOption>
@@ -489,15 +527,21 @@ export default function CareForm({
                   label="금액"
                   maxDigits={9}
                   value={values.amount}
-                  onChange={(amount) => set({ amount }, ['amount'])}
+                  onChange={(amount) => {
+                    set({ amount }, ['amount']);
+                    setAmountSeenError(submitError);
+                  }}
                   className="w-[200px] max-[760px]:w-full"
                 />
               </div>
-              <p className="text-sm text-muted">
-                시급은 {MIN_WAGE_YEAR}년 최저시급{' '}
-                {MIN_HOURLY_WAGE.toLocaleString()}원 이상으로 적어 주세요
-              </p>
-              <FieldError message={errors.amount} />
+              {minWage && (
+                <p className="text-sm text-muted">
+                  시급은 {minWage.lowstHrwgAplcnYr}년 최저시급{' '}
+                  {minWage.lowstHrwgAmt.toLocaleString()}원 이상으로 적어
+                  주세요
+                </p>
+              )}
+              <FieldError message={amountError} />
             </fieldset>
           </Section>
 
@@ -569,7 +613,7 @@ export default function CareForm({
                   tabIndex={-1}
                   aria-labelledby="care-place-label"
                   onClick={() => setIsPlaceOpen(true)}
-                  className={`flex min-h-10 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-md border bg-surface-2 px-3 text-left hover:border-line-strong ${errors.place ? 'border-danger' : 'border-input-line'} ${values.place ? 'text-ink' : 'text-muted'}`}
+                  className={`flex min-h-10 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-md border bg-surface-2 px-3 text-left hover:border-line-strong ${placeError ? 'border-danger' : 'border-input-line'} ${values.place ? 'text-ink' : 'text-muted'}`}
                 >
                   <MapPin
                     size={16}
@@ -580,7 +624,7 @@ export default function CareForm({
                 </button>
                 <button
                   type="button"
-                  data-invalid={Boolean(errors.place)}
+                  data-invalid={Boolean(placeError)}
                   onClick={() => setIsPlaceOpen(true)}
                   className={`${BTN_SECONDARY} shrink-0`}
                 >
@@ -590,16 +634,17 @@ export default function CareForm({
               {values.place && (
                 <CareAreaMap
                   place={values.place}
-                  onMove={(next) =>
-                    set({ place: { ...values.place, ...next } })
-                  }
+                  onMove={(next) => {
+                    set({ place: { ...values.place, ...next } });
+                    setPlaceSeenError(submitError);
+                  }}
                 />
               )}
               <p className="text-sm text-muted">
                 개인정보 보호를 위해 게시글에는 동네까지만 보여요. 상세 주소는
                 채팅의 주소 공유로 전해 주세요.
               </p>
-              <FieldError message={errors.place} />
+              <FieldError message={placeError} />
             </div>
 
             <div
@@ -667,6 +712,7 @@ export default function CareForm({
           guide="돌봄 장소 근처의 장소나 동 이름 검색"
           onSelect={(place) => {
             set({ place }, ['place']);
+            setPlaceSeenError(submitError);
             setIsPlaceOpen(false);
           }}
           onClose={() => setIsPlaceOpen(false)}

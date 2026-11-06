@@ -30,26 +30,38 @@ const COLR = {
   CREAM: { code: 'PETC0008', name: '크림' },
   GRAY: { code: 'PETC0009', name: '회색' },
   BLACK_TAN: { code: 'PETC0010', name: '블랙탄' },
-  PARTI: { code: 'PETC0011', name: '파티' },
+  SPOTTED: { code: 'PETC0011', name: '얼룩' },
   BRINDLE: { code: 'PETC0012', name: '브린들' },
   TRICOLOR: { code: 'PETC0013', name: '삼색' },
   MACKEREL: { code: 'PETC0014', name: '고등어' },
   CHEESE: { code: 'PETC0015', name: '치즈' },
   TUXEDO: { code: 'PETC0016', name: '턱시도' },
+  TAN: { code: 'PETC0028', name: '황색' },
+  PARTI: { code: 'PETC0029', name: '파티' },
+  SABLE: { code: 'PETC0030', name: '세이블' },
+  MERLE: { code: 'PETC0031', name: '멀' },
+  COW: { code: 'PETC0032', name: '젖소' },
+  CHAOS: { code: 'PETC0033', name: '카오스' },
+  POINT: { code: 'PETC0034', name: '포인트' },
   DRCT_INPT: { code: COLR_DRCT_INPT, name: '직접 입력' },
 };
 
+/** 목록 순서는 기능명세서 FN-MYP-003-03. 얼룩은 기존 데이터(PETC0011) 때문에 파티 뒤에 남긴다 */
 export const COLR_OPTIONS = {
   [PET_SE.DOG]: [
     COLR.WHITE,
     COLR.CREAM,
     COLR.BROWN,
+    COLR.TAN,
     COLR.BLACK,
     COLR.GRAY,
     COLR.BLACK_TAN,
     COLR.PARTI,
+    COLR.SPOTTED,
     COLR.TRICOLOR,
+    COLR.SABLE,
     COLR.BRINDLE,
+    COLR.MERLE,
     COLR.DRCT_INPT,
   ],
   [PET_SE.CAT]: [
@@ -61,10 +73,17 @@ export const COLR_OPTIONS = {
     COLR.CHEESE,
     COLR.MACKEREL,
     COLR.TUXEDO,
+    COLR.COW,
     COLR.TRICOLOR,
+    COLR.CHAOS,
+    COLR.POINT,
     COLR.DRCT_INPT,
   ],
 };
+
+/** 종과 상관없이 털색 코드로 이름 찾기 (종에 맞지 않는 값도 이름은 보여 주기 위함) */
+export const findColrName = (code) =>
+  Object.values(COLR).find((colr) => colr.code === code)?.name ?? '';
 
 /** 주양육 동물 등록 상한 */
 export const MAX_OWN_PETS = 10;
@@ -100,13 +119,13 @@ export const CRT_JOB_STTS = {
   FAILED: 'CHRC0004',
 };
 
-/** 캐릭터 아이템 부위: 머리·얼굴·목·의상·가방 (공통코드 생기면 값 맞춤) */
+/** 캐릭터 아이템 부위(MYPG01): 머리·얼굴·목·의상·가방 */
 export const ITEM_PART = {
-  HEAD: 'HEAD',
-  FACE: 'FACE',
-  NECK: 'NECK',
-  CLOTHES: 'CLOTHES',
-  BAG: 'BAG',
+  HEAD: 'MYPC0001',
+  FACE: 'MYPC0002',
+  NECK: 'MYPC0003',
+  CLOTHES: 'MYPC0004',
+  BAG: 'MYPC0005',
 };
 
 /** 보관함 탭 순서 */

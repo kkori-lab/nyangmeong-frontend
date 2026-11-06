@@ -29,40 +29,45 @@
 - 기다리는 것: 없음 (가입·이메일 인증·닉네임 API는 YAY 백엔드 SCR-ACC-001, 대기)
 - 완료 조건: 약관 → 이메일 인증 → 번호 중복확인 → 비밀번호 순서로만 다음이 열리고, 가입 뒤 닉네임 모달 → 가입 완료 → 로그인 방법 선택으로 간다
 
-## SCR-ACC-002 SNS 로그인 — 대기
+## SCR-ACC-002 SNS 로그인 — 끝
 - 기능: FN-ACC-002-09 네이버로 로그인하기, FN-ACC-002-10 카카오로 로그인하기, FN-ACC-002-11 구글로 로그인하기, FN-ACC-001-33 SNS 신규 가입 취소(화면은 SCR-ACC-001), FN-ACC-001-31 SNS 가입 계정 확인(화면은 SCR-ACC-001), FN-ACC-001-32 SNS 회원가입 완료(화면은 SCR-ACC-001)
 - 기다리는 것: SNS 로그인 흐름 결정(백엔드 `docs/api/issues.md` 로그인 2번), 제공자 앱 키(팀)
 - 완료 조건: 기존 연결 계정은 로그인되고, 처음 보는 SNS 계정은 SNS 가입 확인 화면으로 간다
+- 끝남: 2026-11-04, "SNS 로그인·가입 API 연결" 절에서 같은 기능 ID를 함께 만들고 검증·사람 확인을 마쳤다
 
 ## SCR-ACC-001 재가입 복구 — 끝
 - 기능: FN-ACC-001-40 복구 대상 이메일 확인, FN-ACC-001-41 복구 인증번호 발송·재전송, FN-ACC-001-42 복구 인증번호 입력, FN-ACC-001-43 복구 본인확인, FN-ACC-001-44 기존 정보 복구 안내, FN-ACC-001-45 기존 정보 복구 실행, FN-ACC-001-46 복구 취소, FN-ACC-001-47 기존 정보 복구 완료, FN-ACC-001-48 복구 후 로그인으로
 - 기다리는 것: 없음
 - 완료 조건: 본인확인 뒤에만 복구 안내가 나오고, 복구 완료 뒤 로그인 방법 선택으로 간다(자동 로그인 없음)
 
-## SCR-ACC-020 회원탈퇴 — 대기
+## SCR-ACC-020 회원탈퇴 — 끝
 - 기능: FN-ACC-020-01 탈퇴 안내 확인, FN-ACC-020-02 반려동물·공동양육 영향 확인, FN-ACC-020-03 탈퇴 유의사항 확인 동의, FN-ACC-020-04 탈퇴 문구 입력으로 이동, FN-ACC-020-05 탈퇴 취소, FN-ACC-020-06 탈퇴 대상 계정, FN-ACC-020-12 최종 탈퇴·입력 문구 안내, FN-ACC-020-20 탈퇴 확인 문구 입력, FN-ACC-020-13 최종 확인 취소, FN-ACC-020-14 회원탈퇴 실행, FN-ACC-020-15 탈퇴 실패·확인 중 안내, FN-ACC-020-16 결과 확인 및 재시도, FN-ACC-020-17 처리 안내 닫기, FN-ACC-020-18 회원탈퇴 완료, FN-ACC-020-19 랜딩페이지로 이동
 - 기다리는 것: 회원정보 수정 화면(SCR-MYP-040, SJM)의 탈퇴 진입 버튼
 - 완료 조건: "정말로 탈퇴하겠습니다."가 완전히 같을 때만 탈퇴하기가 켜지고, 완료 뒤 랜딩으로 간다
+- 끝남: 승인 2026-11-05, 검증 2회차(확인 못 함 있음: 연결 남음만), 사람 확인 2026-11-05(실제 계정 탈퇴 → 완료 화면, 재로그인 시 탈퇴 안내)
+- 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당)
 
-## SCR-HOS-001 플레이스 — 대기
+## SCR-HOS-001 플레이스 — 끝
 - 기능: FN-HOS-001-33 로그인 필수 접근, FN-HOS-001-01 카테고리 탭, FN-HOS-001-03 지역·상호명·키워드 검색, FN-HOS-001-04 검색창 검색 버튼, FN-HOS-001-05 검색창 검색 결과 지도, FN-HOS-001-06 정렬 선택, FN-HOS-001-07 병원 결과 카드, FN-HOS-001-08 병원명, FN-HOS-001-09 즐겨찾기 저장·해제, FN-HOS-001-10 지도 핀, FN-HOS-001-11 지도 도구·이동, FN-HOS-001-29 즐겨찾기 고정 영역, FN-HOS-001-30 검색 결과 영역, FN-HOS-001-15 이동한 지도 영역, FN-HOS-001-16 이 지도 영역에서 다시 검색, FN-HOS-001-17 즐겨찾기, FN-HOS-001-31 이전 검색 결과, FN-HOS-001-18 재검색 지도 영역, FN-HOS-001-20 검색 결과 핀, FN-HOS-001-32 즐겨찾기(재검색 결과), FN-HOS-001-19 새 지도 범위의 검색 결과, FN-HOS-001-21 선택 병원 카드, FN-HOS-001-22 선택 병원명, FN-HOS-001-23 즐겨찾기 저장·해제(핀 선택), FN-HOS-001-24 선택 핀, FN-HOS-001-25 지도 요약 카드, FN-HOS-001-26 카카오맵 상세보기, FN-HOS-001-27 길찾기, FN-HOS-001-28 지도 도구·이동(핀 선택), FN-PLC-001-01 미용 탭·대상 데이터(화면은 SCR-PLC-001), FN-PLC-002-01 용품 탭·오프라인 매장 범위(화면은 SCR-PLC-002), FN-PLC-003-01 동반 탭·대상 데이터(화면은 SCR-PLC-003), FN-PLC-004-01 호텔 탭·정보 조회 범위(화면은 SCR-PLC-004)
 - 이미 만든 것: `features/place/`, `pages/place/PlacePage.jsx`(`/places`). 기능명세서 대조·`/end` 기록 없음
 - 기다리는 것: 장소 검색·즐겨찾기 API(YAY 백엔드 SCR-HOS-001, 대기), 카카오 지도 키(팀)
 - 완료 조건: 키워드로 검색하면 핀과 결과 카드가 같은 업체로 이어지고, 지도를 옮기면 "이 지도 영역에서 다시 검색"이 나온다. 즐겨찾기는 재검색해도 위에 남는다
+- 끝남: FN-HOS-001-33 승인 2026-11-04 16:10, 검증 통과, 사람 확인 2026-11-04. 나머지 기능 ID(FN-HOS-001-01~32, FN-PLC-001~004-01)는 "장소 검색·즐겨찾기 API 연결" 절에서 통과(사람 확인 2026-11-03). 명세 확인 필요(「전체」 탭, 즐겨찾기 실패 안내 기준)는 미정
 
 ## SCR-MAN-001 메인페이지 — 대기
 - 기능: FN-MAN-001 히어로 반려동물 캐릭터 노출, FN-MAN-002 AI매니저 검색바 진입 · 확장형 대화창 전환, FN-MAN-003 반려동물 프로필 요약 노출, FN-MAN-004 반려동물 선택 탭 전환, FN-MAN-005 건강 대시보드 기준일·업데이트 시각 표시, FN-MAN-006 건강 지표 위젯 노출, FN-MAN-007 건강 지표 위젯 순서 조정, FN-MAN-008 건강 지표 위젯 전체 보기 이동, FN-MAN-009 데일리 케어미션 미리보기 노출
-- 이미 만든 것: `pages/main/MainPage.jsx`(히어로 AI·프로필·데일리 케어미션, 가짜 데이터). `/end` 기록 없음
+- 이미 만든 것: FN-MAN-001·003~007·009는 아래 `위젯 순서·건강 대시보드 API 연결` 절에서 실제 API로 끝(2026-11-06). 남은 것: FN-MAN-002, FN-MAN-008
 - 기다리는 것: `pet` 목록·프로필 조회(SJM), 캐릭터 이미지 조회(LJS), 건강 지표·케어리스트(JAJ), AI 대화창 SCR-AIM-001·011(LJS 화면), 메인 조회 조합·위젯 순서 저장(YAY 백엔드)
 - 완료 조건: 반려동물 탭을 바꾸면 프로필·위젯·케어미션이 그 반려동물 기준으로 바뀐다. 위젯 순서를 바꾸고 새로고침해도 유지된다
 
-## SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결 — 대기
+## SCR-ACC-001 회원가입 (이메일) · 가입·인증·닉네임 API 연결 — 끝
 - 백엔드 끝: `GET /terms`, `GET /terms/{trmsSn}`, `POST /email-certifications`, `POST /email-certifications/{emlCertSn}/verify`, `GET /members/phone-availability`, `GET /members/nickname-availability`, `POST /members`, `PATCH /members/me/nickname` (백엔드 SCR-ACC-001 절의 "프론트 연결")
 - 기능: 명세 기능 ID 추가 없음. FN-ACC-001-03~14·24~30·38에 걸친다
 - 대상: `features/member/signup/`의 가짜 약관·이메일 인증·번호/닉네임 중복확인·가입·닉네임 저장 API
 - 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-001)의 PR 병합과 공용 DB 마이그레이션
 - 완료 조건: 실제 서버로 약관 → 인증번호 발송·확인 → 번호 중복확인 → 가입 → 닉네임 저장이 되고, 가입 뒤 로그인 쿠키 없이 닉네임 모달이 동작한다. 재전송 제한은 `resendAvailableDt`로 남은 시간을 보여 준다
 - 이어받은 확인: 가입 발송이 409 `MEMBER_RECOVERY_AVAILABLE`(탈퇴 보관 이메일)이면 재가입 복구 화면으로 바뀌는지 화면으로 확인한다(코드는 SCR-ACC-001 재가입 복구에서 넣음)
+- 끝남: 승인 2026-11-04, 검증 통과(7회차), 사람 확인 2026-11-04. 약관 내용보기에 버전 표시, 닉네임은 자르지 않고 길이·문자 오류 문구, 가입된 이메일에 [기존 가입 방법으로 로그인] 버튼, 409 복구 진입 확인. 가입 비밀번호는 공용 `isValidPassword`
 
 ## SCR-ACC-011 비밀번호 찾기 · 인증번호 API 연결 — 끝
 - 백엔드 끝: `POST /email-certifications`(목적 `USRC0011`), `POST /email-certifications/{emlCertSn}/verify`, `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-011 절의 "프론트 연결")
@@ -73,12 +78,14 @@
 - 끝남: 승인 2026-10-29, 검증 통과, 사람 확인 2026-10-29. 추가-1(인증 화면 제목 잘림 방지·AI 안내 서서히 표시), 추가-2(폼 위 알림 서서히 표시)
 - 연결 남음: 없음(재설정 API는 아래 SCR-ACC-012 연결 절)
 
-## SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 대기
+## SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 끝
 - 백엔드 끝: `POST /email-certifications/{emlCertSn}/password-reset`(`pswdInitTkn`·`pswd`·`pswdCnfrm`, 성공 200 데이터 없음), 취소는 `POST /email-certifications/{emlCertSn}/invalidate` (백엔드 SCR-ACC-012 절의 "프론트 연결")
 - 기능: 명세 기능 ID 추가 없음. FN-ACC-012-01~06에 걸친다
 - 대상: `features/member/password/`와 `features/member/api.js`의 가짜 `resetPassword`. 인증 확인 응답의 `emlCertSn`·`pswdInitTkn`·`initAuthrtExpryDt`를 메모리로 넘기고(URL에 넣지 않는다), 토큰이 없거나 `initAuthrtExpryDt`가 지났거나 400 `PASSWORD_RESET_NOT_AVAILABLE`이면 만료 화면, 400 `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 입력칸 오류, 취소는 `invalidate`(본문 `certTrgtEml`). 성공해도 자동 로그인하지 않는다
-- 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-012)의 PR 병합과 공유 `application.properties`의 열린 경로 추가
+- 기다리는 것: 없음 (백엔드 PR #57 develop 병합, 열린 경로 있음, 2026-11-05 확인). 실패: 400 `PASSWORD_RESET_NOT_AVAILABLE`(만료 화면)·`PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`, 성공은 자동 로그인 없고 그 계정의 기존 로그인 모두 종료
 - 완료 조건: 실제 서버로 인증 확인 → 새 비밀번호 저장 → 로그인 화면으로 가고, 같은 토큰 재사용·만료·취소 뒤에는 만료 화면이 나온다
+- 끝남: 승인 2026-11-05, 검증 통과, 사람 확인 2026-11-05. 추가-1(이메일 로그인 폼의 [회원가입]을 `/signup`으로 연결)
+- 연결 남음: 없음
 
 ## SCR-ACC-001 재가입 복구 · 복구 API 연결 — 끝
 - 백엔드 끝: 복구 목적 발송 `POST /email-certifications`(`emlCertPrpsCd=USRC0012`), 확인 `POST /email-certifications/{emlCertSn}/verify`(`certRslt=RECOVERY_READY`·`rcvryAuthrtTkn`·`initAuthrtExpryDt`), 안내 `POST /members/recovery-info`(`emlCertSn`·`rcvryAuthrtTkn` → `acntEml`·`mbrNcnm`·`whdwlDt`·`rcvryExpryDt`·`maskedMblTelno`·`missingTrms`), 실행 `POST /members/recovery`(`emlCertSn`·`rcvryAuthrtTkn`·`trmsAgres`·`mblTelno`, 성공 200 데이터 없음), 취소 `POST /email-certifications/{emlCertSn}/invalidate`(본문 `certTrgtEml`) (백엔드 SCR-ACC-001 재가입 복구 절의 "프론트 연결")
@@ -95,8 +102,47 @@
 - 기다리는 것: 이 백엔드 작업(YAY SCR-HOS-001)의 PR 병합, 공유 `application.properties`의 `app.kakao-local.*`(키가 없으면 가짜 업체)
 - 완료 조건: 실제 서버로 병원 탭을 검색하면 카카오 업체가 카드·핀으로 나오고, 지도를 옮겨 재검색하면 새 범위 결과로 바뀐다. 별을 누르면 상단 즐겨찾기에 바로 들어오고 다시 누르면 빠진다
 - 끝남: 승인 2026-11-03, 검증 통과, 사람 확인 2026-11-03. 결과 카드·병원명·상세보기는 문서대로 카카오맵 상세 새 탭(지도 선택은 핀만)
-- 연결 남음: FN-HOS-001-33 (`routes/AppRoutes.jsx`의 `bare`+`member` 조립 별도 PR 뒤 `placeRoutes.js`를 `auth: 'member'`로, YAY)
+- 연결 끝: FN-HOS-001-33 (2026-11-04, SCR-HOS-001 플레이스 절)
 
+## SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 끝
+- 백엔드 끝: SNS 로그인 `POST /auth/sns-login`(`snsOffrCd` USRC0007 네이버·0008 카카오·0009 구글, `code`, `state`(네이버 필수) → `snsLoginRslt` `LOGIN`(쿠키 발급, `ncnmReguide`·`mbrNcnm`) / `SIGNUP_REQUIRED`(`snsOffrCd`·`acntEml`·`mblTelno`·`ageCnfrmd`·`signupTkn`) / `EMAIL_DUPLICATE`(`acntEml`) / `RECOVERY_AVAILABLE`(`acntEml`)), SNS 가입 `POST /members`(`joinPathCd`=제공자, `signupTkn`, `mblTelno`, `trmsAgres`, `pswd`·`emlCertSn`·`certNo` 보내면 400) (백엔드 SCR-ACC-002 SNS 로그인 절의 "프론트 연결")
+- 기능: 명세 기능 ID 추가 없음. FN-ACC-002-09·10·11, FN-ACC-001-31·32에 걸친다
+- 대상: 버튼을 누르면 프론트가 `state`를 만들어 sessionStorage에 두고 제공자 인가 창을 연다. 콜백에서 `state`를 비교한 뒤 `code`를 넘긴다. `LOGIN`은 `ncnmReguide`면 닉네임 모달, 아니면 요청 화면. `SIGNUP_REQUIRED`는 SNS 가입 확인 화면(이메일 읽기 전용, `mblTelno`가 있으면 읽기 전용·없으면 입력, `ageCnfrmd`면 만 14세 "확인 완료" 표시이고 요청에는 동의 true). `EMAIL_DUPLICATE`는 "이미 가입된 이메일입니다. 기존에 가입한 방법으로 로그인해 주세요.", `RECOVERY_AVAILABLE`은 `acntEml`로 기존 이메일 복구 흐름. 오류: 400 `SNS_AUTH_FAILED`·`SNS_EMAIL_NOT_PROVIDED`·`SNS_SIGNUP_TOKEN_INVALID`(로그인 방법 선택에서 다시), 403 `MEMBER_INACTIVE`, 409 `SNS_ACCOUNT_ALREADY_LINKED`. 가입 성공은 이메일 가입과 같이 `ncnm_setup` 쿠키만, 자동 로그인 없음
+- 기다리는 것: 이 백엔드 작업(YAY SCR-ACC-002 SNS 로그인)의 PR 병합, 공유 `application.properties`의 `/api/auth/sns-login` 열린 경로와 `app.sns.*`(키가 없으면 가짜 제공자: `code`를 `fake-이름`으로 보낸다), 제공자 콘솔 redirect-uri를 프론트 콜백 주소로 등록
+- 완료 조건: 실제 서버로 처음 보는 SNS 계정 → 가입 확인 화면 → 가입 완료 → 같은 SNS로 다시 로그인하면 로그인되고, 같은 이메일의 다른 가입 방식이면 중복 안내가 나온다
+- 끝남: 승인 2026-11-04, 검증 통과(2회차), 사람 확인 2026-11-04. 콜백은 `/login`, 로컬은 fake 제공자로 확인
+- 연결 끝: 실제 앱 키 로컬 확인 (2026-11-05, 제공자별 콜백 주소 절)
+
+## SCR-ACC-002 SNS 로그인 · 제공자별 콜백 주소 — 끝
+- 기능: 명세 기능 ID 추가 없음. FN-ACC-002-09·10·11에 걸친다
+- 대상: 인가 창 redirect URI를 백엔드·제공자 콘솔에 등록된 `/login/sns/{naver|kakao|google}/callback`으로 바꾸고, 그 경로를 로그인 화면이 받는다. 처리 뒤 주소는 `/login`(+`?redirect=`)으로 바꾼다
+- 기다리는 것: 없음 (백엔드 `app.sns.*.redirect-uri`와 콘솔 등록은 이미 이 주소)
+- 완료 조건: 네이버·카카오·구글 버튼 → 인가 창 → 콜백 → `POST /api/auth/sns-login`이 백엔드 로그에 찍히고, 기존 가입 계정은 로그인, 새 계정은 SNS 가입 확인 화면
+- 끝남: 승인 2026-11-05, 검증 통과, 사람 확인 2026-11-05(구글·카카오 실제 계정)
+- 연결 남음: FN-ACC-002-09·10·11 (배포 도메인 콜백 주소 등록·배포 앱 ID, 팀)
+
+## SCR-ACC-001 회원가입 (이메일) · 메일 발송 실패(502) 안내 — 대기
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-ACC-001-04 인증코드 발송(발송 실패 안내), FN-ACC-001-41 복구 인증번호 발송, 비밀번호 찾기 인증번호 발송(SCR-ACC-011)
+- 기다리는 것: 없음 (백엔드 YAY SCR-ACC-001 실제 메일 발송(SMTP) 끝, 2026-11-05)
+- 완료 조건: `POST /email-certifications`가 502 `MAIL_SEND_FAILED`면 가입·비밀번호 찾기·복구 이메일 단계 모두 서버 문구 "메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요."를 공통 알림으로 보이고, [인증코드 발송]을 곧바로 다시 누를 수 있으며 재전송 대기(N초 남음)를 시작하지 않는다
+- 이미 바뀐 것: 비밀번호 찾기·재가입 복구는 서버 문구를 그대로 보인다(2026-11-05 프론트 세션 확인). 회원가입만 프론트 공통 문구 "인증번호를 보내지 못했습니다. 다시 시도해 주세요."라 맞추면 된다
+
+## SCR-ACC-020 회원탈퇴 · 탈퇴 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-ACC-020-02 반려동물·공동양육 영향 확인, FN-ACC-020-03·14·20 유의사항 확인·문구 입력·탈퇴 실행, FN-ACC-020-15·16 실패·확인 중 안내와 결과 확인, FN-AIM-011-19 AI 매니저 탈퇴 진입, FN-MYP-002-08 마이페이지 탈퇴 진입
+- 기다리는 것: 없음 (백엔드 YAY `POST /api/members/me/withdraw` 끝, 2026-11-05). 반려동물 수는 `GET /api/pets`(SJM, 있음)
+- 완료 조건: 안내 2번은 `GET /pets`의 `brupRoleCd`로 "주양육 N마리 · 공동양육 N마리". [탈퇴하기]는 `{noticeConfirmed:true, confirmPhrase}`(입력 그대로, trim 하지 않음)를 보내고, 200이면 로그인 상태·화면 데이터를 비우고 완료 화면. 400 `WITHDRAW_PHRASE_MISMATCH`는 문구 입력칸, 400 `INVALID_INPUT_VALUE`(`noticeConfirmed`)는 확인 체크 영역, 그 밖의 실패는 "탈퇴를 처리하지 못했습니다. 계정은 유지됩니다." 응답이 끊기면 "탈퇴 처리 결과를 확인하고 있습니다." 뒤 `GET /auth/me`: 200이면 탈퇴 안 됨(안내부터 다시), 401이면 로그인 방법 선택(그 계정으로 로그인하면 403 `MEMBER_WITHDRAWN`으로 탈퇴 확인). 탈퇴 뒤 남은 쿠키는 401이다(403 `MEMBER_INACTIVE`가 아님). 확인 중에는 탈퇴 요청을 다시 보내지 않는다
+- 끝남: 승인 2026-11-05, 검증 2회차(확인 못 함 있음: 연결 남음만), 사람 확인 2026-11-05(실제 계정 탈퇴 → 완료 화면, 재로그인 시 탈퇴 안내)
+- 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당)
+
+## SCR-MAN-001 메인페이지 · 위젯 순서·건강 대시보드 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능: FN-MAN-001 히어로 캐릭터, FN-MAN-003·004 프로필 요약·반려동물 탭, FN-MAN-005·006 기준일·건강 지표 위젯, FN-MAN-007 위젯 순서 조정, FN-MAN-009 토탈 케어리스트 미리보기
+- 기다리는 것: 없음 (백엔드 YAY `GET`·`PUT /api/members/me/dashboard-widgets` 끝, 2026-11-05). 나머지는 이미 있음: `GET /api/pets`·`/api/pets/{petSn}`(SJM), `/api/pets/{petSn}/character-image`(LJS), `/api/pets/{petSn}/health-indicators`·`/care-items`·`/care-completions`(JAJ)
+- 완료 조건: 메인 진입 때 `GET /members/me/dashboard-widgets`의 순서(`sortSeq` 오름차순, MANG01 코드 7개, 저장한 적 없으면 기본 순서)로 위젯 카드를 놓는다. 표시 여부·개수 제한은 없다(명세 v0.10, 6종 모두 노출). 순서를 바꾸면 `PUT {dshbdWdgtCds:[…7개 전부, 보일 순서대로]}`, 200 응답 순서로 다시 그린다. 코드가 빠지거나 겹치면 400 `INVALID_INPUT_VALUE`. MANC0006(토탈 케어리스트)은 위젯 영역 밖 섹션이라 쓸지는 화면이 정한다. 위젯 값·기준일은 `health-indicators`의 `baseYmd`·`inqDt`, AI 건강분석 리포트(MANC0007)는 명세 미결. 반려동물 탭을 바꿔도 위젯 순서는 그대로
+- 영역별: 히어로(FN-MAN-001)는 대표 반려동물 캐릭터 + 이름·품종 캡션, 비로그인·캐릭터 없음이면 기본 캐릭터. 탭·요약(FN-MAN-003·004)은 SCR-HLT-011의 탭·요약 바를 재사용, 1마리면 탭을 숨기고 공동양육 반려동물도 넣는다, 탭을 바꾸면 프로필·위젯 값·케어리스트를 다시 부른다. 건강 지표(FN-MAN-006)는 체중·식사량·음수량·산책·혈액검사 5종, 값이 null이면 "기록이 없어요"와 입력 유도 문구, `prevDiff`가 null이면 비교 문구를 숨긴다. 토탈 케어리스트(FN-MAN-009)는 `care-items`·`care-completions`로 최대 6개를 읽기 전용으로, 완료 체크 없이 완료 여부만 표시
+- 하지 않는 것: AI 건강분석 리포트 위젯(MANC0007, 명세 미결), 비로그인일 때 위젯·케어리스트 대신 보여 줄 것(명세 "별도 확정 필요")
+- 이미 바뀐 것: `pages/main/MainPage.jsx`(가짜 데이터, 위 `SCR-MAN-001 메인페이지` 절)
+
+- 끝남: 승인 2026-11-05, 검증 2회차 통과, 사람 확인 2026-11-06. 추가-1(메인이 HLT-011 `SummaryHero` 그대로), 추가-2(안 쓰는 `AiReportCard`·`PetProfileCard` 삭제). 메인은 회원 전용 그대로
 ## 제외
 - 없음. 외부인증창 참고 행 6개(네이버·카카오·구글 외부 로그인·동의 창)는 명세에 기능 ID가 없다
 

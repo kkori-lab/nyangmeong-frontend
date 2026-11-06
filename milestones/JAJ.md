@@ -165,7 +165,7 @@
 - 결정: 백엔드 API는 develop에 머지돼 있었다. 디자인은 `html/hlt-summary.html` 그대로(모양은 바꾸지 않고 서버 키로만 바꿈). `GET /pets`에 캐릭터 상태가 없어 "캐릭터 만들기" 점선 카드를 빼고 `PetFace`로 둠(사람 결정). 건강기록 가짜 반려동물·일상기록·관찰·검진기록·일정·연동 케어 항목 저장소를 지움(PDF 분석·영수증 가짜는 남김)
 - 연결 남음: FN-HLT-011-01·02 캐릭터 상태 (`GET /pets`의 `chrcSttsCd`, LJS)
 
-## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 진행
+## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 끝
 
 - 기능: 토탈 케어리스트에서 사용자가 추가한 항목을 수정·삭제하는 UI (명세 기능 ID 추가 없음, FN-HLT-003-12 "사용자가 추가한 항목만 직접 수정·삭제"·"정기관리 기본 항목은 주기만 변경"에 걸침). API는 "토탈 케어리스트 API 연결" 절에서 연결한 `updateCareItem`(`PATCH /pets/{petSn}/care-items/{careArtclSn}`)·`deleteCareItem`(`DELETE …`)을 쓴다. 지금 화면·시안(`html/hlt-calendar.html`)에 수정·삭제 버튼과 모달이 없다
 - 기다리는 것: 화면설계서 갱신(수정·삭제 진입 위치와 모달), 이 파일의 "SCR-HLT-003 케어 캘린더 · 토탈 케어리스트 API 연결"
@@ -226,11 +226,56 @@
 - 추가 요청: 추가-1 409·404 안내를 토스트 대신 모달 안 빨간 안내 상자로(`CheckupModal.jsx`, `queries.js`)
 - 연결 남음: FN-HLT-002-31 일시 오류 뒤 [직접 입력]의 영수증 연결 (AI 서버 오류 응답 `recptSn`·업로드 모달, nyangmeong-ai 담당·LJS): AI 서버 영수증 분석 502 `OCR_API_ERROR`·504 시간 초과 응답에 `recptSn`이 없어(원본은 먼저 저장됨) 화면이 `POST /pets/{petSn}/checkups`로 저장한다(FN-HLT-002-31 "인식 실패·일시 오류"와 다름). 필요: AI 서버가 오류 응답에 `recptSn`을 준다(nyangmeong-ai 저장소에서 /start), LJS `features/ai/receipt/ReceiptUploadModal.jsx`가 오류 때도 `recptSn`을 [직접 입력]에 넘긴다. 백엔드는 일시 오류 영수증 저장을 이미 받고, `CheckupModal`은 `recptSn`만 받으면 영수증 경로로 저장한다. 브라우저 쪽 시간 초과(요청 중단)는 번호를 알 수 없어 남는다
 
-## SCR-HLT-002 건강 일지 · 영수증 일시 오류 [직접 입력] 연결 — 대기
+## SCR-HLT-002 건강 일지 · 영수증 일시 오류 [직접 입력] 연결 — 끝
 
 - 기능: 명세 기능 ID 추가 없음, FN-HLT-002-31(영수증 일시 오류 뒤 [직접 입력] 저장의 영수증 연결)에 걸침. `ReceiptUploadModal.jsx`가 AI 서버 오류 응답 `data.recptSn`을 [직접 입력]에 넘겨 `CheckupModal`이 영수증 경로로 저장한다. `onManualInput` 키 `rcptSn` → `recptSn`
 - 기다리는 것: AI 서버 영수증 분석 오류 응답 `data.recptSn` (nyangmeong-ai)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `/ai/receipts` 502에 `data.recptSn`이 있으면 실패 안내 [직접 입력] 저장이 `POST /api/receipts/{recptSn}/checkups?petSn=` 한 번, 없으면 `POST /pets/{petSn}/checkups`
+
+## SCR-HLT-002 건강 일지 · 체중 그래프 정상범위·목표 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-10(체중 — 사용자 정상범위 기준 색상 표시)에 걸침. `DailyTrendCard.jsx`가 가짜 키 `nrmlWghtMinVal`·`nrmlWghtMaxVal`·`goalWghtVal` 대신 서버 키 `minBdwg`·`maxBdwg`(`GET /pets`)·`goalBdwg`(`GET /pets/{petSn}`)를 읽는다
+- 기다리는 것: 없음(백엔드 develop에 있음, SJM)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 정상범위가 있는 반려동물의 체중 그래프에 범위 띠, 목표체중이 있으면 목표선이 보인다
+- 결과: 2026-11-04 검증 2회차 통과(1회차는 검증 브라우저 미로그인으로 화면 확인 못 함), 사람 확인 끝
+
+## SCR-HLT-002 건강 일지 · 영수증 원본 이미지 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-002-34(원본 이미지)에 걸침. `diary/ReceiptResultStep.jsx`의 `imgUrl = null`(아이콘 대체)을 `GET /api/receipts/{recptSn}/image`(비공개 파일)로 바꾼다
+- 기다리는 것: 없음 (백엔드 `ReceiptController` `GET /{recptSn}/image`가 develop에 있음)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 영수증 인식 결과 확인 모달 썸네일과 [영수증 원본] 모달에 올린 영수증 사진이 보인다
+- 결과: 2026-11-04 검증 1회차 통과, 사람 확인 끝
+- 연결 남음: 추가-2 (백엔드 연결 `POST /receipts/{recptSn}/save-check` 저장완료 영수증 409 `RECEIPT_ALREADY_SAVED`, 백엔드 저장소에서 /start)
+
+## SCR-HLT-003 케어 캘린더 · 일정 뱃지 색상 연결 — 끝
+
+- 기능: 명세 기능 ID 추가 없음, FN-HLT-003-36 일정 메모 · 뱃지 색상에 걸침. 숨겨 둔 일정 등록·수정 모달의 뱃지 색상 선택을 켜고 칩 5개를 HLTG21 코드로 `cldrBadgeColrCd`에 보낸다. 색을 고르지 않은 일정은 종류·검진유형 기본 톤으로 표시한다(병원 일정은 정기검진 보라·예방접종 초록·질병진료 빨강·검사 파랑·기타 진료 회색, 그 밖의 종류는 회색). 코드와 `nyangmung.css` tone 토큰: HLTC0079 보라 → `--tone-violet-fg`/`--tone-violet-bg`, HLTC0080 초록 → `--tone-green-fg`/`--tone-green-bg`, HLTC0081 빨강 → `--tone-rose-fg`/`--tone-rose-bg`, HLTC0082 파랑 → `--tone-blue-fg`/`--tone-blue-bg`, HLTC0083 회색 → `--tone-gray-fg`/`--tone-gray-bg`. 캘린더 칩은 `hlt.css`의 `c-violet`·`c-green`·`c-rose`·`c-blue`·`c-gray`를 그대로 쓴다. `c-amber`는 쓰지 않는다
+- 기다리는 것: 백엔드 SCR-HLT-003 일정 뱃지 색상(JAJ 백엔드, HLTG21 코드 5개. 공용 DB에는 `db/` 변경 절 v0.12 (6) 실행됨, develop 병합 전)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `http://localhost:5173/health/calendar`에서 색을 골라 등록·수정한 일정이 그 색 칩으로 보이고, 색을 고르지 않은 일정은 종류·검진유형 기본 톤으로 보인다
+- 결정: HLTC0081 칩 이름은 시안 "분홍"이 아니라 "빨강"(팀 확정, 공용 DB `COM_CD_NM`). 칩 순서는 시안에서 주황만 뺀 파랑·초록·빨강·보라·회색, 고른 칩을 다시 누르면 해제(`''` 전송). 색은 `TONE_CLASSES`(`index.css` `--color-tone-*` 클래스)로 그리고 hex 표는 지움
+- 추가 요청: 추가-1 종합 건강기록 `summaryUtils.js`·`TimelineCard.jsx`도 tone 클래스로(빌드 실패로 함께) / 추가-2 선택 링을 `outline: medium solid currentColor`·`outline-offset: var(--spacing)`으로(앱에 `--space-1` 없음) / 추가-3 칩 간격 `gap-3`(12px)
+- 결과: 2026-11-04 검증 통과(이전 루프는 로그인 미완료·첫 실패 뒤 핸드오프 URL 정정으로 실패해 사람이 루프를 버림, 마지막 루프 1회차는 로그인 세션 만료), 사람 확인 끝
+- 연결 남음: 없음
+
+## SCR-HLT-011·002 종합 건강기록·건강 일지 · 화면 다듬기 — 끝
+
+- 기능: 명세 기능 ID 추가 없음. 마일스톤이 모두 끝난 뒤 대화로 받은 화면 다듬기(FN-HLT-011-01·02·03·06, FN-HLT-002-01·15~19에 걸침)
+- 기다리는 것: 백엔드 검진기록 목록 `ckupCn`(추가-6 상세 줄, JAJ 백엔드)
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 핸드오프 `### 추가 요청` 추가-1~26의 각 화면 조건(`/health`, `/health/diary`)
+- 결정: 공용 `DropdownSelect`는 그대로 두고 건강 일지만 `DiaryPetPicker`로 바꿈. 지속 관찰 ⋮는 `CareItemMenu`에 선택 props `leadingItems`를 더해 씀. `LineChart`에 선택 props `labelFill`·`isEdgeToEdge`를 더함(기본값은 그대로). 사진 줄은 전체 회차, 차트는 크기 입력 회차 기준 최신 5개. 지속 관찰 모바일은 나중에(사람)
+- 추가 요청: 추가-1~5·9~14 히어로 칩 줄·기준일·진행 점·스와이프·요약 3칸 / 추가-6 타임라인 상세 줄·아이콘 / 추가-7·8·16 탭별 태블릿·PC 배치 / 추가-15 검사 결과 최대 5줄·범위 이탈 / 추가-17 PC 탭 아래 제목 숨김 / 추가-18 건강 일지 전체 반려동물 패널 / 추가-19 지표 칩 색 / 추가-20~26 지속 관찰 PC 색·굵기·목록·⋮ 메뉴·삭제 확인·"변화 없음"·차트 폭·최신 5개·[+N]·사진 원본 넘기기·말풍선 잘림
+- 결과: 2026-11-05 검증 에이전트 루프 없이 `yarn -s lint`·`yarn -s build` 0과 Playwright 화면 확인(가짜 응답은 브라우저에서만), 사람 확인 끝
+- 연결 남음: FN-HLT-011-03 타임라인 상세 줄 (백엔드 연결 `GET /pets/{petSn}/checkups` content의 `ckupCn`, 백엔드 저장소에서 /start)
+
+## SCR-HLT-002·003 건강 일지 그래프 기록 수 · 케어 캘린더 반려동물 선택 — 끝
+
+- 기능: FN-HLT-002-09 건강기록 변화, 002-10 그래프 원칙 · 조회기간 (그래프 기준 기록 수 14 → 7 → 5, 사람 요청 2026-11-06). 추가 요청으로 FN-HLT-003-39 표시 반려동물 필터
+- 기다리는 것: 없음
+- 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: `/health/diary` 건강기록 변화 카드가 최근 5개 기록 기준(부제 "최근 5개 기록", 요청 `size=5`) / `/health/calendar` 핸드오프 `### 추가 요청` 추가-2·3의 화면 조건
+- 결정: 디자인 기준 없음(지금 화면은 html·화면설계서와 달라 그대로 두고 개수만 바꿈). 캘린더 필터는 건강 일지 `DiaryPetPicker`에 `isMulti`·`selectedPetSns`·`onChange` props로 분기(단일 선택 값은 그대로), 필터는 달력·날짜 상세·다가오는 일정 셋 다, 모든 반려동물을 하나씩 고르면 전체로 바뀜, 반려동물 1마리 이하면 버튼 없이 제목. 전체 아이콘 `PawPrint`. 명세 FN-HLT-003-39·002-09·10 문구는 명세 일괄 갱신 때(핸드오프 "다음에 할 것")
+- 추가 요청: 추가-1 기록 수 7 → 5 / 추가-2 통합 케어 캘린더 칩 → 반려동물 선택 버튼·격자(다중 선택·[전체]·[선택 해제]·체크 배지·캐릭터 겹침 "첫 이름 외 n"·일정 수 미표시), `PetFilterChips.jsx` 삭제 / 추가-3 제목 글자를 화면에서 숨기고 그 자리에 버튼(`Card.jsx` `isTitleHidden`, 추가-2의 `titleAside`는 뺌)
+- 결과: 2026-11-06 검증 통과(이전 루프는 로그인 만료 2회·390px 머리줄 겹침 1회로 3회 실패, 사람이 루프를 버리고 추가-3으로 고침), 사람 확인 끝
+- 연결 남음: 없음
 
 ## 제외
 

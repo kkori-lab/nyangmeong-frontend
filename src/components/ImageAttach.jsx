@@ -5,26 +5,32 @@ import { RECEIPT_ACCEPT, validateReceiptFile } from '@/utils/receiptFile';
 export const MAX_IMAGES = 10;
 
 /**
- * 이미지 첨부: images는 [{ id, name, url, file }], 최대 10장, jpg·png·webp, 한 장 10MB
+ * 이미지 첨부: images는 [{ id, name, url, file }], 최대 max장(기본 10), jpg·png·webp, 한 장 10MB
  * - file: 방금 고른 원본 File. 서버에 업로드용
  * - 서버에서 받아 온 첨부는 file 없이 url도 null일 수 있다(받는 중이거나 실패): 이름만 있는 자리 표시
  * - hint: 안내 문구 위에 덧붙일 한 줄(선택)
+ * - max: 올릴 수 있는 장수(선택, 기본 MAX_IMAGES)
  * - 형식·용량 검사는 영수증 업로드와 같은 validateReceiptFile 사용
  * - 미리보기 주소(blob:)는 삭제해도 해제 안 함
  */
-export default function ImageAttach({ images, onChange, hint }) {
+export default function ImageAttach({
+  images,
+  onChange,
+  hint,
+  max = MAX_IMAGES,
+}) {
   const inputId = useId();
   const [errorMessage, setErrorMessage] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const isFull = images.length >= MAX_IMAGES;
+  const isFull = images.length >= max;
 
   const addFiles = async (fileList) => {
     const files = Array.from(fileList);
     const accepted = [];
     let nextError = '';
     for (const file of files) {
-      if (images.length + accepted.length >= MAX_IMAGES) {
-        nextError = `이미지는 최대 ${MAX_IMAGES}장까지 올릴 수 있어요`;
+      if (images.length + accepted.length >= max) {
+        nextError = `이미지는 최대 ${max}장까지 올릴 수 있어요`;
         break;
       }
       const reason = await validateReceiptFile(file);
@@ -67,7 +73,7 @@ export default function ImageAttach({ images, onChange, hint }) {
           이미지 첨부
         </span>
         <span className="text-sm text-[#667374]">
-          {images.length} / {MAX_IMAGES}
+          {images.length} / {max}
         </span>
       </div>
 
@@ -149,7 +155,7 @@ export default function ImageAttach({ images, onChange, hint }) {
             {hint}
           </span>
         )}
-        최대 10장(JPG · PNG · WEBP), 한 장에 10MB까지 올릴 수 있어요.
+        최대 {max}장(JPG · PNG · WEBP), 한 장에 10MB까지 올릴 수 있어요.
       </p>
       {errorMessage && (
         <p

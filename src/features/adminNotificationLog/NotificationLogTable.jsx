@@ -1,5 +1,6 @@
 import { formatDate, getHmOf } from '@/utils/formatDate';
 import { SNDNG_RSLT_FAIL } from './api';
+import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = [
   '발송 일시',
@@ -27,7 +28,7 @@ export default function NotificationLogTable({
   results,
 }) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-line bg-white">
+    <div className={ADMIN_TABLE_BOX}>
       <table className="w-full min-w-[820px] text-left text-base">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">

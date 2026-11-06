@@ -1,17 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  checkNickname,
-  checkPhone,
-  checkRecoveryPhone,
-  checkSignupPhone,
+  checkNicknameAvailability,
+  checkPhoneAvailability,
   getCaptcha,
   getLoginStatus,
   getMe,
   getMyProfile,
   getRecoveryInfo,
   getTerms,
+  getTermsList,
   invalidateRecoveryCode,
   joinMember,
+  joinSnsMember,
   login,
   logout,
   recoverMember,
@@ -19,18 +19,21 @@ import {
   sendMemberRecoveryCode,
   sendRecoveryCode,
   sendSignupCode,
-  updateNickname,
+  setupNickname,
+  snsLogin,
   updatePassword,
   updatePhone,
   updateProfileImage,
   verifyPassword,
   verifyRecoveryCode,
   verifySignupCode,
+  withdrawMember,
 } from './api';
 
 export const memberKeys = {
   me: ['members', 'me'],
   profile: ['members', 'profile'],
+  termsList: ['terms'],
   terms: (trmsSn) => ['terms', trmsSn],
 };
 
@@ -71,22 +74,6 @@ export const useUpdateProfileImage = () => {
   });
 };
 
-export const useCheckNickname = () =>
-  useMutation({ mutationFn: checkNickname });
-
-export const useUpdateNickname = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: updateNickname,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: memberKeys.profile });
-      qc.invalidateQueries({ queryKey: memberKeys.me });
-    },
-  });
-};
-
-export const useCheckPhone = () => useMutation({ mutationFn: checkPhone });
-
 export const useUpdatePhone = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -104,6 +91,19 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: login,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: memberKeys.me }),
+  });
+};
+
+/** 로그인 결과일 때 쿠키가 바뀌므로 내 정보(헤더) 재조회 */
+export const useSnsLogin = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: snsLogin,
+    onSuccess: ({ snsLoginRslt }) => {
+      if (snsLoginRslt === 'LOGIN') {
+        queryClient.invalidateQueries({ queryKey: memberKeys.me });
+      }
+    },
   });
 };
 
@@ -129,8 +129,11 @@ export const useRecoveryInfo = () =>
 export const useRecoverMember = () =>
   useMutation({ mutationFn: recoverMember });
 
-export const useCheckRecoveryPhone = () =>
-  useMutation({ mutationFn: checkRecoveryPhone });
+export const useCheckPhoneAvailability = () =>
+  useMutation({ mutationFn: checkPhoneAvailability });
+
+export const useTermsList = () =>
+  useQuery({ queryKey: memberKeys.termsList, queryFn: getTermsList });
 
 export const useTerms = (trmsSn) =>
   useQuery({
@@ -147,7 +150,21 @@ export const useSendSignupCode = () =>
 export const useVerifySignupCode = () =>
   useMutation({ mutationFn: verifySignupCode });
 
-export const useCheckSignupPhone = () =>
-  useMutation({ mutationFn: checkSignupPhone });
-
 export const useJoinMember = () => useMutation({ mutationFn: joinMember });
+
+export const useJoinSnsMember = () =>
+  useMutation({ mutationFn: joinSnsMember });
+
+export const useCheckNicknameAvailability = () =>
+  useMutation({ mutationFn: checkNicknameAvailability });
+
+export const useSetupNickname = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: setupNickname,
+    onSuccess: () => qc.invalidateQueries({ queryKey: memberKeys.me }),
+  });
+};
+
+export const useWithdrawMember = () =>
+  useMutation({ mutationFn: withdrawMember });

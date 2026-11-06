@@ -1,7 +1,8 @@
 import { ChevronRight, Lock } from 'lucide-react';
 import { useState } from 'react';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { CARD_ROWS, SECTION_TITLE } from '../shared/profileStyles';
-import { SNS_NAME } from '../shared/snsCodes';
+import { JOIN_PATH_EMAIL, SNS_NAME } from '../shared/snsCodes';
 import AccountInfoCard from './AccountInfoCard';
 import NicknameField from './NicknameField';
 import PasswordChangeCard from './PasswordChangeCard';
@@ -9,8 +10,19 @@ import PhoneField from './PhoneField';
 import ProfileImageField from './ProfileImageField';
 import SnsBadge from './SnsBadge';
 
-export default function ProfileEditForm({ profile, onWithdraw }) {
-  const { snsTyCd, acntEml, mbrNcnm, mbrTelno, prflImgUrl } = profile;
+export default function ProfileEditForm({ profile, hidePassword, onWithdraw }) {
+  const {
+    acntEml,
+    mbrNcnm,
+    mblTelno,
+    atchFileSn,
+    joinPathCd,
+    joinDt,
+    lastLgnDt,
+  } = profile;
+  // 이메일 가입(USRC0006)이 아니면 SNS 회원: 가입경로 코드가 곧 SNS 종류
+  const snsTyCd = joinPathCd === JOIN_PATH_EMAIL ? null : joinPathCd;
+  const prflImgUrl = atchFileSn ? publicFileUrl(atchFileSn) : null;
   // 한 번에 한 항목만 펼친다. 다른 항목을 열면 열려 있던 항목은 입력을 버리고 닫힌다
   const [editingKey, setEditingKey] = useState(null);
 
@@ -52,8 +64,10 @@ export default function ProfileEditForm({ profile, onWithdraw }) {
             )}
           </ProfileImageField>
           <NicknameField mbrNcnm={mbrNcnm} {...rowProps('nickname')} />
-          <PhoneField mbrTelno={mbrTelno} {...rowProps('phone')} />
-          {!snsTyCd && <PasswordChangeCard {...rowProps('password')} />}
+          <PhoneField mblTelno={mblTelno ?? ''} {...rowProps('phone')} />
+          {!snsTyCd && !hidePassword && (
+            <PasswordChangeCard {...rowProps('password')} />
+          )}
         </div>
       </section>
       <section
@@ -66,9 +80,9 @@ export default function ProfileEditForm({ profile, onWithdraw }) {
         <div className={CARD_ROWS}>
           <AccountInfoCard
             snsTyCd={snsTyCd}
-            mbrJoinPathCd={profile.mbrJoinPathCd}
-            mbrRegDt={profile.mbrRegDt}
-            mbrLastLgnDt={profile.mbrLastLgnDt}
+            joinPathCd={joinPathCd}
+            joinDt={joinDt}
+            lastLgnDt={lastLgnDt}
           />
         </div>
       </section>

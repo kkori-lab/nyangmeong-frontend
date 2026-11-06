@@ -1,14 +1,25 @@
-import { Check, ChevronDown, CircleAlert, Lock, X } from 'lucide-react';
+import { Check, ChevronDown, CircleAlert, Lock } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
+import { PATHS } from '@/routes/paths';
 import {
   COLR_DRCT_INPT,
   COLR_OPTIONS,
+  findColrName,
   PET_GNDR_OPTIONS,
   PET_SE,
   PET_SE_OPTIONS,
 } from '@/utils/petCodes';
-import { useCreatePet, usePet, useUpdatePet, useVarieties } from '../queries';
+import { isColrMismatch } from '@/utils/petFormat';
+import {
+  useCreatePet,
+  useLastWeightRecord,
+  usePet,
+  useUpdatePet,
+  useVarieties,
+} from '../queries';
 
 /** 품종 [직접 입력] 선택 상태 */
 const VRTY_DRCT_INPT = 'DRCT_INPT';
@@ -60,6 +71,23 @@ const normalizeList = (value) =>
 const toNumberOrNull = (value) => (value === '' ? null : Number(value));
 const toTextOrNull = (value) => value.trim() || null;
 
+const PET_SE_NAME = Object.fromEntries(
+  PET_SE_OPTIONS.map(({ code, name }) => [code, name]),
+);
+
+/** 저장된 털색이 그 종 목록에 없을 때 선택지로 보여 줄 원래 값. 없으면 null */
+const getOrphanColr = (pet) => {
+  if (!pet || !isColrMismatch(pet)) return null;
+  const owner = PET_SE_OPTIONS.find(({ code }) =>
+    COLR_OPTIONS[code]?.some((colr) => colr.code === pet.colrCd),
+  );
+  const name = findColrName(pet.colrCd) || '알 수 없는 털색';
+  return {
+    code: pet.colrCd,
+    label: owner ? `${name} (${owner.name} 털색)` : name,
+  };
+};
+
 const formatRecordDate = (rcdDt) => rcdDt.slice(5, 10);
 
 /** 서버 필드명 -> 화면 오류 자리 매핑 */
@@ -74,7 +102,7 @@ const ERROR_KEY = {
 const errorKeyOf = (field) => ERROR_KEY[field] ?? field;
 
 /** 오류 목록 (화면 순서) */
-const validate = ({ form, breedText, isWeightLocked }) => {
+const validate = ({ form, breedText, isWeightLocked, isColrMismatched }) => {
   const errors = [];
   const isVrtyDrctInpt = form.vrtySn === VRTY_DRCT_INPT;
   const isColrDrctInpt = form.colrCd === COLR_DRCT_INPT;
@@ -123,6 +151,8 @@ const validate = ({ form, breedText, isWeightLocked }) => {
   }
   if (form.colrCd === '') {
     errors.push(['colr', '털색을 골라 주세요', 'pet-colr']);
+  } else if (isColrMismatched) {
+    errors.push(['colr', '털색을 다시 골라 주세요', 'pet-colr']);
   } else if (isColrDrctInpt && !form.colrDrctInptNm.trim()) {
     errors.push(['colr', '털색을 직접 입력해 주세요', 'pet-colr-self']);
   }
@@ -130,40 +160,59 @@ const validate = ({ form, breedText, isWeightLocked }) => {
 };
 
 export default function PetFormModal({ petSn = null, onClose }) {
-  const { data: pet, isPending } = usePet(petSn);
+  const { data: pet, isPending: isPetPending } = usePet(petSn);
+  const { data: lastBdwgRcd = null, isPending: isWeightPending } =
+    useLastWeightRecord(petSn);
+  const createPet = useCreatePet();
+  const updatePet = useUpdatePet();
   const isEdit = petSn != null;
+  const isPending = createPet.isPending || updatePet.isPending;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto px-4 py-8">
-      <div className="fixed inset-0 bg-[rgba(15,23,35,0.45)]" />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pet-form-title"
-        className="relative m-auto flex w-full max-w-[720px] shrink-0 flex-col rounded-modal bg-white shadow-depth-lg"
-      >
-        <header className="flex items-start gap-3.5 border-b border-line-strong px-7 pt-4 pb-2">
-          <h2 id="pet-form-title" className="text-xl leading-[1.35] font-bold">
-            {isEdit ? '반려동물 수정' : '반려동물 등록'}
-          </h2>
+    <Modal
+      title={isEdit ? '반려동물 수정' : '반려동물 등록'}
+      isLarge
+      isAutoHeight
+      isSheet
+      width={720}
+      isDismissDisabled
+      isPending={isPending}
+      onClose={onClose}
+      footer={
+        <div className="ml-auto flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            aria-label="닫기"
-            className="-mt-1 -mr-2 ml-auto grid size-9 shrink-0 place-items-center rounded-box text-muted hover:bg-surface-3 hover:text-ink"
+            disabled={isPending}
+            className="inline-flex h-10 min-w-24 items-center justify-center rounded-md border border-line bg-white px-4 font-semibold hover:border-line-strong hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <X className="size-5" />
+            취소
           </button>
-        </header>
-        {isEdit && isPending ? null : (
-          <PetForm pet={isEdit ? pet : null} onClose={onClose} />
-        )}
-      </div>
-    </div>
+          <button
+            type="submit"
+            form="pet-form"
+            disabled={isPending}
+            className="inline-flex h-10 min-w-24 items-center justify-center rounded-md bg-brand-500 px-4 font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-line-strong"
+          >
+            {isEdit ? '저장' : '등록하기'}
+          </button>
+        </div>
+      }
+    >
+      {isEdit && (isPetPending || isWeightPending) ? null : (
+        <PetForm
+          pet={isEdit ? pet : null}
+          lastBdwgRcd={isEdit ? lastBdwgRcd : null}
+          createPet={createPet}
+          updatePet={updatePet}
+          onClose={onClose}
+        />
+      )}
+    </Modal>
   );
 }
 
-function PetForm({ pet, onClose }) {
+function PetForm({ pet, lastBdwgRcd, createPet, updatePet, onClose }) {
   const [form, setForm] = useState(() => (pet ? toForm(pet) : EMPTY_FORM));
   /** 품종 칸 표시 글자 */
   const [breedText, setBreedText] = useState(() => {
@@ -175,15 +224,21 @@ function PetForm({ pet, onClose }) {
   const [isOptOpen, setIsOptOpen] = useState(pet != null);
   const optRef = useRef(null);
   const { data: varieties = [] } = useVarieties(form.petSeCd);
-  const createPet = useCreatePet();
-  const updatePet = useUpdatePet();
+  const navigate = useNavigate();
 
   const isEdit = pet != null;
-  const lastBdwgRcd = pet?.lastBdwgRcd ?? null;
   const isVrtyDrctInpt = form.vrtySn === VRTY_DRCT_INPT;
   const isColrDrctInpt = form.colrCd === COLR_DRCT_INPT;
   const colrOptions = COLR_OPTIONS[form.petSeCd] ?? [];
-  const isPending = createPet.isPending || updatePet.isPending;
+  /** 수정 진입 때 저장된 털색이 그 종 목록에 없으면 원래 값을 보여 주고 다시 고르게 한다 */
+  const [orphanColr] = useState(() => getOrphanColr(pet));
+  const isOrphanSelected =
+    orphanColr != null &&
+    form.petSeCd === pet.petSeCd &&
+    form.colrCd === orphanColr.code;
+  const orphanNotice = isOrphanSelected
+    ? `${PET_SE_NAME[form.petSeCd]} 털색 목록에 없는 값이에요. 다시 골라 주세요`
+    : null;
 
   const clearError = (...fields) =>
     setErrors((prev) => {
@@ -249,6 +304,7 @@ function PetForm({ pet, onClose }) {
       form,
       breedText,
       isWeightLocked: lastBdwgRcd != null,
+      isColrMismatched: isOrphanSelected,
     });
     if (found.length > 0) {
       setErrors(
@@ -458,6 +514,8 @@ function PetForm({ pet, onClose }) {
               id="pet-colr"
               label="털색"
               required
+              help={orphanNotice}
+              helpId="pet-colr-h"
               error={errors.colr}
             >
               <div className="relative">
@@ -467,13 +525,18 @@ function PetForm({ pet, onClose }) {
                   value={form.colrCd}
                   onChange={handleChange}
                   aria-invalid={errors.colr ? 'true' : undefined}
-                  aria-describedby="pet-colr-e"
-                  className={`${INPUT} cursor-pointer appearance-none pr-9 invalid:text-placeholder`}
+                  aria-describedby={
+                    orphanNotice ? 'pet-colr-h pet-colr-e' : 'pet-colr-e'
+                  }
+                  className={`${INPUT} cursor-pointer appearance-none pr-9 invalid:text-placeholder [&>option]:text-ink [&>option:disabled]:text-placeholder`}
                   required
                 >
                   <option value="" disabled>
                     털색 선택
                   </option>
+                  {isOrphanSelected && (
+                    <option value={orphanColr.code}>{orphanColr.label}</option>
+                  )}
                   {colrOptions.map((colr) => (
                     <option key={colr.code} value={colr.code}>
                       {colr.name}
@@ -540,9 +603,9 @@ function PetForm({ pet, onClose }) {
                   건강 일지에 기록된 체중이에요 (
                   {formatRecordDate(lastBdwgRcd.rcdDt)} 기록)
                 </p>
-                {/** 건강 일지(SCR-HLT-002) 경로 연결 예정 */}
                 <button
                   type="button"
+                  onClick={() => navigate(PATHS.HEALTH_DIARY)}
                   className="inline-flex h-10 items-center justify-center self-start rounded-md border border-line bg-white px-4 font-semibold hover:border-line-strong hover:bg-surface-2"
                 >
                   건강 일지에서 기록하기
@@ -733,23 +796,6 @@ function PetForm({ pet, onClose }) {
           </details>
         </form>
       </div>
-      <footer className="z-[2] flex items-center justify-end gap-2 rounded-b-modal border-t border-line bg-[#fbfcfd] px-7 py-4 max-[760px]:sticky max-[760px]:bottom-0">
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-10 min-w-24 items-center justify-center rounded-md border border-line bg-white px-4 font-semibold hover:border-line-strong hover:bg-surface-2"
-        >
-          취소
-        </button>
-        <button
-          type="submit"
-          form="pet-form"
-          disabled={isPending}
-          className="inline-flex h-10 min-w-24 items-center justify-center rounded-md bg-brand-500 px-4 font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-line-strong"
-        >
-          {isEdit ? '저장' : '등록하기'}
-        </button>
-      </footer>
     </>
   );
 }
@@ -1009,6 +1055,8 @@ function BreedCombo({ varieties, selected, text, invalid, onType, onSelect }) {
       e.preventDefault();
       pick(active);
     } else if (e.key === 'Escape' && isOpen) {
+      /** 모달(dialog)의 Esc 처리까지 가지 않게 목록만 닫는다 */
+      e.preventDefault();
       e.stopPropagation();
       close();
     }

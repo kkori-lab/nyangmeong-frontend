@@ -2,26 +2,47 @@
 
 ## 지금 하는 것
 
-SCR-HOS-001 플레이스 · 장소 검색·즐겨찾기 API 연결 — 끝남 (승인 2026-11-03 11:10, 검증 통과(확인 못 함 없음, 연결 남음 FN-HOS-001-33), 사람 확인 2026-11-03). `features/place/` 더미를 `GET /places`(카테고리 `PLCC0001~5`·키워드·지도 범위·중앙·정렬, 15건씩 최대 45건 무한 스크롤)와 `/place-bookmarks`(목록·저장·해제)로 바꿨다. 결정: 결과 카드·병원명·상세보기는 문서대로 카카오맵 상세(`kakaoUrlPath`)를 새 탭으로 열고, 지도 선택은 핀만. 영업시간·영업 상태·태그는 서버에 없어 뺐다. 무한 스크롤은 공용 `useInView`가 스크롤 영역을 root로 못 받아 `PlacePanel.jsx`가 IntersectionObserver를 직접 쓴다. 즐겨찾기 저장·해제는 즐겨찾기 목록만 다시 받는다(별은 그 목록 기준). 확인 환경: `VITE_KAKAO_MAP_KEY`는 카카오 JavaScript 키여야 한다(REST 키면 지도 SDK 401)
+SCR-MAN-001 메인페이지 · 위젯 순서·건강 대시보드 API 연결 — 끝남 (승인 2026-11-05 16:07, 검증 통과 2회차(잠금을 버린 뒤, 앞 1회차 실패는 '메인은 공개 URL' 기획 전제가 틀려서), 사람 확인 2026-11-06). 메인은 회원 전용(`auth: 'member'` 그대로). 히어로는 대표 반려동물(`rprsPetYn`) `character-image` 전신 + 캡션, 없거나 실패면 기본 캐릭터. 탭·프로필·요약 3칸은 HLT-011 `SummaryHero`를 그대로(추가-1, `useHealthSummary`), 기준일·지표 5종은 `features/dashboard/IndicatorWidgets.jsx`(`GET /pets/{petSn}/health-indicators`, null이면 "기록이 없어요", `prevDiff` null이면 비교 숨김), 위젯 순서는 [순서 편집](끌어 놓기·앞뒤 버튼) → `PUT /members/me/dashboard-widgets` 7개(MANC0006은 그리드 밖 제자리), MANC0007은 "준비 중" 카드. 토탈 케어리스트는 `features/health/CarePreview.jsx`(읽기 전용 최대 6개). 가짜 `dashboardSample`·`MissionList`·`HealthSummary`와 안 쓰는 `AiReportCard`·`PetProfileCard`(추가-2) 지움. 로컬 백엔드에서 `character-image`·`daily-health-records` POST·`care-completions` POST가 500이라 캐릭터 있음·지표 값은 가짜 응답으로 검증했다
+
+### 추가 요청
+
+| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
+| --- | --- | --- | --- |
+| 추가-3 | `features/health/CarePreview.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 메인 토탈 케어리스트 항목이 1개여도 줄을 꽉 채우지 않고 한 칸 크기(PC 6칸 중 1칸), 폭을 줄이면 1100px 이하 3칸·700px 이하 2칸으로 바뀐다. 6개면 전처럼 한 줄 | 요청 2026-11-06 10:16 "한개일 때 꽉 차지 말고 기본 크기, 화면을 줄이거나 늘릴 때만 반응형" |
+
+SCR-ACC-020 회원탈퇴 + 탈퇴 API 연결 — 끝남 (승인 2026-11-05 14:48, 검증 2회차 확인 못 함 있음(연결 남음만, 1회차 실패는 로그인 가능한 로컬 계정이 없어서), 사람 확인 2026-11-05). 안내·문구 모달·실패/확인 중은 `/mypage/withdraw`(`pages/mypage/WithdrawPage.jsx`가 `usePets`와 `features/member/withdraw/`를 조립), 완료는 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, 로그인 캐시는 완료 화면이 비움, 바로 열면 랜딩). `withdrawMember`는 문구를 trim 없이 보내고 timeout 15초(끊기면 `NETWORK_ERROR` → 확인 중, [결과 확인]은 `getMe`만 부름). 마이페이지 [회원 탈퇴](SJM 버튼)와 AI `screenPaths.js`에 연결. 검증이 로컬 확인용 회원 mbrSn 211·212를 탈퇴시켰다(개발용 토큰 `POST /api/auth/dev-tokens`로 로그인)
+
+SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 끝남 (승인 2026-11-05 10:30, 검증 통과(잠금을 버린 뒤 1회차, 앞의 2회 실패는 로컬 백엔드가 SMTP라 인증번호를 못 읽어서), 사람 확인 2026-11-05). `resetPassword`가 `POST /email-certifications/{emlCertSn}/password-reset`을 부른다. 비밀번호 찾기가 라우터 state로 `{ emlCertSn, pswdInitTkn, initAuthrtExpryDt, certTrgtEml }`을 넘긴다. 400 `PASSWORD_RESET_NOT_AVAILABLE`은 만료 화면, `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 칸 오류, 그 밖은 공통 알림. [취소]는 `invalidate` 뒤 결과와 상관없이 `/login`. 추가-1: 이메일 로그인 폼의 [회원가입]이 "준비 중" 토스트 대신 `/signup`으로 간다. 로컬 백엔드가 실제 메일(SMTP)을 보내면 인증번호를 로그로 읽을 수 없어, 받을 수 있는 메일 계정으로 사람이 번호를 넘겨 확인했다
+
+SCR-ACC-002 SNS 로그인 · 제공자별 콜백 주소 — 끝남 (승인 2026-11-05 09:49, 검증 통과 1회차, 사람 확인 2026-11-05: 구글·카카오 실제 계정으로 SNS 가입 확인 화면까지). 콜백은 `/login/sns/:provider/callback`(`PATHS.SNS_CALLBACK`, `docs/routes.md` ACC-002 줄)이 받고 처리 뒤 `/login`(+`?redirect=`)으로 replace. 백엔드 `app.sns.*.redirect-uri`·제공자 콘솔이 이 주소다. 앞의 "콜백은 `/login`" 결정을 바꿨다
+
+SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 끝남 (승인 2026-11-04 17:06, 검증 통과 2회차(1회차는 로컬 백엔드가 real 모드라 확인 못 함), 사람 확인 2026-11-04). 콜백은 새 URL 없이 `/login`이 받는다(`features/member/login/snsAuth.js`·`useSnsCallback.js`). state·제공자·`redirect`는 sessionStorage `snsLoginRequest`. 앱 ID(`VITE_NAVER_CLIENT_ID`·`VITE_KAKAO_REST_KEY`·`VITE_GOOGLE_CLIENT_ID`)가 비면 개발 서버에서 이름을 받아 `fake-이름`으로 돌아온다(백엔드 `app.sns.client=fake`). SNS 가입 확인은 `features/member/signup/SnsSignupForm.jsx`·`useSnsSignup.js`(router state `snsSignup`). `TermsChecklist`·`SignupComplete`를 떼어 이메일 가입과 같이 쓴다. 확인용 로컬 SNS 회원 `verifysnsk1104@example.com`(카카오)·`verifysnsg1104@example.com`(구글)이 로컬 DB에 남아 있다
+
+코드 정리 · 약관 체크박스 합치기 — 끝남 (승인 2026-11-04 16:48, 검증 통과 1회차(확인 못 함 없음, 연결 남음 없음), 사람 확인 2026-11-04). `features/member/signup/TermsStep.jsx`의 지역 `CheckBox`를 지우고 `features/member/shared/AuthCheckBox.jsx`를 쓴다. 모양·동작은 그대로(체크 색은 `brand-500` 진녹색, 기획 문구의 '주황'은 틀림)
+
+SCR-HOS-001 플레이스 · FN-HOS-001-33 로그인 필수 접근 — 끝남 (승인 2026-11-04 16:10, 검증 통과 1회차(확인 못 함 없음, 연결 남음 없음), 사람 확인 2026-11-04). `routes/AppRoutes.jsx`의 `<ProtectedRoute />` 묶음에 `pick('bare', 'member')`를 더하고 `placeRoutes.js`를 `auth: 'member'`로 바꿨다. `PlaceLayout`은 헤더 있음·푸터 없음(기획 문구의 '헤더 없음'은 틀림). 확인용 로컬 계정 `verify1104place@example.com`이 로컬 DB에 남아 있다
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
 두 화면은 PR #61(`YAY` → `develop`)로 올렸다. 기준: 로그인·회원가입_화면설계서_v0.10_20260930, 디자인: 시안 폴더(저장소 밖) `nmcare-design-v5`의 `acc.css`·`acc.js`. 가짜 규칙: 비밀번호 `wrong`은 불일치(5번 실패하면 보안코드), 인증번호 `123456` 일반·`234567` SNS 전용·`345678` 미가입·`456789` 탈퇴, 이메일 `fail@example.com`은 발송 실패, 새 비밀번호에 `fail`이 있으면 저장 실패. 로그인과 인증 화면이 같이 쓰는 컴포넌트는 `features/member/shared/Auth*.jsx`
 
-새 의존성: 없음
-
 ## 다음에 할 것
 
-- 중단: SCR-ACC-001 회원가입 · 가입·인증·닉네임 API 연결 (승인 2026-11-03 10:50, 2026-11-03 플레이스 API 연결을 먼저 하려고 멈춤). 코드(`features/member/` 약관 `GET /terms`·`shared/TermsModal.jsx`, 발송·확인 `USRC0010`, 번호 `checkPhoneAvailability`, 가입 `POST /members`(`USRC0006`·`certNo`·`trmsAgres`·`idmptDmndId`), 닉네임 모달 `GET /members/nickname-availability`·`PATCH /members/me/nickname`, 가입 비밀번호 `isValidJoinPassword`). lint·build 통과. 검증 1회차는 환경 때문에 실패: `backend.log`가 없어 인증번호를 못 읽음, 탈퇴 보관 계정 없음(회원 204가 정상). 코드는 `git stash`("SCR-ACC-001 회원가입 연결 중단분", 새 파일 포함)에 보관했다. `git stash pop`으로 되돌린다. 다시 할 때 백엔드를 로그 파일로 띄우고 회원 204를 탈퇴 보관으로 되돌린 뒤 `/start SCR-ACC-001`로 이어 간다. 서버 약관에는 만 14세 항목이 없다(SERVICE·PRIVACY·LOCATION·MARKETING)
-- 연결 남음: FN-HOS-001-33 플레이스 로그인 필수. `routes/AppRoutes.jsx`의 `<ProtectedRoute />` 아래에 `pick('bare', 'member')` 조립을 넣는 별도 PR을 올린 뒤 `routes/domains/place/placeRoutes.js`를 `auth: 'member'`로 바꾼다(YAY)
-- 연결 남음: 가입 화면 409 `MEMBER_RECOVERY_AVAILABLE` → 복구 화면 진입 (마일스톤 "회원가입 · 가입·인증·닉네임 API 연결"에서 화면 확인, YAY)
-- 코드 후보: `features/signup/TermsStep`의 CheckBox를 `features/member/shared/AuthCheckBox.jsx`로 합친다
+- PR Breaking Changes(SCR-MAN-001): `features/pet/PetProfileCard.jsx`(SJM) 삭제, 메인이 HLT-011 `SummaryHero`(JAJ)를 그대로 씀(메인에서 `useHealthSummary` 호출), `features/health/CarePreview.jsx` 새 파일(JAJ 도메인). JAJ·SJM에게 알린다
+- 팀 알림: 로컬 백엔드 500 — `GET /pets/{petSn}/character-image`(LJS), `POST /pets/{petSn}/daily-health-records`·`POST /pets/{petSn}/care-completions`(JAJ). 실제 기록·캐릭터로 메인 지표·히어로를 다시 본다
+- 메인 남은 것: FN-MAN-002 AI 대화창, FN-MAN-008 전체 보기 반려동물 유지(`SCR-MAN-001 메인페이지` 절), MANC0007 AI 건강분석 리포트(명세 미결)
+- 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당). 프론트 `screenPaths.js` 줄은 넣음
+- PR Breaking Changes(SCR-ACC-020): 새 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, `docs/routes.md`), SJM `ProfileEditPage.jsx` [회원 탈퇴] 이동 연결, LJS `screenPaths.js`에 `SCR-ACC-020` 행
+- SNS 배포 연결(팀): 배포 도메인의 `/login/sns/{naver|kakao|google}/callback`을 제공자 콘솔·배포 백엔드 `app.sns.*.redirect-uri`에 등록, 배포 프론트 환경에 `VITE_*` 앱 ID 3개. 카카오는 전화번호 동의항목 권한 신청 전이라 번호를 주지 않는다(직접 입력으로 감)
+- 팀 알림: 새 URL `/login/sns/:provider/callback`(`paths.js` `SNS_CALLBACK`)을 PR Breaking Changes에 적고 팀에 알린다
+- 코드 후보: SNS 가입 확인 화면에서 새로고침하면 history state가 남아 SNS 가입 확인이 그대로 나온다(`SignupPage.jsx` 주석 "새로고침으로 state가 없으면 이메일 가입"과 다름). SCR-ACC-002 SNS 검증 메모
+- 코드 후보: 390 폭에서 SNS 가입 확인의 "가입 계정 확인" 라벨이 두 줄로 꺾이고 이메일이 말줄임된다(`SnsSignupForm.jsx` 라벨 `shrink-0`)
+- PR Breaking Changes(SNS): `.env.example`에 `VITE_NAVER_CLIENT_ID`·`VITE_KAKAO_REST_KEY`·`VITE_GOOGLE_CLIENT_ID` 추가, `TermsStep.jsx`에서 `TermsChecklist`·`SignupForm.jsx`에서 `SignupComplete`를 떼어 냄
+
 - 문서 정리(인증 이동 규칙) 사람 확인 남음: `docs/convention/api.md` 48~61줄, `docs/convention/pages.md` 22~23줄, `AGENTS.md` 2번을 읽고 확인한 뒤 `/end`. develop의 바뀐 `src/api/axios.js`를 병합한 뒤 문서가 다시 어긋나지 않는지 본다. PR Breaking Changes에 AGENTS.md 변경을 적고 LJS에게 알린다
 - 코드 후보: `src/features/member/api.js` 92줄 주석 "랜딩 이동을 끈다"가 지금 동작(로그인 화면 이동)과 다르다
-- 연결 남음: FN-ACC-001-22 (닉네임 확인·저장 API `PATCH /members/me/nickname`, YAY 백엔드 SCR-ACC-001)
 - 연결 남음: (기반) 메인·마이페이지 라우트 `auth: 'member'` 전환 (팀과 정한 뒤, 각 라우트 담당)
 - 백엔드: `DevTokenController` 삭제(백엔드 마일스톤 SCR-ACC-002 절에 이미 있음)
-- SCR-ACC-002 연결 남음: SNS 외부 인증창(네이버·카카오·구글 OAuth), 가입 직후 첫 로그인의 닉네임 모달(FN-ACC-001-22), 회원가입 화면(SCR-ACC-001)
-- SCR-ACC-012 연결 남음: 백엔드 SCR-ACC-012가 끝나면 가짜 `resetPassword`를 `POST /email-certifications/{emlCertSn}/password-reset`(`pswdInitTkn`·`pswd`·`pswdCnfrm`, 라우터 state로 넘겨받은 값)으로 바꾸고, 재설정 취소 때 `invalidate`(FN-ACC-012-04)를 부른다
 - PR Breaking Changes: `api/axios.js` 오류 객체에 `data` 추가(`docs/convention/api.md`), `snsCodes.js` 키를 서버 코드(`USRC0007~0009`)로 변경, 인증 화면 겉틀(`layouts/AuthLayout.jsx`·`AuthSlider.jsx`) 정렬 변경, `components/AiErrorGuide.jsx` 나타남 효과
 - 코드 후보: 재전송 제한 알림이 떠 있을 때 인증번호 확인에 실패하면 그 알림이 남는다(검증 메모)
+- 코드 후보: 가입을 마치고 [로그인 화면으로] → [회원가입]으로 다시 들어오면 새 가입이 아니라 앞 가입의 완료 화면이 남는다(`useSignup` 상태가 슬라이더 안에 남음, 새로고침하면 처음부터). SCR-ACC-001 검증 메모

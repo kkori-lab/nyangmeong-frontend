@@ -4,8 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 /**
  * [케어 항목 ⋮ 메뉴] 토탈 케어리스트 줄 끝 메뉴 (마이페이지 가계부 ExpenseMenu와 같은 방식·모양)
  * - [수정]·[삭제](빨간색), 바깥을 누르거나 항목을 고르면 닫힘. onDelete를 안 넘기면 [삭제]를 그리지 않음
+ * - leadingItems: [수정] 앞에 붙일 항목 [{ label, onSelect }] (지속 관찰 [사진 원본 보기], 추가 요청). 안 넘기면 지금과 같음
  */
-export default function CareItemMenu({ label, onEdit, onDelete }) {
+export default function CareItemMenu({
+  label,
+  onEdit,
+  onDelete,
+  leadingItems = [],
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef(null);
 
@@ -47,6 +53,17 @@ export default function CareItemMenu({ label, onEdit, onDelete }) {
           role="menu"
           className="absolute top-full right-0 z-10 mt-1 flex min-w-24 flex-col rounded-box border border-line bg-white py-1 shadow-depth-md"
         >
+          {leadingItems.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              role="menuitem"
+              onClick={() => choose(item.onSelect)}
+              className="h-9 px-4 text-left whitespace-nowrap hover:bg-surface-2"
+            >
+              {item.label}
+            </button>
+          ))}
           <button
             type="button"
             role="menuitem"

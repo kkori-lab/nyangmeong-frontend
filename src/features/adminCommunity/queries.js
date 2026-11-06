@@ -38,6 +38,12 @@ export const adminCommunityKeys = {
     'careRecruit',
     petPrtcRcrtSn,
   ],
+  careImage: (petPrtcRcrtSn, atchFileSn) => [
+    'adminCommunity',
+    'careImage',
+    petPrtcRcrtSn,
+    atchFileSn,
+  ],
   healthTips: ['adminCommunity', 'healthTips'],
   todayPhrases: ['adminCommunity', 'todayPhrases'],
   commentariesAll: ['adminCommunity', 'commentaries'],

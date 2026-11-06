@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ITEM_PART_OPTIONS } from '../shared/petCodes';
+import ItemImage from './ItemImage';
 
 /**
  * [보관함 · 부위 탭] (FN-MYP-010-14)
@@ -7,7 +8,7 @@ import { ITEM_PART_OPTIONS } from '../shared/petCodes';
  */
 export default function ItemStorage({ items, worn, onToggle }) {
   const [part, setPart] = useState(ITEM_PART_OPTIONS[0].code);
-  const partItems = items.filter((item) => item.itemPartCd === part);
+  const partItems = items.filter((item) => item.itemRegnCd === part);
 
   return (
     <div className="flex flex-col gap-4">
@@ -33,10 +34,10 @@ export default function ItemStorage({ items, worn, onToggle }) {
       ) : (
         <div className="grid max-h-[296px] grid-cols-4 gap-2 overflow-y-auto">
           {partItems.map((item) => {
-            const isOn = worn[part]?.itemSn === item.itemSn;
+            const isOn = worn[part]?.hldItemSn === item.hldItemSn;
             return (
               <button
-                key={item.itemSn}
+                key={item.hldItemSn}
                 type="button"
                 aria-pressed={isOn}
                 onClick={() => onToggle(item)}
@@ -47,15 +48,7 @@ export default function ItemStorage({ items, worn, onToggle }) {
                 }`}
               >
                 <span className="grid aspect-square w-full place-items-center overflow-hidden rounded-sm bg-white text-xs text-subtle">
-                  {item.itemImgUrl ? (
-                    <img
-                      src={item.itemImgUrl}
-                      alt=""
-                      className="size-full object-contain [image-rendering:pixelated]"
-                    />
-                  ) : (
-                    <span aria-hidden="true">{item.itemNm.slice(0, 2)}</span>
-                  )}
+                  <ItemImage item={item} />
                 </span>
                 <span className="break-all">{item.itemNm}</span>
               </button>

@@ -11,33 +11,37 @@ export const SCHEDULE_TYPES = [
 ];
 
 export const CHECKUP_TYPES = [
-  { cd: 'HLTC0001', nm: '정기검진', icon: 'calendar_month', color: '#8b5cf6' },
-  { cd: 'HLTC0002', nm: '예방접종', icon: 'vaccines', color: '#22a06b' },
-  { cd: 'HLTC0003', nm: '질병진료', icon: 'local_hospital', color: '#e05a8c' },
-  { cd: 'HLTC0004', nm: '검사', icon: 'monitor_heart', color: '#3b82f6' },
-  { cd: 'HLTC0005', nm: '기타 진료', icon: 'local_hospital', color: '#8a9596' },
+  { cd: 'HLTC0001', nm: '정기검진', icon: 'calendar_month', tone: 'violet' },
+  { cd: 'HLTC0002', nm: '예방접종', icon: 'vaccines', tone: 'green' },
+  { cd: 'HLTC0003', nm: '질병진료', icon: 'local_hospital', tone: 'rose' },
+  { cd: 'HLTC0004', nm: '검사', icon: 'monitor_heart', tone: 'blue' },
+  { cd: 'HLTC0005', nm: '기타 진료', icon: 'local_hospital', tone: 'gray' },
 ];
 
-export const DEFAULT_SCHEDULE_COLOR = '#8a9596';
+const DEFAULT_TONE = 'gray';
 
-// 일정 모달에서 고를 수 있는 뱃지 색상
+// 캘린더 뱃지 색상 공통코드(HLTG21). 칩 순서는 시안(html/hlt-calendar.html) 순서에서 주황만 뺐다
 export const BADGE_COLORS = [
-  '#3b82f6',
-  '#22a06b',
-  '#e05a8c',
-  '#8b5cf6',
-  '#f59e0b',
-  '#8a9596',
+  { cd: 'HLTC0082', nm: '파랑', tone: 'blue' },
+  { cd: 'HLTC0080', nm: '초록', tone: 'green' },
+  { cd: 'HLTC0081', nm: '빨강', tone: 'rose' },
+  { cd: 'HLTC0079', nm: '보라', tone: 'violet' },
+  { cd: 'HLTC0083', nm: '회색', tone: 'gray' },
 ];
 
-// 뱃지 색상은 hex로 저장하고, 화면에는 시안의 톤 색(연한 바탕 bg + 진한 글자·막대 fg)으로 그린다
-export const TONES = {
-  '#3b82f6': { bg: '#eaf1fc', fg: '#2d5fb8' },
-  '#22a06b': { bg: '#e6f4ec', fg: '#22744a' },
-  '#e05a8c': { bg: '#fcebea', fg: '#b8463f' },
-  '#8b5cf6': { bg: '#efecfa', fg: '#5f49b0' },
-  '#f59e0b': { bg: '#fcf1df', fg: '#9a5c0c' },
-  '#8a9596': { bg: '#eef1f4', fg: '#59636e' },
+// 톤마다 칩(연한 바탕 + 진한 글자)과 막대·점(진한 색) 클래스. index.css의 --color-tone-* 토큰이다
+export const TONE_CLASSES = {
+  blue: { chip: 'bg-tone-blue-bg text-tone-blue-fg', bar: 'bg-tone-blue-fg' },
+  green: {
+    chip: 'bg-tone-green-bg text-tone-green-fg',
+    bar: 'bg-tone-green-fg',
+  },
+  rose: { chip: 'bg-tone-rose-bg text-tone-rose-fg', bar: 'bg-tone-rose-fg' },
+  violet: {
+    chip: 'bg-tone-violet-bg text-tone-violet-fg',
+    bar: 'bg-tone-violet-fg',
+  },
+  gray: { chip: 'bg-tone-gray-bg text-tone-gray-fg', bar: 'bg-tone-gray-fg' },
 };
 
 export const HOSPITAL = 'HLTC0057';
@@ -59,16 +63,18 @@ export const getScheduleIcon = (schedule) =>
     ? findCheckupType(schedule.ckupTypeCd)?.icon
     : findScheduleType(schedule.schdlKndCd)?.icon;
 
-export const getDefaultScheduleColor = (schedule) =>
+const getDefaultScheduleTone = (schedule) =>
   isHospital(schedule)
-    ? (findCheckupType(schedule.ckupTypeCd)?.color ?? DEFAULT_SCHEDULE_COLOR)
-    : DEFAULT_SCHEDULE_COLOR;
+    ? (findCheckupType(schedule.ckupTypeCd)?.tone ?? DEFAULT_TONE)
+    : DEFAULT_TONE;
 
-export const getScheduleColor = (schedule) =>
-  schedule.cldrBadgeColrCd || getDefaultScheduleColor(schedule);
-
-export const getScheduleTone = (schedule) =>
-  TONES[getScheduleColor(schedule)] ?? TONES[DEFAULT_SCHEDULE_COLOR];
+// 고른 뱃지 색상이 있으면 그 톤, 없거나 모르는 코드면 종류·검진유형 기본 톤
+export const getScheduleTone = (schedule) => {
+  const tone =
+    BADGE_COLORS.find((color) => color.cd === schedule.cldrBadgeColrCd)?.tone ??
+    getDefaultScheduleTone(schedule);
+  return TONE_CLASSES[tone];
+};
 
 export const getScheduleTypeName = (schedule) =>
   findScheduleType(schedule.schdlKndCd)?.nm;

@@ -31,6 +31,10 @@ function KeywordCategoryCard({ category, keywords }) {
       setInputError('키워드를 입력해 주세요');
       return;
     }
+    if (trimmed.includes(',')) {
+      setInputError('키워드에 쉼표(,)는 넣을 수 없어요');
+      return;
+    }
     const isDuplicate = keywords.some(
       (keyword) => keyword.kwrdCn.toLowerCase() === trimmed.toLowerCase(),
     );

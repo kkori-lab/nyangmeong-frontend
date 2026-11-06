@@ -6,11 +6,11 @@ import {
   HeartHandshake,
   MapPin,
   PawPrint,
-  User,
   Wallet,
 } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
+import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
 import PostBody from '@/components/PostBody';
@@ -20,6 +20,7 @@ import { showToast } from '@/components/toastStore';
 import useChatWindow from '@/hooks/useChatWindow';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { getCostLabel, getPetBadges } from '../careCodes';
 import {
   useDeleteCare,
@@ -34,6 +35,7 @@ import {
   formatPetKinds,
   formatScheduleDetail,
   getShapeNames,
+  splitRegion,
 } from './careUtils';
 
 const ARTICLE_CLASS =
@@ -65,8 +67,8 @@ export default function CareDetail({ post }) {
   const report = useReportCare();
   const [modal, setModal] = useState('');
   const listTo = `${PATHS.COMMUNITY_PETCARE}${state?.listSearch ?? ''}`;
-  const isMine = post.mineYn === 'Y';
-  const isLiked = post.likeYn === 'Y';
+  const isMine = post.owner;
+  const isLiked = post.liked;
   const badges = [...new Set([...getShapeNames(post), ...getPetBadges(post)])];
   const schedule = formatScheduleDetail(post);
 
@@ -100,14 +102,12 @@ export default function CareDetail({ post }) {
         </h2>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-1">
           <p className="flex flex-wrap items-center gap-2 text-sm text-subtle">
-            <span
-              aria-hidden="true"
-              className="grid size-8 place-items-center rounded-full bg-brand-50 text-brand-500"
-            >
-              <User size={18} />
-            </span>
+            <Avatar
+              src={publicFileUrl(post.mbrAtchFileSn)}
+              className="size-8"
+            />
             <b className="text-base leading-normal font-semibold text-ink">
-              {post.wrtrNcknm}
+              {post.mbrNcnm}
             </b>
             <Dot />
             <time>{formatDate(post.regDt)} 등록</time>
@@ -137,19 +137,19 @@ export default function CareDetail({ post }) {
         </div>
 
         <PostBody content={post.pstCn}>
-          {post.atchFiles.length > 0 && (
+          {post.imgs.length > 0 && (
             <div className="mb-6 flex flex-col gap-3">
-              {post.atchFiles.map((file) => (
+              {post.imgs.map(({ atchFileSn }, index) => (
                 <img
-                  key={file.id}
-                  src={file.url}
-                  alt={file.name}
+                  key={atchFileSn}
+                  src={publicFileUrl(atchFileSn)}
+                  alt={`첨부 이미지 ${index + 1}`}
                   className="h-auto max-w-full rounded-[10px]"
                 />
               ))}
             </div>
           )}
-          <section aria-labelledby="care-info-title" className="mb-8">
+          <section aria-labelledby="care-info-title">
             <h3 id="care-info-title" className="text-lg font-bold text-ink">
               돌봄 정보
             </h3>
@@ -185,16 +185,13 @@ export default function CareDetail({ post }) {
                 <span className="text-lg font-bold">{getCostLabel(post)}</span>
               </InfoRow>
               <InfoRow icon={<MapPin {...iconProps} />} label="장소">
-                전북 {post.sggNm} {post.emdNm} 인근
+                전북 {post.rlsRgnNm} 인근
                 <span className="mt-0.5 block text-sm text-muted">
                   개인정보 보호를 위해 대략적인 위치만 보여요
                 </span>
               </InfoRow>
             </dl>
-            <CareAreaMap
-              place={{ sggNm: post.sggNm, emdNm: post.emdNm }}
-              className="mt-3"
-            />
+            <CareAreaMap place={splitRegion(post.rlsRgnNm)} className="mt-3" />
           </section>
         </PostBody>
 
@@ -218,7 +215,9 @@ export default function CareDetail({ post }) {
               aria-pressed={isLiked}
               aria-label="좋아요"
               disabled={toggleLike.isPending}
-              onClick={() => toggleLike.mutate(post.pstSn)}
+              onClick={() =>
+                toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
+              }
               className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-base font-semibold text-ink-2 ${isLiked ? '[&_svg]:text-[#f44b21]' : '[&_svg]:text-line-strong'}`}
             >
               <Heart size={22} aria-hidden="true" fill="currentColor" />

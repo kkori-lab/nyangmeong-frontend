@@ -29,28 +29,26 @@ export const formatCost = (cstAmt, cstUnitCd) =>
     ? '—'
     : `${cstAmt.toLocaleString()}원${CST_UNIT_SUFFIX[cstUnitCd] ?? ''}`;
 
-/**
- * [매칭 거래 상태 (PET_PRTC_MTCH.MTCH_DLNG_STTS_CD)]
- * - 공통코드 값이 아직 없어 이름은 가정 -> 백엔드 API가 나오면 실제 코드로 바꾼다
- */
+/** [매칭 거래 상태 PCAG05 (PET_PRTC_MTCH.MTCH_DLNG_STTS_CD)] */
 const MTCH_STATUS_LABELS = {
-  REQUESTED: '매칭 요청',
-  MATCHED: '매칭완료',
-  DONE_REQ: '완료 요청',
-  COMPLETE: '거래완료',
-  CANCELED: '취소',
-  EXPIRED: '만료',
-  ABORTED: '중단',
+  PCAC0012: '수락 대기',
+  PCAC0013: '매칭 완료',
+  PCAC0014: '확인 대기',
+  PCAC0015: '수령 대기',
+  PCAC0016: '거래 완료',
+  PCAC0017: '요청 취소',
+  PCAC0018: '무응답 종료',
 };
 
 /** 매칭 거래 상태 이름: 모르는 코드는 그대로 */
 export const getMtchStatusLabel = (code) => MTCH_STATUS_LABELS[code] ?? code;
 
-/** 보호자 확인 결과 (가정 이름: ownerCfmtnRsltCd) */
-const OWNER_CFMTN_LABELS = {
-  CONFIRMED: '확인함',
-  REJECTED: '이의 제기',
+/** [보호자 확인 결과 PCAG06 (PET_PRTC_CMPTN_DMND.PRTCR_IDNTY_RSLT_CD)] */
+const PRTCR_IDNTY_LABELS = {
+  PCAC0019: '완료 확인',
+  PCAC0020: '보완 요청',
 };
 
-export const getOwnerCfmtnLabel = (code) =>
-  code ? (OWNER_CFMTN_LABELS[code] ?? code) : '—';
+/** 보호자 확인 결과 이름: 없으면 확인 전 */
+export const getPrtcrIdntyLabel = (code) =>
+  code ? (PRTCR_IDNTY_LABELS[code] ?? code) : '확인 전';
