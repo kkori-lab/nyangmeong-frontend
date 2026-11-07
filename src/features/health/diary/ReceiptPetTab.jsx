@@ -14,21 +14,49 @@ const chipClass = (isActive) =>
  * - 구역 이름이 등록된 이름과 같으면 "○○ · 자동 연결" 탭, 다르거나 추가한 탭은 [반려동물 선택 ▾]로 선택
  * - 같은 반려동물은 두 탭에 둘 수 없어 다른 탭에서 고른 반려동물은 선택 불가
  * - 탭이 1개이고 자동 연결됐으면 탭 머리를 숨김, 구역이 없는 영수증이라 더 추가할 수 있을 때만 [＋ 반려동물 추가] 표시
+ * - isLinkedAbove(구역이 있는 영수증): 반려동물은 맨 위 [반려동물 연결]에서 고르고, 여기는 「영수증 이름 · 고른 아이」 전환 탭만. 1개면 숨김
  */
 export default function ReceiptPetTab({
   tabs,
   pets,
   activeId,
   canAdd,
+  isLinkedAbove = false,
   onSelect,
   onPetChange,
   onAdd,
 }) {
+  const findPetNm = (petSn) => pets.find((pet) => pet.petSn === petSn)?.petNm;
+
+  if (isLinkedAbove) {
+    if (tabs.length < 2) return null;
+    return (
+      <div
+        role="group"
+        aria-label="반려동물별 기록"
+        className="mt-2 flex flex-wrap gap-2"
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            aria-pressed={tab.id === activeId}
+            className={chipClass(tab.id === activeId)}
+            onClick={() => onSelect(tab.id)}
+          >
+            {tab.sectionNm} ·{' '}
+            {tab.petSn === SKIP
+              ? '기록 안 함'
+              : (findPetNm(tab.petSn) ?? '반려동물 선택')}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   /** 탭이 1개여도 반려동물을 직접 골라야 하면(자동 연결 실패) 선택칸 표시 */
   const hasTabHead = tabs.length > 1 || !tabs[0].isAutoLinked;
   if (!hasTabHead && !canAdd) return null;
-
-  const findPetNm = (petSn) => pets.find((pet) => pet.petSn === petSn)?.petNm;
 
   return (
     <div

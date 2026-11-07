@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import ConfirmModal from '@/components/ConfirmModal';
 import Icon from '@/components/Icon';
 import FileImage from '@/components/FileImage';
@@ -18,6 +18,7 @@ import LedgerDupModal from './LedgerDupModal';
 import NearScheduleModal from './NearScheduleModal';
 import ReceiptAssignList from './ReceiptAssignList';
 import ReceiptInfoBlock from './ReceiptInfoBlock';
+import ReceiptPetLink from './ReceiptPetLink';
 import ReceiptPetTab from './ReceiptPetTab';
 import {
   INPUT_CLASS,
@@ -86,6 +87,9 @@ export default function ReceiptResultStep({
   const [phase, setPhase] = useState(null);
   const [isRetakeOpen, setIsRetakeOpen] = useState(false);
   const [isOriginalOpen, setIsOriginalOpen] = useState(false);
+  /** [반려동물 연결]: 안 고른 줄이 있는데 저장을 누르면 그 칸들을 오류 색으로 */
+  const [isLinkErrorShown, setIsLinkErrorShown] = useState(false);
+  const linkRowRefs = useRef({});
   /** 다시 시도해도 같은 요청으로 처리되도록 모달마다 한 번만 만든다 */
   const [idmptDmndId] = useState(() => crypto.randomUUID());
   const { src: imgSrc, isPending: isImgPending } = useFileImage({
@@ -110,6 +114,10 @@ export default function ReceiptResultStep({
     assign,
     isNoSection,
   });
+  /** 구역(이름)이 있는 영수증에서 반려동물을 안 고른 줄 */
+  const unlinkedTabs = isNoSection
+    ? []
+    : tabs.filter((tab) => tab.petSn == null);
   const activeTab = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
   const activeErrors = validation.tabErrors[activeTab.id] ?? {};
   const isActiveSkipped = activeTab.petSn === SKIP;
@@ -202,8 +210,21 @@ export default function ReceiptResultStep({
     }
   };
 
+  /** 안 고른 줄이 있으면 저장하지 않고 첫 줄로 옮겨 가 칸을 오류 색으로 */
+  const moveToUnlinked = () => {
+    setIsLinkErrorShown(true);
+    const row = linkRowRefs.current[unlinkedTabs[0].id];
+    row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row?.querySelector('button')?.focus({ preventScroll: true });
+  };
+
   const handleSave = () => {
-    if (!validation.isValid || isPending) return;
+    if (isPending) return;
+    if (unlinkedTabs.length > 0) {
+      moveToUnlinked();
+      return;
+    }
+    if (!validation.isValid) return;
     const entries = buildSaveEntries(tabs);
     save.reset();
     prepare.mutate(
@@ -235,11 +256,21 @@ export default function ReceiptResultStep({
         hasRequiredNote={false}
         widthClassName={WIDTH}
         isPending={isPending}
-        isSubmitDisabled={!validation.isValid}
+        isSubmitDisabled={!validation.isValid && unlinkedTabs.length === 0}
         onSubmit={handleSave}
         onCancel={() => setIsRetakeOpen(true)}
         onClose={onClose}
       >
+        {!isNoSection && (
+          <ReceiptPetLink
+            tabs={tabs}
+            pets={pets}
+            isErrorShown={isLinkErrorShown}
+            rowRefs={linkRowRefs}
+            onPetChange={(id, petSn) => updateTab(id, { petSn })}
+          />
+        )}
+
         <div className="flex items-start gap-3">
           <button
             type="button"
@@ -302,11 +333,12 @@ export default function ReceiptResultStep({
             pets={pets}
             activeId={activeTab.id}
             canAdd={canAddTab}
+            isLinkedAbove={!isNoSection}
             onSelect={setActiveId}
             onPetChange={(id, petSn) => updateTab(id, { petSn })}
             onAdd={handleAddTab}
           />
-          {activeErrors.pet && (
+          {isNoSection && activeErrors.pet && (
             <div className="mt-2">
               <FieldError>{activeErrors.pet}</FieldError>
             </div>

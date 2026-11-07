@@ -148,7 +148,10 @@ const makeTab = (fields) => ({
   ...fields,
 });
 
-/** 구역이 있는 영수증: 구역마다 탭 1개. 구역 할인은 그 구역 소계에서 차감, 하단 할인만 비율 분배 */
+/**
+ * 구역이 있는 영수증: 구역마다 탭 1개. 구역 할인은 그 구역 소계에서 차감, 하단 할인만 비율 분배
+ * 자동 연결은 이름이 같은 첫 구역만. 한 아이는 한 구역에만 연결(백엔드 checkPets와 맞춤, 2026-11-08)
+ */
 export const buildSectionTabs = ({ ocr, pets, todayYmd }) => {
   const usedPetSns = new Set();
   const matchedPets = ocr.sections.map((section) => {
@@ -169,6 +172,8 @@ export const buildSectionTabs = ({ ocr, pets, todayYmd }) => {
   return ocr.sections.map((section, index) =>
     makeTab({
       sectionNm: section.sectionNm,
+      /** [반려동물 연결] 줄의 진료 건수 */
+      itemCnt: section.items.length,
       petSn: matchedPets[index]?.petSn ?? null,
       isAutoLinked: matchedPets[index] != null,
       ckupCn: joinContent(section.items.map((item) => item.itemNm ?? '')),

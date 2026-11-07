@@ -10,6 +10,9 @@ import {
 
 const CELL_INPUT = `${INPUT_CLASS} h-9 px-2`;
 
+/** 약품 카드 칸 이름표 */
+const DRUG_LABEL = 'text-sm text-subtle';
+
 const aiClass = (isAi) => (isAi ? 'border-dashed' : '');
 
 /**
@@ -80,91 +83,93 @@ export default function ReceiptInfoBlock({
       <div className="mt-5 flex flex-col gap-1.5">
         <span className={LABEL_CLASS}>처방 약품</span>
         {tab.drugs.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] border-collapse">
-              <thead>
-                <tr className="text-left text-sm font-normal text-subtle">
-                  <th scope="col" className="p-1 font-normal">
-                    약품명
-                  </th>
-                  <th scope="col" className="p-1 font-normal">
-                    시작일
-                  </th>
-                  <th scope="col" className="p-1 font-normal">
-                    종료일
-                  </th>
-                  <th scope="col" className="p-1 font-normal">
-                    1일
-                  </th>
-                  <th scope="col" className="p-1 font-normal">
-                    상태
-                  </th>
-                  <th scope="col" className="p-1 font-normal">
-                    금액(대조)
-                  </th>
-                  <th scope="col" className="p-1">
-                    <span className="sr-only">행 삭제</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {tab.drugs.map((drug) => {
-                  const drugErrors = errors?.drugs?.[drug.rowId] ?? {};
-                  const isAi = !drug.isEdited;
-                  const change = (patch) => onDrugChange(drug.rowId, patch);
-                  return (
-                    <tr key={drug.rowId} className="align-top">
-                      <td className="p-1">
-                        <input
-                          aria-label="약품명"
-                          value={drug.drugNm}
-                          aria-invalid={drugErrors.drugNm != null}
-                          className={`${CELL_INPUT} ${aiClass(isAi && drug.drugNm !== '')}`}
-                          onChange={(event) =>
-                            change({ drugNm: event.target.value })
-                          }
-                        />
-                        {drugErrors.drugNm && (
-                          <FieldError>{drugErrors.drugNm}</FieldError>
-                        )}
-                      </td>
-                      <td className="p-1">
-                        <input
-                          type="date"
-                          aria-label="복용 시작일"
-                          value={drug.startYmd}
-                          aria-invalid={drugErrors.startYmd != null}
-                          className={`${CELL_INPUT} ${aiClass(isAi && drug.startYmd !== '')}`}
-                          onChange={(event) =>
-                            change({ startYmd: event.target.value })
-                          }
-                        />
-                        {drugErrors.startYmd && (
-                          <FieldError>{drugErrors.startYmd}</FieldError>
-                        )}
-                      </td>
-                      <td className="p-1">
-                        <input
-                          type="date"
-                          aria-label="복용 종료일"
-                          value={drug.endYmd}
-                          aria-invalid={drugErrors.endYmd != null}
-                          className={`${CELL_INPUT} ${aiClass(isAi && drug.endYmd !== '')}`}
-                          onChange={(event) =>
-                            change({ endYmd: event.target.value })
-                          }
-                        />
-                        {drugErrors.endYmd && (
-                          <FieldError>{drugErrors.endYmd}</FieldError>
-                        )}
-                      </td>
-                      <td className="w-16 p-1">
+          /** 약품마다 카드 3줄: 약품명·금액·삭제 / 시작일·종료일 / 1일 복용 횟수·상태 (2026-11-08) */
+          <ul className="flex flex-col gap-2">
+            {tab.drugs.map((drug) => {
+              const drugErrors = errors?.drugs?.[drug.rowId] ?? {};
+              const isAi = !drug.isEdited;
+              const change = (patch) => onDrugChange(drug.rowId, patch);
+              return (
+                <li
+                  key={drug.rowId}
+                  className="flex flex-col gap-3 rounded-box border border-line bg-white p-3"
+                >
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-2">
+                    <label className="flex min-w-0 flex-col gap-1">
+                      <span className={DRUG_LABEL}>약품명</span>
+                      <input
+                        value={drug.drugNm}
+                        aria-invalid={drugErrors.drugNm != null}
+                        className={`${CELL_INPUT} ${aiClass(isAi && drug.drugNm !== '')}`}
+                        onChange={(event) =>
+                          change({ drugNm: event.target.value })
+                        }
+                      />
+                      {drugErrors.drugNm && (
+                        <FieldError>{drugErrors.drugNm}</FieldError>
+                      )}
+                    </label>
+                    <div className="flex flex-col gap-1">
+                      <span className={DRUG_LABEL}>금액(대조)</span>
+                      <span className="flex h-9 items-center justify-end text-subtle tabular-nums">
+                        {drug.amt != null
+                          ? drug.amt.toLocaleString('ko-KR')
+                          : '-'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="약품 삭제"
+                      className="mt-6 grid size-9 place-items-center rounded-md text-subtle hover:bg-surface-3"
+                      onClick={() => onDrugRemove(drug.rowId)}
+                    >
+                      <Icon name="remove" />
+                    </button>
+                  </div>
+
+                  {/* 640px 미만은 날짜가 잘리지 않게 시작일·종료일을 위아래로 */}
+                  <div className="grid grid-cols-2 items-start gap-2 max-sm:grid-cols-1">
+                    <label className="flex min-w-0 flex-col gap-1">
+                      <span className={DRUG_LABEL}>시작일</span>
+                      <input
+                        type="date"
+                        value={drug.startYmd}
+                        aria-invalid={drugErrors.startYmd != null}
+                        className={`${CELL_INPUT} min-w-0 ${aiClass(isAi && drug.startYmd !== '')}`}
+                        onChange={(event) =>
+                          change({ startYmd: event.target.value })
+                        }
+                      />
+                      {drugErrors.startYmd && (
+                        <FieldError>{drugErrors.startYmd}</FieldError>
+                      )}
+                    </label>
+                    <label className="flex min-w-0 flex-col gap-1">
+                      <span className={DRUG_LABEL}>종료일</span>
+                      <input
+                        type="date"
+                        value={drug.endYmd}
+                        aria-invalid={drugErrors.endYmd != null}
+                        className={`${CELL_INPUT} min-w-0 ${aiClass(isAi && drug.endYmd !== '')}`}
+                        onChange={(event) =>
+                          change({ endYmd: event.target.value })
+                        }
+                      />
+                      {drugErrors.endYmd && (
+                        <FieldError>{drugErrors.endYmd}</FieldError>
+                      )}
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 items-start gap-2">
+                    <label className="flex min-w-0 flex-col gap-1">
+                      <span className={DRUG_LABEL}>1일 복용 횟수</span>
+                      <span className="relative block">
                         <input
                           inputMode="numeric"
-                          aria-label="1일 복용 횟수"
                           value={drug.perDay}
                           aria-invalid={drugErrors.perDay != null}
-                          className={`${CELL_INPUT} ${aiClass(isAi && drug.perDay !== '')}`}
+                          className={`${CELL_INPUT} pr-8 text-right tabular-nums ${aiClass(isAi && drug.perDay !== '')}`}
                           onChange={(event) =>
                             change({
                               perDay: event.target.value
@@ -173,47 +178,35 @@ export default function ReceiptInfoBlock({
                             })
                           }
                         />
-                      </td>
-                      <td className="min-w-28 p-1">
-                        <select
-                          aria-label="복용 상태"
-                          value={drug.statusCd}
-                          className={`${SELECT_CLASS} h-9 px-2 ${aiClass(isAi)}`}
-                          onChange={(event) =>
-                            change({ statusCd: event.target.value })
-                          }
-                        >
-                          {DRUG_STATUSES.map((status) => (
-                            <option key={status.cd} value={status.cd}>
-                              {status.nm}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="p-1 pt-2 text-subtle tabular-nums">
-                        {drug.amt != null
-                          ? drug.amt.toLocaleString('ko-KR')
-                          : '-'}
-                      </td>
-                      <td className="p-1">
-                        <button
-                          type="button"
-                          aria-label="약품 행 삭제"
-                          className="grid size-9 place-items-center rounded-md text-subtle hover:bg-surface-3"
-                          onClick={() => onDrugRemove(drug.rowId)}
-                        >
-                          <Icon name="remove" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {Object.values(errors?.drugs ?? {}).some((row) => row.perDay) && (
-          <FieldError>1일 복용 횟수를 입력해 주세요</FieldError>
+                        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-subtle">
+                          회
+                        </span>
+                      </span>
+                      {drugErrors.perDay && (
+                        <FieldError>{drugErrors.perDay}</FieldError>
+                      )}
+                    </label>
+                    <label className="flex min-w-0 flex-col gap-1">
+                      <span className={DRUG_LABEL}>상태</span>
+                      <select
+                        value={drug.statusCd}
+                        className={`${SELECT_CLASS} h-9 px-2 ${aiClass(isAi)}`}
+                        onChange={(event) =>
+                          change({ statusCd: event.target.value })
+                        }
+                      >
+                        {DRUG_STATUSES.map((status) => (
+                          <option key={status.cd} value={status.cd}>
+                            {status.nm}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
         <button
           type="button"

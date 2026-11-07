@@ -144,6 +144,8 @@ export const WIDGET_GROUPS = [
       {
         id: 'care',
         nm: '케어리스트',
+        /** 카드 머리 제목 바로 오른쪽 글자 */
+        titleNote: '보기 전용',
         icon: 'checklist',
         desc: '매일 챙길 케어를 만들어요',
         emptyText: '보일 케어 항목이 없어요',
