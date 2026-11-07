@@ -4,7 +4,7 @@ import { BTN_PRIMARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
 import { getNowHm, getTodayYmd, makeDateTime } from '@/utils/formatDate';
 import { pickJosa } from '@/utils/josa';
-import { DAILY_ITEMS, orderWidgetIds } from '../dashboard/widgetItems';
+import { DAILY_ITEMS, keepWidgetOrder } from '../dashboard/widgetItems';
 import {
   NORMAL_STOOL,
   RECORD_TYPES,
@@ -72,7 +72,7 @@ export default function TodayRecordForm({
   /** 숨긴 매일 기록 켜기: 대시보드에도 카드가 생김 */
   const handleEnable = (item) => {
     saveWidgets.mutate(
-      { mbrSn, widgetIds: orderWidgetIds([...widgetIds, item.id]) },
+      { mbrSn, widgetIds: keepWidgetOrder([...widgetIds, item.id]) },
       {
         onSuccess: () => {
           setTypeCd(item.typeCd);
