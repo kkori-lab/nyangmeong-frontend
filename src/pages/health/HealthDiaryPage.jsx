@@ -25,6 +25,7 @@ import TodayRecordForm from '@/features/health/diary/TodayRecordForm';
 import { MEAL } from '@/features/health/diaryTypes';
 import {
   useDailyRecords,
+  useHealthWidgets,
   useObservationItems,
 } from '@/features/health/queries';
 import PetSwitcher from '@/features/health/shared/PetSwitcher';
@@ -62,7 +63,7 @@ export default function HealthDiaryPage() {
   const { data: me } = useMe();
   return (
     <SelectedPetProvider mbrSn={me?.mbrSn}>
-      <HealthDiaryContent />
+      <HealthDiaryContent mbrSn={me?.mbrSn} />
     </SelectedPetProvider>
   );
 }
@@ -85,7 +86,9 @@ function HealthLayout({ petNm, children }) {
   );
 }
 
-function HealthDiaryContent() {
+function HealthDiaryContent({ mbrSn }) {
+  /** 대시보드에서 고른 항목: [오늘 기록하기] 종류를 고른 매일 기록만 (※신규 정책) */
+  const { data: widgetIds = null } = useHealthWidgets(mbrSn);
   const navigate = useNavigate();
   const location = useLocation();
   const { hash } = location;
@@ -293,6 +296,8 @@ function HealthDiaryContent() {
               key={recordForm.token}
               petSn={selectedPet.petSn}
               initialTypeCd={recordForm.typeCd}
+              mbrSn={mbrSn}
+              widgetIds={widgetIds}
             />
           )}
 
