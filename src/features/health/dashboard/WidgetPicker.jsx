@@ -4,6 +4,7 @@ import {
   RECOMMENDED_IDS,
   WIDGET_GROUPS,
   findWidgetItem,
+  keepWidgetOrder,
   orderWidgetIds,
 } from './widgetItems';
 
@@ -26,7 +27,10 @@ export default function WidgetPicker({
   onToggle,
   onRecommend,
 }) {
-  const orderedIds = orderWidgetIds(draftIds);
+  /** 편집은 저장 순서 + 새로 켠 항목 맨 뒤, 튜토리얼은 4묶음 순서 */
+  const orderedIds = isEdit
+    ? keepWidgetOrder(draftIds)
+    : orderWidgetIds(draftIds);
 
   return (
     <div className="flex min-w-0 flex-col gap-5">

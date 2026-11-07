@@ -9,6 +9,7 @@ import WidgetPicker from './WidgetPicker';
 import {
   findWidgetItem,
   joinWidgetNames,
+  keepWidgetOrder,
   orderWidgetIds,
   pickStartIds,
 } from './widgetItems';
@@ -47,7 +48,13 @@ export default function WidgetTutorialModal({
   const save = (widgetIds, message) => {
     if (saveWidgets.isPending) return;
     saveWidgets.mutate(
-      { mbrSn, widgetIds: orderWidgetIds(widgetIds) },
+      /** 편집은 저장 순서 + 새 항목 맨 뒤, 튜토리얼 첫 저장은 4묶음 순서 */
+      {
+        mbrSn,
+        widgetIds: isEdit
+          ? keepWidgetOrder(widgetIds)
+          : orderWidgetIds(widgetIds),
+      },
       {
         onSuccess: () => {
           showToast(message);

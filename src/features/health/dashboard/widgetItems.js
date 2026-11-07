@@ -181,6 +181,17 @@ export const DAILY_ITEMS = WIDGET_GROUPS[0].items;
 export const orderWidgetIds = (ids) =>
   WIDGET_ITEMS.map((item) => item.id).filter((id) => ids.includes(id));
 
+/**
+ * 받은 순서를 지키고 중복·모르는 키만 버림 (※신규 정책, 카드 순서 바꾸기)
+ * - 저장된 카드 순서를 쓰는 곳(대시보드·편집 저장·건강 일지 [항목 추가])용. 4묶음 순서로 다시 정렬하지 않음
+ */
+export const keepWidgetOrder = (ids) => {
+  const knownIds = WIDGET_ITEMS.map((item) => item.id);
+  return ids.filter(
+    (id, index) => knownIds.includes(id) && ids.indexOf(id) === index,
+  );
+};
+
 /** 튜토리얼 시작 항목 최대 수 (※신규 정책, 추가-8) */
 export const START_MAX_COUNT = 6;
 
@@ -211,8 +222,8 @@ export const pickStartIds = (recordedIds) => {
   return orderWidgetIds(picked);
 };
 
-/** 항목 이름을 '·'로 이은 문구 */
+/** 항목 이름을 '·'로 이은 문구. 받은 순서(저장 순서) 그대로 */
 export const joinWidgetNames = (ids) =>
-  orderWidgetIds(ids)
+  keepWidgetOrder(ids)
     .map((id) => findWidgetItem(id).nm)
     .join('·');
