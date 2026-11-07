@@ -94,6 +94,7 @@ export default function HealthDashboard({
   };
   const sources = {
     petSn: pet.petSn,
+    petNm: pet.petNm,
     summary,
     indicators: indicators.data,
     stools: stools.data,

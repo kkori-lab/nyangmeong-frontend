@@ -1,10 +1,8 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import BarChart from '@/components/BarChart';
 import CurveChart from '@/components/CurveChart';
 import Icon from '@/components/Icon';
-import { PATHS } from '@/routes/paths';
 import {
   diffDays,
   formatDate,
@@ -23,7 +21,11 @@ import { formatDiff, formatPart, formatSize } from '../diary/observationUtils';
 import { STOOL_STATES } from '../diaryTypes';
 import AttachmentImage from '../summary/AttachmentImage';
 import PhotoModal from '../summary/PhotoModal';
-import { getCheckupType, getFunctionTagName } from '../summary/summaryUtils';
+import {
+  getCheckupDetailPath,
+  getCheckupType,
+  getFunctionTagName,
+} from '../summary/summaryUtils';
 import DashboardCard from './DashboardCard';
 
 /**
@@ -447,7 +449,13 @@ const prescriptionBody = ({ summary }) => {
     (a, b) => Number(b.prscSttsCd === DOSING) - Number(a.prscSttsCd === DOSING),
   );
   if (prescriptions.length === 0) return null;
+  /** [더보기]: 맨 위 처방의 검진상세 처방약 탭. 검진기록 번호가 없으면 item.moveTo(건강 일지 검진기록 탭) */
+  const top = prescriptions[0];
   return {
+    moveTo:
+      top.ckupRcdSn != null
+        ? getCheckupDetailPath(top, 'prescription')
+        : undefined,
     period: `복용 중 ${summary.dosingCount}건`,
     body: (
       <Rows>
@@ -563,12 +571,6 @@ const allergyBody = ({ summary }) => {
           <KeyValue label="알레르기" value={algyCn?.trim()} />
           <KeyValue label="기저질환" value={dssCn?.trim()} />
         </Rows>
-        <Link
-          to={PATHS.MYPAGE_PETS}
-          className="mt-3 self-start text-sm font-semibold text-brand-600 underline underline-offset-3"
-        >
-          수정하러 가기
-        </Link>
       </>
     ),
   };
@@ -650,13 +652,9 @@ const careBody = ({ care }) => {
       <Rows>
         {dailyItems.slice(0, CARE_ROW_COUNT).map((item) => {
           const isDone = isDoneToday(item);
+          /** 보기 전용이라 체크 칸처럼 보이는 동그라미를 두지 않음(추가-1). 글자는 카드 머리와 같은 왼쪽 선 */
           return (
             <Row key={item.careArtclSn}>
-              <Icon
-                name={isDone ? 'check_circle' : 'radio_button_unchecked'}
-                filled={isDone}
-                className={isDone ? 'text-brand-500' : 'text-line-strong'}
-              />
               <b className="min-w-0 truncate font-semibold text-ink">
                 {item.careArtclNm}
               </b>
@@ -691,6 +689,11 @@ const WIDGET_BODIES = {
 /** 고른 항목 카드 한 장: 기록이 있으면 본문, 없으면 빈 상태 */
 export default function WidgetCard({ item, sources }) {
   return (
-    <DashboardCard item={item} content={WIDGET_BODIES[item.id](sources)} />
+    <DashboardCard
+      item={item}
+      content={WIDGET_BODIES[item.id](sources)}
+      petSn={sources.petSn}
+      petNm={sources.petNm}
+    />
   );
 }
