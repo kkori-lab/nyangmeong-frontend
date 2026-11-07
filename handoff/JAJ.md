@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-011·002 건강기록 · 튜토리얼과 고른 기록 대시보드 (2026-11-07, ※신규 정책). `/health`는 히어로 + 고른 기록 대시보드만(묶음 탭 4개 없앰), 첫 진입 튜토리얼 3단계·[기록 항목 편집]·건강 일지 [항목 추가], 검사 수치 카드 항목 선택과 검진상세 「추이 보기 ›」. 가짜 저장소(회원별 localStorage)로 동작. 검증 통과, 사람 확인 끝. 결정·추가 요청(추가-1~8) 줄별 내용은 `milestones/JAJ.md` 같은 절
+끝남: SCR-HLT-011·002 건강기록 · 대시보드 카드 이동 (2026-11-08, ※신규 정책). AI 리포트를 뺀 카드 오른쪽 위 [더보기]만 이동 링크(카드 전체 클릭 이동 없음), 처방·투약은 맨 위 처방의 검진상세 처방약 탭, 매일 기록은 건강 일지 그래프에서 누른 항목 선택. 추가-1 케어리스트 카드 동그라미 제거, 추가-2 빈 상태 가운데 정렬. ⋮ 메뉴는 다음 마일스톤으로 넘김. 검증 통과, 사람 확인 끝. 줄별 내용은 `milestones/JAJ.md` 같은 절
 
 ## 결정
 
@@ -12,7 +12,7 @@
 
 ## 다음에 할 것
 
-1. 다음 작업: 마일스톤 「건강기록 · 대시보드 카드 이동」 → 「건강기록 · 대시보드 카드 순서 바꾸기」. 기준은 프로토타입 `https://claude.ai/artifact/RPV7YP9pec4CfU1iFfG4rq`(문구 원문)·아트보드 `https://claude.ai/artifact/31CZr6WF8b9kCYy4C3TNxv`(보드는 이미지라 문구는 프로토타입에서 읽는다)
+1. 다음 작업: 마일스톤 「건강기록 · 대시보드 카드 순서 바꾸기」(⋮ 메뉴 「기록 항목 편집」·「위젯 순서 변경」 포함, `CareItemMenu.jsx` 고쳐 쓰기). 기준은 프로토타입 `https://claude.ai/artifact/RPV7YP9pec4CfU1iFfG4rq`(문구 원문)·아트보드 `https://claude.ai/artifact/31CZr6WF8b9kCYy4C3TNxv`(보드는 이미지라 문구는 프로토타입에서 읽는다)
 - 연결 남음(2026-11-07 공통 반려동물 카드): ③ 헤더 알림 → 백엔드 연결 B2(백엔드 저장소 마일스톤에 「SCR-HLT-003 케어 캘린더 · 케어 일정 알림 반려동물 연결 — 대기」 넣음, 백엔드 저장소에서 /start) / ④ 등록 뒤 복귀·새 아이 선택 → 마이페이지 담당(아래 전달할 것)
 - 전달할 것(LJS, 2026-11-07): `layouts/SubPageLayout.jsx`에 선택 prop `sideBottom`(사이드 메뉴 칸의 `<SideMenu />` 바로 뒤에 그대로 그림, 새 줄 2개만)을 더했다. 건강기록 3개 화면만 넘긴다. 메뉴를 따라 붙는 처리는 넘긴 쪽(`PetSwitcher`)이 메뉴의 계산된 top·높이를 읽어 한다
 - 명세 갱신 때 반영(2026-11-07, 고치지 않음): FN-HLT-011-01 반려동물 선택 탭 → 공통 반려동물 카드(사이드 메뉴 아래, 1100px 이하 알약) / FN-HLT-011-02 "메인 건강 대시보드와 공통" 문구 정리 / FN-HLT-002-01 공통 카드를 따름·셀렉트 삭제·설명 「{이름}의 …」 / FN-HLT-003-01 공통 카드를 따름·제목 「{이름}의 토탈 케어리스트」 / FN-HLT-003-39(·003-29 참조) 스위치 「모든 아이 일정 같이 보기」(기본 켬, 다른 아이 회색). 2026-11-06에 적었던 003-39 다중 선택 문구는 버린다. FN-HLT-002-09·10 그래프 기준 "최근 5개 기록"(2026-11-06)은 그대로 반영. 기능 ID가 없는 새 기능(공통 카드·0마리·②·⑤·첫 아이로 바꾸기, 튜토리얼·대시보드·[기록 항목 편집]·카드 이동·[항목 추가])은 기획 담당이 ID를 정한다
@@ -21,7 +21,7 @@
   - 알려진 문제(2026-11-07 검증, 고치지 않음): 튜토리얼·[기록 항목 편집]을 열 때 기록 있는 항목 확인(`dashboardApi.js` `getRecordedItems`)이 반려동물마다 11개 API를 한꺼번에 부른다(아이 수 × 11개, 11마리면 약 120개). 토큰 만료 순간과 겹치면 401이 동시에 쏟아져 콘솔 오류 85건이 났다(`api/axios.js` 재발급 뒤 정상 로드). 해결은 백엔드 B1 연결 때 GET 응답의 "기록 있는 항목"으로 요청 1개로 줄이는 것(위 B1 줄)
   - B2 케어 일정 알림 `CareScheduleAlarmService.CALENDAR_PATH`(`/health/calendar`)에 `?petSn=<반려동물 번호>`를 붙인다(③). 프론트는 `?petSn=`을 이미 받으므로 프론트 수정 없음. 다른 건강기록 알림도 같은지 본다
   - 프론트 연결: 가짜 저장소 `features/health/dashboard/widgetStore.js`(회원별 localStorage)를 B1 API로 바꾼다(`queries.js` `useHealthWidgets`·`useSaveHealthWidgets`의 queryFn·mutationFn, 항목 키 임시 문자열 → B1 코드)
-- 명세 갱신 때 반영(2026-11-07, 고치지 않음, 튜토리얼과 고른 기록 대시보드): 화면설계서 SCR-HLT-011 묶음 탭·영역 ③~⑩·0건 목업·영역 배치·모바일 ②⑤⑥⑦⑨⑩·표시 세부·"조회 전용" 문구를 대시보드로 바꾼다. 기능명세서 FN-HLT-011-03~10은 지우거나 대시보드 카드로(03 타임라인·06 검사 결과 표는 없어짐, 04·05·07·08·09·10은 카드로 대신), FN-HLT-005-02에 검진상세 「추이 보기 ›」(`/health?petSn=&inspection=`). 튜토리얼·대시보드·첨부 자료 카드 등 새 기능 ID는 기획 담당이 정한다
+- 명세 갱신 때 반영(2026-11-07, 고치지 않음, 튜토리얼과 고른 기록 대시보드): 화면설계서 SCR-HLT-011 묶음 탭·영역 ③~⑩·0건 목업·영역 배치·모바일 ②⑤⑥⑦⑨⑩·표시 세부·"조회 전용" 문구를 대시보드로 바꾼다. 기능명세서 FN-HLT-011-03~10은 지우거나 대시보드 카드로(03 타임라인·06 검사 결과 표는 없어짐, 04·05·07·08·09·10은 카드로 대신), FN-HLT-005-02에 검진상세 「추이 보기 ›」(`/health?petSn=&inspection=`). 튜토리얼·대시보드·첨부 자료 카드 등 새 기능 ID는 기획 담당이 정한다. (2026-11-08 추가) 대시보드 카드 [더보기] 이동, 대시보드 ⋮ 메뉴 「위젯 순서 변경」(※신규 정책)도 기능 ID 요청
 - 전달할 것(메인 담당, 2026-11-07): 메인페이지 대시보드 위젯 영역과 위젯 API 호출 삭제. `pages/main/MainPage.jsx` 5~12줄 import(`IndicatorWidgets`, `useDashboardWidgets`·`useHealthIndicators`·`useSaveDashboardWidgets`, `WIDGET`), 126~132줄 호출과 그 렌더 부분, `features/dashboard/api.js`(`getDashboardWidgets`·`saveDashboardWidgets`)·`queries.js`·`widgetCodes.js`·`IndicatorWidgets.jsx`·`HealthWidget.jsx`. `GET /pets/{petSn}/health-indicators`는 건강기록 대시보드가 같은 API를 `features/health`에 따로 두고 쓴다. `MainPage.jsx:200` `/health?petSn=` 링크는 그대로 둔다(①)
 - 전달할 것(마이페이지 담당, 2026-11-07): `pages/mypage/PetListPage.jsx`가 `?register=1`을 읽지 않아 등록 모달이 자동으로 열리지 않는다(건강기록·메인 `?register=1` 링크 모두). `?register=1`이면 `PetFormModal`을 새 등록으로 열고, `?returnTo=<건강기록 주소>`가 있으면 등록을 마친 뒤 그 주소에 `?petSn=<새 번호>`를 붙여 돌아오게 한다(④)
 - 전달할 것(공용 컴포넌트 담당, 2026-11-07): `components/Toggle.jsx`에 직접 쓴 값 `h-[26px]`·`w-[44px]`·`bg-[#285a5c]`·`bg-[#cdd5d5]`·`top-[3px]`·`left-[3px]`·`translate-x-[18px]`. 시안 `.switch`는 `input type=checkbox` + 토큰(`--color-brand-500`·`--color-line-strong`·`--radius-full`)이다. 건강기록은 Toggle을 그대로 쓴다(사람 결정)

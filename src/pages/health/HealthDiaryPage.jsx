@@ -121,6 +121,8 @@ function HealthDiaryContent({ mbrSn }) {
   };
   const todayYmd = getTodayYmd();
   const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
+  /** 대시보드 매일 기록 카드 [더보기]로 오면 그 지표를 고른 채로 그래프를 연다 (※신규 정책) */
+  const initialTrendTypeCd = location.state?.typeCd;
   /** 오늘 기록하기 입력 영역: null이면 닫힘, token으로 같은 영역을 다른 종류로 다시 엶 */
   const [recordForm, setRecordForm] = useState(null);
   /**
@@ -280,7 +282,11 @@ function HealthDiaryContent({ mbrSn }) {
           className="flex min-w-0 flex-col gap-7"
         >
           <div className="grid items-stretch gap-5 min-[1101px]:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-            <DailyTrendCard pet={selectedPet} onAddRecord={openRecordForm} />
+            <DailyTrendCard
+              pet={selectedPet}
+              onAddRecord={openRecordForm}
+              initialTypeCd={initialTrendTypeCd}
+            />
             <TodayRecordCard
               records={records}
               todayYmd={todayYmd}
