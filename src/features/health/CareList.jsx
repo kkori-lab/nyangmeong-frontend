@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Card from '@/components/Card';
-import DropdownSelect from '@/components/DropdownSelect';
 import Icon from '@/components/Icon';
 import SkeletonCard from '@/components/SkeletonCard';
 import { getTodayYmd } from '@/utils/formatDate';
@@ -21,8 +20,8 @@ import {
 // 640px 미만에서 구역마다 처음 보여 주는 칸 수
 const MOBILE_VISIBLE_COUNT = 3;
 
-// 토탈 케어리스트 카드(FN-HLT-003-12·13). 제목 왼쪽 반려동물 셀렉트(FN-HLT-003-01)에서 고른 반려동물 기준이다
-export default function CareList({ petSn, pets, onSelectPet }) {
+// 토탈 케어리스트 카드(FN-HLT-003-12·13). 건강기록 공통 반려동물 카드에서 고른 반려동물(petSn·petNm) 기준이다. 제목은 「{이름}의 토탈 케어리스트」 (※신규 정책)
+export default function CareList({ petSn, petNm }) {
   const { data, isPending, isError, error, refetch } = useCareItems(petSn);
   const [isAdding, setIsAdding] = useState(false);
   // 수정 중인 항목, 삭제 확인 중인 항목
@@ -185,29 +184,12 @@ export default function CareList({ petSn, pets, onSelectPet }) {
   return (
     <>
       <Card
-        title="토탈 케어리스트"
-        // 760px 이하에서는 완료 개수를 숨기고 [셀렉트][제목] … [＋] 한 줄로 둔다
+        title={`${petNm}의 토탈 케어리스트`}
+        // 760px 이하에서는 완료 개수를 숨기고 [제목] … [＋] 한 줄로 둔다
         sub={
           <span className="max-[760px]:hidden">
             오늘 {doneCount}/{careItems.length} 완료
           </span>
-        }
-        leading={
-          pets.length > 1 && (
-            <div className="shrink-0">
-              <DropdownSelect
-                label="반려동물 선택 (토탈 케어리스트)"
-                isPill
-                value={petSn}
-                options={pets.map((pet) => ({
-                  value: pet.petSn,
-                  label: pet.petNm,
-                }))}
-                onChange={onSelectPet}
-                className="w-[calc(3em+3.75rem)]"
-              />
-            </div>
-          )
         }
         action={
           // 좁은 화면에서는 제목·부제가 잘리지 않게 ＋ 아이콘만 남긴다(날짜 상세 카드와 같음)

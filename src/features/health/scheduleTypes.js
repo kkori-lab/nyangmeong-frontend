@@ -68,8 +68,15 @@ const getDefaultScheduleTone = (schedule) =>
     ? (findCheckupType(schedule.ckupTypeCd)?.tone ?? DEFAULT_TONE)
     : DEFAULT_TONE;
 
-// 고른 뱃지 색상이 있으면 그 톤, 없거나 모르는 코드면 종류·검진유형 기본 톤
+/** 공통 반려동물 카드의 아이가 아닌 다른 아이 일정: 연한 회색 배경 + 흐린 글자 (※신규 정책) */
+const OTHER_PET_TONE = {
+  chip: 'bg-surface-2 text-subtle',
+  bar: 'bg-line-strong',
+};
+
+// 다른 아이 일정(isOtherPet)이면 연한 회색 톤, 아니면 고른 뱃지 색상이 있으면 그 톤, 없거나 모르는 코드면 종류·검진유형 기본 톤
 export const getScheduleTone = (schedule) => {
+  if (schedule.isOtherPet) return OTHER_PET_TONE;
   const tone =
     BADGE_COLORS.find((color) => color.cd === schedule.cldrBadgeColrCd)?.tone ??
     getDefaultScheduleTone(schedule);

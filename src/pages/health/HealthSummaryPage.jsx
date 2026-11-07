@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import PageSkeleton from '@/components/PageSkeleton';
 import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
-import { useHealthSummary, useMyPets } from '@/features/health/queries';
+import { useHealthSummary } from '@/features/health/queries';
+import PetSwitcher from '@/features/health/shared/PetSwitcher';
+import SelectedPetProvider from '@/features/health/shared/SelectedPetProvider';
+import { useSelectedPet } from '@/features/health/shared/selectedPet';
+import { useMe } from '@/features/member/queries';
 import AttachmentStrip from '@/features/health/summary/AttachmentStrip';
 import ConditionCard from '@/features/health/summary/ConditionCard';
 import LabSection from '@/features/health/summary/LabSection';
@@ -15,7 +19,6 @@ import SummaryTabs from '@/features/health/summary/SummaryTabs';
 import { SectionHead } from '@/features/health/summary/SummaryParts';
 import TimelineCard from '@/features/health/summary/TimelineCard';
 import SubPageLayout from '@/layouts/SubPageLayout';
-import { PATHS } from '@/routes/paths';
 
 const ANCHORS = [
   { id: 'hlt011-hist', label: '진료 · 예방 이력' },
@@ -35,76 +38,74 @@ const LAYOUT_PROPS = {
  * [종합 건강기록 SCR-HLT-011]
  * - 반려동물별 기록을 모아 보여 주는 조회 전용 화면. 등록·수정·삭제는 원천 화면(SCR-HLT-002·003·005)에서만
  * - ?inspection=<검사 항목>이면 검사 수치 추이를 그 항목으로 시작(검진상세에서 들어옴)
- * - ?petSn=<반려동물 번호>이면 그 반려동물로 시작(내 목록에 없으면 첫 반려동물)
+ * - 반려동물은 건강기록 공통 반려동물 카드(shared/PetSwitcher)의 선택을 따른다. ?petSn=<반려동물 번호>로 들어오면 그 아이로 시작하고 주소에서 지운다 (※신규 정책)
  */
 export default function HealthSummaryPage() {
-  const [searchParams] = useSearchParams();
-  /** ?petSn=으로 들어오면 그 반려동물부터. 목록에 없으면 아래 selectedPet이 첫 반려동물로 */
-  const [tabPetSn, setTabPetSn] = useState(
-    Number(searchParams.get('petSn')) || null,
+  const { data: me } = useMe();
+  return (
+    <SelectedPetProvider mbrSn={me?.mbrSn}>
+      <HealthSummaryContent />
+    </SelectedPetProvider>
   );
+}
+
+/** 공용 페이지 틀 + 공통 반려동물 카드(1101px 이상 사이드 메뉴 아래, 1100px 이하 본문 맨 위 알약) (※신규 정책) */
+function HealthLayout({ children }) {
+  return (
+    <SubPageLayout
+      {...LAYOUT_PROPS}
+      sideBottom={<PetSwitcher variant="card" />}
+    >
+      <PetSwitcher variant="pill" />
+      {children}
+    </SubPageLayout>
+  );
+}
+
+function HealthSummaryContent() {
+  const [searchParams] = useSearchParams();
   /** 검진상세에서 ?inspection=으로 들어오면 검사 · 수치 묶음부터 */
   const [sectionId, setSectionId] = useState(
     searchParams.get('inspection') ? 'hlt011-lab' : ANCHORS[0].id,
   );
   const {
-    data: pets,
+    pet: selectedPet,
     isPending: isPetsPending,
     isError: isPetsError,
-  } = useMyPets();
-  const selectedPet =
-    pets?.find((pet) => pet.petSn === tabPetSn) ?? pets?.[0] ?? null;
+  } = useSelectedPet();
   const { data: summary, isError: isSummaryError } = useHealthSummary(
     selectedPet?.petSn ?? null,
   );
 
   if (isPetsPending) {
     return (
-      <SubPageLayout {...LAYOUT_PROPS}>
+      <HealthLayout>
         <SummarySkeleton />
-      </SubPageLayout>
+      </HealthLayout>
     );
   }
   if (isPetsError || isSummaryError) {
     return (
-      <SubPageLayout {...LAYOUT_PROPS}>
+      <HealthLayout>
         <p role="alert" className="text-muted">
           건강기록을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
         </p>
-      </SubPageLayout>
+      </HealthLayout>
     );
   }
-  if (!selectedPet) {
-    return (
-      <SubPageLayout {...LAYOUT_PROPS}>
-        <p className="text-muted">
-          등록된 반려동물이 없어요.{' '}
-          <Link
-            to={`${PATHS.MYPAGE_PETS}?register=1`}
-            className="font-semibold text-brand-600 underline underline-offset-3"
-          >
-            반려동물 등록
-          </Link>
-        </p>
-      </SubPageLayout>
-    );
-  }
+  // 0마리: 공통 카드가 점선 박스로 등록을 안내한다
+  if (!selectedPet) return <HealthLayout />;
   if (!summary) {
     return (
-      <SubPageLayout {...LAYOUT_PROPS}>
+      <HealthLayout>
         <SummarySkeleton />
-      </SubPageLayout>
+      </HealthLayout>
     );
   }
 
   return (
-    <SubPageLayout {...LAYOUT_PROPS}>
-      <SummaryHero
-        pets={pets}
-        pet={selectedPet}
-        summary={summary}
-        onSelect={setTabPetSn}
-      />
+    <HealthLayout>
+      <SummaryHero pet={selectedPet} summary={summary} />
       <SummaryTabs
         items={ANCHORS}
         activeId={sectionId}
@@ -170,7 +171,7 @@ export default function HealthSummaryPage() {
           />
         </Panel>
       )}
-    </SubPageLayout>
+    </HealthLayout>
   );
 }
 
