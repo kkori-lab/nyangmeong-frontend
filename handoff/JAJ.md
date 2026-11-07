@@ -2,26 +2,26 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-011·002·003 건강기록 · 공통 반려동물 카드 (2026-11-07, ※신규 정책). 세 화면이 `features/health/shared/SelectedPetProvider.jsx`·`PetSwitcher.jsx`로 같은 아이를 본다. 검증 2회차 내 것 확인 끝, 사람 확인 끝. 줄별 내용은 `milestones/JAJ.md` 같은 절
+끝남: SCR-HLT-011·002 건강기록 · 튜토리얼과 고른 기록 대시보드 (2026-11-07, ※신규 정책). `/health`는 히어로 + 고른 기록 대시보드만(묶음 탭 4개 없앰), 첫 진입 튜토리얼 3단계·[기록 항목 편집]·건강 일지 [항목 추가], 검사 수치 카드 항목 선택과 검진상세 「추이 보기 ›」. 가짜 저장소(회원별 localStorage)로 동작. 검증 통과, 사람 확인 끝. 결정·추가 요청(추가-1~8) 줄별 내용은 `milestones/JAJ.md` 같은 절
 
 ## 결정
 
 - (2026-11-04, 사람) 화면설계서·기능명세서는 전체 수정을 마친 뒤 한 번에 갱신한다. 그때까지 아래 "결정 기다림" 중 명세·시안과 다른 점은 지금 화면대로 두고 명세 갱신 때 반영한다
-- (2026-11-07, 사람) 건강기록 변경안 3건: 위젯 저장은 붙이지 않고 화면·흐름만(백엔드는 프론트 뒤에 따로). 스위치는 `components/Toggle.jsx` 그대로. 토큰 검사는 이번에 새로 쓰거나 고친 줄만 0건(기존 값은 목록으로 보고). 반려동물 선택 유지는 화면 안 Context → `?petSn=` 우선 → 없는 아이면 첫 아이(`localStorage`에 회원별 petSn만). 처방·투약 카드는 종합 건강기록 처방·투약 탭으로. `/health` 기존 탭 4개는 대시보드 아래에 남긴다. 화면설계서·기능명세서는 고치지 않고 목록만
+- (2026-11-07, 사람) 건강기록 변경안 3건: 위젯 저장은 붙이지 않고 화면·흐름만(백엔드는 프론트 뒤에 따로). 스위치는 `components/Toggle.jsx` 그대로. 토큰 검사는 이번에 새로 쓰거나 고친 줄만 0건(기존 값은 목록으로 보고). 반려동물 선택 유지는 화면 안 Context → `?petSn=` 우선 → 없는 아이면 첫 아이(`localStorage`에 회원별 petSn만). 화면설계서·기능명세서는 고치지 않고 목록만. (같은 날 바꿈) `/health` 탭 4개는 없애고, 처방·투약 카드 이동은 검진상세 처방약 탭으로
 - (2026-11-04, 사람) 색 토큰(히어로 `#f9eaa6`·`#dbe8e8`, 바탕 `#faf8f5`)·`ConfirmModal`·플로팅 버튼 스타일·본문 줄 높이는 지금 그대로 둔다
 
 ## 다음에 할 것
 
-1. 다음 작업: 마일스톤 「건강기록 · 튜토리얼과 고른 기록 대시보드」 → 「건강기록 · 대시보드 카드 이동」. 기준은 프로토타입 `https://claude.ai/artifact/RPV7YP9pec4CfU1iFfG4rq`(문구 원문)·아트보드 `https://claude.ai/artifact/31CZr6WF8b9kCYy4C3TNxv`(보드는 이미지라 문구는 프로토타입에서 읽는다)
+1. 다음 작업: 마일스톤 「건강기록 · 대시보드 카드 이동」 → 「건강기록 · 대시보드 카드 순서 바꾸기」. 기준은 프로토타입 `https://claude.ai/artifact/RPV7YP9pec4CfU1iFfG4rq`(문구 원문)·아트보드 `https://claude.ai/artifact/31CZr6WF8b9kCYy4C3TNxv`(보드는 이미지라 문구는 프로토타입에서 읽는다)
 - 연결 남음(2026-11-07 공통 반려동물 카드): ③ 헤더 알림 → 백엔드 연결 B2(백엔드 저장소 마일스톤에 「SCR-HLT-003 케어 캘린더 · 케어 일정 알림 반려동물 연결 — 대기」 넣음, 백엔드 저장소에서 /start) / ④ 등록 뒤 복귀·새 아이 선택 → 마이페이지 담당(아래 전달할 것)
 - 전달할 것(LJS, 2026-11-07): `layouts/SubPageLayout.jsx`에 선택 prop `sideBottom`(사이드 메뉴 칸의 `<SideMenu />` 바로 뒤에 그대로 그림, 새 줄 2개만)을 더했다. 건강기록 3개 화면만 넘긴다. 메뉴를 따라 붙는 처리는 넘긴 쪽(`PetSwitcher`)이 메뉴의 계산된 top·높이를 읽어 한다
 - 명세 갱신 때 반영(2026-11-07, 고치지 않음): FN-HLT-011-01 반려동물 선택 탭 → 공통 반려동물 카드(사이드 메뉴 아래, 1100px 이하 알약) / FN-HLT-011-02 "메인 건강 대시보드와 공통" 문구 정리 / FN-HLT-002-01 공통 카드를 따름·셀렉트 삭제·설명 「{이름}의 …」 / FN-HLT-003-01 공통 카드를 따름·제목 「{이름}의 토탈 케어리스트」 / FN-HLT-003-39(·003-29 참조) 스위치 「모든 아이 일정 같이 보기」(기본 켬, 다른 아이 회색). 2026-11-06에 적었던 003-39 다중 선택 문구는 버린다. FN-HLT-002-09·10 그래프 기준 "최근 5개 기록"(2026-11-06)은 그대로 반영. 기능 ID가 없는 새 기능(공통 카드·0마리·②·⑤·첫 아이로 바꾸기, 튜토리얼·대시보드·[기록 항목 편집]·카드 이동·[항목 추가])은 기획 담당이 ID를 정한다
 - 백엔드 연결(JAJ, 프론트 3건이 끝난 뒤 백엔드 저장소에서 /start, 2026-11-07 사람 요청). 회의 결론: 메인 대시보드를 없애고 대시보드는 `/health`에서만 보인다
-  - B1 `MBR_DSHBD_WDGT`를 건강기록 전용으로: 지금은 메인 위젯 순서용(공통코드 `MANG01` 7개 `MANC0001~7`, `DashboardWidgetService`·`DashboardWidgetMapper`, FN-MAN-006·007). 건강기록 12개 항목(체중·식사량·음수량·산책·배변 상태 / 검진기록·검사 수치·처방·투약 / 지속 관찰·알레르기·기저질환 / 예방접종·구충·케어리스트) 코드가 필요하다. AI 건강분석 리포트는 항상 표시라 고르기 대상이 아니다(D9)
-  - B1 GET `/members/me/dashboard-widgets`: 지금은 저장한 적 없어도 기본 7개를 준다 → 행이 없는 회원을 구분할 수 있어야 한다(튜토리얼 D1·D2). 응답에 `indctYn`이 없다 → 필요. 회원 기준(반려동물 기준 아님)
-  - B1 PUT: 지금은 7개 코드 전부·순서를 받는다 → 고른 항목 표시(`INDCT_YN=Y`)·해제(`N`, 기록은 지우지 않음, D7), `SORT_SEQ`는 4묶음 순서 고정(D8). 순서 바꾸기는 범위 밖
+  - 연결 남음 B1(2026-11-07 튜토리얼과 고른 기록 대시보드): `MBR_DSHBD_WDGT` 건강기록 전용 13개 코드·GET(행 없음 구분, `indctYn`, 회원의 반려동물 중 기록 있는 항목)·PUT(`INDCT_YN`, `SORT_SEQ`). 줄별 내용은 백엔드 저장소 `milestones/JAJ.md` 「SCR-HLT-011 종합 건강기록 · 건강기록 대시보드 고른 항목 저장 — 대기」(넣음). 기록 있는 항목 응답을 받으면 `dashboardApi.js` `getRecordedItems`를 지운다
+  - 알려진 문제(2026-11-07 검증, 고치지 않음): 튜토리얼·[기록 항목 편집]을 열 때 기록 있는 항목 확인(`dashboardApi.js` `getRecordedItems`)이 반려동물마다 11개 API를 한꺼번에 부른다(아이 수 × 11개, 11마리면 약 120개). 토큰 만료 순간과 겹치면 401이 동시에 쏟아져 콘솔 오류 85건이 났다(`api/axios.js` 재발급 뒤 정상 로드). 해결은 백엔드 B1 연결 때 GET 응답의 "기록 있는 항목"으로 요청 1개로 줄이는 것(위 B1 줄)
   - B2 케어 일정 알림 `CareScheduleAlarmService.CALENDAR_PATH`(`/health/calendar`)에 `?petSn=<반려동물 번호>`를 붙인다(③). 프론트는 `?petSn=`을 이미 받으므로 프론트 수정 없음. 다른 건강기록 알림도 같은지 본다
-  - 프론트 연결: 그때까지 쓰는 가짜 저장소(마일스톤 「튜토리얼과 고른 기록 대시보드」에서 정함)를 API로 바꾼다
+  - 프론트 연결: 가짜 저장소 `features/health/dashboard/widgetStore.js`(회원별 localStorage)를 B1 API로 바꾼다(`queries.js` `useHealthWidgets`·`useSaveHealthWidgets`의 queryFn·mutationFn, 항목 키 임시 문자열 → B1 코드)
+- 명세 갱신 때 반영(2026-11-07, 고치지 않음, 튜토리얼과 고른 기록 대시보드): 화면설계서 SCR-HLT-011 묶음 탭·영역 ③~⑩·0건 목업·영역 배치·모바일 ②⑤⑥⑦⑨⑩·표시 세부·"조회 전용" 문구를 대시보드로 바꾼다. 기능명세서 FN-HLT-011-03~10은 지우거나 대시보드 카드로(03 타임라인·06 검사 결과 표는 없어짐, 04·05·07·08·09·10은 카드로 대신), FN-HLT-005-02에 검진상세 「추이 보기 ›」(`/health?petSn=&inspection=`). 튜토리얼·대시보드·첨부 자료 카드 등 새 기능 ID는 기획 담당이 정한다
 - 전달할 것(메인 담당, 2026-11-07): 메인페이지 대시보드 위젯 영역과 위젯 API 호출 삭제. `pages/main/MainPage.jsx` 5~12줄 import(`IndicatorWidgets`, `useDashboardWidgets`·`useHealthIndicators`·`useSaveDashboardWidgets`, `WIDGET`), 126~132줄 호출과 그 렌더 부분, `features/dashboard/api.js`(`getDashboardWidgets`·`saveDashboardWidgets`)·`queries.js`·`widgetCodes.js`·`IndicatorWidgets.jsx`·`HealthWidget.jsx`. `GET /pets/{petSn}/health-indicators`는 건강기록 대시보드가 같은 API를 `features/health`에 따로 두고 쓴다. `MainPage.jsx:200` `/health?petSn=` 링크는 그대로 둔다(①)
 - 전달할 것(마이페이지 담당, 2026-11-07): `pages/mypage/PetListPage.jsx`가 `?register=1`을 읽지 않아 등록 모달이 자동으로 열리지 않는다(건강기록·메인 `?register=1` 링크 모두). `?register=1`이면 `PetFormModal`을 새 등록으로 열고, `?returnTo=<건강기록 주소>`가 있으면 등록을 마친 뒤 그 주소에 `?petSn=<새 번호>`를 붙여 돌아오게 한다(④)
 - 전달할 것(공용 컴포넌트 담당, 2026-11-07): `components/Toggle.jsx`에 직접 쓴 값 `h-[26px]`·`w-[44px]`·`bg-[#285a5c]`·`bg-[#cdd5d5]`·`top-[3px]`·`left-[3px]`·`translate-x-[18px]`. 시안 `.switch`는 `input type=checkbox` + 토큰(`--color-brand-500`·`--color-line-strong`·`--radius-full`)이다. 건강기록은 Toggle을 그대로 쓴다(사람 결정)

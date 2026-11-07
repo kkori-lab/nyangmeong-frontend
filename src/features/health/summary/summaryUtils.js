@@ -41,10 +41,3 @@ export const getCheckupDetailPath = ({ petSn, ckupRcdSn }, tab) => {
 /** 건강 일지의 검진기록·지속 관찰 영역 */
 export const DIARY_EXAM_PATH = `${PATHS.HEALTH_DIARY}#hlt002-exam`;
 export const DIARY_OBS_PATH = `${PATHS.HEALTH_DIARY}#hlt002-obs`;
-
-/** 타임라인 반복 예방 항목의 모양(시안의 기타 회색 톤) */
-export const PREVENTION_TIMELINE = {
-  nm: '반복 예방',
-  icon: 'event_repeat',
-  tone: TONE_CLASSES.gray,
-};

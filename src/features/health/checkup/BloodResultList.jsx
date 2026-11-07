@@ -7,7 +7,14 @@ import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { useDeleteInspections } from '../queries';
 import BloodResultForm from './BloodResultForm';
-import { ADD_ROW, BTN_SM, ROW_LINE, TAG, TAG_STRONG } from './checkupStyles';
+import {
+  ADD_ROW,
+  BTN_SM,
+  ROW_LINE,
+  TAG,
+  TAG_STRONG,
+  TEXT_BTN,
+} from './checkupStyles';
 import { findBloodItem } from '../labInput/bloodItems';
 import { FUNCTION_TAGS, findName, getInspectionName } from './checkupTypes';
 
@@ -192,6 +199,17 @@ export default function BloodResultList({ checkup, items }) {
                       </>
                     )}
                   </span>
+                  {/** 종합 건강기록 검사 수치 카드를 이 항목으로 (※신규 정책). 행 클릭(수정 화면)은 막음 */}
+                  <Link
+                    to={{
+                      pathname: PATHS.HEALTH,
+                      search: `?${new URLSearchParams({ petSn: String(petSn), inspection: getInspectionName(item) })}`,
+                    }}
+                    className={`${TEXT_BTN} shrink-0 whitespace-nowrap`}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    추이 보기 ›
+                  </Link>
                 </li>
               );
             })}

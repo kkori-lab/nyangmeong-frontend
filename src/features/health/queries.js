@@ -72,6 +72,12 @@ import {
   prepareReceiptSave,
   saveReceiptCheckups,
 } from './receiptApi';
+import {
+  getHealthIndicators,
+  getRecentStools,
+  getRecordedItems,
+} from './dashboardApi';
+import { getHealthWidgets, saveHealthWidgets } from './dashboard/widgetStore';
 import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
@@ -114,6 +120,11 @@ export const healthKeys = {
   checkupYears: (petSn) => ['health', 'checkups', 'years', petSn],
   checkupDetail: (ckupRcdSn) => ['health', 'checkups', 'detail', ckupRcdSn],
   summary: (petSn) => ['health', 'summary', petSn],
+  widgets: (mbrSn) => ['health', 'widgets', mbrSn],
+  /** 일상 기록을 바꾸면 같이 다시 읽도록 daily-records 아래 */
+  indicators: (petSn) => ['health', 'daily-records', petSn, 'indicators'],
+  recentStools: (petSn) => ['health', 'daily-records', petSn, 'stools'],
+  recordedItems: (petSns) => ['health', 'recorded-items', petSns],
 };
 
 const showErrorToast = (error) => showToast(error.message);
@@ -494,6 +505,49 @@ export const useHealthSummary = (petSn) =>
     queryKey: healthKeys.summary(petSn),
     queryFn: () => getHealthSummary(petSn),
     enabled: petSn != null,
+  });
+
+/** 대시보드 고른 항목(가짜 저장소, B1 연결 때 API로 교체). 저장한 적이 없으면 data가 null */
+export const useHealthWidgets = (mbrSn) =>
+  useQuery({
+    queryKey: healthKeys.widgets(mbrSn),
+    queryFn: () => getHealthWidgets(mbrSn),
+    enabled: mbrSn != null,
+  });
+
+export const useSaveHealthWidgets = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: saveHealthWidgets,
+    onSuccess: (widgetIds, { mbrSn }) =>
+      queryClient.setQueryData(healthKeys.widgets(mbrSn), widgetIds),
+    onError: () => showToast('기록 항목을 저장하지 못했어요'),
+  });
+};
+
+/** 체중·식사량·음수량·산책·크레아티닌 지표 */
+export const useHealthIndicators = (petSn) =>
+  useQuery({
+    queryKey: healthKeys.indicators(petSn),
+    queryFn: () => getHealthIndicators(petSn),
+    enabled: petSn != null,
+  });
+
+/** 배변 상태 카드용 최근 기록 */
+export const useRecentStools = (petSn, isEnabled) =>
+  useQuery({
+    queryKey: healthKeys.recentStools(petSn),
+    queryFn: () => getRecentStools(petSn),
+    enabled: isEnabled && petSn != null,
+  });
+
+/** 회원의 모든 반려동물 기록 있는 항목(튜토리얼을 열 때 한 번) */
+export const useRecordedItems = (petSns, isEnabled) =>
+  useQuery({
+    queryKey: healthKeys.recordedItems(petSns),
+    queryFn: () => getRecordedItems(petSns),
+    enabled: isEnabled && petSns.length > 0,
   });
 
 /** 저장 전 가계부 중복·가까운 예정 일정 확인. 실패 안내는 모달 안에서 처리 */
