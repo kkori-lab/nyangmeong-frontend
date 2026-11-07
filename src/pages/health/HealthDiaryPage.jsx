@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   generatePath,
   useLocation,
@@ -25,9 +25,12 @@ import TodayRecordForm from '@/features/health/diary/TodayRecordForm';
 import { MEAL } from '@/features/health/diaryTypes';
 import {
   useDailyRecords,
-  useMyPets,
   useObservationItems,
 } from '@/features/health/queries';
+import PetSwitcher from '@/features/health/shared/PetSwitcher';
+import SelectedPetProvider from '@/features/health/shared/SelectedPetProvider';
+import { useSelectedPet } from '@/features/health/shared/selectedPet';
+import { useMe } from '@/features/member/queries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
@@ -51,7 +54,38 @@ const getTabFromHash = (hash) =>
   SECTION_TABS.find((tab) => tab.id === hash.slice(1))?.id ??
   SECTION_TABS[0].id;
 
+/**
+ * [건강 일지 SCR-HLT-002]
+ * - 반려동물은 건강기록 공통 반려동물 카드(shared/PetSwitcher)의 선택을 따른다 (※신규 정책)
+ */
 export default function HealthDiaryPage() {
+  const { data: me } = useMe();
+  return (
+    <SelectedPetProvider mbrSn={me?.mbrSn}>
+      <HealthDiaryContent />
+    </SelectedPetProvider>
+  );
+}
+
+/** 공용 페이지 틀 + 공통 반려동물 카드. 설명 첫머리에 어느 아이의 기록인지 보인다 (※신규 정책) */
+function HealthLayout({ petNm, children }) {
+  return (
+    <SubPageLayout
+      {...LAYOUT_PROPS}
+      description={
+        petNm
+          ? `${petNm}의 매일 기록과 관찰, 병원 기록을 모아 봐요`
+          : LAYOUT_PROPS.description
+      }
+      sideBottom={<PetSwitcher variant="card" />}
+    >
+      <PetSwitcher variant="pill" />
+      {children}
+    </SubPageLayout>
+  );
+}
+
+function HealthDiaryContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const { hash } = location;
@@ -83,20 +117,6 @@ export default function HealthDiaryPage() {
     );
   };
   const todayYmd = getTodayYmd();
-  const [tabPetSn, setTabPetSn] = useState(null);
-  /** 반려동물을 바꾸면 다른 반려동물의 관찰 항목 번호가 주소에 남지 않게 삭제 */
-  const selectPet = (petSn) => {
-    setTabPetSn(petSn);
-    if (openObsvSn === null) return;
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete('obsv');
-        return next;
-      },
-      { replace: true },
-    );
-  };
   const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
   /** 오늘 기록하기 입력 영역: null이면 닫힘, token으로 같은 영역을 다른 종류로 다시 엶 */
   const [recordForm, setRecordForm] = useState(null);
@@ -158,11 +178,28 @@ export default function HealthDiaryPage() {
   }, []);
 
   const {
-    data: pets,
+    pets,
+    pet: selectedPet,
     isPending: isPetsPending,
     isError: isPetsError,
-  } = useMyPets();
-  const selectedPetSn = tabPetSn ?? pets?.[0]?.petSn ?? null;
+  } = useSelectedPet();
+  const selectedPetSn = selectedPet?.petSn ?? null;
+  /** 반려동물을 바꾸면 다른 반려동물의 관찰 항목 번호가 주소에 남지 않게 삭제 */
+  const prevPetSnRef = useRef(selectedPetSn);
+  useEffect(() => {
+    const prevPetSn = prevPetSnRef.current;
+    prevPetSnRef.current = selectedPetSn;
+    if (prevPetSn === null || prevPetSn === selectedPetSn) return;
+    setSearchParams(
+      (prev) => {
+        if (!prev.has('obsv')) return prev;
+        const next = new URLSearchParams(prev);
+        next.delete('obsv');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [selectedPetSn, setSearchParams]);
   const { data: recordData, isPending: isRecordsPending } =
     useDailyRecords(selectedPetSn);
   const { isPending: isObservationsPending } =
@@ -174,8 +211,8 @@ export default function HealthDiaryPage() {
     (selectedPetSn !== null && (isRecordsPending || isObservationsPending));
   if (isFirstLoading)
     return (
-      <SubPageLayout {...LAYOUT_PROPS}>
-        <PageSkeleton chips={pets?.length || 3} tabs={SECTION_TABS.length}>
+      <HealthLayout petNm={selectedPet?.petNm}>
+        <PageSkeleton tabs={SECTION_TABS.length}>
           <div className="grid gap-5 min-[1101px]:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
             <SkeletonCard className="h-[485px] max-[760px]:h-[424px]" />
             <SkeletonCard className="h-[485px] max-[760px]:h-[498px]" />
@@ -184,19 +221,18 @@ export default function HealthDiaryPage() {
           <SkeletonCard className="h-[943px] max-[760px]:h-[1423px]" />
           <SkeletonCard className="h-[1145px] max-[760px]:h-[1437px]" />
         </PageSkeleton>
-      </SubPageLayout>
+      </HealthLayout>
     );
   if (isPetsError) {
     return (
-      <SubPageLayout {...LAYOUT_PROPS}>
+      <HealthLayout petNm={selectedPet?.petNm}>
         <p role="alert" className="text-[#566465]">
           반려동물 정보를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
         </p>
-      </SubPageLayout>
+      </HealthLayout>
     );
   }
 
-  const selectedPet = pets.find((pet) => pet.petSn === selectedPetSn);
   const records = recordData ?? [];
 
   const openRecordForm = (typeCd) =>
@@ -226,11 +262,8 @@ export default function HealthDiaryPage() {
   };
 
   return (
-    <SubPageLayout {...LAYOUT_PROPS}>
+    <HealthLayout petNm={selectedPet?.petNm}>
       <DiaryPetBar
-        pets={pets}
-        selectedPetSn={selectedPetSn}
-        onSelectPet={selectPet}
         tabs={SECTION_TABS}
         activeTabId={sectionId}
         onSelectTab={setSectionId}
@@ -322,6 +355,6 @@ export default function HealthDiaryPage() {
           onClose={() => setReceiptFlow(null)}
         />
       )}
-    </SubPageLayout>
+    </HealthLayout>
   );
 }

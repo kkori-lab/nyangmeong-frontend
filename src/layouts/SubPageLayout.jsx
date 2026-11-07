@@ -16,6 +16,7 @@ export default function SubPageLayout({
   description,
   pixel = true,
   onLeave,
+  sideBottom,
   contentClassName = 'min-[1101px]:pt-6',
   children,
 }) {
@@ -43,6 +44,7 @@ export default function SubPageLayout({
           showTitle
           onLeave={onLeave}
         />
+        {sideBottom}
       </div>
       <div
         className={`flex min-w-0 flex-col min-[1101px]:col-start-2 min-[1101px]:row-start-3 ${contentClassName}`}
