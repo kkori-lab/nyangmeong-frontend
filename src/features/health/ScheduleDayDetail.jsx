@@ -58,13 +58,6 @@ export default function ScheduleDayDetail({
               <Icon name="calendar_month" />
             </span>
             <p className="text-sm text-[#566465]">등록된 일정이 없습니다</p>
-            <button
-              type="button"
-              className="inline-flex h-8 items-center rounded-[6px] bg-brand-500 px-3 text-sm font-semibold text-white hover:bg-brand-600"
-              onClick={onCreate}
-            >
-              새 일정 등록
-            </button>
           </div>
         </div>
       ) : (

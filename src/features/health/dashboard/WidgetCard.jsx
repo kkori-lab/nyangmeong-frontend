@@ -647,7 +647,6 @@ const careBody = ({ care }) => {
             record.cmptnYmd === todayYmd,
         );
   return {
-    period: '보기 전용 · 체크는 케어 캘린더에서',
     body: (
       <Rows>
         {dailyItems.slice(0, CARE_ROW_COUNT).map((item) => {

@@ -146,7 +146,7 @@ export default function PetSwitcher({ variant }) {
             petSn={pet.petSn}
             petSeCd={pet.petSeCd}
             isError={pet.bscCharSbstYn}
-            className={CELL_FACE_CLASS}
+            className="size-12 shrink-0 overflow-hidden rounded-full bg-brand-50 text-subtle"
             iconClassName="size-3/5"
           />
           <span className="min-w-0 flex-1">

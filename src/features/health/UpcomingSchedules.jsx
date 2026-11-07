@@ -1,24 +1,23 @@
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import {
-  formatTime,
-  formatWeekdayLong,
-  getDay,
-  getHmOf,
-  getMonth,
+  WEEKDAYS,
+  formatMonthDayDot,
   getTodayYmd,
+  getWeekdayIndex,
   getYmdOf,
 } from '@/utils/formatDate';
 import {
   compareSchedules,
-  getScheduleTone,
-  getScheduleIcon,
   getScheduleKindName,
-  getScheduleTypeName,
   isHospital,
 } from './scheduleTypes';
 
 const MAX_UPCOMING = 3;
+
+/** "11.12 목" */
+const formatShortDay = (ymd) =>
+  `${formatMonthDayDot(ymd)} ${WEEKDAYS[getWeekdayIndex(ymd)]}`;
 
 // 다가오는 케어 일정 카드(FN-HLT-003-40). 캘린더에 등록한 일정만 쓰고 케어리스트 정기관리 예정일은 넣지 않는다
 // className은 오른쪽 열에서 이 카드를 내용 높이로 두는 데 쓴다
@@ -54,46 +53,29 @@ export default function UpcomingSchedules({
         <ul>
           {upcoming.map((schedule) => (
             <li key={schedule.schdlSn}>
+              {/* 한 줄: 「11.12 목 · 이름 · 반려동물」. 이름만 길면 말줄임 */}
               <button
                 type="button"
-                className="group flex w-full items-center gap-3 border-b border-[#edf1f1] py-2 text-left last:border-b-0"
+                className="group flex w-full items-center gap-1.5 border-b border-line-soft py-2 text-left last:border-b-0"
                 onClick={() => onSelectSchedule(schedule)}
               >
-                <span className="flex w-10 shrink-0 flex-col items-center rounded-[6px] bg-[#f4f6f6] py-1 leading-tight">
-                  <span className="text-[13px] text-[#667374]">
-                    {getMonth(getYmdOf(schedule.schdlDt))}월
-                  </span>
-                  <span className="text-lg font-semibold text-[#1a3234]">
-                    {getDay(getYmdOf(schedule.schdlDt))}
-                  </span>
-                  <span className="text-[13px] text-[#667374]">
-                    {formatWeekdayLong(getYmdOf(schedule.schdlDt))}
-                  </span>
+                <span className="shrink-0 text-sm text-subtle tabular-nums">
+                  {formatShortDay(getYmdOf(schedule.schdlDt))}
                 </span>
-                <span
-                  aria-hidden="true"
-                  className={`grid size-10 shrink-0 place-items-center rounded-[10px] ${
-                    getScheduleTone(schedule).chip
-                  }`}
-                >
-                  <Icon name={getScheduleIcon(schedule)} />
+                <span aria-hidden="true" className="text-subtle">
+                  ·
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold text-[#1a3234] group-hover:text-[#1e4a4c]">
-                    {isHospital(schedule)
-                      ? getScheduleKindName(schedule)
-                      : schedule.schdlNm}
-                  </span>
-                  <span className="block truncate text-sm text-[#667374]">
-                    {schedule.petNm} ·{' '}
-                    {isHospital(schedule)
-                      ? schedule.hsptlNm
-                      : getScheduleTypeName(schedule)}
-                    {schedule.hrInptYn &&
-                      ` · ${formatTime(getHmOf(schedule.schdlDt))}`}
-                  </span>
+                <span className="min-w-0 truncate font-semibold text-ink group-hover:text-brand-600">
+                  {isHospital(schedule)
+                    ? getScheduleKindName(schedule)
+                    : schedule.schdlNm}
                 </span>
-                <Icon name="chevron_right" className="-mr-1 text-[#b9c4c4]" />
+                <span aria-hidden="true" className="text-subtle">
+                  ·
+                </span>
+                <span className="shrink-0 text-sm text-subtle">
+                  {schedule.petNm}
+                </span>
               </button>
             </li>
           ))}

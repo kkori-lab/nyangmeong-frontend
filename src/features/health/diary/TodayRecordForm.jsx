@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
-import { showToast } from '@/components/toastStore';
 import { getNowHm, getTodayYmd, makeDateTime } from '@/utils/formatDate';
-import { pickJosa } from '@/utils/josa';
 import { DAILY_ITEMS, keepWidgetOrder } from '../dashboard/widgetItems';
 import {
   NORMAL_STOOL,
@@ -28,7 +26,9 @@ import {
  *   더 좁으면(모바일) 종류 버튼이 줄 전체를 나눠 채우고, 둘째 줄은 칸이 모자라면 줄바꿈
  * - [신규 정책] 마지막 입력칸에서 Enter를 누르면 등록하기와 같이 등록하고, 등록이 끝나면 값을 비우고
  *   시간을 현재 시각으로 다시 채우고 마지막 입력칸에 커서를 둔다 (화면설계서에 없는 동작)
- * - 대시보드에서 고른 매일 기록만 종류로 보이고 [항목 추가]로 숨긴 종류를 켬 (※신규 정책, D11). widgetIds가 null(고른 적 없음)이면 5종 모두, [항목 추가]·안내 없음
+ * - 대시보드에서 고른 매일 기록만 종류로 보임 (※신규 정책, D11). widgetIds가 null(고른 적 없음)이면 5종 모두, [항목 편집] 없음
+ * - [항목 편집]: 종류 줄 아래에 매일 기록 5개 칩을 펼침. 칩을 누를 때마다 켜고 끄며 바로 저장(대시보드 기록 항목과 같은 저장소).
+ *   마지막으로 켜 둔 하나는 끌 수 없음. [완료]로 접음 (※신규 정책, 2026-11-08)
  */
 export default function TodayRecordForm({
   petSn,
@@ -44,7 +44,7 @@ export default function TodayRecordForm({
   const [rcdTm, setRcdTm] = useState(getNowHm);
   const [value, setValue] = useState('');
   const [crsdSttsCd, setCrsdSttsCd] = useState(NORMAL_STOOL);
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const createRecord = useCreateDailyRecord();
   const saveWidgets = useSaveHealthWidgets();
 
@@ -57,9 +57,6 @@ export default function TodayRecordForm({
   const recordTypes = RECORD_TYPES.filter((item) =>
     shownTypeCds.includes(item.cd),
   );
-  const hiddenItems = isFiltered
-    ? DAILY_ITEMS.filter((item) => !widgetIds.includes(item.id))
-    : [];
   const typeCd = shownTypeCds.includes(pickedTypeCd)
     ? pickedTypeCd
     : (recordTypes[0]?.cd ?? null);
@@ -69,24 +66,29 @@ export default function TodayRecordForm({
     timeRef.current?.focus({ preventScroll: true });
   }, []);
 
-  /** 숨긴 매일 기록 켜기: 대시보드에도 카드가 생김 */
-  const handleEnable = (item) => {
+  /** 켠 매일 기록 수: 마지막 하나는 끌 수 없음 */
+  const onCount = isFiltered
+    ? DAILY_ITEMS.filter((item) => widgetIds.includes(item.id)).length
+    : 0;
+
+  /** 매일 기록 켜고 끄기: 대시보드 카드도 같이 생기거나 빠짐. 켠 종류는 바로 고름 */
+  const handleToggle = (item) => {
+    const isOn = widgetIds.includes(item.id);
+    if (isOn && onCount <= 1) return;
+    const nextIds = isOn
+      ? widgetIds.filter((id) => id !== item.id)
+      : [...widgetIds, item.id];
     saveWidgets.mutate(
-      { mbrSn, widgetIds: keepWidgetOrder([...widgetIds, item.id]) },
+      { mbrSn, widgetIds: keepWidgetOrder(nextIds) },
       {
         onSuccess: () => {
+          if (isOn) return;
           setTypeCd(item.typeCd);
           setValue('');
-          setIsAddOpen(false);
-          showToast(
-            `${item.nm}${pickJosa(item.nm, '을/를')} 켰어요 · 대시보드에도 카드가 생겼어요`,
-          );
         },
       },
     );
   };
-
-  const hiddenNames = hiddenItems.map((item) => item.nm).join('·');
   const type = typeCd ? findRecordType(typeCd) : null;
   const isStool = typeCd === STOOL;
   const canSubmit =
@@ -135,7 +137,7 @@ export default function TodayRecordForm({
       </p>
 
       <div className="@container mt-3">
-        <div className="flex flex-col gap-4 @4xl:flex-row @4xl:items-end">
+        <div className="flex flex-col gap-4 @4xl:flex-row @4xl:flex-wrap @4xl:items-end">
           <div className="relative flex flex-col gap-1.5 @4xl:shrink-0">
             <span className={LABEL_CLASS}>종류</span>
             <div className="flex flex-wrap items-center gap-2">
@@ -169,44 +171,67 @@ export default function TodayRecordForm({
               {isFiltered && (
                 <button
                   type="button"
-                  aria-expanded={isAddOpen}
-                  aria-controls="hlt002-record-add"
-                  className="inline-flex h-10 items-center gap-1 rounded-full border border-dashed border-line-strong bg-white px-3.5 whitespace-nowrap text-ink-2 hover:border-brand-500 hover:text-brand-600"
-                  onClick={() => setIsAddOpen((isOpen) => !isOpen)}
+                  aria-expanded={isEditOpen}
+                  aria-controls="hlt002-record-edit"
+                  className={`inline-flex h-10 items-center gap-1 rounded-full border px-3.5 whitespace-nowrap ${
+                    isEditOpen
+                      ? 'border-brand-500 bg-brand-500 font-semibold text-white'
+                      : 'border-line-strong bg-white text-ink-2 hover:border-brand-500 hover:text-brand-600'
+                  }`}
+                  onClick={() => setIsEditOpen((isOpen) => !isOpen)}
                 >
-                  <Icon name="add" className="text-lg" />
-                  항목 추가
+                  <Icon name="tune" className="text-lg" />
+                  항목 편집
                 </button>
               )}
             </div>
-            {isAddOpen && (
-              <div
-                id="hlt002-record-add"
-                className="flex flex-wrap items-center gap-2 rounded-[10px] border border-line bg-white p-3 shadow-[0_8px_24px_rgba(26,50,52,0.08)]"
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape') setIsAddOpen(false);
-                }}
-              >
-                <p className="w-full text-sm text-muted">
-                  {hiddenItems.length > 0
-                    ? '켜면 종합 건강기록 대시보드에도 카드가 생겨요'
-                    : '매일 기록 5개를 모두 켰어요'}
-                </p>
-                {hiddenItems.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    disabled={saveWidgets.isPending}
-                    className="inline-flex h-9 items-center gap-1 rounded-full border border-line bg-white px-3.5 whitespace-nowrap text-ink-2 hover:border-brand-500 hover:text-brand-600 disabled:opacity-50"
-                    onClick={() => handleEnable(item)}
-                  >
-                    <Icon name="add" className="text-lg" />
-                    {item.nm}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
+
+          {/** 종류 줄 바로 아래 줄. 넓은 칸(한 줄 배치)에서는 맨 뒤로 보내 종류·입력 줄 아래 전체 폭 */}
+          {isFiltered && isEditOpen && (
+            <div
+              id="hlt002-record-edit"
+              className="flex flex-col gap-2 border-l-2 border-brand-100 pl-3 @4xl:order-last @4xl:basis-full"
+            >
+              <div
+                role="group"
+                aria-label="오늘 기록하기 항목"
+                className="flex flex-wrap items-center gap-2"
+              >
+                {DAILY_ITEMS.map((item) => {
+                  const isOn = widgetIds.includes(item.id);
+                  const isLastOn = isOn && onCount <= 1;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      aria-pressed={isOn}
+                      disabled={saveWidgets.isPending || isLastOn}
+                      className={`inline-flex h-9 items-center gap-1 rounded-full border px-3.5 whitespace-nowrap disabled:cursor-not-allowed ${
+                        isOn
+                          ? 'border-brand-500 bg-brand-500 font-semibold text-white'
+                          : 'border-line bg-white text-subtle hover:border-line-strong hover:text-ink'
+                      }`}
+                      onClick={() => handleToggle(item)}
+                    >
+                      <Icon name={isOn ? 'check' : 'add'} className="text-lg" />
+                      {item.nm}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="inline-flex h-9 items-center rounded-full px-3.5 font-semibold whitespace-nowrap text-brand-600 hover:underline hover:underline-offset-4"
+                  onClick={() => setIsEditOpen(false)}
+                >
+                  완료
+                </button>
+              </div>
+              <p className="text-sm text-muted">
+                켠 항목은 여기와 종합 건강기록 대시보드에 함께 보여요
+              </p>
+            </div>
+          )}
 
           {type && (
             <div className="flex flex-wrap items-end gap-4 @4xl:min-w-0 @4xl:flex-1 @4xl:flex-nowrap">
@@ -268,16 +293,6 @@ export default function TodayRecordForm({
           )}
         </div>
       </div>
-      {hiddenItems.length > 0 && (
-        <p className="mt-3 flex gap-1.5 text-sm text-muted">
-          <Icon name="info" className="mt-0.5 text-subtle" />
-          <span>
-            {hiddenNames}
-            {pickJosa(hiddenItems[hiddenItems.length - 1].nm, '은/는')} 고르지
-            않아서 숨겨져 있어요. [항목 추가]로 언제든 다시 켤 수 있어요
-          </span>
-        </p>
-      )}
     </form>
   );
 }

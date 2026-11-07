@@ -222,10 +222,10 @@ function CareCalendarContent() {
             }
           />
 
-          {/* 넓은 화면에서는 이 열의 높이를 캘린더 카드에 맞추고, 다가오는 일정 카드는 내용 높이로 맨 아래에 붙고 남는 높이는 날짜 상세 카드가 채운다 */}
+          {/* 넓은 화면에서는 이 열의 높이를 캘린더 카드에 맞추고, 날짜 상세 : 다가오는 일정 = 7 : 3으로 나눈다. 다가오는 일정은 3건이 다 보이는 높이보다 줄지 않고, 모자란 만큼 날짜 상세가 줄며 안에서 스크롤 */}
           <div className="flex min-w-0 flex-col gap-5 min-[1101px]:h-0 min-[1101px]:min-h-full min-[1101px]:self-stretch">
             <ScheduleDayDetail
-              className="min-[1101px]:min-h-0 min-[1101px]:flex-1"
+              className="min-[1101px]:min-h-0 min-[1101px]:flex-7"
               bodyClassName="min-[1101px]:min-h-0 min-[1101px]:overflow-y-auto"
               ymd={selectedYmd}
               schedules={monthSchedules}
@@ -236,7 +236,7 @@ function CareCalendarContent() {
             <UpcomingSchedules
               schedules={upcomingSchedules}
               onSelectSchedule={openEdit}
-              className="min-[1101px]:shrink-0"
+              className="min-[1101px]:min-h-fit min-[1101px]:flex-3"
             />
           </div>
         </div>

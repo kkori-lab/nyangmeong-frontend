@@ -46,14 +46,14 @@ export default function CareTile({
         aria-pressed={isDone}
         className={`flex w-full items-center gap-3 px-2 py-3 text-left [grid-area:b] ${
           isRegular
-            ? 'max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-y-0.5 sm:grid sm:grid-cols-[minmax(0,1fr)_--spacing(18)_--spacing(18)_--spacing(12)] sm:gap-x-2'
+            ? 'max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-y-0.5 sm:grid sm:grid-cols-[minmax(0,1fr)_--spacing(18)_--spacing(12)] sm:gap-x-2'
             : ''
         }`}
         onClick={() => onCheck(item)}
       >
-        {/* 아이콘 / 이름(고정 폭, 넘치면 말줄임) / 처방약 연동 뱃지. 이름 칸 폭이 같아 뱃지가 모든 줄에서 같은 위치에 온다 */}
+        {/* 아이콘 / 첫 줄 이름(넘치면 말줄임), 둘째 줄 회색 처방약 연동 뱃지 + 주기(640px 미만은 예정일까지) */}
         <span
-          className={`grid min-w-0 grid-cols-[--spacing(8)_minmax(0,7.5em)_auto] items-center justify-items-start gap-x-3 ${
+          className={`grid min-w-0 grid-cols-[--spacing(8)_minmax(0,1fr)] items-center gap-x-3 ${
             isRegular ? 'max-sm:col-start-1 max-sm:row-start-1' : 'flex-1'
           }`}
         >
@@ -65,14 +65,29 @@ export default function CareTile({
           >
             <Icon name={item.rprsIconId} />
           </span>
-          <span
-            className={`truncate ${isDone ? 'text-brand-600' : 'text-ink'}`}
-          >
-            {item.careArtclNm}
+          <span className="flex min-w-0 flex-col">
+            <span
+              className={`truncate ${isDone ? 'text-brand-600' : 'text-ink'}`}
+            >
+              {item.careArtclNm}
+            </span>
+            {(isLinked || isRegular) && (
+              <span className="flex min-w-0 items-center gap-2 text-sm text-muted tabular-nums">
+                {isLinked && (
+                  <Badge tone={isDone ? 'white' : 'gray'}>처방약 연동</Badge>
+                )}
+                {isRegular && (
+                  <span className="truncate">
+                    {getCareCycleName(item)} 주기
+                    <span className="sm:hidden">
+                      {' '}
+                      · {formatMonthDayDot(item.nxtmPrnmntYmd)} 예정
+                    </span>
+                  </span>
+                )}
+              </span>
+            )}
           </span>
-          {isLinked && (
-            <Badge tone={isDone ? 'white' : 'brand'}>처방약 연동</Badge>
-          )}
         </span>
         {isDose && item.mdcnEndYmd && (
           <span className="hidden text-sm whitespace-nowrap text-subtle tabular-nums sm:inline">
@@ -86,9 +101,6 @@ export default function CareTile({
         )}
         {isRegular && (
           <>
-            <span className="flex items-center text-sm text-muted max-sm:hidden">
-              {getCareCycleName(item)} 주기
-            </span>
             <span className="contents">
               <span className="flex items-center text-sm text-muted tabular-nums max-sm:hidden">
                 {formatMonthDayDot(item.nxtmPrnmntYmd)} 예정
@@ -100,16 +112,11 @@ export default function CareTile({
                       ? 'white'
                       : BADGE_TONES[badge.tone]
                   }
-                  className="justify-self-end tabular-nums max-sm:col-start-2 max-sm:row-span-2 max-sm:row-start-1"
+                  className="justify-self-end tabular-nums max-sm:col-start-2 max-sm:row-start-1"
                 >
                   {badge.label}
                 </Badge>
               )}
-            </span>
-            {/* 640px 미만: 이름 아래 부제 한 줄(아이콘 폭만큼 들여 이름과 맞춤) */}
-            <span className="col-start-1 row-start-2 truncate pl-11 text-sm text-muted tabular-nums sm:hidden">
-              {getCareCycleName(item)} 주기 ·{' '}
-              {formatMonthDayDot(item.nxtmPrnmntYmd)} 예정
             </span>
           </>
         )}
