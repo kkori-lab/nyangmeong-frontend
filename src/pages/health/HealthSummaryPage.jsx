@@ -7,7 +7,7 @@ import { useHealthSummary } from '@/features/health/queries';
 import PetSwitcher from '@/features/health/shared/PetSwitcher';
 import SelectedPetProvider from '@/features/health/shared/SelectedPetProvider';
 import { useSelectedPet } from '@/features/health/shared/selectedPet';
-import SummaryHero from '@/features/health/summary/SummaryHero';
+import SummaryBanner from '@/features/health/summary/SummaryBanner';
 import { useMe } from '@/features/member/queries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 
@@ -86,7 +86,7 @@ function HealthSummaryContent({ mbrSn }) {
 
   return (
     <HealthLayout>
-      <SummaryHero pet={selectedPet} summary={summary} />
+      <SummaryBanner pet={selectedPet} summary={summary} />
       <HealthDashboard
         mbrSn={mbrSn}
         pet={selectedPet}
@@ -98,11 +98,11 @@ function HealthSummaryContent({ mbrSn }) {
   );
 }
 
-/** 로딩 자리: 히어로 + 대시보드 */
+/** 로딩 자리: 배너 + 대시보드 */
 function SummarySkeleton() {
   return (
     <div aria-busy="true" className="flex flex-col gap-7">
-      <SkeletonCard className="h-[290px] max-[760px]:h-[848px]" />
+      <SkeletonCard className="h-52 max-sm:h-96" />
       <DashboardSkeleton />
     </div>
   );
