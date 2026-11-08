@@ -1017,6 +1017,15 @@
 - 완료 조건: `features/adminDashboard/api.js`의 `getAdminDashboard` 가짜를 실제 `GET /api/admin/dashboard`로 바꾼다. 필드 이름·모양은 가짜 그대로(`totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs[{ mbrSn, mbrNcnm, regDt }]`·`recentPsts[{ pstSn, bbsCd, bbsNm, pstTtl, regDt }]`·`dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`). 회원 수는 일반 회원만(관리자 계정 제외), 게시글 수·최근 게시글은 관리자 게시글 목록 기본 조건과 같게 삭제 글 포함, 배치 실패는 마지막 실행이 실패한 배치 수. 처리 대기 건수를 누르면 같은 필터의 목록 건수와 같다. 이용 통계(`getAdminDashboardStats`)는 아직 가짜
 - 이미 바뀐 것: `features/adminDashboard/api.js`(가짜 `getAdminDashboard`), SCR-ADM-001 대시보드 화면(끝)
 
+## SCR-MAN-001 메인페이지 · 구글 시작 화면형 개편 — 대기
+- 기능: 명세 기능 ID 추가 없음(팀 회의 2026-11-08 개편, 기능명세서·화면설계서 미반영). 걸치는 기능 FN-MAN-001~009(원래 YAY 마일스톤에서 셈). 화면 담당을 YAY에서 LJS로 옮김(`docs/convention/milestone.md` 담당 표 2026-11-08)
+- 범위: 첫 화면 세로 가운데에 인사말 → AI 매니저 검색창 → 제안 카드 → 반려동물 바로가기 순서로 두고, 그 아래는 바로 푸터. 반려동물 프로필(`SummaryHero`)·건강기록 통합대시보드·토탈 케어리스트를 메인에서 뺀다. 대시보드 위젯 코드는 지운다(`MainPage.jsx`의 위젯 import·호출·렌더, `features/dashboard/`의 `api.js`·`queries.js`·`widgetCodes.js`·`IndicatorWidgets.jsx`·`HealthWidget.jsx`). `HeroAsk.jsx`는 남겨 고쳐 쓴다
+- 디자인: 팀 공유 스크린샷(로컬 `html/SCR-MAN-001.png`, git 제외) + 기존 부품 조합(`PetFace`, `HeroAsk`, 머리·푸터 픽셀 에셋). 순서는 필수, 크기·간격은 자유(사람 결정 2026-11-08)
+- 결정(사람 2026-11-08): `/health?petSn=` 링크는 반려동물마다 기본으로 넣는 "종합 건강기록" 바로가기가 맡는다. 바로가기 목록은 서버에 저장하고 API는 LJS가 만든다(가짜 응답으로 먼저). AI 건강분석 리포트 카드는 JAJ 건강기록 개편 공유 뒤 행선지를 정하고, 그때까지 모양만 둔다. 음성 질문 버튼은 모양만 두고 누르면 준비 중 안내. 시간대 인사말·검색창 테두리 색 변화·픽셀 장식은 선택 항목
+- 기다리는 것: 바로가기 조회·저장 API(LJS 백엔드, 아직 없음), 건강기록 개편 공유(JAJ, 리포트 카드 행선지)
+- 완료 조건 후보: 로그인 메인에서 네 요소가 순서대로 첫 화면 세로 가운데에 있고 그 아래 바로 푸터가 온다 / 바로가기를 누르면 그 반려동물의 건강기록 화면(`/health`·`/health/diary`·`/health/calendar` + `?petSn=`)이 그 아이로 열린다 / 바로가기를 추가하고 새로고침해도 남는다(가짜 응답 기준)
+- 백엔드 연결: 메인 바로가기 조회·저장 API (백엔드 저장소에서 /start)
+
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)
