@@ -2,10 +2,11 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · 구글 시작 화면형 개편 — 끝(2026-11-08). 인사말 → AI 검색창 → 제안 카드 2장 → 반려동물 바로가기(가짜 응답)로 바꾸고 대시보드 위젯을 지웠다. [영수증 올리기]는 건강기록 영수증 흐름으로 연결(추가-1~4)
+SCR-MAN-001 메인페이지 · 구글 시작 화면형 개편 — 끝(2026-11-08). 끝 판정 뒤 추가-5~7: 바로가기 ⋮ 메뉴로 수정·삭제, ⋮ hover 배경 삭제·겹침 해소, 타일 여백 늘림(96px)·⋮ 위에서도 타일 배경 유지
 
 ## 다음에 할 것
 
+- ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에"): `features/health/CareItemMenu.jsx`·`features/expense/shared/ExpenseMenu.jsx`·`features/dashboard/MainShortcuts.jsx`의 `ShortcutMenu`가 같은 ⋮ 메뉴를 따로 갖고 있다. `components/KebabMenu.jsx`로 올리고 앞의 둘은 껍데기로 두면 쓰는 4개 파일은 안 바뀐다
 - SCR-MAN-001 연결 남음(2026-11-08): 반려동물 바로가기 (백엔드 연결 메인 바로가기 조회·저장 API, 백엔드 저장소에서 /start). 나오면 `features/dashboard/api.js` 가짜(sessionStorage `fake-main-shortcuts`)만 실제 요청으로, 코드는 `shortcutTypes.js`에서 맞춘다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-08): ① 영수증 인식 뒤 건강일지 주소에 `?recptSn=`이 남는다(`HealthDiaryPage.jsx`, JAJ, 가짜 응답에서 봄) ② 메인이 더는 `GET·PUT /members/me/dashboard-widgets`·`GET /pets/{petSn}/health-indicators`를 부르지 않는다(백엔드 정리는 담당과 상의) ③ `src/assets/index.css`의 `man-float` keyframes를 쓰는 곳이 없다 ④ `docs/routes.md` MAN-001 담당이 YAY로 남아 있다 ⑤ PR 캡처는 가짜 반려동물이 찍혀 실제 계정으로 다시 찍는 편이 낫다 ⑥ AI 건강분석 리포트 카드 행선지는 JAJ 건강기록 개편 공유 뒤
 - SCR-MAN-001 로컬 검증 데이터(2026-11-08): 실제 영수증 업로드로 영수증 기록이 로컬 DB에 남았다(지우는 API 없음). 검증용 복사 파일 `.playwright-mcp/tmp/receipt.png`

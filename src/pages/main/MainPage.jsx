@@ -115,7 +115,7 @@ function MainSkeleton() {
       </div>
       <div className="flex gap-2">
         {Array.from({ length: 3 }, (_, index) => (
-          <Skeleton key={index} className="h-[96px] w-[80px] rounded-box" />
+          <Skeleton key={index} className="h-[120px] w-24 rounded-box" />
         ))}
       </div>
     </div>
