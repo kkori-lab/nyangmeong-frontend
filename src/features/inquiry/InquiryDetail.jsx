@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { generatePath, Link, useNavigate } from 'react-router-dom';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
+import ImageViewer from '@/components/ImageViewer';
 import PostBody from '@/components/PostBody';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { isAnswered } from './api';
-import InquiryImageViewer from './InquiryImageViewer';
 import InquiryStatusBadge from './InquiryStatusBadge';
 import { useDeleteInquiry, useInquiryImageUrls } from './queries';
 
@@ -76,9 +76,12 @@ export default function InquiryDetail({ inquiry }) {
       </PostBody>
 
       {viewerIndex !== null && (
-        <InquiryImageViewer
-          imgs={imgs}
-          urls={urls}
+        <ImageViewer
+          images={imgs.map((img, index) => ({
+            key: img.atchFileSn,
+            src: urls[img.atchFileSn],
+            name: img.orgnlFileNm || `첨부 이미지 ${index + 1}`,
+          }))}
           index={viewerIndex}
           onChange={setViewerIndex}
           onClose={() => setViewerIndex(null)}

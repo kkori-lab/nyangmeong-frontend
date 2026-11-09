@@ -6,9 +6,11 @@ import { formatDate, formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
 import LineChart from './LineChart';
 import ObservationPhoto from './ObservationPhoto';
 import {
+  CHART_COUNT,
   formatDiff,
   formatPart,
   formatSize,
+  getItemDiffText,
   getItemValueText,
   getSizeDiff,
   isEndedItem,
@@ -17,7 +19,7 @@ import {
 /**
  * [지속 관찰 모바일(760px 이하)] 목록 → 상세 화면
  * - 목록: 항목 한 줄 요약(사진·이름·위치 · 회차·최근 값/변화), 누르면 상세 화면
- * - 상세: 요약 → 회차 사진(오래된 회차부터, 처음엔 최근 회차가 보이게 오른쪽 끝) → 크기 변화 그래프 → 선택 회차 기록 → [관찰 기록 추가] → 관찰 종료
+ * - 상세: 요약 → 회차 사진(오래된 회차부터 최신 5개 + 앞은 [+N], 처음엔 최근 회차가 보이게 오른쪽 끝) → 크기 변화 그래프(최신 5개) → 선택 회차 기록 → [관찰 기록 추가] → 관찰 종료
  * - ※ 최근 변화 배지와 회차 사진의 "최근" 표시는 화면설계서에 없는 신규 정책
  */
 
@@ -52,7 +54,12 @@ export function ObservationMobileList({ petSn, items, onOpen }) {
     <ul aria-label="관찰 항목 목록" className="flex flex-col">
       {items.map((item) => {
         const isEnded = isEndedItem(item);
-        const valueText = getItemValueText(item);
+        /** PC 목록과 같게 크기 뒤 증감(0이면 "변화 없음")을 따로 굵게 (추가 요청) */
+        const hasSize = !isEnded && item.lastCycle.obsrvSz != null;
+        const valueText = hasSize
+          ? formatSize(item.lastCycle.obsrvSz)
+          : getItemValueText(item);
+        const diffText = getItemDiffText(item);
         return (
           <li
             key={item.obsrvArtclSn}
@@ -82,6 +89,12 @@ export function ObservationMobileList({ petSn, items, onOpen }) {
                 valueText && (
                   <span className="shrink-0 text-sm/[1.6] text-ink-2 tabular-nums">
                     {valueText}
+                    {diffText && (
+                      <span className="font-bold text-brand-500">
+                        {' '}
+                        {diffText}
+                      </span>
+                    )}
                   </span>
                 )
               )}
@@ -110,7 +123,12 @@ export function ObservationMobileDetail({
   const cycle = cycles[selectedIndex];
   const lastIndex = cycles.length - 1;
   const isEnded = isEndedItem(item);
-  const sizedCycles = cycles.filter((target) => target.obsrvSz != null);
+  /** 그래프는 PC와 같게 크기를 입력한 회차 중 최신 CHART_COUNT개만 (추가 요청) */
+  const sizedCycles = cycles
+    .filter((target) => target.obsrvSz != null)
+    .slice(-CHART_COUNT);
+  /** 사진 줄도 PC와 같게 최신 CHART_COUNT개, 앞의 나머지는 [+N] 칸 (추가 요청) */
+  const hiddenCount = Math.max(0, cycles.length - CHART_COUNT);
   const activePoint = sizedCycles.findIndex(
     (target) => target.obsrvCyclSn === cycle.obsrvCyclSn,
   );
@@ -170,7 +188,31 @@ export function ObservationMobileDetail({
         aria-label="회차별 사진"
         className="mb-5 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {cycles.map((target, index) => {
+        {hiddenCount > 0 && (
+          <button
+            type="button"
+            aria-label={`이전 회차 ${hiddenCount}개 사진 보기`}
+            aria-pressed={selectedIndex < hiddenCount}
+            className="flex w-5/19 shrink-0 flex-col text-center"
+            onClick={() => onViewPhoto(cycles[hiddenCount - 1])}
+          >
+            {/* 선택 회차가 사진 줄에 없는 이전 회차면 PC와 같은 선택 테두리 (추가 요청) */}
+            <span
+              className={`grid aspect-square w-full place-content-center rounded-lg border-2 bg-surface-2 ${
+                selectedIndex < hiddenCount
+                  ? 'border-brand-500'
+                  : 'border-dashed border-line-strong hover:border-brand-500'
+              }`}
+            >
+              <span className="text-lg/[1.6] font-bold text-brand-500 tabular-nums">
+                +{hiddenCount}
+              </span>
+              <span className="text-sm/[1.6] text-subtle">이전 회차</span>
+            </span>
+          </button>
+        )}
+        {cycles.slice(hiddenCount).map((target, shownIndex) => {
+          const index = hiddenCount + shownIndex;
           const isSelected = index === selectedIndex;
           return (
             <button

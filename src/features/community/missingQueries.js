@@ -10,8 +10,8 @@ import {
   getComments,
   reportComment,
   reportPost,
-  togglePostLike,
 } from './api';
+import { useOptimisticLike } from './optimisticLike';
 import {
   createMissing,
   deleteMissing,
@@ -114,8 +114,12 @@ export const useDeleteMissing = () => {
       ]),
   });
 };
-export const useToggleMissingLike = () =>
-  useInvalidatingMutation(togglePostLike);
+/** 누르는 즉시 그 글 상세의 좋아요·개수가 바뀐다(optimisticLike) */
+export const useToggleMissingLike = (lostTpofSn) =>
+  useOptimisticLike({
+    detailKey: missingKeys.detail(lostTpofSn),
+    allKey: missingKeys.all,
+  });
 export const useMarkMissingFound = () =>
   useInvalidatingMutation(markMissingFound);
 export const useExtendMissing = () => useInvalidatingMutation(extendMissing);
