@@ -7,7 +7,7 @@ import PetFace from '@/components/PetFace';
 import Select from '@/components/Select';
 import Skeleton from '@/components/Skeleton';
 import { useMainShortcuts, useSaveMainShortcuts } from './queries';
-import { DEFAULT_SHORTCUT_CDS, SHORTCUT_TYPES } from './shortcutTypes';
+import { SHORTCUT_TYPES } from './shortcutTypes';
 
 const TYPE_BY_CD = Object.fromEntries(
   SHORTCUT_TYPES.map((type) => [type.cd, type]),
@@ -18,13 +18,11 @@ const TILE =
   'flex w-24 flex-col items-center gap-1.5 rounded-box p-3 text-center group-hover:bg-brand-50';
 const CIRCLE = 'size-[52px] rounded-full';
 
-/** 반려동물별 바로가기 코드: 저장한 적 없으면 기본(종합 건강기록) */
+/** 반려동물별 바로가기 코드: 서버가 양육 중인 반려동물 전부를 주므로 응답에 없으면 빈 목록 */
 const toShortcutMap = (pets, saved) =>
   pets.map((pet) => ({
     pet,
-    shrtcCds:
-      saved.find((item) => item.petSn === pet.petSn)?.shrtcCds ??
-      DEFAULT_SHORTCUT_CDS,
+    shrtcCds: saved.find((item) => item.petSn === pet.petSn)?.shrtcCds ?? [],
   }));
 
 /**
@@ -43,7 +41,7 @@ const toChoices = (rows, editing = null) =>
     }))
     .filter(({ types }) => types.length > 0);
 
-/** 저장 본문: 반려동물별 코드 목록. 비어도 보내서 기본값이 다시 살아나지 않게 한다 */
+/** 저장 본문: 반려동물별 코드 목록. 비어도 보내서 서버 기본값이 다시 살아나지 않게 한다 */
 const toBody = (rows, change) =>
   rows.map(({ pet, shrtcCds }) => ({
     petSn: pet.petSn,
@@ -53,7 +51,7 @@ const toBody = (rows, change) =>
 /**
  * [메인 반려동물 바로가기]
  * - 누르면 그 반려동물로 건강기록 화면을 연다(?petSn=)
- * - [바로가기 추가]로 반려동물과 종류를 골라 더한다. 목록은 서버에 저장(지금은 가짜 응답)
+ * - [바로가기 추가]로 반려동물과 종류를 골라 더한다. 목록은 서버에 저장
  * - 타일 오른쪽 위 ⋮: [바로가기 수정](반려동물·종류 바꾸기)·[삭제](확인 없이 뺌) (추가-5)
  *   마우스가 있는 기기는 올리거나 포커스할 때만 보이고, 터치 기기는 항상 보인다
  */
