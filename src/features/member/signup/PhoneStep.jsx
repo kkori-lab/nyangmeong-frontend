@@ -7,7 +7,7 @@ import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 export default function PhoneStep({ form }) {
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 max-md:gap-5">
         <AuthField
           id="signup-phone"
           icon={Phone}
@@ -38,7 +38,7 @@ export default function PhoneStep({ form }) {
         type="button"
         disabled={!form.isPhoneChecked}
         onClick={() => form.goStep('password')}
-        className={`${PRIMARY_BTN} mt-5`}
+        className={`${PRIMARY_BTN} mt-5 max-md:mt-8`}
       >
         다음
       </button>
