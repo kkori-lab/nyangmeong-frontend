@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 끝남 (승인 2026-11-06 10:54, 검증 통과·확인 못 함 있음(연결 남음만), 사람 확인 2026-11-06·2026-11-09). FN-MAN-008 링크와 추가-1~7(로그인·회원가입 빈 칸 버튼 비활성, 오류 입력칸 링, 모바일 로그인·회원가입 위치·간격)을 했다. 2026-11-08 팀 결정으로 메인(MAN) 화면이 LJS로 넘어가 FN-MAN-002·건강기록 바로가기는 LJS 개편 마일스톤이 맡는다(메인의 [건강기록 전체 보기]는 LJS 개편에서 바로가기 타일로 바뀜)
+SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 끝남 (승인 2026-11-06 10:54, 검증 통과·확인 못 함 있음(연결 남음만), 사람 확인 2026-11-06·2026-11-09). FN-MAN-008 링크와 추가-1~8(로그인·회원가입 빈 칸 버튼 비활성, 오류 입력칸 링, 모바일 로그인·회원가입·SNS 가입 확인 위치·간격)을 했다. 2026-11-08 팀 결정으로 메인(MAN) 화면이 LJS로 넘어가 FN-MAN-002·건강기록 바로가기는 LJS 개편 마일스톤이 맡는다(메인의 [건강기록 전체 보기]는 LJS 개편에서 바로가기 타일로 바뀜)
 
 기준: 메인페이지_기능명세서_v0.10_20261103, 메인페이지_화면설계서_v0.10_20261103 (DMS)
 디자인: 없음, 화면설계서 기준 (화면 모양은 바꾸지 않는다)
@@ -31,6 +31,7 @@ SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 끝남 (승�
 | 추가-5 | `layouts/AuthSlider.jsx`, `features/member/shared/AuthHeading.jsx`, `features/member/login/LoginMethodChoice.jsx`·`EmailLoginForm.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) `/login`·`/login?method=email`에서 뒤로가기·제목은 로고 바로 아래(추가-3 위치)에 있고, 제목 아래 버튼·입력칸은 간격을 두고 내려와 추가-4 위치 근처에 온다. 회원가입·PC는 그대로. 추가-4의 가운데 정렬은 이것으로 바꾼다 | 요청 2026-11-06 "타이틀과 뒤로가기 버튼만 위로 올리면 될 것 같다" |
 | 추가-6 | `features/member/signup/SignupForm.jsx`·`SnsSignupForm.jsx`, `features/member/shared/AuthHeading.jsx`(주석) | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) `/signup` 각 단계(약관·이메일·휴대전화·비밀번호)와 SNS 가입 확인에서 제목 아래에 로그인과 같은 간격(화면 높이 12%)이 있다. 긴 단계도 위가 잘리지 않고 스크롤된다. PC는 그대로 | 요청 2026-11-06 "로그인은 타이틀 아래 여백이 있는데 회원가입은 없다" |
 | 추가-7 | `features/member/shared/AuthHeading.jsx`, `features/member/signup/SignupForm.jsx`, `features/member/login/LoginMethodChoice.jsx`·`EmailLoginForm.jsx`, `features/member/signup/SnsSignupForm.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) `/signup` 단계 화면의 첫 입력 요소(약관은 [모두 동의])가 로그인 첫 버튼과 같은 높이(약 280px)에 온다. 제목 아래 간격은 단계 표시만큼 줄어들되 남는다(창이 낮아도 20px 아래로 줄지 않는다). 로그인·SNS 가입 확인·PC는 그대로 | 요청 2026-11-09 "회원가입 좀 올려도 될 것 같다. 로그인과 같게" |
+| 추가-8 | `features/member/shared/AuthHeading.jsx`, `features/member/signup/SignupForm.jsx`·`SnsSignupForm.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) SNS 가입 확인은 제목 아래 간격이 추가-6(약 101px)보다 줄어 내용이 위로 올라온다(회원가입 약관 단계와 같은 간격, 최소 20px). 회원가입 이메일 단계는 이메일 입력칸이 이메일 로그인의 아이디 입력칸과 같은 높이(약 311px)에 온다. 약관·휴대전화·비밀번호 단계, 로그인, PC는 그대로 | 요청 2026-11-09 "가입 정보 확인은 좀 올려야 하고 이메일 인증은 로그인처럼" |
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
