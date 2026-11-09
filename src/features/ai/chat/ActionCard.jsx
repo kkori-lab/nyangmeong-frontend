@@ -1,11 +1,24 @@
-import { CircleCheck, CircleX, ClipboardCheck } from 'lucide-react';
-import aiCharacter from '@/assets/ai-character.png';
-import { actionFieldName } from '../shared/actionFields';
 import {
+  ArrowRight,
+  Check,
+  CircleCheck,
+  CircleX,
+  ClipboardCheck,
+  Info,
+} from 'lucide-react';
+import aiCharacter from '@/assets/ai-character.png';
+import { BADGE_COLORS, TONE_CLASSES } from '@/constants/calendarBadge';
+import { PATHS } from '@/routes/paths';
+import { formatYmdWeekday } from '@/utils/formatDate';
+import { actionFieldName } from '../shared/actionFields';
+import { openInMainWindow } from './openInMainWindow';
+import {
+  CARE_ITEM_TOOL,
   hasPetChoice,
   isEmptyValue,
   activeFields,
   missingFields,
+  nextDueYmd,
   requiredFields,
   toFieldValue,
   withField,
@@ -69,8 +82,58 @@ function ChoiceChips({ choices, value, isRequired, isDisabled, onPick }) {
   );
 }
 
+/** 캘린더 뱃지 색상 칸 */
+const BADGE_COLOR_FIELD = 'cldrBadgeColrCd';
+
+/** 캘린더 뱃지 색상 칩: 케어 캘린더 일정 모달과 같은 동그란 칩, 고른 칩을 다시 누르면 비움 */
+function BadgeColorChips({ value, isDisabled, onPick }) {
+  return (
+    <>
+      <div className="flex flex-wrap gap-3">
+        {BADGE_COLORS.map((color) => {
+          const isChecked = value === color.cd;
+          return (
+            <button
+              key={color.cd}
+              type="button"
+              aria-pressed={isChecked}
+              title={color.nm}
+              disabled={isDisabled}
+              className={`grid size-8 place-items-center rounded-full outline-offset-(--spacing) focus-visible:outline focus-visible:outline-[#285a5c] disabled:cursor-not-allowed disabled:opacity-60 ${
+                TONE_CLASSES[color.tone].chip
+              } ${isChecked ? 'outline-solid outline-[length:medium] outline-current' : ''}`}
+              onClick={() => onPick(isChecked ? undefined : color.cd)}
+            >
+              <span className="sr-only">{color.nm}</span>
+              {isChecked && (
+                <Check aria-hidden="true" className="size-[18px]" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-sm leading-[22px] text-[#667374]">
+        고르지 않으면 일정 종류의 기본 색상이 적용돼요
+      </p>
+    </>
+  );
+}
+
 /** 칸 타입별 입력: 코드는 칩, 날짜·시간은 날짜 입력, 숫자는 숫자 입력 */
-function FieldControl({ id, param, value, isRequired, isDisabled, onPick }) {
+function FieldControl({
+  id,
+  field,
+  param,
+  value,
+  isRequired,
+  isDisabled,
+  onPick,
+}) {
+  if (field === BADGE_COLOR_FIELD && param.type === 'code') {
+    return (
+      <BadgeColorChips value={value} isDisabled={isDisabled} onPick={onPick} />
+    );
+  }
   if (param.type === 'code') {
     return (
       <ChoiceChips
@@ -151,20 +214,40 @@ function FieldControl({ id, param, value, isRequired, isDisabled, onPick }) {
   );
 }
 
-/** 결과 줄: 저장한 요약 메시지와 같은 글 */
-function ResultLine({ status, text }) {
+/** 등록한 반려동물로 케어 캘린더 열기: 캘린더가 `?petSn=`을 보고 있는 아이로 고름 */
+const calendarPath = (petSn) =>
+  petSn == null
+    ? PATHS.HEALTH_CALENDAR
+    : `${PATHS.HEALTH_CALENDAR}?petSn=${encodeURIComponent(petSn)}`;
+
+/** 결과 줄: 저장한 요약 메시지와 같은 글, 등록 직후에는 그 아래 오른쪽에 케어 캘린더 바로가기 */
+function ResultLine({ status, text, hasCalendarLink, petSn }) {
   const isDone = status === 'done';
   const Icon = isDone ? CircleCheck : CircleX;
   let color = 'text-[#667374]';
   if (isDone) color = 'text-[#2f6f57]';
   if (status === 'failed') color = 'text-[#b42318]';
   return (
-    <p
-      className={`mt-4 flex items-center gap-2 border-t border-[#edf1f1] pt-3 text-base font-semibold leading-6 ${color}`}
-    >
-      <Icon aria-hidden="true" className="size-[18px] shrink-0" />
-      {text.replace(/^✔\s*/, '')}
-    </p>
+    <div className="mt-4 border-t border-[#edf1f1] pt-3">
+      <p
+        className={`flex items-start gap-2 text-base font-semibold leading-6 ${color}`}
+      >
+        <Icon aria-hidden="true" className="mt-[3px] size-[18px] shrink-0" />
+        {text.replace(/^✔\s*/, '')}
+      </p>
+      {isDone && hasCalendarLink && (
+        <div className="mt-2 flex justify-end">
+          <button
+            type="button"
+            className="flex items-center gap-1 text-base font-semibold leading-6 text-[#1e4a4c] hover:underline"
+            onClick={() => openInMainWindow(calendarPath(petSn))}
+          >
+            케어 캘린더에서 보기
+            <ArrowRight aria-hidden="true" className="size-[18px]" />
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -176,6 +259,7 @@ function ResultLine({ status, text }) {
 export default function ActionCard({
   item,
   isActive,
+  hasCalendarLink,
   onChange,
   onConfirm,
   onCancel,
@@ -187,6 +271,8 @@ export default function ActionCard({
   const missing = missingFields(card, input);
   const required = requiredFields(card, input);
   const title = card.label ?? '내용 확인';
+  const isCareItem = card.tool === CARE_ITEM_TOOL;
+  const dueYmd = isCareItem ? nextDueYmd(input) : null;
 
   const change = (field, value) =>
     onChange(field, withField(input, field, value));
@@ -211,6 +297,13 @@ export default function ActionCard({
           />
           {title}
         </h2>
+
+        {card.notice && (
+          <p className="mt-3 flex items-start gap-2 rounded-[10px] bg-[#fcf1df] px-3 py-2 text-sm leading-[22px] text-[#9a5c0c]">
+            <Info aria-hidden="true" className="mt-0.5 size-[18px] shrink-0" />
+            {card.notice}
+          </p>
+        )}
 
         <div className="mt-4 flex flex-col gap-4 rounded-[10px] bg-[#f4f6f6] p-4">
           {hasPetChoice(card) ? (
@@ -267,6 +360,7 @@ export default function ActionCard({
                 )}
                 <FieldControl
                   id={id}
+                  field={field}
                   param={param}
                   value={input[field]}
                   isRequired={required.includes(field)}
@@ -291,6 +385,17 @@ export default function ActionCard({
               </div>
             );
           })}
+
+          {isCareItem && (
+            <div>
+              <p className="text-sm leading-[1.25] text-[#667374]">
+                다음 예정일
+              </p>
+              <p className="mt-1 text-base font-semibold leading-6 text-[#1a3234]">
+                {dueYmd ? formatYmdWeekday(dueYmd) : '—'}
+              </p>
+            </div>
+          )}
         </div>
 
         {item.formError && isPending && (
@@ -341,7 +446,12 @@ export default function ActionCard({
         )}
 
         {item.resultText && (
-          <ResultLine status={status} text={item.resultText} />
+          <ResultLine
+            status={status}
+            text={item.resultText}
+            hasCalendarLink={hasCalendarLink}
+            petSn={input.petSn ?? card.input.petSn}
+          />
         )}
       </section>
     </div>

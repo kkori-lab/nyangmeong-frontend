@@ -1,6 +1,6 @@
 /**
  * 확인 카드(ACTION) 칸의 표시 이름: 칸 이름은 Java 요청 DTO 그대로(ai 저장소 docs/api/chat.md ActionCard)
- * - 계약에 표시 이름이 없어 도구 7개의 칸을 여기에 둔다, 없는 칸은 칸 이름을 그대로 보인다
+ * - 계약에 표시 이름이 없어 도구들의 칸을 여기에 둔다, 없는 칸은 칸 이름을 그대로 보인다
  */
 export const ACTION_FIELD_NAMES = {
   petSn: '반려동물',
@@ -19,13 +19,14 @@ export const ACTION_FIELD_NAMES = {
   hsptlNm: '병원명',
   schdlNm: '일정명',
   memoCn: '메모',
-  cldrBadgeColrCd: '캘린더 색',
+  cldrBadgeColrCd: '캘린더 뱃지 색상',
   /** 케어 항목 */
   careArtclNm: '항목명',
   rprsIconId: '대표 아이콘',
   careZoneCd: '반복 유형',
   careCycleCd: '주기',
   cycleDrctInptDayCnt: '주기(일)',
+  lastCmptnYmd: '마지막으로 한 날',
   /** 지출 */
   expndYmd: '지출일',
   expndClsfCd: '분류',

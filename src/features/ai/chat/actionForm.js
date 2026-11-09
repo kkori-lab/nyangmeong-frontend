@@ -1,9 +1,21 @@
+import { addDays, addMonths, getTodayYmd } from '@/utils/formatDate';
+
 /**
  * 확인 카드(ACTION) 폼 규칙: 칸 규칙(params)·조건부 필수(rules)로 보일 칸·빈 필수 칸·Java 요청을 정한다
  * - 계약: ai 저장소 docs/api/chat.md ActionCard
  */
 
 const NUMBER_TYPES = ['int', 'long', 'decimal'];
+
+/**
+ * 카드에 두지 않는 칸: 폼·Java 요청·결과 저장·다음 메시지 어디에도 싣지 않음
+ * - 일정 출처(schdlSrcCd)는 Java 기본값, 케어 항목 대표 아이콘(rprsIconId)은 기본 아이콘(FN-AIM-012-13)
+ */
+const OMITTED_FIELDS = ['schdlSrcCd', 'rprsIconId'];
+
+/** 카드가 쓰는 칸 */
+const isCardField = (card, field) =>
+  field in card.params && !OMITTED_FIELDS.includes(field);
 
 /** 수정 도구: 바꿀 칸만 input에 온다 */
 export const isUpdateCall = (call) => call.method === 'PATCH';
@@ -21,6 +33,7 @@ export const visibleFields = (card) =>
   Object.entries(card.params)
     .filter(
       ([field, param]) =>
+        !OMITTED_FIELDS.includes(field) &&
         param.in !== 'path' &&
         !field.endsWith('Sn') &&
         !param.generated &&
@@ -74,7 +87,13 @@ export const buildActionRequest = (card, input) => {
   const params = {};
   const data = {};
   Object.entries(card.params).forEach(([field, param]) => {
-    if (param.in === 'path' || isEmptyValue(input[field])) return;
+    if (
+      param.in === 'path' ||
+      !isCardField(card, field) ||
+      isEmptyValue(input[field])
+    ) {
+      return;
+    }
     if (param.in === 'query') params[field] = input[field];
     else data[field] = input[field];
   });
@@ -91,7 +110,8 @@ export const buildActionRequest = (card, input) => {
 export const isFieldOff = (card, input, field) => {
   const rules = card.rules.filter((rule) => rule.field === field);
   return (
-    rules.length > 0 && !rules.some(({ when, equals }) => input[when] === equals)
+    rules.length > 0 &&
+    !rules.some(({ when, equals }) => input[when] === equals)
   );
 };
 
@@ -104,8 +124,49 @@ export const resultInput = (card, input) =>
   Object.fromEntries(
     Object.entries(input).filter(
       ([field, value]) =>
-        field in card.params &&
+        isCardField(card, field) &&
         !isEmptyValue(value) &&
         !isFieldOff(card, input, field),
     ),
   );
+
+/** 케어 항목 등록 도구 */
+export const CARE_ITEM_TOOL = 'draft_care_item';
+
+/** 케어 캘린더로 이어지는 등록 도구 */
+export const CALENDAR_TOOLS = ['draft_schedule', CARE_ITEM_TOOL];
+
+/** 반복 유형 HLTG13: 매일(일상관리) */
+const DAILY_ZONE = 'HLTC0036';
+
+/** 케어주기 HLTG15: 직접입력 */
+const CUSTOM_CYCLE = 'HLTC0042';
+
+/** 케어주기 HLTG15 → 더할 날수·달수, 직접입력은 cycleDrctInptDayCnt일 */
+const CARE_CYCLE_STEPS = {
+  HLTC0038: { days: 7 },
+  HLTC0039: { days: 14 },
+  HLTC0040: { months: 1 },
+  HLTC0041: { months: 12 },
+};
+
+/**
+ * 케어 항목 카드의 다음 예정일: 마지막으로 한 날(없으면 오늘) + 주기, 매일은 다음 날
+ * - 주기를 아직 못 정했으면 null
+ */
+export const nextDueYmd = (input) => {
+  const baseYmd = input.lastCmptnYmd || getTodayYmd();
+  if (input.careZoneCd === DAILY_ZONE) return addDays(baseYmd, 1);
+  const step = CARE_CYCLE_STEPS[input.careCycleCd];
+  if (step?.months) return addMonths(baseYmd, step.months);
+  if (step?.days) return addDays(baseYmd, step.days);
+  const dayCnt = Number(input.cycleDrctInptDayCnt);
+  if (
+    input.careCycleCd === CUSTOM_CYCLE &&
+    Number.isInteger(dayCnt) &&
+    dayCnt > 0
+  ) {
+    return addDays(baseYmd, dayCnt);
+  }
+  return null;
+};
