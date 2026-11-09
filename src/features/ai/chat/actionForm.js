@@ -106,12 +106,18 @@ export const buildActionRequest = (card, input) => {
 /**
  * 조건부 칸이 꺼졌는지: rules에 나오는 칸은 그 조건 중 하나라도 맞을 때만 쓴다
  * - 예: 건강 일지 상태(crsdSttsCd)는 기록 지표가 배변상태일 때만. 다른 지표에 값을 보내면 Java가 400
+ * - 조건 칸이 그 자신도 꺼져 있으면 남은 값은 보지 않는다
+ *   (예: 반복 유형을 일상관리로 바꾸면 주기 칸이 꺼지고, 주기=직접입력에 달린 주기(일) 칸도 꺼진다)
+ * - seen: 서로를 조건으로 거는 규칙이 와도 멈추도록 이미 본 칸
  */
-export const isFieldOff = (card, input, field) => {
+export const isFieldOff = (card, input, field, seen = new Set()) => {
   const rules = card.rules.filter((rule) => rule.field === field);
-  return (
-    rules.length > 0 &&
-    !rules.some(({ when, equals }) => input[when] === equals)
+  if (rules.length === 0) return false;
+  const nextSeen = new Set(seen).add(field);
+  return !rules.some(
+    ({ when, equals }) =>
+      input[when] === equals &&
+      (nextSeen.has(when) || !isFieldOff(card, input, when, nextSeen)),
   );
 };
 
