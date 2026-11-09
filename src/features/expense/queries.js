@@ -56,6 +56,7 @@ export const useInfiniteExpenses = (cond, options = {}) =>
     queryFn: ({ pageParam }) => getExpenses({ ...cond, page: pageParam }),
     initialPageParam: 1,
     getNextPageParam: (last) => (last.hasNext ? last.page + 1 : undefined),
+    placeholderData: keepPreviousData,
     ...options,
   });
 
