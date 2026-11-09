@@ -46,6 +46,15 @@ export const WALK = 'HLTC0018';
 /** 오늘의 기록 줄 순서 */
 export const TODAY_RECORD_ORDER = [MEAL, WATER, WALK, WEIGHT, STOOL];
 
+/** 종류를 구별하는 Material Symbols 아이콘 이름(오늘의 기록 카드·기록 수정 모달) */
+export const TYPE_ICONS = {
+  [WEIGHT]: 'monitor_weight',
+  [MEAL]: 'restaurant',
+  [WATER]: 'water_drop',
+  [STOOL]: 'wc',
+  [WALK]: 'directions_walk',
+};
+
 /** 배변 상태. 막대 그래프의 고정 순서이며 첫 항목만 정상 */
 export const STOOL_STATES = [
   { cd: 'HLTC0019', nm: '정상' },

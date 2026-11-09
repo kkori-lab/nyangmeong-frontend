@@ -119,7 +119,7 @@ export default function PasswordFindForm({
             </button>
             <button
               type="submit"
-              disabled={form.isPending}
+              disabled={form.isPending || form.isCodeLocked}
               className={`${PRIMARY_BTN} flex-1`}
             >
               인증번호 확인

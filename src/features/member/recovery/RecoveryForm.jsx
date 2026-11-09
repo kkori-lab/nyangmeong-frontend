@@ -66,7 +66,7 @@ function VerifyStep({ form }) {
             action={
               <button
                 type="submit"
-                disabled={form.isVerifying}
+                disabled={form.isVerifying || form.isCodeLocked}
                 className={`${SIDE_BTN} ${CONFIRM_BTN}`}
               >
                 인증 확인
