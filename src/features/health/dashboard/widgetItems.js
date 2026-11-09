@@ -5,7 +5,7 @@ import { DIARY_EXAM_PATH, DIARY_OBS_PATH } from '../summary/summaryUtils';
 /**
  * [건강기록 대시보드 기록 항목] (※신규 정책, 흐름도 D1~D11)
  * - 4묶음 13개(첨부 자료 추가-2 포함). AI 건강분석 리포트는 항상 표시라 고르는 대상이 아님(D9)
- * - 항목 키는 임시 문자열: 백엔드 B1(MBR_DSHBD_WDGT 건강기록 전용 코드)이 생기면 그 코드로 교체
+ * - 화면 안에서는 id(weight…care)를 쓰고, 서버와 주고받을 때만 공통코드 dshbdWdgtCd(HLTC0084~0096)로 바꿈
  * - 이름·설명·빈 상태 문구·링크는 프로토타입 원문
  * - moveTo: 카드 오른쪽 위 [더보기]가 가는 곳 (※신규 정책, 대시보드 카드 이동). 빈 상태 링크가 같은 곳이면 빼고 [더보기]만 둠
  */
@@ -21,6 +21,7 @@ export const WIDGET_GROUPS = [
     items: [
       {
         id: 'weight',
+        dshbdWdgtCd: 'HLTC0084',
         nm: '체중',
         icon: 'monitor_weight',
         typeCd: WEIGHT,
@@ -30,6 +31,7 @@ export const WIDGET_GROUPS = [
       },
       {
         id: 'meal',
+        dshbdWdgtCd: 'HLTC0085',
         nm: '식사량',
         icon: 'restaurant',
         typeCd: MEAL,
@@ -39,6 +41,7 @@ export const WIDGET_GROUPS = [
       },
       {
         id: 'water',
+        dshbdWdgtCd: 'HLTC0086',
         nm: '음수량',
         icon: 'water_drop',
         typeCd: WATER,
@@ -48,6 +51,7 @@ export const WIDGET_GROUPS = [
       },
       {
         id: 'walk',
+        dshbdWdgtCd: 'HLTC0087',
         nm: '산책',
         icon: 'directions_walk',
         typeCd: WALK,
@@ -57,6 +61,7 @@ export const WIDGET_GROUPS = [
       },
       {
         id: 'poop',
+        dshbdWdgtCd: 'HLTC0088',
         nm: '배변 상태',
         icon: 'wc',
         typeCd: STOOL,
@@ -72,6 +77,7 @@ export const WIDGET_GROUPS = [
     items: [
       {
         id: 'ckup',
+        dshbdWdgtCd: 'HLTC0089',
         nm: '검진기록',
         icon: 'local_hospital',
         desc: '병원에 다녀오면 남겨요',
@@ -80,6 +86,7 @@ export const WIDGET_GROUPS = [
       },
       {
         id: 'insp',
+        dshbdWdgtCd: 'HLTC0090',
         nm: '검사 수치',
         icon: 'science',
         desc: '검사 결과지 수치를 남겨요',
@@ -88,6 +95,7 @@ export const WIDGET_GROUPS = [
       },
       {
         id: 'presc',
+        dshbdWdgtCd: 'HLTC0091',
         nm: '처방·투약',
         icon: 'medication',
         desc: '처방받은 약과 투약 일정을 남겨요',
@@ -98,6 +106,7 @@ export const WIDGET_GROUPS = [
       /** 첨부 자료 (※신규 정책, 추가-2) */
       {
         id: 'atch',
+        dshbdWdgtCd: 'HLTC0092',
         nm: '첨부 자료',
         icon: 'description',
         desc: '검진기록에 올린 결과지·증명서를 모아 봐요',
@@ -112,6 +121,7 @@ export const WIDGET_GROUPS = [
     items: [
       {
         id: 'obsv',
+        dshbdWdgtCd: 'HLTC0093',
         nm: '지속 관찰',
         icon: 'photo_camera',
         desc: '지켜볼 증상을 사진으로 남겨요',
@@ -121,6 +131,7 @@ export const WIDGET_GROUPS = [
       },
       {
         id: 'allergy',
+        dshbdWdgtCd: 'HLTC0094',
         nm: '알레르기·기저질환',
         icon: 'warning',
         desc: '주의할 점을 적어 둬요',
@@ -135,7 +146,8 @@ export const WIDGET_GROUPS = [
     items: [
       {
         id: 'vacc',
-        nm: '예방접종·구충',
+        dshbdWdgtCd: 'HLTC0095',
+        nm: '예방접종·정기검진',
         icon: 'vaccines',
         desc: '다음 접종일을 등록해요',
         emptyText: '등록된 예정 일정 없음',
@@ -143,6 +155,7 @@ export const WIDGET_GROUPS = [
       },
       {
         id: 'care',
+        dshbdWdgtCd: 'HLTC0096',
         nm: '케어리스트',
         /** 카드 머리 제목 바로 오른쪽 글자 */
         titleNote: '보기 전용',
@@ -194,34 +207,39 @@ export const keepWidgetOrder = (ids) => {
   );
 };
 
-/** 튜토리얼 시작 항목 최대 수 (※신규 정책, 추가-8) */
-export const START_MAX_COUNT = 6;
-
-/** 남은 자리를 채울 때 묶음을 도는 순서: 병원·검사 → 관찰·주의 → 케어 일정 → 매일 기록 */
-const START_GROUP_ORDER = [1, 2, 3, 0];
+/**
+ * 서버 응답 widgets → 보이는 항목 id 배열(sortSeq 순, indctYn=true만). 모르는 코드는 버림
+ */
+export const toShownWidgetIds = (widgets) =>
+  [...widgets]
+    .sort((a, b) => a.sortSeq - b.sortSeq)
+    .filter((widget) => widget.indctYn)
+    .map(
+      (widget) =>
+        WIDGET_ITEMS.find((item) => item.dshbdWdgtCd === widget.dshbdWdgtCd)
+          ?.id,
+    )
+    .filter((id) => id != null);
 
 /**
- * 튜토리얼 시작 항목: [나중에 할래요] 저장값이자 2단계 처음 미리 체크 (D3·D10, 추가-8)
- * - 추천 3개는 항상, 남은 자리는 묶음을 돌며 기록 있는 항목을 하나씩(묶음 안은 항목 순서), 최대 6개
+ * 보이는 항목 id 배열 → PUT 본문 widgets(13개 전부, 보낸 순서가 저장 순서)
+ * - 고른 항목은 받은 순서대로 indctYn=true, 나머지는 4묶음 순서로 뒤에 indctYn=false
  */
-export const pickStartIds = (recordedIds) => {
-  const picked = [...RECOMMENDED_IDS];
-  const queues = START_GROUP_ORDER.map((index) =>
-    WIDGET_GROUPS[index].items
-      .map((item) => item.id)
-      .filter((id) => recordedIds.includes(id) && !picked.includes(id)),
+export const toWidgetBody = (shownIds) => {
+  const ids = keepWidgetOrder(shownIds);
+  const hiddenIds = WIDGET_ITEMS.map((item) => item.id).filter(
+    (id) => !ids.includes(id),
   );
-  while (
-    picked.length < START_MAX_COUNT &&
-    queues.some((queue) => queue.length > 0)
-  ) {
-    for (const queue of queues) {
-      if (picked.length >= START_MAX_COUNT) break;
-      const next = queue.shift();
-      if (next) picked.push(next);
-    }
-  }
-  return orderWidgetIds(picked);
+  return [
+    ...ids.map((id) => ({
+      dshbdWdgtCd: findWidgetItem(id).dshbdWdgtCd,
+      indctYn: true,
+    })),
+    ...hiddenIds.map((id) => ({
+      dshbdWdgtCd: findWidgetItem(id).dshbdWdgtCd,
+      indctYn: false,
+    })),
+  ];
 };
 
 /** 항목 이름을 '·'로 이은 문구. 받은 순서(저장 순서) 그대로 */

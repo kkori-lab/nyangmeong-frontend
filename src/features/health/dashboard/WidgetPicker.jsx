@@ -1,5 +1,4 @@
 import Icon from '@/components/Icon';
-import Skeleton from '@/components/Skeleton';
 import {
   RECOMMENDED_IDS,
   WIDGET_GROUPS,
@@ -15,15 +14,13 @@ const LONG_EMPTY_TEXT = 12;
  * [기록 고르기] 튜토리얼 2단계·[기록 항목 편집] 본문 (D4·D5·D7)
  * - 한 줄 배치: 제목·설명 → 대시보드 미리보기(760px 이하 숨김) → 추천 안내 → 4묶음 칩 → 안내 (추가-3)
  * - 미리보기: AI 건강분석 리포트 한 줄 전체, 나머지 3열 카드(아이콘 + 이름 + 상태 칩), 순서는 4묶음 순서(D8)
- * - 미리보기 "기록 있음"은 지금 고른 반려동물 기준. 기록 있는 항목을 조회하는 동안 상태 칩은 Skeleton (추가-7)
+ * - 미리보기 상태 칩은 항목의 빈 상태 문구(길면 「기록이 없어요」)
  */
 export default function WidgetPicker({
   petNm,
   isEdit,
   draftIds,
   lastPickedId,
-  recordedIds,
-  isRecordedPending,
   onToggle,
   onRecommend,
 }) {
@@ -52,10 +49,7 @@ export default function WidgetPicker({
             실시간 반영
           </span>
         </div>
-        <ul
-          aria-busy={isRecordedPending || undefined}
-          className="grid grid-cols-3 gap-2"
-        >
+        <ul className="grid grid-cols-3 gap-2">
           <PreviewCard
             icon="auto_awesome"
             name="AI 건강분석 리포트"
@@ -70,14 +64,11 @@ export default function WidgetPicker({
                 icon={item.icon}
                 name={item.nm}
                 status={
-                  recordedIds.includes(id)
-                    ? '기록 있음'
-                    : item.emptyText.length > LONG_EMPTY_TEXT
-                      ? '기록이 없어요'
-                      : item.emptyText
+                  item.emptyText.length > LONG_EMPTY_TEXT
+                    ? '기록이 없어요'
+                    : item.emptyText
                 }
                 isNew={id === lastPickedId}
-                isStatusPending={isRecordedPending}
               />
             );
           })}
@@ -150,14 +141,7 @@ export default function WidgetPicker({
 }
 
 /** 미리보기 카드 한 장: 아이콘 + 이름 + 상태 칩. 방금 고른 카드는 진한 테두리 + 브랜드색 칩 */
-function PreviewCard({
-  icon,
-  name,
-  status,
-  isNew = false,
-  isStatusPending = false,
-  className = '',
-}) {
+function PreviewCard({ icon, name, status, isNew = false, className = '' }) {
   return (
     <li
       className={`flex min-w-0 flex-col items-start gap-2 rounded-[10px] border bg-white px-3 py-2.5 ${
@@ -168,17 +152,13 @@ function PreviewCard({
         <Icon name={icon} className="text-lg text-brand-500" />
         <span className="truncate">{name}</span>
       </span>
-      {isStatusPending ? (
-        <Skeleton className="h-6 w-20 rounded-full" />
-      ) : (
-        <span
-          className={`inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold whitespace-nowrap ${
-            isNew ? 'bg-brand-500 text-white' : 'bg-surface-3 text-muted'
-          }`}
-        >
-          {status}
-        </span>
-      )}
+      <span
+        className={`inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold whitespace-nowrap ${
+          isNew ? 'bg-brand-500 text-white' : 'bg-surface-3 text-muted'
+        }`}
+      >
+        {status}
+      </span>
     </li>
   );
 }

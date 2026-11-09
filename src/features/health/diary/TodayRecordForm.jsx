@@ -73,6 +73,8 @@ export default function TodayRecordForm({
 
   /** 매일 기록 켜고 끄기: 대시보드 카드도 같이 생기거나 빠짐. 켠 종류는 바로 고름 */
   const handleToggle = (item) => {
+    /** 서버 저장 중에는 누름 무시: 끝나기 전 값으로 다시 저장하면 앞 저장을 덮어씀 */
+    if (saveWidgets.isPending) return;
     const isOn = widgetIds.includes(item.id);
     if (isOn && onCount <= 1) return;
     const nextIds = isOn

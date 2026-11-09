@@ -10,13 +10,12 @@ import {
   useHealthIndicators,
   useHealthWidgets,
   useRecentStools,
-  useRecordedItems,
 } from '../queries';
 import { AiReportCard } from './DashboardCard';
 import WidgetCard from './WidgetCard';
 import WidgetOrderModal from './WidgetOrderModal';
 import WidgetTutorialModal from './WidgetTutorialModal';
-import { findWidgetItem, keepWidgetOrder, orderWidgetIds } from './widgetItems';
+import { findWidgetItem, keepWidgetOrder } from './widgetItems';
 
 /** 지표 API를 쓰는 항목 */
 const INDICATOR_IDS = ['weight', 'meal', 'water', 'walk'];
@@ -29,14 +28,13 @@ const GRID_CLASS =
 /**
  * [건강기록 대시보드] 종합 건강기록 히어로 아래 (※신규 정책, 흐름도 D1~D10)
  * - 고른 항목은 회원 단위(반려동물을 새로 등록해도 같은 선택). 저장한 적이 없으면 튜토리얼을 연다(D1·D2)
- * - 고른 항목을 불러오는 중이거나 실패하면 튜토리얼을 열지 않음. 가짜 저장소 기간에는 "선택 없음"이 브라우저 단위
+ * - 고른 항목을 불러오는 중이거나 실패하면 튜토리얼을 열지 않음. 저장 여부는 서버(savedYn)라 브라우저가 달라도 같음
  * - 카드 순서는 저장한 순서 그대로(⋮ 메뉴 「위젯 순서 변경」으로 바꿈, D8 4묶음 고정은 버림), AI 건강분석 리포트는 항상 맨 앞(D9)
  * - initialInspection: 검사 수치 카드 처음 항목(?inspection=, 검진상세 [추이 보기])
  */
 export default function HealthDashboard({
   mbrSn,
   pet,
-  pets,
   summary,
   initialInspection,
 }) {
@@ -62,15 +60,6 @@ export default function HealthDashboard({
     hasNotifiedRef.current = true;
     showToast('[기록 항목 편집]에서 검사 수치를 켜면 추이를 볼 수 있어요');
   }, [isInspectionHidden]);
-
-  const petSns = pets.map((item) => item.petSn);
-  const recorded = useRecordedItems(petSns, openMode !== null);
-  const recordedUnion = recorded.data
-    ? orderWidgetIds(Object.values(recorded.data).flat())
-    : recorded.isError
-      ? []
-      : null;
-  const recordedIds = recorded.data?.[pet.petSn] ?? [];
 
   const shownIds = savedIds ?? [];
   const isShown = (id) => shownIds.includes(id);
@@ -173,8 +162,6 @@ export default function HealthDashboard({
           mbrSn={mbrSn}
           petNm={pet.petNm}
           savedIds={shownIds}
-          recordedUnion={recordedUnion}
-          recordedIds={recordedIds}
           onClose={closeModal}
         />
       )}

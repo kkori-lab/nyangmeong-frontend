@@ -75,10 +75,11 @@ import {
 } from './receiptApi';
 import {
   getHealthIndicators,
+  getHealthWidgets,
   getRecentStools,
-  getRecordedItems,
+  removeOldHealthWidgets,
+  saveHealthWidgets,
 } from './dashboardApi';
-import { getHealthWidgets, saveHealthWidgets } from './dashboard/widgetStore';
 import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
@@ -125,7 +126,6 @@ export const healthKeys = {
   /** 일상 기록을 바꾸면 같이 다시 읽도록 daily-records 아래 */
   indicators: (petSn) => ['health', 'daily-records', petSn, 'indicators'],
   recentStools: (petSn) => ['health', 'daily-records', petSn, 'stools'],
-  recordedItems: (petSns) => ['health', 'recorded-items', petSns],
 };
 
 const showErrorToast = (error) => showToast(error.message);
@@ -508,14 +508,18 @@ export const useHealthSummary = (petSn) =>
     enabled: petSn != null,
   });
 
-/** 대시보드 고른 항목(가짜 저장소, B1 연결 때 API로 교체). 저장한 적이 없으면 data가 null */
+/** 대시보드 고른 항목 id 배열(저장 순서). 저장한 적이 없으면 data가 null. 예전 브라우저 저장값은 이때 지움 */
 export const useHealthWidgets = (mbrSn) =>
   useQuery({
     queryKey: healthKeys.widgets(mbrSn),
-    queryFn: () => getHealthWidgets(mbrSn),
+    queryFn: () => {
+      removeOldHealthWidgets(mbrSn);
+      return getHealthWidgets();
+    },
     enabled: mbrSn != null,
   });
 
+/** 고른 항목 저장(mbrSn은 캐시 키용). 실패하면 서버 message 토스트 */
 export const useSaveHealthWidgets = () => {
   const queryClient = useQueryClient();
 
@@ -523,7 +527,7 @@ export const useSaveHealthWidgets = () => {
     mutationFn: saveHealthWidgets,
     onSuccess: (widgetIds, { mbrSn }) =>
       queryClient.setQueryData(healthKeys.widgets(mbrSn), widgetIds),
-    onError: () => showToast('기록 항목을 저장하지 못했어요'),
+    onError: showErrorToast,
   });
 };
 
@@ -541,14 +545,6 @@ export const useRecentStools = (petSn, isEnabled) =>
     queryKey: healthKeys.recentStools(petSn),
     queryFn: () => getRecentStools(petSn),
     enabled: isEnabled && petSn != null,
-  });
-
-/** 회원의 모든 반려동물 기록 있는 항목(튜토리얼을 열 때 한 번) */
-export const useRecordedItems = (petSns, isEnabled) =>
-  useQuery({
-    queryKey: healthKeys.recordedItems(petSns),
-    queryFn: () => getRecordedItems(petSns),
-    enabled: isEnabled && petSns.length > 0,
   });
 
 /** 저장 전 가계부 중복·가까운 예정 일정 확인. 실패 안내는 모달 안에서 처리 */
