@@ -152,6 +152,13 @@ export default function ExpenseHistory({ initialYm }) {
   const isPageAllSelected =
     pageItems.length > 0 &&
     pageItems.every((expense) => isChecked(expense.expndSn));
+  const isPagePartiallySelected =
+    !isPageAllSelected &&
+    pageItems.some((expense) => isChecked(expense.expndSn));
+  /** 일부만 선택되면 [전체 선택] 체크박스를 중간 상태(−)로 보인다. 렌더마다 다시 지정된다 */
+  const setPageCheckbox = (element) => {
+    if (element) element.indeterminate = isPagePartiallySelected;
+  };
 
   /** 기간 지정 선택 가능 달 */
   const rangeMonths = [...new Set([...months, ym])].sort();
@@ -375,6 +382,7 @@ export default function ExpenseHistory({ initialYm }) {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-2 px-4 py-3">
             <label className="flex cursor-pointer items-center gap-2">
               <input
+                ref={setPageCheckbox}
                 type="checkbox"
                 checked={isPageAllSelected}
                 onChange={handleTogglePage}
