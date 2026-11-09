@@ -5,8 +5,25 @@ import PostDetail from '@/features/community/PostDetail';
 import { usePost } from '@/features/community/queries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
+import SkeletonCard from '@/components/SkeletonCard';
 
 const DESCRIPTION = '반려생활의 일상과 유용한 정보를 함께 나눠요';
+
+/** 로딩 자리: 본문 카드 + 아래 카드 + 오른쪽 레일(실제 상세와 같은 배치·높이) */
+function PostDetailSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10"
+    >
+      <div className="flex min-w-0 flex-col gap-4">
+        <SkeletonCard className="h-[500px] max-[760px]:h-[520px]" />
+        <SkeletonCard className="h-[360px] max-[760px]:h-[340px]" />
+      </div>
+      <SkeletonCard className="h-[395px]" />
+    </div>
+  );
+}
 
 export default function PostDetailPage() {
   const pstSn = Number(useParams().pstSn);
@@ -14,7 +31,7 @@ export default function PostDetailPage() {
 
   let body;
   if (isPending) {
-    body = <p className="text-[#566465]">불러오는 중이에요</p>;
+    body = <PostDetailSkeleton />;
   } else if (isError) {
     body = (
       <div role="alert">

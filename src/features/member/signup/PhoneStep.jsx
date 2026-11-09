@@ -1,5 +1,6 @@
 import { Phone } from 'lucide-react';
 import { PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
+import { normalizePhone } from '../shared/validate';
 import AuthField from '../shared/AuthField';
 import SignupSummary from './SignupSummary';
 import { SIGNUP_MESSAGES as MSG } from './signupMessages';
@@ -19,13 +20,13 @@ export default function PhoneStep({ form }) {
           inputMode="tel"
           error={form.errors.phone}
           success={form.isPhoneChecked ? MSG.phoneAvailable : ''}
-          help={form.phone ? MSG.phoneNeedCheck : ''}
+          help={normalizePhone(form.phone) ? MSG.phoneNeedCheck : ''}
           hasGuide={form.guideTarget === 'phone'}
           action={
             <button
               type="button"
               onClick={form.submitPhoneCheck}
-              disabled={!form.phone.trim() || form.isPhoneChecking}
+              disabled={!normalizePhone(form.phone) || form.isPhoneChecking}
               className={SIDE_BTN}
             >
               중복확인

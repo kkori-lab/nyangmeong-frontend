@@ -4,6 +4,7 @@ import AuthField from '../shared/AuthField';
 import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
 import { PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
+import { normalizePhone } from '../shared/validate';
 import { SNS_NAME } from '../shared/snsCodes';
 import TermsModal from '../shared/TermsModal';
 import { SignupComplete } from './SignupForm';
@@ -62,7 +63,7 @@ export default function SnsSignupForm({ snsSignup, onCancel, onGoLogin }) {
             help={
               form.isPhoneProvided
                 ? MSG.snsPhoneProvided
-                : form.phone
+                : normalizePhone(form.phone)
                   ? MSG.phoneNeedCheck
                   : MSG.snsPhoneMissing
             }
@@ -72,7 +73,7 @@ export default function SnsSignupForm({ snsSignup, onCancel, onGoLogin }) {
                 <button
                   type="button"
                   onClick={form.submitPhoneCheck}
-                  disabled={!form.phone.trim() || form.isPhoneChecking}
+                  disabled={!normalizePhone(form.phone) || form.isPhoneChecking}
                   className={SIDE_BTN}
                 >
                   중복확인

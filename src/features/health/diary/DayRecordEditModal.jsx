@@ -12,11 +12,16 @@ import {
   STOOL_STATES,
   TODAY_RECORD_ORDER,
   TYPE_ICONS,
+  WEIGHT,
   findRecordType,
 } from '../diaryTypes';
 import { useDeleteDailyRecord, useUpdateDailyRecord } from '../queries';
 import FieldError from './FieldError';
 import { INPUT_CLASS, SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
+import { formatAmount, summarizeType } from './recordUtils';
+
+/** 묶음 머리에 합계를 붙이지 않는 종류 */
+const COUNT_ONLY_TYPES = [WEIGHT, STOOL];
 
 /** 기록 1건의 입력값: 시각(HH:mm)과 값(배변상태는 코드, 그 외는 숫자 문자열) */
 const toDraft = (record) => ({
@@ -61,7 +66,9 @@ const sortRecords = (records) =>
 /**
  * [하루 기록 수정 모달] (※신규 정책)
  * - 오늘의 기록 카드 [오늘 기록 수정하기]와 최근 건강기록 날짜 행이 같이 연다. 상세 표 모달(FN-HLT-002-13)을 대신한다
- * - 한 줄 = 기록 1건: 종류 | 시각 | 값·단위 | [삭제]. 760px 이하는 종류 줄 아래 시각·값 두 칸
+ * - 같은 종류는 한 묶음(머리 1줄 + 기록 줄) (※신규 정책)
+ *   머리: 종류 · "N회 · 합계 ○○"(체중·배변상태는 "N회"). 합계는 입력 중인 값이 아니라 저장된 기록 기준
+ *   기록 줄: 시각 | 값·단위 | [삭제], 시각 오름차순. 묶음 사이에만 구분선
  * - [저장]은 바뀐 줄만 PUT. 일부만 실패하면 모달을 열어 두고 실패한 줄 아래 오류,
  *   성공한 줄은 저장된 값을 기준으로 삼아 다시 [저장]하면 실패한 줄만 보낸다
  * - [삭제]는 확인 후 바로 DELETE. 그날 기록이 모두 없어지면 닫는다
@@ -206,16 +213,30 @@ export default function DayRecordEditModal({
         }
       >
         <ul className="flex flex-col">
-          {records.map((record) => (
-            <RecordRow
-              key={record.dailyHlthRcdSn}
-              record={record}
-              draft={draftOf(record)}
-              error={errors[record.dailyHlthRcdSn]}
-              isDisabled={isSaving}
-              onChange={(patch) => changeDraft(record.dailyHlthRcdSn, patch)}
-              onRequestDelete={() => setDeleteSn(record.dailyHlthRcdSn)}
-            />
+          {TODAY_RECORD_ORDER.filter(
+            (typeCd) => !missingTypes.includes(typeCd),
+          ).map((typeCd) => (
+            <TypeGroup
+              key={typeCd}
+              typeCd={typeCd}
+              summary={summarizeType(records, typeCd)}
+            >
+              {records
+                .filter((record) => record.dailyRcdIdctCd === typeCd)
+                .map((record) => (
+                  <RecordRow
+                    key={record.dailyHlthRcdSn}
+                    record={record}
+                    draft={draftOf(record)}
+                    error={errors[record.dailyHlthRcdSn]}
+                    isDisabled={isSaving}
+                    onChange={(patch) =>
+                      changeDraft(record.dailyHlthRcdSn, patch)
+                    }
+                    onRequestDelete={() => setDeleteSn(record.dailyHlthRcdSn)}
+                  />
+                ))}
+            </TypeGroup>
           ))}
         </ul>
         {missingTypes.length > 0 && (
@@ -260,7 +281,28 @@ export default function DayRecordEditModal({
   );
 }
 
-/** 기록 1건 줄. 760px 초과: 종류 | 시각 | 값 | 삭제 한 줄, 이하: 종류·삭제 줄 아래 시각·값 두 칸 */
+/** 종류 묶음: 머리 줄(아이콘·종류 이름·횟수·합계) 아래 기록 줄 */
+function TypeGroup({ typeCd, summary, children }) {
+  const type = findRecordType(typeCd);
+  const { count, sum } = summary;
+
+  return (
+    <li className="border-b border-line-soft py-3 first:pt-0 last:border-b-0">
+      <p className="flex items-center gap-2 text-base font-semibold text-ink">
+        <Icon name={TYPE_ICONS[typeCd]} className="text-muted" />
+        {type.nm}
+        <span className="text-sm font-normal text-subtle tabular-nums">
+          {count}회
+          {!COUNT_ONLY_TYPES.includes(typeCd) &&
+            ` · 합계 ${formatAmount(typeCd, sum)}`}
+        </span>
+      </p>
+      <ul className="flex flex-col">{children}</ul>
+    </li>
+  );
+}
+
+/** 기록 1건 줄: 시각 | 값 | 삭제. 아이콘 폭만큼 들여 쓴다. 760px 이하는 [삭제]가 같은 줄이라 들여쓰기 없이 시각 칸을 넓힌다(3 : 2) */
 function RecordRow({
   record,
   draft,
@@ -274,13 +316,9 @@ function RecordRow({
   const isStool = typeCd === STOOL;
 
   return (
-    <li className="flex flex-col gap-1 border-b border-line-soft py-3 first:pt-0 last:border-b-0">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 min-[761px]:grid-cols-[7rem_minmax(0,1fr)_minmax(0,1fr)_auto]">
-        <p className="flex items-center gap-2 font-semibold text-ink">
-          <Icon name={TYPE_ICONS[typeCd]} className="text-muted" />
-          {type.nm}
-        </p>
-        <div className="col-span-2 row-start-2 grid grid-cols-2 gap-2 min-[761px]:col-span-2 min-[761px]:col-start-2 min-[761px]:row-start-1">
+    <li className="mt-2 flex flex-col gap-1 pl-7 max-[760px]:pl-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3">
+        <div className="grid grid-cols-2 gap-2 max-[760px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <input
             type="time"
             aria-label={`${type.nm} 시각`}
@@ -326,7 +364,7 @@ function RecordRow({
         <button
           type="button"
           disabled={isDisabled}
-          className="col-start-2 row-start-1 min-h-9 text-sm/[1.6] font-semibold text-danger hover:underline min-[761px]:col-start-4"
+          className="min-h-9 text-sm/[1.6] font-semibold text-danger hover:underline"
           onClick={onRequestDelete}
         >
           삭제

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Icon from '@/components/Icon';
 import { formatMonthDayDot, getTodayYmd } from '@/utils/formatDate';
+import { toCareIcon } from './careIcons';
 
 const PAGE_SIZE = 10;
 
@@ -67,7 +68,7 @@ export default function CareRecordList({ records, regularSns, onCancel }) {
                     >
                       <span className="relative grid size-7 place-items-center rounded-full bg-[#ebf0f0] text-[#566465] group-hover:bg-[#fbeeec] group-hover:text-[#b4473a]">
                         <Icon
-                          name={record.rprsIconId}
+                          name={toCareIcon(record.rprsIconId)}
                           className="text-[18px] group-hover:hidden"
                         />
                         <Icon

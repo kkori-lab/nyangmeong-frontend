@@ -253,6 +253,7 @@ export function ObservationMobileDetail({
 
       {sizedCycles.length >= 2 && (
         <div className="mb-5">
+          {/* 그래프 높이는 건강기록 변화와 같은 기본값 (※신규 정책) */}
           <LineChart
             points={sizedCycles.map((target) => ({
               label: formatMonthDayDot(getYmdOf(target.obsrvDt)),
@@ -261,7 +262,6 @@ export function ObservationMobileDetail({
             formatValue={formatSize}
             formatTag={(value) => value.toFixed(1)}
             activeIndex={activePoint >= 0 ? activePoint : null}
-            height={200}
             ariaLabel={`크기 변화 선그래프 · ${sizedCycles
               .map((target) => formatSize(target.obsrvSz))
               .join(' → ')} (크기 없는 회차는 건너뜀)`}

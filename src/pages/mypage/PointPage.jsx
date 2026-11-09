@@ -18,7 +18,7 @@ export default function PointPage() {
   const navigate = useNavigate();
   const [todayYmd] = useState(() => toYmd(new Date()));
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);
-  const { data: pets } = usePets();
+  const { data: pets, isError: isPetsError, refetch: refetchPets } = usePets();
 
   /** 케어미션은 내가 주양육자인 동물만 */
   const ownPets = pets
@@ -43,6 +43,8 @@ export default function PointPage() {
           <CareMission
             todayYmd={todayYmd}
             ownPets={ownPets}
+            isPetsError={isPetsError}
+            onRetryPets={refetchPets}
             onRegister={() => setIsPetModalOpen(true)}
           />
           <PointHistory />

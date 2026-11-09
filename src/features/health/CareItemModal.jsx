@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 import { formatYmdWeekday, getTodayYmd } from '@/utils/formatDate';
 import { CARE_CYCLES, CARE_ZONE, CUSTOM_CYCLE, addCycle } from './careDue';
+import { toCareIcon } from './careIcons';
 import { useCreateCareItem, useUpdateCareItem } from './queries';
 
 // 아이콘 목록과 이름은 퍼블리싱 html/hlt-calendar.html의 관리 항목 추가 모달과 같다
@@ -27,7 +28,9 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
   const isEdit = item != null;
   const isBasic = isEdit && item.bscArtclYn;
   const [careArtclNm, setCareArtclNm] = useState(item?.careArtclNm ?? '');
-  const [iconChoice, setIconChoice] = useState(item?.rprsIconId ?? null);
+  const [iconChoice, setIconChoice] = useState(
+    isEdit ? toCareIcon(item.rprsIconId) : null,
+  );
   const [careZoneCd, setCareZoneCd] = useState(item?.careZoneCd ?? null);
   const [careCycleCd, setCareCycleCd] = useState(item?.careCycleCd ?? null);
   const [cycleDrctInptDayCnt, setCycleDrctInptDayCnt] = useState(
@@ -72,7 +75,7 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
       if (careArtclNm.trim() !== item.careArtclNm)
         body.careArtclNm = careArtclNm.trim();
       const nextIcon = iconChoice ?? DEFAULT_ICON;
-      if (nextIcon !== item.rprsIconId) body.rprsIconId = nextIcon;
+      if (nextIcon !== toCareIcon(item.rprsIconId)) body.rprsIconId = nextIcon;
       if (careZoneCd !== item.careZoneCd) body.careZoneCd = careZoneCd;
     }
     if (isRegular) {
