@@ -2,6 +2,8 @@
 
 ## 지금 하는 것
 
+SCR-ACC-001 회원가입 (이메일) · 기호만 적은 휴대전화번호 중복확인 — 끝남 (승인 2026-11-09 16:50, 검증 통과 1회차, 사람 확인 2026-11-09). 이메일 가입 3단계와 SNS 가입 확인 직접 입력에서 공백·하이픈을 뺀 번호(`normalizePhone`)가 비면 [중복확인]을 끄고 중복확인 안내를 숨긴다
+
 SCR-ACC-002 로그인 (이메일) · 방법 전환 중 입력 시 폼 밀림 — 끝남 (승인 2026-11-09 16:25, 검증 통과 1회차, 사람 확인 2026-11-09). `layouts/AuthSlider.jsx` 바깥 상자를 `overflow-clip`으로 바꿔 포커스·입력으로 가로 스크롤되지 않게 했다. 고치기 전 코드로도 Playwright에서는 재현되지 않아 예방 수정이다
 
 SCR-ACC-001 회원가입 (이메일) — 끝남 (승인 2026-11-09 16:00, 검증 통과 1회차, 사람 확인 2026-11-09). 코드 변경 없이 기본 절 완료 조건(FN-ACC-001-34·35·36·14 단계 열림, 22·19·20 가입 뒤 흐름)을 로컬 백엔드 실제 가입으로 확인했다. 코드 후보 2개(`---` 중복확인, 재진입 시 완료 화면 남음)는 "다음에 할 것"에 그대로
@@ -14,11 +16,12 @@ SCR-ACC-001 회원가입 (이메일) · 인증번호 1회·도메인 오류·비
 
 ## 다음에 할 것
 
+- 코드 후보: 재가입 복구(`recovery/RecoveryForm.jsx`)의 [중복확인]은 빈 칸에서도 켜져 있다(가입 화면은 꺼짐). 맞출지 정한다
+- 코드 후보: 휴대전화번호에 `+82`만 적으면 `normalizePhone`이 `0`이 되어 [중복확인]이 켜진다(누르면 형식 오류 안내). 검증 메모
 - PR Breaking Changes(SCR-ACC-012 문구 정리): 공통 `features/member/shared/AuthField.jsx`가 `hasGuide`면 칸 아래 오류를 숨기고 AI 말풍선만 보인다(로그인·가입·복구·비밀번호 찾기·재설정 칸 오류 모두)
 - 팀 알림: SJM `features/member/profile/PasswordChangeCard.jsx` 10줄 `PW_RULE` 끝에 마침표가 없다(가입·재설정은 마침표 있음)
 - 팀 알림(문구 정리): 화면설계서 담당에게 설계서와 달라진 로그인·회원가입 문구 목록을 보낸다(PR 본문 Design Decisions와 같은 목록). PR Breaking Changes: `AuthNotice`에 `hasGuide`를 주면 색 상자 없이 AI 말풍선만 보인다
 - 팀 알림: `docs/routes.md` 29줄 MAN-001 담당이 아직 YAY다. 담당 표(2026-11-08)대로 LJS로 고치도록 LJS에게 알린다
-- 코드 후보: 휴대전화번호에 `---`만 적으면 [중복확인]이 켜지고 누르면 "휴대전화번호를 입력해 주세요."가 나온다(추가-1 검증 메모, `phone.trim()` 기준)
 
 - 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당). 프론트 `screenPaths.js` 줄은 넣음
 - PR Breaking Changes(SCR-ACC-020): 새 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, `docs/routes.md`), SJM `ProfileEditPage.jsx` [회원 탈퇴] 이동 연결, LJS `screenPaths.js`에 `SCR-ACC-020` 행
