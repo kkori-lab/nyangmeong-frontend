@@ -1,4 +1,5 @@
 import { ChevronLeft, ExternalLink, Megaphone, Newspaper } from 'lucide-react';
+import { useState } from 'react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
 import FileImage from '@/components/FileImage';
 import PostBody from '@/components/PostBody';
@@ -16,6 +17,7 @@ const LATEST_SIZE = 5;
 export default function NewsDetail({ news }) {
   const { state } = useLocation();
   const { data: latest } = useNewsList({ page: 1, size: LATEST_SIZE });
+  const [photoFailed, setPhotoFailed] = useState(false);
   const isAdmin = news.newsSrcCd === NEWS_SRC_ADMIN;
   const listTo = `${PATHS.COMMUNITY_NEWS}${state?.listSearch ?? ''}`;
 
@@ -52,17 +54,19 @@ export default function NewsDetail({ news }) {
           </PostBody>
         ) : (
           <>
-            <figure className="mt-6">
-              <NewsThumb
-                src={news.thmbUrlPath}
-                iconSize={56}
-                natural
-                className="aspect-[16/9] w-full rounded-[14px]"
-              />
-              <figcaption className="mt-1.5 text-sm text-[#667374]">
-                사진 출처: {news.srcPressNm}
-              </figcaption>
-            </figure>
+            {/* 사진이 없거나 불러오지 못하면 사진과 출처 캡션을 함께 숨긴다 */}
+            {news.thmbUrlPath && !photoFailed && (
+              <figure className="mt-6">
+                <NewsThumb
+                  src={news.thmbUrlPath}
+                  natural
+                  onError={() => setPhotoFailed(true)}
+                />
+                <figcaption className="mt-1.5 text-sm text-[#667374]">
+                  사진 출처: {news.srcPressNm}
+                </figcaption>
+              </figure>
+            )}
             {hasSummary(news) && (
               <p className="mt-6 border-l-[3px] border-[#22744a] pl-4 text-lg leading-[1.6] text-[#1a3234]">
                 <span className="mb-1.5 block text-sm font-semibold text-[#22744a]">

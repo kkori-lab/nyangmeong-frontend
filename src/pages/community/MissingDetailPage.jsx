@@ -5,9 +5,26 @@ import MissingDetail from '@/features/community/missing/MissingDetail';
 import { useMissing } from '@/features/community/missingQueries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
+import SkeletonCard from '@/components/SkeletonCard';
 
 const DESCRIPTION =
   '잃어버린 반려동물을 함께 찾아요. 비슷한 아이를 보셨다면 댓글로 알려 주세요';
+
+/** 로딩 자리: 본문 카드 + 아래 카드 + 오른쪽 레일(실제 상세와 같은 배치·높이) */
+function MissingDetailSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10"
+    >
+      <div className="flex min-w-0 flex-col gap-4">
+        <SkeletonCard className="h-[1440px] max-[760px]:h-[1965px]" />
+        <SkeletonCard className="h-[242px] max-[760px]:h-[234px]" />
+      </div>
+      <SkeletonCard className="h-[227px] max-[1100px]:h-[205px]" />
+    </div>
+  );
+}
 
 export default function MissingDetailPage() {
   const lostTpofSn = Number(useParams().lostTpofSn);
@@ -15,7 +32,7 @@ export default function MissingDetailPage() {
 
   let body;
   if (isPending) {
-    body = <p className="text-muted">불러오는 중이에요</p>;
+    body = <MissingDetailSkeleton />;
   } else if (isError) {
     body = (
       <div role="alert">
