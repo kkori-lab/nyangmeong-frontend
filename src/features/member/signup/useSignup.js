@@ -164,6 +164,12 @@ export default function useSignup({ onBackToLogin, onRecover }) {
             setErrors({ email: MSG.emailDuplicate });
           } else if (error.code === 'EMAIL_CERT_RESEND_NOT_YET') {
             setNotice({ type: 'error', message: resendMessage(error) });
+          } else if (error.code === 'MAIL_SEND_FAILED') {
+            // 메일 발송 실패는 서버 문구를 그대로 보이고 재전송 대기는 시작하지 않는다
+            setNotice({
+              type: 'error',
+              message: error.message || MSG.sendFailed,
+            });
           } else {
             setNotice({ type: 'error', message: MSG.sendFailed });
           }
