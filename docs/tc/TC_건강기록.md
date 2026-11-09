@@ -1,6 +1,6 @@
 # TC · 건강기록 (SCR-HLT-011·002·003·005·007)
 
-- 기준: 건강기록_기능명세서_v1.2_20261101 (SCR-HLT-* 5개 화면, FN-HLT 86개), 건강기록_화면설계서_v1.2_20261101, 요구사항정의서_v0.10.2_20261108(REQ-HLT-001·002·003·006, 영수증 검진 경로 REQ-AIM-004, 파일 제한 REQ-NFR-003), 백엔드 `docs/api/health.md`·`receipt.md`·`ErrorCode.java`(develop 2026-11-08)
+- 기준: 건강기록_기능명세서_v1.2_20261101 (SCR-HLT-* 5개 화면, FN-HLT 86개), 건강기록_화면설계서_v1.2_20261101, 요구사항정의서_v0.10.3_20261109(REQ-HLT-001·002·003·006, 영수증 검진 경로 REQ-AIM-004, 파일 제한 REQ-NFR-003), 백엔드 `docs/api/health.md`·`receipt.md`·`ErrorCode.java`(develop 2026-11-08)
 - 코드: origin/develop 425199e (2026-11-08)
 - 구현 상태: 5개 화면 모두 서버 데이터는 실제 API(`milestones/JAJ.md`). 단 SCR-HLT-011의 대시보드 기록 항목 선택·카드 순서는 가짜 저장소(브라우저 `localStorage`, `features/health/dashboard/widgetStore.js`). 11-04 이후 화면이 크게 바뀐 곳: SCR-HLT-011(명세의 카드 8장 → 배너 + 고른 기록 대시보드), 건강기록 3개 화면의 공통 반려동물 카드, 건강 일지 그래프 5개 기록, 케어 캘린더 "모든 아이 일정 같이 보기" 스위치, 영수증 결과 확인의 [반려동물 연결]. 검사결과지 PDF 분석(FN-HLT-005-04, 007-04·06)은 AI 서버 `POST /ai/checkups/lab-results`, 영수증 인식 결과 확인(FN-HLT-002-34~46)은 AI 서버 `POST /ai/receipts`로 만든 영수증이 있어야 확인할 수 있다
 - 준비
@@ -1241,27 +1241,25 @@
 
 ## 명세·요구사항과 코드가 어긋난 곳
 
-FN-HLT-011-01 — 반려동물 선택이 탭이 아니라 건강기록 공통 반려동물 카드(알약/카드+팝오버)이고 1마리여도 노출된다. [+ 반려동물 등록]은 팝오버의 [등록] 칸이다 (`features/health/shared/PetSwitcher.jsx`)
-FN-HLT-011-02 — 요약 바에 나이·품종·성별·몸무게와 알레르기·기저질환 건수 배지가 없다. 배너는 이름·기준일·최근 검진·검사 수치·현재 처방만 보인다 (`features/health/summary/SummaryBanner.jsx`)
-FN-HLT-011-03 — 건강 이력 타임라인(검진기록+반복 예방 5건, 클릭→검진상세, [전체 보기])이 없다. 대신 '검진기록' 카드(최근 5건)가 있고 반복 예방이 빠졌으며 줄을 눌러도 이동하지 않는다 (`dashboard/WidgetCard.jsx` `checkupBody`)
-FN-HLT-011-04 — 예방·정기검진 이력이 '예방접종·구충' 카드 한 장(예방접종·다음 접종·최근 검진·다음 검진 4줄)이다. 예방접종/정기검진 상자 분리와 줄 사이 점선이 없고 이름에 있는 구충은 표시되지 않는다 (`WidgetCard.jsx` `preventionBody`)
-FN-HLT-011-05 — [입력하러 가기]/[수정하러 가기] 링크와 두 줄 사이 구분선이 없고, 카드 [더보기]가 마이페이지 반려동물 관리로 보낸다 (`WidgetCard.jsx` `allergyBody`, `DashboardCard.jsx`)
-FN-HLT-011-06 — 최근 1회차 검사 표(항목·결과·참고범위·기능 태그), 행 클릭 시 추이 전환, [전체 보기]→검진상세가 없다. '검사 수치' 카드가 항목 선택창+최신 값만 보여 준다 (`WidgetCard.jsx` `InspectionTrend`)
-FN-HLT-011-07 — 그래프 아래 안내 문구("참고범위는 검사 기관·장비마다 다를 수 있어요…")가 없고, 기본 항목이 "기록 2건 이상인 첫 항목"이 아니라 CREA(없으면 첫 항목)이다. 직접입력 항목은 옵션이 "[] 항목명"으로 보일 수 있다 (`WidgetCard.jsx` `InspectionTrend`)
-FN-HLT-011-08 — 처방 행을 눌러도 검진상세로 가지 않고 카드 [더보기]만 맨 위 처방의 처방약 탭으로 간다 (`WidgetCard.jsx` `prescriptionBody`)
-FN-HLT-011-09 — 첨부 자료가 가로 4칸 썸네일·유형 아이콘·접기/펼치기 카드가 아니라 세로 4줄 목록이고, 명세에 없는 [더보기](건강 일지 검진기록 탭)가 있다 (`WidgetCard.jsx` `AttachmentRows`)
-FN-HLT-011-10 — 관찰중 항목 탭이 없어 첫 항목만 보이고, 사진을 눌러도 원본 미리보기가 열리지 않는다 (`WidgetCard.jsx` `observationBody`)
-FN-HLT-011 화면 전체 / REQ-HLT-003 — 대시보드 기록 항목 고르기·튜토리얼 3단계·기록 항목 편집·위젯 순서 변경·'AI 건강분석 리포트(준비 중)' 카드는 기능명세서·요구사항에 없는 신규 정책(REQ-MAN-006의 메인 위젯 7종과 별개)이다. 고른 항목·순서는 백엔드 저장 API가 없어 `localStorage`에 저장한다 (`dashboard/*`, `docs/api/issues.md` 위젯 항목)
-FN-HLT-002-01 / FN-HLT-003-01 — 반려동물 선택이 드롭다운이 아니라 공통 반려동물 카드이고, 1마리여도 노출된다 (`PetSwitcher.jsx`, `pages/health/*Page.jsx`)
-FN-HLT-002-09·10 / REQ-HLT-003 — 건강기록 변화 그래프가 최근 14개가 아니라 최근 5개 기록(커밋 2d738df)이다. 배변 상태는 최근 5개 기록의 횟수 막대다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
-REQ-HLT-003 — 요구사항은 최근 건강기록 조회기간을 7일·14일로 적었으나 명세 FN-HLT-002-13과 코드는 3일·7일·14일(기본 3일)이다 (`diary/RecentRecordTable.jsx` `PERIOD_OPTIONS`)
-FN-HLT-002-11 — 대시보드에서 고른 매일 기록만 종류로 보이고 [항목 편집] 버튼이 생겼다. 명세·요구사항에 없다 (`diary/TodayRecordForm.jsx`)
-FN-HLT-002-15 — PC 관찰 항목 목록 줄에 대표 사진·부위가 없다(항목명·크기와 증감·최근 관찰일만) (`diary/ObservationCard.jsx` `ItemButton`)
-FN-HLT-002-17·18 — 사진 줄이 최신 5회차만 나열하고 앞은 "+N 이전 회차" 칸으로 접히며, 크기 그래프도 크기 입력 회차 중 최신 5개만 그린다 (`diary/ObservationDetail.jsx` `CHART_COUNT`)
-FN-HLT-002-19 — [사진 원본 보기]·[이 회차 수정]·[삭제]가 버튼이 아니라 선택 회차 줄의 ⋮ 메뉴에 있다 (`diary/ObservationDetail.jsx`)
-FN-HLT-002-36 — 구역이 있는 영수증은 탭 드롭다운 대신 맨 위 [반려동물 연결] 상자에서 고르고 선택지가 "기록 안 함"이다(명세 "저장 안 함"). 구역이 없는 영수증은 탭이 1개여도 선택창이 보이고 "자동 연결" 탭 표식은 더 이상 쓰이지 않는다 (`diary/ReceiptPetLink.jsx`, `ReceiptPetTab.jsx`, `receiptUtils.js`)
-FN-HLT-003-39 — 표시 반려동물 필터가 [전체]+칩 다중 선택(최소 1마리)이 아니라 "모든 아이 일정 같이 보기" 스위치(켬/끔)이다. 다른 아이 일정을 누르면 공통 카드가 그 아이로 바뀐다 (`pages/health/CareCalendarPage.jsx`)
-FN-HLT-003-12 — 구역 제목이 "정기관리(REGULAR)"·"일상관리(DAILY)"로 영문 코드가 함께 보인다 (`CareList.jsx`)
-FN-HLT-005-02 — 혈액검사 행에 [추이 보기 ›] 링크(종합 건강기록 검사 수치 카드로 이동)가 있다. 명세는 "추이로 가는 경로는 두지 않음(11-01)"이다 (`checkup/BloodResultList.jsx`)
-FN-HLT-005-15 / FN-HLT-003-12 / REQ-HLT-002 — FN-HLT-005-15와 REQ-HLT-002는 케어 항목의 [출처 보기] 역링크를 말하지만 FN-HLT-003-12는 11-01자로 삭제했고 코드에도 없다. 종합 건강기록 타임라인의 반복 예방 진입도 타임라인이 없어 사라졌다 (`CareTile.jsx`)
-REQ-NFR-003 / FN-HLT-011-09 — 요구사항은 검진 첨부 PDF를 "화면 내 미리보기·실행 없이 다운로드·[PDF 분석] 대상으로만" 취급한다고 하나 첨부 자료 탭 PDF 행의 [열기]가 새 창으로 연다 (`checkup/AttachmentTab.jsx` `handleOpenPdf`)
+- [문서] FN-HLT-011-01 / FN-HLT-002-01 / FN-HLT-003-01 — 반려동물 선택이 탭·드롭다운이 아니라 건강기록 공통 반려동물 카드(알약/카드+팝오버)이고 1마리여도 노출된다. [+ 반려동물 등록]은 팝오버의 [등록] 칸이다 (`features/health/shared/PetSwitcher.jsx`, `pages/health/*Page.jsx`)
+- [코드] FN-HLT-011-02 — 요약 바에 나이·품종·성별·몸무게와 알레르기·기저질환 건수 배지가 없다. 배너는 이름·기준일·최근 검진·검사 수치·현재 처방만 보인다 (`features/health/summary/SummaryBanner.jsx`)
+- [문서] FN-HLT-011-03 — 건강 이력 타임라인(검진기록+반복 예방 5건, 클릭→검진상세, [전체 보기])이 없다. 대신 '검진기록' 카드(최근 5건)가 있고 반복 예방이 빠졌으며 줄을 눌러도 이동하지 않는다 (`dashboard/WidgetCard.jsx` `checkupBody`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다
+- [문서] FN-HLT-011-04 — 예방·정기검진 이력이 '예방접종·구충' 카드 한 장(예방접종·다음 접종·최근 검진·다음 검진 4줄)이다. 예방접종/정기검진 상자 분리와 줄 사이 점선이 없고 이름에 있는 구충은 표시되지 않는다 (`WidgetCard.jsx` `preventionBody`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다
+- [코드] FN-HLT-011-05 — [입력하러 가기]/[수정하러 가기] 링크와 두 줄 사이 구분선이 없고, 카드 [더보기]가 마이페이지 반려동물 관리로 보낸다 (`WidgetCard.jsx` `allergyBody`, `DashboardCard.jsx`)
+- [문서] FN-HLT-011-06 — 최근 1회차 검사 표(항목·결과·참고범위·기능 태그), 행 클릭 시 추이 전환, [전체 보기]→검진상세가 없다. '검사 수치' 카드가 항목 선택창+최신 값만 보여 준다 (`WidgetCard.jsx` `InspectionTrend`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다
+- [코드] FN-HLT-011-07 — 그래프 아래 안내 문구("참고범위는 검사 기관·장비마다 다를 수 있어요…")가 없고, 기본 항목이 "기록 2건 이상인 첫 항목"이 아니라 CREA(없으면 첫 항목)이다. 직접입력 항목은 옵션이 "[] 항목명"으로 보일 수 있다 (`WidgetCard.jsx` `InspectionTrend`)
+- [코드] FN-HLT-011-08 — 처방 행을 눌러도 검진상세로 가지 않고 카드 [더보기]만 맨 위 처방의 처방약 탭으로 간다 (`WidgetCard.jsx` `prescriptionBody`)
+- [문서] FN-HLT-011-09 — 첨부 자료가 가로 4칸 썸네일·유형 아이콘·접기/펼치기 카드가 아니라 세로 4줄 목록이고, 명세에 없는 [더보기](건강 일지 검진기록 탭)가 있다 (`WidgetCard.jsx` `AttachmentRows`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다
+- [코드] FN-HLT-011-10 — 관찰중 항목 탭이 없어 첫 항목만 보이고, 사진을 눌러도 원본 미리보기가 열리지 않는다 (`WidgetCard.jsx` `observationBody`)
+- [문서] FN-HLT-011 화면 전체 — 대시보드 기록 항목 고르기·튜토리얼 3단계·기록 항목 편집·위젯 순서 변경·'AI 건강분석 리포트(준비 중)' 카드는 기능명세서에 없는 신규 정책이다. 고른 항목·순서는 백엔드 저장 API가 없어 `localStorage`에 저장한다 (`dashboard/*`, `docs/api/issues.md` 위젯 항목)
+- [문서] FN-HLT-002-09·10 — 건강기록 변화 그래프가 최근 14개가 아니라 최근 5개 기록(커밋 2d738df)이다. 배변 상태는 최근 5개 기록의 횟수 막대다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
+- [문서] FN-HLT-002-11 — 대시보드에서 고른 매일 기록만 종류로 보이고 [항목 편집] 버튼이 생겼다. 명세·요구사항에 없다 (`diary/TodayRecordForm.jsx`)
+- [코드] FN-HLT-002-15 — PC 관찰 항목 목록 줄에 대표 사진·부위가 없다(항목명·크기와 증감·최근 관찰일만) (`diary/ObservationCard.jsx` `ItemButton`)
+- [문서] FN-HLT-002-17·18 — 사진 줄이 최신 5회차만 나열하고 앞은 "+N 이전 회차" 칸으로 접히며, 크기 그래프도 크기 입력 회차 중 최신 5개만 그린다 (`diary/ObservationDetail.jsx` `CHART_COUNT`)
+- [문서] FN-HLT-002-19 — [사진 원본 보기]·[이 회차 수정]·[삭제]가 버튼이 아니라 선택 회차 줄의 ⋮ 메뉴에 있다 (`diary/ObservationDetail.jsx`)
+- [문서] FN-HLT-002-36 — 구역이 있는 영수증은 탭 드롭다운 대신 맨 위 [반려동물 연결] 상자에서 고르고 선택지가 "기록 안 함"이다(명세 "저장 안 함"). 구역이 없는 영수증은 탭이 1개여도 선택창이 보이고 "자동 연결" 탭 표식은 더 이상 쓰이지 않는다 (`diary/ReceiptPetLink.jsx`, `ReceiptPetTab.jsx`, `receiptUtils.js`)
+- [문서] FN-HLT-003-39 — 표시 반려동물 필터가 [전체]+칩 다중 선택(최소 1마리)이 아니라 "모든 아이 일정 같이 보기" 스위치(켬/끔)이다. 다른 아이 일정을 누르면 공통 카드가 그 아이로 바뀐다 (`pages/health/CareCalendarPage.jsx`)
+- [코드] FN-HLT-003-12 — 구역 제목이 "정기관리(REGULAR)"·"일상관리(DAILY)"로 영문 코드가 함께 보인다 (`CareList.jsx`)
+- [코드] FN-HLT-005-02 — 혈액검사 행에 [추이 보기 ›] 링크(종합 건강기록 검사 수치 카드로 이동)가 있다. 명세는 "추이로 가는 경로는 두지 않음(11-01)"이다 (`checkup/BloodResultList.jsx`)
+- [결정] FN-HLT-005-15 / FN-HLT-003-12 / REQ-HLT-002 — FN-HLT-005-15와 REQ-HLT-002는 케어 항목의 [출처 보기] 역링크를 말하지만 FN-HLT-003-12는 11-01자로 삭제했고 코드에도 없다. 종합 건강기록 타임라인의 반복 예방 진입도 타임라인이 없어 사라졌다 (`CareTile.jsx`)
+- [코드] REQ-NFR-003 / FN-HLT-011-09 — 요구사항은 검진 첨부 PDF를 "화면 내 미리보기·실행 없이 다운로드·[PDF 분석] 대상으로만" 취급한다고 하나 첨부 자료 탭 PDF 행의 [열기]가 새 창으로 연다 (`checkup/AttachmentTab.jsx` `handleOpenPdf`)
