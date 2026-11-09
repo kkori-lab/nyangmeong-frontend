@@ -186,8 +186,11 @@ export const getMoveState = (item, petSn) => {
   return undefined;
 };
 
-/** 처음 추천 항목: 체중·식사량·검진기록 (D4) */
-export const RECOMMENDED_IDS = ['weight', 'meal', 'ckup'];
+/** 처음 추천 항목: 체중·식사량·음수량 (D4 수정) (※신규 정책) */
+export const RECOMMENDED_IDS = ['weight', 'meal', 'water'];
+
+/** 휴대폰(640px 미만)에서 그리지 않는 항목: 요약 띠와 같은 정보 (※신규 정책) */
+export const MOBILE_HIDDEN_IDS = ['ckup', 'insp'];
 
 /** 매일 기록 5개(건강 일지 [오늘 기록하기] 종류와 짝) */
 export const DAILY_ITEMS = WIDGET_GROUPS[0].items;

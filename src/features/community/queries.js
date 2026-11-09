@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   createComment,
   createPost,
@@ -28,6 +33,8 @@ export const usePostList = (params) =>
   useQuery({
     queryKey: postKeys.list(params),
     queryFn: () => getPostList(params),
+    /** 탭·정렬·검색·쪽을 바꾸는 동안 이전 목록 유지로 화면이 스켈레톤으로 바뀌지 않게 한다 */
+    placeholderData: keepPreviousData,
   });
 
 export const usePost = (pstSn) =>
@@ -89,7 +96,10 @@ export const useDeletePost = () => {
 };
 /** 누르는 즉시 그 글 상세의 좋아요·개수가 바뀐다(optimisticLike) */
 export const useTogglePostLike = (pstSn) =>
-  useOptimisticLike({ detailKey: postKeys.detail(pstSn), allKey: postKeys.all });
+  useOptimisticLike({
+    detailKey: postKeys.detail(pstSn),
+    allKey: postKeys.all,
+  });
 /** 댓글 영역(CommentSection)은 게시판 종류를 몰라 targetSn으로 수신 */
 export const useCreateComment = () =>
   useInvalidatingMutation(({ targetSn, ...rest }) =>
