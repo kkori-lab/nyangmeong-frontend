@@ -82,11 +82,11 @@ const onRejected = async (err) => {
     config._retried = true;
     try {
       await refresh();
-      /** 요청을 보낸 인스턴스로 재전송 */
-      return (config.baseURL === aiApi.defaults.baseURL ? aiApi : api)(config);
     } catch {
-      /** 재발급 실패 시 로그인 이동으로 진행 */
+      /** 다른 탭이 먼저 재발급해 쿠키가 살아 있을 수 있어 실패해도 재전송한다 */
     }
+    /** 요청을 보낸 인스턴스로 재전송(또 401이면 이 인터셉터가 로그인 이동) */
+    return (config.baseURL === aiApi.defaults.baseURL ? aiApi : api)(config);
   }
   /** 재발급 요청 자신은 이동 제외 */
   if (!isRefresh && !config?.skipAuthRedirect) {
@@ -132,12 +132,9 @@ export const aiStream = async (url, body, { signal, onEvent }, retried) => {
   if (!response.headers.get('content-type')?.includes('text/event-stream')) {
     const error = toError(await response.json().catch(() => null), response);
     if (response.status === 401 && error.code === 'TOKEN_EXPIRED' && !retried) {
-      /** 재발급 1회 제한, 실패하면 로그인 이동으로 진행 */
-      const isRefreshed = await refresh().then(
-        () => true,
-        () => false,
-      );
-      if (isRefreshed) return aiStream(url, body, { signal, onEvent }, true);
+      /** 재발급 1회 제한, 실패해도 다른 탭이 먼저 재발급했을 수 있어 한 번 다시 보낸다 */
+      await refresh().catch(() => {});
+      return aiStream(url, body, { signal, onEvent }, true);
     }
     redirectIfLoggedOut(response.status, error);
     throw error;
