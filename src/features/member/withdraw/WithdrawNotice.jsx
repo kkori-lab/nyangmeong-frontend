@@ -45,9 +45,7 @@ export default function WithdrawNotice({
         <p className="mb-2 font-semibold text-ink">
           {isPetsError
             ? MSG.petsError
-            : count
-              ? `주양육 반려동물 ${count.primary}마리 · 공동양육 ${count.coParent}마리`
-              : '반려동물 정보를 확인하고 있습니다.'}
+            : `주양육 반려동물 ${count.primary}마리 · 공동양육 ${count.coParent}마리`}
         </p>
         <ul className={LIST}>
           <li>다른 주양육자의 반려동물·건강기록은 삭제하지 않습니다.</li>
