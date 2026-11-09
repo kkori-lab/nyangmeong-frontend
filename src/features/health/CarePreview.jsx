@@ -5,6 +5,7 @@ import Reveal from '@/components/Reveal';
 import { PATHS } from '@/routes/paths';
 import { getTodayYmd } from '@/utils/formatDate';
 import { MAX_MAIN_CARE } from './careDue';
+import { toCareIcon } from './careIcons';
 import { useCareItems } from './queries';
 
 const CARE_LIST_PATH = `${PATHS.HEALTH_CALENDAR}#hlt003-care`;
@@ -108,7 +109,10 @@ function CareBody({ data, isPending, isError }) {
               aria-hidden="true"
               className={`grid size-16 shrink-0 place-items-center rounded-full ${isDone ? 'bg-brand-50 text-brand-600' : 'bg-surface-3 text-subtle'}`}
             >
-              <Icon name={item.rprsIconId} className="text-[40px]" />
+              <Icon
+                name={toCareIcon(item.rprsIconId)}
+                className="text-[40px]"
+              />
             </span>
             <span className="grow">
               <span className="block font-semibold">{item.careArtclNm}</span>
