@@ -50,7 +50,7 @@ export default function useAnswerStream() {
    * - cnvrsCn 없음: [다시 시도]·[다시 생성], replaceMsgSn은 새 답변으로 바꿀 미완료 메시지
    * - draft: 가장 최근 등록 카드
    * - action: 가장 최근 처리 안 한 확인 카드 { tool, input }
-   * - petSn: 새 방의 펫 태그(선택한 반려동물 칩, [전체]면 null)
+   * - petSn: 새 방의 펫 태그(선택한 반려동물 칩, [전체]면 null). 방을 만들 때만 쓰고 열린 방에는 보내지 않는다
    */
   const start = useCallback(
     async ({

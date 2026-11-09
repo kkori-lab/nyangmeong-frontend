@@ -84,10 +84,28 @@ export const buildActionRequest = (card, input) => {
   return { method: card.call.method, url, params, data };
 };
 
-/** 결과 저장에 보낼 input: 목록에 있는 칸만, 빈 값은 뺀다 */
+/**
+ * 조건부 칸이 꺼졌는지: rules에 나오는 칸은 그 조건 중 하나라도 맞을 때만 쓴다
+ * - 예: 건강 일지 상태(crsdSttsCd)는 기록 지표가 배변상태일 때만. 다른 지표에 값을 보내면 Java가 400
+ */
+export const isFieldOff = (card, input, field) => {
+  const rules = card.rules.filter((rule) => rule.field === field);
+  return (
+    rules.length > 0 && !rules.some(({ when, equals }) => input[when] === equals)
+  );
+};
+
+/** 지금 값 기준 폼에 보일 칸: 꺼진 조건부 칸은 숨김 */
+export const activeFields = (card, input, shownFields) =>
+  shownFields.filter((field) => !isFieldOff(card, input, field));
+
+/** 결과 저장·Java 요청·다음 메시지에 보낼 input: 목록에 있는 칸만, 빈 값과 꺼진 조건부 칸은 뺀다 */
 export const resultInput = (card, input) =>
   Object.fromEntries(
     Object.entries(input).filter(
-      ([field, value]) => field in card.params && !isEmptyValue(value),
+      ([field, value]) =>
+        field in card.params &&
+        !isEmptyValue(value) &&
+        !isFieldOff(card, input, field),
     ),
   );
