@@ -40,6 +40,7 @@ export const getCategoryStats = (categories) => {
 /**
  * 반려동물별 지출 집계
  * 연동 중인 동물은 0원이어도 보이고, 연동 해제·삭제된 동물은 지출이 있을 때만 보인다
+ * 금액이 큰 순으로 늘어놓고, 금액이 같으면 등록순(옵션 순서)을 유지한다
  */
 export const getPetStats = (statistics, pets) => {
   const { totalExpndAmt, pets: petItems, commonTotalExpndAmt } = statistics;
@@ -60,7 +61,8 @@ export const getPetStats = (statistics, pets) => {
       label: getPetFilterLabel(pet),
       totalAmt: amtOf(pet.petSn),
       ratio: getRatio(amtOf(pet.petSn), totalExpndAmt),
-    }));
+    }))
+    .sort((a, b) => b.totalAmt - a.totalAmt);
   return {
     pets: stats,
     shared:
