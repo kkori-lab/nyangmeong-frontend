@@ -58,6 +58,7 @@ const STREAM_CLOSED = { code: 'STREAM_CLOSED', message: '연결이 끊겼어요'
 /**
  * 메시지 전송: 판정(intent) → 답변 조각(delta) → 끝(done)|오류(error) SSE
  * - 방이 없으면 대화 생성(첫 메시지 저장, 펫 태그 petSn) 뒤 같은 방에 cnvrsCn 없이 전송
+ * - petSn은 방을 만들 때만 쓴다: 열린 방 메시지 본문에는 싣지 않는다(늘 방 태그 기준)
  * - cnvrsCn이 없으면 저장 없이 방의 마지막 사용자 메시지에 답한다([다시 시도]·[다시 생성])
  * - draft: 가장 최근 등록 카드(done.card 그대로), 새 방에는 없음
  * - action: 가장 최근 처리 안 한 확인 카드 { tool, input }(회원이 고친 값 포함), 새 방에는 없음

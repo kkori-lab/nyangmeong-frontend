@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import SkeletonCard from '@/components/SkeletonCard';
 import { PATHS } from '@/routes/paths';
 import PetEmpty from '../list/PetEmpty';
 import { usePets } from '../queries';
@@ -39,7 +40,18 @@ export default function MyPetsSection() {
           <ChevronRight className="size-4" />
         </Link>
       </div>
-      {isPending ? null : isError ? (
+      {isPending ? (
+        <div
+          aria-busy="true"
+          className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1281px]:grid-cols-3 max-[760px]:gap-0 max-[760px]:overflow-hidden max-[760px]:rounded-card max-[760px]:border max-[760px]:border-line max-[760px]:bg-white max-[760px]:[&>div+div]:border-t max-[760px]:[&>div+div]:border-line-soft"
+        >
+          {Array.from({ length: VISIBLE_COUNT }, (_, index) => (
+            <div key={index} className="flex min-w-0">
+              <SkeletonCard className="h-[98px] w-full max-[760px]:h-[70px] max-[760px]:rounded-none! max-[760px]:border-0! max-[760px]:p-3!" />
+            </div>
+          ))}
+        </div>
+      ) : isError ? (
         <p className="py-10 text-center text-muted">
           반려동물을 불러오지 못했어요{' '}
           <button

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
+import SkeletonCard from '@/components/SkeletonCard';
 import { parseYmd, toYmd } from '@/utils/formatDate';
 import { useCareMissions } from '../queries';
 import {
@@ -156,7 +157,12 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
   const [selectedPetSn, setSelectedPetSn] = useState(null);
   const { data, retry } = useCareMissions(ymd, ownPets ?? []);
 
-  if (!ownPets || !data) return null;
+  if (!ownPets || !data)
+    return (
+      <div aria-busy="true">
+        <SkeletonCard className="h-[927px] lg:h-[839px]" />
+      </div>
+    );
 
   const pets = data.pets;
   const pet = pets.find((item) => item.petSn === selectedPetSn) ?? pets[0];

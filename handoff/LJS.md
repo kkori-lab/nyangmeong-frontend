@@ -2,10 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 대화창 · 확인 카드(ACTION) 연결 — 끝(2026-11-09). AI 서버 `done.action` 확인 카드를 `params`·`rules`로 폼으로 그리고 [확인]은 카드의 `call`로 Java를 부른 뒤 `action-result`에 저장한다. 고친 값은 다음 메시지의 `action`으로 돌려보내고, 저장하면 본창이 데이터를 다시 불러온다(`BroadcastChannel`)
+SCR-AIM-011 대화창 · 반려동물 칩 목록 필터 정리 — 끝(2026-11-09). 칩은 대화 목록 필터로만 쓰고, 열린 방이 고른 칩 목록에서 빠지면 그 반려동물의 새 대화로 간다(입력 글 유지). 열린 방 메시지에 `petSn`을 보내지 않는다. 추가-1: 확인 카드의 조건부 칸(`rules`)은 조건이 맞을 때만 보이고 보낸다(건강 일지 "상태"는 배변상태일 때만, 배변상태면 "수치"도 숨음)
 
 ## 다음에 할 것
 
+- SCR-AIM-011 칩 정리 연결 남음(2026-11-09): AI 세션에 알린다 — "열린 방 메시지 요청에 `petSn`을 보내지 않는다, 칩은 대화 목록 필터로만 쓴다(방 태그는 그대로), 확인 카드는 `rules` 조건이 안 맞는 칸을 숨기고 `action.input`·Java 요청에서 뺀다"
+- SCR-AIM-011 칩 정리 검증 데이터 정리(2026-11-09, 8081 DB·tester 계정): 까미(petSn 1) 음수량 기록 2026-11-09 09:10·200, 대화방 312(탄이)·314·315(까미)는 AI 창 [삭제], 방 309 "[검증] 고마워"·"검증: 고마워" 메시지와 답변은 메시지 삭제 API가 없어 DB에서
+- SCR-AIM-012 ④ 일정·케어 항목 등록도 확인 카드(ACTION)로(AI 세션 알림 2026-11-09, AI `LJS` 브랜치 검증 통과·병합 전): `draft_schedule`·`draft_care_item`이 `done.action`으로 오고 `done.card`는 null. 결과는 `action-result`. ActionCard에 `notice`(String?, 같은 이름 케어 항목 경고)가 새로 생겨 카드 위에 보여야 한다. 일정 `input`에 `schdlSrcCd`를 채우지 않는다. 옮긴 뒤 옛 등록 카드 UI(`done.card` SCHEDULE·CARE_ITEM·ASK, `draft`, `register-result`)와 가짜 `registerToHealth`를 지우고 AI 세션에 알린다. AI develop 병합 알림을 받으면 `/start`로 기획
+- SCR-AIM-002 Markdown 표시 연결 남음: AI 세션에 알림(2026-11-09, PR #288). AI 쪽 `docs/api/chat.md`에 "`cnvrsCn`은 Markdown(GFM)" 기재 대기(AI 세션)
 - SCR-AIM-012 확인 카드 연결 남음(2026-11-09): AI 저장소 `LJS` 작업 트리(커밋 전)의 "돌려받은 카드에서 말하지 않은 날짜는 카드 값 유지" 수정이 커밋·develop 병합돼야 다른 환경에서도 고친 기록 일시가 새 카드에 남는다(AI 세션 담당). 수정 도구 4개도 AI develop 병합 전
 - SCR-AIM-012 다음 작업 후보: AI 쪽 배열·파일 칸 카드(`draft_expense`·`draft_observation_cycle`, `params`의 `array`·`items`·`minItems`·`generated`, `file`, `call.contentType`, `missing`의 `lines[0].expndAmt` 꼴)가 develop에 병합되면 `/start`로 기획한다. 지금 카드는 배열 칸을 숨겨서 이 카드가 오면 [확인]이 영영 꺼진다
 - AI 대화창 버그(사람 2026-11-09 제보, 원인만 봄): 새 대화 첫 메시지에서 첫 글자 전 오류(`error`)나 스트림 전 오류(`failed`)가 나면 `useAnswerStream.js` `catch`가 `refresh()`를 부르지 않아, 서버에 만든 방이 왼쪽 목록에 안 나와 다른 대화로 옮기면 지워진 것처럼 보인다. `catch`에서도 목록·상세를 무효화하면 된다. 사람이 고칠지 아직 안 정함
