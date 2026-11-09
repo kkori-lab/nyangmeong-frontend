@@ -3,6 +3,7 @@ import {
   RECOMMENDED_IDS,
   WIDGET_GROUPS,
   findWidgetItem,
+  joinWidgetNames,
   keepWidgetOrder,
   orderWidgetIds,
 } from './widgetItems';
@@ -84,14 +85,16 @@ export default function WidgetPicker({
         </p>
       </div>
 
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-2 rounded-[10px] bg-surface-2 px-3.5 py-3 text-muted">
-        <Icon name="tips_and_updates" className="text-subtle" />
-        <span className="min-w-0 flex-1">
-          처음이라면 체중·식사량·검진기록부터 시작해 보세요
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-2 rounded-[10px] bg-surface-2 px-3.5 py-3 text-muted max-sm:flex-col max-sm:items-stretch">
+        <span className="flex min-w-0 flex-1 items-start gap-2 sm:contents">
+          <Icon name="tips_and_updates" className="shrink-0 text-subtle" />
+          <span className="min-w-0 flex-1 break-keep">
+            {`처음이라면 ${joinWidgetNames(RECOMMENDED_IDS)}부터 시작해 보세요`}
+          </span>
         </span>
         <button
           type="button"
-          className="inline-flex h-8 items-center rounded-md bg-brand-50 px-3 font-semibold whitespace-nowrap text-brand-600 hover:bg-brand-100"
+          className="inline-flex h-8 items-center rounded-md bg-brand-50 px-3 font-semibold whitespace-nowrap text-brand-600 hover:bg-brand-100 max-sm:self-end"
           onClick={() => onRecommend(RECOMMENDED_IDS)}
         >
           추천대로 고르기
