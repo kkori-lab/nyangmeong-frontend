@@ -1,8 +1,7 @@
 import { Sparkles } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Skeleton from '@/components/Skeleton';
-import ReceiptUploadModal from '@/features/ai/receipt/ReceiptUploadModal';
 import { pickGreeting } from '@/features/dashboard/greeting';
 import HeroAsk from '@/features/dashboard/HeroAsk';
 import MainShortcuts from '@/features/dashboard/MainShortcuts';
@@ -11,39 +10,17 @@ import { PATHS } from '@/routes/paths';
 
 /**
  * [메인페이지 SCR-MAN-001] 구글 시작 화면형(팀 회의 2026-11-08 개편)
- * - 첫 화면 세로 가운데에 인사말 → AI 매니저 검색창 → 제안 카드 → 반려동물 바로가기, 그 아래 바로 푸터
+ * - 첫 화면 세로 가운데에 인사말 → AI 매니저 검색창 → 반려동물 바로가기, 그 아래 바로 푸터
+ *   (제안 카드 [AI 건강분석 리포트]·[영수증 올리기]는 뺐다, 사람 요청 2026-11-09)
  * - `/main`은 회원만 들어온다(mainRoutes `auth: 'member'`)
- * - [영수증 올리기]: 건강기록 영수증 업로드 모달을 여기서 열고, 인식 결과 확인·직접 입력은 건강일지가 이어받는다(추가-3)
- *   건강일지는 ?recptSn=&petSn=이면 결과 확인, ?checkup=manual&recptSn=이면 검진기록 입력으로 시작한다
  * - 높이: 화면 − 헤더(64px) − 본문 위아래 여백(UserLayout main pt-6, pb-[160px] / 760px 이하 pb-20)
  */
 export default function MainPage() {
   const { data: pets, isError } = useMyPets();
   const representativePet =
     pets?.find((pet) => pet.rprsPetYn) ?? pets?.[0] ?? null;
-  const navigate = useNavigate();
-  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   /** 인사말 시간대는 들어온 시각으로 한 번 정한다(머무는 동안 다시 그려도 그대로) */
   const [enteredAt] = useState(() => new Date());
-
-  /** 반려동물이 없으면 영수증을 연결할 곳이 없어 등록으로 보낸다 */
-  const handleReceipt = () => {
-    if (representativePet) setIsReceiptOpen(true);
-    else navigate(`${PATHS.MYPAGE_PETS}?register=1`);
-  };
-
-  const handleRecognized = ({ recptSn, petSn }) =>
-    navigate(
-      `${PATHS.HEALTH_DIARY}?${new URLSearchParams({ recptSn, petSn })}`,
-    );
-
-  const handleManualInput = ({ recptSn } = {}) =>
-    navigate(
-      `${PATHS.HEALTH_DIARY}?${new URLSearchParams({
-        checkup: 'manual',
-        ...(recptSn != null && { recptSn }),
-      })}`,
-    );
 
   return (
     <section
@@ -64,10 +41,7 @@ export default function MainPage() {
             />
             {pickGreeting(enteredAt, representativePet?.petNm)}
           </h1>
-          <HeroAsk
-            petNm={representativePet?.petNm ?? '우리 아이'}
-            onReceipt={handleReceipt}
-          />
+          <HeroAsk petNm={representativePet?.petNm ?? '우리 아이'} />
           {pets?.length > 0 ? (
             <MainShortcuts pets={pets} />
           ) : (
@@ -87,20 +61,11 @@ export default function MainPage() {
           )}
         </>
       )}
-      {isReceiptOpen && (
-        <ReceiptUploadModal
-          pets={pets}
-          defaultPetSn={representativePet.petSn}
-          onRecognized={handleRecognized}
-          onManualInput={handleManualInput}
-          onClose={() => setIsReceiptOpen(false)}
-        />
-      )}
     </section>
   );
 }
 
-/** 첫 진입: 인사말·검색창·제안 카드·바로가기 자리 */
+/** 첫 진입: 인사말·검색창·바로가기 자리 */
 function MainSkeleton() {
   return (
     <div aria-busy="true" className="flex w-full flex-col items-center gap-6">
@@ -109,10 +74,6 @@ function MainSkeleton() {
       </h1>
       <Skeleton className="h-9 w-[320px] max-w-full" />
       <Skeleton className="h-[52px] w-full max-w-[600px] rounded-full" />
-      <div className="grid w-full max-w-[440px] grid-cols-2 gap-3 max-[480px]:grid-cols-1">
-        <Skeleton className="h-[58px] rounded-box" />
-        <Skeleton className="h-[58px] rounded-box" />
-      </div>
       <div className="flex gap-2">
         {Array.from({ length: 3 }, (_, index) => (
           <Skeleton key={index} className="h-[120px] w-24 rounded-box" />
