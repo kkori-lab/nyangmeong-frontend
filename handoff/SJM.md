@@ -2,9 +2,11 @@
 
 ## 지금 하는 것
 
-SCR-MYP-031 가계부 영수증 인식: 분석 중 표시를 건강 일지 영수증 모달과 같은 게이지로 — 끝 (2026-11-09, 검증 `통과` 1회차, lint·build 0, 사람 확인 완료)
+SCR-MYP-030 가계부 목록 · 가계부·포인트 화면 로딩을 스켈레톤으로(2차) — 끝 (2026-11-09, 검증 `통과` 2회차 보고 기준, lint·build 0, 사람 확인 완료)
 
-- 공용 `components/AnalyzeProgress.jsx`를 새로 만들고(`label` prop, 기본값 '영수증 분석 진행') 가계부 `ExpenseReceiptUpload.jsx`의 `Loader2`를 바꿨다. 건강 일지 `ReceiptUploadModal.jsx`(JAJ)는 정의를 지우고 import만 바꿨다
+- 가계부 대시보드·전체 내역: 첫 로딩을 실제 배치 스켈레톤으로(`return null` 제거). 대시보드 조회 실패는 월 이동 줄 + 오류 + [다시 시도], 전체 내역은 months·pets 실패 시 오류 화면, 합계만 실패하면 "-", 목록 실패는 오류 + [다시 시도]. 모바일 목록(`useInfiniteExpenses`)도 `keepPreviousData`
+- 포인트: `PointPage`가 pets 조회 실패를 `CareMission`에 넘겨 카드 안에 `MissionError`를 보인다
+- 추가-1: 전체 내역의 "항목을 누르면 바로 수정할 수 있어요" 안내는 목록에 항목이 있을 때만 보인다
 - 부를 API·새 의존성·DB 변경 없음. 연결 작업 없음
 
 ## 다음에 할 것
@@ -14,7 +16,6 @@ SCR-MYP-031 가계부 영수증 인식: 분석 중 표시를 건강 일지 영�
 - JAJ·LJS 알림: 공용 `components/AnalyzeProgress.jsx`를 새로 만들었다(영수증 분석 게이지, `label` prop). JAJ의 `features/ai/receipt/ReceiptUploadModal.jsx`는 함수·상수를 지우고 import만 바꿨고 화면 동작은 같다. 새 분석 화면에 게이지가 필요하면 이 컴포넌트를 쓴다
 - SCR-MYP-040 (선택) `PASSWORD_SAME_AS_CURRENT`는 page.route 400으로만 확인했다. 로컬 백엔드를 develop으로 맞추고 규칙에 맞는 비밀번호의 이메일 계정으로 실제 응답 `message`가 같은지 본다
 - SCR-MYP-002 10마리 보유 때 삭제하면 등록 카드로 바뀌는지 화면 확인(데이터가 없어 못 함)
-- 로딩 스켈레톤 2차 SCR-MYP-030: `ExpenseDashboard.jsx`(58행)·`ExpenseHistory.jsx`(125행)의 `return null`을 실제 배치 스켈레톤으로(`ui.md` "로딩 표시"). 같이 SCR-MYP-020: `PointPage`가 pets 조회 실패를 알려 `CareMission`이 스켈레톤 대신 오류를 보이게(지금은 실패하면 스켈레톤이 계속 남음)
 - 로딩 스켈레톤 3차: SCR-MYP-010 `CharacterPage.jsx`(본문 빔)·`CharacterDecorate.jsx`(null), SCR-MYP-040 `ProfileEditPage.jsx`(로딩 중 본문 없음), SCR-MYP-003 `PetFormModal.jsx`(수정 모달 로딩 null)
 - SCR-MYP-002·005 화면 확인: 삭제 때 공동양육자에게 알림이 실제로 갔는지(백엔드 알림 테스트), 초대 → 수락 → 삭제 → 자동 해제 흐름
 - (선택) SCR-MYP-030 시드 `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(병원·공용, "병원은 공용 불가" 규칙 위반): 팀장에게 알리고 백엔드 저장소에서 고침. 서버가 저장을 막아 급하지 않음
