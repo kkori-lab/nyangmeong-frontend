@@ -2,10 +2,11 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 대화창 · 확인 카드(ACTION) 연결 — 끝(2026-11-09). AI 서버 `done.action` 확인 카드를 `params`·`rules`로 폼으로 그리고 [확인]은 카드의 `call`로 Java를 부른 뒤 `action-result`에 저장한다. 고친 값은 다음 메시지의 `action`으로 돌려보내고, 저장하면 본창이 데이터를 다시 불러온다(`BroadcastChannel`)
+SCR-AIM-002 대화창 · AI 답변 Markdown 표시 — 끝(2026-11-09). AI 답변 본문을 `react-markdown`+`remark-gfm`으로 그린다(`components/MarkdownText.jsx`, HTML·이미지는 안 그림, 표는 말풍선 안 가로 스크롤). 의료 고지는 답변 맨 끝 `※` 문단만 뗀다(본문 안 `※` 문단은 본문에 남김, 사람 확인 2026-11-09)
 
 ## 다음에 할 것
 
+- SCR-AIM-002 Markdown 표시 연결 남음(2026-11-09): AI 세션에 끝났다고 알린다. AI 쪽은 `docs/api/chat.md`에 "`cnvrsCn`은 Markdown(GFM)"을 적는다(AI 세션)
 - SCR-AIM-012 확인 카드 연결 남음(2026-11-09): AI 저장소 `LJS` 작업 트리(커밋 전)의 "돌려받은 카드에서 말하지 않은 날짜는 카드 값 유지" 수정이 커밋·develop 병합돼야 다른 환경에서도 고친 기록 일시가 새 카드에 남는다(AI 세션 담당). 수정 도구 4개도 AI develop 병합 전
 - SCR-AIM-012 다음 작업 후보: AI 쪽 배열·파일 칸 카드(`draft_expense`·`draft_observation_cycle`, `params`의 `array`·`items`·`minItems`·`generated`, `file`, `call.contentType`, `missing`의 `lines[0].expndAmt` 꼴)가 develop에 병합되면 `/start`로 기획한다. 지금 카드는 배열 칸을 숨겨서 이 카드가 오면 [확인]이 영영 꺼진다
 - AI 대화창 버그(사람 2026-11-09 제보, 원인만 봄): 새 대화 첫 메시지에서 첫 글자 전 오류(`error`)나 스트림 전 오류(`failed`)가 나면 `useAnswerStream.js` `catch`가 `refresh()`를 부르지 않아, 서버에 만든 방이 왼쪽 목록에 안 나와 다른 대화로 옮기면 지워진 것처럼 보인다. `catch`에서도 목록·상세를 무효화하면 된다. 사람이 고칠지 아직 안 정함
