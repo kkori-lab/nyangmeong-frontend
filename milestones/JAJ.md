@@ -349,11 +349,14 @@
 - 참고: 배너 높이 1440·1024px 210px, 390px 376px(로딩 자리 `HealthSummaryPage.jsx` `SummarySkeleton`은 `h-52 max-sm:h-96`). 숫자 크기는 Typography 표에 없는 30px → 24px
 - 연결 남음: 없음(기존 요약 데이터만 사용)
 
-## SCR-HLT-011 건강기록 · 옛 종합 건강기록 히어로(SummaryHero) 지우기 — 대기
+## SCR-HLT-011 건강기록 · 옛 종합 건강기록 히어로(SummaryHero) 지우기 — 끝
 
 - 기능: 정리 작업(기능 ID 없음). 「종합 건강기록 배너 개편」으로 건강기록은 `SummaryBanner`를 쓰고, `features/health/summary/SummaryHero.jsx`는 메인(`pages/main/MainPage.jsx`)만 쓴다
 - 기다리는 것: 메인 담당이 메인 히어로를 없애 `MainPage.jsx`가 `SummaryHero`를 더 이상 import 하지 않을 때(사람 결정 2026-11-08: 메인과 `SummaryHero`는 이번에 고치지 않음)
-- 완료 조건(초안, /start에서 확정): 명령: lint·build 0, `grep -rn "SummaryHero" src` 0건 / 화면: `/health` 배너 그대로
+- 기다리는 것 확인(2026-11-09): LJS 메인 개편(`2f1def4`)으로 `MainPage.jsx`가 이미 `SummaryHero`를 import 하지 않음
+- 완료 조건: 명령: lint·build 0, `grep -rn "SummaryHero" src`·`grep -rnw "countItems" src` 0건 / 화면: `/health`(로그인) 배너 그대로·콘솔 새 오류 없음, `/` 메인 그대로
+- 한 일: `features/health/summary/SummaryHero.jsx` 삭제, 그 파일만 쓰던 `summaryUtils.js` `countItems` 삭제
+- 결과: 2026-11-09 검증 통과(1~3회차는 로그인 세션이 없어 화면 확인 못 함 → 사람이 로그인하게 해 4회차 통과), 사람 확인 끝
 - 연결 남음: 없음
 
 ## 제외
