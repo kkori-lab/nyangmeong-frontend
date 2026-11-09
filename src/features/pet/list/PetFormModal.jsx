@@ -615,7 +615,9 @@ function PetForm({
                 </p>
                 <button
                   type="button"
-                  onClick={() => navigate(PATHS.HEALTH_DIARY)}
+                  onClick={() =>
+                    navigate(`${PATHS.HEALTH_DIARY}?petSn=${pet.petSn}`)
+                  }
                   className="inline-flex h-10 items-center justify-center self-start rounded-md border border-line bg-white px-4 font-semibold hover:border-line-strong hover:bg-surface-2"
                 >
                   건강 일지에서 기록하기
