@@ -4,12 +4,10 @@ import DropdownSelect from '@/components/DropdownSelect';
 import PetFace from '@/components/PetFace';
 import { SKIP } from './receiptUtils';
 
-/** 선택칸·목록에 쓰는 아이 캐릭터 원 + 이름. isUsed면 회색 + 「다른 줄에서 골랐어요」 */
-function PetOption({ pet, isUsed = false }) {
+/** 선택칸·목록에 쓰는 아이 캐릭터 원 + 이름 */
+function PetOption({ pet }) {
   return (
-    <span
-      className={`flex min-w-0 items-center gap-2 ${isUsed ? 'text-placeholder' : ''}`}
-    >
+    <span className="flex min-w-0 items-center gap-2">
       <PetFace
         petSn={pet.petSn}
         petSeCd={pet.petSeCd}
@@ -18,9 +16,6 @@ function PetOption({ pet, isUsed = false }) {
         iconClassName="size-4"
       />
       <span className="truncate">{pet.petNm}</span>
-      {isUsed && (
-        <span className="shrink-0 text-sm font-normal">다른 줄에서 골랐어요</span>
-      )}
     </span>
   );
 }
@@ -28,9 +23,8 @@ function PetOption({ pet, isUsed = false }) {
 /**
  * [반려동물 연결] 구역이 있는 영수증의 맨 위 상자 (※신규 정책, 2026-11-08)
  * - 영수증에서 읽은 이름(구역)마다 한 줄: 이름 태그 + 진료 건수 → 반려동물 선택칸
- * - 한 아이는 한 줄만 고를 수 있음(백엔드 checkPets가 같은 petSn 두 번을 400으로 막음).
- *   다른 줄에서 고른 아이는 목록에 회색 「다른 줄에서 골랐어요」로 보이고 눌러도 바뀌지 않음.
- *   공용 DropdownSelect에 항목 비활성이 없어 바꾸기 전에 여기서 거름
+ * - 한 아이를 여러 줄에 고를 수 있음. 저장할 때 같은 아이의 줄은 검진기록 1건으로 합침
+ *   (receiptUtils buildSaveEntries, ※신규 정책 2026-11-09). 그 줄 아래에 합침 안내
  * - 목록 맨 아래 「기록 안 함」은 여러 줄에서 고를 수 있고, 그 줄을 저장하지 않음
  * - 고른 칸은 청록 테두리 + 아이 캐릭터 원, 안 고른 칸은 회색 「반려동물 선택」
  * - isErrorShown: [저장하기]를 눌렀는데 안 고른 줄이 있으면 그 칸을 오류 색으로
@@ -45,22 +39,19 @@ export default function ReceiptPetLink({
 }) {
   const titleId = useId();
   const linkedCount = tabs.filter((tab) => tab.petSn != null).length;
-  /** 그 줄 말고 다른 줄에서 고른 반려동물(「기록 안 함」은 빼고) */
-  const getUsedByOthers = (tabId) =>
-    new Set(
-      tabs
-        .filter(
-          (tab) => tab.id !== tabId && tab.petSn != null && tab.petSn !== SKIP,
-        )
-        .map((tab) => tab.petSn),
-    );
-  const getOptions = (usedByOthers) => [
+  const options = [
     ...pets.map((pet) => ({
       value: pet.petSn,
-      label: <PetOption pet={pet} isUsed={usedByOthers.has(pet.petSn)} />,
+      label: <PetOption pet={pet} />,
     })),
     { value: SKIP, label: '기록 안 함' },
   ];
+  /** 그 줄과 같은 아이를 다른 줄에서도 골랐는지(「기록 안 함」·미선택은 빼고) */
+  const isMergedTab = (target) =>
+    target.petSn != null &&
+    target.petSn !== SKIP &&
+    tabs.some((tab) => tab.id !== target.id && tab.petSn === target.petSn);
+  const findPetNm = (petSn) => pets.find((pet) => pet.petSn === petSn)?.petNm;
 
   return (
     <section
@@ -80,7 +71,6 @@ export default function ReceiptPetLink({
         {tabs.map((tab) => {
           const isLinked = tab.petSn != null;
           const isError = isErrorShown && !isLinked;
-          const usedByOthers = getUsedByOthers(tab.id);
           return (
             <li
               key={tab.id}
@@ -99,7 +89,7 @@ export default function ReceiptPetLink({
               </span>
               <DropdownSelect
                 value={tab.petSn}
-                options={getOptions(usedByOthers)}
+                options={options}
                 placeholder="반려동물 선택"
                 label={`영수증 '${tab.sectionNm}' 반려동물 선택`}
                 className={`w-48 max-sm:w-full ${
@@ -109,11 +99,14 @@ export default function ReceiptPetLink({
                       ? '[&>button]:border-brand-500'
                       : ''
                 }`}
-                onChange={(value) => {
-                  if (usedByOthers.has(value)) return;
-                  onPetChange(tab.id, value);
-                }}
+                onChange={(value) => onPetChange(tab.id, value)}
               />
+              {isMergedTab(tab) && (
+                <p className="w-full text-sm text-subtle">
+                  {findPetNm(tab.petSn)}의 다른 줄과 합쳐 검진기록 1건으로
+                  저장돼요
+                </p>
+              )}
             </li>
           );
         })}
