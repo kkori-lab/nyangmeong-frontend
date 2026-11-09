@@ -24,6 +24,8 @@ const STEPS = {
     title: '이메일을 인증해 주세요',
     subtitle: '인증한 이메일 주소를 로그인 아이디로 사용합니다.',
     Body: EmailStep,
+    // 이메일 입력칸을 이메일 로그인의 아이디 칸과 같은 높이에 둔다(추가-8)
+    spacing: 'stepEmail',
   },
   phone: {
     no: 3,
@@ -90,11 +92,11 @@ export default function SignupForm({ onBackToLogin, onGoLogin, onRecover }) {
     return <SignupComplete form={form} onGoLogin={onGoLogin} />;
   }
 
-  const { no, title, subtitle, Body } = STEPS[form.step];
+  const { no, title, subtitle, Body, spacing = 'step' } = STEPS[form.step];
   return (
     <AuthCard onBack={form.goBack}>
       <StepMotion stepKey={`${form.step}-head`} direction={form.direction}>
-        <AuthHeading title={title} subtitle={subtitle} />
+        <AuthHeading title={title} subtitle={subtitle} spacing={spacing} />
       </StepMotion>
       <SignupStepper current={no} />
       <StepMotion stepKey={form.step} direction={form.direction}>

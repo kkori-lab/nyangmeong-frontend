@@ -8,7 +8,11 @@ import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 export default function PasswordStep({ form }) {
   const target = form.guideTarget;
   return (
-    <form noValidate onSubmit={form.submitJoin} className="flex flex-col gap-4">
+    <form
+      noValidate
+      onSubmit={form.submitJoin}
+      className="flex flex-col gap-4 max-md:gap-5"
+    >
       <AuthField
         id="signup-password"
         icon={Lock}
@@ -51,7 +55,7 @@ export default function PasswordStep({ form }) {
       <button
         type="submit"
         disabled={!form.canJoin || form.isJoining}
-        className={`${PRIMARY_BTN} mt-1`}
+        className={`${PRIMARY_BTN} mt-1 max-md:mt-3`}
       >
         회원가입
       </button>
