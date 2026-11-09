@@ -1,6 +1,9 @@
-import { useEffect } from 'react';
-import { Menu, PawPrint, Plus, User, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Menu, Plus, User, X } from 'lucide-react';
+import logo from '@/assets/nm_logo.svg';
+import KebabMenu from '@/components/KebabMenu';
 import Skeleton from '@/components/Skeleton';
+import DeleteConversationModal from './DeleteConversationModal';
 import { groupConversations } from './groupConversations';
 import { useConversations } from '../queries';
 
@@ -129,20 +132,21 @@ function SidebarPanel({
   onSelectPet,
   onSelectRoom,
   onNewChat,
-  onOpenSettings,
+  onRoomDeleted,
 }) {
   const { data: conversations, isPending, isError } = conversationsQuery;
   const HeaderIcon = headerButton.icon ?? Menu;
+  const [deletingRoomSn, setDeletingRoomSn] = useState(null);
+
+  const handleRoomDeleted = (aiCnvrsRoomSn) => {
+    setDeletingRoomSn(null);
+    onRoomDeleted(aiCnvrsRoomSn);
+  };
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-[#edf1f1] px-4">
-        <div className="flex items-center gap-2 font-bold text-[#1a3234]">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-[#285a5c] text-white">
-            <PawPrint size={16} aria-hidden="true" />
-          </span>
-          AI 매니저
-        </div>
+        <img src={logo} alt="냥멍케어" className="h-8 w-[121px]" />
         <button
           type="button"
           aria-label={headerButton.label}
@@ -212,7 +216,11 @@ function SidebarPanel({
               </h2>
               <ul>
                 {group.items.map((conversation) => (
-                  <li key={conversation.aiCnvrsRoomSn}>
+                  <li
+                    key={conversation.aiCnvrsRoomSn}
+                    className="group relative"
+                  >
+                    {/** ⋮는 대화 버튼 안이 아니라 옆에 겹쳐 둠: 버튼 안 버튼은 누르면 방이 같이 열림 */}
                     <button
                       type="button"
                       aria-current={
@@ -220,7 +228,7 @@ function SidebarPanel({
                           ? 'true'
                           : undefined
                       }
-                      className={`flex h-[42px] w-full items-center gap-2 rounded-lg px-2 text-left text-sm text-[#1a3234] ${
+                      className={`flex h-[42px] w-full items-center gap-2 rounded-lg pr-9 pl-2 text-left text-sm text-[#1a3234] ${
                         selectedRoomSn === conversation.aiCnvrsRoomSn
                           ? 'bg-[#e9f2f2]'
                           : 'hover:bg-[#f4f6f6]'
@@ -233,6 +241,18 @@ function SidebarPanel({
                       </span>
                       <span className="truncate">{conversation.cnvrsTtl}</span>
                     </button>
+                    <KebabMenu
+                      label={`${conversation.cnvrsTtl} 메뉴`}
+                      items={[
+                        {
+                          label: '삭제',
+                          isDanger: true,
+                          onSelect: () =>
+                            setDeletingRoomSn(conversation.aiCnvrsRoomSn),
+                        },
+                      ]}
+                      className="absolute top-[9px] right-2"
+                    />
                   </li>
                 ))}
               </ul>
@@ -247,14 +267,15 @@ function SidebarPanel({
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#1a3234]">
           {nickname}
         </span>
-        <button
-          type="button"
-          className="rounded-md px-2 py-1 text-sm font-medium text-[#285a5c] hover:bg-[#f4f6f6]"
-          onClick={onOpenSettings}
-        >
-          설정
-        </button>
       </div>
+
+      {deletingRoomSn !== null && (
+        <DeleteConversationModal
+          aiCnvrsRoomSn={deletingRoomSn}
+          onDeleted={handleRoomDeleted}
+          onClose={() => setDeletingRoomSn(null)}
+        />
+      )}
     </div>
   );
 }
