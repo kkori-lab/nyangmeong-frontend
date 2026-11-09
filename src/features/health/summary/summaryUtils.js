@@ -8,13 +8,6 @@ import { CHECKUP_TYPES, TONE_CLASSES } from '../scheduleTypes';
  * - 서버 값(프로필·검진기록·검사 항목)을 화면 문구로 바꾸는 함수
  */
 
-/** 쉼표로 나눈 항목 수. 비어 있으면 0 */
-export const countItems = (text) =>
-  (text ?? '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean).length;
-
 /** 검진유형 이름·아이콘·톤 클래스(chip: 연한 바탕 + 진한 글자) */
 export const getCheckupType = (ckupTypeCd) => {
   const type = CHECKUP_TYPES.find((item) => item.cd === ckupTypeCd);
