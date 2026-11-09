@@ -49,7 +49,6 @@ function HealthLayout({ children }) {
 function HealthSummaryContent({ mbrSn }) {
   const [searchParams] = useSearchParams();
   const {
-    pets,
     pet: selectedPet,
     isPending: isPetsPending,
     isError: isPetsError,
@@ -90,7 +89,6 @@ function HealthSummaryContent({ mbrSn }) {
       <HealthDashboard
         mbrSn={mbrSn}
         pet={selectedPet}
-        pets={pets}
         summary={summary}
         initialInspection={searchParams.get('inspection')}
       />
