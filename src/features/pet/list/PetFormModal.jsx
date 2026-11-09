@@ -159,7 +159,8 @@ const validate = ({ form, breedText, isWeightLocked, isColrMismatched }) => {
   return errors;
 };
 
-export default function PetFormModal({ petSn = null, onClose }) {
+/** onCreated(새 동물): 등록 성공 때 onClose 대신 부른다(없으면 onClose) */
+export default function PetFormModal({ petSn = null, onClose, onCreated }) {
   const { data: pet, isPending: isPetPending } = usePet(petSn);
   const { data: lastBdwgRcd = null, isPending: isWeightPending } =
     useLastWeightRecord(petSn);
@@ -206,13 +207,21 @@ export default function PetFormModal({ petSn = null, onClose }) {
           createPet={createPet}
           updatePet={updatePet}
           onClose={onClose}
+          onCreated={onCreated}
         />
       )}
     </Modal>
   );
 }
 
-function PetForm({ pet, lastBdwgRcd, createPet, updatePet, onClose }) {
+function PetForm({
+  pet,
+  lastBdwgRcd,
+  createPet,
+  updatePet,
+  onClose,
+  onCreated,
+}) {
   const [form, setForm] = useState(() => (pet ? toForm(pet) : EMPTY_FORM));
   /** 품종 칸 표시 글자 */
   const [breedText, setBreedText] = useState(() => {
@@ -349,11 +358,12 @@ function PetForm({ pet, lastBdwgRcd, createPet, updatePet, onClose }) {
       body.petBdwg = Number(form.petBdwg);
     }
     const options = {
-      onSuccess: () => {
+      onSuccess: (saved) => {
         showToast(
           isEdit ? '반려동물 정보를 수정했어요.' : '반려동물을 등록했어요.',
         );
-        onClose();
+        if (!isEdit && onCreated) onCreated(saved);
+        else onClose();
       },
       onError: (error) => {
         if (error.fields) {

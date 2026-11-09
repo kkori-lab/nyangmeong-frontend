@@ -2,24 +2,26 @@
 
 ## 지금 하는 것
 
-SCR-MYP-040 회원정보 수정 · SNS 계정 연동 버튼 추가(FN-MYP-040-09) — 끝 (2026-11-06, 검증 `확인 못 함 있음`(성공 뒤 전환은 API 병합 뒤), 사람 확인 완료. 검증 1회 실패는 카카오·구글 요청에 `state`가 실린 것이라 고침)
+SCR-MYP-002 반려동물 프로필 목록 · `?register=1&returnTo=`로 등록 모달 바로 열기와 등록 뒤 돌아가기 — 끝 (2026-11-09, 검증 `통과`, 사람 확인 완료(건강기록 등록→새 아이 선택, register=1 등록→목록 새 아이, 취소→returnTo 복귀. 외부 주소 무시·수정 모달은 에이전트 확인). 검증용 반려동물 2마리는 화면에서 삭제함)
 
-사람 요청 2026-11-06. API는 YAY가 만드는 중이라 develop에 아직 없다(`POST /api/members/me/sns-links`, 로그인 필요, 요청 `{ snsOffrCd, code, state }`, `state`는 네이버만 보냄, 응답·오류 형식 미정). 가짜 응답은 만들지 않았다.
-
-- 디자인: 없음(시안에 연동 영역 없음). 기존 회원정보 카드 행 스타일을 쓴다
-- 1 FN-MYP-040-09 SNS 연동 버튼 (`src/features/member/`)
-  - `login/snsAuth.js`: `startSnsLogin`의 `mode: 'link'`를 `sessionStorage` 요청(`snsLoginRequest`)에 저장, `takeSnsCallback` 결과에 `mode`, 읽기만 하는 `isSnsLinkCallback`. 콜백 주소는 로그인과 같은 `/login/sns/:provider/callback`
-  - `api.js`·`queries.js`: `linkSns` → `POST /members/me/sns-links`(네이버만 `state`), `useLinkSns`(성공 시 회원정보 무효화)
-  - `login/useSnsCallback.js`·`pages/auth/LoginPage.jsx`: 연동 모드는 `sns-login` 대신 `sns-links`를 부르고 `PATHS.MYPAGE_PROFILE`로 `replace` 이동, 성공·실패(서버 `message`)·취소·state 불일치는 토스트. 처리하는 동안 로그인 폼 대신 `PageLoading`. 취소·불일치 문구는 연동 전용으로 새로 썼다(`loginMessages.js`)
-  - `profile/SnsLinkCard.jsx`(새 파일)·`ProfileEditForm.jsx`·`AccountRow.jsx`(`action` prop): "SNS 계정 연동" 절. 가입 제공자는 "가입 계정"(버튼 없음), 연동한 것은 "연동됨", 나머지는 "연동 안 됨" + [연동하기]. 이메일·SNS 회원 모두에게 보인다. 해제 버튼 없음
-  - 사람 결정: 명세·설계서 FN-MYP-040-09 수정은 사람이 따로 정리한다. 이메일 회원은 연동 뒤 돌아오면 비밀번호 본인 확인을 다시 거친다(그대로 둠)
+- 디자인: 없음(기존 등록 모달·목록 그대로, 화면 모양 변경 없음)
+- 1 `src/pages/mypage/PetListPage.jsx` 쿼리로 등록 모달 열기·돌아가기
+  - `useSearchParams`로 `register=1`이면 `modalPetSn`을 `null`로 열고, `register`·`returnTo`를 주소에서 `replace`로 지운다(다른 쿼리는 유지). 새로고침·뒤로 가기에서 다시 열리지 않는다. `returnTo`는 `useState` 초기값으로 읽어 기억한다(`isSafeReturnTo`: "/"로 시작하고 "//"로 시작하지 않고 역슬래시("\")가 없을 때만, 아니면 null)
+  - 등록 성공 뒤 `returnTo`가 있으면 `URLSearchParams`로 `petSn=<새 번호>`를 넣거나 바꿔 `navigate`한다(예: `/health?petSn=12`). 없으면 목록에 남는다. 등록 없이 모달을 닫으면(`[✕]`·`[취소]`) `returnTo`가 있을 때 그 주소로 `navigate`, 없으면 목록에 남는다. 수정 모달·기존 [등록] 버튼은 `returnTo` 상태를 쓰지 않는다(기억한 값은 쿼리로 연 등록 모달에서만)
+  - 사람 보완 2026-11-09: `returnTo` 없이(또는 무시돼) 등록하면 목록에서 새로 등록한 아이 슬라이드를 보여 준다(`slideIndex`를 새 `petSn`의 위치로. 목록이 갱신돼 새 아이가 들어온 뒤에 위치를 찾는다)
+  - 한 번 쓴 `returnTo`는 비운다(등록·취소 뒤 같은 화면에서 [등록]을 다시 누르면 돌아가지 않는다)
+- 2 `src/features/pet/list/PetFormModal.jsx` 등록 성공 응답(`POST /pets`의 `PetResponse.petSn`)을 `onClose`와 따로 알리는 `onCreated(newPet)` prop 추가. 안 주면 지금처럼 동작
+- 부르는 API: `POST /pets`(기존, 응답 `petSn` 확인함). 새 API·가짜 응답 없음
+- 보내는 쪽(`PetSwitcher` `getRegisterPath`, `MainPage`)은 이미 쿼리를 붙이고 있어 고치지 않는다. 건강기록 `SelectedPetProvider`가 `?petSn=`을 읽어 그 아이를 고르고 주소에서 지우는 것도 이미 있다
+- 완료 조건
+  - `명령:` `yarn -s lint`, `yarn -s build`
+  - `화면:` 건강기록 반려동물 전환의 [등록] → 모달이 바로 열림 → 등록 → `/health?petSn=새번호`로 가서 새 아이가 선택됨
+  - `화면:` 메인 [등록] → 모달 열림 → 등록 → 목록에 남음
+  - `화면:` 취소·새로고침·뒤로 가기에서 모달이 다시 안 뜨고(주소에 `register`·`returnTo` 없음), 취소는 `returnTo`가 있으면 그 주소로 돌아감
+  - `화면:` `?register=1&returnTo=https://example.com`과 `returnTo=/\example.com`은 모달만 열리고 `returnTo`는 무시돼 등록·취소 뒤 목록에 남음
+  - `화면:` `returnTo` 없이 등록(메인 [등록] 등)하면 목록에서 새로 등록한 아이 슬라이드가 보임
+  - 공용 DB에 반려동물이 생기므로(등록 확인) 만든 행은 보고의 "정리"에 적는다(삭제는 화면의 삭제 기능, 주양육자만 가능)
 - 새 의존성: 없음
-
-### 추가 요청
-
-| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
-| --- | --- | --- | --- |
-| 추가-1 | `src/features/member/profile/SnsLinkCard.jsx` | `명령:` `yarn -s lint`, `yarn -s build`. `화면:` 375px·1280px에서 SNS 계정 연동 세 줄의 왼쪽 항목명 자리에 `SnsLogos.jsx`의 네이버·카카오·구글 로고(20px 안팎, 세 줄 같은 크기)가 "[로고] 이름"으로 보이고, 가운데에는 `SnsBadge` 없이 "연동 안 됨"·"연동됨"·"가입 계정" 글자만 있다. `SnsLogos.jsx`는 옮기지 않고 import만 한다 | 요청 2026-11-06 15:11 "연동 줄 왼쪽 항목명 자리에 로그인 화면 로고를 붙여 '[로고] 네이버' 형태로, 가운데 SnsBadge는 빼고 글자만, 로고는 20px 안팎 같은 크기, 375px·1280px 확인" |
 
 ## 다음에 할 것
 - 연결 남음 SCR-MYP-040 FN-MYP-040-09 (`POST /api/members/me/sns-links` 병합 뒤 확인, YAY): 성공 토스트·"연동됨" 전환, 이미 다른 계정에 연동된 SNS 등 서버 오류 `message`, 응답·오류 형식이 정해지면 `useSnsCallback` 오류 처리를 맞춘다
