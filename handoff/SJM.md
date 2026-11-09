@@ -2,22 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-MYP-001·020 1차: 홈·포인트 화면 로딩을 스켈레톤으로(`docs/convention/ui.md` "로딩 표시") — 끝 (2026-11-09, 검증 `통과` 1회차 뒤 `StatSkeleton` 합치기·홈 375px 목록 모양을 고쳐 lint·build 다시 0, 사람 확인 완료. 2·3차는 "내 코드 작업")
+SCR-MYP-031 가계부 영수증 인식: 분석 중 표시를 건강 일지 영수증 모달과 같은 게이지로 — 끝 (2026-11-09, 검증 `통과` 1회차, lint·build 0, 사람 확인 완료)
 
-| 기능 | 바꿀 파일 | 완료 조건 |
-| --- | --- | --- |
-| SCR-MYP-001 홈 내 반려동물 | `features/pet/home/MyPetsSection.jsx` (`isPending`이면 null → 실제 카드 크기 SkeletonCard, 375px은 한 덩어리 목록 모양) | 명령: `yarn -s lint`, `yarn -s build`. 화면: 개발자 도구 네트워크 Slow 3G에서 빈칸 대신 스켈레톤, 로딩 뒤 밀림 없음(본문 높이 ±20%, 가로 스크롤 없음). 375px·1280px |
-| SCR-MYP-001 홈 요약 3칸 | `features/point/home/PointSummaryCard.jsx`, `MissionSummaryCard.jsx`, `features/expense/home/ExpenseSummaryCard.jsx` (값이 빈칸 → 같은 칸 Skeleton) | 위와 같음 |
-| SCR-MYP-020 포인트 | `features/point/summary/PointSummary.jsx`, `mission/CareMission.jsx`, `history/PointHistory.jsx` (`return null` → 실제 배치 SkeletonCard) | 위와 같음 |
-
-- 공용 `Skeleton`·`SkeletonCard`·`PageSkeleton`만 쓴다. 높이는 다 불러온 화면을 재서 맞춘다. 높이 확인에 `queryFn` 지연은 넣지 않고 Slow 3G로 한다
-- 이미 스켈레톤인 곳(`PetListPage`·`FamilySection`·`SentInvitations`·`InvitationAccept`)과 `ExpenseLoadMore`(하단 추가 로딩)는 손대지 않는다
-- 디자인: 없음, 규칙 문서 기준. DB 변경 없음, 연결 작업 없음
+- 공용 `components/AnalyzeProgress.jsx`를 새로 만들고(`label` prop, 기본값 '영수증 분석 진행') 가계부 `ExpenseReceiptUpload.jsx`의 `Loader2`를 바꿨다. 건강 일지 `ReceiptUploadModal.jsx`(JAJ)는 정의를 지우고 import만 바꿨다
+- 부를 API·새 의존성·DB 변경 없음. 연결 작업 없음
 
 ## 다음에 할 것
 
 ### 내 코드 작업
 
+- JAJ·LJS 알림: 공용 `components/AnalyzeProgress.jsx`를 새로 만들었다(영수증 분석 게이지, `label` prop). JAJ의 `features/ai/receipt/ReceiptUploadModal.jsx`는 함수·상수를 지우고 import만 바꿨고 화면 동작은 같다. 새 분석 화면에 게이지가 필요하면 이 컴포넌트를 쓴다
 - SCR-MYP-040 (선택) `PASSWORD_SAME_AS_CURRENT`는 page.route 400으로만 확인했다. 로컬 백엔드를 develop으로 맞추고 규칙에 맞는 비밀번호의 이메일 계정으로 실제 응답 `message`가 같은지 본다
 - SCR-MYP-002 10마리 보유 때 삭제하면 등록 카드로 바뀌는지 화면 확인(데이터가 없어 못 함)
 - 로딩 스켈레톤 2차 SCR-MYP-030: `ExpenseDashboard.jsx`(58행)·`ExpenseHistory.jsx`(125행)의 `return null`을 실제 배치 스켈레톤으로(`ui.md` "로딩 표시"). 같이 SCR-MYP-020: `PointPage`가 pets 조회 실패를 알려 `CareMission`이 스켈레톤 대신 오류를 보이게(지금은 실패하면 스켈레톤이 계속 남음)
@@ -54,3 +48,7 @@ SCR-MYP-001·020 1차: 홈·포인트 화면 로딩을 스켈레톤으로(`docs/
 - SCR-MYP-011 기준 문서 `v0.6_20261022`가 DMS에 올라오면 FN-MYP-011-03·04(사람이 준 수치로 만듦)와 대조
 - SCR-MYP-005 진입: 알림 드롭다운(SCR-COM-004), 가입 직후 자동 노출(SCR-ACC-001, YAY·AIC), 로그인이 `redirect`를 받는지(AIC)
 - 시안 v5의 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`이 `UserLayout.jsx`·`UserFooter.jsx`(LJS)에 아직 옛 값
+
+### 리팩토링 때 맞출 것(QA 뒤)
+
+- 공용 `components/Modal.jsx`: 가운데 모달에서 배경 오른쪽을 누르면 닫히지 않는다(왼쪽·위·아래는 닫힘, 가계부 [영수증으로 등록]에서 확인). `handleMouseDown`의 스크롤바 예외(`clientX >= rect.left + dialog.clientWidth`면 무시)가 `isTop`이 아닌 모달에도 걸려 모달 오른쪽 끝보다 오른쪽 배경 클릭이 무시된다. 고칠 방향: 스크롤바 예외는 `isTop`일 때만, 보통 모달은 클릭이 dialog 상자 밖일 때만 닫는다
