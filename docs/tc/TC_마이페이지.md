@@ -1,6 +1,6 @@
 # TC · 마이페이지 (SCR-MYP-001~006·010·011·020·030·031·040)
 
-- 기준: 마이페이지_기능명세서_v0.5_20261101, 마이페이지_화면설계서_v0.6_20261025, 요구사항정의서 v0.10.2(20261108), 백엔드 `docs/api/pet.md`·`member.md`·`expense.md`·`receipt.md`·`ErrorCode.java`(develop 2026-11-08), 마일스톤 `milestones/SJM.md`
+- 기준: 마이페이지_기능명세서_v0.5_20261101, 마이페이지_화면설계서_v0.6_20261025, 요구사항정의서 v0.10.3(20261109), 백엔드 `docs/api/pet.md`·`member.md`·`expense.md`·`receipt.md`·`ErrorCode.java`(develop 2026-11-08), 마일스톤 `milestones/SJM.md`
 - 코드: origin/develop 425199e (2026-11-08)
 - 준비: 백엔드를 :8080에 띄우고 프론트는 Node 24로 `yarn dev`(:5173). 캐릭터 생성·영수증 인식은 AI 서버(`/ai`)도 필요하다. 계정 5개를 준비한다. 주양육자 A(반려동물 3마리), 공동양육자 B(A의 1마리에 연동), 0마리 계정, 주양육 10마리 계정, 7마리 이상 계정. 이메일 가입 계정과 SNS 가입 계정 각 1개. 모바일 케이스는 창 너비 760px 이하
 - 표기: P = 정상, N = 오류·예외. 기대 결과의 큰따옴표 문구는 코드·서버 응답 그대로다. 서버 꺼짐은 토스트 "네트워크 연결을 확인해 주세요."(axios 공통, 화면이 토스트를 띄우는 곳에 한함)로 본다. "확인 필요"는 코드·계약으로 확인하지 못한 부분이다
@@ -1465,23 +1465,23 @@
 
 ## 명세·요구사항과 코드가 어긋난 곳
 
-- FN-MYP-001-01 — 나이 표기가 명세는 "N살"인데 코드는 "3살 2개월"·"5개월"처럼 개월까지 표시한다 (src/utils/petFormat.js `formatAge`)
-- FN-MYP-001-01 — 명세는 얼굴 원형에 "착용 아이템 없이" 캐릭터 얼굴을 보이라는데, 서버 `character-image?part=face`는 착용 모습 대표 이미지가 있으면 그것을 잘라 줘서 아이템이 보일 수 있다 (pet.md, PetFace.jsx). 확인 필요
-- FN-MYP-001-05 / FN-MYP-002-01 — 명세는 "최대 10마리" 문구를 반려동물 관리의 0마리 안내(2-2)에만 두라는데 홈의 0마리 안내에도 같은 문구가 나온다 (src/features/pet/list/PetEmpty.jsx를 홈과 공유)
-- FN-MYP-002-06 — 반려동물 목록 조회가 실패해도 오류 안내·[다시 시도] 없이 "아직 등록된 반려동물이 없어요"가 보인다 (src/pages/mypage/PetListPage.jsx에 isError 처리 없음)
-- FN-MYP-004-01 — 명세는 카드에 이름·권한·연동일을 표시하라는데 코드는 "공동양육" 배지와 연도 없는 "MM-DD 연동"만 보이고 권한(조회+수정) 문구는 없다 (src/features/pet/list/FamilySection.jsx, pet.md `CaregiverSummary`)
-- FN-MYP-004-01 — 명세는 인원 수(N/5명)를 따로 표시하지 않는다고 하나 모바일 가족 제목 옆에 "2/5"가 보이고, 한 줄 5칸 배치 대신 모바일은 한 줄 1명 목록과 "N명 더보기"를 쓴다 (FamilySection.jsx)
-- FN-MYP-004-02 — 모바일에서 5명이 차면 명세의 "5명이 모두 연동돼 더 초대할 수 없어요"가 보이지 않고 [+ 초대]를 누르면 토스트 "최대 5명까지 함께할 수 있어요"가 뜬다 (FamilySection.jsx)
-- FN-MYP-004-03 — 명세는 주양육자 첫 카드와 [주양육] 배지를 가족 영역에 두라는데, 주양육자 시점에는 주양육자 카드가 없고 공동양육자 시점에서만 "주양육자 {닉네임}" 한 줄이 나온다 (FamilySection.jsx `OwnerLine`)
-- FN-MYP-004-04 — 명세의 공동양육자 본인 카드("나 …")가 없고, 연동 해제는 슬라이드 카드 왼쪽이 아니라 이름 줄 ⋮ 메뉴에 있다 (FamilySection.jsx, PetSlide.jsx `PetMenu`)
-- FN-MYP-005-01 — 대기 중 초대 안내 문구가 명세 "이미 초대를 보냈어요 (MM-DD에 만료돼요)"와 달리 "이미 초대를 보냈어요: 모리(MM-DD 만료)"이다 (src/features/pet/list/InviteModal.jsx)
-- FN-MYP-005-03 — 보낸 초대 조회가 실패해도 오류 안내 없이 "아직 보낸 초대가 없어요"가 보인다 (src/features/pet/list/SentInvitations.jsx)
-- FN-MYP-010-23 / REQ-COM-002 — 명세는 오류 확인 중·재생성 중인 동물이 대표여도 대표를 유지한다고 하나, 요구사항은 캐릭터가 여러 개면 다음 캐릭터로 대표가 자동 승계된다고 한다. 코드는 대표를 바꾸지 않는다 (CharacterCard.jsx, 기능명세서 v0.5, 요구사항정의서 v0.10.2)
-- FN-MYP-010-24 / REQ-COM-002 — 요구사항은 오류 유형 필수 선택 뒤 AI 1차 판정으로 접수하라고 하나 명세·코드는 유형 선택 없이 고객센터 1:1 문의(유형 "픽셀 캐릭터")로 연결한다 (src/features/pet/character/CharacterDecorate.jsx)
-- FN-MYP-010-13 / FN-MYP-010-16 — 착용 합성(미리보기·[장착] 뒤 대표 이미지)이 AI 서버의 아이템 굽기에 달려 있어, 설정이 꺼져 있으면 `ITEM_BAKING`(409)로 동작하지 않는다 (milestones/SJM.md, WearPreview.jsx)
-- FN-MYP-011-05 — 명세는 구매 시 포인트 차감을 요구하나 서버 `ItemService`가 `PointFake`(보유 8,450P 고정, 차감 없음)를 써서 포인트가 줄지 않고 상점 보유 포인트가 포인트 페이지와 다르다 (nyangmeong-backend src/main/java/com/nyangmeong/pet/service/ItemService.java:63·85, PointFake.java)
-- FN-MYP-040-06 / REQ-MYP-001 — 명세·요구사항은 "8자 이상, 문자·숫자 조합"인데 코드와 서버는 영문+숫자 8~64자·공백/한글 불가이고 안내 문구도 다르다 (src/features/member/profile/PasswordChangeCard.jsx, src/features/member/shared/validate.js, milestones/SJM.md 2026-11-04 결정)
-- FN-MYP-040-06 — 새 비밀번호가 현재 비밀번호와 같을 때 서버가 주는 `PASSWORD_SAME_AS_CURRENT` 안내를 쓰지 않고 토스트 "잠시 후 다시 시도해 주세요"를 띄운다 (PasswordChangeCard.jsx, ErrorCode.java)
-- FN-MYP-040-09 / REQ-ACC-003 — 명세는 SNS 계정 표시만 두는데 코드는 "SNS 계정 연동" 절과 [연동하기]를 추가했고, 백엔드 develop에 `POST /members/me/sns-links`가 없다 (src/features/member/profile/SnsLinkCard.jsx, src/features/member/api.js `linkSns`). 명세 보완과 서버 구현이 필요하다
-- REQ-MYP-002 — 요구사항 세부내용은 식사량·음수량 권장 범위를 등록·수정할 수 있어야 한다고 하나 명세 FN-MYP-003-01과 등록/수정 모달에 입력란이 없다 (src/features/pet/list/PetFormModal.jsx). 확인 필요
-- REQ-MYP-004 — 한도 알림은 "각 1회, 같은 달 재발송 없음"인데 서버는 한도·90% 경계를 새로 넘을 때마다 발송해 지출을 지웠다 다시 넘는 경우 재발송될 수 있다 (ExpenseService.java). 확인 필요
+- [문서] FN-MYP-001-01 — 나이 표기가 명세는 "N살"인데 코드는 "3살 2개월"·"5개월"처럼 개월까지 표시한다 (src/utils/petFormat.js `formatAge`)
+- [백엔드] FN-MYP-001-01 — 명세는 얼굴 원형에 "착용 아이템 없이" 캐릭터 얼굴을 보이라는데, 서버 `character-image?part=face`는 착용 모습 대표 이미지가 있으면 그것을 잘라 줘서 아이템이 보일 수 있다 (pet.md, PetFace.jsx). 확인 필요
+- [코드] FN-MYP-001-05 / FN-MYP-002-01 — 명세는 "최대 10마리" 문구를 반려동물 관리의 0마리 안내(2-2)에만 두라는데 홈의 0마리 안내에도 같은 문구가 나온다 (src/features/pet/list/PetEmpty.jsx를 홈과 공유)
+- [코드] FN-MYP-002-06 — 반려동물 목록 조회가 실패해도 오류 안내·[다시 시도] 없이 "아직 등록된 반려동물이 없어요"가 보인다 (src/pages/mypage/PetListPage.jsx에 isError 처리 없음)
+- [코드] FN-MYP-004-01 — 명세는 카드에 이름·권한·연동일을 표시하라는데 코드는 "공동양육" 배지와 연도 없는 "MM-DD 연동"만 보이고 권한(조회+수정) 문구는 없다 (src/features/pet/list/FamilySection.jsx, pet.md `CaregiverSummary`)
+- [코드] FN-MYP-004-01 — 명세는 인원 수(N/5명)를 따로 표시하지 않는다고 하나 모바일 가족 제목 옆에 "2/5"가 보이고, 한 줄 5칸 배치 대신 모바일은 한 줄 1명 목록과 "N명 더보기"를 쓴다 (FamilySection.jsx)
+- [코드] FN-MYP-004-02 — 모바일에서 5명이 차면 명세의 "5명이 모두 연동돼 더 초대할 수 없어요"가 보이지 않고 [+ 초대]를 누르면 토스트 "최대 5명까지 함께할 수 있어요"가 뜬다 (FamilySection.jsx)
+- [코드] FN-MYP-004-03 — 명세는 주양육자 첫 카드와 [주양육] 배지를 가족 영역에 두라는데, 주양육자 시점에는 주양육자 카드가 없고 공동양육자 시점에서만 "주양육자 {닉네임}" 한 줄이 나온다 (FamilySection.jsx `OwnerLine`)
+- [코드] FN-MYP-004-04 — 명세의 공동양육자 본인 카드("나 …")가 없고, 연동 해제는 슬라이드 카드 왼쪽이 아니라 이름 줄 ⋮ 메뉴에 있다 (FamilySection.jsx, PetSlide.jsx `PetMenu`)
+- [코드] FN-MYP-005-01 — 대기 중 초대 안내 문구가 명세 "이미 초대를 보냈어요 (MM-DD에 만료돼요)"와 달리 "이미 초대를 보냈어요: 모리(MM-DD 만료)"이다 (src/features/pet/list/InviteModal.jsx)
+- [코드] FN-MYP-005-03 — 보낸 초대 조회가 실패해도 오류 안내 없이 "아직 보낸 초대가 없어요"가 보인다 (src/features/pet/list/SentInvitations.jsx)
+- [결정] FN-MYP-010-23 / REQ-COM-002 — 명세는 오류 확인 중·재생성 중인 동물이 대표여도 대표를 유지한다고 하나, 요구사항은 캐릭터가 여러 개면 다음 캐릭터로 대표가 자동 승계된다고 한다. 코드는 대표를 바꾸지 않는다 (CharacterCard.jsx, 기능명세서 v0.5, 요구사항정의서 v0.10.2)
+- [결정] FN-MYP-010-24 / REQ-COM-002 — 요구사항은 오류 유형 필수 선택 뒤 AI 1차 판정으로 접수하라고 하나 명세·코드는 유형 선택 없이 고객센터 1:1 문의(유형 "픽셀 캐릭터")로 연결한다 (src/features/pet/character/CharacterDecorate.jsx)
+- [AI 서버] FN-MYP-010-13 / FN-MYP-010-16 — 착용 합성(미리보기·[장착] 뒤 대표 이미지)이 AI 서버의 아이템 굽기에 달려 있어, 설정이 꺼져 있으면 `ITEM_BAKING`(409)로 동작하지 않는다 (milestones/SJM.md, WearPreview.jsx)
+- [백엔드] FN-MYP-011-05 — 명세는 구매 시 포인트 차감을 요구하나 서버 `ItemService`가 `PointFake`(보유 8,450P 고정, 차감 없음)를 써서 포인트가 줄지 않고 상점 보유 포인트가 포인트 페이지와 다르다 (nyangmeong-backend src/main/java/com/nyangmeong/pet/service/ItemService.java:63·85, PointFake.java)
+- [문서] FN-MYP-040-06 — 명세는 "8자 이상, 문자·숫자 조합"인데 코드와 서버는 영문+숫자 8~64자·공백/한글 불가이고 안내 문구도 다르다 (src/features/member/profile/PasswordChangeCard.jsx, src/features/member/shared/validate.js, milestones/SJM.md 2026-11-04 결정)
+- [코드] FN-MYP-040-06 — 새 비밀번호가 현재 비밀번호와 같을 때 서버가 주는 `PASSWORD_SAME_AS_CURRENT` 안내를 쓰지 않고 토스트 "잠시 후 다시 시도해 주세요"를 띄운다 (PasswordChangeCard.jsx, ErrorCode.java)
+- [백엔드] FN-MYP-040-09 — 명세는 SNS 계정 표시만 두는데 코드는 "SNS 계정 연동" 절과 [연동하기]를 추가했고, 백엔드 develop에 `POST /members/me/sns-links`가 없다 (src/features/member/profile/SnsLinkCard.jsx, src/features/member/api.js `linkSns`). 명세 보완과 서버 구현이 필요하다
+- [결정] REQ-MYP-002 — 요구사항 세부내용은 식사량·음수량 권장 범위를 등록·수정할 수 있어야 한다고 하나 명세 FN-MYP-003-01과 등록/수정 모달에 입력란이 없다 (src/features/pet/list/PetFormModal.jsx). 확인 필요
+- [백엔드] REQ-MYP-004 — 한도 알림은 "각 1회, 같은 달 재발송 없음"인데 서버는 한도·90% 경계를 새로 넘을 때마다 발송해 지출을 지웠다 다시 넘는 경우 재발송될 수 있다 (ExpenseService.java). 확인 필요

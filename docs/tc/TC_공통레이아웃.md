@@ -1,6 +1,6 @@
 # TC · 공통레이아웃(COM) 수동 테스트 케이스
 
-- 기준: 공통레이아웃_기능명세서 v0.8(20261101) SCR-COM-002~009, 공통레이아웃_화면설계서 v0.11(20261101), 요구사항정의서 v0.10.2(20261108) REQ-MAN-001·MAN-007·CMU-010·COM-002·COM-003·ACC-002·MYP-001·MYP-003·MYP-004·AIM-003·AIM-005, 백엔드 `docs/api/notification.md`·`community.md`(`/chat-rooms`, 실시간)·`ErrorCode.java`, `docs/routes.md`
+- 기준: 공통레이아웃_기능명세서 v0.9(20261109) SCR-COM-002~009, 공통레이아웃_화면설계서 v0.12(20261109), 요구사항정의서 v0.10.3(20261109) REQ-MAN-001·MAN-007·CMU-010·COM-002·COM-003·ACC-002·MYP-001·MYP-003·MYP-004·AIM-003·AIM-005, 백엔드 `docs/api/notification.md`·`community.md`(`/chat-rooms`, 실시간)·`ErrorCode.java`, `docs/routes.md`
 - 코드: origin/develop 425199e (2026-11-08)
 - 준비: 백엔드 :8080, 프론트 `yarn dev`(:5173). 계정 4개: 회원 A(알림 9개 유형 각 1건 이상·미읽음 있음, 채팅방 여러 개·안 읽은 메시지 있음, 펫돌봄 글 작성 이력), 회원 B(알림 0건·채팅방 0개), 회원 D(회원 A와 펫돌봄 거래·채팅 상대), 관리자 C. 폭은 PC 1280, 1101, 1100, 1099, 761, 760, 759, 모바일 390으로 나눠 본다(경계는 정확히 그 폭과 한 칸 위·아래). 새 창 확인은 브라우저 팝업 허용 상태, 팝업 차단은 따로 적는다
 - 표기: P = 정상, N = 오류·예외. "확인 필요: ..."는 코드·계약으로 기대 결과를 확정하지 못한 것. 기대 결과가 "명세는 ~, 코드는 ~"로 갈리면 코드 동작을 쓰고 마지막 절에 어긋남으로 모았다
@@ -1113,27 +1113,23 @@
 
 ## 명세·요구사항과 코드가 어긋난 곳
 
-- FN-COM-002-02 — 명세는 역할이 맞지 않는 화면을 해당 역할의 홈으로 보내라고 하나, 관리자가 사용자 화면(`/main`, `/health` 등)에 들어가도 막지 않음. 회원 → `/admin`만 `/main`으로 보냄 (`routes/AppRoutes.jsx` 사용자 라우트에 `allowedRoles` 없음)
-- FN-COM-002-02 / FN-COM-002-24 — `/ai-chat`·`/chat`은 `auth: 'public'` 라우트라 로그인 확인 없이 화면이 열리고, 이후 API 401로만 로그인 이동 (`routes/domains/ai/aiRoutes.js`, `routes/domains/chat/chatRoutes.js`)
-- FN-COM-002-01 / FN-COM-002-19 / FN-COM-002-21 — 명세는 모든 서비스 페이지에 푸터·플로팅 버튼, 지도 페이지는 위치 조정이나 `/places`는 푸터·[AI]·[TOP]을 아예 그리지 않음 (`layouts/PlaceLayout.jsx`)
-- FN-COM-002-15 — 명세는 회원 프로필 이미지(미등록 시 기본)이나 헤더 프로필 아이콘은 항상 기본 이미지 (`layouts/ProfileDropdown.jsx`, `layouts/NavDrawer.jsx`)
-- FN-COM-002-19 — 첫 방문 말풍선이 로그인 직후 첫 화면 `/main`(버튼이 숨겨진 상태)에서 이미 "본 것"으로 기록되어 다른 화면에서는 뜨지 않음. 말풍선은 PC 폭에서도 표시됨 (`hooks/useAiDock.js`, `layouts/FloatingButtons.jsx`)
-- FN-COM-002-22 / REQ-MAN-001 — 명세는 "상세면 제목"까지 경로에 표시하나 커뮤니티·고객센터 상세 화면은 `title`을 넘기지 않아 소속 메뉴 이름에서 끝남 (`pages/community/PostDetailPage.jsx`, `layouts/CustomerCenterLayout.jsx`)
-- FN-COM-002-23 — 정확히 1100px에서 GNB는 숨고(`max-[1100px]`) 햄버거도 숨어(`min-[1100px]:hidden`) 메뉴 진입이 없음. `NavDrawer`의 `(min-width: 1100px)`도 같은 경계 (`layouts/UserHeader.jsx`, `layouts/NavDrawer.jsx`)
-- FN-COM-002-26 — 명세는 760px 이하에서 바텀 네비를 노출하나 `BottomNav`는 `min-[760px]:hidden`이라 760px에서 숨고, 푸터(`max-[760px]:hidden`)도 숨어 둘 다 없음. 플로팅 버튼만 네비 높이만큼 올라감 (`layouts/BottomNav.jsx`, `layouts/UserLayout.jsx`, `docs/convention/ui.md`는 "760px 미만")
-- FN-COM-002-24 / FN-COM-003-07 — 세션 만료 안내 토스트가 없고 곧바로 `location.href`로 로그인 이동 (`api/axios.js` `redirectIfLoggedOut`)
-- FN-COM-003-02 / FN-COM-003-05 — 로그인 화면 [회원가입] 이동과 가입 완료 뒤 `/login?joined=1` 이동이 redirect를 넘기지 않아 가입 경유 시 목적지가 사라짐 (`pages/auth/LoginPage.jsx`, `pages/auth/SignupPage.jsx`)
-- FN-COM-003-08 / REQ-MAN-007 — 로그인 상태에서 랜딩(`/`)에 접근해도 `/main`으로 이동하지 않음 (`routes/domains/main/mainRoutes.js`, `pages/landing/LandingPage.jsx`)
-- FN-COM-003-10 — 세션 만료 시 AI 대화창이 인증 오류를 표시하고 닫히는 게 아니라 그 창이 로그인 화면으로 이동함 (`api/axios.js`)
-- FN-COM-004-05 / REQ-COM-003 — 명세는 "최신순 최대 5건"이나 서버가 안 읽음 우선, 같은 상태끼리 최신순으로 5건을 내려줌 (`notification.md`)
-- FN-COM-004-04 / FN-COM-004-05 — 알림 조회가 실패해도 오류 안내·[다시 시도]가 없고 목록 칸이 비어 보임 (`layouts/NotificationDropdown.jsx`)
-- FN-COM-004-06 — 읽음 처리 실패(404 `NOTIFICATION_NOT_FOUND` 포함) 때 안내 없이 이동도 하지 않음 (`layouts/NotificationDropdown.jsx`)
-- FN-COM-004-07 — 명세는 케어 일정 → "건강상태관리 정기관리"이나 `docs/routes.md`와 서버 기준 이동 대상은 `/health/calendar`. 커뮤니티(댓글)·공지 알림의 이동 경로는 미확정 (`docs/routes.md` 111행, `milestones/LJS.md`)
-- FN-COM-004-10 — 명세는 "해당 반려동물의 픽셀캐릭터 화면"이나 알림 이동 경로는 `/mypage/characters` 하나 (`CharacterCreationService.MVMN_PATH`)
-- FN-COM-006-04 — 명세의 건강기록 2차 메뉴(건강 종합·검진기록관리·건강상태관리)와 달리 코드는 "종합 건강기록·건강 일지·케어 캘린더" (`layouts/subMenus.js`)
-- FN-COM-006-07 — 터치 환경의 "첫 탭 열기, 두 번째 탭 이동" 처리가 코드에 없음. 명세도 잠정 (`layouts/UserHeader.jsx`)
-- FN-COM-007-04 — 플로팅 [AI]는 안내와 [다시 열기]가 있으나 메인 히어로 검색바는 안내 문구만 있음 (`features/dashboard/HeroAsk.jsx`)
-- FN-COM-008-12 — 명세가 "잠정, 설정 가능 여부 확정 필요"로 두었고 코드는 항상 받는 알림에 배치. 서버 설정 응답에도 캐릭터 항목이 없음 (`features/notification/settings/NotificationSettingsForm.jsx`, `notification.md`)
-- FN-COM-009-01 / FN-COM-009-10 — 명세는 "마지막으로 본 채팅방이 선택된 상태로 연다"이나 [✕] 닫기는 보던 방을 잊고, 최소화([─])만 기억함 (`context/ChatModalProvider.jsx`)
-- FN-COM-009-19 — 주소 공유의 장소 검색이 가짜 응답(고정 4곳) (`features/chat/api.js` `searchChatPlaces`)
-- REQ-CMU-010 — 요구사항 수행방안의 "전체/안 읽음 필터"에 비해 코드는 내 글·지원한 글 탭을 추가로 두고, 탭 구분은 서버 `tab` 파라미터가 아닌 프론트가 `myRole`로 걸러냄 (`features/chat/room/ChatRoomList.jsx`, `community.md`의 `GET /chat-rooms?tab=`)
+- [코드] FN-COM-002-02 — 명세는 역할이 맞지 않는 화면을 해당 역할의 홈으로 보내라고 하나, 관리자가 사용자 화면(`/main`, `/health` 등)에 들어가도 막지 않음. 회원 → `/admin`만 `/main`으로 보냄 (`routes/AppRoutes.jsx` 사용자 라우트에 `allowedRoles` 없음)
+- [코드] FN-COM-002-02 / FN-COM-002-24 — `/ai-chat`·`/chat`은 `auth: 'public'` 라우트라 로그인 확인 없이 화면이 열리고, 이후 API 401로만 로그인 이동 (`routes/domains/ai/aiRoutes.js`, `routes/domains/chat/chatRoutes.js`)
+- [코드] FN-COM-002-01 / FN-COM-002-19 / FN-COM-002-21 — 명세는 모든 서비스 페이지에 푸터·플로팅 버튼, 지도 페이지는 위치 조정이나 `/places`는 푸터·[AI]·[TOP]을 아예 그리지 않음 (`layouts/PlaceLayout.jsx`)
+- [코드] FN-COM-002-15 — 명세는 회원 프로필 이미지(미등록 시 기본)이나 헤더 프로필 아이콘은 항상 기본 이미지 (`layouts/ProfileDropdown.jsx`, `layouts/NavDrawer.jsx`)
+- [코드] FN-COM-002-19 — 첫 방문 말풍선이 로그인 직후 첫 화면 `/main`(버튼이 숨겨진 상태)에서 이미 "본 것"으로 기록되어 다른 화면에서는 뜨지 않음. 말풍선은 PC 폭에서도 표시됨 (`hooks/useAiDock.js`, `layouts/FloatingButtons.jsx`)
+- [코드] FN-COM-002-22 / REQ-MAN-001 — 명세는 "상세면 제목"까지 경로에 표시하나 커뮤니티·고객센터 상세 화면은 `title`을 넘기지 않아 소속 메뉴 이름에서 끝남 (`pages/community/PostDetailPage.jsx`, `layouts/CustomerCenterLayout.jsx`)
+- [코드] FN-COM-002-23 — 정확히 1100px에서 GNB는 숨고(`max-[1100px]`) 햄버거도 숨어(`min-[1100px]:hidden`) 메뉴 진입이 없음. `NavDrawer`의 `(min-width: 1100px)`도 같은 경계 (`layouts/UserHeader.jsx`, `layouts/NavDrawer.jsx`)
+- [코드] FN-COM-002-26 — 명세는 760px 이하에서 바텀 네비를 노출하나 `BottomNav`는 `min-[760px]:hidden`이라 760px에서 숨고, 푸터(`max-[760px]:hidden`)도 숨어 둘 다 없음. 플로팅 버튼만 네비 높이만큼 올라감 (`layouts/BottomNav.jsx`, `layouts/UserLayout.jsx`, `docs/convention/ui.md`는 "760px 미만")
+- [코드] FN-COM-002-24 / FN-COM-003-07 — 세션 만료 안내 토스트가 없고 곧바로 `location.href`로 로그인 이동 (`api/axios.js` `redirectIfLoggedOut`)
+- [코드] FN-COM-003-02 / FN-COM-003-05 — 로그인 화면 [회원가입] 이동과 가입 완료 뒤 `/login?joined=1` 이동이 redirect를 넘기지 않아 가입 경유 시 목적지가 사라짐 (`pages/auth/LoginPage.jsx`, `pages/auth/SignupPage.jsx`)
+- [코드] FN-COM-003-08 / REQ-MAN-007 — 로그인 상태에서 랜딩(`/`)에 접근해도 `/main`으로 이동하지 않음 (`routes/domains/main/mainRoutes.js`, `pages/landing/LandingPage.jsx`)
+- [코드] FN-COM-003-10 — 세션 만료 시 AI 대화창이 인증 오류를 표시하고 닫히는 게 아니라 그 창이 로그인 화면으로 이동함 (`api/axios.js`)
+- [코드] FN-COM-004-04 / FN-COM-004-05 — 알림 조회가 실패해도 오류 안내·[다시 시도]가 없고 목록 칸이 비어 보임 (`layouts/NotificationDropdown.jsx`)
+- [코드] FN-COM-004-06 — 읽음 처리 실패(404 `NOTIFICATION_NOT_FOUND` 포함) 때 안내 없이 이동도 하지 않음 (`layouts/NotificationDropdown.jsx`)
+- [결정] FN-COM-004-07 — 커뮤니티(댓글)·공지 알림의 이동 경로는 미확정 (`milestones/LJS.md`)
+- [결정] FN-COM-006-07 — 터치 환경의 "첫 탭 열기, 두 번째 탭 이동" 처리가 코드에 없음. 명세도 잠정 (`layouts/UserHeader.jsx`)
+- [결정] FN-COM-008-12 — 명세가 "잠정, 설정 가능 여부 확정 필요"로 두었고 코드는 항상 받는 알림에 배치. 서버 설정 응답에도 캐릭터 항목이 없음 (`features/notification/settings/NotificationSettingsForm.jsx`, `notification.md`)
+- [코드] FN-COM-009-01 / FN-COM-009-10 — 명세는 "마지막으로 본 채팅방이 선택된 상태로 연다"이나 [✕] 닫기는 보던 방을 잊고, 최소화([─])만 기억함 (`context/ChatModalProvider.jsx`)
+- [코드] FN-COM-009-19 — 주소 공유의 장소 검색이 가짜 응답(고정 4곳) (`features/chat/api.js` `searchChatPlaces`)
+- [결정] REQ-CMU-010 — 요구사항 수행방안의 "전체/안 읽음 필터"에 비해 코드는 내 글·지원한 글 탭을 추가로 두고, 탭 구분은 서버 `tab` 파라미터가 아닌 프론트가 `myRole`로 걸러냄 (`features/chat/room/ChatRoomList.jsx`, `community.md`의 `GET /chat-rooms?tab=`)
