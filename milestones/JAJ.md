@@ -381,6 +381,15 @@
 - 결과: 2026-11-09 검증 1회차 통과, 사람 확인 끝
 - 연결 남음: 없음
 
+## SCR-HLT-011 종합 건강기록 · 대시보드에 안 쓰는 pets 넘기기 지우기 — 끝
+
+- 기능: 명세 기능 ID 추가 없음(코드 정리). `pages/health/HealthSummaryPage.jsx`가 `HealthDashboard`에 안 쓰는 `pets`를 넘기는 것을 지운다. 동작 변화 없음
+- 기다리는 것: 없음
+- 완료 조건: `HealthDashboard`에 `pets` prop을 넘기지 않음 / lint·build 통과 / `/health` 대시보드가 전과 같이 보임
+- 한 일: C1 `HealthSummaryPage.jsx`의 `pets={pets}`와 쓰지 않게 된 구조 분해 `pets,`를 지움
+- 결과: 2026-11-09 검증 1회차 통과, 사람 확인 끝
+- 연결 남음: 없음
+
 ## 제외
 
 - AI매니저 FN-AIM-008 참조 대상 반려동물 선택: 화면 SCR-AIM-008 영수증 업로드는 LJS(분배 표 "AIM-008 영수증 업로드")
