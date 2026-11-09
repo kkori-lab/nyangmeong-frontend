@@ -18,7 +18,7 @@ const aiClass = (isAi) => (isAi ? 'border-dashed' : '');
 /**
  * ["영수증에서 읽은 정보" 블록] (FN-HLT-002-39·40·41·42)
  * - 금액(탭 금액 = 구역 소계 − 할인), 처방 약품 행, 가계부에도 기록 체크
- * - 인식한 값은 점선, 사람이 고친 값은 실선. 약품 금액은 대조용이라 저장 안 함
+ * - 인식한 값은 점선, 사람이 고친 값은 실선. 약품 금액은 대조용이라 저장 안 함. 라벨은 '약품 금액' (※신규 정책)
  * - errors: { drugs: { [rowId]: { drugNm, startYmd, endYmd, perDay } } }
  */
 export default function ReceiptInfoBlock({
@@ -110,7 +110,7 @@ export default function ReceiptInfoBlock({
                       )}
                     </label>
                     <div className="flex flex-col gap-1">
-                      <span className={DRUG_LABEL}>금액(대조)</span>
+                      <span className={DRUG_LABEL}>약품 금액</span>
                       <span className="flex h-9 items-center justify-end text-subtle tabular-nums">
                         {drug.amt != null
                           ? drug.amt.toLocaleString('ko-KR')
