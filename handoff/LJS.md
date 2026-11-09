@@ -2,16 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · 푸터·TOP 버튼 없애고 스크롤 막기, AI 버튼 캐릭터 — 끝(2026-11-09). `/main`은 푸터·[TOP] 없이 화면 높이에 맞춰 스크롤하지 않고 맨 아래 픽셀 띠만 둔다(PC는 가운데 묶음 100px 위, 검색창 그림자 없음). 다른 화면 AI 버튼은 틀 없이 대표 반려동물 전신 캐릭터(PC 96·모바일 72, 모바일 dock 유지), 없으면 틀 안 `Bot`
+SCR-MAN-001 메인페이지 · 반려동물 바로가기 API 연결 — 끝(2026-11-09). 메인 바로가기 조회·저장을 실제 `GET·PUT /api/pets/main-shortcuts`로 바꾸고 코드를 `MANC0008`·`MANC0009`·`MANC0010`으로 맞췄다. 저장한 적 없는 반려동물의 기본값은 서버가 준다
 
 ## 다음에 할 것
 
+- SCR-AIM 대화창 확인 카드(ACTION) 연결(AI 세션이 2026-11-09 계약 전달, 정본은 AI 저장소 `docs/api/chat.md`의 `/messages`·`/action-result` 행과 `ActionCard`·`ActionResultRequest`·`MessageSendRequest.action`): SSE `done.action` 카드를 `params`·`rules`·`missing`·`petChoices`로 폼으로 그리고, [확인]은 `call`로 Java API를 부른 뒤 `/action-result`에 `{tool, status, input}`을 저장한다. 도구는 단순 등록 3개(케어 완료·건강 일지·월 지출 한도)와 수정 4개(일정·케어 항목·지출·반려동물). 기존 등록 카드(`done.card`·`register-result`)와 섞지 않는다. 수정 카드분은 AI 저장소 `LJS` 브랜치에만 있고 develop 병합 전. 프론트에서 `/start`로 기획한다
+- SCR-MAN-001 정리(2026-11-09): tester 계정의 까미(petSn 1) 바로가기가 비어 있다(검증 시작 때부터, 원인 모름). 처음 상태로 두려면 `/main` [바로가기 추가] → 까미 → 종합 건강기록
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09 푸터·AI 버튼): ① 모바일 dock 접기는 검증에서 터치 이벤트로만 확인(Playwright 마우스 드래그로는 안 접힘, `useAiDock.js`는 안 바뀜) ② `/community` 한 화면에서 `character-image?part=face` 요청이 수백 건 보였다(AI 버튼은 `part=full`만 부름, 원인 미확인) ③ 메인 바로가기 얼굴이 반려동물 1·2·14에서 404(기존 동작, 아이콘으로 대체) ④ 전신 이미지 오른쪽 투명 여백 14px는 서버 문서의 캐릭터 위치(512 중 x 96~416) 기준이라 캐릭터마다 조금 다를 수 있다 ⑤ PR 캡처는 `.playwright-mcp/pr/LJS-20261109-SCR-MAN-001-after-*`·`-community-after-*`(`-ai-face-after-*`는 얼굴 버전이라 쓰지 않음)
-- SCR-COM-007·SCR-AIM-011 모바일 AI 매니저를 모달로(사람 결정 2026-11-09 "펫돌봄 채팅이랑 동일하게"): 모바일에서 플로팅 AI·메인 검색창이 새 탭 대신 채팅 모달(`layouts/ChatModal.jsx`, 760px 이하 헤더 아래 전체 화면)처럼 연다. `pages/ai/AiChatPage.jsx`(691줄) 본문을 모달·새 창이 같이 쓰는 판으로 나누고, 사진 넘기기(`useAiWindow` BroadcastChannel)와 `features/ai/chat/openInMainWindow.js`(본창 이동·창 닫기)를 모달용으로 맞춘다. 명세 FN-COM-007-01·FN-AIM-011-01 "새 창(탭)·모달 아님"과 달라 문서 담당에 알린다. 정할 것: PC는 새 창 그대로인지, 모달에 [새 창으로 띄우기]를 둘지
 - SCR-MAN-001 연결 남음(2026-11-09): A3 사진+글 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 연결, AI 서버 저장소에서 /start). 나오면 `features/ai/api.js`의 가짜 `judgeImageIntent`만 실제 요청으로 바꾼다. 가계부 바로 등록은 SJM `features/expense`와 맞춘다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09): ① 대화창 `ChatInput`의 첨부 미리보기도 메인처럼 썸네일만 크게 할지 ② 반려동물 칩 단계(대표 없는 여러 마리 계정)는 화면으로 못 봄 ③ 검증 대화방이 tester 계정에 남음(AI 창 [삭제])
 - ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에"): `features/health/CareItemMenu.jsx`·`features/expense/shared/ExpenseMenu.jsx`·`features/dashboard/MainShortcuts.jsx`의 `ShortcutMenu`가 같은 ⋮ 메뉴를 따로 갖고 있다. `components/KebabMenu.jsx`로 올리고 앞의 둘은 껍데기로 두면 쓰는 4개 파일은 안 바뀐다
-- SCR-MAN-001 연결 남음(2026-11-08): 반려동물 바로가기 (백엔드 연결 메인 바로가기 조회·저장 API, 백엔드 저장소에서 /start). 나오면 `features/dashboard/api.js` 가짜(sessionStorage `fake-main-shortcuts`)만 실제 요청으로, 코드는 `shortcutTypes.js`에서 맞춘다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-08): ① 영수증 인식 뒤 건강일지 주소에 `?recptSn=`이 남는다(`HealthDiaryPage.jsx`, JAJ, 가짜 응답에서 봄) ② 메인이 더는 `GET·PUT /members/me/dashboard-widgets`·`GET /pets/{petSn}/health-indicators`를 부르지 않는다(백엔드 정리는 담당과 상의) ③ `src/assets/index.css`의 `man-float` keyframes를 쓰는 곳이 없다 ④ `docs/routes.md` MAN-001 담당이 YAY로 남아 있다 ⑤ PR 캡처는 가짜 반려동물이 찍혀 실제 계정으로 다시 찍는 편이 낫다 ⑥ AI 건강분석 리포트 카드 행선지는 JAJ 건강기록 개편 공유 뒤
 - SCR-MAN-001 로컬 검증 데이터(2026-11-08): 실제 영수증 업로드로 영수증 기록이 로컬 DB에 남았다(지우는 API 없음). 검증용 복사 파일 `.playwright-mcp/tmp/receipt.png`
 - SCR-ADM-090 백엔드 후보(2026-11-05, 기획 밖): 템플릿 저장 400(`checkVariables`)에 모르는 변수 이름을 `data`로 실어 주면 프론트 전용 문구 대신 그 이름을 보일 수 있다(LJS 백엔드, 필요하면 백엔드 저장소에서 /start). 지금 프론트가 저장 전에 같은 패턴으로 먼저 검사한다
@@ -258,3 +258,4 @@ SCR-MAN-001 메인페이지 · 푸터·TOP 버튼 없애고 스크롤 막기, AI
 - SCR-COM-006 연결 남음: 006-07 터치 동작 명세 확정(반응형 범위는 ≤1100px·≤760px로 정해졌다. 명세 작성자가 문구를 갱신하면 구현할 내용을 정한다)
 - SCR-COM-002 연결 남음: 002-02 `ProtectedRoute`로 감싸기(user 레이아웃은 끝, ai·chat·place·main bare는 위 SCR-COM-003 연결 남음), 002-06 GNB 대상 페이지를 `UserLayout` 아래 라우트로 붙이기(각 담당), 002-09 알림 미확인 수 API(LJS 백엔드), 002-11 채팅 안 읽은 수 조회 위치를 KSJ와 맞추고 연결(KSJ), 002-15 회원 프로필 이미지, 002-24 세션 만료 토스트(SCR-COM-003과 함께)
 - SCR-ADM-090 검증 오류 메시지 구체화(마일스톤 `대기`, 사람 결정 2026-11-03: 맨 마지막에 한다, 사람 요청 2026-11-03): 모르는 치환 변수를 넣으면 "입력값이 올바르지 않습니다."만 보여 무엇이 문제인지 알 수 없다. 저장 전에 칸·변수 이름을 보이게 한다
+- SCR-COM-007·SCR-AIM-011 모바일 AI 매니저를 모달로(후순위, 사람 결정 2026-11-09 "펫돌봄 채팅이랑 동일하게", 마일스톤 `대기`): 모바일에서 플로팅 AI·메인 검색창이 새 탭 대신 채팅 모달(`layouts/ChatModal.jsx`, 760px 이하 헤더 아래 전체 화면)처럼 연다. `pages/ai/AiChatPage.jsx`(691줄) 본문을 모달·새 창이 같이 쓰는 판으로 나누고, 사진 넘기기(`useAiWindow` BroadcastChannel)와 `features/ai/chat/openInMainWindow.js`(본창 이동·창 닫기)를 모달용으로 맞춘다. 명세 FN-COM-007-01·FN-AIM-011-01 "새 창(탭)·모달 아님"과 달라 문서 담당에 알린다. 정할 것: PC는 새 창 그대로인지, 모달에 [새 창으로 띄우기]를 둘지
