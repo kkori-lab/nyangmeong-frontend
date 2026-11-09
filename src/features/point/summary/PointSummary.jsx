@@ -1,5 +1,6 @@
 import { CircleCheckBig, ShoppingBag, TrendingUp } from 'lucide-react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
+import SkeletonCard from '@/components/SkeletonCard';
 import { formatDate } from '@/utils/formatDate';
 import { usePointBalance } from '../queries';
 import { formatSignedPoint, getPercent } from '../shared/pointFormat';
@@ -32,8 +33,14 @@ export default function PointSummary({
   onGoHealth,
   onGoCharacter,
 }) {
-  const { data: point } = usePointBalance();
+  const { data: point, isPending } = usePointBalance();
 
+  if (isPending)
+    return (
+      <div aria-busy="true">
+        <SkeletonCard className="h-[297px] max-[760px]:h-[350px]" />
+      </div>
+    );
   if (!point) return null;
 
   return (
