@@ -14,7 +14,7 @@ const ARROW_BUTTON =
  * - 끌어서 놓기(브라우저 기본 드래그)와 카드마다 [위로]·[아래로] 버튼(키보드·터치용). 맨 위 [위로]·맨 아래 [아래로]는 막힘
  * - AI 건강분석 리포트는 맨 앞 고정이라 옮기는 대상이 아님
  * - [저장]은 순서 저장, [취소]·×·Esc·배경은 저장 없이 닫음
- * - 순서는 고른 항목 키 배열의 순서 그대로 저장(가짜 저장소, B1 PUT SORT_SEQ 연결 때 API로 교체)
+ * - 순서는 고른 항목 키 배열의 순서 그대로 저장(PUT /members/me/dashboard-widgets, 보낸 순서가 저장 순서). 실패하면 모달 유지
  */
 export default function WidgetOrderModal({ mbrSn, savedIds, onClose }) {
   const [orderedIds, setOrderedIds] = useState(savedIds);

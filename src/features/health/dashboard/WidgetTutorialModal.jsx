@@ -1,51 +1,47 @@
 import { useState } from 'react';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
-import Skeleton from '@/components/Skeleton';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { showToast } from '@/components/toastStore';
 import { useSaveHealthWidgets } from '../queries';
 import WidgetPicker from './WidgetPicker';
 import {
+  RECOMMENDED_IDS,
   findWidgetItem,
   joinWidgetNames,
   keepWidgetOrder,
   orderWidgetIds,
-  pickStartIds,
 } from './widgetItems';
 
 const STEPS = ['시작', '기록 고르기', '완료'];
 
 /**
  * [튜토리얼 · 기록 항목 편집 모달] (※신규 정책, 흐름도 D1~D7·D10)
- * - mode 'tutorial': 1 시작 → 2 기록 고르기 → 3 완료. 1·2단계의 [나중에 할래요]·×·Esc·배경은 시작 항목(추천 3개 + 기록 있는 항목, 최대 6개, 추가-8) 저장(D3), 3단계 ×는 [건강기록 보러 가기]와 같음
+ * - mode 'tutorial': 1 시작 → 2 기록 고르기 → 3 완료. 1·2단계의 [나중에 할래요]·×·Esc·배경은 추천 3개 저장(D3), 3단계 ×는 [건강기록 보러 가기]와 같음
  * - mode 'edit': 2단계만. [저장]은 고른 항목 저장, [취소]·×·Esc·배경은 저장 없이 닫음(D7)
- * - recordedUnion: 회원의 모든 반려동물 중 기록 있는 항목(합집합, D10). 불러오기 전이면 null
+ * - 저장 실패: 서버 message 토스트. [나중에 할래요]·×·Esc는 그래도 닫고(다음에 들어오면 다시 열림), 3단계·편집 저장은 모달을 유지해 다시 시도
  */
 export default function WidgetTutorialModal({
   mode,
   mbrSn,
   petNm,
   savedIds,
-  recordedUnion,
-  recordedIds,
   onClose,
 }) {
   const isEdit = mode === 'edit';
   const [step, setStep] = useState(isEdit ? 2 : 1);
-  /** 사람이 칩을 누르기 전에는 null: 튜토리얼은 기록 있는 항목을 미리 고름 */
+  /** 사람이 칩을 누르기 전에는 null: 튜토리얼은 추천 3개를 미리 고름 */
   const [pickedIds, setPickedIds] = useState(isEdit ? savedIds : null);
   const [lastPickedId, setLastPickedId] = useState(null);
   const saveWidgets = useSaveHealthWidgets();
 
-  /** 시작 항목(추가-8): [나중에 할래요] 저장값과 2단계 처음 미리 체크가 같음 */
-  const startIds = pickStartIds(recordedUnion ?? []);
+  /** 시작 항목: [나중에 할래요] 저장값과 2단계 처음 미리 체크가 같음 */
+  const startIds = RECOMMENDED_IDS;
   const draftIds = pickedIds ?? startIds;
   const isEmpty = draftIds.length === 0;
-  /** 기록 있는 항목 조회 중: [나중에 할래요]·×·Esc·배경·[시작할래요]를 막아 합집합이 빠지지 않게 */
-  const isRecordedPending = !isEdit && recordedUnion === null;
 
-  const save = (widgetIds, message) => {
+  /** isClosedOnError: 실패해도 닫음([나중에 할래요]·×·Esc). 토스트는 useSaveHealthWidgets가 띄움 */
+  const save = (widgetIds, message, isClosedOnError = false) => {
     if (saveWidgets.isPending) return;
     saveWidgets.mutate(
       /** 편집은 저장 순서 + 새 항목 맨 뒤, 튜토리얼 첫 저장은 4묶음 순서 */
@@ -60,6 +56,9 @@ export default function WidgetTutorialModal({
           showToast(message);
           onClose();
         },
+        onError: () => {
+          if (isClosedOnError) onClose();
+        },
       },
     );
   };
@@ -68,6 +67,7 @@ export default function WidgetTutorialModal({
     save(
       startIds,
       `추천 항목 ${startIds.length}개로 시작했어요 · [기록 항목 편집]에서 바꿀 수 있어요`,
+      true,
     );
   };
 
@@ -112,30 +112,22 @@ export default function WidgetTutorialModal({
 
   const footer =
     step === 1 ? (
-      /** 기록 있는 항목을 불러오는 동안: 버튼을 숨긴 자리 위에 같은 크기 Skeleton (ui.md 로딩 표시) */
-      <div
-        aria-busy={isRecordedPending || undefined}
-        className="flex w-full justify-between gap-2"
-      >
-        <LoadingSlot isLoading={isRecordedPending}>
-          <button
-            type="button"
-            className="inline-flex h-10 items-center rounded-md px-4 font-semibold text-ink-2 hover:bg-surface-3 hover:text-ink"
-            disabled={saveWidgets.isPending}
-            onClick={saveLater}
-          >
-            나중에 할래요
-          </button>
-        </LoadingSlot>
-        <LoadingSlot isLoading={isRecordedPending}>
-          <button
-            type="button"
-            className={`${BTN_PRIMARY} min-w-24`}
-            onClick={() => setStep(2)}
-          >
-            시작할래요
-          </button>
-        </LoadingSlot>
+      <div className="flex w-full justify-between gap-2">
+        <button
+          type="button"
+          className="inline-flex h-10 items-center rounded-md px-4 font-semibold text-ink-2 hover:bg-surface-3 hover:text-ink"
+          disabled={saveWidgets.isPending}
+          onClick={saveLater}
+        >
+          나중에 할래요
+        </button>
+        <button
+          type="button"
+          className={`${BTN_PRIMARY} min-w-24`}
+          onClick={() => setStep(2)}
+        >
+          시작할래요
+        </button>
       </div>
     ) : step === 2 ? (
       <>
@@ -194,7 +186,7 @@ export default function WidgetTutorialModal({
       footer={footer}
       isWide
       width={720}
-      isPending={saveWidgets.isPending || isRecordedPending}
+      isPending={saveWidgets.isPending}
       onClose={handleDismiss}
     >
       {!isEdit && <StepBar current={step} />}
@@ -225,8 +217,6 @@ export default function WidgetTutorialModal({
           isEdit={isEdit}
           draftIds={draftIds}
           lastPickedId={lastPickedId}
-          recordedIds={recordedIds}
-          isRecordedPending={recordedUnion === null}
           onToggle={handleToggle}
           onRecommend={handleRecommend}
         />
@@ -252,17 +242,6 @@ export default function WidgetTutorialModal({
         </div>
       )}
     </Modal>
-  );
-}
-
-/** 불러오는 동안 버튼 자리: 버튼은 보이지 않게 크기만 차지하고 그 위에 Skeleton */
-function LoadingSlot({ isLoading, children }) {
-  if (!isLoading) return children;
-  return (
-    <span className="relative inline-flex">
-      <span className="invisible inline-flex">{children}</span>
-      <Skeleton className="absolute inset-0 rounded-md" />
-    </span>
   );
 }
 

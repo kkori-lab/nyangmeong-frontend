@@ -359,6 +359,14 @@
 - 결과: 2026-11-09 검증 통과(1~3회차는 로그인 세션이 없어 화면 확인 못 함 → 사람이 로그인하게 해 4회차 통과), 사람 확인 끝
 - 연결 남음: 없음
 
+## SCR-HLT-011 건강기록 · 건강기록 대시보드 고른 항목 저장 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(새 기능, ※신규 정책). 「튜토리얼과 고른 기록 대시보드」(D1~D3·D7·D10·D11)·「대시보드 카드 순서 바꾸기」의 저장. 기록 기반 자동 선택은 없애고 추천 3개만 기본으로 씀(사람 결정 2026-11-09 A안)
+- 기다리는 것: 백엔드 SCR-HLT-011 건강기록 대시보드 고른 항목 저장(JAJ 백엔드, 끝 2026-11-09). 공용 DB에 백엔드 `db/` 변경 절 v0.14 (3)·(4)이 실행돼야 동작한다(백엔드 PR 병합 뒤)
+- 완료 조건: `widgetStore.js` 가짜 저장소(localStorage)를 `GET·PUT /members/me/dashboard-widgets`로 바꾼다(`queries.js` `useHealthWidgets`·`useSaveHealthWidgets`). GET `data.savedYn=false`면 튜토리얼을 연다. 항목 키(weight…care)를 HLTG25 코드(HLTC0084 체중 ~ HLTC0096 케어리스트, 순서는 `widgetItems.js` id 순)로 바꾼다. PUT 본문은 `{widgets:[{dshbdWdgtCd, indctYn}]}` 13개를 보일 순서대로(빠진·중복·모르는 코드는 400 `INVALID_INPUT_VALUE`). GET 응답은 `savedYn`·`widgets`만이다. `dashboardApi.js` `getRecordedItems`(아이 수 × 11개 요청)와 기록 기반 자동 선택은 대체 없이 지우고, 튜토리얼 기본 선택은 추천 3개. `widgetItems.js:138` `vacc`의 `nm`을 「예방접종·정기검진」으로(카드가 예방접종·정기검진을 보여 주므로 이름을 맞춤, 구충은 케어리스트에 보임)
+- 결정(사람, 2026-11-09 승인 때): develop 먼저 합침. 예전 브라우저 저장값 `nyangmeong.health.widgets.<mbrSn>`은 옮기지 않고 지움. [나중에 할래요]·×·Esc 저장이 실패하면 토스트 후 닫음(3단계·편집·순서 저장 실패는 모달 유지). 튜토리얼 봤음 키는 만들지 않음(여는 조건은 `savedYn=false`만). 저장 실패 토스트는 서버 `error.message`. [나중에 할래요] 토스트 문구 그대로. 건강 일지 [항목 편집]은 저장 중 누름 무시
+- 결과: 2026-11-09 검증 1회차 통과, 사람 확인 끝. 정책·TC와 어긋나는 문장은 고치지 않고 핸드오프에 목록으로 남김(회의에서 정리)
+- 연결 남음: 없음
+
 ## 제외
 
 - AI매니저 FN-AIM-008 참조 대상 반려동물 선택: 화면 SCR-AIM-008 영수증 업로드는 LJS(분배 표 "AIM-008 영수증 업로드")
