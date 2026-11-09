@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import footerMoIllust from '@/assets/footer_mo_illust.svg';
 import footerPixel from '@/assets/footer_pixel.svg';
 import { PATHS } from '@/routes/paths';
+import { subscribeAiWrite } from '@/utils/aiWriteChannel';
 import BottomNav from './BottomNav';
 import { findBottomNavMenu } from './bottomNavMenus';
 import FloatingButtons from './FloatingButtons';
@@ -11,6 +14,13 @@ import UserHeader from './UserHeader';
 
 export default function UserLayout() {
   const { pathname } = useLocation();
+  const queryClient = useQueryClient();
+
+  /** AI 대화창에서 확인 카드로 저장하면 본창 데이터를 전부 다시 불러온다(도메인별 키를 몰라도 된다) */
+  useEffect(
+    () => subscribeAiWrite(() => queryClient.invalidateQueries()),
+    [queryClient],
+  );
   const bottomNavMenu = findBottomNavMenu(pathname);
   /** 메인은 푸터 없이 화면 높이에 맞춰 스크롤하지 않음 */
   const isMain = pathname === PATHS.MAIN;
