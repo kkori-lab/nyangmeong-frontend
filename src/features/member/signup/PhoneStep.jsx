@@ -19,7 +19,7 @@ export default function PhoneStep({ form }) {
           inputMode="tel"
           error={form.errors.phone}
           success={form.isPhoneChecked ? MSG.phoneAvailable : ''}
-          help={form.phone ? MSG.phoneNeedCheck : MSG.phoneHelp}
+          help={form.phone ? MSG.phoneNeedCheck : ''}
           hasGuide={form.guideTarget === 'phone'}
           action={
             <button

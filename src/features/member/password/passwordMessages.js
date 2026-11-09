@@ -1,13 +1,13 @@
 export const PASSWORD_MESSAGES = {
   emailEmpty: '이메일을 입력해 주세요.',
-  emailFormat: '이메일 주소 형식을 확인해주세요.',
+  emailFormat: '이메일 주소 형식을 확인해 주세요.',
   sent: '인증번호를 보냈습니다. 메일함을 확인해 주세요.',
   codeEmpty: '인증번호를 입력해 주세요.',
   codeFormat: '인증번호는 숫자 6자리로 입력해 주세요.',
-  verifyFailed: '인증을 확인하지 못했습니다. 다시 시도해 주세요.',
+  verifyFailed: '인증번호를 확인하지 못했습니다. 다시 시도해 주세요.',
   notFound: '비밀번호를 재설정할 회원정보를 찾을 수 없습니다.',
   withdrawn:
-    '탈퇴한 계정입니다. 재가입 절차에서 기존 정보 복구를 진행해 주세요.',
+    '탈퇴한 계정입니다. 같은 이메일로 회원가입하면 기존 정보를 복구할 수 있습니다.',
   snsAccount: 'SNS로 가입한 계정입니다. 가입한 SNS로 로그인해 주세요.',
   pwEmpty: '새 비밀번호를 입력해 주세요.',
   pwRule: '영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)',
@@ -16,5 +16,5 @@ export const PASSWORD_MESSAGES = {
   confirmMismatch: '새 비밀번호가 일치하지 않습니다.',
   confirmMatch: '비밀번호가 일치합니다.',
   saveFailed: '비밀번호를 변경하지 못했습니다. 다시 시도해 주세요.',
-  needVerify: '본인확인이 필요합니다. 이메일 인증을 다시 진행해 주세요.',
+  needVerify: '본인확인이 필요합니다. 이메일 인증을 다시 해 주세요.',
 };

@@ -23,7 +23,6 @@ export default function PasswordStep({ form }) {
         placeholder="비밀번호 입력"
         autoComplete="new-password"
         error={form.passwordError}
-        help={MSG.pwHelp}
         hasGuide={target === 'password'}
       />
       <AuthField
@@ -50,7 +49,7 @@ export default function PasswordStep({ form }) {
         ]}
       />
       <p className="text-sm leading-5 text-muted">
-        가입 후 기본 닉네임을 원하는 닉네임으로 설정할 수 있어요.
+        가입 후 기본 닉네임을 원하는 닉네임으로 설정할 수 있습니다.
       </p>
       <button
         type="submit"
