@@ -214,14 +214,18 @@ function FieldControl({
   );
 }
 
-/** 등록한 반려동물로 케어 캘린더 열기: 캘린더가 `?petSn=`을 보고 있는 아이로 고름 */
-const calendarPath = (petSn) =>
-  petSn == null
-    ? PATHS.HEALTH_CALENDAR
-    : `${PATHS.HEALTH_CALENDAR}?petSn=${encodeURIComponent(petSn)}`;
+/**
+ * 등록한 반려동물로 케어 캘린더 열기: 캘린더가 `?petSn=`을 보고 있는 아이로 고름
+ * - 케어 항목은 케어리스트 탭(#hlt003-care)에서 보인다. 일정은 달력 탭
+ */
+const calendarPath = (petSn, isCareItem) => {
+  const query = petSn == null ? '' : `?petSn=${encodeURIComponent(petSn)}`;
+  const hash = isCareItem ? '#hlt003-care' : '';
+  return `${PATHS.HEALTH_CALENDAR}${query}${hash}`;
+};
 
 /** 결과 줄: 저장한 요약 메시지와 같은 글, 등록 직후에는 그 아래 오른쪽에 케어 캘린더 바로가기 */
-function ResultLine({ status, text, hasCalendarLink, petSn }) {
+function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
   const isDone = status === 'done';
   const Icon = isDone ? CircleCheck : CircleX;
   let color = 'text-[#667374]';
@@ -240,9 +244,9 @@ function ResultLine({ status, text, hasCalendarLink, petSn }) {
           <button
             type="button"
             className="flex items-center gap-1 text-base font-semibold leading-6 text-[#1e4a4c] hover:underline"
-            onClick={() => openInMainWindow(calendarPath(petSn))}
+            onClick={() => openInMainWindow(calendarPath(petSn, isCareItem))}
           >
-            케어 캘린더에서 보기
+            {isCareItem ? '케어리스트에서 보기' : '케어 캘린더에서 보기'}
             <ArrowRight aria-hidden="true" className="size-[18px]" />
           </button>
         </div>
@@ -451,6 +455,7 @@ export default function ActionCard({
             text={item.resultText}
             hasCalendarLink={hasCalendarLink}
             petSn={input.petSn ?? card.input.petSn}
+            isCareItem={isCareItem}
           />
         )}
       </section>
