@@ -2,14 +2,17 @@
 
 ## 지금 하는 것
 
-SCR-MYP-020 포인트 내역 · 검진기록 등록 줄을 "이름 · 검진기록 등록"으로 표시 — 끝 (2026-11-09, 검증 `통과` 1회차, 사람 확인 완료. `memoCn` 없음은 응답 가로채기로만 확인)
+SCR-MYP-001·020 1차: 홈·포인트 화면 로딩을 스켈레톤으로(`docs/convention/ui.md` "로딩 표시") — 승인됨 (2026-11-09, 2·3차는 "내 코드 작업")
 
-| 기능 | 바꿀 파일 | 완료 조건 | 근거 |
-| --- | --- | --- | --- |
-| SCR-MYP-020 검진기록 줄 제목 | `features/point/history/PointHistory.jsx` (`getTitle`) | 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0. 화면: 검진기록(`MYPC0021`) 포인트가 있는 달에서 그 줄이 "이름 · 검진기록 등록"으로 보이고(`memoCn`이 없으면 유형 이름만), 케어미션·아이템 구매·관리자 조정 줄은 전과 같다. 375px·1280px 확인. 데이터가 없으면 만들지 않고 `GET /api/point-ledgers`(yearMonth 파라미터) 응답을 가로채 확인 | 사람 요청(피드백): 서버가 검진기록 `memoCn`에 반려동물 이름만 넣어 무슨 포인트인지 알 수 없음 |
+| 기능 | 바꿀 파일 | 완료 조건 |
+| --- | --- | --- |
+| SCR-MYP-001 홈 내 반려동물 | `features/pet/home/MyPetsSection.jsx` (`isPending`이면 null → 실제 카드 크기 SkeletonCard) | 명령: `yarn -s lint`, `yarn -s build`. 화면: 개발자 도구 네트워크 Slow 3G에서 빈칸 대신 스켈레톤, 로딩 뒤 밀림 없음(본문 높이 ±20%, 가로 스크롤 없음). 375px·1280px |
+| SCR-MYP-001 홈 요약 3칸 | `features/point/home/PointSummaryCard.jsx`, `MissionSummaryCard.jsx`, `features/expense/home/ExpenseSummaryCard.jsx` (값이 빈칸 → 같은 칸 Skeleton) | 위와 같음 |
+| SCR-MYP-020 포인트 | `features/point/summary/PointSummary.jsx`, `mission/CareMission.jsx`, `history/PointHistory.jsx` (`return null` → 실제 배치 SkeletonCard) | 위와 같음 |
 
-- 디자인: 없음, 화면설계서 기준 (문구만 바뀜)
-- DB 변경 없음, 연결 작업 없음
+- 공용 `Skeleton`·`SkeletonCard`·`PageSkeleton`만 쓴다. 높이는 다 불러온 화면을 재서 맞춘다. 높이 확인에 `queryFn` 지연은 넣지 않고 Slow 3G로 한다
+- 이미 스켈레톤인 곳(`PetListPage`·`FamilySection`·`SentInvitations`·`InvitationAccept`)과 `ExpenseLoadMore`(하단 추가 로딩)는 손대지 않는다
+- 디자인: 없음, 규칙 문서 기준. DB 변경 없음, 연결 작업 없음
 
 ## 다음에 할 것
 
@@ -17,7 +20,8 @@ SCR-MYP-020 포인트 내역 · 검진기록 등록 줄을 "이름 · 검진기�
 
 - SCR-MYP-040 (선택) `PASSWORD_SAME_AS_CURRENT`는 page.route 400으로만 확인했다. 로컬 백엔드를 develop으로 맞추고 규칙에 맞는 비밀번호의 이메일 계정으로 실제 응답 `message`가 같은지 본다
 - SCR-MYP-002 10마리 보유 때 삭제하면 등록 카드로 바뀌는지 화면 확인(데이터가 없어 못 함)
-- SCR-MYP-001 홈 로딩: 팀 규칙(`docs/convention/ui.md` "로딩 표시")상 스켈레톤이어야 한다. MyPetsSection 로딩을 실제 카드 크기 SkeletonCard로. 같이 SJM 담당 화면 전체에서 isPending일 때 null·문구인 곳을 찾아 고친다
+- 로딩 스켈레톤 2차 SCR-MYP-030: `ExpenseDashboard.jsx`(58행)·`ExpenseHistory.jsx`(125행)의 `return null`을 실제 배치 스켈레톤으로(`ui.md` "로딩 표시")
+- 로딩 스켈레톤 3차: SCR-MYP-010 `CharacterPage.jsx`(본문 빔)·`CharacterDecorate.jsx`(null), SCR-MYP-040 `ProfileEditPage.jsx`(로딩 중 본문 없음), SCR-MYP-003 `PetFormModal.jsx`(수정 모달 로딩 null)
 - SCR-MYP-002·005 화면 확인: 삭제 때 공동양육자에게 알림이 실제로 갔는지(백엔드 알림 테스트), 초대 → 수락 → 삭제 → 자동 해제 흐름
 - (선택) SCR-MYP-030 시드 `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(병원·공용, "병원은 공용 불가" 규칙 위반): 팀장에게 알리고 백엔드 저장소에서 고침. 서버가 저장을 막아 급하지 않음
 
@@ -50,3 +54,8 @@ SCR-MYP-020 포인트 내역 · 검진기록 등록 줄을 "이름 · 검진기�
 - SCR-MYP-011 기준 문서 `v0.6_20261022`가 DMS에 올라오면 FN-MYP-011-03·04(사람이 준 수치로 만듦)와 대조
 - SCR-MYP-005 진입: 알림 드롭다운(SCR-COM-004), 가입 직후 자동 노출(SCR-ACC-001, YAY·AIC), 로그인이 `redirect`를 받는지(AIC)
 - 시안 v5의 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`이 `UserLayout.jsx`·`UserFooter.jsx`(LJS)에 아직 옛 값
+
+## 중단 2026-11-09 11:50 (5시간 한도 95%)
+- 자동 커밋한 변경 2개: handoff/SJM.md, milestones/SJM.md
+- 커밋 안 한 새 파일 0개 (사람이 판단): 없음
+- 이어서: 이 파일의 "지금 하는 것" 과 `git log -1` 을 본다
