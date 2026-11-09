@@ -1,49 +1,41 @@
 import ActionCard from './ActionCard';
 import AnswerBubble from './AnswerBubble';
 import FallbackBubble from './FallbackBubble';
-import RegisterCard from './RegisterCard';
+import { CALENDAR_TOOLS } from './actionForm';
 import { AI_ROLE } from '../shared/aiCodes';
 import { FALLBACK_MESSAGE, FAQ_FAIL_COUNT } from '../shared/fallbackCount';
 
 /**
- * 등록 카드·확인 카드 자리: 서버에 저장되지 않아 번호 없음
+ * 확인 카드 자리: 서버에 저장되지 않아 번호 없음
  * - 결과 요약이 저장됐으면 그 메시지 자리, 아니면 카드를 부른 내 메시지(afterSn보다 큰 첫 사용자 메시지) 뒤
  * - 그 메시지를 아직 받지 못했으면 목록 끝
  * - anchorSn이 있으면(검색 답변 끝에 온 확인 카드) 그 AI 메시지 뒤, 그 메시지가 아직 답변 말풍선이면 말풍선 뒤(afterChildren)
  */
-const placeCards = (messages, registerCards) => {
+const placeCards = (messages, cards) => {
   const replaced = new Map();
   const after = new Map();
   const atEnd = [];
   const afterChildren = [];
-  registerCards.forEach((registerCard) => {
-    if (
-      messages.some(
-        (message) => message.aiCnvrsMsgSn === registerCard.resultMsgSn,
-      )
-    ) {
-      replaced.set(registerCard.resultMsgSn, registerCard);
+  cards.forEach((card) => {
+    if (messages.some((message) => message.aiCnvrsMsgSn === card.resultMsgSn)) {
+      replaced.set(card.resultMsgSn, card);
       return;
     }
     const anchor =
-      registerCard.anchorSn != null
-        ? messages.find(
-            (message) => message.aiCnvrsMsgSn === registerCard.anchorSn,
-          )
+      card.anchorSn != null
+        ? messages.find((message) => message.aiCnvrsMsgSn === card.anchorSn)
         : messages.find(
             (message) =>
               message.roleCd === AI_ROLE.USER &&
-              message.aiCnvrsMsgSn > registerCard.afterSn,
+              message.aiCnvrsMsgSn > card.afterSn,
           );
     if (!anchor) {
-      (registerCard.anchorSn != null ? afterChildren : atEnd).push(
-        registerCard,
-      );
+      (card.anchorSn != null ? afterChildren : atEnd).push(card);
       return;
     }
     after.set(anchor.aiCnvrsMsgSn, [
       ...(after.get(anchor.aiCnvrsMsgSn) ?? []),
-      registerCard,
+      card,
     ]);
   });
   return { replaced, after, atEnd, afterChildren };
@@ -53,14 +45,9 @@ const placeCards = (messages, registerCards) => {
 export default function ConversationMessages({
   messages,
   fallbackCount,
-  registerCards,
   actionCards = [],
   latestCardKey,
-  isRegisterBusy,
-  hasRegisterError,
   onRegenerate,
-  onConfirmRegister,
-  onCancelRegister,
   onChangeAction,
   onConfirmAction,
   onCancelAction,
@@ -68,18 +55,22 @@ export default function ConversationMessages({
   children,
 }) {
   const lastSn = messages.at(-1)?.aiCnvrsMsgSn;
-  /** 두 카드는 같은 번호(key)를 써서 받은 순서대로 */
-  const cards = [
-    ...registerCards.map((item) => ({ ...item, kind: 'register' })),
-    ...actionCards.map((item) => ({ ...item, kind: 'action' })),
-  ].sort((a, b) => a.key - b.key);
-  const { replaced, after, atEnd, afterChildren } = placeCards(messages, cards);
+  const { replaced, after, atEnd, afterChildren } = placeCards(
+    messages,
+    actionCards,
+  );
 
-  const renderActionCard = (item) => (
+  /** 케어 캘린더 바로가기: 등록 도구 결과가 방금 저장된 마지막 메시지일 때만(FN-AIM-012-15) */
+  const renderCard = (item) => (
     <li key={`card-${item.key}`}>
       <ActionCard
         item={item}
         isActive={item.key === latestCardKey}
+        hasCalendarLink={
+          CALENDAR_TOOLS.includes(item.card.tool) &&
+          item.resultMsgSn != null &&
+          item.resultMsgSn === lastSn
+        }
         onChange={(field, input) => onChangeAction(item.key, field, input)}
         onConfirm={() => onConfirmAction(item.key)}
         onCancel={() => onCancelAction(item.key)}
@@ -87,25 +78,6 @@ export default function ConversationMessages({
       />
     </li>
   );
-
-  const renderCard = (registerCard) =>
-    registerCard.kind === 'action' ? (
-      renderActionCard(registerCard)
-    ) : (
-      <li key={`card-${registerCard.key}`}>
-        <RegisterCard
-          card={registerCard.card}
-          status={registerCard.status}
-          resultText={registerCard.resultText}
-          isActive={registerCard.key === latestCardKey}
-          isBusy={isRegisterBusy}
-          hasError={hasRegisterError}
-          hasCalendarLink={registerCard.resultMsgSn === lastSn}
-          onConfirm={() => onConfirmRegister(registerCard.key)}
-          onCancel={() => onCancelRegister(registerCard.key)}
-        />
-      </li>
-    );
 
   const renderMessage = (message) => {
     if (

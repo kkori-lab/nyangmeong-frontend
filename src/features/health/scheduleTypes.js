@@ -1,3 +1,4 @@
+import { BADGE_COLORS, TONE_CLASSES } from '@/constants/calendarBadge';
 import { getYmdOf } from '@/utils/formatDate';
 
 // 코드값은 백엔드 공통코드(일정 종류 HLTG19, 검진유형 HLTG01)
@@ -20,29 +21,8 @@ export const CHECKUP_TYPES = [
 
 const DEFAULT_TONE = 'gray';
 
-// 캘린더 뱃지 색상 공통코드(HLTG21). 칩 순서는 시안(html/hlt-calendar.html) 순서에서 주황만 뺐다
-export const BADGE_COLORS = [
-  { cd: 'HLTC0082', nm: '파랑', tone: 'blue' },
-  { cd: 'HLTC0080', nm: '초록', tone: 'green' },
-  { cd: 'HLTC0081', nm: '빨강', tone: 'rose' },
-  { cd: 'HLTC0079', nm: '보라', tone: 'violet' },
-  { cd: 'HLTC0083', nm: '회색', tone: 'gray' },
-];
-
-// 톤마다 칩(연한 바탕 + 진한 글자)과 막대·점(진한 색) 클래스. index.css의 --color-tone-* 토큰이다
-export const TONE_CLASSES = {
-  blue: { chip: 'bg-tone-blue-bg text-tone-blue-fg', bar: 'bg-tone-blue-fg' },
-  green: {
-    chip: 'bg-tone-green-bg text-tone-green-fg',
-    bar: 'bg-tone-green-fg',
-  },
-  rose: { chip: 'bg-tone-rose-bg text-tone-rose-fg', bar: 'bg-tone-rose-fg' },
-  violet: {
-    chip: 'bg-tone-violet-bg text-tone-violet-fg',
-    bar: 'bg-tone-violet-fg',
-  },
-  gray: { chip: 'bg-tone-gray-bg text-tone-gray-fg', bar: 'bg-tone-gray-fg' },
-};
+/** 캘린더 뱃지 색상·톤 클래스: AI 확인 카드와 같이 써서 constants로 올림 */
+export { BADGE_COLORS, TONE_CLASSES };
 
 export const HOSPITAL = 'HLTC0057';
 
