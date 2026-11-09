@@ -12,8 +12,17 @@ const STYLES = {
   info: { box: 'bg-brand-50', icon: 'text-brand-500', Icon: Info },
 };
 
-// 처리 결과를 폼 위에 알린다. hasGuide면 AI 안내를 함께 보인다. 나타날 때 서서히 떠오른다(움직임 줄이기 설정이면 바로 보인다)
+// 처리 결과를 폼 위에 알린다. 나타날 때 서서히 떠오른다(움직임 줄이기 설정이면 바로 보인다)
+// hasGuide면 같은 문구가 두 번 보이지 않게 AI 안내 말풍선만 보인다. 말풍선은 aria-hidden이라 문구를 화면 읽기용으로 따로 둔다
 export default function AuthNotice({ type, message, hasGuide }) {
+  if (hasGuide) {
+    return (
+      <div role="alert" className="mb-6">
+        <span className="sr-only">{message}</span>
+        <AiErrorGuide message={message} />
+      </div>
+    );
+  }
   const style = STYLES[type];
   const Icon = style.Icon;
   return (
@@ -23,7 +32,6 @@ export default function AuthNotice({ type, message, hasGuide }) {
     >
       <Icon className={`mt-0.5 size-5 shrink-0 ${style.icon}`} />
       <span className="min-w-0 flex-1">{message}</span>
-      {hasGuide && <AiErrorGuide message={message} />}
     </div>
   );
 }

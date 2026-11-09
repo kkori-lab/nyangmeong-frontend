@@ -26,7 +26,7 @@ export default function EmailStep({ form }) {
               disabled={!form.email.trim() || form.isSending}
               className={SIDE_BTN}
             >
-              {form.isSent ? '다시 보내기' : '인증코드 발송'}
+              {form.isSent ? '다시 보내기' : '인증번호 발송'}
             </button>
           }
         />
@@ -80,7 +80,7 @@ export default function EmailStep({ form }) {
       <p className="mt-3 text-sm leading-5 text-muted">
         {form.isEmailVerified
           ? '다음을 눌러 휴대전화번호를 입력해 주세요.'
-          : '이메일 인증이 완료되면 다음으로 넘어갈 수 있어요.'}
+          : '이메일 인증이 완료되면 다음으로 넘어갈 수 있습니다.'}
       </p>
       <button
         type="button"

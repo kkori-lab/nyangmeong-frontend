@@ -95,7 +95,7 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
           label="닉네임"
           value={value}
           onChange={change}
-          placeholder="닉네임을 입력하세요"
+          placeholder="닉네임 입력"
           autoComplete="off"
           error={error}
           success={status === 'available' ? MSG.nickAvailable : ''}
@@ -120,7 +120,7 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
         <p className="mt-2 text-sm leading-5 text-muted">
           최대 10글자 · 한글·영문·숫자만 가능
           <br />
-          특수문자·공백·이모지는 사용할 수 없어요.
+          특수문자·공백·이모지는 사용할 수 없습니다.
         </p>
       </div>
     </Modal>

@@ -85,8 +85,8 @@ export default function SnsSignupForm({ snsSignup, onCancel, onGoLogin }) {
           <TermsChecklist form={form} lockedSn={form.lockedSn} />
         </div>
         <p className="mt-2 text-sm leading-5 text-muted">
-          필수 동의·연령 확인과 번호 중복확인을 모두 마쳐야 가입할 수 있습니다.
-          전화번호는 가입정보 관리와 중복확인에 사용합니다.
+          필수 동의·연령 확인과 휴대전화번호 중복확인을 마치면 가입할 수
+          있습니다. 휴대전화번호는 가입 정보 관리와 중복확인에만 씁니다.
         </p>
         {form.isExpired ? (
           <button
