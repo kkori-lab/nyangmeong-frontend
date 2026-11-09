@@ -7,6 +7,9 @@ import { OBSERVATION_ENDED } from '../diaryTypes';
  * - 항목 목록의 대표 값은 서버가 준 firstCycle·lastCycle·lastSzDiff를 쓴다
  */
 
+/** 사진 줄·크기 변화 그래프에 그릴 최대 회차 수 (PC·모바일 같음, 추가 요청) */
+export const CHART_COUNT = 5;
+
 export const formatSize = (size) => `${Number(size).toFixed(1)}mm`;
 
 /** 종료한 항목인지 */

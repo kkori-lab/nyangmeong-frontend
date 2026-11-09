@@ -15,7 +15,13 @@ const LONG_EMPTY_TEXT = 12;
  * - content.moveTo가 있으면 item.moveTo 대신 그 주소로(처방·투약)
  * - item.titleNote가 있으면 제목 바로 오른쪽에 작은 회색 글자(케어리스트 「보기 전용」)
  */
-export default function DashboardCard({ item, content, petSn, petNm }) {
+export default function DashboardCard({
+  item,
+  content,
+  petSn,
+  petNm,
+  className = '',
+}) {
   return (
     <Card
       as="h3"
@@ -40,7 +46,7 @@ export default function DashboardCard({ item, content, petSn, petNm }) {
           <ChevronRight className="size-4.5" aria-hidden="true" />
         </Link>
       }
-      className="min-h-[260px]"
+      className={`min-h-[260px] ${className}`}
       bodyClassName="flex flex-col"
     >
       {content ? (
@@ -76,31 +82,57 @@ export default function DashboardCard({ item, content, petSn, petNm }) {
   );
 }
 
-/** AI 건강분석 리포트: 항상 맨 앞(D9), 준비 중 */
+/**
+ * [AI 건강분석 리포트] 항상 맨 앞(D9), 준비 중
+ * - 640px 이상 카드, 640px 미만 두 칸 폭 한 줄 띠(핀 없음) (※신규 정책)
+ */
 export function AiReportCard() {
   return (
-    <Card
-      as="h3"
-      title={<CardTitle icon="auto_awesome">AI 건강분석 리포트</CardTitle>}
-      action={
-        <span
-          role="img"
-          title="항상 표시"
-          aria-label="항상 표시"
-          className="inline-flex shrink-0"
-        >
-          <Icon name="push_pin" className="text-lg text-subtle" />
-        </span>
-      }
-      className="min-h-[260px]"
-      bodyClassName="flex flex-col items-center justify-center text-center"
+    <>
+      <AiReportBand />
+      <Card
+        as="h3"
+        title={<CardTitle icon="auto_awesome">AI 건강분석 리포트</CardTitle>}
+        action={
+          <span
+            role="img"
+            title="항상 표시"
+            aria-label="항상 표시"
+            className="inline-flex shrink-0"
+          >
+            <Icon name="push_pin" className="text-lg text-subtle" />
+          </span>
+        }
+        className="min-h-[260px] max-sm:hidden"
+        bodyClassName="flex flex-col items-center justify-center text-center"
+      >
+        <p className="text-[22px] leading-tight font-bold text-ink">
+          준비 중이에요
+        </p>
+        <p className="mt-2 text-sm text-muted">
+          최근 기록을 바탕으로 한 건강 코멘트를 곧 보여 드릴게요
+        </p>
+      </Card>
+    </>
+  );
+}
+
+/** 640px 미만 AI 건강분석 리포트 띠 */
+function AiReportBand() {
+  return (
+    <section
+      aria-labelledby="hlt011-ai-band"
+      className="col-span-2 flex items-center gap-3 rounded-card border border-line bg-white px-4 py-3 sm:hidden"
     >
-      <p className="text-[22px] leading-tight font-bold text-ink">
-        준비 중이에요
-      </p>
-      <p className="mt-2 text-sm text-muted">
-        최근 기록을 바탕으로 한 건강 코멘트를 곧 보여 드릴게요
-      </p>
-    </Card>
+      <Icon name="auto_awesome" className="shrink-0 text-brand-500" />
+      <div className="min-w-0">
+        <h3 id="hlt011-ai-band" className="text-sm font-semibold text-ink">
+          AI 건강분석 리포트
+        </h3>
+        <p className="truncate text-sm text-subtle">
+          건강 코멘트를 준비하고 있어요
+        </p>
+      </div>
+    </section>
   );
 }

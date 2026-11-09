@@ -2,47 +2,53 @@
 
 ## 지금 하는 것
 
-SCR-MYP-020 포인트 내역 · 검진기록 등록 줄을 "이름 · 검진기록 등록"으로 표시 — 끝 (2026-11-09, 검증 `통과` 1회차, 사람 확인 완료. `memoCn` 없음은 응답 가로채기로만 확인)
+SCR-MYP-031 가계부 영수증 인식: 분석 중 표시를 건강 일지 영수증 모달과 같은 게이지로 — 끝 (2026-11-09, 검증 `통과` 1회차, lint·build 0, 사람 확인 완료)
 
-| 기능 | 바꿀 파일 | 완료 조건 | 근거 |
-| --- | --- | --- | --- |
-| SCR-MYP-020 검진기록 줄 제목 | `features/point/history/PointHistory.jsx` (`getTitle`) | 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0. 화면: 검진기록(`MYPC0021`) 포인트가 있는 달에서 그 줄이 "이름 · 검진기록 등록"으로 보이고(`memoCn`이 없으면 유형 이름만), 케어미션·아이템 구매·관리자 조정 줄은 전과 같다. 375px·1280px 확인. 데이터가 없으면 만들지 않고 `GET /api/point-ledgers`(yearMonth 파라미터) 응답을 가로채 확인 | 사람 요청(피드백): 서버가 검진기록 `memoCn`에 반려동물 이름만 넣어 무슨 포인트인지 알 수 없음 |
-
-- 디자인: 없음, 화면설계서 기준 (문구만 바뀜)
-- DB 변경 없음, 연결 작업 없음
+- 공용 `components/AnalyzeProgress.jsx`를 새로 만들고(`label` prop, 기본값 '영수증 분석 진행') 가계부 `ExpenseReceiptUpload.jsx`의 `Loader2`를 바꿨다. 건강 일지 `ReceiptUploadModal.jsx`(JAJ)는 정의를 지우고 import만 바꿨다
+- 부를 API·새 의존성·DB 변경 없음. 연결 작업 없음
 
 ## 다음에 할 것
-- 내 문서 작업(설계서, 코드 아님): 기능명세서 FN-MYP-030-05 "정렬은 반려동물 등록순으로 고정"을 금액순(같으면 등록순, 공용은 맨 아래)으로 고친다. 화면은 이미 금액순이다
-- 확인 필요(백엔드): SCR-MYP-031 화면 검증 때 회원 1 지출 `EXPND_SN=10459`(소프트 삭제함)과 인앱 알림 `INAPP_NOTI_SN=5297`(남김, 사람 결정)이 생겼다. 이메일 수신이 켜져 있어 `NOTI_SNDNG_LOG`에 발송 기록이, petSn 1011에 케어미션(EXPENSE_CREATE) 반영이 생겼을 수 있다(조회 안 함, 복구 SQL 없음). 지출 행 복구: `DELETE FROM EXPND WHERE EXPND_SN = 10459;`, 알림 복구: `DELETE FROM INAPP_NOTI WHERE INAPP_NOTI_SN = 5297;`
-- SCR-MYP-040 `PASSWORD_SAME_AS_CURRENT` 실제 서버 확인 안 함: 로컬 백엔드가 origin/develop보다 뒤라 이 코드가 없고 시드 비밀번호가 규칙에 안 맞아 page.route 400 응답으로만 확인했다. 백엔드를 develop으로 맞춘 뒤 규칙에 맞는 비밀번호를 가진 이메일 계정이 있으면 실제 응답 `message`가 같은지 한 번 본다(연결 남음 아님, 선택)
-- 연결 남음 SCR-MYP-040 FN-MYP-040-09 (`POST /api/members/me/sns-links` 병합 뒤 확인, YAY): 성공 토스트·"연동됨" 전환, 이미 다른 계정에 연동된 SNS 등 서버 오류 `message`, 응답·오류 형식이 정해지면 `useSnsCallback` 오류 처리를 맞춘다
-- 확인 필요(백엔드): 화면 검증 때 dev-token을 mbrSn 1~60에 차례로 발급했다. dev-token이 `lastLgnDt`를 갱신하면 그 회원들의 마지막 로그인 일시가 바뀌었을 수 있다(복구 SQL 없음)
-- 문서 할 일(코드 아님, 사람이 정리): 기능명세서·화면설계서 FN-MYP-040-09에 SNS 계정 연동 버튼을 추가한다(연동됨/가입 계정 표시, [연동하기], 해제 없음, 이메일·SNS 회원 모두 노출, 실패 시 서버 message 토스트)
-- 팀 알림(LJS 등): 공용 `components/Modal.jsx`에 `isDismissDisabled`(배경 클릭·Esc·Esc 연타로 닫지 않음, keydown에서 막음)를 더했고 `isLarge`가 `width`·`isSheet`와 함께 쓰인다(760px 이하 아래 시트). 기존 `isLarge` 사용처(상점 모달, 건강 일지 최근 기록 모달)는 모양이 그대로다. 저장 중(`isPending`)에도 Esc가 같이 막힌다. 기획에 적은 `SummaryHero`는 Modal이 아니라 `PetImage`의 자체 prop이다
-- 팀 알림(SCR-MYP-003 털색): 명세·설계서 FN-MYP-003-03에 얼룩 추가는 설계서 담당(SJM)이 정리한다
-- 팀 알림(LJS 등): 공용 `components/Modal.jsx`에 폭 옵션과 스크롤 잠금(`hooks/useScrollLock.js`)을 추가했다. 모든 사용처(건강기록 등)에 적용된다. 스크롤 잠금이 없는 곳의 담당자에게 알린다: `layouts/ChatModal.jsx`(모바일 전체 화면인데 잠금 없음, 데스크톱 잠금 여부 결정 필요), `features/ai/chat/ConversationSidebar.jsx`(모바일 서랍, 열렸을 때만 `aria-modal`·잠금 필요), `features/landing/LandingHeader.jsx`(모바일 메뉴 잠금 없음), 건강기록의 자체 `FormModal`(검진기록 등록 등, JAJ, 공용 Modal이 아니라 잠금 없음). 또 `isSheet`의 모바일 위치를 `relative`에서 `fixed`로 고쳤다(스크롤한 채 열면 페이지가 맨 위로 튀던 결함). `isSheet`를 쓰는 가계부 시트 모달(`ExpenseForm`·`ExpenseAddModal`·`ExpenseReceiptUpload`·`ExpenseReceiptReview`)에도 적용되며 375px에서 아래에 붙는 것을 확인했다. 확인 창은 `isConfirm`일 때 `role="alertdialog"`·`aria-describedby`가 붙는다
-- SCR-MYP-040 YAY 알림: `signup/NicknameModal.jsx` 변경 없음. 회원정보 수정이 YAY의 `features/member/api.js` `checkNicknameAvailability`·`setupNickname`·`checkPhoneAvailability`와 `queries.js` 훅 `useCheckNicknameAvailability`·`useSetupNickname`·`useCheckPhoneAvailability`를 같이 쓴다. 이름·모양(응답 `{available}`, 오류 코드)을 바꾸지 말 것
-- SCR-MYP-010 착용 이미지(LJS 담당, 내 할 일 아님): 합성 미리보기·대표 이미지 굽기는 `CHARACTER_BAKE_ENABLED`(LJS)가 켜져야 한다. 안 구운 아이템은 미리보기·`equipped-image` 모두 409 `ITEM_BAKING`. 켜지면 LJS와 같이 `/mypage/characters`·홈 얼굴이 착용 모습인지 화면만 확인한다
-- SCR-MYP-010 3단계 팀에 확인: 확인용 동물 털색을 "흰색"으로 등록했는데 생성 캐릭터는 검은 강아지였다(사진을 따른 것으로 보임). 서버가 털색을 결과에 반영하는지 LJS에 확인한다. 안내 문구(사진 형식·용량, 중복 생성·주양육자만·실패 토스트)는 설계서에 없어 새로 썼다
-- SCR-MYP-010 2단계 팀 알림/확인: 공용 `utils/petCodes.js`의 `ITEM_PART`가 `MYPC0001~0005`로 바뀌었다(LJS 알림). 서버 상점이 `MYPC0006` 신발 4개도 주는데 프론트 부위는 5개라 [전체] 탭에만 나오고 담으면 부위 이름이 빈칸이다(사람 화면에는 신발이 없다고 함, 서버 DB가 다른지 확인). 꾸미기 [오류 문의] 판정 `pet.inqryRcptYn === 'Y'`는 서버 상세의 `inqryRcptYn`(boolean)으로 바꿀지 3단계에서 정한다
-- 문서 할 일(코드 아님, 기능명세서 담당): FN-MYP-010-13 "아이템은 부위별 이미지를 고정 좌표로 겹쳐 표시…" 문장을 서버 합성 방식(`POST /ai/characters/{pixelCharSn}/preview`가 만든 PNG를 보여 줌)으로, FN-MYP-010-17(규격 고정)·018(규격 일관성 검증)·019(규격 미확보 시 대체)를 서버 합성 방식에 맞게 고치거나 삭제 여부를 정한다. 상점 미리보기 설계서 확인 결과가 다르면 FN-MYP-011-01도 함께
-- SCR-MYP-010 1단계 뒤 남음: (a) 3단계 기다리는 것: 재생성 실패 뒤 다시 처리: LJS와 결정됨(자동 재시도 없음, 관리자 화면에서 같은 문의 재생성 허용, LJS 담당, SJM 할 일 없음. 재생성 실패·시간 초과여도 `BSC_CHAR_SBST_YN`은 'Y'라 "오류 확인 중" 판정은 그대로 둔다)과 FN-MYP-010-12 첫 생성 실패의 [캐릭터 만들기] 재노출·실패 안내 문구 확인(LJS) (b) 공용 파일 변경 알림: `components/PetFace.jsx`의 입력이 `chrcSttsCd`에서 `isError`로, `utils/petCodes.js`에 `CRT_JOB_STTS` 추가(LJS), `SummaryHero.jsx`(JAJ), `MainPage.jsx` `PetChip`을 `PetFace`로(YAY). 메인 대표 판별 `rprsYn === 'Y'`는 `rprsPetYn`으로(YAY) (c) 가계부 영수증: `ckupYmd` null 날짜는 SCR-MYP-031 영수증 인식에서 끝(클릭한 날짜). 가계부 출처 영수증 다시 열기는 `GET /receipts/{recptSn}`이 이제 `petSn` 없이 열리지만 명세에 진입점이 없어 하지 않았다(필요하면 명세에서 정한다) (d) 다음은 2단계(꾸미기·상점을 실제 API로)
-- SCR-MYP-030 팀에 확인: 일괄 삭제 뒤에도 편집 모드가 유지된다(`handleDeleted`는 선택만 비운다). 명세 FN-MYP-030-21은 "목록·합계·통계에 즉시 반영"만 적고 편집 종료는 말하지 않는다
-- SCR-MYP-030 시드 데이터: `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(회원 1, 2026-10-05, 병원, 공용(PET_SN NULL), 42,000원)은 "병원은 공용 불가" 규칙에 어긋난다. 서버는 등록·수정(PATCH) 모두 `EXPENSE_PET_REQUIRED`로 막고 있어(`ExpenseService.validate`·`update`) 서버 수정은 필요 없다. 시드의 `PET_SN`을 채우거나 카테고리를 바꾼다(백엔드 저장소). 이 행은 수정 모달에서 반려동물을 고르기 전에는 저장되지 않는다
-- SCR-MYP-005 수락 카드 팀에 확인: 설계서 수락 카드에 나이 줄이 필요한지(나이 줄은 뺐다). 품종은 서버가 `vrtyNm`·`vrtyDrctInptNm`을 주므로 끝났다
-- SCR-MYP-002 삭제 후 남음: (a) FN-MYP-002-08은 DB 수동 연결로 `USE_YN`·`RPRS_PET_YN`이 'N'이 되는 것까지 확인했다. 공동양육자에게 알림이 실제로 갔는지는 확인하지 못했으니 백엔드 알림 테스트로 확인한다. (b) 초대(SCR-MYP-005) 실연결 때 "초대 → 수락 → 삭제 → 자동 해제" 흐름을 화면으로 확인한다. (c) 삭제 성공 토스트는 설계서에 없는 추가라 팀에 설계서 후속 반영을 알린다. (d) 10마리 보유 때 삭제하면 등록 카드로 바뀌는 것은 데이터가 없어 화면으로 확인하지 못했다
-- SCR-MYP-002 가족 영역 후 남음: (a) 끝(2026-11-06): 공동양육자 카드 [✕]와 이름 겹침은 11-05 커밋 5b72263에서 이름을 `truncate`로 바꿔 해결됐다(사람이 1280px·모바일 화면으로 확인). (b) 명세 확인: 서버에 권한(`authrtNm`)이 없어 카드에서 권한 줄을 뺐다. 기능명세서 FN-MYP-004-01의 "이름·권한·연동일"을 팀에서 고칠지 정한다. (c) 알림: 공용 `utils/petCodes.js`의 `CGVR_ROLE`을 지웠다(`BRUP_ROLE`로 대체). LJS 등에 알린다
-- SCR-MYP-003 연결 후 남음: (a) 끝: 슬라이드가 `PetSummary` 값을 쓰고 상세 조회는 수정 모달만 한다(2026-11-02). (b) 끝(2026-11-05): 체중 잠금은 건강 일지 체중 조회로 연결했다. 서버는 체중 PATCH를 막지 않으므로 잠금은 프론트에서만 한다. (c) YAY에게 알림: `MainPage.jsx`의 `rprsYn === 'Y'` → `rprsPetYn === true`. 공용 `utils/petCodes.js`에 `BRUP_ROLE` 추가(LJS에도 알림)
-- 마이페이지 10-24 시안 반영 중 공통 모바일 여백 2건(하단·상단)은 LJS가 고쳤다(커밋 55b2283, 2026-10-25). 2026-11-06 375px `/mypage/pets`에서 `SubPageLayout` 하단 여백 0px, `UserLayout` main 하단 144px로 겹치지 않고 상단은 main 24px 하나임을 확인했다. 연결 남음: 포인트 내역 날짜 키 `pntHstYmd`는 가짜 API의 추정 키다. 백엔드 키가 정해지면 `features/point/api.js`와 `PointHistory.jsx`를 맞춘다. `index.css`에 `--color-cat-*` 토큰을 더했으니 공용 파일 변경으로 LJS에 알린다
-- SCR-MYP-001 연결 남음: 초대 수락 카드(`InvitationAccept`)는 초대받는 사람이 아직 양육자가 아니라 서버가 얼굴을 막으면(403) 기본 아이콘이 계속 보인다. 백엔드(LJS)에 확인한다. 공용 파일 변경 알림(LJS): `components/Modal.jsx`에 `isSheet`(앱에서 아래 시트), `PetFace`가 공용이라 건강기록(JAJ)·건강일지·메인(YAY)에서 쓸 수 있다. SCR-MYP-001 팀에 확인: 홈 반려동물 영역은 불러오는 동안 아무것도 그리지 않는다(기획의 로딩 자리표시보다 약함). 0마리 안내 버튼은 등록 모달을 바로 열지 않고 `/mypage/pets`로 이동만 한다. `?fake=empty`는 이동하면 사라져 가짜 데이터에서는 관리 화면이 10마리로 뜨는데 서버 연결 뒤에는 생기지 않는다.
-- SCR-MYP-011 연결 남음: 캐릭터·아이템 이미지(LJS)가 나오면 미리보기 겹침을 화면으로 확인한다(지금은 이미지가 없어 안 보임) SCR-MYP-011 팀에 확인: 기준 문서 `v0.6_20261022`가 DMS에 없어 FN-MYP-011-03·04를 사람이 준 수치(760×660, 카드 간격 등)로 만들었다. 문서가 올라오면 대조한다. 공용 `Modal`에 `isLarge`를 더했으니(LJS 공용) 공용 파일 변경으로 알린다
-- SCR-MYP-010 팀에 확인: 시안에 캐릭터·아이템 이미지가 없어 lucide 아이콘 자리표시자다(이미지가 나오면 `chrcImgUrl`·`itemImgUrl`로 겹침이 그려진다). 가짜 데이터에서 까미·모모를 공동양육으로 바꿨다(`/mypage/pets`에도 반영). 오류 확인 중 카드의 [대표 지정]은 오류 확인 중이면 기본 캐릭터로 바뀌므로 그대로 둠(사람 결정 2026-10-25). 꾸미기의 뒤로 가기 링크는 공용 "목록으로"다
-- SCR-MYP-005 연결 남음: 알림 드롭다운 진입(SCR-COM-004), 가입 직후 자동 노출(SCR-ACC-001, YAY·AIC)과 맞춘다 10-24 시안 v0.2·v0.3 반영으로 가짜가 바뀌었다: 보낸 초대의 상태는 동물별(`pets[].invtSttsCd`), 수락은 `{ invitationToken, petSns }`로 고른 동물만 연동하고 나머지는 거절, 이메일 불일치는 받은 초대의 추정 키 `emlMtchYn: 'N'`·`invtEmlMskd`(마스킹은 서버가 하는지 맞춘다). 불일치 안내의 [초대받은 계정으로 로그인]은 로그아웃(`useLogout`, 가짜) 뒤 `/login?redirect=<초대 주소>`로 보내므로 로그인(AIC)이 `redirect`를 받는지 맞춘다. 가짜 토큰 `demo-mismatch`는 서버 연결 때 지운다 SCR-MYP-005: 경로 변수 이름 `invitationToken`은 백엔드와 확정 필요(`docs/routes.md` 4장 10번). 새 URL은 PR #57로 develop에 들어갔다 SCR-MYP-005 팀에 확인: 수락·거절·만료 초대 안내 문구와 "초대를 찾을 수 없어요"는 화면설계서에 없어 새로 썼다. 거절 팝업은 공용 `components/Modal`(isConfirm)을 썼다
-- SCR-MYP-004 연결 남음: 팀에 확인: 슬라이드 정보 영역과 가족 구분선 사이는 시안(56px)보다 좁힌 32px(사람 요청). 모바일 밀어 넘기기는 시안 문구대로 넣었다. 기능명세서 16:00판은 DMS에 아직 14시판만 있다
-- SCR-MYP-040 남음: 팀에 알림: `isValidPassword`(회원가입·비밀번호 재설정도 사용)가 서버 규칙으로 엄격해졌고 그쪽 안내 문구는 그대로다. 설계서(SJM): 새 비밀번호 칸 안내와 휴대폰 "미등록" 표기 반영.
-- SCR-MYP-020 남음: 팀에 확인: 지난 날짜의 "이날 획득"·제목 "케어미션"은 시안에 없는 문구라 설계서에 반영할지, 요약 카드 이동 때 헤더에 제목이 가리는 것은 `scroll-mt-20`으로 고쳤다(2026-11-06, 사람 결정), 설계서에 없는 안내 문구("이 날은 출제된 미션이 없어요"·"오늘 출제된 미션이 없어요"·"미션을 불러오지 못했어요")를 설계서에 반영할지. 서버가 동물마다 미션을 3개만 출제해(기획의 8개와 다름) 탭이 `완료/3`으로 보인다. 이번 달 사용이 0이면 "+0P"로 보인다. 시안 v5(`nmcare-design-v5`)에서 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`로 바뀌었는데 `UserLayout.jsx`·`UserFooter.jsx`(LJS)는 옛 값 그대로
-- 건강 일지에서 병원 영수증을 저장하면 가계부에 1건이 자동 기록된다(FN-AIM-009-10, JAJ·YAY). 이 기록이 `recptSn`으로 연결되는지 팀과 맞춘다
-- SCR-MYP-030 명세가 모호해 정한 것을 팀에 확인한다: 금액순 정렬은 서버가 전체를 금액순으로 주고 같은 날짜가 이어진 것만 묶는다(날짜 머리가 여러 번 나올 수 있음). 전체 내역 상단 합계·건수는 필터와 무관하게 그 달 전체다. 편집 중 필터·정렬을 바꾸면 편집이 풀린다(FN-MYP-030-17). 반려동물별 지출 비율은 반올림 때문에 합이 101%가 될 수 있다. 기능명세서 FN-MYP-030-10·FN-MYP-002-07 문구가 "이름(삭제됨)" 표기와 맞는지 확인한다
-- 목표체중 오류 문구 "0보다 큰 숫자로 입력해 주세요"는 화면설계서에 없지만 필요해서 유지한다(2026-10-20 사람 결정). 명세에 문구를 넣을지는 팀에 확인한다
-- `index.css`의 그림자 토큰을 시안 이름에 맞춰 바꿨다(2026-10-20 사람 결정): `shadow-depth-sm`·`md`·`lg`(구 card·pop·modal), `ring-focus`·`ring-error`(`@utility`, 구 focus·error). Tailwind 기본 `shadow-sm`·`lg`를 쓰는 다른 화면이 있어 `depth`를 붙였다. `OPEN_ISSUES.md` 스타일링 항목에 제안으로 적었고, 팀이 합의하면 확정한다
-- 디자인 반영 때 정한 스타일 결정(토큰을 `@theme`에, Pretendard CDN, 브랜드 색 #285a5c 계열, 아이콘은 lucide 대응, 가계부용 tone·warn 색 토큰 추가)을 팀과 맞춘 뒤 `docs/OPEN_ISSUES.md` 스타일링 항목을 갱신한다
+
+### 내 코드 작업
+
+- JAJ·LJS 알림: 공용 `components/AnalyzeProgress.jsx`를 새로 만들었다(영수증 분석 게이지, `label` prop). JAJ의 `features/ai/receipt/ReceiptUploadModal.jsx`는 함수·상수를 지우고 import만 바꿨고 화면 동작은 같다. 새 분석 화면에 게이지가 필요하면 이 컴포넌트를 쓴다
+- SCR-MYP-040 (선택) `PASSWORD_SAME_AS_CURRENT`는 page.route 400으로만 확인했다. 로컬 백엔드를 develop으로 맞추고 규칙에 맞는 비밀번호의 이메일 계정으로 실제 응답 `message`가 같은지 본다
+- SCR-MYP-002 10마리 보유 때 삭제하면 등록 카드로 바뀌는지 화면 확인(데이터가 없어 못 함)
+- 로딩 스켈레톤 2차 SCR-MYP-030: `ExpenseDashboard.jsx`(58행)·`ExpenseHistory.jsx`(125행)의 `return null`을 실제 배치 스켈레톤으로(`ui.md` "로딩 표시"). 같이 SCR-MYP-020: `PointPage`가 pets 조회 실패를 알려 `CareMission`이 스켈레톤 대신 오류를 보이게(지금은 실패하면 스켈레톤이 계속 남음)
+- 로딩 스켈레톤 3차: SCR-MYP-010 `CharacterPage.jsx`(본문 빔)·`CharacterDecorate.jsx`(null), SCR-MYP-040 `ProfileEditPage.jsx`(로딩 중 본문 없음), SCR-MYP-003 `PetFormModal.jsx`(수정 모달 로딩 null)
+- SCR-MYP-002·005 화면 확인: 삭제 때 공동양육자에게 알림이 실제로 갔는지(백엔드 알림 테스트), 초대 → 수락 → 삭제 → 자동 해제 흐름
+- (선택) SCR-MYP-030 시드 `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(병원·공용, "병원은 공용 불가" 규칙 위반): 팀장에게 알리고 백엔드 저장소에서 고침. 서버가 저장을 막아 급하지 않음
+
+### 내 문서 작업(설계서·명세)
+
+- 설계서에 없던 문구 반영: 반려동물 삭제 성공 토스트(SCR-MYP-002), 케어미션 안내("이 날은 출제된 미션이 없어요"·"오늘 출제된 미션이 없어요"·"미션을 불러오지 못했어요"), 초대 수락·거절·만료 안내와 "초대를 찾을 수 없어요"(SCR-MYP-005), 캐릭터 생성 안내(사진 형식·용량, 중복 생성·주양육자만·실패 토스트), 목표체중 오류 "0보다 큰 숫자로 입력해 주세요"
+- SCR-MYP-040 설계서: 새 비밀번호 칸 안내, 휴대폰 "미등록" 표기
+- FN-MYP-030-05: "등록순 고정"을 금액순(같으면 등록순, 공용은 맨 아래)으로
+- FN-MYP-030-10·FN-MYP-002-07: "이름(삭제됨)" 표기와 문구가 맞는지 확인
+- FN-MYP-040-09: SNS 계정 연동 버튼 추가(연동됨/가입 계정 표시, [연동하기], 해제 없음, 이메일·SNS 회원 모두 노출, 실패 시 서버 message 토스트)
+- FN-MYP-003-03: 털색에 얼룩 추가
+- FN-MYP-010-13: 고정 좌표 겹침 → 서버 합성(`POST /ai/characters/{pixelCharSn}/preview` PNG). 010-17·18·19는 서버 합성에 맞게 고치거나 삭제. 상점 미리보기가 다르면 FN-MYP-011-01도
+- FN-MYP-004-01: 서버에 권한(`authrtNm`)이 없어 카드에서 뺀 "권한" 줄을 명세에서 고칠지
+
+### 팀 답 기다림
+
+- 등록-삭제를 반복하면 같은 날 케어미션이 다시 출제될 수 있다(포인트 악용 여지). 막을지 백엔드와 정한다
+- SCR-MYP-010 털색을 "흰색"으로 등록했는데 생성 캐릭터가 검은 강아지였다. 서버가 털색을 반영하는지(LJS)
+- FN-MYP-010-12 첫 생성 실패 때 [캐릭터 만들기] 재노출과 실패 안내 문구(LJS)
+- 서버 상점이 `MYPC0006` 신발 4개를 주는데 프론트 부위는 5개(`MYPC0001~0005`)라 [전체]에만 나오고 부위 이름이 빈칸. 서버 DB가 다른지(LJS)
+- 초대 수락 카드(`InvitationAccept`)에서 아직 양육자가 아니라 얼굴이 403이면 기본 아이콘만 보인다. 허용할지(LJS)
+- 건강 일지 병원 영수증 저장 때 자동 기록되는 가계부 1건(FN-AIM-009-10)이 `recptSn`으로 연결되는지(JAJ·YAY). 가계부 출처 영수증 다시 열기는 명세에 진입점이 없어 안 했다(필요하면 명세에서 정한다)
+- 공용 DB 정리(SCR-MYP-031 검증): 회원 1 지출 `EXPND_SN=10459`(소프트 삭제), 인앱 알림 `INAPP_NOTI_SN=5297`(남김). `NOTI_SNDNG_LOG` 발송 기록, petSn 1011 케어미션(EXPENSE_CREATE) 반영이 생겼을 수 있다. 복구: `DELETE FROM EXPND WHERE EXPND_SN = 10459;`, `DELETE FROM INAPP_NOTI WHERE INAPP_NOTI_SN = 5297;`
+- 스타일 결정 합의: 그림자 토큰 `shadow-depth-sm/md/lg`·`ring-focus`·`ring-error`(`OPEN_ISSUES.md`에 제안), `@theme` 토큰·Pretendard CDN·브랜드 색 #285a5c·lucide·가계부 tone·warn 토큰. 합의되면 `docs/OPEN_ISSUES.md` 스타일링 항목 갱신
+
+### 다른 사람 담당·기다리는 것
+
+- FN-MYP-040-09 `POST /api/members/me/sns-links` 병합 뒤(YAY): 성공 토스트·"연동됨" 전환, 서버 오류 `message`를 화면으로 보고 `useSnsCallback` 오류 처리를 맞춘다
+- `CHARACTER_BAKE_ENABLED`(LJS)가 켜지면 LJS와 `/mypage/characters`·홈 얼굴이 착용 모습인지 화면 확인. SCR-MYP-011 상점 미리보기 겹침도 이미지가 나오면 확인
+- SCR-MYP-011 기준 문서 `v0.6_20261022`가 DMS에 올라오면 FN-MYP-011-03·04(사람이 준 수치로 만듦)와 대조
+- SCR-MYP-005 진입: 알림 드롭다운(SCR-COM-004), 가입 직후 자동 노출(SCR-ACC-001, YAY·AIC), 로그인이 `redirect`를 받는지(AIC)
+- 시안 v5의 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`이 `UserLayout.jsx`·`UserFooter.jsx`(LJS)에 아직 옛 값
+
+### 리팩토링 때 맞출 것(QA 뒤)
+
+- 공용 `components/Modal.jsx`: 가운데 모달에서 배경 오른쪽을 누르면 닫히지 않는다(왼쪽·위·아래는 닫힘, 가계부 [영수증으로 등록]에서 확인). `handleMouseDown`의 스크롤바 예외(`clientX >= rect.left + dialog.clientWidth`면 무시)가 `isTop`이 아닌 모달에도 걸려 모달 오른쪽 끝보다 오른쪽 배경 클릭이 무시된다. 고칠 방향: 스크롤바 예외는 `isTop`일 때만, 보통 모달은 클릭이 dialog 상자 밖일 때만 닫는다

@@ -1,14 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   analyzeChatReceipt,
-  cancelRegister,
-  confirmRegister,
   deleteConversation,
+  executeAction,
   getChatReceiptResult,
   getConversation,
   getConversations,
   judgeImageIntent,
   recognizeCheckupReceipt,
+  saveActionResult,
   saveReceiptResult,
 } from './api';
 
@@ -59,8 +59,8 @@ export const useDeleteConversation = () => {
   });
 };
 
-/** 등록 확정·취소 공통: 결과 요약 메시지가 붙은 대화 상세 갱신 */
-const useRegisterAnswer = (mutationFn) => {
+/** 결과 요약 메시지 저장: 그 메시지가 붙은 대화 상세 갱신 */
+const useResultMessage = (mutationFn) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -73,9 +73,12 @@ const useRegisterAnswer = (mutationFn) => {
   });
 };
 
-export const useConfirmRegister = () => useRegisterAnswer(confirmRegister);
+/** 확인 카드 실행(Java): 성공 뒤 본창 새로고침은 화면이 알린다 */
+export const useExecuteAction = () =>
+  useMutation({ mutationFn: executeAction });
 
-export const useCancelRegister = () => useRegisterAnswer(cancelRegister);
+/** 확인 카드 결과 저장: 결과 요약 메시지가 붙은 대화 상세 갱신 */
+export const useSaveActionResult = () => useResultMessage(saveActionResult);
 
 /** 검진 영수증 인식 */
 export const useRecognizeCheckupReceipt = () =>

@@ -58,6 +58,8 @@ export default function useSignup({ onBackToLogin, onRecover }) {
   const [isSent, setIsSent] = useState(false);
   const [expiresAt, setExpiresAt] = useState(0);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  // 인증번호를 서버 한도까지 틀리면 그 번호로는 더 확인할 수 없어 재발송 전까지 [인증 확인]을 막는다
+  const [isCodeLocked, setIsCodeLocked] = useState(false);
   const [phone, setPhone] = useState('');
   const [isPhoneChecked, setIsPhoneChecked] = useState(false);
   const [password, setPassword] = useState('');
@@ -125,13 +127,15 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     setEmlCertSn(null);
     setVerifiedCode('');
     setIsEmailVerified(false);
+    setIsCodeLocked(false);
     setErrors({});
     setNotice(null);
   };
 
   const changeCode = (value) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
-    setErrors({});
+    // 확인이 막힌 동안에는 재발송 안내를 남긴다
+    if (!isCodeLocked) setErrors({});
   };
 
   const submitSend = () => {
@@ -154,6 +158,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
           setExpiresAt(toMs(result.certExpryDt));
           setCode('');
           setIsSent(true);
+          setIsCodeLocked(false);
           setErrors({});
         },
         onError: (error) => {
@@ -162,8 +167,17 @@ export default function useSignup({ onBackToLogin, onRecover }) {
             onRecover(trimmed);
           } else if (error.code === 'EMAIL_ALREADY_REGISTERED') {
             setErrors({ email: MSG.emailDuplicate });
+          } else if (error.code === 'EMAIL_DOMAIN_NOT_RECEIVABLE') {
+            // 메일을 받을 수 없는 도메인은 주소를 고쳐야 하므로 이메일 칸 아래에 서버 문구를 보인다
+            setErrors({ email: error.message || MSG.sendFailed });
           } else if (error.code === 'EMAIL_CERT_RESEND_NOT_YET') {
             setNotice({ type: 'error', message: resendMessage(error) });
+          } else if (error.code === 'MAIL_SEND_FAILED') {
+            // 메일 발송 실패는 서버 문구를 그대로 보이고 재전송 대기는 시작하지 않는다
+            setNotice({
+              type: 'error',
+              message: error.message || MSG.sendFailed,
+            });
           } else {
             setNotice({ type: 'error', message: MSG.sendFailed });
           }
@@ -173,6 +187,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
   };
 
   const submitVerify = () => {
+    if (isCodeLocked) return;
     if (!code) {
       setErrors({ code: MSG.codeEmpty });
       return;
@@ -197,10 +212,16 @@ export default function useSignup({ onBackToLogin, onRecover }) {
             setErrors({ code: MSG.codeMismatch });
           }
         },
-        onError: (error) =>
-          error.code.startsWith('EMAIL_CERT_')
-            ? setErrors({ code: error.message })
-            : setNotice({ type: 'error', message: error.message }),
+        onError: (error) => {
+          if (error.code === 'EMAIL_CERT_FAIL_LIMIT_EXCEEDED') {
+            setIsCodeLocked(true);
+            setErrors({ code: error.message });
+          } else if (error.code.startsWith('EMAIL_CERT_')) {
+            setErrors({ code: error.message });
+          } else {
+            setNotice({ type: 'error', message: error.message });
+          }
+        },
       },
     );
   };
@@ -373,6 +394,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     isNicknameOpen,
     isSending: sendCode.isPending,
     isVerifying: verifyCode.isPending,
+    isCodeLocked,
     isPhoneChecking: checkPhone.isPending,
     isJoining: join.isPending,
     guideTarget,

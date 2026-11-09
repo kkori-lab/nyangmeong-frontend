@@ -1,6 +1,7 @@
 import { ChevronDown, Receipt } from 'lucide-react';
 import { useState } from 'react';
 import MonthNav from '@/components/MonthNav';
+import SkeletonCard from '@/components/SkeletonCard';
 import { formatYm, getCurrentYm, shiftYm } from '@/utils/yearMonth';
 import { usePointHistory } from '../queries';
 import { PNT_DLNG_TYPE } from '../shared/pointCodes';
@@ -25,13 +26,19 @@ export default function PointHistory() {
   const maxYm = getCurrentYm();
   const [ym, setYm] = useState(maxYm);
   const [isOpen, setIsOpen] = useState(false);
-  const { data } = usePointHistory(ym);
+  const { data, isPending } = usePointHistory(ym);
 
   const moveYm = (step) => {
     setYm(shiftYm(ym, step));
     setIsOpen(false);
   };
 
+  if (isPending)
+    return (
+      <div aria-busy="true">
+        <SkeletonCard className="h-[476px] lg:h-[839px]" />
+      </div>
+    );
   if (!data) return null;
 
   const moreCount = data.length - MOBILE_VISIBLE;

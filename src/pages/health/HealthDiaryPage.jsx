@@ -288,6 +288,7 @@ function HealthDiaryContent({ mbrSn }) {
               initialTypeCd={initialTrendTypeCd}
             />
             <TodayRecordCard
+              petSn={selectedPet.petSn}
               records={records}
               todayYmd={todayYmd}
               isFormOpen={recordForm !== null}

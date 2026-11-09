@@ -150,16 +150,13 @@ const makeTab = (fields) => ({
 
 /**
  * 구역이 있는 영수증: 구역마다 탭 1개. 구역 할인은 그 구역 소계에서 차감, 하단 할인만 비율 분배
- * 자동 연결은 이름이 같은 첫 구역만. 한 아이는 한 구역에만 연결(백엔드 checkPets와 맞춤, 2026-11-08)
+ * 자동 연결은 이름이 같은 구역 모두. 한 아이를 여러 구역에 연결하면 저장할 때 검진기록 1건으로 합친다
+ * (buildSaveEntries, ※신규 정책 2026-11-09)
  */
 export const buildSectionTabs = ({ ocr, pets, todayYmd }) => {
-  const usedPetSns = new Set();
-  const matchedPets = ocr.sections.map((section) => {
-    const pet = findPetBySectionName(section.sectionNm, pets);
-    if (!pet || usedPetSns.has(pet.petSn)) return null;
-    usedPetSns.add(pet.petSn);
-    return pet;
-  });
+  const matchedPets = ocr.sections.map(
+    (section) => findPetBySectionName(section.sectionNm, pets) ?? null,
+  );
   const subtotals = ocr.sections.map((section) =>
     section.sbttlAmt == null
       ? null
@@ -271,6 +268,28 @@ const validateDrug = (drug) => {
   return errors;
 };
 
+/** 저장할 탭을 반려동물별로 묶는다. 줄(탭) 순서 그대로, 「기록 안 함」·미선택은 뺀다 */
+const groupTabsByPet = (tabs) => {
+  const groups = new Map();
+  tabs
+    .filter((tab) => tab.petSn != null && tab.petSn !== SKIP)
+    .forEach((tab) => {
+      if (!groups.has(tab.petSn)) groups.set(tab.petSn, []);
+      groups.get(tab.petSn).push(tab);
+    });
+  return [...groups.values()];
+};
+
+/** 같은 아이 줄을 합칠 때의 검진 내용·메모 (※신규 정책 2026-11-09). 빈 것은 뺀다 */
+const joinTabTexts = (group, key, separator) =>
+  group
+    .map((tab) => tab[key].trim())
+    .filter((text) => text !== '')
+    .join(separator);
+
+const CONTENT_SEPARATOR = ', ';
+const MEMO_SEPARATOR = '\n';
+
 /**
  * 저장 가능 여부와 칸별 안내
  * assignableTabIds: 품목을 배정할 수 있는(반려동물을 고른) 탭
@@ -310,6 +329,33 @@ export const validateReceipt = ({
     if (Object.keys(errors).length > 0) tabErrors[tab.id] = errors;
   });
 
+  /**
+   * 같은 아이 줄끼리 합칠 수 있는지 (※신규 정책 2026-11-09)
+   * - 검진 종류가 첫 줄과 다르면 두 번째 줄부터 막음
+   * - 합친 검진 내용·메모가 최대 길이를 넘으면 그 아이의 줄마다 안내
+   */
+  groupTabsByPet(savedTabs)
+    .filter((group) => group.length >= 2)
+    .forEach((group) => {
+      const baseType = group.find((tab) => tab.ckupTypeCd !== '')?.ckupTypeCd;
+      const isCnTooLong =
+        joinTabTexts(group, 'ckupCn', CONTENT_SEPARATOR).length >
+        MAX_CONTENT_LENGTH;
+      const isMemoTooLong =
+        joinTabTexts(group, 'ckupMemoCn', MEMO_SEPARATOR).length >
+        MAX_MEMO_LENGTH;
+      group.forEach((tab) => {
+        const errors = { ...tabErrors[tab.id] };
+        if (!errors.type && baseType != null && tab.ckupTypeCd !== baseType)
+          errors.type = '같은 아이의 다른 줄과 검진 종류를 맞춰 주세요';
+        if (!errors.cn && isCnTooLong)
+          errors.cn = `합치면 ${MAX_CONTENT_LENGTH}자를 넘어요`;
+        if (!errors.memo && isMemoTooLong)
+          errors.memo = `합치면 ${MAX_MEMO_LENGTH}자를 넘어요`;
+        if (Object.keys(errors).length > 0) tabErrors[tab.id] = errors;
+      });
+    });
+
   const assignableTabIds = new Set(
     tabs
       .filter((tab) => tab.petSn != null && tab.petSn !== SKIP)
@@ -334,22 +380,34 @@ export const validateReceipt = ({
   };
 };
 
-/** 저장 요청의 항목: "저장 안 함" 탭은 뺀다. 가계부에 안 쓸 탭은 ledgerAmt가 null */
+const toSaveDrug = (drug) => ({
+  drugNm: drug.drugNm.trim(),
+  startYmd: drug.startYmd,
+  endYmd: drug.endYmd,
+  perDay: Number(drug.perDay),
+  statusCd: drug.statusCd,
+});
+
+/**
+ * 저장 요청의 항목: 반려동물 1마리 = 1건. "저장 안 함" 탭은 뺀다
+ * 같은 아이를 고른 줄이 여럿이면 합친다(※신규 정책 2026-11-09)
+ * - tabId: 그 아이의 첫 줄(중복 지출·가까운 일정 안내가 이 탭을 가리킴), tabIds: 합친 줄 모두
+ * - 검진 종류는 첫 줄(validateReceipt가 같은지 확인), 검진 내용은 ", ", 메모는 줄바꿈으로 이음
+ * - 약품은 줄 순서대로 모두, 가계부 금액은 가계부에 체크한 줄의 합. 하나도 없으면 ledgerAmt null
+ */
 export const buildSaveEntries = (tabs) =>
-  tabs
-    .filter((tab) => tab.petSn !== SKIP)
-    .map((tab) => ({
-      tabId: tab.id,
-      petSn: tab.petSn,
-      ckupTypeCd: tab.ckupTypeCd,
-      ckupCn: tab.ckupCn.trim(),
-      ckupMemoCn: tab.ckupMemoCn.trim(),
-      drugs: tab.drugs.map((drug) => ({
-        drugNm: drug.drugNm.trim(),
-        startYmd: drug.startYmd,
-        endYmd: drug.endYmd,
-        perDay: Number(drug.perDay),
-        statusCd: drug.statusCd,
-      })),
-      ledgerAmt: getLedgerAmount(tab),
-    }));
+  groupTabsByPet(tabs).map((group) => {
+    const ledgerAmounts = group
+      .map(getLedgerAmount)
+      .filter((amount) => amount != null);
+    return {
+      tabId: group[0].id,
+      tabIds: group.map((tab) => tab.id),
+      petSn: group[0].petSn,
+      ckupTypeCd: group[0].ckupTypeCd,
+      ckupCn: joinTabTexts(group, 'ckupCn', CONTENT_SEPARATOR),
+      ckupMemoCn: joinTabTexts(group, 'ckupMemoCn', MEMO_SEPARATOR),
+      drugs: group.flatMap((tab) => tab.drugs.map(toSaveDrug)),
+      ledgerAmt: ledgerAmounts.length > 0 ? sum(ledgerAmounts) : null,
+    };
+  });

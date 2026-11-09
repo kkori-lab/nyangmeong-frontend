@@ -2,14 +2,27 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · 반려동물 바로가기 API 연결 — 끝(2026-11-09). 메인 바로가기 조회·저장을 실제 `GET·PUT /api/pets/main-shortcuts`로 바꾸고 코드를 `MANC0008`·`MANC0009`·`MANC0010`으로 맞췄다. 저장한 적 없는 반려동물의 기본값은 서버가 준다
+SCR-AIM-012 대화창 · 확인 카드 후속 정리 — 끝(2026-11-09). 케어 항목 등록 뒤 바로가기가 [케어리스트에서 보기 →]로 케어리스트 탭(`#hlt003-care`)을 열고, 숨은 칸에 달린 조건부 칸(주기(일))도 숨고 Java 요청에서 빠진다(`actionForm.js` `isFieldOff` 재귀)
 
 ## 다음에 할 것
 
-- SCR-AIM 대화창 확인 카드(ACTION) 연결(AI 세션이 2026-11-09 계약 전달, 정본은 AI 저장소 `docs/api/chat.md`의 `/messages`·`/action-result` 행과 `ActionCard`·`ActionResultRequest`·`MessageSendRequest.action`): SSE `done.action` 카드를 `params`·`rules`·`missing`·`petChoices`로 폼으로 그리고, [확인]은 `call`로 Java API를 부른 뒤 `/action-result`에 `{tool, status, input}`을 저장한다. 도구는 단순 등록 3개(케어 완료·건강 일지·월 지출 한도)와 수정 4개(일정·케어 항목·지출·반려동물). 기존 등록 카드(`done.card`·`register-result`)와 섞지 않는다. 수정 카드분은 AI 저장소 `LJS` 브랜치에만 있고 develop 병합 전. 프론트에서 `/start`로 기획한다
+- SCR-AIM-011 새 방 펫 태그가 메시지의 반려동물과 다름(사람 2026-11-09, 다음 작업에서 고친다): 메인에서 칩이 취두부일 때 "까미 1주마다 귀청소 반복으로 등록해줘"라고 하면 방 태그는 취두부, 카드는 까미. 새 방 태그는 사이드바 칩으로 정한다(`features/ai/api.js` `createConversation`, `useAnswerStream.js`). 메시지에 나온 반려동물로 정하려면 AI 서버가 고른 반려동물을 알려 줘야 할 수 있음 — AI 세션과 정할 일
+- SCR-AIM-012 일정·케어 항목 확인 카드 남은 것(2026-11-09): ① 일정 출처 `schdlSrcCd`를 안 보내 Java 기본값 HLTC0065(직접 등록)로 저장된다. 명세 FN-AIM-012-13은 "AI 생성"(HLTG22). Java 요청은 `schdlSrcCd`를 받으므로 AI 서버가 카드 `call`에 넣을 일 — AI 세션에 알림 ④ 결과 줄 요약이 카드 값과 겹친다(사람 "일단 놔둬봐"). ②·③은 끝(확인 카드 후속 정리)
+- SCR-AIM-012 확인 카드 후속 정리 알림(2026-11-09): 문서 담당에게 FN-AIM-012-15 케어 항목 바로가기 글자가 "케어리스트에서 보기"로 바뀌었다고 알림(일정은 "케어 캘린더에서 보기" 그대로)
+- SCR-AIM-012 확인 카드 후속 정리 검증 데이터 정리(2026-11-09, 8081 DB·tester 계정): 까미(petSn 1) 케어 항목 "귀 청소 검증"(케어리스트), 일정 "미용 예약" 2026-11-20 15:00(캘린더), AI 대화 323·324(AI 창 [삭제])
+- SCR-AIM-012 일정·케어 항목 확인 카드 알림(2026-11-09): JAJ에게 `features/health/scheduleTypes.js`의 `BADGE_COLORS`·`TONE_CLASSES`를 `src/constants/calendarBadge.js`로 옮기고 다시 내보낸다고 알림(PR 본문에도). 문서 담당: FN-AIM-012-05(빈 칸이면 되물음 글)·버튼 [등록]이 ④ 확인 카드(빈 칸은 카드 `missing`, 버튼 [확인])와 다름. AI 세션: 프론트가 옛 등록 카드를 지웠으니 `register-result`·`done.card`·`draft` 이어 쓰기를 지워도 됨
+- SCR-AIM-012 일정·케어 항목 확인 카드 검증 데이터 정리(2026-11-09, 8081 DB·tester 계정): 까미(petSn 1) 일정 schdlSn 4946·케어 항목 careArtclSn 3409·3410·AI 대화 318, 취두부(petSn 1004) 일정 4949와 11-19 11:00 정기검진 메이 동물병원·케어 항목 3411·3412·AI 대화 321. 일정은 케어 캘린더, 케어 항목은 케어리스트, 대화는 AI 창 [삭제]
+- SCR-AIM-011 칩 정리 연결 남음(2026-11-09): AI 세션에 알린다 — "열린 방 메시지 요청에 `petSn`을 보내지 않는다, 칩은 대화 목록 필터로만 쓴다(방 태그는 그대로), 확인 카드는 `rules` 조건이 안 맞는 칸을 숨기고 `action.input`·Java 요청에서 뺀다"
+- SCR-AIM-011 칩 정리 검증 데이터 정리(2026-11-09, 8081 DB·tester 계정): 까미(petSn 1) 음수량 기록 2026-11-09 09:10·200, 대화방 312(탄이)·314·315(까미)는 AI 창 [삭제], 방 309 "[검증] 고마워"·"검증: 고마워" 메시지와 답변은 메시지 삭제 API가 없어 DB에서
+- SCR-AIM-002 Markdown 표시 연결 남음: AI 세션에 알림(2026-11-09, PR #288). AI 쪽 `docs/api/chat.md`에 "`cnvrsCn`은 Markdown(GFM)" 기재 대기(AI 세션)
+- SCR-AIM-012 다음 작업(AI develop 병합됨 PR #52, `/start`로 기획): AI 쪽 배열·파일 칸 카드(`draft_expense`·`draft_observation_cycle`, `params`의 `array`·`items`·`minItems`·`generated`, `file`, `call.contentType`, `missing`의 `lines[0].expndAmt` 꼴)가 develop에 병합되면 `/start`로 기획한다. 지금 카드는 배열 칸을 숨겨서 이 카드가 오면 [확인]이 영영 꺼진다
+- AI 대화창 버그(사람 2026-11-09 제보, 원인만 봄): 새 대화 첫 메시지에서 첫 글자 전 오류(`error`)나 스트림 전 오류(`failed`)가 나면 `useAnswerStream.js` `catch`가 `refresh()`를 부르지 않아, 서버에 만든 방이 왼쪽 목록에 안 나와 다른 대화로 옮기면 지워진 것처럼 보인다. `catch`에서도 목록·상세를 무효화하면 된다. 사람이 고칠지 아직 안 정함
+- SCR-AIM-012 확인 카드 사람이 볼 것(검증 판정 밖, 2026-11-09): ① `useActionCards.js` `SERVER_FAILURE_CODES`가 `SERVER_ERROR`·`NETWORK_ERROR`·`INTERNAL_SERVER_ERROR`만 봐서 502(`EXTERNAL_API_ERROR` 등)·403·404·409는 `FAILED`로 저장되지 않고 카드가 오류 문구로 남는다 ② 칸 오류가 난 카드를 [취소]해도 칸 밑 오류가 남는다(`ActionCard.jsx`가 `fieldErrors`에 `isPending`을 안 봄) ③ 조건부 칸(건강 일지 '상태')을 고른 뒤 지표를 바꿔도 그 값이 input에 남아 저장 요청에 실린다 ④ 케어 완료 카드는 칸이 `petSn`·`careArtclSn`뿐이라 항목 이름을 못 보인다 ⑤ 처리 안 한 카드는 새로고침하면 사라져 답 없는 질문만 남는다(명세·계약대로) ⑥ "산책 30분 기록해줘"는 LLM이 건강 일지·케어 완료·케어 항목 중 다르게 고를 수 있다
+- SCR-AIM-012 확인 카드 검증 데이터 정리(2026-11-09): 8081 DB 까미(petSn 1) 체중 기록 2026-11-09 09:30 4.5(`dailyHlthRcdSn` 55444)와 1회차의 09:00 4.5, 검증 대화 "까미 체중 4.2 기록해줘"(2개)·"까미 산책 30분 기록해줘"를 지운다
+
 - SCR-MAN-001 정리(2026-11-09): tester 계정의 까미(petSn 1) 바로가기가 비어 있다(검증 시작 때부터, 원인 모름). 처음 상태로 두려면 `/main` [바로가기 추가] → 까미 → 종합 건강기록
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09 푸터·AI 버튼): ① 모바일 dock 접기는 검증에서 터치 이벤트로만 확인(Playwright 마우스 드래그로는 안 접힘, `useAiDock.js`는 안 바뀜) ② `/community` 한 화면에서 `character-image?part=face` 요청이 수백 건 보였다(AI 버튼은 `part=full`만 부름, 원인 미확인) ③ 메인 바로가기 얼굴이 반려동물 1·2·14에서 404(기존 동작, 아이콘으로 대체) ④ 전신 이미지 오른쪽 투명 여백 14px는 서버 문서의 캐릭터 위치(512 중 x 96~416) 기준이라 캐릭터마다 조금 다를 수 있다 ⑤ PR 캡처는 `.playwright-mcp/pr/LJS-20261109-SCR-MAN-001-after-*`·`-community-after-*`(`-ai-face-after-*`는 얼굴 버전이라 쓰지 않음)
-- SCR-MAN-001 연결 남음(2026-11-09): A3 사진+글 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 연결, AI 서버 저장소에서 /start). 나오면 `features/ai/api.js`의 가짜 `judgeImageIntent`만 실제 요청으로 바꾼다. 가계부 바로 등록은 SJM `features/expense`와 맞춘다
+- SCR-MAN-001 연결 남음(2026-11-09, AI develop에 첨부 사진 용도 판단 API 병합됨 PR #53): A3 사진+글 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 연결, AI 서버 저장소에서 /start). 나오면 `features/ai/api.js`의 가짜 `judgeImageIntent`만 실제 요청으로 바꾼다. 가계부 바로 등록은 SJM `features/expense`와 맞춘다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09): ① 대화창 `ChatInput`의 첨부 미리보기도 메인처럼 썸네일만 크게 할지 ② 반려동물 칩 단계(대표 없는 여러 마리 계정)는 화면으로 못 봄 ③ 검증 대화방이 tester 계정에 남음(AI 창 [삭제])
 - ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에"): `features/health/CareItemMenu.jsx`·`features/expense/shared/ExpenseMenu.jsx`·`features/dashboard/MainShortcuts.jsx`의 `ShortcutMenu`가 같은 ⋮ 메뉴를 따로 갖고 있다. `components/KebabMenu.jsx`로 올리고 앞의 둘은 껍데기로 두면 쓰는 4개 파일은 안 바뀐다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-08): ① 영수증 인식 뒤 건강일지 주소에 `?recptSn=`이 남는다(`HealthDiaryPage.jsx`, JAJ, 가짜 응답에서 봄) ② 메인이 더는 `GET·PUT /members/me/dashboard-widgets`·`GET /pets/{petSn}/health-indicators`를 부르지 않는다(백엔드 정리는 담당과 상의) ③ `src/assets/index.css`의 `man-float` keyframes를 쓰는 곳이 없다 ④ `docs/routes.md` MAN-001 담당이 YAY로 남아 있다 ⑤ PR 캡처는 가짜 반려동물이 찍혀 실제 계정으로 다시 찍는 편이 낫다 ⑥ AI 건강분석 리포트 카드 행선지는 JAJ 건강기록 개편 공유 뒤

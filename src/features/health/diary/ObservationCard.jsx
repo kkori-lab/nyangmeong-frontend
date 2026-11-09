@@ -76,14 +76,14 @@ export default function ObservationCard({
   const foundIndex = cycles
     ? cycles.findIndex((cycle) => cycle.obsrvCyclSn === selection.obsrvCyclSn)
     : -1;
-  /** 사진 원본 창에서 보는 회차의 순번. PC는 앞뒤로 넘기고 [이 회차 선택]으로 고름 (추가 요청) */
+  /** 사진 원본 창에서 보는 회차의 순번. PC·모바일 모두 앞뒤로 넘기고 [이 회차 선택]으로 고름 (추가 요청) */
   const photoIndex =
     photoTarget && cycles
       ? cycles.findIndex(
           (cycle) => cycle.obsrvCyclSn === photoTarget.obsrvCyclSn,
         )
       : -1;
-  const canPagePhoto = isPc && photoIndex >= 0;
+  const canPagePhoto = photoIndex >= 0;
   /** 고른 회차가 없으면 최신 회차 */
   const selectedIndex =
     foundIndex >= 0 ? foundIndex : (cycles?.length ?? 1) - 1;
@@ -241,7 +241,7 @@ export default function ObservationCard({
           onClose={() => setPhotoTarget(null)}
           footer={
             <>
-              {/* PC는 넘겨 본 회차를 선택 회차로 고를 수 있음 (추가 요청) */}
+              {/* 넘겨 본 회차를 선택 회차로 고를 수 있음 (추가 요청) */}
               {canPagePhoto && (
                 <button
                   type="button"

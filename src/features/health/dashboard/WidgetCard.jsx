@@ -27,10 +27,12 @@ import {
   getFunctionTagName,
 } from '../summary/summaryUtils';
 import DashboardCard from './DashboardCard';
+import WidgetTile from './WidgetTile';
+import { MOBILE_HIDDEN_IDS } from './widgetItems';
 
 /**
  * [대시보드 고른 항목 카드] (※신규 정책)
- * - 항목마다 본문 { period, title?, body } 계산. 기록이 없으면 null(빈 상태)
+ * - 항목마다 본문 { period, body, tile } 계산. 기록이 없으면 null(빈 상태). tile은 640px 미만 요약 타일 값
  * - 문구·배치는 프로토타입 원문, 값은 실제 API
  */
 
@@ -44,6 +46,20 @@ const DAILY_SUM = {
   meal: { key: 'meal', unit: 'g', chartName: '식사량' },
   water: { key: 'water', unit: 'ml', chartName: '음수량' },
   walk: { key: 'walk', unit: '분', chartName: '산책 시간' },
+};
+
+/** 소수 첫째 자리 반올림 */
+const round1 = (value) => Math.round(value * 10) / 10;
+
+/** 타일 증감 칩 */
+const deltaChip = (delta, unit) => {
+  if (delta == null) return null;
+  const amount = Math.abs(round1(delta));
+  if (amount === 0) return { tone: 'gray', text: '변화 없음' };
+  return {
+    tone: 'gray',
+    text: `${delta > 0 ? '증가' : '감소'} ${amount}${unit}`,
+  };
 };
 
 /** 케어리스트 카드 최대 줄 수 */
@@ -145,7 +161,15 @@ const weightBody = ({ indicators }) => {
   if (!weight) return null;
   const values = weight.points.map((point) => toNumber(point.rcdNvl));
   const labels = weight.points.map((point) => formatMonthDayDot(point.rcdDt));
+  const prevPoint = weight.points[weight.points.length - 2];
   return {
+    tile: {
+      value: `${toNumber(weight.latestNvl)}kg`,
+      chip: deltaChip(toNumber(weight.prevDiff), 'kg'),
+      sub: prevPoint
+        ? `${formatMonthDayDot(prevPoint.rcdDt)} 기록 대비`
+        : '최근 기록',
+    },
     period: '최근 5건',
     body: (
       <>
@@ -182,7 +206,16 @@ const dailySumBody =
     const labels = indicator.points.map((point) =>
       formatMonthDayDot(point.rcdYmd),
     );
+    const sums = values.filter((value) => value != null);
     return {
+      tile: {
+        value: todaySum == null ? '오늘 기록 없음' : `${todaySum}${unit}`,
+        chip: deltaChip(toNumber(indicator.prevDiff), unit),
+        sub:
+          sums.length > 0
+            ? `최근 5일 평균 ${round1(sums.reduce((a, b) => a + b, 0) / sums.length)}${unit}`
+            : '',
+      },
       period: '최근 5일',
       body: (
         <>
@@ -366,7 +399,12 @@ function AttachmentRows({ petSn, attachments }) {
 
 const attachmentBody = ({ summary, petSn }) => {
   if (summary.attachments.length === 0) return null;
+  const latest = summary.attachments[0];
   return {
+    tile: {
+      value: latest.orgnlFileNm,
+      sub: formatDate(getYmdOf(latest.regDt)),
+    },
     period: '최근 4건',
     body: <AttachmentRows petSn={petSn} attachments={summary.attachments} />,
   };
@@ -383,14 +421,13 @@ const stoolBody = ({ stools }) => {
   const max = Math.max(1, ...counts.map((state) => state.count));
   const latestName =
     STOOL_STATES.find((state) => state.cd === latest.crsdSttsCd)?.nm ?? '-';
+  const latestTime = `${latestYmd === getTodayYmd() ? '오늘' : formatMonthDayDot(latestYmd)} ${getHmOf(latest.rcdDt)}`;
   return {
+    tile: { value: latestName, sub: latestTime },
     period: `최근 ${stools.length}개 기록`,
     body: (
       <>
-        <BigValue
-          value={latestName}
-          unit={`${latestYmd === getTodayYmd() ? '오늘' : formatMonthDayDot(latestYmd)} ${getHmOf(latest.rcdDt)}`}
-        />
+        <BigValue value={latestName} unit={latestTime} />
         <ul
           aria-label="배변 상태별 횟수"
           className="mt-auto grid grid-cols-5 gap-2 pt-4 text-center"
@@ -452,6 +489,7 @@ const prescriptionBody = ({ summary }) => {
   /** [더보기]: 맨 위 처방의 검진상세 처방약 탭. 검진기록 번호가 없으면 item.moveTo(건강 일지 검진기록 탭) */
   const top = prescriptions[0];
   return {
+    tile: { value: top.mdcnNm, sub: `복용 중 ${summary.dosingCount}건` },
     moveTo:
       top.ckupRcdSn != null
         ? getCheckupDetailPath(top, 'prescription')
@@ -510,6 +548,18 @@ function ObservationFigure({ petSn, label, cycle, cycleNo, diffText }) {
   );
 }
 
+/** 관찰 타일 칩: 첫 회차 대비 크기, 크기가 없으면 변화 단계 */
+const observationChip = (hasCompare, sizeDiff, obsrvChgCdNm) => {
+  if (!hasCompare) return null;
+  if (sizeDiff == null)
+    return obsrvChgCdNm ? { tone: 'gray', text: obsrvChgCdNm } : null;
+  const amount = Math.abs(round1(sizeDiff));
+  if (!formatDiff(sizeDiff)) return { tone: 'gray', text: '변화 없음' };
+  return sizeDiff < 0
+    ? { tone: 'green', text: `▼ ${amount}mm 작아짐` }
+    : { tone: 'rose', text: `▲ ${amount}mm 커짐` };
+};
+
 const observationBody = ({ summary, petSn }) => {
   const item = summary.observations[0];
   if (!item) return null;
@@ -531,6 +581,13 @@ const observationBody = ({ summary, petSn }) => {
         ? `${days}일 동안 ${Math.abs(Math.round(sizeDiff * 10) / 10)}mm ${sizeDiff > 0 ? '커짐' : '작아짐'}`
         : `${days}일 동안 변화 없음`;
   return {
+    tile: {
+      value: `관찰중 ${summary.observations.length}건`,
+      chip: observationChip(hasCompare, sizeDiff, last.obsrvChgCdNm),
+      sub: hasCompare
+        ? `${item.obsrvArtclNm} · ${days}일 동안`
+        : item.obsrvArtclNm,
+    },
     period: `관찰중 ${summary.observations.length}건`,
     body: (
       <>
@@ -564,6 +621,9 @@ const allergyBody = ({ summary }) => {
   const { algyCn, dssCn } = summary.pet;
   if (!algyCn?.trim() && !dssCn?.trim()) return null;
   return {
+    tile: algyCn?.trim()
+      ? { value: algyCn.trim(), sub: `기저질환 ${dssCn?.trim() || '없음'}` }
+      : { value: dssCn.trim(), sub: '알레르기 없음' },
     period: '진료 시 반드시 확인',
     body: (
       <>
@@ -596,7 +656,14 @@ const preventionBody = ({ summary }) => {
     ]
       .filter(Boolean)
       .join(' ');
+  const tileYmd = latestVaccination?.ckupYmd ?? nextVaccinationYmd;
   return {
+    tile: {
+      value: tileYmd ? formatDate(tileYmd) : '접종 기록 없음',
+      sub: nextVaccinationYmd
+        ? `다음 접종 ${formatMonthDayDot(nextVaccinationYmd)} 예정`
+        : '예정 없음',
+    },
     period: '예방 · 정기검진',
     body: (
       <Rows>
@@ -646,7 +713,14 @@ const careBody = ({ care }) => {
             record.careArtclSn === item.careArtclSn &&
             record.cmptnYmd === todayYmd,
         );
+  const leftItems = dailyItems.filter((item) => !isDoneToday(item));
   return {
+    tile: {
+      value: leftItems.length > 0 ? `${leftItems.length}개 남음` : '모두 완료',
+      chip:
+        leftItems.length > 0 ? { tone: 'amber', text: '오늘 미완료' } : null,
+      sub: leftItems[0]?.careArtclNm ?? '',
+    },
     body: (
       <Rows>
         {dailyItems.slice(0, CARE_ROW_COUNT).map((item) => {
@@ -685,14 +759,26 @@ const WIDGET_BODIES = {
   care: careBody,
 };
 
-/** 고른 항목 카드 한 장: 기록이 있으면 본문, 없으면 빈 상태 */
+/** 고른 항목 카드 한 장(640px 이상)과 요약 타일(640px 미만) */
 export default function WidgetCard({ item, sources }) {
+  const content = WIDGET_BODIES[item.id](sources);
   return (
-    <DashboardCard
-      item={item}
-      content={WIDGET_BODIES[item.id](sources)}
-      petSn={sources.petSn}
-      petNm={sources.petNm}
-    />
+    <>
+      <DashboardCard
+        item={item}
+        content={content}
+        petSn={sources.petSn}
+        petNm={sources.petNm}
+        className="max-sm:hidden"
+      />
+      {!MOBILE_HIDDEN_IDS.includes(item.id) && (
+        <WidgetTile
+          item={item}
+          content={content}
+          petSn={sources.petSn}
+          petNm={sources.petNm}
+        />
+      )}
+    </>
   );
 }
