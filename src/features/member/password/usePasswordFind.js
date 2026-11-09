@@ -25,6 +25,8 @@ export default function usePasswordFind(onVerified) {
   const [expiresAt, setExpiresAt] = useState(0);
   const [emlCertSn, setEmlCertSn] = useState(null);
   const [snsOffrCds, setSnsOffrCds] = useState([]);
+  // 인증번호를 서버 한도까지 틀리면 재발송 전까지 [인증번호 확인]을 막는다
+  const [isCodeLocked, setIsCodeLocked] = useState(false);
   const send = useSendRecoveryCode();
   const verify = useVerifyRecoveryCode();
   const invalidate = useInvalidateRecoveryCode();
@@ -37,7 +39,8 @@ export default function usePasswordFind(onVerified) {
 
   const changeCode = (value) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
-    setErrors({});
+    // 확인이 막힌 동안에는 재발송 안내를 남긴다
+    if (!isCodeLocked) setErrors({});
   };
 
   // 재전송 제한이면 서버 문구에 남은 시간을 붙인다
@@ -73,6 +76,7 @@ export default function usePasswordFind(onVerified) {
           setErrors({});
           setNotice(null);
           setIsSent(true);
+          setIsCodeLocked(false);
           setStep('code');
         },
         onError: handleSendError,
@@ -106,6 +110,7 @@ export default function usePasswordFind(onVerified) {
     setErrors({});
     setNotice(null);
     setIsSent(false);
+    setIsCodeLocked(false);
     setExpiresAt(0);
   };
 
@@ -144,6 +149,9 @@ export default function usePasswordFind(onVerified) {
         if (key && !next[key]) next[key] = message;
       });
       setErrors(next);
+    } else if (error.code === 'EMAIL_CERT_FAIL_LIMIT_EXCEEDED') {
+      setIsCodeLocked(true);
+      setErrors({ code: error.message });
     } else if (error.code.startsWith('EMAIL_CERT_')) {
       setErrors({ code: error.message });
     } else {
@@ -153,6 +161,7 @@ export default function usePasswordFind(onVerified) {
 
   const submitCode = (event) => {
     event.preventDefault();
+    if (isCodeLocked) return;
     if (!code) {
       setErrors({ code: MSG.codeEmpty });
       return;
@@ -186,6 +195,7 @@ export default function usePasswordFind(onVerified) {
     snsOffrCds,
     countdown,
     isPending: send.isPending || verify.isPending,
+    isCodeLocked,
     guideTarget,
     changeEmail,
     changeCode,
