@@ -93,11 +93,14 @@ export default function AuthField({
           Caps Lock이 켜져 있습니다.
         </p>
       )}
+      {/* AI 안내가 붙으면 같은 문구가 두 번 보이지 않게 말풍선만 보인다. 말풍선은 aria-hidden이라 이 문구를 화면 읽기용으로 남긴다 */}
       {error && (
         <p
           id={`${id}-error`}
           role="alert"
-          className="mt-2 text-sm leading-5 text-danger"
+          className={
+            hasGuide ? 'sr-only' : 'mt-2 text-sm leading-5 text-danger'
+          }
         >
           {error}
         </p>
