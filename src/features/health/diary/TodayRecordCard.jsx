@@ -1,16 +1,16 @@
+import { useState } from 'react';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import { formatDate, getHmOf, getYmdOf } from '@/utils/formatDate';
 import {
-  MEAL,
   STOOL,
   TODAY_RECORD_ORDER,
-  WALK,
-  WATER,
+  TYPE_ICONS,
   WEIGHT,
   findRecordType,
 } from '../diaryTypes';
+import DayRecordEditModal from './DayRecordEditModal';
 import { formatAmount, formatRecordValue, summarizeType } from './recordUtils';
 
 /** 줄에 나열하는 개별 값 최대 수 */
@@ -21,9 +21,12 @@ const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
 /**
  * [오늘의 기록 카드]
  * - 종류별 한 줄: 종류·횟수 | 합계(체중·배변상태는 최신 값), 아래 줄에 개별 값 (FN-HLT-002-12)
- * - 시간별 상세·수정·삭제는 최근 건강기록 오늘 행에서 처리
+ * - 맨 밑 [오늘 기록 수정하기]: 오늘 기록 수정 모달(최근 건강기록 날짜 행과 같은 모달). 오늘 기록이 없으면 숨김 (※신규 정책)
+ * - 버튼이 있을 때 종류 줄 위아래·본문 아래 여백을 줄여 카드 높이를 버튼이 없던 때와 같게 둔다.
+ *   버튼 줄이 카드 폭 전체를 쓰도록 본문 좌우 여백은 목록(ul)으로 옮기고(Card 본문과 같은 18·22px), 카드 overflow-hidden으로 아래 모서리를 카드 둥글기에 맞춘다
  */
 export default function TodayRecordCard({
+  petSn,
   records,
   todayYmd,
   isFormOpen,
@@ -32,6 +35,8 @@ export default function TodayRecordCard({
   const todayRecords = records.filter(
     (record) => getYmdOf(record.rcdDt) === todayYmd,
   );
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const hasRecords = todayRecords.length > 0;
 
   return (
     <Card
@@ -41,8 +46,8 @@ export default function TodayRecordCard({
           {formatDate(todayYmd, { weekday: true })}
         </span>
       }
-      className="min-w-0"
-      bodyClassName="pt-2!"
+      className={hasRecords ? 'min-w-0 overflow-hidden' : 'min-w-0'}
+      bodyClassName={hasRecords ? 'pt-2! px-0! pb-0!' : 'pt-2!'}
       action={
         <button
           type="button"
@@ -55,29 +60,43 @@ export default function TodayRecordCard({
         </button>
       }
     >
-      <ul className="flex flex-col">
+      <ul className={`flex flex-col ${hasRecords ? 'px-4.5 sm:px-5.5' : ''}`}>
         {TODAY_RECORD_ORDER.map((typeCd) => (
           <TodayRow
             key={typeCd}
             typeCd={typeCd}
             summary={summarizeType(todayRecords, typeCd)}
+            isCompact={hasRecords}
           />
         ))}
       </ul>
+
+      {hasRecords && (
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          className="flex h-11 w-full items-center justify-center gap-1 border-t border-line text-sm font-semibold text-brand-600 hover:bg-surface-2"
+          onClick={() => setIsEditOpen(true)}
+        >
+          <Icon name="edit" className="text-lg text-brand-600" />
+          오늘 기록 수정하기
+        </button>
+      )}
+
+      {isEditOpen && hasRecords && (
+        <DayRecordEditModal
+          petSn={petSn}
+          ymd={todayYmd}
+          isToday
+          dayRecords={todayRecords}
+          onClose={() => setIsEditOpen(false)}
+        />
+      )}
     </Card>
   );
 }
 
-/** 종류를 구별하는 Material Symbols 아이콘 이름 */
-const TYPE_ICONS = {
-  [WEIGHT]: 'monitor_weight',
-  [MEAL]: 'restaurant',
-  [WATER]: 'water_drop',
-  [STOOL]: 'wc',
-  [WALK]: 'directions_walk',
-};
-
-function TodayRow({ typeCd, summary }) {
+function TodayRow({ typeCd, summary, isCompact }) {
   const type = findRecordType(typeCd);
   const isLatestOnly = LATEST_ONLY_TYPES.includes(typeCd);
   const { items, count, sum, latest } = summary;
@@ -86,7 +105,9 @@ function TodayRow({ typeCd, summary }) {
     isLatestOnly ? formatRecordValue(latest) : formatAmount(typeCd, sum);
 
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 border-b border-line-soft py-3 last:border-b-0">
+    <li
+      className={`grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 border-b border-line-soft last:border-b-0 ${isCompact ? 'py-2.5' : 'py-3'}`}
+    >
       <p className="flex items-baseline gap-2 text-ink">
         <Icon name={TYPE_ICONS[typeCd]} className="self-center text-muted" />
         {type.nm}
