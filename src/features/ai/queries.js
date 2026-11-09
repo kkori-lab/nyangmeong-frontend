@@ -7,6 +7,7 @@ import {
   getChatReceiptResult,
   getConversation,
   getConversations,
+  judgeImageIntent,
   recognizeCheckupReceipt,
   saveReceiptResult,
 } from './api';
@@ -79,6 +80,10 @@ export const useCancelRegister = () => useRegisterAnswer(cancelRegister);
 /** 검진 영수증 인식 */
 export const useRecognizeCheckupReceipt = () =>
   useMutation({ mutationFn: recognizeCheckupReceipt });
+
+/** 첨부 사진+글의 의도 판단 (가짜) */
+export const useJudgeImageIntent = () =>
+  useMutation({ mutationFn: judgeImageIntent });
 
 /** 대화창 영수증 분석 */
 export const useAnalyzeChatReceipt = () =>

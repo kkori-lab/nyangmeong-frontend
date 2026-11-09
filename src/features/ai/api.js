@@ -219,3 +219,32 @@ export const saveReceiptResult = async ({
  */
 export const getChatReceiptResult = ({ recptSn, petSn }) =>
   api.get(`/receipts/${recptSn}`, { params: { petSn } });
+
+/** 대화창에 첨부한 사진의 종류 */
+export const IMAGE_KIND = {
+  CHARACTER: 'CHARACTER',
+  MEDICAL_RECEIPT: 'MEDICAL_RECEIPT',
+  EXPENSE_RECEIPT: 'EXPENSE_RECEIPT',
+  ASK: 'ASK',
+};
+
+/** 가짜 판단의 낱말: 앞의 것부터 맞춰 본다 */
+const IMAGE_KIND_WORDS = [
+  [IMAGE_KIND.CHARACTER, ['캐릭터']],
+  [IMAGE_KIND.MEDICAL_RECEIPT, ['진료', '병원', '검진']],
+  [IMAGE_KIND.EXPENSE_RECEIPT, ['가계부', '지출', '사료', '용품']],
+];
+
+/**
+ * 첨부 사진+글의 의도 판단 (AI 서버 연결 전 가짜): { kind }
+ * - 사진은 보지 않고 함께 보낸 글의 낱말로만 고른다, 모르면 ASK
+ * - AI 연결 때 이 함수만 실제 요청으로 바꾼다(file·cnvrsCn·petSn을 보냄)
+ */
+export const judgeImageIntent = async ({ cnvrsCn }) => {
+  await wait(400);
+  const text = cnvrsCn ?? '';
+  const matched = IMAGE_KIND_WORDS.find(([, words]) =>
+    words.some((word) => text.includes(word)),
+  );
+  return { kind: matched?.[0] ?? IMAGE_KIND.ASK };
+};
