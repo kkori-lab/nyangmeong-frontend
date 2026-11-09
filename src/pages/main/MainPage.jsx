@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Skeleton from '@/components/Skeleton';
 import ReceiptUploadModal from '@/features/ai/receipt/ReceiptUploadModal';
+import { pickGreeting } from '@/features/dashboard/greeting';
 import HeroAsk from '@/features/dashboard/HeroAsk';
 import MainShortcuts from '@/features/dashboard/MainShortcuts';
 import { useMyPets } from '@/features/health/queries';
 import { PATHS } from '@/routes/paths';
-import { pickJosa } from '@/utils/josa';
 
 /**
  * [메인페이지 SCR-MAN-001] 구글 시작 화면형(팀 회의 2026-11-08 개편)
@@ -23,6 +23,8 @@ export default function MainPage() {
     pets?.find((pet) => pet.rprsPetYn) ?? pets?.[0] ?? null;
   const navigate = useNavigate();
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  /** 인사말 시간대는 들어온 시각으로 한 번 정한다(머무는 동안 다시 그려도 그대로) */
+  const [enteredAt] = useState(() => new Date());
 
   /** 반려동물이 없으면 영수증을 연결할 곳이 없어 등록으로 보낸다 */
   const handleReceipt = () => {
@@ -54,15 +56,13 @@ export default function MainPage() {
         <>
           <h1
             id="main-title"
-            className="flex items-center gap-2 text-[26px] leading-[1.35] font-bold tracking-[-0.02em] text-ink max-[760px]:text-xl"
+            className="flex items-center gap-2 text-[28px] leading-[36px] font-bold tracking-[-0.03em] text-ink max-[760px]:text-xl max-[760px]:leading-[28px]"
           >
             <Sparkles
               className="size-6 shrink-0 text-brand-500"
               aria-hidden="true"
             />
-            {representativePet
-              ? `오늘 ${representativePet.petNm}${pickJosa(representativePet.petNm, '은/는')} 어땠나요?`
-              : '오늘 하루는 어땠나요?'}
+            {pickGreeting(enteredAt, representativePet?.petNm)}
           </h1>
           <HeroAsk
             petNm={representativePet?.petNm ?? '우리 아이'}
