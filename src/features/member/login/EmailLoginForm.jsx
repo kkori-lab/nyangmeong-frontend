@@ -18,7 +18,7 @@ export default function EmailLoginForm({ onBack, onSuccess, onSignup }) {
     <AuthCard onBack={onBack}>
       <AuthHeading
         title="이메일로 로그인하기"
-        subtitle="이메일 아이디와 비밀번호를 입력하세요."
+        subtitle="이메일 아이디와 비밀번호를 입력해 주세요."
         spacing="wide"
       />
       {form.notice && (
@@ -36,7 +36,7 @@ export default function EmailLoginForm({ onBack, onSuccess, onSignup }) {
           value={form.email}
           onChange={form.changeEmail}
           onBlur={form.blurEmail}
-          placeholder="이메일 주소를 입력하세요"
+          placeholder="이메일 주소 입력"
           autoComplete="username"
           inputMode="email"
           error={form.errors.email}

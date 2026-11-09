@@ -56,7 +56,7 @@ export default function CaptchaBlock({
           id="login-captcha"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="영문 대문자와 숫자 6글자"
+          placeholder="영문·숫자 6글자 입력"
           maxLength={6}
           autoComplete="off"
           aria-required="true"
