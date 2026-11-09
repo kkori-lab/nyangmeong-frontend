@@ -2,10 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · 검색창 이미지 첨부 → AI 대화창 의도 판단 — 끝(2026-11-09). 메인 검색창 음성 버튼 삭제·왼쪽 `+` 사진 첨부(썸네일은 검색창 안, 추가-1), 사진을 BroadcastChannel로 AI 창에 넘기고, 대화창이 사진+글로 종류를 판단(가짜)해 진료 영수증 분석·캐릭터 만들기·가계부 안내로 잇는다. 모르면 종류 칩. 대화창 `+`도 같은 판단
+SCR-MAN-001 메인페이지 · 푸터·TOP 버튼 없애고 스크롤 막기, AI 버튼 캐릭터 — 끝(2026-11-09). `/main`은 푸터·[TOP] 없이 화면 높이에 맞춰 스크롤하지 않고 맨 아래 픽셀 띠만 둔다(PC는 가운데 묶음 100px 위, 검색창 그림자 없음). 다른 화면 AI 버튼은 틀 없이 대표 반려동물 전신 캐릭터(PC 96·모바일 72, 모바일 dock 유지), 없으면 틀 안 `Bot`
 
 ## 다음에 할 것
 
+- SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09 푸터·AI 버튼): ① 모바일 dock 접기는 검증에서 터치 이벤트로만 확인(Playwright 마우스 드래그로는 안 접힘, `useAiDock.js`는 안 바뀜) ② `/community` 한 화면에서 `character-image?part=face` 요청이 수백 건 보였다(AI 버튼은 `part=full`만 부름, 원인 미확인) ③ 메인 바로가기 얼굴이 반려동물 1·2·14에서 404(기존 동작, 아이콘으로 대체) ④ 전신 이미지 오른쪽 투명 여백 14px는 서버 문서의 캐릭터 위치(512 중 x 96~416) 기준이라 캐릭터마다 조금 다를 수 있다 ⑤ PR 캡처는 `.playwright-mcp/pr/LJS-20261109-SCR-MAN-001-after-*`·`-community-after-*`(`-ai-face-after-*`는 얼굴 버전이라 쓰지 않음)
+- SCR-COM-007·SCR-AIM-011 모바일 AI 매니저를 모달로(사람 결정 2026-11-09 "펫돌봄 채팅이랑 동일하게"): 모바일에서 플로팅 AI·메인 검색창이 새 탭 대신 채팅 모달(`layouts/ChatModal.jsx`, 760px 이하 헤더 아래 전체 화면)처럼 연다. `pages/ai/AiChatPage.jsx`(691줄) 본문을 모달·새 창이 같이 쓰는 판으로 나누고, 사진 넘기기(`useAiWindow` BroadcastChannel)와 `features/ai/chat/openInMainWindow.js`(본창 이동·창 닫기)를 모달용으로 맞춘다. 명세 FN-COM-007-01·FN-AIM-011-01 "새 창(탭)·모달 아님"과 달라 문서 담당에 알린다. 정할 것: PC는 새 창 그대로인지, 모달에 [새 창으로 띄우기]를 둘지
 - SCR-MAN-001 연결 남음(2026-11-09): A3 사진+글 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 연결, AI 서버 저장소에서 /start). 나오면 `features/ai/api.js`의 가짜 `judgeImageIntent`만 실제 요청으로 바꾼다. 가계부 바로 등록은 SJM `features/expense`와 맞춘다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09): ① 대화창 `ChatInput`의 첨부 미리보기도 메인처럼 썸네일만 크게 할지 ② 반려동물 칩 단계(대표 없는 여러 마리 계정)는 화면으로 못 봄 ③ 검증 대화방이 tester 계정에 남음(AI 창 [삭제])
 - ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에"): `features/health/CareItemMenu.jsx`·`features/expense/shared/ExpenseMenu.jsx`·`features/dashboard/MainShortcuts.jsx`의 `ShortcutMenu`가 같은 ⋮ 메뉴를 따로 갖고 있다. `components/KebabMenu.jsx`로 올리고 앞의 둘은 껍데기로 두면 쓰는 4개 파일은 안 바뀐다
