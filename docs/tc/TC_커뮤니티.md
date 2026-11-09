@@ -1,6 +1,6 @@
 # TC · 커뮤니티 (SCR-CMU-001~005)
 
-- 기준: 커뮤니티_기능명세서_v0.8_20261101, 커뮤니티_화면설계서_v0.8_20261101, 요구사항정의서 v0.10.2(REQ-CMU-003·004·005·007·008·009·010, REQ-NFR-003·004), 백엔드 `docs/api/community.md`·`ErrorCode.java`(2026-11-08)
+- 기준: 커뮤니티_기능명세서_v0.8_20261101, 커뮤니티_화면설계서_v0.8_20261101, 요구사항정의서 v0.10.3(REQ-CMU-003·004·005·007·008·009·010, REQ-NFR-003·004), 백엔드 `docs/api/community.md`·`ErrorCode.java`(2026-11-08)
 - 코드: origin/develop 425199e (2026-11-08)
 - 준비: 백엔드 develop을 :8080에 띄우고 프론트는 Node 24로 `yarn dev`(:5173). 회원 계정 3개(작성자·보호자 A, 다른 회원·돌보미 B·C)와 관리자 계정 1개. 커뮤니티와 채팅 전 화면이 로그인 필요(`member`)라 모든 TC는 로그인 상태가 기본이고, 채팅 거래(SCR-CMU-005)는 두 계정을 서로 다른 브라우저(또는 시크릿 창)에 동시에 로그인해 확인한다. 채팅 새 창은 팝업 허용이 필요하다
 - 표기: P = 정상, N = 오류·예외·경계. "확인 필요: ..." = 코드·계약으로 기대 결과를 확인하지 못한 항목. 따옴표 안 문구는 코드 그대로고, 서버 오류 문구는 `ErrorCode.java` 그대로다. 서버가 응답하지 않을 때 화면 문구는 "네트워크 연결을 확인해 주세요.", 서버가 5xx를 줄 때는 "일시적인 오류가 발생했어요."다(`api/axios.js`)
@@ -845,22 +845,21 @@
 
 ## 명세·요구사항과 코드가 어긋난 곳
 
-- FN-CMU-004-05 / REQ-CMU-010 — 명세·요구사항은 돌봄 상세 [채팅하기]도 사이트 안 채팅 모달인데, 코드는 새 창(`/chat`)을 연다. 헤더 아이콘·알림만 모달(`src/features/community/care/CareDetail.jsx`의 `useChatWindow`, 마일스톤 LJS "FN-COM-009-02 `useChatModal`의 `open({ pstSn })` 호출" 연결 남음)
-- FN-CMU-004-05 — 명세는 "첫 메시지를 보내면 보호자의 채팅 목록에 등록"인데 서버 목록 쿼리는 메시지 없이 방만 만든 경우도 목록에 준다. 「채팅 n명」 집계만 메시지 1건 이상 기준이다 (`ChatRoomMapper.xml selectList`, `docs/api/community.md` CareRecruitmentSummary.aplcntCnt)
-- FN-CMU-002-10·13 — 명세는 품종 필수(미선택·미입력 시 저장 차단)인데 코드는 실종 글쓰기·수정의 품종을 선택 항목으로 바꿨다 (`src/features/community/missing/MissingForm.jsx` validate, `BreedCombobox required={false}`, 커밋 b099d67). 펫돌봄(FN-CMU-004-13)은 필수 그대로다
-- FN-CMU-001-13 — 명세는 상세 내용 선택인데 요구사항(REQ-CMU-007)·코드·백엔드는 "기타" 선택 시 필수다 (`ReportModal`, `docs/api/community.md` ReportCreateRequest)
-- FN-CMU-001-04 / REQ-CMU-005 — 요구사항은 인기글을 "좋아요·댓글 수 기반" 가중치로 산정하는데 명세는 "최근 7일 글, 좋아요 높은 순 5개"뿐이고 화면·서버도 좋아요 기준이다 (`src/features/community/PostList.jsx`, `docs/api/community.md` GET /posts)
-- FN-CMU-001-01·002-01·003-01·004-01 / REQ-NFR-004 — 요구사항은 "1페이지 20건 기준"인데 명세·코드는 펫이야기·뉴스·펫돌봄 10건, 실종센터 12건이다 (`pages/community/*ListPage.jsx` PAGE_SIZE)
-- FN-CMU-002-03 / REQ-CMU-004 — 실종 기간 필터가 명세는 "전체/오늘/1주일/1개월 이상", 요구사항은 "오늘/1주일/1개월", 코드는 "전체/오늘/1주 이내/1개월 이내/1개월 이상"이고 지역도 요구사항은 시·도 드롭다운인데 코드는 시·군·구→읍·면·동이다 (`src/features/community/missingCodes.js`, `care/CareFilters.jsx`)
-- FN-CMU-004-02 / REQ-CMU-004·009 — 요구사항은 반려동물 구분을 "전체/개/고양이", 지역을 시·도 드롭다운으로 적었고 코드는 "전체/강아지/고양이", 시·군·구→읍·면·동 연동이다 (`care/CareFilters.jsx`, `careCodes.js`)
-- FN-CMU-004-11 — 서버는 모집중인 글만 수정할 수 있는데 코드는 매칭완료·거래완료 글에도 [수정]을 보여 주고 저장 시 서버 문구로 거절한다 (`care/CareDetail.jsx`, `CARE_RECRUITMENT_NOT_EDITABLE`)
-- FN-CMU-004-13 — 명세는 "'기타' 선택 시 직접 입력"인데 코드는 목록 맨 아래 "직접 입력"이다 (`missing/BreedCombobox.jsx`)
-- FN-CMU-005-02·04 — 명세·서버(`ctptProfileAtchFileSn`)는 상대 프로필 사진을 주는데 채팅 화면은 닉네임 첫 글자 동그라미(`src/features/chat/room/ChatAvatar.jsx`)만 그린다
-- FN-CMU-005-05 / REQ-NFR-003 — 주소 공유 모달의 장소 검색이 가짜 4곳이다 (`src/features/chat/api.js` `searchChatPlaces`). 또 채팅 사진 검사는 MIME 형식만 보고 확장자·실제 파일 형식을 함께 검증하지 않는다 (`room/ChatMessageInput.jsx` `checkPhotos`)
-- FN-CMU-005-06 — 화면 문구와 명세는 "14일 동안 수락이 없으면 자동 취소"인데 상태 이름에는 "요청 취소"와 별도로 "무응답 종료"가 있어 14일 경과 때 어느 쪽이 되는지 코드·계약에 없다 (`room/dealSteps.js`, `shared/chatCodes.js`)
-- FN-CMU-005-09 / REQ-CMU-010 — 요구사항은 "보완 요청, 영수증 확인 후 거래완료"인데 명세·코드는 보완 요청 버튼과 영수증 확인 단계가 없고 보완은 채팅으로 협의한다 (`room/dealSteps.js`)
-- FN-CMU-005-11 — 명세는 조건·확인자·확인 시각을 보관(거래 기록 조회)하는데 채팅 화면에는 합의 조건 한 줄만 보이고 확인자·확인 시각 표시가 없다 (`room/CareDealCard.jsx` `formatCondition`)
-- REQ-CMU-010 — "실종센터 등 커뮤니티 1:1 문의에서 재사용"을 요구하지만 채팅방 생성 API는 펫돌봄 글(`pstSn`)만 받고 실종센터에는 채팅 진입이 없다 (`docs/api/community.md` ChatRoomCreateRequest, `features/community/missing/MissingSideBox.jsx`)
-- FN-CMU-001-11 — 명세에 내 댓글 삭제 버튼 규정이 없는데 요구사항(REQ-CMU-003)은 댓글 삭제를 요구하고 코드는 [삭제]를 제공한다 (`src/features/community/CommentSection.jsx`, 마일스톤 KSJ "명세 보완 필요")
-- FN-CMU-001-06 — 명세는 7일 → 30일 → 전체 순으로 대체하는데 화면 안내 글자는 어느 기간이든 "이번 주"로 고정이다 (`src/features/community/StoryRail.jsx`)
-- FN-CMU-001-09·002-08·004-12 — 좋아요 실패(서버 꺼짐 등) 때 화면에 아무 안내가 없다 (`PostDetail.jsx`·`MissingDetail.jsx`·`care/CareDetail.jsx`에 `onError` 없음)
+- [문서] FN-CMU-004-05 — 명세는 돌봄 상세 [채팅하기]도 사이트 안 채팅 모달인데, 코드는 새 창(`/chat`)을 연다. 헤더 아이콘·알림만 모달(`src/features/community/care/CareDetail.jsx`의 `useChatWindow`, 마일스톤 LJS "FN-COM-009-02 `useChatModal`의 `open({ pstSn })` 호출" 연결 남음)
+- [백엔드] FN-CMU-004-05 — 명세는 "첫 메시지를 보내면 보호자의 채팅 목록에 등록"인데 서버 목록 쿼리는 메시지 없이 방만 만든 경우도 목록에 준다. 「채팅 n명」 집계만 메시지 1건 이상 기준이다 (`ChatRoomMapper.xml selectList`, `docs/api/community.md` CareRecruitmentSummary.aplcntCnt)
+- [결정] FN-CMU-002-10·13 — 명세는 품종 필수(미선택·미입력 시 저장 차단)인데 코드는 실종 글쓰기·수정의 품종을 선택 항목으로 바꿨다 (`src/features/community/missing/MissingForm.jsx` validate, `BreedCombobox required={false}`, 커밋 b099d67). 펫돌봄(FN-CMU-004-13)은 필수 그대로다
+- [문서] FN-CMU-001-13 — 명세는 상세 내용 선택인데 요구사항(REQ-CMU-007)·코드·백엔드는 "기타" 선택 시 필수다 (`ReportModal`, `docs/api/community.md` ReportCreateRequest)
+- [결정] FN-CMU-001-04 / REQ-CMU-005 — 요구사항은 인기글을 "좋아요·댓글 수 기반" 가중치로 산정하는데 명세는 "최근 7일 글, 좋아요 높은 순 5개"뿐이고 화면·서버도 좋아요 기준이다 (`src/features/community/PostList.jsx`, `docs/api/community.md` GET /posts)
+- [결정] FN-CMU-001-01·002-01·003-01·004-01 / REQ-NFR-004 — 요구사항은 "1페이지 20건 기준"인데 명세·코드는 펫이야기·뉴스·펫돌봄 10건, 실종센터 12건이다 (`pages/community/*ListPage.jsx` PAGE_SIZE)
+- [문서] FN-CMU-002-03 — 실종 기간 필터가 명세는 "전체/오늘/1주일/1개월 이상", 코드는 "전체/오늘/1주 이내/1개월 이내/1개월 이상"이다 (`src/features/community/missingCodes.js`)
+- [코드] FN-CMU-004-11 — 서버는 모집중인 글만 수정할 수 있는데 코드는 매칭완료·거래완료 글에도 [수정]을 보여 주고 저장 시 서버 문구로 거절한다 (`care/CareDetail.jsx`, `CARE_RECRUITMENT_NOT_EDITABLE`)
+- [문서] FN-CMU-004-13 — 명세는 "'기타' 선택 시 직접 입력"인데 코드는 목록 맨 아래 "직접 입력"이다 (`missing/BreedCombobox.jsx`)
+- [코드] FN-CMU-005-02·04 — 명세·서버(`ctptProfileAtchFileSn`)는 상대 프로필 사진을 주는데 채팅 화면은 닉네임 첫 글자 동그라미(`src/features/chat/room/ChatAvatar.jsx`)만 그린다
+- [코드] FN-CMU-005-05 / REQ-NFR-003 — 주소 공유 모달의 장소 검색이 가짜 4곳이다 (`src/features/chat/api.js` `searchChatPlaces`). 또 채팅 사진 검사는 MIME 형식만 보고 확장자·실제 파일 형식을 함께 검증하지 않는다 (`room/ChatMessageInput.jsx` `checkPhotos`)
+- [결정] FN-CMU-005-06 — 화면 문구와 명세는 "14일 동안 수락이 없으면 자동 취소"인데 상태 이름에는 "요청 취소"와 별도로 "무응답 종료"가 있어 14일 경과 때 어느 쪽이 되는지 코드·계약에 없다 (`room/dealSteps.js`, `shared/chatCodes.js`)
+- [결정] FN-CMU-005-09 / REQ-CMU-010 — 요구사항은 "보완 요청, 영수증 확인 후 거래완료"인데 명세·코드는 보완 요청 버튼과 영수증 확인 단계가 없고 보완은 채팅으로 협의한다 (`room/dealSteps.js`)
+- [코드] FN-CMU-005-11 — 명세는 조건·확인자·확인 시각을 보관(거래 기록 조회)하는데 채팅 화면에는 합의 조건 한 줄만 보이고 확인자·확인 시각 표시가 없다 (`room/CareDealCard.jsx` `formatCondition`)
+- [결정] REQ-CMU-010 — "실종센터 등 커뮤니티 1:1 문의에서 재사용"을 요구하지만 채팅방 생성 API는 펫돌봄 글(`pstSn`)만 받고 실종센터에는 채팅 진입이 없다 (`docs/api/community.md` ChatRoomCreateRequest, `features/community/missing/MissingSideBox.jsx`)
+- [문서] FN-CMU-001-11 — 명세에 내 댓글 삭제 버튼 규정이 없는데 요구사항(REQ-CMU-003)은 댓글 삭제를 요구하고 코드는 [삭제]를 제공한다 (`src/features/community/CommentSection.jsx`, 마일스톤 KSJ "명세 보완 필요")
+- [코드] FN-CMU-001-06 — 명세는 7일 → 30일 → 전체 순으로 대체하는데 화면 안내 글자는 어느 기간이든 "이번 주"로 고정이다 (`src/features/community/StoryRail.jsx`)
+- [코드] FN-CMU-001-09·002-08·004-12 — 좋아요 실패(서버 꺼짐 등) 때 화면에 아무 안내가 없다 (`PostDetail.jsx`·`MissingDetail.jsx`·`care/CareDetail.jsx`에 `onError` 없음)

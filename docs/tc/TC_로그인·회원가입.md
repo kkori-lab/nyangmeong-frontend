@@ -1,6 +1,6 @@
 # TC · 로그인·회원가입 (SCR-ACC-001 · 002 · 011 · 012 · 020)
 
-- 기준: 로그인·회원가입_기능명세서_v0.8_20261101, 요구사항정의서_v0.10.2_20261108(REQ-ACC-001~004, REQ-MYP-001), 백엔드 `docs/api/member.md`·`ErrorCode.java`(develop 2026-11-08), 프론트 `src/features/member`·`src/pages/auth`·`src/pages/mypage/WithdrawPage.jsx`·`src/routes`·`src/api/axios.js`, 마일스톤 `milestones/YAY.md`
+- 기준: 로그인·회원가입_기능명세서_v0.8_20261101, 요구사항정의서_v0.10.3_20261109(REQ-ACC-001~004, REQ-MYP-001), 백엔드 `docs/api/member.md`·`ErrorCode.java`(develop 2026-11-08), 프론트 `src/features/member`·`src/pages/auth`·`src/pages/mypage/WithdrawPage.jsx`·`src/routes`·`src/api/axios.js`, 마일스톤 `milestones/YAY.md`
 - 코드: origin/develop 425199e (2026-11-08)
 제외: 없음
 - 참고: 명세에 행이 없는 번호(FN-ACC-001-21, FN-ACC-002-06·17, FN-ACC-011-04, FN-ACC-020-07~11)는 결번 표시가 아니라 행 자체가 없어 TC를 만들지 않았다
@@ -1168,24 +1168,22 @@
 
 ## 명세·요구사항과 코드가 어긋난 곳
 
-- FN-ACC-002-03·04·20 / FN-ACC-001-03·29·09·10 — 명세는 미입력 문구("아이디를 입력해 주세요." 등)를 입력칸과 AI로 안내한다고 하나, 코드는 빈 칸이면 버튼을 비활성으로 막아(추가-1) 미입력 문구가 나오지 않는다 (`login/useEmailLogin.js`, `signup/useSignup.js`)
-- FN-ACC-002-03 / FN-ACC-002-18 — 명세는 "같은 로그인 진행 중 아이디 변경만으로 표시된 캡챠를 해제하지 않는다"인데, 코드는 아이디를 바꿔 서버가 캡챠 불필요로 답하면 보안코드 영역을 닫는다 (`login/useEmailLogin.js` blurEmail)
-- FN-ACC-002-19 / FN-ACC-002-20 — 보안코드 새로고침 뒤·표시 직후 입력칸으로 포커스를 옮기지 않는다 (`login/CaptchaBlock.jsx`)
-- FN-ACC-001-14 — 최종 저장에서 번호 중복(409 `PHONE_ALREADY_USED`)·이메일 중복(409 `EMAIL_ALREADY_REGISTERED`)이면 명세는 3단계 번호·이메일 단계로 돌아가 비밀번호를 비운다고 하나, 코드는 4단계 위 알림으로 서버 문구만 보인다 (`signup/useSignup.js` handleJoinError)
-- FN-ACC-001-03·04 — 이메일 도메인 오류(400 `EMAIL_DOMAIN_NOT_RECEIVABLE`)를 서버 문구가 아닌 "인증번호를 보내지 못했습니다. 다시 시도해 주세요."로 바꿔 보인다 (`signup/useSignup.js` submitSend)
-- FN-ACC-001-09·10 / FN-ACC-012-01 / REQ-ACC-001 — 비밀번호 규칙이 명세·요구사항은 "8자 이상, 문자와 숫자를 함께"인데 코드·서버는 영문+숫자 ASCII 8~64자(공백 불가)다. 오류 문구도 명세 "비밀번호는 8자 이상, 문자와 숫자를 함께 입력해 주세요."가 아니라 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)" (`shared/validate.js`, `password/passwordMessages.js`)
-- FN-ACC-001-29·30 / REQ-ACC-001 — 명세 v0.8은 휴대전화번호 필수·"공개 연락처로 자동 사용하지 않는다"인데 요구사항정의서 v0.10.2는 "선택 입력", "펫돌봄·실종 연락용 공개 연락처"라고 적어 서로 충돌한다. 코드는 필수 (`signup/PhoneStep.jsx`)
-- FN-ACC-001-22·28 — 닉네임 설정용 쿠키가 만료됐을 때 명세는 닉네임을 유지하고 로그인 화면으로 안내하나, 코드는 "닉네임을 저장하지 못했어요. 다시 시도해 주세요."만 보인다 (`signup/NicknameModal.jsx`)
-- FN-ACC-001-12·11 — 외부 연령 확인(네이버 로그인 플러스·카카오싱크) 자동 반영은 화면에 구현돼 있으나 서버가 `ageCnfrmd`를 항상 false로 준다 (`docs/api/member.md`, `signup/useSnsSignup.js`)
-- FN-ACC-001-40 — 이메일 인증을 이미 마친 경우의 생략, 기존 연결과 같은 SNS 새 인증의 본인확인 사용이 없고 항상 복구용 이메일 인증번호를 새로 받는다 (`recovery/useRecovery.js`, 백엔드 `docs/api/member.md` 449줄)
-- FN-ACC-001-41·45 / FN-ACC-011-03·07 — 발송 실패·복구 실패 문구가 명세("인증번호를 보내지 못했습니다. 다시 시도해 주세요.", "정보를 복구하지 못했습니다. 다시 시도해 주세요.", "복구 처리 결과를 확인하고 있습니다.")가 아니라 서버·공통 오류 문구("네트워크 연결을 확인해 주세요." 등)로 보인다. 복구 실행의 "결과 미확인" 상태도 없다 (`recovery/useRecovery.js`, `password/usePasswordFind.js`)
-- FN-ACC-001-43 — 보관 기간 경과 문구가 명세 "복구 가능한 기간이 지났습니다. 새로 회원가입해 주세요."가 아니라 서버 문구 "복구 가능 기간이 지난 계정입니다."이다 (`ErrorCode.java` MEMBER_RECOVERY_EXPIRED)
-- FN-ACC-001-16 — 필수 약관 해제 시 명세는 AI 안내를 하나, 1단계는 [다음] 비활성과 안내 문구만 있다 (`signup/TermsStep.jsx`)
-- FN-ACC-001-01 — 가입 진행 상태를 서버 임시 상태로 관리·복원한다고 하나 코드는 화면 메모리만 쓰고 새로고침하면 1단계부터 다시 한다 (`signup/useSignup.js`)
-- FN-ACC-002-05 — 탈퇴 회원이 비밀번호가 맞게 로그인하면 서버 문구 "탈퇴한 계정입니다. 재가입 또는 계정 복구를 진행해 주세요."만 알림으로 나오고 재가입·복구로 이동하는 버튼이 없다 (`login/useEmailLogin.js`)
-- FN-ACC-020-06 / FN-ACC-020-03 — 명세는 로그인 회원이 바뀌면 탈퇴 확인 절차를 종료한다고 하나 코드는 그런 처리가 없다. 계정은 마스킹된 이메일로 표시한다 (`withdraw/WithdrawConfirmModal.jsx`)
-- FN-ACC-020-17 — 명세는 결과 불명확 상태에서 다음 계정 접근 전에 기존 요청 결과를 먼저 확인한다고 하나 코드는 [안내 닫기]가 랜딩 이동만 한다 (`withdraw/WithdrawFlow.jsx`, `pages/mypage/WithdrawPage.jsx`)
-- FN-ACC-020-15 — 결과 미확인(`unknown`)은 네트워크 끊김·15초 시간 초과(`NETWORK_ERROR`)일 때만이고, 프록시·서버 5xx는 "탈퇴를 처리하지 못했습니다."(실패)로 본다 (`withdraw/useWithdraw.js`)
-- REQ-ACC-001 — 변경이력에 "영어 소문자·숫자·특수문자 포함 8자리 이상"이 남아 있으나 현재 세부내용은 "8자 이상 문자·숫자 조합"이다. 코드는 후자(영문+숫자)를 따른다
-- REQ-ACC-003 / 코드 — 요구사항의 "SNS 가입은 닉네임 모달에서 필수 약관·이메일 입력을 통합"(09-11)은 폐기되었고 현재는 SNS 가입 확인 화면에서 약관·번호를 받는다. 요구사항 변경이력과 현재 화면이 맞는지 문서 정리 필요
-- 명세 밖 — SNS 계정 연동(`linkSns`, 회원정보의 [연동하기], 콜백 `mode: 'link'`)은 이 명세에 기능 ID가 없다. 마이페이지(MYP-040) TC에서 다룬다 (`login/useSnsCallback.js`, `profile/SnsLinkCard.jsx`)
+- [문서] FN-ACC-002-03·04·20 / FN-ACC-001-03·29·09·10 — 명세는 미입력 문구("아이디를 입력해 주세요." 등)를 입력칸과 AI로 안내한다고 하나, 코드는 빈 칸이면 버튼을 비활성으로 막아(추가-1) 미입력 문구가 나오지 않는다 (`login/useEmailLogin.js`, `signup/useSignup.js`)
+- [코드] FN-ACC-002-03 / FN-ACC-002-18 — 명세는 "같은 로그인 진행 중 아이디 변경만으로 표시된 캡챠를 해제하지 않는다"인데, 코드는 아이디를 바꿔 서버가 캡챠 불필요로 답하면 보안코드 영역을 닫는다 (`login/useEmailLogin.js` blurEmail)
+- [코드] FN-ACC-002-19 / FN-ACC-002-20 — 보안코드 새로고침 뒤·표시 직후 입력칸으로 포커스를 옮기지 않는다 (`login/CaptchaBlock.jsx`)
+- [코드] FN-ACC-001-14 — 최종 저장에서 번호 중복(409 `PHONE_ALREADY_USED`)·이메일 중복(409 `EMAIL_ALREADY_REGISTERED`)이면 명세는 3단계 번호·이메일 단계로 돌아가 비밀번호를 비운다고 하나, 코드는 4단계 위 알림으로 서버 문구만 보인다 (`signup/useSignup.js` handleJoinError)
+- [코드] FN-ACC-001-03·04 — 이메일 도메인 오류(400 `EMAIL_DOMAIN_NOT_RECEIVABLE`)를 서버 문구가 아닌 "인증번호를 보내지 못했습니다. 다시 시도해 주세요."로 바꿔 보인다 (`signup/useSignup.js` submitSend)
+- [문서] FN-ACC-001-09·10 / FN-ACC-012-01 — 비밀번호 규칙이 명세는 "8자 이상, 문자와 숫자를 함께"인데 코드·서버는 영문+숫자 ASCII 8~64자(공백 불가)다. 오류 문구도 명세 "비밀번호는 8자 이상, 문자와 숫자를 함께 입력해 주세요."가 아니라 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)" (`shared/validate.js`, `password/passwordMessages.js`)
+- [결정] FN-ACC-001-29·30 / REQ-ACC-001 — 명세 v0.8은 휴대전화번호 필수·"공개 연락처로 자동 사용하지 않는다"인데 요구사항정의서 v0.10.2는 "선택 입력", "펫돌봄·실종 연락용 공개 연락처"라고 적어 서로 충돌한다. 코드는 필수 (`signup/PhoneStep.jsx`)
+- [코드] FN-ACC-001-22·28 — 닉네임 설정용 쿠키가 만료됐을 때 명세는 닉네임을 유지하고 로그인 화면으로 안내하나, 코드는 "닉네임을 저장하지 못했어요. 다시 시도해 주세요."만 보인다 (`signup/NicknameModal.jsx`)
+- [백엔드] FN-ACC-001-12·11 — 외부 연령 확인(네이버 로그인 플러스·카카오싱크) 자동 반영은 화면에 구현돼 있으나 서버가 `ageCnfrmd`를 항상 false로 준다 (`docs/api/member.md`, `signup/useSnsSignup.js`)
+- [코드] FN-ACC-001-40 — 이메일 인증을 이미 마친 경우의 생략, 기존 연결과 같은 SNS 새 인증의 본인확인 사용이 없고 항상 복구용 이메일 인증번호를 새로 받는다 (`recovery/useRecovery.js`, 백엔드 `docs/api/member.md` 449줄)
+- [코드] FN-ACC-001-41·45 / FN-ACC-011-03·07 — 발송 실패·복구 실패 문구가 명세("인증번호를 보내지 못했습니다. 다시 시도해 주세요.", "정보를 복구하지 못했습니다. 다시 시도해 주세요.", "복구 처리 결과를 확인하고 있습니다.")가 아니라 서버·공통 오류 문구("네트워크 연결을 확인해 주세요." 등)로 보인다. 복구 실행의 "결과 미확인" 상태도 없다 (`recovery/useRecovery.js`, `password/usePasswordFind.js`)
+- [백엔드] FN-ACC-001-43 — 보관 기간 경과 문구가 명세 "복구 가능한 기간이 지났습니다. 새로 회원가입해 주세요."가 아니라 서버 문구 "복구 가능 기간이 지난 계정입니다."이다 (`ErrorCode.java` MEMBER_RECOVERY_EXPIRED)
+- [코드] FN-ACC-001-16 — 필수 약관 해제 시 명세는 AI 안내를 하나, 1단계는 [다음] 비활성과 안내 문구만 있다 (`signup/TermsStep.jsx`)
+- [결정] FN-ACC-001-01 — 가입 진행 상태를 서버 임시 상태로 관리·복원한다고 하나 코드는 화면 메모리만 쓰고 새로고침하면 1단계부터 다시 한다 (`signup/useSignup.js`)
+- [코드] FN-ACC-002-05 — 탈퇴 회원이 비밀번호가 맞게 로그인하면 서버 문구 "탈퇴한 계정입니다. 재가입 또는 계정 복구를 진행해 주세요."만 알림으로 나오고 재가입·복구로 이동하는 버튼이 없다 (`login/useEmailLogin.js`)
+- [코드] FN-ACC-020-06 / FN-ACC-020-03 — 명세는 로그인 회원이 바뀌면 탈퇴 확인 절차를 종료한다고 하나 코드는 그런 처리가 없다. 계정은 마스킹된 이메일로 표시한다 (`withdraw/WithdrawConfirmModal.jsx`)
+- [코드] FN-ACC-020-17 — 명세는 결과 불명확 상태에서 다음 계정 접근 전에 기존 요청 결과를 먼저 확인한다고 하나 코드는 [안내 닫기]가 랜딩 이동만 한다 (`withdraw/WithdrawFlow.jsx`, `pages/mypage/WithdrawPage.jsx`)
+- [코드] FN-ACC-020-15 — 결과 미확인(`unknown`)은 네트워크 끊김·15초 시간 초과(`NETWORK_ERROR`)일 때만이고, 프록시·서버 5xx는 "탈퇴를 처리하지 못했습니다."(실패)로 본다 (`withdraw/useWithdraw.js`)
+- [문서] 명세 밖 — SNS 계정 연동(`linkSns`, 회원정보의 [연동하기], 콜백 `mode: 'link'`)은 이 명세에 기능 ID가 없다. 마이페이지(MYP-040) TC에서 다룬다 (`login/useSnsCallback.js`, `profile/SnsLinkCard.jsx`)
