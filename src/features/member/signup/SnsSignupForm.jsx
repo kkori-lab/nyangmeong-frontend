@@ -25,6 +25,7 @@ export default function SnsSignupForm({ snsSignup, onCancel, onGoLogin }) {
       <AuthHeading
         title="가입 정보를 확인해 주세요"
         subtitle="냥멍케어 이용에 필요한 동의를 확인해 주세요."
+        spacing="wide"
       />
       {form.notice && (
         <AuthNotice

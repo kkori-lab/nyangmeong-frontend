@@ -94,7 +94,7 @@ export default function SignupForm({ onBackToLogin, onGoLogin, onRecover }) {
   return (
     <AuthCard onBack={form.goBack}>
       <StepMotion stepKey={`${form.step}-head`} direction={form.direction}>
-        <AuthHeading title={title} subtitle={subtitle} />
+        <AuthHeading title={title} subtitle={subtitle} spacing="step" />
       </StepMotion>
       <SignupStepper current={no} />
       <StepMotion stepKey={form.step} direction={form.direction}>
