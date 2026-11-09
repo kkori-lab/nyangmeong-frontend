@@ -273,7 +273,7 @@ function CareCalendarContent() {
 
 /**
  * 로딩 자리: 탭 막대(48px) + 처음 열릴 탭의 모양. 높이는 불러온 뒤 실측값
- * - 캘린더: 달력(5줄 달, 760px 이하는 점 표시 달력) + 날짜 상세·다가오는 일정. 1101px 이상은 오른쪽 두 장의 합이 달력과 같음
+ * - 캘린더: 달력(5줄 달, 640px 미만은 점 표시 달력) + 날짜 상세·다가오는 일정. 1101px 이상은 오른쪽 두 장의 합이 달력과 같음
  * - 케어리스트: 토탈 케어리스트 카드 한 장(CareList 로딩 자리와 같은 높이)
  */
 function CalendarSkeleton({ sectionId }) {
@@ -291,7 +291,7 @@ function CalendarSkeleton({ sectionId }) {
           <SkeletonCard className="h-[1486px] max-sm:h-[1678px]" />
         ) : (
           <div className="grid gap-5 min-[1101px]:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-            <SkeletonCard className="h-[664px] max-[760px]:h-[468px]" />
+            <SkeletonCard className="h-[664px] max-sm:h-[468px]" />
             <div className="flex flex-col gap-5">
               <SkeletonCard className="h-[281px] max-[1100px]:h-[222px]" />
               <SkeletonCard className="h-[363px] max-[1100px]:h-[351px]" />

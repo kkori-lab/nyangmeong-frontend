@@ -108,8 +108,8 @@ export default function CareList({ petSn, petNm }) {
     saveCareMain.mutate({ petSn, careArtclSns });
   };
 
-  // 640px 이상: 앞 절반은 왼쪽 열, 나머지는 오른쪽 열에 세로로 채우고, 같은 줄의 두 칸은 높이가 같다.
-  // 개수가 홀수면 오른쪽 마지막 빈 자리에도 밑줄을 그어 두 열의 끝을 맞춘다
+  // 1024px 이상: 앞 절반은 왼쪽 열, 나머지는 오른쪽 열에 세로로 채우고, 같은 줄의 두 칸은 높이가 같다.
+  // 개수가 홀수면 오른쪽 마지막 빈 자리에도 밑줄을 그어 두 열의 끝을 맞춘다. 640~1023px은 1열 (※신규 정책)
   // 640px 미만: 처음 MOBILE_VISIBLE_COUNT칸만 보이고 나머지는 [더보기]로 펼친다
   const renderZone = (zoneCd, label, items, note, className = '') => {
     const rowCount = Math.ceil(items.length / 2);
@@ -126,7 +126,7 @@ export default function CareList({ petSn, petNm }) {
           {label}
         </p>
         <div
-          className="grid gap-y-2 pt-3 sm:grid-flow-col sm:grid-cols-2 sm:grid-rows-[repeat(var(--care-rows),auto)] sm:gap-x-8 sm:gap-y-0 sm:pt-0"
+          className="grid gap-y-2 pt-3 lg:grid-flow-col lg:grid-cols-2 lg:grid-rows-[repeat(var(--care-rows),auto)] lg:gap-x-8 sm:gap-y-0 sm:pt-0"
           style={{ '--care-rows': rowCount }}
         >
           {items.map((item, index) => (
@@ -154,7 +154,7 @@ export default function CareList({ petSn, petNm }) {
           {items.length % 2 === 1 && (
             <div
               aria-hidden="true"
-              className="border-b border-[#edf1f1] max-sm:hidden"
+              className="border-b border-[#edf1f1] max-lg:hidden"
             />
           )}
         </div>

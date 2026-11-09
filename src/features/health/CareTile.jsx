@@ -2,6 +2,7 @@ import Badge from '@/components/Badge';
 import Icon from '@/components/Icon';
 import { formatMonthDayDot } from '@/utils/formatDate';
 import CareItemMenu from './CareItemMenu';
+import { toCareIcon } from './careIcons';
 import { CARE_ZONE, getCareCycleName, getDueBadge } from './careDue';
 
 const BADGE_TONES = { today: 'brand', upcoming: 'gray', late: 'amber' };
@@ -63,7 +64,7 @@ export default function CareTile({
               isDone ? 'text-brand-600' : 'text-muted'
             }`}
           >
-            <Icon name={item.rprsIconId} />
+            <Icon name={toCareIcon(item.rprsIconId)} />
           </span>
           <span className="flex min-w-0 flex-col">
             <span
