@@ -95,8 +95,8 @@ function ConfirmStep({ form }) {
         ]}
       />
       <p className="mt-3 text-sm leading-5 text-muted">
-        회원정보·반려동물·건강기록·픽셀캐릭터가 복구됩니다. 새 계정을 만들지
-        않고 기존 정보를 되살립니다.
+        새 계정을 만들지 않고 회원정보·반려동물·건강기록·픽셀캐릭터를 그대로
+        되살립니다.
       </p>
       <div className="mt-5 flex flex-col gap-5">
         {info.missingTrms.length > 0 && (
@@ -218,8 +218,8 @@ export default function RecoveryForm({
           title={isConfirm ? '기존 정보 복구 확인' : '기존 정보 복구 본인확인'}
           subtitle={
             isConfirm
-              ? '본인확인 후 사용자가 직접 복구를 선택합니다.'
-              : '탈퇴 후 30일 이내 · 이메일 입력만으로 복구하지 않습니다.'
+              ? '기존 정보를 복구할지 선택해 주세요.'
+              : '탈퇴 후 30일 안에는 이메일 인증을 거쳐 기존 정보를 되살릴 수 있습니다.'
           }
         />
       </StepMotion>

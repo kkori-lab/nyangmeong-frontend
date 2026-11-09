@@ -94,7 +94,7 @@ export default function TermsStep({ form }) {
     <>
       <TermsChecklist form={form} isRoomy />
       <p className="mt-2 text-sm leading-5 text-muted max-md:mt-4">
-        필수 약관에 모두 동의하면 다음으로 넘어갈 수 있어요.
+        필수 약관에 모두 동의하면 다음으로 넘어갈 수 있습니다.
       </p>
       <button
         type="button"

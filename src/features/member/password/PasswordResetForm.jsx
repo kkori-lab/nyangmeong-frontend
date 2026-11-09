@@ -42,7 +42,7 @@ export default function PasswordResetForm({
       <AuthCard>
         <AuthHeading
           title="비밀번호 재설정"
-          subtitle="다시 본인확인 후 비밀번호를 변경할 수 있어요."
+          subtitle="본인확인을 다시 하면 비밀번호를 바꿀 수 있습니다."
         />
         <AuthNotice type="error" message={MSG.needVerify} hasGuide />
         <div className="flex flex-col gap-3">

@@ -43,7 +43,7 @@ export default function PasswordFindForm({
         <p className="mt-3 text-sm leading-5 text-muted">
           냥멍케어에서 설정한 비밀번호가 없습니다.
           <br />
-          SNS 비밀번호 찾기는 해당 제공자에서 진행해 주세요.
+          SNS 계정의 비밀번호는 가입한 SNS에서 찾아 주세요.
         </p>
         <button
           type="button"
@@ -61,7 +61,7 @@ export default function PasswordFindForm({
       <AuthCard>
         <AuthHeading
           title="비밀번호 찾기"
-          subtitle="본인확인 후 사용 가능한 로그인 방법을 확인해요."
+          subtitle="본인확인을 하면 가입한 로그인 방법을 알려 드립니다."
         />
         {notice}
         <div className={`${SUMMARY} flex justify-between gap-3`}>
@@ -139,7 +139,7 @@ export default function PasswordFindForm({
     <AuthCard>
       <AuthHeading
         title="비밀번호 찾기"
-        subtitle="이메일로 본인확인 후 새 비밀번호를 설정해요."
+        subtitle="이메일로 본인확인을 한 뒤 새 비밀번호를 설정합니다."
       />
       {notice}
       <form

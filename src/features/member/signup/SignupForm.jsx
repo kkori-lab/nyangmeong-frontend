@@ -49,7 +49,7 @@ export function SignupComplete({ form, onGoLogin }) {
       <StepMotion stepKey="complete" direction={form.direction}>
         <AuthHeading
           title="회원가입이 완료되었습니다"
-          subtitle="가입한 계정으로 다시 로그인해 주세요."
+          subtitle="가입한 계정으로 로그인해 주세요."
         />
         <div className="rounded-box bg-surface-2 px-5 py-6 text-center">
           <small className="block text-muted">현재 저장된 닉네임</small>
