@@ -5,6 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { notificationKeys } from '@/features/notification/queries';
 import {
   bulkDeleteExpenses,
   createExpenses,
@@ -98,7 +99,18 @@ export const useBulkDeleteExpenses = () => {
     },
   });
 };
-export const useCreateExpenses = () => useExpenseMutation(createExpenses);
+/** 서버가 응답 전에 한도 알림을 저장하므로 저장 직후 종 아이콘과 알림 목록도 다시 불러온다 */
+export const useCreateExpenses = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: createExpenses,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: expenseKeys.all });
+      qc.invalidateQueries({ queryKey: notificationKeys.unreadCount });
+      qc.invalidateQueries({ queryKey: notificationKeys.list });
+    },
+  });
+};
 export const useUpdateExpense = () => useExpenseMutation(updateExpense);
 /** 저장 전 중복 지출 조회 */
 export const useFindDuplicateExpenses = () =>
