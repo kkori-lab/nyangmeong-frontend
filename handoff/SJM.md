@@ -2,11 +2,11 @@
 
 ## 지금 하는 것
 
-SCR-MYP-001·020 1차: 홈·포인트 화면 로딩을 스켈레톤으로(`docs/convention/ui.md` "로딩 표시") — 승인됨 (2026-11-09, 2·3차는 "내 코드 작업")
+SCR-MYP-001·020 1차: 홈·포인트 화면 로딩을 스켈레톤으로(`docs/convention/ui.md` "로딩 표시") — 끝 (2026-11-09, 검증 `통과` 1회차 뒤 `StatSkeleton` 합치기·홈 375px 목록 모양을 고쳐 lint·build 다시 0, 사람 확인 완료. 2·3차는 "내 코드 작업")
 
 | 기능 | 바꿀 파일 | 완료 조건 |
 | --- | --- | --- |
-| SCR-MYP-001 홈 내 반려동물 | `features/pet/home/MyPetsSection.jsx` (`isPending`이면 null → 실제 카드 크기 SkeletonCard) | 명령: `yarn -s lint`, `yarn -s build`. 화면: 개발자 도구 네트워크 Slow 3G에서 빈칸 대신 스켈레톤, 로딩 뒤 밀림 없음(본문 높이 ±20%, 가로 스크롤 없음). 375px·1280px |
+| SCR-MYP-001 홈 내 반려동물 | `features/pet/home/MyPetsSection.jsx` (`isPending`이면 null → 실제 카드 크기 SkeletonCard, 375px은 한 덩어리 목록 모양) | 명령: `yarn -s lint`, `yarn -s build`. 화면: 개발자 도구 네트워크 Slow 3G에서 빈칸 대신 스켈레톤, 로딩 뒤 밀림 없음(본문 높이 ±20%, 가로 스크롤 없음). 375px·1280px |
 | SCR-MYP-001 홈 요약 3칸 | `features/point/home/PointSummaryCard.jsx`, `MissionSummaryCard.jsx`, `features/expense/home/ExpenseSummaryCard.jsx` (값이 빈칸 → 같은 칸 Skeleton) | 위와 같음 |
 | SCR-MYP-020 포인트 | `features/point/summary/PointSummary.jsx`, `mission/CareMission.jsx`, `history/PointHistory.jsx` (`return null` → 실제 배치 SkeletonCard) | 위와 같음 |
 
@@ -20,7 +20,7 @@ SCR-MYP-001·020 1차: 홈·포인트 화면 로딩을 스켈레톤으로(`docs/
 
 - SCR-MYP-040 (선택) `PASSWORD_SAME_AS_CURRENT`는 page.route 400으로만 확인했다. 로컬 백엔드를 develop으로 맞추고 규칙에 맞는 비밀번호의 이메일 계정으로 실제 응답 `message`가 같은지 본다
 - SCR-MYP-002 10마리 보유 때 삭제하면 등록 카드로 바뀌는지 화면 확인(데이터가 없어 못 함)
-- 로딩 스켈레톤 2차 SCR-MYP-030: `ExpenseDashboard.jsx`(58행)·`ExpenseHistory.jsx`(125행)의 `return null`을 실제 배치 스켈레톤으로(`ui.md` "로딩 표시")
+- 로딩 스켈레톤 2차 SCR-MYP-030: `ExpenseDashboard.jsx`(58행)·`ExpenseHistory.jsx`(125행)의 `return null`을 실제 배치 스켈레톤으로(`ui.md` "로딩 표시"). 같이 SCR-MYP-020: `PointPage`가 pets 조회 실패를 알려 `CareMission`이 스켈레톤 대신 오류를 보이게(지금은 실패하면 스켈레톤이 계속 남음)
 - 로딩 스켈레톤 3차: SCR-MYP-010 `CharacterPage.jsx`(본문 빔)·`CharacterDecorate.jsx`(null), SCR-MYP-040 `ProfileEditPage.jsx`(로딩 중 본문 없음), SCR-MYP-003 `PetFormModal.jsx`(수정 모달 로딩 null)
 - SCR-MYP-002·005 화면 확인: 삭제 때 공동양육자에게 알림이 실제로 갔는지(백엔드 알림 테스트), 초대 → 수락 → 삭제 → 자동 해제 흐름
 - (선택) SCR-MYP-030 시드 `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(병원·공용, "병원은 공용 불가" 규칙 위반): 팀장에게 알리고 백엔드 저장소에서 고침. 서버가 저장을 막아 급하지 않음
@@ -54,8 +54,3 @@ SCR-MYP-001·020 1차: 홈·포인트 화면 로딩을 스켈레톤으로(`docs/
 - SCR-MYP-011 기준 문서 `v0.6_20261022`가 DMS에 올라오면 FN-MYP-011-03·04(사람이 준 수치로 만듦)와 대조
 - SCR-MYP-005 진입: 알림 드롭다운(SCR-COM-004), 가입 직후 자동 노출(SCR-ACC-001, YAY·AIC), 로그인이 `redirect`를 받는지(AIC)
 - 시안 v5의 페이지 배경 `#FDFCFB`·푸터 `#FCF9F7`이 `UserLayout.jsx`·`UserFooter.jsx`(LJS)에 아직 옛 값
-
-## 중단 2026-11-09 11:50 (5시간 한도 95%)
-- 자동 커밋한 변경 2개: handoff/SJM.md, milestones/SJM.md
-- 커밋 안 한 새 파일 0개 (사람이 판단): 없음
-- 이어서: 이 파일의 "지금 하는 것" 과 `git log -1` 을 본다
