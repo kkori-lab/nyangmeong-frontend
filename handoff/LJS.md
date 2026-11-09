@@ -2,11 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · 반려동물 바로가기 API 연결 — 끝(2026-11-09). 메인 바로가기 조회·저장을 실제 `GET·PUT /api/pets/main-shortcuts`로 바꾸고 코드를 `MANC0008`·`MANC0009`·`MANC0010`으로 맞췄다. 저장한 적 없는 반려동물의 기본값은 서버가 준다
+SCR-AIM-012 대화창 · 확인 카드(ACTION) 연결 — 끝(2026-11-09). AI 서버 `done.action` 확인 카드를 `params`·`rules`로 폼으로 그리고 [확인]은 카드의 `call`로 Java를 부른 뒤 `action-result`에 저장한다. 고친 값은 다음 메시지의 `action`으로 돌려보내고, 저장하면 본창이 데이터를 다시 불러온다(`BroadcastChannel`)
 
 ## 다음에 할 것
 
-- SCR-AIM 대화창 확인 카드(ACTION) 연결(AI 세션이 2026-11-09 계약 전달, 정본은 AI 저장소 `docs/api/chat.md`의 `/messages`·`/action-result` 행과 `ActionCard`·`ActionResultRequest`·`MessageSendRequest.action`): SSE `done.action` 카드를 `params`·`rules`·`missing`·`petChoices`로 폼으로 그리고, [확인]은 `call`로 Java API를 부른 뒤 `/action-result`에 `{tool, status, input}`을 저장한다. 도구는 단순 등록 3개(케어 완료·건강 일지·월 지출 한도)와 수정 4개(일정·케어 항목·지출·반려동물). 기존 등록 카드(`done.card`·`register-result`)와 섞지 않는다. 수정 카드분은 AI 저장소 `LJS` 브랜치에만 있고 develop 병합 전. 프론트에서 `/start`로 기획한다
+- SCR-AIM-012 확인 카드 연결 남음(2026-11-09): AI 저장소 `LJS` 작업 트리(커밋 전)의 "돌려받은 카드에서 말하지 않은 날짜는 카드 값 유지" 수정이 커밋·develop 병합돼야 다른 환경에서도 고친 기록 일시가 새 카드에 남는다(AI 세션 담당). 수정 도구 4개도 AI develop 병합 전
+- SCR-AIM-012 다음 작업 후보: AI 쪽 배열·파일 칸 카드(`draft_expense`·`draft_observation_cycle`, `params`의 `array`·`items`·`minItems`·`generated`, `file`, `call.contentType`, `missing`의 `lines[0].expndAmt` 꼴)가 develop에 병합되면 `/start`로 기획한다. 지금 카드는 배열 칸을 숨겨서 이 카드가 오면 [확인]이 영영 꺼진다
+- AI 대화창 버그(사람 2026-11-09 제보, 원인만 봄): 새 대화 첫 메시지에서 첫 글자 전 오류(`error`)나 스트림 전 오류(`failed`)가 나면 `useAnswerStream.js` `catch`가 `refresh()`를 부르지 않아, 서버에 만든 방이 왼쪽 목록에 안 나와 다른 대화로 옮기면 지워진 것처럼 보인다. `catch`에서도 목록·상세를 무효화하면 된다. 사람이 고칠지 아직 안 정함
+- SCR-AIM-012 확인 카드 사람이 볼 것(검증 판정 밖, 2026-11-09): ① `useActionCards.js` `SERVER_FAILURE_CODES`가 `SERVER_ERROR`·`NETWORK_ERROR`·`INTERNAL_SERVER_ERROR`만 봐서 502(`EXTERNAL_API_ERROR` 등)·403·404·409는 `FAILED`로 저장되지 않고 카드가 오류 문구로 남는다 ② 칸 오류가 난 카드를 [취소]해도 칸 밑 오류가 남는다(`ActionCard.jsx`가 `fieldErrors`에 `isPending`을 안 봄) ③ 조건부 칸(건강 일지 '상태')을 고른 뒤 지표를 바꿔도 그 값이 input에 남아 저장 요청에 실린다 ④ 케어 완료 카드는 칸이 `petSn`·`careArtclSn`뿐이라 항목 이름을 못 보인다 ⑤ 처리 안 한 카드는 새로고침하면 사라져 답 없는 질문만 남는다(명세·계약대로) ⑥ "산책 30분 기록해줘"는 LLM이 건강 일지·케어 완료·케어 항목 중 다르게 고를 수 있다
+- SCR-AIM-012 확인 카드 검증 데이터 정리(2026-11-09): 8081 DB 까미(petSn 1) 체중 기록 2026-11-09 09:30 4.5(`dailyHlthRcdSn` 55444)와 1회차의 09:00 4.5, 검증 대화 "까미 체중 4.2 기록해줘"(2개)·"까미 산책 30분 기록해줘"를 지운다
+
 - SCR-MAN-001 정리(2026-11-09): tester 계정의 까미(petSn 1) 바로가기가 비어 있다(검증 시작 때부터, 원인 모름). 처음 상태로 두려면 `/main` [바로가기 추가] → 까미 → 종합 건강기록
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09 푸터·AI 버튼): ① 모바일 dock 접기는 검증에서 터치 이벤트로만 확인(Playwright 마우스 드래그로는 안 접힘, `useAiDock.js`는 안 바뀜) ② `/community` 한 화면에서 `character-image?part=face` 요청이 수백 건 보였다(AI 버튼은 `part=full`만 부름, 원인 미확인) ③ 메인 바로가기 얼굴이 반려동물 1·2·14에서 404(기존 동작, 아이콘으로 대체) ④ 전신 이미지 오른쪽 투명 여백 14px는 서버 문서의 캐릭터 위치(512 중 x 96~416) 기준이라 캐릭터마다 조금 다를 수 있다 ⑤ PR 캡처는 `.playwright-mcp/pr/LJS-20261109-SCR-MAN-001-after-*`·`-community-after-*`(`-ai-face-after-*`는 얼굴 버전이라 쓰지 않음)
 - SCR-MAN-001 연결 남음(2026-11-09): A3 사진+글 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 연결, AI 서버 저장소에서 /start). 나오면 `features/ai/api.js`의 가짜 `judgeImageIntent`만 실제 요청으로 바꾼다. 가계부 바로 등록은 SJM `features/expense`와 맞춘다

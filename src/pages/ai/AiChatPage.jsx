@@ -30,6 +30,7 @@ import {
   useJudgeImageIntent,
 } from '@/features/ai/queries';
 import PetChoiceChips from '@/features/ai/chat/PetChoiceChips';
+import { useActionCards } from '@/features/ai/chat/useActionCards';
 import useAnswerStream from '@/features/ai/chat/useAnswerStream';
 import useChatReceipt from '@/features/ai/chat/useChatReceipt';
 import RouteGuideBubble from '@/features/ai/chat/RouteGuideBubble';
@@ -125,6 +126,8 @@ export default function AiChatPage() {
   const { data: member } = useMemberSummary();
   const { data: conversation, isError } = useConversation(selectedRoomSn);
   const confirmRegister = useConfirmRegister();
+  /** 확인 카드(2단계 쓰기): 등록 카드와 같은 번호로 "가장 최근 카드"를 함께 따진다 */
+  const actions = useActionCards();
   const cancelRegister = useCancelRegister();
   const answer = useAnswerStream();
   const openChatWindow = useChatWindow();
@@ -176,7 +179,11 @@ export default function AiChatPage() {
         message.roleCd === AI_ROLE.USER &&
         message.aiCnvrsMsgSn > pendingAfterSn,
     );
-  const latestCardKey = registerCards.at(-1)?.key ?? null;
+  const latestCardKey =
+    Math.max(
+      registerCards.at(-1)?.key ?? 0,
+      actions.actionCards.at(-1)?.key ?? 0,
+    ) || null;
 
   const updateImage = (id, patch) =>
     setImage((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
@@ -198,6 +205,7 @@ export default function AiChatPage() {
   /** 대화를 옮기거나 지울 때 카드·초안·칩 상태 초기화 */
   const resetRegister = () => {
     setRegisterCards([]);
+    actions.reset();
     setDraft(null);
     setPetChoices(null);
     receipt.reset();
@@ -234,6 +242,16 @@ export default function AiChatPage() {
     if (!result) return;
     const { aiCnvrsRoomSn, intent } = result;
     setDraft(intent.kind === 'REGISTER' ? result.card : null);
+    /** 확인 카드: ACTION 판정, 또는 검색 답변 끝(답변 메시지 뒤에 둔다) */
+    if (result.action) {
+      setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
+      actions.add({
+        key: nextCardKey++,
+        card: result.action,
+        afterSn,
+        anchorSn: result.message?.aiCnvrsMsgSn ?? null,
+      });
+    }
     if (intent.kind === 'ROUTE') {
       const nextRoute = toRoute(intent);
       if (nextRoute) {
@@ -268,6 +286,7 @@ export default function AiChatPage() {
       petSn: selectedPetSn ?? null,
       cnvrsCn,
       draft,
+      action: actions.pendingAction(latestCardKey),
       onRoom: setSelectedRoomSn,
     });
     handleResult(result, afterSn);
@@ -286,6 +305,7 @@ export default function AiChatPage() {
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
       draft,
+      action: actions.pendingAction(latestCardKey),
       replaceMsgSn,
     });
     handleResult(result, lastUserSn - 1);
@@ -563,6 +583,7 @@ export default function AiChatPage() {
               ]}
               fallbackCount={fallbackCount}
               registerCards={registerCards}
+              actionCards={actions.actionCards}
               latestCardKey={latestCardKey}
               isRegisterBusy={
                 confirmRegister.isPending || cancelRegister.isPending
@@ -579,6 +600,10 @@ export default function AiChatPage() {
               onCancelRegister={(key) =>
                 settleRegisterCard(cancelRegister, 'cancelled', key)
               }
+              onChangeAction={actions.changeInput}
+              onConfirmAction={(key) => actions.confirm(selectedRoomSn, key)}
+              onCancelAction={(key) => actions.cancel(selectedRoomSn, key)}
+              onRetryAction={(key) => actions.retrySave(selectedRoomSn, key)}
             >
               {hasAnswerBubble && (
                 <AnswerBubble

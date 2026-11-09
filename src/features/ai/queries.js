@@ -4,11 +4,13 @@ import {
   cancelRegister,
   confirmRegister,
   deleteConversation,
+  executeAction,
   getChatReceiptResult,
   getConversation,
   getConversations,
   judgeImageIntent,
   recognizeCheckupReceipt,
+  saveActionResult,
   saveReceiptResult,
 } from './api';
 
@@ -76,6 +78,13 @@ const useRegisterAnswer = (mutationFn) => {
 export const useConfirmRegister = () => useRegisterAnswer(confirmRegister);
 
 export const useCancelRegister = () => useRegisterAnswer(cancelRegister);
+
+/** 확인 카드 실행(Java): 성공 뒤 본창 새로고침은 화면이 알린다 */
+export const useExecuteAction = () =>
+  useMutation({ mutationFn: executeAction });
+
+/** 확인 카드 결과 저장: 결과 요약 메시지가 붙은 대화 상세 갱신 */
+export const useSaveActionResult = () => useRegisterAnswer(saveActionResult);
 
 /** 검진 영수증 인식 */
 export const useRecognizeCheckupReceipt = () =>

@@ -46,13 +46,22 @@ export default function useAnswerStream() {
   useEffect(() => reset, [reset]);
 
   /**
-   * 전송 시작: 끝나면 { aiCnvrsRoomSn, intent, message, shortcut, card }, 실패·중단이면 null
+   * 전송 시작: 끝나면 { aiCnvrsRoomSn, intent, message, shortcut, card, action }, 실패·중단이면 null
    * - cnvrsCn 없음: [다시 시도]·[다시 생성], replaceMsgSn은 새 답변으로 바꿀 미완료 메시지
    * - draft: 가장 최근 등록 카드
+   * - action: 가장 최근 처리 안 한 확인 카드 { tool, input }
    * - petSn: 새 방의 펫 태그(선택한 반려동물 칩, [전체]면 null)
    */
   const start = useCallback(
-    async ({ aiCnvrsRoomSn, petSn, cnvrsCn, draft, replaceMsgSn, onRoom }) => {
+    async ({
+      aiCnvrsRoomSn,
+      petSn,
+      cnvrsCn,
+      draft,
+      action,
+      replaceMsgSn,
+      onRoom,
+    }) => {
       runIdRef.current += 1;
       const runId = runIdRef.current;
       abortRef.current?.abort();
@@ -87,6 +96,7 @@ export default function useAnswerStream() {
           petSn,
           cnvrsCn,
           draft,
+          action,
           signal: controller.signal,
           onRoom: (nextRoomSn) => {
             if (!isCurrent()) return;
