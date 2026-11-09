@@ -45,7 +45,8 @@ function PasswordEdit({ onClose }) {
     error?.fields?.find((item) => item.field === name) ? PW_RULE : null;
   const isCurError = error?.code === 'CURRENT_PASSWORD_MISMATCH';
   const isCfmServerError = error?.code === 'PASSWORD_MISMATCH';
-  const newError = fieldMessage('pswd');
+  const isSameError = error?.code === 'PASSWORD_SAME_AS_CURRENT';
+  const newError = isSameError ? error.message : fieldMessage('pswd');
 
   const isMismatch =
     (cfmPswd !== '' && cfmPswd !== newPswd) || isCfmServerError;
@@ -68,6 +69,7 @@ function PasswordEdit({ onClose }) {
           if (
             err.code !== 'CURRENT_PASSWORD_MISMATCH' &&
             err.code !== 'PASSWORD_MISMATCH' &&
+            err.code !== 'PASSWORD_SAME_AS_CURRENT' &&
             !err.fields?.some((item) => item.field === 'pswd')
           ) {
             showToast('잠시 후 다시 시도해 주세요');
@@ -92,7 +94,7 @@ function PasswordEdit({ onClose }) {
           aria-describedby={isCurError ? curErrId : undefined}
           onChange={(event) => {
             setCurPswd(event.target.value);
-            if (isCurError) reset();
+            if (isCurError || isSameError) reset();
           }}
           className={INPUT}
         />

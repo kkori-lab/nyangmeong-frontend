@@ -2,28 +2,23 @@
 
 ## 지금 하는 것
 
-SCR-MYP-002 반려동물 프로필 목록 · `?register=1&returnTo=`로 등록 모달 바로 열기와 등록 뒤 돌아가기 — 끝 (2026-11-09, 검증 `통과`, 사람 확인 완료(건강기록 등록→새 아이 선택, register=1 등록→목록 새 아이, 취소→returnTo 복귀. 외부 주소 무시·수정 모달은 에이전트 확인). 검증용 반려동물 2마리는 화면에서 삭제함)
+SCR-MYP-040 회원정보 수정 · 새 비밀번호가 현재와 같을 때 입력란 아래 안내 — 끝 (2026-11-09, 검증 `통과` 1회차, 사람 확인 완료(현재 비밀번호 틀림은 사람이 확인, 같은 비밀번호 400은 에이전트의 page.route 확인으로 갈음))
 
-- 디자인: 없음(기존 등록 모달·목록 그대로, 화면 모양 변경 없음)
-- 1 `src/pages/mypage/PetListPage.jsx` 쿼리로 등록 모달 열기·돌아가기
-  - `useSearchParams`로 `register=1`이면 `modalPetSn`을 `null`로 열고, `register`·`returnTo`를 주소에서 `replace`로 지운다(다른 쿼리는 유지). 새로고침·뒤로 가기에서 다시 열리지 않는다. `returnTo`는 `useState` 초기값으로 읽어 기억한다(`isSafeReturnTo`: "/"로 시작하고 "//"로 시작하지 않고 역슬래시("\")가 없을 때만, 아니면 null)
-  - 등록 성공 뒤 `returnTo`가 있으면 `URLSearchParams`로 `petSn=<새 번호>`를 넣거나 바꿔 `navigate`한다(예: `/health?petSn=12`). 없으면 목록에 남는다. 등록 없이 모달을 닫으면(`[✕]`·`[취소]`) `returnTo`가 있을 때 그 주소로 `navigate`, 없으면 목록에 남는다. 수정 모달·기존 [등록] 버튼은 `returnTo` 상태를 쓰지 않는다(기억한 값은 쿼리로 연 등록 모달에서만)
-  - 사람 보완 2026-11-09: `returnTo` 없이(또는 무시돼) 등록하면 목록에서 새로 등록한 아이 슬라이드를 보여 준다(`slideIndex`를 새 `petSn`의 위치로. 목록이 갱신돼 새 아이가 들어온 뒤에 위치를 찾는다)
-  - 한 번 쓴 `returnTo`는 비운다(등록·취소 뒤 같은 화면에서 [등록]을 다시 누르면 돌아가지 않는다)
-- 2 `src/features/pet/list/PetFormModal.jsx` 등록 성공 응답(`POST /pets`의 `PetResponse.petSn`)을 `onClose`와 따로 알리는 `onCreated(newPet)` prop 추가. 안 주면 지금처럼 동작
-- 부르는 API: `POST /pets`(기존, 응답 `petSn` 확인함). 새 API·가짜 응답 없음
-- 보내는 쪽(`PetSwitcher` `getRegisterPath`, `MainPage`)은 이미 쿼리를 붙이고 있어 고치지 않는다. 건강기록 `SelectedPetProvider`가 `?petSn=`을 읽어 그 아이를 고르고 주소에서 지우는 것도 이미 있다
+- 디자인: 없음(기존 오류 문구 자리 `ErrorText` 그대로, 모양 변경 없음)
+- 1 `src/features/member/profile/PasswordChangeCard.jsx`
+  - `error?.code === 'PASSWORD_SAME_AS_CURRENT'`이면 새 비밀번호 칸 오류로 서버 `error.message`를 보여 준다(문구를 프론트에 새로 쓰지 않는다). 기존 `INVALID_INPUT_VALUE`의 `pswd` 오류(규칙 문구)와 같은 자리·같은 `aria-invalid`·`aria-describedby`를 쓴다. 둘이 같이 올 수 없으니 우선순위는 신경 쓰지 않는다
+  - `onError`의 토스트 제외 조건에 `PASSWORD_SAME_AS_CURRENT`를 더한다(토스트 안 뜸)
+  - 새 비밀번호 칸을 고치면 지금처럼 `reset()`으로 오류를 지운다(현재 비밀번호 칸을 고쳐도 같은 오류는 지운다: 현재 값이 바뀌면 "같다"는 판정도 무효)
+- 부르는 API: `PATCH /api/members/me/password`(기존, YAY). 400 `PASSWORD_SAME_AS_CURRENT`는 현재 비밀번호가 맞을 때만 온다(서버 검사 순서: 확인값 → 현재 비밀번호 → 같음). 새 API·가짜 응답 없음
 - 완료 조건
   - `명령:` `yarn -s lint`, `yarn -s build`
-  - `화면:` 건강기록 반려동물 전환의 [등록] → 모달이 바로 열림 → 등록 → `/health?petSn=새번호`로 가서 새 아이가 선택됨
-  - `화면:` 메인 [등록] → 모달 열림 → 등록 → 목록에 남음
-  - `화면:` 취소·새로고침·뒤로 가기에서 모달이 다시 안 뜨고(주소에 `register`·`returnTo` 없음), 취소는 `returnTo`가 있으면 그 주소로 돌아감
-  - `화면:` `?register=1&returnTo=https://example.com`과 `returnTo=/\example.com`은 모달만 열리고 `returnTo`는 무시돼 등록·취소 뒤 목록에 남음
-  - `화면:` `returnTo` 없이 등록(메인 [등록] 등)하면 목록에서 새로 등록한 아이 슬라이드가 보임
-  - 공용 DB에 반려동물이 생기므로(등록 확인) 만든 행은 보고의 "정리"에 적는다(삭제는 화면의 삭제 기능, 주양육자만 가능)
+  - `화면:` 이메일 회원으로 `/mypage/profile` → 비밀번호 [변경] → 현재 비밀번호와 같은 값을 새 비밀번호·확인에 넣고 [저장] → 새 비밀번호 입력란 아래에 "현재 비밀번호와 다른 비밀번호를 입력해 주세요."가 뜨고 토스트는 안 뜬다. 새 비밀번호를 고치면 문구가 사라지고 규칙 안내로 돌아간다
+  - `화면:` 기존 오류(현재 비밀번호 불일치는 현재 칸 아래, 그 밖의 서버 오류는 토스트)는 그대로다
+  - 화면 확인 방법: 시드 비밀번호는 숫자가 없어 클라이언트 규칙(`isValidPassword`)을 통과하지 못하므로 "현재와 같은 새 비밀번호"를 그대로는 넣을 수 없다. 규칙에 맞는 비밀번호를 가진 이메일 계정이 있으면 실제 서버로, 없으면 Playwright `page.route`로 `PATCH /api/members/me/password`에 서버와 같은 400 본문(`{code:"PASSWORD_SAME_AS_CURRENT", message:"현재 비밀번호와 다른 비밀번호를 입력해 주세요."}`)을 돌려 확인한다(DB 변경 없음). 로컬 백엔드는 origin/develop보다 17커밋 뒤라 실제 서버로 확인하려면 백엔드를 develop으로 맞춰 띄워야 한다
 - 새 의존성: 없음
 
 ## 다음에 할 것
+- SCR-MYP-040 `PASSWORD_SAME_AS_CURRENT` 실제 서버 확인 안 함: 로컬 백엔드가 origin/develop보다 뒤라 이 코드가 없고 시드 비밀번호가 규칙에 안 맞아 page.route 400 응답으로만 확인했다. 백엔드를 develop으로 맞춘 뒤 규칙에 맞는 비밀번호를 가진 이메일 계정이 있으면 실제 응답 `message`가 같은지 한 번 본다(연결 남음 아님, 선택)
 - 연결 남음 SCR-MYP-040 FN-MYP-040-09 (`POST /api/members/me/sns-links` 병합 뒤 확인, YAY): 성공 토스트·"연동됨" 전환, 이미 다른 계정에 연동된 SNS 등 서버 오류 `message`, 응답·오류 형식이 정해지면 `useSnsCallback` 오류 처리를 맞춘다
 - 확인 필요(백엔드): 화면 검증 때 dev-token을 mbrSn 1~60에 차례로 발급했다. dev-token이 `lastLgnDt`를 갱신하면 그 회원들의 마지막 로그인 일시가 바뀌었을 수 있다(복구 SQL 없음)
 - 문서 할 일(코드 아님, 사람이 정리): 기능명세서·화면설계서 FN-MYP-040-09에 SNS 계정 연동 버튼을 추가한다(연동됨/가입 계정 표시, [연동하기], 해제 없음, 이메일·SNS 회원 모두 노출, 실패 시 서버 message 토스트)
