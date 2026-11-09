@@ -41,6 +41,8 @@ export default function useRecovery(email, { onCancel }) {
   const [isSent, setIsSent] = useState(false);
   const [expiresAt, setExpiresAt] = useState(0);
   const [emlCertSn, setEmlCertSn] = useState(null);
+  // 인증번호를 서버 한도까지 틀리면 재발송 전까지 [인증 확인]을 막는다
+  const [isCodeLocked, setIsCodeLocked] = useState(false);
   const [token, setToken] = useState('');
   const [info, setInfo] = useState(null);
   const [remainDays, setRemainDays] = useState(0);
@@ -73,7 +75,8 @@ export default function useRecovery(email, { onCancel }) {
   /* 본인확인 */
   const changeCode = (value) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
-    setErrors({});
+    // 확인이 막힌 동안에는 재발송 안내를 남긴다
+    if (!isCodeLocked) setErrors({});
   };
 
   // 재전송 제한이면 서버 문구에 남은 시간을 붙인다. 보관 기간이 지났으면 새로 가입하도록 안내한다
@@ -104,6 +107,7 @@ export default function useRecovery(email, { onCancel }) {
           setErrors({});
           setNotice(null);
           setIsSent(true);
+          setIsCodeLocked(false);
         },
         onError: handleSendError,
       },
@@ -116,6 +120,7 @@ export default function useRecovery(email, { onCancel }) {
     setInfo(null);
     setEmlCertSn(null);
     setIsSent(false);
+    setIsCodeLocked(false);
     setExpiresAt(0);
     setCode('');
     setErrors({});
@@ -170,6 +175,9 @@ export default function useRecovery(email, { onCancel }) {
   const handleVerifyError = (error) => {
     if (error.code === 'INVALID_INPUT_VALUE') {
       setErrors(toFieldErrors(error.fields));
+    } else if (error.code === 'EMAIL_CERT_FAIL_LIMIT_EXCEEDED') {
+      setIsCodeLocked(true);
+      setErrors({ code: error.message });
     } else if (error.code.startsWith('EMAIL_CERT_')) {
       setErrors({ code: error.message });
     } else {
@@ -179,6 +187,7 @@ export default function useRecovery(email, { onCancel }) {
 
   const submitVerify = (event) => {
     event.preventDefault();
+    if (isCodeLocked) return;
     if (!code) {
       setErrors({ code: MSG.codeEmpty });
       return;
@@ -293,6 +302,7 @@ export default function useRecovery(email, { onCancel }) {
     canRecover,
     isSending: send.isPending,
     isVerifying: verify.isPending || loadInfo.isPending,
+    isCodeLocked,
     isPhoneChecking: checkPhone.isPending,
     isRecovering: recover.isPending,
     guideTarget,

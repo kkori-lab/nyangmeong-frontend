@@ -61,6 +61,9 @@ export default function usePasswordReset(grant) {
       setIsExpired(true);
     } else if (error.code === 'PASSWORD_MISMATCH') {
       setServerErrors({ confirm: error.message });
+    } else if (error.code === 'PASSWORD_SAME_AS_CURRENT') {
+      // 현재와 같은 비밀번호는 재설정 권한이 남아 있어 같은 화면에서 다시 입력한다
+      setServerErrors({ password: error.message || MSG.saveFailed });
     } else if (error.code === 'INVALID_INPUT_VALUE') {
       const next = {};
       (error.fields ?? []).forEach(({ field, message }) => {

@@ -53,7 +53,13 @@ export default function EmailStep({ form }) {
             readOnly={form.isEmailVerified}
             error={form.errors.code}
             success={form.isEmailVerified ? MSG.verified : ''}
-            help={MSG.sent}
+            help={
+              <>
+                {MSG.sent}
+                <br />
+                {MSG.spamHint}
+              </>
+            }
             hasGuide={target === 'code'}
             endAdornment={
               !form.isEmailVerified && (
@@ -67,7 +73,10 @@ export default function EmailStep({ form }) {
                 type="button"
                 onClick={form.submitVerify}
                 disabled={
-                  !form.code || form.isVerifying || form.isEmailVerified
+                  !form.code ||
+                  form.isVerifying ||
+                  form.isEmailVerified ||
+                  form.isCodeLocked
                 }
                 className={`${SIDE_BTN} !border-transparent !bg-brand-50 !text-brand-600 hover:enabled:!bg-brand-100 disabled:!bg-surface-3 disabled:!text-line-strong`}
               >
