@@ -77,7 +77,7 @@ function MissionError({ onRetry }) {
   );
 }
 
-function MissionPanel({ pet }) {
+function MissionPanel({ pet, isToday }) {
   const doneList = pet.missions.filter((mission) => mission.cmptnYn);
   const restList = pet.missions.filter((mission) => !mission.cmptnYn);
   const percent = getPercent(doneList.length, pet.missions.length);
@@ -110,7 +110,7 @@ function MissionPanel({ pet }) {
         </div>
         <p className="mt-3 flex flex-wrap gap-2 text-sm text-muted">
           <span>
-            오늘 획득{' '}
+            {isToday ? '오늘 획득' : '이날 획득'}{' '}
             <b className="text-brand-600">
               +{formatPoint(sumGiven(pet.missions))}
             </b>
@@ -161,6 +161,7 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
   const pets = data.pets;
   const pet = pets.find((item) => item.petSn === selectedPetSn) ?? pets[0];
   const hasOwnPets = ownPets.length > 0;
+  const isToday = ymd === todayYmd;
 
   return (
     <section
@@ -174,7 +175,7 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
             className="size-5 text-brand-500"
             aria-hidden="true"
           />
-          오늘의 케어미션
+          {isToday ? '오늘의 케어미션' : '케어미션'}
         </h2>
         {hasOwnPets && (
           <div className="flex items-center gap-2">
@@ -187,7 +188,7 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
               <ChevronLeft className="size-5" />
             </button>
             <b>{ymd}</b>
-            {ymd === todayYmd && (
+            {isToday && (
               <span className="inline-flex h-6 items-center rounded-full bg-brand-50 px-2.5 text-badge font-semibold text-brand-600">
                 오늘
               </span>
@@ -242,7 +243,7 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
           ) : pet.missions.length === 0 ? (
             <MissionNone />
           ) : (
-            <MissionPanel pet={pet} />
+            <MissionPanel pet={pet} isToday={isToday} />
           )}
           <p className="mt-2 flex items-center gap-2 text-sm text-subtle">
             <Info className="size-4 shrink-0" aria-hidden="true" />

@@ -2,30 +2,22 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 진행 중 (승인 2026-11-06 10:54, 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인 2026-11-06, 추가-1·2 검증 통과·사람 확인 2026-11-06). 메인 [건강기록 전체 보기]가 `/health?petSn=<선택한 반려동물>`로 간다. HLT-011 시작 탭은 JAJ 연결, FN-MAN-002는 LJS 대화창 부품 대기로 마일스톤은 진행
+SCR-ACC-002 로그인 (이메일) · 재발급 실패 뒤 원래 요청 재시도 — 구현 중 (승인 2026-11-09 10:30, 검증 통과 1회차, 사람 확인 2026-11-09)
 
-기준: 메인페이지_기능명세서_v0.10_20261103, 메인페이지_화면설계서_v0.10_20261103 (DMS)
-디자인: 없음, 화면설계서 기준 (화면 모양은 바꾸지 않는다)
+기준: `milestones/YAY.md` 해당 절(명세 기능 ID 추가 없음, `POST /auth/refresh`·로그인 유지). 백엔드 YAY `7ba0860`(develop 머지): access 쿠키는 refresh 수명(24시간)만큼 남고 토큰 만료(30분) 뒤에는 401 `TOKEN_EXPIRED`, 동시 재발급에 진 요청은 401 `UNAUTHORIZED`만 받고 쿠키는 지워지지 않는다
+디자인: 해당 없음(화면 변경 없음)
 
-| 기능 ID | 바꿀 파일 | API | 완료 조건 |
+| 항목 | 바꿀 파일 | API | 완료 조건 |
 | --- | --- | --- | --- |
-| FN-MAN-008 건강기록 전체 보기 이동 | `pages/main/MainPage.jsx`(링크에 `?petSn=<선택한 반려동물>`) | 없음 | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 메인에서 반려동물 탭을 고르고 [건강기록 전체 보기]를 누르면 `/health?petSn=<그 반려동물 번호>`로 간다. 탭을 바꾸면 링크 번호도 바뀐다. 버튼 모양·위치는 그대로. 연결 남음: HLT-011이 `?petSn=`으로 시작 탭을 고르는 것(JAJ `HealthSummaryPage.jsx`) |
+| 재발급 실패 뒤 재전송(axios) | `src/api/axios.js` `onRejected`: `TOKEN_EXPIRED`로 재발급을 시도했으면 성공·실패와 상관없이 원래 요청을 보낸 인스턴스로 한 번 다시 보낸다(`_retried`가 이미 true라 다시 보낸 요청이 401이면 재발급 없이 지금처럼 로그인 화면으로 이동). `skipAuthRedirect`·`isRefresh` 처리는 그대로 | `POST /auth/refresh`(내 것, 있음) | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` Playwright `page.route`로 로그인한 화면의 요청 하나를 401 `TOKEN_EXPIRED`로, `/api/auth/refresh`를 401 `UNAUTHORIZED`로 한 번씩 바꾸면 원래 요청이 한 번 더 나가고 200이면 화면이 그대로 남는다(로그인 이동 없음). 다시 보낸 요청도 401이면 `/login?redirect=<지금 경로>`로 간다. 재발급이 200이면 지금처럼 재전송 뒤 그대로 진행한다. `/auth/refresh`는 요청 한 번에 한 번만 나간다 |
+| 재발급 실패 뒤 재전송(SSE) | `src/api/axios.js` `aiStream`: 재발급 실패여도 `retried=true`로 한 번 다시 부르고, 그것도 401이면 로그인 이동 | `POST /auth/refresh` | `명령:` 위와 같음. `화면:` AI 대화에서 메시지를 보낼 때 위와 같은 route 조작(`/ai/...` 401 `TOKEN_EXPIRED` + refresh 401)에서 다시 보낸 요청이 스트림으로 이어진다 |
+| 규칙 문서 | `docs/convention/api.md` 상태 코드 절의 "`/auth/refresh` 자신이 401이면 더 시도하지 않는다"를 "재발급이 실패해도 원래 요청을 한 번 다시 보낸다(다른 탭이 먼저 재발급했을 수 있다). 그것도 401이면 로그인 화면으로"로 고치고, 401 행도 맞춘다 | 없음 | `명령:` 위와 같음. 문서와 `axios.js` 동작이 같다 |
 
-이번엔 안 함: FN-MAN-002 AI 검색바 → 확장형 대화창. 대화창(SCR-AIM-001)은 LJS 화면이고 메인에 끼울 부품이 없다. LJS가 부품을 만들면 메인에 조립한다. 지금은 검색바에서 보내면 새 창이 열린다(그대로)
+확인 방법 메모: 실제 두 탭 경합은 토큰 만료(30분)를 기다려야 하고 Playwright 탭은 쿠키를 공유해 재현이 어렵다. 그래서 route 조작으로 "재발급 401 + 재전송 200"을 만들어 본다. 실제 30분 경과 두 탭 확인은 사람 확인으로 남긴다
 
-질문:
-- FN-MAN-002·008의 남의 영역(LJS 대화창 부품, JAJ HLT-011 시작 탭)을 이 세션에서 고칠까요?
-  결정: 고치지 않는다. 메인 링크 한 줄만 하고 나머지는 "다음에 할 것"에 연결로 남긴다 (2026-11-06 10:54)
-- 디자인: 결정: 화면설계서 기준(화면 모양 변경 없음)
+질문: 없음
 
 새 의존성: 없음
-
-### 추가 요청
-
-| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
-| --- | --- | --- | --- |
-| 추가-1 | `features/member/login/EmailLoginForm.jsx`·`useEmailLogin.js`, `features/member/signup/EmailStep.jsx`·`PhoneStep.jsx`·`PasswordStep.jsx`·`SnsSignupForm.jsx`·`NicknameModal.jsx`·`useSignup.js` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 로그인(`/login?method=email`)은 아이디·비밀번호(보안코드가 열리면 보안코드까지) 중 빈 칸이 있으면 [로그인]이 비활성이다. 회원가입(`/signup`)은 이메일이 비면 [인증코드 발송], 인증번호가 비면 [확인], 휴대전화번호가 비면 [중복확인], 비밀번호·비밀번호 확인 중 하나라도 비면 [회원가입]이 비활성이다(SNS 가입 확인의 휴대전화번호도 같다). 닉네임 모달은 닉네임이 비면 [중복 확인]·[설정 완료]가 비활성이다. 칸을 비운 채 나가거나 적었다 지워도 "…입력해 주세요" 빈 칸 오류가 나오지 않는다. 형식 오류(이메일 형식·비밀번호 규칙·닉네임 글자 수 등)와 서버 오류는 지금처럼 나온다 | 요청 2026-11-06 11:25 "로그인·회원가입·닉네임에서 아무것도 안 적었을 때는 유효성 검사가 나오지 않게(빈 칸이면 버튼 비활성)" |
-| 추가-2 | `features/member/shared/AuthField.jsx`, `features/member/login/CaptchaBlock.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 로그인·회원가입 입력칸이 오류일 때 포커스해도 빨간 테두리에 빨간 링만 보이고 초록 링이 겹치지 않는다(예: `/signup` 이메일에 이미 가입한 이메일로 [인증코드 발송]). 오류가 없을 때 포커스하면 지금처럼 초록 테두리·초록 링 | 요청 2026-11-06 "회원가입·로그인 인풋박스에서 초록 보더라인과 빨간색이 겹치지 않게" |
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
@@ -34,13 +26,9 @@ SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 진행 중 (�
 ## 다음에 할 것
 
 - 로컬 계정: `yay315@naver.com`이 검증 중 로그인 실패 7회로 보안코드 상태다. 문서의 비밀번호로도 실패해 비밀번호가 바뀌었는지 확인하고 맞는 비밀번호로 한 번 로그인해 푼다
-- 백엔드 후보(로그인 몇 분 뒤 풀림): `access_token` 쿠키 수명이 토큰 수명(30분)과 같아 만료 뒤 쿠키가 사라지고, 서버가 `TOKEN_EXPIRED`가 아닌 `UNAUTHORIZED`를 보내 프론트 `api/axios.js`가 재발급하지 않는다. 쿠키 수명을 refresh 수명에 맞추는 안(백엔드 `TokenCookies`, 백엔드 저장소에서 /start, 인증 담당 확인). 탭 여럿이 동시에 재발급할 때 진 요청이 쿠키를 지우는지도 같이 본다
+- 팀 알림: `docs/routes.md` 29줄 MAN-001 담당이 아직 YAY다. 담당 표(2026-11-08)대로 LJS로 고치도록 LJS에게 알린다
 - 코드 후보: 휴대전화번호에 `---`만 적으면 [중복확인]이 켜지고 누르면 "휴대전화번호를 입력해 주세요."가 나온다(추가-1 검증 메모, `phone.trim()` 기준)
 
-- PR Breaking Changes(SCR-MAN-001): `features/pet/PetProfileCard.jsx`(SJM) 삭제, 메인이 HLT-011 `SummaryHero`(JAJ)를 그대로 씀(메인에서 `useHealthSummary` 호출), `features/health/CarePreview.jsx` 새 파일(JAJ 도메인). JAJ·SJM에게 알린다
-- 팀 알림: 로컬 백엔드 500 — `GET /pets/{petSn}/character-image`(LJS), `POST /pets/{petSn}/daily-health-records`·`POST /pets/{petSn}/care-completions`(JAJ). 실제 기록·캐릭터로 메인 지표·히어로를 다시 본다
-- 연결 남음: FN-MAN-008 (HLT-011 `HealthSummaryPage.jsx`가 `?petSn=`으로 시작 탭을 고른다, JAJ). 메인 링크는 이미 `/health?petSn=<번호>`. JAJ에게 요청함(2026-11-06)
-- 메인 남은 것: FN-MAN-002 AI 확장형 대화창(메인에 끼울 SCR-AIM-001 대화창 부품, LJS에게 요청함(2026-11-06). 마일스톤을 닫으려면 `/start SCR-MAN-001`로 FN-MAN-002를 새 마일스톤(대기)으로 넘긴다. 받으면 `HeroAsk` 아래에 조립), MANC0007 AI 건강분석 리포트(명세 미결)
 - 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당). 프론트 `screenPaths.js` 줄은 넣음
 - PR Breaking Changes(SCR-ACC-020): 새 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, `docs/routes.md`), SJM `ProfileEditPage.jsx` [회원 탈퇴] 이동 연결, LJS `screenPaths.js`에 `SCR-ACC-020` 행
 - SNS 배포 연결(팀): 배포 도메인의 `/login/sns/{naver|kakao|google}/callback`을 제공자 콘솔·배포 백엔드 `app.sns.*.redirect-uri`에 등록, 배포 프론트 환경에 `VITE_*` 앱 ID 3개. 카카오는 전화번호 동의항목 권한 신청 전이라 번호를 주지 않는다(직접 입력으로 감)

@@ -6,7 +6,8 @@ import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 
 // 약관 목록과 모두 동의. 이메일 가입 1단계와 SNS 가입 확인 화면이 같이 쓴다.
 // lockedSn은 외부에서 이미 확인된 항목(만 14세)이라 체크 대신 "확인 완료"로 보이고 모두 동의로 바뀌지 않는다
-export function TermsChecklist({ form, lockedSn }) {
+// isRoomy: 모바일에서 모두 동의 상자와 약관 줄 사이를 이메일 로그인처럼 넓힌다(가입 1단계, 추가-9)
+export function TermsChecklist({ form, lockedSn, isRoomy = false }) {
   if (form.isTermsLoading) {
     return <p className="text-muted">{MSG.termsLoading}</p>;
   }
@@ -22,7 +23,9 @@ export function TermsChecklist({ form, lockedSn }) {
   }
   return (
     <>
-      <div className="mb-2 flex min-h-[46px] items-center rounded-md border border-line px-4 font-semibold">
+      <div
+        className={`mb-2 flex min-h-[46px] items-center rounded-md border border-line px-4 font-semibold ${isRoomy ? 'max-md:mb-3' : ''}`}
+      >
         <AuthCheckBox checked={form.isAllChecked} onChange={form.toggleAll}>
           모두 동의
         </AuthCheckBox>
@@ -44,7 +47,7 @@ export function TermsChecklist({ form, lockedSn }) {
           return (
             <div
               key={trmsSn}
-              className="flex min-h-10 items-center px-4 text-ink-2"
+              className={`flex min-h-10 items-center px-4 text-ink-2 ${isRoomy ? 'max-md:min-h-11' : ''}`}
             >
               {trmsSn === lockedSn ? (
                 <div className="flex flex-1 items-center gap-3">
@@ -89,15 +92,15 @@ export default function TermsStep({ form }) {
   }
   return (
     <>
-      <TermsChecklist form={form} />
-      <p className="mt-2 text-sm leading-5 text-muted">
+      <TermsChecklist form={form} isRoomy />
+      <p className="mt-2 text-sm leading-5 text-muted max-md:mt-4">
         필수 약관에 모두 동의하면 다음으로 넘어갈 수 있어요.
       </p>
       <button
         type="button"
         disabled={!form.isTermsOk}
         onClick={() => form.goStep('email')}
-        className={`${PRIMARY_BTN} mt-5`}
+        className={`${PRIMARY_BTN} mt-5 max-md:mt-8`}
       >
         다음
       </button>

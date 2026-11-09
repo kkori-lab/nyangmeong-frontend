@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { showToast } from '@/components/toastStore';
 import { expenseKeys } from '@/features/expense/queries';
+import { notificationKeys } from '@/features/notification/queries';
 import {
   cancelCareRecord,
   cancelLastDose,
@@ -565,6 +566,9 @@ export const useSaveReceiptCheckups = () => {
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
       queryClient.invalidateQueries({ queryKey: expenseKeys.all });
+      /** 영수증 저장 시 서버가 가계부 지출을 만들고 한도 초과 알림을 저장하므로 알림 개수·목록 재조회 */
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.list });
     },
   });
 };
