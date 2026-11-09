@@ -1,5 +1,6 @@
-import { Camera, Loader2, Receipt, Upload } from 'lucide-react';
+import { Camera, Receipt, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
+import AnalyzeProgress from '@/components/AnalyzeProgress';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
@@ -158,10 +159,7 @@ export default function ExpenseReceiptUpload({
           role="status"
           className="flex flex-col items-center gap-3 py-8 text-muted"
         >
-          <Loader2
-            className="size-8 animate-spin text-brand-500"
-            aria-hidden="true"
-          />
+          <AnalyzeProgress />
           <p>영수증을 분석하고 있어요</p>
         </div>
       </Modal>
