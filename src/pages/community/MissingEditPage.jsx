@@ -19,6 +19,20 @@ import {
 import useLeaveGuard from '@/features/community/useLeaveGuard';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
+import SkeletonCard from '@/components/SkeletonCard';
+
+/** 로딩 자리: 폼 카드 + 오른쪽 작성 안내 레일(실제 수정 화면과 같은 배치·높이) */
+function MissingEditSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10"
+    >
+      <SkeletonCard className="h-[2200px] max-[760px]:h-[2900px]" />
+      <SkeletonCard className="h-[360px]" />
+    </div>
+  );
+}
 
 export default function MissingEditPage() {
   const navigate = useNavigate();
@@ -56,7 +70,7 @@ export default function MissingEditPage() {
 
   let body;
   if (isPending) {
-    body = <p className="text-muted">불러오는 중이에요</p>;
+    body = <MissingEditSkeleton />;
   } else if (isError) {
     body = (
       <div role="alert">

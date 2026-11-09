@@ -5,8 +5,22 @@ import CareDetail from '@/features/community/care/CareDetail';
 import { useCare } from '@/features/community/careQueries';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
+import SkeletonCard from '@/components/SkeletonCard';
 
 const DESCRIPTION = '가까운 이웃과 산책 · 돌봄을 부탁하고 도와줘요';
+
+/** 로딩 자리: 본문 카드 + 오른쪽 채팅 상자(실제 상세와 같은 배치·높이) */
+function CareDetailSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10"
+    >
+      <SkeletonCard className="h-[1233px] max-[760px]:h-[1500px]" />
+      <SkeletonCard className="h-[273px]" />
+    </div>
+  );
+}
 
 export default function CareDetailPage() {
   const petPrtcRcrtSn = Number(useParams().petPrtcRcrtSn);
@@ -14,7 +28,7 @@ export default function CareDetailPage() {
 
   let body;
   if (isPending) {
-    body = <p className="text-muted">불러오는 중이에요</p>;
+    body = <CareDetailSkeleton />;
   } else if (isError) {
     body = (
       <div role="alert">
