@@ -1,6 +1,6 @@
 # TC · 관리자(SCR-ADM-*) 수동 테스트 케이스
 
-- 기준: 관리자_기능명세서_v0.5_20261108(SCR-ADM-*), 관리자_화면설계서_v0.4_20261108, 요구사항정의서_v0.10.2_20261108(REQ-ADM-001~025·REQ-NFR-002·REQ-CMU-008~010·REQ-CSC-001~004의 세부내용), 백엔드 `docs/api/*.md`의 `/admin/...` 행과 `ErrorCode.java`(develop 2026-11-08), `milestones/LJS.md`
+- 기준: 관리자_기능명세서_v0.6_20261109(SCR-ADM-*), 관리자_화면설계서_v0.5_20261109, 요구사항정의서_v0.10.3_20261109(REQ-ADM-001~025·REQ-NFR-002·REQ-CMU-008~010·REQ-CSC-001~004의 세부내용), 백엔드 `docs/api/*.md`의 `/admin/...` 행과 `ErrorCode.java`(develop 2026-11-08), `milestones/LJS.md`
 - 코드: origin/develop 425199e (2026-11-08)
 - 준비: 백엔드를 :8080에 띄우고, 프론트는 `yarn dev`(:5173)로 띄운다. 관리자 계정 1개와 일반 회원 계정 1개를 준비한다. 회원·게시글·신고·문의·실종제보·펫돌봄 모집글 샘플 데이터가 DB에 있어야 한다
 - 표기: P = 정상, N = 오류·예외·경계. 다른 화면·배치와 이어지는 확인은 P로 두고 사전 조건 앞에 "연동:"을 붙였다. 기대 결과의 따옴표 문구는 코드·`ErrorCode.java`에 있는 문구 그대로다. `확인 필요: ...`는 코드·계약에서 근거를 찾지 못한 부분이다
@@ -1319,21 +1319,14 @@
 
 ## 명세·요구사항과 코드가 어긋난 곳
 
-- FN-ADM-020-01 / REQ-ADM-006 — 명세 게시판은 펫정보·펫일상·실종센터·펫돌봄 4개인데 게시글 화면 필터는 3개(펫돌봄 없음, `src/features/adminCommunity/postLabels.js`)
-- FN-ADM-023-01 / REQ-ADM-023 — 백엔드 `/admin/community/exposure/...` 계약이 있는데 화면이 아직 메모리 가짜다(`src/features/adminCommunity/api.js`, milestones 대기)
-- FN-ADM-042-08 / REQ-ADM-009 — 분쟁 문의 상세에서 작성자의 펫돌봄 매칭 목록으로 가는 연결이 없다(`src/features/adminInquiry/`, `src/pages/admin/AdminInquiryDetailPage.jsx`). 도착 화면 `?rcrtSn=`만 준비됨
-- FN-ADM-051-04 / REQ-ADM-024 — 명세·요구사항은 기능별 동의 문구 2종(펫돌봄 이용수칙, 실종 개인정보 공개 동의)도 관리하는데 화면은 가입 약관 4종만 다룬다(`src/features/adminTerms/termsKinds.js`, 서버 TRMS에 2종 없음)
-- FN-ADM-070-01 / FN-ADM-070-02 — 명세 부위는 머리·얼굴·목·의상·가방·신발 6개인데 화면은 "신발"을 이름으로 걸러 5개만 보인다(`src/features/adminItem/api.js` `EXCLUDED_PART_NAMES`)
-- FN-ADM-080-03 — 명세는 "행 순서를 바꾼다"인데 화면은 수정 모달의 "같은 지시어일 때 순서" 숫자 입력이다(드래그·위아래 버튼 없음, `src/features/adminAiRoute/AiRouteFormModal.jsx`). 목록의 "순위" 열은 2026-11-05 빠졌다
-- FN-ADM-081-01 / REQ-ADM-020 — 명세 용도는 5개(등록 동사·날짜·주기·일정 종류·가계부 카테고리)인데 화면은 "검진 종류" 탭이 하나 더 있다(`src/features/adminAiKeyword/keywordLabels.js`)
-- FN-ADM-090-02 — 명세는 "제목과 본문을 입력"인데 화면은 제목을 비워도 저장되고 "기본 제목"으로 발송된다(`src/features/adminNotificationTemplate/TemplateFormModal.jsx`)
-- FN-ADM-110-01 / REQ-ADM-016 / REQ-NFR-002 — 탈퇴 회원 보관일수는 읽기 전용이어야 하는데 화면은 다른 일수 항목과 같은 입력칸이다(`src/features/setting/shared/settingFields.js` `whdwlMbrKpngDayCnt`). 백엔드 수정 요청에도 이 항목이 없다
-- FN-ADM-110-01 — 명세 비고의 "대시보드 케어 최대 노출 수"(백엔드 `dshbdCareMaxExpsrCnt`, 1~20)가 설정 화면 항목에 없다(`src/features/setting/shared/settingFields.js`)
-- FN-ADM-110-02 — 입력 허용 범위가 서버와 다르다. 가짜 응답은 일수 1~99, 그 밖의 숫자 1~9,999인데 서버는 항목마다 다르다(예: AI 토큰 상한 500~100,000, AI 대화 턴 수 1~50, 반려동물 최대 수 1~100, 초대 유효 일수 1~3650; `src/features/setting/api.js`, 백엔드 `docs/api/global.md` AdminSettingUpdateRequest)
-- FN-ADM-012-01 / FN-ADM-012-03 — 정지·해제 사유 입력에 글자 수 제한이 없는데 서버는 1,000자 이내만 받는다(`src/features/adminMember/SuspendModal.jsx`·`ReleaseModal.jsx`, 백엔드 `docs/api/member.md`)
-- FN-ADM-111-01 — 명세 배치는 10종인데 백엔드는 코드에 있는 6종만 준다(`docs/api/global.md` `GET /admin/batches`). 화면은 서버 목록을 그대로 보인다
-- FN-ADM-111-02 — 명세 이력 항목의 "실패 건수"는 백엔드가 건별 실패를 세지 않아 화면에 열이 없다(실패는 "사유" 열, `src/features/batch/BatchHistoryTable.jsx`)
-- FN-ADM-001-04 / FN-ADM-001-05 — 명세에 없는 직접 입력 최대 90일 제한이 화면에 있다(`src/features/adminDashboard/dashboardPeriod.js`, 백엔드 stats도 91일 이상 400). 명세에 기간 상한을 적을 필요
-- FN-ADM-112-01 — 기간 상한(서버 92일)을 화면에서 검사하지 않는 것으로 보인다. 가짜 응답이라 연결 뒤 확인 필요(`src/features/apiUsage/`)
-- FN-ADM-012-04 / FN-ADM-023-05 / FN-ADM-111-01 — 명세는 "정지 자동 해제"·"오늘의 한마디 선택" 배치를 배치 현황 목록에 둔다고 하나 백엔드 목록은 6종이라 있는지 확인되지 않는다(`docs/api/global.md`)
-- FN-ADM-114-01 — 명세는 대상으로 거른다고 하나 대상 필터 항목이 운영 설정·회원 2개뿐이다(`src/features/audit/auditLabels.js` `TARGET_OPTIONS`). 공지·FAQ 등 나머지 대상은 서버 테이블명 그대로 표시되고 거를 수 없다
+- [코드] FN-ADM-020-01 / REQ-ADM-006 — 명세 게시판은 펫정보·펫일상·실종센터·펫돌봄 4개인데 게시글 화면 필터는 3개(펫돌봄 없음, `src/features/adminCommunity/postLabels.js`)
+- [코드] FN-ADM-023-01 / REQ-ADM-023 — 백엔드 `/admin/community/exposure/...` 계약이 있는데 화면이 아직 메모리 가짜다(`src/features/adminCommunity/api.js`, milestones 대기)
+- [코드] FN-ADM-042-08 / REQ-ADM-009 — 분쟁 문의 상세에서 작성자의 펫돌봄 매칭 목록으로 가는 연결이 없다(`src/features/adminInquiry/`, `src/pages/admin/AdminInquiryDetailPage.jsx`). 도착 화면 `?rcrtSn=`만 준비됨
+- [백엔드] FN-ADM-051-04 / REQ-ADM-024 — 명세·요구사항은 기능별 동의 문구 2종(펫돌봄 이용수칙, 실종 개인정보 공개 동의)도 관리하는데 화면은 가입 약관 4종만 다룬다(`src/features/adminTerms/termsKinds.js`, 서버 TRMS에 2종 없음)
+- [코드] FN-ADM-110-01 / REQ-ADM-016 / REQ-NFR-002 — 탈퇴 회원 보관일수는 읽기 전용이어야 하는데 화면은 다른 일수 항목과 같은 입력칸이다(`src/features/setting/shared/settingFields.js` `whdwlMbrKpngDayCnt`). 백엔드 수정 요청에도 이 항목이 없다
+- [코드] FN-ADM-110-01 — 명세 비고의 "대시보드 케어 최대 노출 수"(백엔드 `dshbdCareMaxExpsrCnt`, 1~20)가 설정 화면 항목에 없다(`src/features/setting/shared/settingFields.js`)
+- [코드] FN-ADM-110-02 — 입력 허용 범위가 서버와 다르다. 가짜 응답은 일수 1~99, 그 밖의 숫자 1~9,999인데 서버는 항목마다 다르다(예: AI 토큰 상한 500~100,000, AI 대화 턴 수 1~50, 반려동물 최대 수 1~100, 초대 유효 일수 1~3650; `src/features/setting/api.js`, 백엔드 `docs/api/global.md` AdminSettingUpdateRequest)
+- [코드] FN-ADM-012-01 / FN-ADM-012-03 — 정지·해제 사유 입력에 글자 수 제한이 없는데 서버는 1,000자 이내만 받는다(`src/features/adminMember/SuspendModal.jsx`·`ReleaseModal.jsx`, 백엔드 `docs/api/member.md`)
+- [코드] FN-ADM-112-01 — 기간 상한(서버 92일)을 화면에서 검사하지 않는 것으로 보인다. 가짜 응답이라 연결 뒤 확인 필요(`src/features/apiUsage/`)
+- [코드] FN-ADM-114-01 — 명세는 대상으로 거른다고 하나 대상 필터 항목이 운영 설정·회원 2개뿐이다(`src/features/audit/auditLabels.js` `TARGET_OPTIONS`). 공지·FAQ 등 나머지 대상은 서버 테이블명 그대로 표시되고 거를 수 없다
+- [AI 서버] FN-ADM-080-01 / REQ-ADM-020 — 관리자 라우팅 매핑표 화면은 백엔드 DB를 고치지만 AI 서버는 data/routing.yaml만 읽어(재시작 때 캐시) 관리자가 고친 매핑이 AI 대화에 반영되지 않는다 (AI 서버 app/chat/rules.py routing_table)

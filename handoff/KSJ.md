@@ -2,14 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-CMU-002 실종센터 · 찾았어요 글 수정 숨김·목록 이전 값 유지·품종 선택 (2026-11-06) — 상태: 끝 (검증 4회차 `확인 못 함 있음`(연결 남음만), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-06)
+SCR-CMU-001 커뮤니티 상세 · 첨부 이미지 크기·크게 보기, 좋아요 버튼 공용화·바운스 (2026-11-09) — 상태: 끝 (검증 6회차 통과, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-09)
 
-- 바꾼 것: 찾았어요 글 상세 [수정] 숨김(작성자 메뉴는 작성자 줄 오른쪽), 목록 `keepPreviousData`, 실종 글쓰기·수정 품종을 선택 항목으로(`BreedCombobox` `required`), 찾았어요·만료 글 수정 주소 직접 진입은 토스트 뒤 상세로, 품종 없는 글 수정 폼은 미선택으로 열림
-- 이 프론트 PR은 백엔드 `POST·PATCH /lost-reports`가 품종 없는 요청을 받는 변경이 `develop`에 들어간 뒤에 합친다(그전에는 품종을 비우면 서버 400)
+- 바꾼 것: 세 상세(펫이야기·실종센터·펫돌봄) 첨부 이미지를 작은 원본은 원래 크기·가운데, 최대 높이 `min(640px,75vh)`로, 누르면 공용 `components/ImageViewer`로 크게 보기(1:1 문의 뷰어를 옮김). 좋아요 버튼을 `components/LikeButton`으로 묶고 하트만 색이 바뀌며 누를 때 바운스(1.5배·0.4s·ease-in-out). 좋아요·취소는 누르는 즉시 화면이 바뀌고 실패하면 되돌림(`features/community/optimisticLike.js`)
+- 추가 요청: 추가-1 개수 글자색 고정(하트만 색 변경), 추가-2 낙관적 갱신, 추가-3 바운스 키움·ease-in-out
 
+SCR-CMU-002 실종센터 · 찾았어요 글 수정 숨김·목록 이전 값 유지·품종 선택 (2026-11-06) — 상태: 끝, PR #252(백엔드 `POST·PATCH /lost-reports`가 품종 없는 요청을 받는 변경이 `develop`에 들어간 뒤에 합친다)
 ## 다음에 할 것
 
 ### 내가 할 것(프론트)
+- 좋아요 버튼이 응답 뒤 재조회가 끝날 때까지 잠시(0.6초 넘게) 비활성이다(`optimisticLike.js` `onSettled`가 재조회를 기다림). 바로 취소를 누르게 하려면 재조회를 기다리지 않게 바꾼다(필요하다고 하면)
 - 관리자 1:1 문의 `features/adminInquiry/queries.js` `useAdminInquiryImageUrls`도 화면을 떠날 때 캐시 blob 주소를 바로 해제한다(사용자 문의에서 고친 것과 같은 패턴). 관리자 화면에서 상세↔수정처럼 같은 첨부를 이어 쓰면 깨질 수 있어 담당에게 알린다
 
 ### 정할 것(사람)
@@ -24,6 +26,7 @@ SCR-CMU-002 실종센터 · 찾았어요 글 수정 숨김·목록 이전 값 �
 - 375px 페이지 가로 스크롤은 공용 푸터가 원인(`UserFooter.jsx`, LJS). LJS 반응형 작업이 들어오면 다시 본다(CSC 추가-4). 푸터 일러스트와 내용 사이 여백도 LJS가 정한다
 
 ### 백엔드(백엔드 저장소에서 /start)
+- 작성자 본인이 자기 글 상세를 열어도 조회수가 오른다(`PostService.getPost`·`LostReportService.getReport`·`CareRecruitmentService.getRecruitment`). 작성자는 건너뛰게 고친다(사람이 백엔드에서 진행)
 - SCR-CMU-002: FN-CMU-002-10·13 `POST·PATCH /lost-reports`가 `vrtySn`·`vrtyDrctInptNm` 둘 다 없는 요청을 받게(`LostReportService` 「둘 중 하나만」 검사). 이것이 들어간 뒤 품종 없는 글의 상세(「강아지」만)·카드(품종 줄 없음)·수정 폼(미선택으로 열림)을 확인하고 프론트 PR을 합친다
 - 관리자 설정 `dscvAutoCmntCn`(찾았어요 자동 댓글)이 저장만 되고 댓글에는 반영되지 않는다. `LostReportService.FOUND_COMMENT` 상수가 쓰인다. 설정값을 쓰게 하면 프론트 미리보기(`missingCodes.js` `foundCommentText`)도 설정값을 받아야 한다
 - 펫돌봄 완료 사진 관리자 열람(SCR-ADM-022, 진행): 관리자 전용 `GET /api/admin/care-matches/{petPrtcRcrtSn}/images/{atchFileSn}` 구현은 로컬에 있고 커밋 전. 끝나면 LJS에 `CareMatchDetailModal.jsx` `publicFileUrl` → `useFileImage` 전달. 채팅 실시간 제안(`docs/api/community.md` 「실시간」) 검토는 따로
@@ -32,6 +35,7 @@ SCR-CMU-002 실종센터 · 찾았어요 글 수정 숨김·목록 이전 값 �
 - 펫뉴스 데이터: 시드 뉴스 썸네일이 `news.example.com` 가짜 주소라 자리 표시로 나옴, 수집 기사 요약에 `&#39;` 같은 HTML 엔티티가 남음(100번). 공용 DB에 v0.11 (7)·(8) 뉴스 제외 키워드가 들어갔는지 확인 뒤 수집
 
 ### 사람이 할 것(DB·파일·문서)
+- 로컬 백엔드 `app.file.root-dir`이 `/home/ggorilab/attachment`라 시드 이미지(`uploads/`)를 못 찾아 `/api/files/public/*`가 404(커뮤니티 썸네일·첨부가 깨져 보임). 개인 `application.properties`의 `app.file.root-dir`을 백엔드 저장소 `uploads` 폴더로 맞추고 서버를 다시 시작한다
 - 공용 DB: 펫돌봄 시드 글을 전북 지역으로(시드 SQL은 백엔드 845613d에서 고침, 공용 DB `UPDATE` 반영 확인)
 - 공용 DB: 「[실종]」 글이 `BBS_CD=CMUC0002`라 관리자 `CMUC0024` 필터가 0건(사용자 화면은 영향 없음)
 - 업로드 한도 100MB는 백엔드 `application.properties.example`에 들어감. 팀원·디스코드의 `application.properties`도 `max-request-size=100MB`로 바꾼다

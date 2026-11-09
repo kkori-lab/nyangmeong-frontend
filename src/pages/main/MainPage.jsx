@@ -10,10 +10,11 @@ import { PATHS } from '@/routes/paths';
 
 /**
  * [메인페이지 SCR-MAN-001] 구글 시작 화면형(팀 회의 2026-11-08 개편)
- * - 첫 화면 세로 가운데에 인사말 → AI 매니저 검색창 → 반려동물 바로가기, 그 아래 바로 푸터
+ * - 첫 화면 세로 가운데에 인사말 → AI 매니저 검색창 → 반려동물 바로가기, 화면 맨 아래에 픽셀 띠(푸터 없음)
  *   (제안 카드 [AI 건강분석 리포트]·[영수증 올리기]는 뺐다, 사람 요청 2026-11-09)
  * - `/main`은 회원만 들어온다(mainRoutes `auth: 'member'`)
- * - 높이: 화면 − 헤더(64px) − 본문 위아래 여백(UserLayout main pt-6, pb-[160px] / 760px 이하 pb-20)
+ * - 높이: 화면 − 헤더(64px) − 본문 위 여백(UserLayout main pt-6, 24px) − 맨 아래 픽셀 띠(최대 100px). 메인은 푸터 없이 스크롤하지 않는다
+ * - PC(761px 이상): 아래 여백 200px로 가운데 묶음을 100px 위로 올림(사람 요청 2026-11-09)
  */
 export default function MainPage() {
   const { data: pets, isError } = useMyPets();
@@ -25,7 +26,7 @@ export default function MainPage() {
   return (
     <section
       aria-labelledby="main-title"
-      className="flex min-h-[calc(100svh-248px)] flex-col items-center justify-center gap-6 text-center max-[760px]:min-h-[calc(100svh-168px)]"
+      className="flex h-[calc(100dvh-188px)] flex-col items-center justify-center gap-6 text-center min-[761px]:pb-[200px]"
     >
       {!pets && !isError ? (
         <MainSkeleton />

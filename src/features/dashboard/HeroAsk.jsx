@@ -61,7 +61,7 @@ export default function HeroAsk({ petNm }) {
       <form
         role="search"
         onSubmit={handleSubmit}
-        className={`flex w-full max-w-[600px] flex-wrap items-center gap-2 border border-line bg-white px-1.5 shadow-depth-sm focus-within:border-brand-500 focus-within:ring-focus ${
+        className={`flex w-full max-w-[600px] flex-wrap items-center gap-2 border border-line bg-white px-1.5 focus-within:border-brand-500 focus-within:ring-focus ${
           picked ? 'rounded-[26px] pt-3 pb-1.5' : 'h-[52px] rounded-full'
         }`}
       >

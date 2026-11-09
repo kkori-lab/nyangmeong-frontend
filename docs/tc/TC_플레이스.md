@@ -1,6 +1,6 @@
 # TC · 플레이스 (SCR-HOS-001, SCR-PLC-001~004)
 
-- 기준: 플레이스_기능명세서_v0.5_20260930, 플레이스_화면설계서_v0.7_20260930, 요구사항정의서_v0.10.2_20261108(REQ-HOS-001~005, REQ-PLC-001·002), 백엔드 `docs/api/place.md`·`ErrorCode.java`(develop 2026-11-08)
+- 기준: 플레이스_기능명세서_v0.5_20260930, 플레이스_화면설계서_v0.7_20260930, 요구사항정의서_v0.10.3_20261109(REQ-HOS-001~005, REQ-PLC-001·002), 백엔드 `docs/api/place.md`·`ErrorCode.java`(develop 2026-11-08)
 - 코드: origin/develop 425199e (2026-11-08)
 - 준비
   - 백엔드를 :8080에 띄우고 프론트는 `yarn dev`(:5173). 회원(일반 회원) 계정으로 로그인한다. 관리자 계정도 하나 준비한다
@@ -376,16 +376,16 @@
 
 ## 명세·요구사항과 코드가 어긋난 곳
 
-- FN-HOS-001-03 / REQ-HOS-002 — 입력 중 관련 후보 표시가 없고 고정된 "추천" 버튼만 있다 (`features/place/PlacePanel.jsx`, `placeData.js`의 `SUGGESTIONS`)
-- FN-HOS-001-04 — 검색 버튼이 없고 Enter로만 검색한다 (`features/place/PlaceSearchForm.jsx`)
-- FN-HOS-001-04 / REQ-HOS-002 — 지역명이 없으면 "확정된 검색 영역"을 쓰기로 했으나, 새 검색은 항상 전주시 대표 영역으로 되돌린다 (`features/place/usePlaceSearch.js`의 `submitSearch`)
-- FN-HOS-001-07·08·21·22 / REQ-HOS-003 — 명세는 카드·병원명 클릭으로 카카오맵 새 탭을 열지만, 요구사항은 "카드 클릭 = 선택, 이동은 [카카오맵 상세보기]만"이다. 코드는 명세를 따른다 (`features/place/PlaceListItem.jsx`)
-- FN-HOS-001-07·25 / REQ-HOS-002·003 — 명세는 카드·요약 카드에 영업시간을 적었으나 요구사항은 영업시간을 제외했고 서버 계약에도 없다. 코드에는 영업시간이 없다 (`PlaceListItem.jsx`, `PlacePopup.jsx`, 백엔드 `docs/api/place.md`)
-- FN-HOS-001-09·23 / REQ-HOS-005 — 지도 요약 카드에 즐겨찾기 별이 없다 (`features/place/PlacePopup.jsx`)
-- FN-HOS-001-29 — 저장 항목이 없을 때 「저장한 즐겨찾기가 없습니다.」를 보이지 않고 영역을 숨긴다 (`features/place/PlacePanel.jsx`)
-- FN-HOS-001-19 — 0건 문구가 명세(「이 지도 영역에 검색 결과가 없습니다」)와 다르다. 코드는 "이 지도 영역에 검색 결과가 없어요" (`features/place/PlacePanel.jsx`)
-- FN-HOS-001-10 — 명세는 "동일 문자의 핀과 결과 카드"이고 ★가 즐겨찾기를 나타내지만, 코드는 숫자 핀이며 검색 결과에 포함된 즐겨찾기는 별 모양이 아닌 번호 핀이다 (`PlaceMap.jsx`, `PlacePin.jsx`)
-- FN-HOS-001-06 — 명세는 추천순·거리순·이름순 순서이고 요구사항에 기본값이 없다. 코드는 거리순·추천순·이름순 순서에 기본 거리순이며 서버 기본은 RECOMMEND다 (`placeData.js`, 백엔드 `docs/api/place.md`)
-- FN-HOS-001-26 / REQ-HOS-003 — 요구사항은 카카오 상세 주소가 없으면 상세 버튼을 비활성화하지만, 코드는 그 좌표의 카카오맵 링크로 대신 연다 (`features/place/placeFormat.js`)
-- FN-HOS-001-33 / REQ-HOS-005 — 요구사항은 비로그인 즐겨찾기 시도에 로그인 유도 컴포넌트(SCR-COM-903)를 표시한다고 하지만, 명세는 플레이스 안의 로그인 유도 팝업을 표시하지 않는다고 한다. 코드는 명세를 따른다 (`routes/domains/place/placeRoutes.js`)
-- FN-HOS-001-03 / REQ-HOS-002 — 검색어 100자 이하 제한이 서버 계약에만 있고 입력칸에는 글자 수 제한이 없다 (`PlaceSearchForm.jsx`, 백엔드 `PlaceSearchCond.java`)
+- [코드] FN-HOS-001-03 / REQ-HOS-002 — 입력 중 관련 후보 표시가 없고 고정된 "추천" 버튼만 있다 (`features/place/PlacePanel.jsx`, `placeData.js`의 `SUGGESTIONS`)
+- [코드] FN-HOS-001-04 — 검색 버튼이 없고 Enter로만 검색한다 (`features/place/PlaceSearchForm.jsx`)
+- [코드] FN-HOS-001-04 / REQ-HOS-002 — 지역명이 없으면 "확정된 검색 영역"을 쓰기로 했으나, 새 검색은 항상 전주시 대표 영역으로 되돌린다 (`features/place/usePlaceSearch.js`의 `submitSearch`)
+- [결정] FN-HOS-001-07·08·21·22 / REQ-HOS-003 — 명세는 카드·병원명 클릭으로 카카오맵 새 탭을 열지만, 요구사항은 "카드 클릭 = 선택, 이동은 [카카오맵 상세보기]만"이다. 코드는 명세를 따른다 (`features/place/PlaceListItem.jsx`)
+- [문서] FN-HOS-001-07·25 / REQ-HOS-002·003 — 명세는 카드·요약 카드에 영업시간을 적었으나 요구사항은 영업시간을 제외했고 서버 계약에도 없다. 코드에는 영업시간이 없다 (`PlaceListItem.jsx`, `PlacePopup.jsx`, 백엔드 `docs/api/place.md`)
+- [코드] FN-HOS-001-09·23 / REQ-HOS-005 — 지도 요약 카드에 즐겨찾기 별이 없다 (`features/place/PlacePopup.jsx`)
+- [코드] FN-HOS-001-29 — 저장 항목이 없을 때 「저장한 즐겨찾기가 없습니다.」를 보이지 않고 영역을 숨긴다 (`features/place/PlacePanel.jsx`)
+- [코드] FN-HOS-001-19 — 0건 문구가 명세(「이 지도 영역에 검색 결과가 없습니다」)와 다르다. 코드는 "이 지도 영역에 검색 결과가 없어요" (`features/place/PlacePanel.jsx`)
+- [코드] FN-HOS-001-10 — 명세는 "동일 문자의 핀과 결과 카드"이고 ★가 즐겨찾기를 나타내지만, 코드는 숫자 핀이며 검색 결과에 포함된 즐겨찾기는 별 모양이 아닌 번호 핀이다 (`PlaceMap.jsx`, `PlacePin.jsx`)
+- [결정] FN-HOS-001-06 — 명세는 추천순·거리순·이름순 순서이고 요구사항에 기본값이 없다. 코드는 거리순·추천순·이름순 순서에 기본 거리순이며 서버 기본은 RECOMMEND다 (`placeData.js`, 백엔드 `docs/api/place.md`)
+- [결정] FN-HOS-001-26 / REQ-HOS-003 — 요구사항은 카카오 상세 주소가 없으면 상세 버튼을 비활성화하지만, 코드는 그 좌표의 카카오맵 링크로 대신 연다 (`features/place/placeFormat.js`)
+- [결정] FN-HOS-001-33 / REQ-HOS-005 — 요구사항은 비로그인 즐겨찾기 시도에 로그인 유도 컴포넌트(SCR-COM-903)를 표시한다고 하지만, 명세는 플레이스 안의 로그인 유도 팝업을 표시하지 않는다고 한다. 코드는 명세를 따른다 (`routes/domains/place/placeRoutes.js`)
+- [코드] FN-HOS-001-03 / REQ-HOS-002 — 검색어 100자 이하 제한이 서버 계약에만 있고 입력칸에는 글자 수 제한이 없다 (`PlaceSearchForm.jsx`, 백엔드 `PlaceSearchCond.java`)

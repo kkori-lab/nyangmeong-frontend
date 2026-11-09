@@ -7,14 +7,14 @@
 - 기능: FN-HLT-003-29 월간 캘린더, 003-30 일정 종류 태그, 003-31 날짜 클릭 → 인라인 상세, 003-39 표시 반려동물 필터, 003-40 다가오는 케어 일정, 003-01 반려동물 선택 탭, 003-12 토탈 케어리스트, 003-13 메인 표시 ★ 토글, 003-37 반려동물 선택, 003-34 일정 종류, 003-32 날짜 · 시간, 003-35 종류별 추가 필드, 003-36 일정 메모 · 뱃지 색상, 003-33 하단 버튼, 003-21 항목명, 003-22 카테고리 대표 아이콘, 003-23 반복 유형, 003-24 주기, 003-38 마지막으로 한 날
 - 기다리는 것: pet 목록·프로필 조회 (SJM), pet 캐릭터 이미지 조회 (LJS), pet 케어미션·포인트 반영 (SJM)
 - 완료 조건: 날짜를 누르면 그날 일정이 인라인 상세에 나오고 [＋ 새 일정 등록]으로 모달이 열린다 / 케어 타일을 누르면 완료 토글되고 정기관리 다음 예정일이 다시 계산된다
-- 연결 남음: FN-HLT-003-01·39 반려동물 목록 (SJM), 003-01 캐릭터 이미지 (LJS), 003-12 케어미션·포인트 반영 (SJM), 003-29~38·12·13·21~24 일정·케어 API (JAJ 백엔드)
+- 연결 남음: 없음 (반려동물 목록·일정·케어 API는 「일정 API 연결」·「반려동물 목록 연결」·「토탈 케어리스트 API 연결」에서 연결, 캐릭터 이미지는 「PetFace 올리기」, 케어미션은 백엔드가 저장 때 반영)
 
 ## SCR-HLT-002 건강 일지 — 끝
 
 - 기능: FN-HLT-002-01 반려동물 선택 탭, 002-09 건강기록 변화, 002-10 그래프 원칙 · 조회기간, 002-12 오늘의 기록, 002-11 오늘 기록하기, 002-13 최근 건강기록 (날짜별 표), 002-15 관찰 항목 목록, 002-16 선택 항목 헤더, 002-17 회차별 사진 필름스트립, 002-18 크기 변화 그래프, 002-19 선택 회차 상세, 002-05 검진기록 리스트, 002-14 조회 연도 선택, 002-06 검진 건수 필터 칩, 002-20 관찰 항목, 002-21 관찰 부위, 002-32 관찰일, 002-22 사진 촬영, 002-23 크기 · 변화, 002-24 메모, 002-25 취소 / 저장하기, 002-33 등록 방법 선택, 002-26 반려동물 선택, 002-27 검진일, 002-28 병원명 · 검진 종류, 002-29 검진 내용 · 검진 메모, 002-30 캘린더 연결 안내, 002-31 취소 / 저장하기
 - 기다리는 것: pet 목록·프로필 조회 (SJM), pet 캐릭터 이미지 조회 (LJS)
 - 완료 조건: 오늘 기록을 추가하면 오늘의 기록 타일·그래프·최근 건강기록 표가 함께 갱신된다 / 검진기록을 직접 입력해 저장하면 새 검진기록의 검진상세로 이동한다
-- 연결 남음: FN-HLT-002-01 반려동물 목록 (SJM), 002-01 캐릭터 이미지 (LJS), 002-09~13·15~33 일상 기록·관찰·검진기록 API (JAJ 백엔드)
+- 연결 남음: 없음 (「검진기록 API 연결」·「일상 기록 API 연결」·「지속 관찰 API 연결」에서 연결)
 
 ## SCR-HLT-002 건강 일지 · 영수증 등록 — 끝
 
@@ -22,28 +22,28 @@
 - API가 남의 것: 002-34~46 영수증 결과 확인 (YAY), 002-41·44 가계부 지출 생성·중복 확인 (SJM)
 - 기다리는 것: expense 지출 생성·중복 확인 (SJM), 영수증 인식 (YAY), 영수증 업로드 화면 SCR-AIM-008 (LJS)
 - 완료 조건: 영수증으로 등록한 검진기록이 병원 일정에 자동 연결되고 검진상세로 이동한다 / 여러 마리 탭에서 하나라도 실패하면 모두 되돌리고 입력값이 유지된다
-- 연결 남음: FN-HLT-002-34~46 영수증 인식 결과 전체 (YAY), 002-41·44 가계부 지출 생성·중복 확인 (SJM), 002-33~46 검진기록 저장·병원 일정 연결 API (JAJ 백엔드). 002-34 원본 이미지(`diary/ReceiptResultStep.jsx` `imgUrl`)는 비공개 파일이라 연결 때 `@/hooks/useFileImage` + `@/components/FileImage`로 `GET /receipts/{recptSn}/image`를 그린다(공통 이미지 코드가 develop에 올라온 뒤)
+- 연결 남음: 없음 (「영수증 일괄 저장 연결」·「영수증 원본 이미지 연결」에서 연결)
 
 ## SCR-HLT-005 검진상세 — 끝
 
 - 기능: FN-HLT-005-01 기본정보 · 첨부 자료, 005-04 PDF 분석, 005-02 검사 결과 탭 · 검사 종류 칩, 005-03 처방약, 005-05 반복 예방 관리, 005-15 상세 탭, 005-11 검사명, 005-12 검사 결과, 005-13 메모, 005-14 취소 / 저장하기
 - 기다리는 것: pet 목록·프로필 조회 (SJM)
 - 완료 조건: 탭 4개가 건수와 함께 나오고 처음 열면 검사 결과 탭이 선택된다 / 처방약을 주기 체크 ON으로 저장하면 케어 캘린더 일상관리에 투약 항목이 생긴다
-- 연결 남음: FN-HLT-005-01~05·11~15 검진기록·검사 결과·첨부 자료·처방약·반복 예방 API (JAJ 백엔드), 005-04 PDF 분석 호출부 (LJS)
+- 연결 남음: 없음 (「검진상세 · API 연결」·「PDF 분석 연결」에서 연결)
 
 ## SCR-HLT-007 검사 수치 입력 — 끝
 
 - 기능: FN-HLT-007-04 분석 결과 검수, 007-05 검사 종류 표시, 007-06 다시 분석 · 직접 입력하기, 007-01 검사 종류, 007-02 검사 항목, 007-03 취소 · 저장하기
 - 기다리는 것: 검사결과지 PDF 분석 호출부 (`global/external`, LJS)
 - 완료 조건: 참고범위를 한쪽만 입력하면 [저장하기]가 막힌다 / 수정 진입 시 기존 값이 채워지고 저장하면 해당 행이 갱신된다
-- 연결 남음: FN-HLT-007-04·05·06 (검사결과지 PDF 분석 호출부, LJS), 007-03 (검사 결과 생성·수정 API, JAJ 백엔드)
+- 연결 남음: 없음 (「검사 수치 입력 · API 연결」·「PDF 분석 연결」에서 연결)
 
 ## SCR-HLT-011 종합 건강기록 — 끝
 
 - 기능: FN-HLT-011-01 반려동물 선택 탭, 011-02 요약 바, 011-03 건강 이력 타임라인, 011-04 예방 · 정기검진 이력, 011-05 알레르기 · 기저질환, 011-06 검사 결과, 011-07 검사 수치 추이, 011-08 처방 및 투약 이력, 011-09 첨부 자료, 011-10 관찰 기록
 - 기다리는 것: pet 목록·프로필 조회 (SJM), pet 캐릭터 이미지 조회 (LJS)
 - 완료 조건: 검사 결과 행을 누르면 옆 검사 수치 추이 그래프가 그 항목으로 바뀐다 / 예정 일정이 없으면 "등록된 예정 일정 없음"이 나온다
-- 연결 남음: FN-HLT-011-01·02·05·추가-1·5 (반려동물 목록·프로필 `getPets`, 필드 `petSeCd`·`chrcSttsCd`·`petRelCd`와 petSn 통일, SJM), 011-01·추가-5 (캐릭터 이미지·생성 상태, LJS), 011-03~10 (반려동물별 종합 조회·첨부 파일 주소, JAJ 백엔드)
+- 연결 남음: 없음 (「종합 건강기록 · API 연결」·「캐릭터 상태 연결」에서 연결)
 
 ## SCR-HLT-002 건강 일지 · 검진 칩 해제 — 끝
 
@@ -57,14 +57,14 @@
 - 기능: `features/pet/shared/PetFace.jsx` → `components/PetFace.jsx`, `useCharacterImage` → `hooks/useCharacterImage.js`. props는 `petSn`·`petSeCd`·`chrcSttsCd`와 기존 `className`·`iconClassName`·`alt`·`fallback`
 - 기다리는 것: 없음 (담당자 답변으로 확정: 이미지 키는 맞출 필요 없음, PetFace는 `petSn`으로 이미지 자체를 받는다)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 통과 / `features/pet` 밖에서 `PetFace`를 쓸 수 있고 `features/pet`의 네 곳(PetMiniCard·PetSlide·PetProfileCard·InvitationAccept) 표시가 그대로다
-- 연결 남음: 1. PetFace 올리기 (캐릭터 얼굴 이미지 실제 응답 GET /pets/{petSn}/character-image, LJS)
+- 연결 남음: 없음 (`hooks/useCharacterImage.js`가 실제 `GET /pets/{petSn}/character-image`를 쓴다. 캐릭터 있는 아이 404는 핸드오프 "다음에 할 것")
 
 ## 공용 · 영수증 사용처 키 — 끝
 
 - 기능: 건강 일지 영수증의 "가계부에도 기록"(FN-HLT-002-41)이 병원명을 `dtlMttr`(내용)이 아니라 사용처에 넣는다. 가계부 사용처 키를 `expndPlcNm` → `expndPlcusNm`으로 바꾼다. 내용(`dtlMttr`)은 빈칸
 - 기다리는 것: 없음 (담당자 답변으로 확정)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 통과 / 화면: 영수증으로 검진기록을 저장하면 가계부 가짜 목록에 사용처=병원명, 내용=빈칸으로 들어간다
-- 연결 남음: 2. 영수증 사용처 키 (가계부 지출 생성·중복 확인 실제 호출, SJM)
+- 연결 남음: 없음 (「영수증 일괄 저장 연결」에서 가계부 지출까지 실제 저장)
 - 추가 요청: 건강 일지(SCR-HLT-002) 추가-1~20을 이 작업에서 함께 처리(핸드오프 기록, 추가-9·11은 추가-13으로 되돌림)
 
 ## SCR-HLT-002 건강 일지 · 결함 정리와 모달 다듬기 — 끝
@@ -101,7 +101,6 @@
 
 ## SCR-HLT-002 건강 일지 · 검진기록 API 연결 — 끝
 
-- 함께 바꿀 것(반려동물 목록): 건강 일지는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다(건강 일지의 다른 연결에서 이미 바꿨으면 넘어간다). 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 건강 일지 검진기록 탭의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-002-05·06·14·26~31·46에 걸침). 목록 `GET /pets/{petSn}/checkups?year=&ckupTypeCd=&page=&size=`(`year` 생략 시 전체 연도, 건수는 `totalElements`), 등록 `POST`(선택 `schdlSn` = 옮겨 연결하기), 수정 `PATCH`, 삭제 `DELETE`. 46 확인 창 후보는 `GET /pets/{petSn}/care-schedules`를 검진일 앞뒤 7일·`schdlKndCd=HLTC0057`로 불러 `ckupRcdCnt == 0`인 행 중 가장 가까운 1건을 고른다
 - 기다리는 것: 백엔드 검진기록 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전). 상위 키 상세 주소는 경로 방식으로 정해짐(2026-10-31, 핸드오프 "결정")
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진기록 탭에서 API로 등록한 검진기록이 연도·종류 칩에 맞게 최신순으로 나오고, 등록·수정·삭제가 서버에 반영되며 삭제 뒤 캘린더 일정은 남는다
@@ -118,7 +117,6 @@
 
 ## SCR-HLT-005 검진상세 · API 연결 — 끝
 
-- 함께 바꿀 것(반려동물 목록): 검진상세(`pages/health/CheckupDetailPage.jsx`)는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다. 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 검진상세 페이지의 가짜 응답을 실제 API로 교체 (명세 기능 ID 추가 없음, FN-HLT-005-01~05·11~15에 걸침). 기본정보 `GET /pets/{petSn}/checkups/{ckupRcdSn}`(인라인 수정은 `PATCH` 그대로), 첨부 `GET /pets/{petSn}/checkup-attachments?ckupRcdSn=&atchTypeCd=&page=&size=`(Page, 영상검사 칩은 `atchTypeCd=HLTC0064`)·`POST`(multipart `ckupRcdSn`·`file`·`atchTypeCd`·영상 사진이면 `imgKndCd`·`shtRegnCd` 필수)·`PATCH`(multipart 교체)·`DELETE`·파일 `GET …/{ckupRcdAtchSn}`, PDF 분석은 Java API 없이 화면이 검사결과지 PDF를 Python `POST /ai/checkups/lab-results`로 직접 보낸다(백엔드 `143956f`에서 Java `…/analyses` 삭제, 응답 모양은 AI 서버 쪽에서 확인), 혈액검사 `GET /pets/{petSn}/inspection-values?ckupRcdSn=`·선택 삭제 `DELETE ?inspNvlSn=&inspNvlSn=`, 기타검사 `GET/POST/PATCH/DELETE /pets/{petSn}/etc-inspections`, 처방약 `GET/POST/PATCH/DELETE /pets/{petSn}/prescriptions`(복용중 우선, `careRfltYn` 미전송은 OFF), 반복 예방 `GET/POST/DELETE /pets/{petSn}/repeat-preventions`. 목록 API는 모두 `ckupRcdSn` 필수. 탭 건수는 각 목록 길이로 센다
 - 기다리는 것: 백엔드 검진상세 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증 통과·develop 병합 전)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검진상세에서 탭 4개 건수가 API 결과와 맞고, 첨부 등록·교체·삭제와 기타검사·처방약·반복 예방 저장이 서버에 반영되며, 주기 체크 ON 처방약 저장 뒤 케어 캘린더 일상관리에 투약 항목이 생긴다
@@ -133,12 +131,10 @@
 - 기다리는 것: 없음 (백엔드 검사 수치 저장·수정 API는 develop에 머지됨, PR #83)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 검사 수치 입력에서 저장하면 검진상세 혈액검사 탭에 반영되고, 이미 있는 항목은 안내 후 빠지며, 항목명 클릭 수정 진입 시 저장하면 새 행 없이 그 행이 바뀐다
 - 결정: 수정 화면에서 기존 참고범위를 둘 다 비우면 "참고범위는 수정에서 지울 수 없어요"로 막는다(서버 PATCH가 `null`을 "안 바꿈"으로 받음). SDMA는 `HLTC0078`
-- 연결 남음: FN-HLT-007-02·03 수정 (백엔드 연결 `PATCH /pets/{petSn}/inspection-values/{inspNvlSn}` 참고범위 비우기, 백엔드 저장소에서 /start)
-- 연결 남음: FN-HLT-007-04·06 (검사결과지 PDF 분석 호출부, LJS. `checkupApi.js` `analyzeLabPdf` 가짜)
+- 연결 남음: 없음 (참고범위 비우기는 「참고범위 비우기 연결」, PDF 분석은 「PDF 분석 연결」에서 연결)
 
 ## SCR-HLT-002 건강 일지 · 일상 기록 API 연결 — 끝
 
-- 함께 바꿀 것(반려동물 목록): 건강 일지는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다(건강 일지의 다른 연결에서 이미 바꿨으면 넘어간다). 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 건강기록 변화 탭의 반려동물 드롭다운·그래프·오늘의 기록 카드·[오늘 기록추가] 입력 영역·최근 건강기록 표·상세 기록 모달 인라인 수정·삭제를 실제 API로 연결 (명세 기능 ID 추가 없음, FN-HLT-002-01·09~13에 걸침). 목록 `GET /pets/{petSn}/daily-health-records?dailyRcdIdctCd=&fromYmd=&toYmd=&size=`(size 1~100이면 최신 N건, 결과는 항상 `rcdDt` 오름차순, 서버는 날짜별로 묶지 않음 — 그래프는 `size=14`로 받은 뒤 가장 이른 날짜를 `fromYmd`로 한 번 더 불러 하루 합계를 맞춘다), 등록 `POST`(배변상태 HLTC0017은 `crsdSttsCd`(HLTG10)만, 그 밖은 `rcdNvl`만, 201), 수정 `PATCH …/{dailyHlthRcdSn}`(보낸 값만, 지표와 안 맞는 필드는 400), 삭제 `DELETE …/{dailyHlthRcdSn}`. 반려동물 목록은 `GET /pets`
 - 기다리는 것: 없음 (백엔드 일상 건강기록 API는 develop에 머지됨, `2294375`)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 오늘 기록추가로 저장하면 오늘의 기록 카드·그래프·최근 건강기록 표에 바로 반영되고, 상세 기록 모달에서 한 줄을 고치거나 지우면 세 곳이 함께 바뀐다
@@ -147,23 +143,21 @@
 
 ## SCR-HLT-002 건강 일지 · 지속 관찰 API 연결 — 끝
 
-- 함께 바꿀 것(반려동물 목록): 건강 일지는 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다(건강 일지의 다른 연결에서 이미 바꿨으면 넘어간다). 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 지속 관찰 탭의 관찰 항목 목록·선택 항목 헤더·[관찰 종료]·회차별 사진 필름스트립·크기 변화 그래프·선택 회차 상세(수정·삭제)·관찰 기록 등록 모달 A(새 항목)/B(회차 추가)를 실제 API로 연결 (명세 기능 ID 추가 없음, FN-HLT-002-15~25·32에 걸침). 목록 `GET /pets/{petSn}/observation-items?obsrvSttsCd=`(firstCycle·lastCycle·cyclCnt·lastSzDiff, 관찰중 먼저), 종료 `POST …/observation-items/{obsrvArtclSn}/end`, 회차 `GET /pets/{petSn}/observation-cycles?obsrvArtclSn=`(관찰일 오름차순, cyclNo는 서버가 매김), 사진 `GET …/observation-cycles/{obsrvCyclSn}/photo`(원본, 썸네일 없음), 모달 A `POST /pets/{petSn}/observation-items`(multipart, 201), 모달 B `POST /pets/{petSn}/observation-cycles`(multipart, 종료 항목은 400 OBSERVATION_ITEM_ENDED), 수정 `PATCH …/observation-cycles/{obsrvCyclSn}`(multipart, 보낸 값만), 삭제 `DELETE …/observation-cycles/{obsrvCyclSn}`(마지막 회차를 지우면 항목도 사라짐). 그래프·증감은 화면이 계산
 - 기다리는 것: 백엔드 지속 관찰 API (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증·사람 확인 끝, develop 병합 전)
 - 이미지 표시: 회차 사진(`diary/ObservationCard.jsx`·`ObservationDetail.jsx`·`ObservationMobile.jsx`)은 비공개 파일이라 `@/hooks/useFileImage` + `@/components/FileImage`로 `GET …/observation-cycles/{obsrvCyclSn}/photo`를 그린다(공통 이미지 코드가 develop에 올라온 뒤). 모달의 로컬 미리보기(`ObservationModal.jsx` `createObjectURL`)는 그대로 둔다
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 모달 A로 항목을 등록하면 목록과 필름스트립에 1회차가 나오고, 모달 B로 회차를 추가·삭제하면 필름스트립·그래프·회차 번호가 함께 바뀌며, [관찰 종료] 뒤 항목이 목록 끝으로 가고 회차 추가가 막힌다
 - 결정: 백엔드 API는 develop에 머지돼 있었다. 반려동물 목록은 이미 실제 `useMyPets`. 부위·변화·상태는 공통코드 HLTC0043~0056. 관찰 가짜는 `getFakeObservations`로 종합 건강기록 전용으로 남김(011 연결 때 지움). 추가-1 모바일 회차 사진도 오래된 회차부터 왼→오른쪽(처음엔 오른쪽 끝), 추가-2 삭제·등록·종료 때 사진은 다시 받지 않고 사진을 바꾼 수정만 다시 받음(지운 직후 404 없앰)
-- 연결 남음: FN-HLT-002-19·23·24 회차 수정에서 크기·메모·변화 비우기 (백엔드 연결 `PATCH /pets/{petSn}/observation-cycles/{obsrvCyclSn}`가 빈 값을 "안 바꿈"으로 받음, 백엔드 저장소에서 /start)
+- 연결 남음: 없음 (「지속 관찰 회차 수정 비우기 연결」에서 연결)
 
 ## SCR-HLT-011 종합 건강기록 · API 연결 — 끝
 
-- 함께 바꿀 것(반려동물 목록): 종합 건강기록은 아직 가짜 `usePets`(`['health', 'pets']`)를 쓴다. 케어 캘린더처럼 실제 `GET /pets`(`useMyPets`)로 바꾼다. 실제 응답은 `petRelCd`→`brupRoleCd`, `petSpcsCdNm`→`vrtyNm`이고 체중 정상범위·목표·캐릭터 상태가 없다. 건강 일지·검진상세·종합 건강기록이 모두 바뀌면 가짜 `getPets`·`usePets`를 지운다
 - 기능: 종합 건강기록 화면 전체를 실제 API로 연결 (명세 기능 ID 추가 없음, FN-HLT-011-01~10에 걸침). 반려동물 탭 `GET /pets`, 요약 바·알레르기·기저질환 `GET /pets/{petSn}`(`petBdwg`·`algyCn`·`dssCn`) + 최신 체중 `GET /pets/{petSn}/daily-health-records?dailyRcdIdctCd=<체중>&size=1`(없으면 `petBdwg`) + 최근 검진 `GET /pets/{petSn}/checkups?size=1`, 타임라인 `GET /pets/{petSn}/checkups?size=5` + `GET /pets/{petSn}/repeat-preventions`(`ckupRcdSn` 생략 → 반려동물 전체, 시작일 최신순, `hsptlNm` 포함. 시작일이 오늘 이후인 것 제외·5건 병합·같은 날짜면 검진기록 먼저는 화면), 예방·정기검진 `GET …/checkups?ckupTypeCd=` + `GET …/care-schedules?fromYmd=<오늘>&schdlKndCd=<병원>&ckupTypeCd=&size=1`, 검사 결과·추이 `GET /pets/{petSn}/inspection-values`(`ckupRcdSn` 생략 → 전체, 검진일 오름차순·`schdlDt` 채움. 최근 1회차·기본 항목은 화면), 처방 `GET /pets/{petSn}/prescriptions`(`ckupRcdSn` 생략 → 전체, 복용중 우선·최신순), 첨부 `GET /pets/{petSn}/checkup-attachments?size=4`(`ckupRcdSn` 생략 → 전체, 최신순), 관찰 `GET …/observation-items?obsrvSttsCd=<관찰중>` + 사진 `GET …/observation-cycles/{obsrvCyclSn}/photo`
 - 기다리는 것: 백엔드 종합 건강기록 전체 조회 (JAJ 백엔드, 백엔드 JAJ 브랜치에서 검증·사람 확인 끝, develop 병합 전)
 - 이미지 표시: 첨부(`summary/AttachmentStrip.jsx`·`PhotoModal.jsx`)와 관찰 사진(`summary/ObservationSummaryCard.jsx`)은 비공개 파일이라 `@/hooks/useFileImage` + `@/components/FileImage`로 그린다(공통 이미지 코드가 develop에 올라온 뒤). 캐릭터 이미지(`summary/SummaryHero.jsx` `chrctrImgPath`)는 공개 파일이면 `@/utils/fileUrl`의 `publicFileUrl(atchFileSn)`을 쓴다 — 응답이 경로를 주는지 `atchFileSn`을 주는지 연결 때 확인한다
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 요약 바 몸무게가 최신 일상기록 체중이고 없으면 프로필 체중, 다음 예정일이 오늘 이후 가장 가까운 같은 유형 병원 일정, 타임라인 반복 예방에 출처 병원명이 나오고, 검사 수치 추이가 검진일 순서로 그려진다
 - 결정: 백엔드 API는 develop에 머지돼 있었다. 디자인은 `html/hlt-summary.html` 그대로(모양은 바꾸지 않고 서버 키로만 바꿈). `GET /pets`에 캐릭터 상태가 없어 "캐릭터 만들기" 점선 카드를 빼고 `PetFace`로 둠(사람 결정). 건강기록 가짜 반려동물·일상기록·관찰·검진기록·일정·연동 케어 항목 저장소를 지움(PDF 분석·영수증 가짜는 남김)
-- 연결 남음: FN-HLT-011-01·02 캐릭터 상태 (`GET /pets`의 `chrcSttsCd`, LJS)
+- 연결 남음: 없음 (「캐릭터 상태 연결」에서 연결)
 
 ## SCR-HLT-003 케어 캘린더 · 케어 항목 수정·삭제 UI — 끝
 
@@ -214,7 +208,7 @@
 - 결과: 2026-11-03 검증 통과(1·2회차 실패는 복용 상태 코드 `ING`·`END` 400, 공용 DB 쓰기 거부. 마지막은 옛 클래스로 돌던 백엔드를 다시 띄운 뒤 실제 저장으로 확인), 사람 확인 끝. `save-check` 요청 `{ ckupYmd, pets: [{ petSn, amt, expenseYn }] }`, 응답 `duplicateExpenses`·`nearbySchedules`(서버가 반려동물마다 1건)를 탭으로 바꾼다. `save`는 `idmptDmndId`(모달마다 1개)와 처방약 `prscSttsCd` `HLTC0010`·`HLTC0011`, 성공 때 `expenseKeys`도 무효화
 - 추가 요청: 추가-1 2-E 창은 검진 종류가 없으면 "MM/DD 병원 일정이 있어요"(`NearScheduleModal.jsx`), 추가-2 `save`·`save-check` 409 `RECEIPT_ALREADY_SAVED`면 서버 message만 보이고 [다시 시도하기] 숨김(`ReceiptResultStep.jsx`)
 - 결정: 디자인 `html/hlt-diary.html` 그대로(요청·응답만 바꿈). 백엔드를 먼저 고친 뒤 연결(사람 결정)
-- 연결 남음: 추가-2 (백엔드 연결 `save-check` 저장완료 영수증 409 `RECEIPT_ALREADY_SAVED`, 백엔드 저장소에서 /start)
+- 연결 남음: 없음 (백엔드 `ReceiptSaveService.check`가 저장완료 영수증에 409 `RECEIPT_ALREADY_SAVED`를 준다, 2026-11-09 확인)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 영수증 결과 확인에서 저장하면 `save-check` 뒤 `save` 한 번만 요청하고, 검진기록·처방약·가계부 지출(마이페이지 가계부 목록)에 실제로 남는다. 같은 지출이 있으면 중복 안내, 가까운 예정 일정이 있으면 연결 선택이 나온다
 
 ## SCR-HLT-002 건강 일지 · 영수증 [직접 입력] 저장 연결 — 끝
@@ -224,7 +218,7 @@
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 미인식 영수증에서 [직접 입력]으로 검진기록을 저장하면 `POST /api/receipts/{recptSn}/checkups?petSn=` 한 번만 요청하고, 그 영수증이 저장완료가 되며 가계부 지출은 생기지 않는다. 409 `RECEIPT_ALREADY_SAVED`(이미 저장됨)·404 `RECEIPT_NOT_FOUND`는 안내를 보인다
 - 결과: 2026-11-03 검증 통과(1회차 409·404 토스트가 `<dialog>` 뒤에 가려 안 보임, 2회차 모달 안 상자가 기획과 다름 → 추가-1로 확정 후 잠금을 풀고 다시 검증), 사람 확인 끝
 - 추가 요청: 추가-1 409·404 안내를 토스트 대신 모달 안 빨간 안내 상자로(`CheckupModal.jsx`, `queries.js`)
-- 연결 남음: FN-HLT-002-31 일시 오류 뒤 [직접 입력]의 영수증 연결 (AI 서버 오류 응답 `recptSn`·업로드 모달, nyangmeong-ai 담당·LJS): AI 서버 영수증 분석 502 `OCR_API_ERROR`·504 시간 초과 응답에 `recptSn`이 없어(원본은 먼저 저장됨) 화면이 `POST /pets/{petSn}/checkups`로 저장한다(FN-HLT-002-31 "인식 실패·일시 오류"와 다름). 필요: AI 서버가 오류 응답에 `recptSn`을 준다(nyangmeong-ai 저장소에서 /start), LJS `features/ai/receipt/ReceiptUploadModal.jsx`가 오류 때도 `recptSn`을 [직접 입력]에 넘긴다. 백엔드는 일시 오류 영수증 저장을 이미 받고, `CheckupModal`은 `recptSn`만 받으면 영수증 경로로 저장한다. 브라우저 쪽 시간 초과(요청 중단)는 번호를 알 수 없어 남는다
+- 연결 남음: 없음 (「영수증 일시 오류 [직접 입력] 연결」에서 연결)
 
 ## SCR-HLT-002 건강 일지 · 영수증 일시 오류 [직접 입력] 연결 — 끝
 
@@ -245,7 +239,7 @@
 - 기다리는 것: 없음 (백엔드 `ReceiptController` `GET /{recptSn}/image`가 develop에 있음)
 - 완료 조건: 명령: `yarn -s lint`·`yarn -s build` 0 / 화면: 영수증 인식 결과 확인 모달 썸네일과 [영수증 원본] 모달에 올린 영수증 사진이 보인다
 - 결과: 2026-11-04 검증 1회차 통과, 사람 확인 끝
-- 연결 남음: 추가-2 (백엔드 연결 `POST /receipts/{recptSn}/save-check` 저장완료 영수증 409 `RECEIPT_ALREADY_SAVED`, 백엔드 저장소에서 /start)
+- 연결 남음: 없음 (추가-2 409는 「영수증 일괄 저장 연결」 절 참고, 2026-11-09 확인)
 
 ## SCR-HLT-003 케어 캘린더 · 일정 뱃지 색상 연결 — 끝
 
@@ -295,8 +289,7 @@
 - 결정: 선택값은 `features/health/shared/SelectedPetProvider.jsx`(페이지가 `useMe` 회원 번호를 넘김) → 직접 고른 아이 → `?petSn=`(읽고 주소에서 지움) → localStorage `nyangmeong.health.petSn.<mbrSn>` → 첫 아이. 카드·팝오버는 `shared/PetSwitcher.jsx`, 레이아웃은 `SubPageLayout` `sideBottom` 2줄 추가만(메뉴 아래 따라 붙는 처리는 카드 안에서). 캘린더 스위치는 `components/Toggle.jsx` 그대로, 다른 아이 회색은 `scheduleTypes.js` `getScheduleTone`의 `isOtherPet`. `diary/DiaryPetPicker.jsx` 삭제(사람 결정 2026-11-07)
 - 결과: 2026-11-07 검증 2회차 확인 못 함 있음(내 것 없음, 연결 남음만). 1회차는 `SubPageLayout` 기존 줄 변경·백엔드 미실행으로 실패. 1마리·0마리는 `GET /pets` route로 확인. 사람 확인 끝
 - 참고: 주양육 10마리(`MAX_OWN_PETS`)면 팝오버 「+ 등록」 칸을 숨긴다(이전 히어로와 같음). 0마리 점선 박스 위에는 구분선이 없다. 토스트 '로/으로'는 `utils/josa.js` `pickJosa`라 ㄹ 받침 이름은 「하늘으로」처럼 나온다(공용 유틸, 이번엔 안 고침)
-- 연결 남음: ③ 헤더 알림 (백엔드 연결 케어 일정 알림 `mvmnPath`에 `?petSn=`, 백엔드 저장소에서 /start)
-- 연결 남음: ④ 등록 뒤 복귀·새 아이 선택 (`PetListPage.jsx`의 `?register=1`·`returnTo` 처리, 마이페이지 담당)
+- 연결 남음: 없음 (③ 백엔드 「케어 일정 알림 반려동물 연결」 끝 `71e64e3`, 백엔드 JAJ 브랜치·develop 병합 전. ④ 마이페이지 `PetListPage.jsx`가 `?register=1`·`returnTo`를 처리, 2026-11-09 확인)
 
 ## SCR-HLT-011·002 건강기록 · 튜토리얼과 고른 기록 대시보드 — 끝
 
@@ -308,7 +301,7 @@
 - 추가 요청: 추가-1 탭·4묶음 제거·안 쓰는 summary 파일 10개 삭제 / 추가-2 첨부 자료 항목 / 추가-3 2단계 한 줄 배치 / 추가-4 검사 수치 항목 선택·검진상세 「추이 보기 ›」 / 추가-5 검사 수치 미선택 토스트 / 추가-6 토스트 문구·1단계 Skeleton / 추가-7 미리보기 상태 칩 Skeleton / 추가-8 시작 항목 6개
 - 결과: 2026-11-07 검증 통과(루프는 사람이 두 번 clear 뒤 새로 시작). 추가-7은 코드 확인, 추가-2 PDF 내려받기는 응답을 바꿔 확인. 사람 확인 끝
 - 참고: 파일 위치가 기획과 다름 — `AiReportCard`는 `DashboardCard.jsx` 안, `useRecordedItems`는 `queries.js`, 카드 본문은 `WidgetCard.jsx`. 체중 직전 대비는 0.1kg 반올림(0이면 「변화 없음」, 사람 결정 유지). 튜토리얼 기록 확인이 아이 수 × 11개 요청(알려진 문제, B1에서 해결)
-- 연결 남음: D1~D3·D7·D10·D11 저장과 기록 있는 항목 (백엔드 연결 B1 `MBR_DSHBD_WDGT` 건강기록 전용 GET·PUT·기록 있는 항목 응답, 백엔드 저장소에서 /start)
+- 연결 남음: 없음 (「건강기록 대시보드 고른 항목 저장 연결」에서 연결)
 
 ## SCR-HLT-011·002 건강기록 · 대시보드 카드 이동 — 끝
 
@@ -332,7 +325,7 @@
 - 추가 요청: 추가-1 순서 모달 간격 `mt-4` → `gap-4`, 순번 칸 `w-5` → `w-6`(기존 단계) / 추가-2 기획 「바꿀 곳」에서 튜토리얼 3단계 칩 빼고 이유 한 줄
 - 결과: 2026-11-08 검증 통과(1회차 실패: 숨김 토스트 `joinWidgetNames`가 4묶음 순서 → 저장 순서로 고침), 사람 확인 끝
 - 참고: 저장 순서 지키기는 `widgetItems.js` `keepWidgetOrder`(중복·모르는 키만 버림). `orderWidgetIds`(4묶음)는 칩 목록·튜토리얼·기록 있는 항목 합집합에만 남음. 건강 일지 [오늘 기록하기] 탭은 기록 종류 순서 그대로. `CareItemMenu`는 `onEdit`을 안 넘기면 「수정」을 숨김
-- 연결 남음: 순서 저장 (백엔드 연결 B1 PUT `SORT_SEQ`, 백엔드 저장소에서 /start)
+- 연결 남음: 없음 (「건강기록 대시보드 고른 항목 저장 연결」에서 연결)
 
 ## SCR-HLT-011 건강기록 · 종합 건강기록 배너 개편 — 끝
 
@@ -357,6 +350,44 @@
 - 완료 조건: 명령: lint·build 0, `grep -rn "SummaryHero" src`·`grep -rnw "countItems" src` 0건 / 화면: `/health`(로그인) 배너 그대로·콘솔 새 오류 없음, `/` 메인 그대로
 - 한 일: `features/health/summary/SummaryHero.jsx` 삭제, 그 파일만 쓰던 `summaryUtils.js` `countItems` 삭제
 - 결과: 2026-11-09 검증 통과(1~3회차는 로그인 세션이 없어 화면 확인 못 함 → 사람이 로그인하게 해 4회차 통과), 사람 확인 끝
+- 연결 남음: 없음
+
+## SCR-HLT-011 건강기록 · 건강기록 대시보드 고른 항목 저장 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(새 기능, ※신규 정책). 「튜토리얼과 고른 기록 대시보드」(D1~D3·D7·D10·D11)·「대시보드 카드 순서 바꾸기」의 저장. 기록 기반 자동 선택은 없애고 추천 3개만 기본으로 씀(사람 결정 2026-11-09 A안)
+- 기다리는 것: 백엔드 SCR-HLT-011 건강기록 대시보드 고른 항목 저장(JAJ 백엔드, 끝 2026-11-09). 공용 DB에 백엔드 `db/` 변경 절 v0.14 (3)·(4)이 실행돼야 동작한다(백엔드 PR 병합 뒤)
+- 완료 조건: `widgetStore.js` 가짜 저장소(localStorage)를 `GET·PUT /members/me/dashboard-widgets`로 바꾼다(`queries.js` `useHealthWidgets`·`useSaveHealthWidgets`). GET `data.savedYn=false`면 튜토리얼을 연다. 항목 키(weight…care)를 HLTG25 코드(HLTC0084 체중 ~ HLTC0096 케어리스트, 순서는 `widgetItems.js` id 순)로 바꾼다. PUT 본문은 `{widgets:[{dshbdWdgtCd, indctYn}]}` 13개를 보일 순서대로(빠진·중복·모르는 코드는 400 `INVALID_INPUT_VALUE`). GET 응답은 `savedYn`·`widgets`만이다. `dashboardApi.js` `getRecordedItems`(아이 수 × 11개 요청)와 기록 기반 자동 선택은 대체 없이 지우고, 튜토리얼 기본 선택은 추천 3개. `widgetItems.js:138` `vacc`의 `nm`을 「예방접종·정기검진」으로(카드가 예방접종·정기검진을 보여 주므로 이름을 맞춤, 구충은 케어리스트에 보임)
+- 결정(사람, 2026-11-09 승인 때): develop 먼저 합침. 예전 브라우저 저장값 `nyangmeong.health.widgets.<mbrSn>`은 옮기지 않고 지움. [나중에 할래요]·×·Esc 저장이 실패하면 토스트 후 닫음(3단계·편집·순서 저장 실패는 모달 유지). 튜토리얼 봤음 키는 만들지 않음(여는 조건은 `savedYn=false`만). 저장 실패 토스트는 서버 `error.message`. [나중에 할래요] 토스트 문구 그대로. 건강 일지 [항목 편집]은 저장 중 누름 무시
+- 결과: 2026-11-09 검증 1회차 통과, 사람 확인 끝. 정책·TC와 어긋나는 문장은 고치지 않고 핸드오프에 목록으로 남김(회의에서 정리)
+- 연결 남음: 없음
+
+## SCR-HLT-002 건강 일지 · 지속 관찰 모바일을 PC와 맞추기 — 끝
+
+- 기능: 명세 기능 ID 추가 없음(FN-HLT-002-15·17·18의 760px 이하 화면). PC에 이미 들어간 추가 요청(목록 증감 표시, 사진 줄 최신 5개·[+N], 그래프 최신 5개, 사진 원본 창 넘기기)을 모바일 목록·상세에 맞춘다
+- 기다리는 것: 없음(기존 API만 사용)
+- 완료 조건: 390px에서 목록 증감이 PC와 같은 글(「▼1.3」·「변화 없음」)과 굵은 `brand-500` / 상세 사진 줄 최신 5개 + [+N] / 사진 원본 창에서 이전·다음 회차로 넘김
+- 한 일: M1 목록 증감(`getItemDiffText`, `font-bold text-brand-500`), M2 사진 줄 최신 5개 + [+N 이전 회차], M3 그래프 최신 5개(`CHART_COUNT`를 `observationUtils.js`로 옮겨 PC·모바일 공용), M4 모바일 사진 원본 창 넘기기·[이 회차 선택]. 추가-1 PC와 같은 클래스·토큰, 고친 줄 px·HEX 0건
+- 결정(사람, 2026-11-09 승인 때): 모바일 모양 그대로 두고 PC 추가 요청 규칙만 옮김. 삭제 확인 문구 그대로. 그래프도 최신 5개
+- 결과: 2026-11-09 검증 1회차 통과, 사람 확인 끝
+- 연결 남음: 없음
+
+## SCR-HLT-002 건강 일지 · 영수증 같은 아이 여러 줄 합치기 — 끝
+
+- 기능: 명세 기능 ID 추가 없음(※신규 정책, 2026-11-08 「반려동물 연결」 상자의 후속). 영수증 「반려동물 연결」에서 한 아이를 여러 줄에 고를 수 있게 하고, 저장할 때 같은 아이의 줄을 검진기록 1건으로 합친다
+- 합치는 규칙(※신규 정책, 요구사항에 없음): 검진 종류가 다르면 저장 막음, 검진 내용 `, `로 이음(500자), 메모 줄바꿈으로 이음(200자), 약품 모두 붙임, 가계부 체크된 줄 금액 합(없으면 가계부 안 씀). 구역 없는 영수증 [＋ 반려동물 추가]는 같은 아이 허용 안 함
+- 기다리는 것: 없음(기존 save-check·save API. 합쳐 보내므로 백엔드 `checkPets` 그대로)
+- 완료 조건: 이름 2개 영수증에서 두 줄 모두 같은 아이를 고를 수 있고 줄 아래 합침 안내 / 같은 아이 줄의 검진 종류가 다르면 저장 막힘·안내 / 같은 아이 두 줄 저장 때 `/receipts/{recptSn}/save` `pets`에 그 아이 1건(내용 이어짐·약품 합·금액 합), 검진기록 1건 / 다른 두 아이는 그대로 2건
+- 한 일: R1 `ReceiptPetLink.jsx` 회색 막기 지우고 합침 안내, R2 `buildSectionTabs` 같은 이름 구역 모두 자동 연결, R3 `validateReceipt` 검진 종류 불일치·합친 길이 안내, R4 `buildSaveEntries` 아이별 합침(`tabId` 첫 줄, `tabIds` 모두). 추가-1 합치는 규칙 「※신규 정책」 표시, 추가-2 고친 줄 px·HEX·`style=` 0건(토큰은 `src/assets/index.css` `@theme`, `tokens.css`는 저장소에 없음)
+- 결정(사람, 2026-11-09 승인 때): 합치는 규칙은 추천대로(검진 종류가 다르면 저장 막음). 구역 없는 영수증 같은 아이 탭 허용 안 함. 「기록 안 함」으로 한 줄만 저장하는 방법 그대로
+- 결과: 2026-11-09 검증 1회차 통과, 사람 확인 끝
+- 연결 남음: 없음
+
+## SCR-HLT-011 종합 건강기록 · 대시보드에 안 쓰는 pets 넘기기 지우기 — 끝
+
+- 기능: 명세 기능 ID 추가 없음(코드 정리). `pages/health/HealthSummaryPage.jsx`가 `HealthDashboard`에 안 쓰는 `pets`를 넘기는 것을 지운다. 동작 변화 없음
+- 기다리는 것: 없음
+- 완료 조건: `HealthDashboard`에 `pets` prop을 넘기지 않음 / lint·build 통과 / `/health` 대시보드가 전과 같이 보임
+- 한 일: C1 `HealthSummaryPage.jsx`의 `pets={pets}`와 쓰지 않게 된 구조 분해 `pets,`를 지움
+- 결과: 2026-11-09 검증 1회차 통과, 사람 확인 끝
 - 연결 남음: 없음
 
 ## 제외
