@@ -12,9 +12,9 @@ import {
   getTodayStory,
   reportComment,
   reportPost,
-  togglePostLike,
   updatePost,
 } from './api';
+import { useOptimisticLike } from './optimisticLike';
 
 export const postKeys = {
   all: ['posts'],
@@ -87,7 +87,9 @@ export const useDeletePost = () => {
       ]),
   });
 };
-export const useTogglePostLike = () => useInvalidatingMutation(togglePostLike);
+/** 누르는 즉시 그 글 상세의 좋아요·개수가 바뀐다(optimisticLike) */
+export const useTogglePostLike = (pstSn) =>
+  useOptimisticLike({ detailKey: postKeys.detail(pstSn), allKey: postKeys.all });
 /** 댓글 영역(CommentSection)은 게시판 종류를 몰라 targetSn으로 수신 */
 export const useCreateComment = () =>
   useInvalidatingMutation(({ targetSn, ...rest }) =>

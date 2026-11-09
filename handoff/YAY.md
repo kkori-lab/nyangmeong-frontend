@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-ACC-020 회원탈퇴 · 로딩 스켈레톤 — 끝남 (승인 2026-11-09 12:15, 검증 통과 2회차, 사람 확인 2026-11-09). `GET /pets` 로딩 중 본문을 실측 배치의 `WithdrawSkeleton`(카드 3장·버튼 줄)으로 두고 로딩 문구를 없앴다. 조회 실패면 바로 오류 문구가 든 안내
+SCR-ACC-012 비밀번호 재설정 · 문구 정리 — 끝남 (승인 2026-11-09 12:28, 검증 통과, 사람 확인 2026-11-09). 새 비밀번호 규칙 안내·오류 문장 끝에 마침표를 붙여 가입 화면과 맞췄다. 추가-1: `AuthField`는 AI 매니저 말풍선이 붙은 칸이면 칸 아래 오류를 화면 읽기용(`sr-only`)으로만 두고 말풍선에만 문구를 보인다
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
@@ -10,8 +10,9 @@ SCR-ACC-020 회원탈퇴 · 로딩 스켈레톤 — 끝남 (승인 2026-11-09 12
 
 ## 다음에 할 것
 
+- PR Breaking Changes(SCR-ACC-012 문구 정리): 공통 `features/member/shared/AuthField.jsx`가 `hasGuide`면 칸 아래 오류를 숨기고 AI 말풍선만 보인다(로그인·가입·복구·비밀번호 찾기·재설정 칸 오류 모두)
+- 팀 알림: SJM `features/member/profile/PasswordChangeCard.jsx` 10줄 `PW_RULE` 끝에 마침표가 없다(가입·재설정은 마침표 있음)
 - 팀 알림(문구 정리): 화면설계서 담당에게 설계서와 달라진 로그인·회원가입 문구 목록을 보낸다(PR 본문 Design Decisions와 같은 목록). PR Breaking Changes: `AuthNotice`에 `hasGuide`를 주면 색 상자 없이 AI 말풍선만 보인다
-- 코드 후보: 비밀번호 재설정(`password/PasswordResetForm.jsx`)도 칸 아래 `pwHelp`가 규칙 문장을 다시 보이는지 보고, 끝 마침표가 없는 `passwordMessages.js` `pwRule`·`pwHelp`를 맞춘다(문구 정리 범위 밖으로 남김)
 - 코드 후보: 로그인 방법 선택에서 [이메일로 로그인하기]를 누르고 0.8초 안에 입력하면 폼이 왼쪽으로 약 50px 밀린 채 남은 적이 있다(문구 정리 검증 메모, 슬라이더)
 - 로컬 환경: 새 이메일 가입 인증번호 발송이 "인증번호를 보내지 못했습니다"로 실패하고 백엔드 로그 파일 마지막 줄이 17:28에서 멈춰 있다(2026-11-09 검증 메모). 백엔드를 로그 파일로 남기며 다시 띄우고 SMTP 설정을 확인한다
 - 팀 알림: `docs/routes.md` 29줄 MAN-001 담당이 아직 YAY다. 담당 표(2026-11-08)대로 LJS로 고치도록 LJS에게 알린다

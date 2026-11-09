@@ -1,8 +1,10 @@
-import { ChevronLeft, ChevronRight, Flag, Heart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Flag } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
 import ConfirmModal from '@/components/ConfirmModal';
+import ImageViewer from '@/components/ImageViewer';
+import LikeButton from '@/components/LikeButton';
 import PostBody from '@/components/PostBody';
 import ReportModal from '@/components/ReportModal';
 import SharePanel from '@/components/SharePanel';
@@ -30,11 +32,12 @@ export default function PostDetail({ post }) {
     size: LATEST_SIZE,
     bbsCd: post.bbsCd,
   });
-  const toggleLike = useTogglePostLike();
+  const toggleLike = useTogglePostLike(post.pstSn);
   const remove = useDeletePost();
   const report = useReportPost();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(null);
   const listTo = `${PATHS.COMMUNITY}${state?.listSearch ?? ''}`;
   const isLiked = post.liked;
 
@@ -84,14 +87,21 @@ export default function PostDetail({ post }) {
 
           <PostBody content={post.pstCn}>
             {post.imgs.length > 0 && (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col items-center gap-3">
                 {post.imgs.map((img, index) => (
-                  <img
+                  <button
                     key={img.atchFileSn}
-                    src={publicFileUrl(img.atchFileSn)}
-                    alt={`첨부 이미지 ${index + 1}`}
-                    className="h-auto max-w-full rounded-[10px]"
-                  />
+                    type="button"
+                    aria-label={`첨부 이미지 ${index + 1} 크게 보기`}
+                    onClick={() => setViewerIndex(index)}
+                    className="max-w-full cursor-zoom-in"
+                  >
+                    <img
+                      src={publicFileUrl(img.atchFileSn)}
+                      alt={`첨부 이미지 ${index + 1}`}
+                      className="h-auto max-h-[min(640px,75vh)] w-auto max-w-full rounded-[10px] object-contain"
+                    />
+                  </button>
                 ))}
               </div>
             )}
@@ -108,19 +118,14 @@ export default function PostDetail({ post }) {
               </span>
             </Link>
             <div className="ml-auto flex items-center gap-2 max-[760px]:gap-1">
-              <button
-                type="button"
-                aria-pressed={isLiked}
-                aria-label="좋아요"
+              <LikeButton
+                isLiked={isLiked}
+                count={post.rcmdtnCnt}
                 disabled={toggleLike.isPending}
-                onClick={() =>
+                onToggle={() =>
                   toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
                 }
-                className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-base font-semibold text-[#3d4a4b] ${isLiked ? 'text-[#f44b21]' : '[&_svg]:text-[#b9c4c4]'}`}
-              >
-                <Heart size={22} aria-hidden="true" fill="currentColor" />
-                {post.rcmdtnCnt}
-              </button>
+              />
               <i className="mx-1 h-3.5 w-px bg-[#b9c4c4]" aria-hidden="true" />
               <SharePanel title={post.pstTtl} />
               <i className="mx-1 h-3.5 w-px bg-[#b9c4c4]" aria-hidden="true" />
@@ -191,6 +196,18 @@ export default function PostDetail({ post }) {
         </section>
       </aside>
 
+      {viewerIndex !== null && (
+        <ImageViewer
+          images={post.imgs.map((img, index) => ({
+            key: img.atchFileSn,
+            src: publicFileUrl(img.atchFileSn),
+            name: `첨부 이미지 ${index + 1}`,
+          }))}
+          index={viewerIndex}
+          onChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
       {isDeleting && (
         <ConfirmModal
           title="게시글을 삭제할까요? 삭제한 글은 되돌릴 수 없어요"
