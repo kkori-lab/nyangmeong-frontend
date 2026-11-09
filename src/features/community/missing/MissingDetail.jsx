@@ -3,7 +3,6 @@ import {
   ChevronLeft,
   Clock,
   Flag,
-  Heart,
   LockKeyhole,
   MapPin,
   PartyPopper,
@@ -17,6 +16,8 @@ import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
+import ImageViewer from '@/components/ImageViewer';
+import LikeButton from '@/components/LikeButton';
 import PostBody from '@/components/PostBody';
 import ReportModal from '@/components/ReportModal';
 import SharePanel from '@/components/SharePanel';
@@ -209,12 +210,13 @@ function FoundPublicView({ post, listTo }) {
 export default function MissingDetail({ post }) {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const toggleLike = useToggleMissingLike();
+  const toggleLike = useToggleMissingLike(post.lostTpofSn);
   const remove = useDeleteMissing();
   const report = useReportMissing();
   const markFound = useMarkMissingFound();
   const extend = useExtendMissing();
   const [modal, setModal] = useState('');
+  const [viewerIndex, setViewerIndex] = useState(null);
   const listTo = `${PATHS.COMMUNITY_MISSING}${state?.listSearch ?? ''}`;
   const isMine = post.owner;
   const found = isFound(post);
@@ -315,14 +317,21 @@ export default function MissingDetail({ post }) {
 
           <PostBody content={post.pstCn}>
             {post.imgs.length > 0 && (
-              <div className="mb-6 flex flex-col gap-3">
+              <div className="mb-6 flex flex-col items-center gap-3">
                 {post.imgs.map((img, index) => (
-                  <img
+                  <button
                     key={img.atchFileSn}
-                    src={publicFileUrl(img.atchFileSn)}
-                    alt={`첨부 이미지 ${index + 1}`}
-                    className="h-auto max-w-full rounded-[10px]"
-                  />
+                    type="button"
+                    aria-label={`첨부 이미지 ${index + 1} 크게 보기`}
+                    onClick={() => setViewerIndex(index)}
+                    className="max-w-full cursor-zoom-in"
+                  >
+                    <img
+                      src={publicFileUrl(img.atchFileSn)}
+                      alt={`첨부 이미지 ${index + 1}`}
+                      className="h-auto max-h-[min(640px,75vh)] w-auto max-w-full rounded-[10px] object-contain"
+                    />
+                  </button>
                 ))}
               </div>
             )}
@@ -438,19 +447,14 @@ export default function MissingDetail({ post }) {
               </span>
             </Link>
             <div className="ml-auto flex items-center gap-2 max-[760px]:gap-1">
-              <button
-                type="button"
-                aria-pressed={isLiked}
-                aria-label="좋아요"
+              <LikeButton
+                isLiked={isLiked}
+                count={post.rcmdtnCnt}
                 disabled={toggleLike.isPending}
-                onClick={() =>
+                onToggle={() =>
                   toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
                 }
-                className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-base font-semibold text-ink-2 ${isLiked ? 'text-[#f44b21]' : '[&_svg]:text-line-strong'}`}
-              >
-                <Heart size={22} aria-hidden="true" fill="currentColor" />
-                {post.rcmdtnCnt}
-              </button>
+              />
               <i
                 className="mx-1 h-3.5 w-px bg-line-strong"
                 aria-hidden="true"
@@ -503,6 +507,18 @@ export default function MissingDetail({ post }) {
         )}
       </div>
 
+      {viewerIndex !== null && (
+        <ImageViewer
+          images={post.imgs.map((img, index) => ({
+            key: img.atchFileSn,
+            src: publicFileUrl(img.atchFileSn),
+            name: `첨부 이미지 ${index + 1}`,
+          }))}
+          index={viewerIndex}
+          onChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
       {modal === 'delete' && (
         <ConfirmModal
           title="실종 게시글을 삭제할까요? 삭제한 글과 제보 댓글은 되돌릴 수 없어요. 찾으셨다면 삭제 대신 '찾았어요'를 눌러 주세요"

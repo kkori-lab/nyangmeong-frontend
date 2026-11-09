@@ -1,28 +1,23 @@
 import { ChevronLeft, ChevronRight, ImageIcon, X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const ARROW_CLASS =
   'absolute top-1/2 flex size-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-[rgba(15,23,35,0.62)] text-white hover:bg-[rgba(15,23,35,0.85)] max-[760px]:size-10';
 
 /**
- * 첨부 이미지 크게 보기: 제목 줄·판 없이 어두운 배경 위에 이미지만 표시
- * - imgs: 서버 첨부 [{ atchFileSn, sortSeq, orgnlFileNm }], urls: { [atchFileSn]: blob 주소 }
- * - index: 지금 보는 장(0부터). 파일명은 이미지 위, 「N / 전체」는 이미지 아래(여러 장일 때만)
+ * 이미지 크게 보기: 제목 줄·판 없이 어두운 배경 위에 이미지만 표시(화면에 맞춘 크기, 작은 원본은 늘리지 않음)
+ * - images: [{ key, src, name }] (src가 없으면 불러오지 못한 자리 표시, name은 이미지 위에 표시)
+ * - index: 지금 보는 장(0부터). 「N / 전체」는 이미지 아래(여러 장일 때만)
  * - ←·→ 키와 좌우 화살표로 넘기고 처음·끝에서는 그쪽 화살표 없음. ✕·이미지 밖 클릭·ESC로 닫힘
+ * - src가 바뀌어 아직 받는 중이면 자리 표시(공개 주소를 바로 불러 큰 사진이 느릴 때)
  */
-export default function InquiryImageViewer({
-  imgs,
-  urls,
-  index,
-  onChange,
-  onClose,
-}) {
+export default function ImageViewer({ images, index, onChange, onClose }) {
   const dialogRef = useRef(null);
-  const current = imgs[index];
-  const url = urls[current.atchFileSn];
+  const [loadedSrc, setLoadedSrc] = useState(null);
+  const { src: url, name } = images[index];
+  const isLoading = Boolean(url) && loadedSrc !== url;
   const hasPrev = index > 0;
-  const hasNext = index < imgs.length - 1;
-  const name = current.orgnlFileNm || `첨부 이미지 ${index + 1}`;
+  const hasNext = index < images.length - 1;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -59,11 +54,23 @@ export default function InquiryImageViewer({
           {name}
         </p>
         {url ? (
-          <img
-            src={url}
-            alt={name}
-            className="pointer-events-auto max-h-[calc(100dvh-10rem)] max-w-full object-contain"
-          />
+          <>
+            {isLoading && (
+              <span
+                role="status"
+                aria-label="이미지를 불러오는 중이에요"
+                className="pointer-events-auto size-60 animate-pulse rounded-[10px] bg-[#2b2b2b] max-[760px]:size-48"
+              />
+            )}
+            <img
+              key={url}
+              src={url}
+              alt={name}
+              onLoad={() => setLoadedSrc(url)}
+              onError={() => setLoadedSrc(url)}
+              className={`pointer-events-auto max-h-[calc(100dvh-10rem)] max-w-full object-contain ${isLoading ? 'hidden' : ''}`}
+            />
+          </>
         ) : (
           <span
             role="img"
@@ -73,9 +80,9 @@ export default function InquiryImageViewer({
             <ImageIcon size={48} aria-hidden="true" />
           </span>
         )}
-        {imgs.length > 1 && (
+        {images.length > 1 && (
           <p className="pointer-events-auto text-base leading-normal text-white">
-            {index + 1} / {imgs.length}
+            {index + 1} / {images.length}
           </p>
         )}
       </div>
