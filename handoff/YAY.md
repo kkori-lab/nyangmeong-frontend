@@ -2,37 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 끝남 (승인 2026-11-06 10:54, 검증 통과·확인 못 함 있음(연결 남음만), 사람 확인 2026-11-06·2026-11-09). FN-MAN-008 링크와 추가-1~9(로그인·회원가입 빈 칸 버튼 비활성, 오류 입력칸 링, 모바일 로그인·회원가입·SNS 가입 확인 위치·간격, 회원가입 칸 사이 간격)을 했다. 2026-11-08 팀 결정으로 메인(MAN) 화면이 LJS로 넘어가 FN-MAN-002·건강기록 바로가기는 LJS 개편 마일스톤이 맡는다(메인의 [건강기록 전체 보기]는 LJS 개편에서 바로가기 타일로 바뀜)
-
-기준: 메인페이지_기능명세서_v0.10_20261103, 메인페이지_화면설계서_v0.10_20261103 (DMS)
-디자인: 없음, 화면설계서 기준 (화면 모양은 바꾸지 않는다)
-
-| 기능 ID | 바꿀 파일 | API | 완료 조건 |
-| --- | --- | --- | --- |
-| FN-MAN-008 건강기록 전체 보기 이동 | `pages/main/MainPage.jsx`(링크에 `?petSn=<선택한 반려동물>`) | 없음 | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 메인에서 반려동물 탭을 고르고 [건강기록 전체 보기]를 누르면 `/health?petSn=<그 반려동물 번호>`로 간다. 탭을 바꾸면 링크 번호도 바뀐다. 버튼 모양·위치는 그대로. 연결 남음: HLT-011이 `?petSn=`으로 시작 탭을 고르는 것(JAJ `HealthSummaryPage.jsx`) |
-
-이번엔 안 함: FN-MAN-002 AI 검색바 → 확장형 대화창. 대화창(SCR-AIM-001)은 LJS 화면이고 메인에 끼울 부품이 없다. LJS가 부품을 만들면 메인에 조립한다. 지금은 검색바에서 보내면 새 창이 열린다(그대로)
-
-질문:
-- FN-MAN-002·008의 남의 영역(LJS 대화창 부품, JAJ HLT-011 시작 탭)을 이 세션에서 고칠까요?
-  결정: 고치지 않는다. 메인 링크 한 줄만 하고 나머지는 "다음에 할 것"에 연결로 남긴다 (2026-11-06 10:54)
-- 디자인: 결정: 화면설계서 기준(화면 모양 변경 없음)
-
-새 의존성: 없음
-
-### 추가 요청
-
-| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
-| --- | --- | --- | --- |
-| 추가-1 | `features/member/login/EmailLoginForm.jsx`·`useEmailLogin.js`, `features/member/signup/EmailStep.jsx`·`PhoneStep.jsx`·`PasswordStep.jsx`·`SnsSignupForm.jsx`·`NicknameModal.jsx`·`useSignup.js` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 로그인(`/login?method=email`)은 아이디·비밀번호(보안코드가 열리면 보안코드까지) 중 빈 칸이 있으면 [로그인]이 비활성이다. 회원가입(`/signup`)은 이메일이 비면 [인증코드 발송], 인증번호가 비면 [확인], 휴대전화번호가 비면 [중복확인], 비밀번호·비밀번호 확인 중 하나라도 비면 [회원가입]이 비활성이다(SNS 가입 확인의 휴대전화번호도 같다). 닉네임 모달은 닉네임이 비면 [중복 확인]·[설정 완료]가 비활성이다. 칸을 비운 채 나가거나 적었다 지워도 "…입력해 주세요" 빈 칸 오류가 나오지 않는다. 형식 오류(이메일 형식·비밀번호 규칙·닉네임 글자 수 등)와 서버 오류는 지금처럼 나온다 | 요청 2026-11-06 11:25 "로그인·회원가입·닉네임에서 아무것도 안 적었을 때는 유효성 검사가 나오지 않게(빈 칸이면 버튼 비활성)" |
-| 추가-2 | `features/member/shared/AuthField.jsx`, `features/member/login/CaptchaBlock.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 로그인·회원가입 입력칸이 오류일 때 포커스해도 빨간 테두리에 빨간 링만 보이고 초록 링이 겹치지 않는다(예: `/signup` 이메일에 이미 가입한 이메일로 [인증코드 발송]). 오류가 없을 때 포커스하면 지금처럼 초록 테두리·초록 링 | 요청 2026-11-06 "회원가입·로그인 인풋박스에서 초록 보더라인과 빨간색이 겹치지 않게" |
-| 추가-3 | `layouts/AuthLayout.jsx`, `layouts/AuthSlider.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390 폭)에서 `/login`·`/login?method=email`·`/signup`의 폼이 화면 가운데가 아니라 로고 바로 아래부터 위쪽에 붙어 나온다. PC(768px 초과)는 지금처럼 카드 안 가운데 정렬 | 요청 2026-11-06 "로그인·회원가입 화면이 모바일일 때 너무 아래에 있어 더 위쪽으로" |
-| 추가-4 | `layouts/AuthSlider.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844)에서 `/login`·`/login?method=email`의 폼이 로고에 바로 붙지 않고 화면 가운데보다 조금 위에 온다(제목 위치가 추가-3의 약 80px과 처음의 약 260px 사이, 아래 빈 공간이 위보다 크다). 폼이 화면보다 길면 위가 잘리지 않고 스크롤된다. PC는 그대로 | 요청 2026-11-06 "추가-3 뒤 모바일 로그인 비율이 안 맞는다. 간격을 주든지 아래로 좀 더 내리든지" |
-| 추가-5 | `layouts/AuthSlider.jsx`, `features/member/shared/AuthHeading.jsx`, `features/member/login/LoginMethodChoice.jsx`·`EmailLoginForm.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) `/login`·`/login?method=email`에서 뒤로가기·제목은 로고 바로 아래(추가-3 위치)에 있고, 제목 아래 버튼·입력칸은 간격을 두고 내려와 추가-4 위치 근처에 온다. 회원가입·PC는 그대로. 추가-4의 가운데 정렬은 이것으로 바꾼다 | 요청 2026-11-06 "타이틀과 뒤로가기 버튼만 위로 올리면 될 것 같다" |
-| 추가-6 | `features/member/signup/SignupForm.jsx`·`SnsSignupForm.jsx`, `features/member/shared/AuthHeading.jsx`(주석) | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) `/signup` 각 단계(약관·이메일·휴대전화·비밀번호)와 SNS 가입 확인에서 제목 아래에 로그인과 같은 간격(화면 높이 12%)이 있다. 긴 단계도 위가 잘리지 않고 스크롤된다. PC는 그대로 | 요청 2026-11-06 "로그인은 타이틀 아래 여백이 있는데 회원가입은 없다" |
-| 추가-7 | `features/member/shared/AuthHeading.jsx`, `features/member/signup/SignupForm.jsx`, `features/member/login/LoginMethodChoice.jsx`·`EmailLoginForm.jsx`, `features/member/signup/SnsSignupForm.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) `/signup` 단계 화면의 첫 입력 요소(약관은 [모두 동의])가 로그인 첫 버튼과 같은 높이(약 280px)에 온다. 제목 아래 간격은 단계 표시만큼 줄어들되 남는다(창이 낮아도 20px 아래로 줄지 않는다). 로그인·SNS 가입 확인·PC는 그대로 | 요청 2026-11-09 "회원가입 좀 올려도 될 것 같다. 로그인과 같게" |
-| 추가-8 | `features/member/shared/AuthHeading.jsx`, `features/member/signup/SignupForm.jsx`·`SnsSignupForm.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) SNS 가입 확인은 제목 아래 간격이 추가-6(약 101px)보다 줄어 내용이 위로 올라온다(회원가입 약관 단계와 같은 간격, 최소 20px). 회원가입 이메일 단계는 이메일 입력칸이 이메일 로그인의 아이디 입력칸과 같은 높이(약 311px)에 온다. 약관·휴대전화·비밀번호 단계, 로그인, PC는 그대로 | 요청 2026-11-09 "가입 정보 확인은 좀 올려야 하고 이메일 인증은 로그인처럼" |
-| 추가-9 | `features/member/signup/TermsStep.jsx`·`PhoneStep.jsx`·`PasswordStep.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 모바일(390×844) 회원가입 약관·휴대전화·비밀번호 단계에서 제목·첫 입력 요소 위치는 그대로 두고, 아래 칸 사이를 이메일 로그인처럼 넓힌다(입력칸·상자 사이 20px, 마지막 칸과 버튼 사이 약 32px, 약관 줄은 조금 더 높게). 이메일 단계는 이미 이메일 로그인과 같은 간격(20px·32px)이라 그대로. SNS 가입 확인·로그인·PC는 그대로 | 요청 2026-11-09 "회원가입할 때 위치는 유지하고 올라간 박스들 사이 간격을 이메일로 로그인하기처럼 조금" |
+SCR-ACC-020 회원탈퇴 · 로딩 스켈레톤 — 끝남 (승인 2026-11-09 12:15, 검증 통과 2회차, 사람 확인 2026-11-09). `GET /pets` 로딩 중 본문을 실측 배치의 `WithdrawSkeleton`(카드 3장·버튼 줄)으로 두고 로딩 문구를 없앴다. 조회 실패면 바로 오류 문구가 든 안내
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
@@ -40,8 +10,10 @@ SCR-MAN-001 메인페이지 · FN-MAN-008 전체 보기 링크 — 끝남 (승�
 
 ## 다음에 할 것
 
-- 로컬 계정: `yay315@naver.com`이 검증 중 로그인 실패 7회로 보안코드 상태다. 문서의 비밀번호로도 실패해 비밀번호가 바뀌었는지 확인하고 맞는 비밀번호로 한 번 로그인해 푼다
-- 백엔드 후보(로그인 몇 분 뒤 풀림): `access_token` 쿠키 수명이 토큰 수명(30분)과 같아 만료 뒤 쿠키가 사라지고, 서버가 `TOKEN_EXPIRED`가 아닌 `UNAUTHORIZED`를 보내 프론트 `api/axios.js`가 재발급하지 않는다. 쿠키 수명을 refresh 수명에 맞추는 안(백엔드 `TokenCookies`, 백엔드 저장소에서 /start, 인증 담당 확인). 탭 여럿이 동시에 재발급할 때 진 요청이 쿠키를 지우는지도 같이 본다
+- 팀 알림(문구 정리): 화면설계서 담당에게 설계서와 달라진 로그인·회원가입 문구 목록을 보낸다(PR 본문 Design Decisions와 같은 목록). PR Breaking Changes: `AuthNotice`에 `hasGuide`를 주면 색 상자 없이 AI 말풍선만 보인다
+- 코드 후보: 비밀번호 재설정(`password/PasswordResetForm.jsx`)도 칸 아래 `pwHelp`가 규칙 문장을 다시 보이는지 보고, 끝 마침표가 없는 `passwordMessages.js` `pwRule`·`pwHelp`를 맞춘다(문구 정리 범위 밖으로 남김)
+- 코드 후보: 로그인 방법 선택에서 [이메일로 로그인하기]를 누르고 0.8초 안에 입력하면 폼이 왼쪽으로 약 50px 밀린 채 남은 적이 있다(문구 정리 검증 메모, 슬라이더)
+- 로컬 환경: 새 이메일 가입 인증번호 발송이 "인증번호를 보내지 못했습니다"로 실패하고 백엔드 로그 파일 마지막 줄이 17:28에서 멈춰 있다(2026-11-09 검증 메모). 백엔드를 로그 파일로 남기며 다시 띄우고 SMTP 설정을 확인한다
 - 팀 알림: `docs/routes.md` 29줄 MAN-001 담당이 아직 YAY다. 담당 표(2026-11-08)대로 LJS로 고치도록 LJS에게 알린다
 - 코드 후보: 휴대전화번호에 `---`만 적으면 [중복확인]이 켜지고 누르면 "휴대전화번호를 입력해 주세요."가 나온다(추가-1 검증 메모, `phone.trim()` 기준)
 

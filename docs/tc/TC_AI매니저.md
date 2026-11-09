@@ -1,6 +1,6 @@
 # TC · AI매니저 (SCR-AIM-011·001·002·004·005·012·013·008·009·010·006)
 
-- 기준: AI매니저_기능명세서_v0.13_20261101, 요구사항정의서_v0.10.2_20261108(REQ-AIM-001·003·004·005·007), 백엔드 `docs/api/notification.md`·`receipt.md`·`ai.md`(develop 2026-11-08), AI 서버 `docs/api/chat.md`·`ocr.md`
+- 기준: AI매니저_기능명세서_v0.14_20261109, 요구사항정의서_v0.10.3_20261109(REQ-AIM-001·003·004·005·007), 백엔드 `docs/api/notification.md`·`receipt.md`·`ai.md`(develop 2026-11-08), AI 서버 `docs/api/chat.md`·`ocr.md`
 - 코드: origin/develop 425199e (2026-11-08)
 - 준비
   - 백엔드 develop을 :8080에 띄운다. **AI 서버(Python)를 :8000에 띄운다.** 프론트 개발 서버는 `/ai/` 요청을 `VITE_AI_API_URL`(없으면 `http://localhost:8000`)로 넘긴다(`vite.config.js`). AI 서버 계약은 `nyangmeong-ai/docs/api/`(chat.md·ocr.md)에 있다
@@ -1209,18 +1209,12 @@
 
 ## 명세·요구사항과 코드가 어긋난 곳
 
-- FN-AIM-011-03 / FN-AIM-011-17 / REQ-AIM-003 — 세션 만료 시 명세는 "인증 오류 표시 후 대화창 닫기", 코드는 401이면 창이 로그인 화면으로 이동한다 (src/api/axios.js, milestones/LJS.md "연결 남음")
-- FN-AIM-005-08 / FN-AIM-005-03 — 범위 밖 안내가 일반 AI 말풍선이라 칩 7개·고객센터 안내가 나오지 않는다. 연속 실패 횟수만 오른다 (src/features/ai/chat/ConversationMessages.jsx, src/pages/ai/AiChatPage.jsx)
-- FN-AIM-004-09 / REQ-AIM-005 — 명세는 DB(AI_ROUT_MPNG) 기준·저장 후 다음 요청부터 반영, AI 서버는 data/routing.yaml v0.9를 읽는다 (nyangmeong-ai app/chat/rules.py)
-- FN-AIM-012-09 / FN-AIM-012-13 / FN-AIM-012-14 / FN-AIM-012-17 / REQ-AIM-007 — [등록]의 일정·케어 항목 저장이 가짜 응답이라 실제로 저장되지 않는다 (src/features/ai/api.js)
-- FN-AIM-006-20 / REQ-AIM-001 — 수신자 조회가 빈 목록을 주는 가짜라 배치를 돌려도 알림이 하나도 생기지 않는다 (nyangmeong-backend scheduler/CaregiverFake.java)
-- FN-AIM-006-16 — 재시도 대기가 메모리 예약이라 서버를 재시작하면 남은 재시도가 사라진다 (nyangmeong-backend notification/service/CareScheduleAlarmService.java)
-- FN-AIM-006-02 / REQ-AIM-001 — 알림 설정의 "예정일 알림" 설명이 "예방접종·정기검진·반복 예방 예정일"이라 병원 일정만 대상이라는 명세와 다르다 (src/features/notification/settings/NotificationSettingsForm.jsx)
-- FN-AIM-013-03 / REQ-AIM-004 — 대상 반려동물을 명세는 "대화의 펫 태그"로 정하지만 코드는 사이드바에서 고른 칩으로 정한다 (src/pages/ai/AiChatPage.jsx handleSendReceipt)
-- FN-AIM-004-03 — 명세 안내 문구는 "<화면명>(으)로 이동할게요"인데 이동 안내 말풍선은 "{화면명} 화면으로 이동할게요."다. 서버가 이력에 저장하는 문구만 명세와 같다 (src/features/ai/chat/RouteGuideBubble.jsx)
-- FN-AIM-008-07 / FN-AIM-010-07 — 명세 실패 버튼은 [다시 촬영], 시간 초과 문구는 "다시 촬영하거나"인데 코드는 [다시 올리기]·"다시 올리거나"다 (src/features/ai/receipt/receiptFailure.js)
-- FN-AIM-009-08 / REQ-AIM-004 — 명세 버튼은 [확인 후 저장], 결과 확인 모달은 "저장하기"다 (src/features/health/diary/ReceiptResultStep.jsx)
-- FN-AIM-009-17 — 명세는 [내 반려동물 선택 ▾], 코드는 "반려동물 선택"이다 (src/features/health/diary/ReceiptPetTab.jsx)
-- FN-AIM-009-23 — 명세는 [예]/[아니오], 코드는 "가계부에도 기록하기"/"가계부 기록 건너뛰기"다 (src/features/health/diary/LedgerDupModal.jsx)
-- FN-AIM-004-08 — 변환표에 SCR-ACC-020(회원탈퇴)이 있으나 AI 서버 매핑표에는 그 화면이 없어 "탈퇴"는 회원정보 수정(SCR-MYP-040)으로 간다 (src/features/ai/shared/screenPaths.js, nyangmeong-ai data/routing.yaml)
-- FN-AIM-011-09 — 이어 쓴 대화를 목록 맨 위로 올리는 마지막 활동 시각이 이 창 메모리에만 있어 새로고침하면 등록일순으로 돌아간다 (src/features/ai/api.js lastActive)
+- [코드] FN-AIM-011-03 / FN-AIM-011-17 / REQ-AIM-003 — 세션 만료 시 명세는 "인증 오류 표시 후 대화창 닫기", 코드는 401이면 창이 로그인 화면으로 이동한다 (src/api/axios.js, milestones/LJS.md "연결 남음")
+- [코드] FN-AIM-005-08 / FN-AIM-005-03 — 범위 밖 안내가 일반 AI 말풍선이라 칩 7개·고객센터 안내가 나오지 않는다. 연속 실패 횟수만 오른다 (src/features/ai/chat/ConversationMessages.jsx, src/pages/ai/AiChatPage.jsx)
+- [코드] FN-AIM-012-09 / FN-AIM-012-13 / FN-AIM-012-14 / FN-AIM-012-17 / REQ-AIM-007 — [등록]의 일정·케어 항목 저장이 가짜 응답이라 실제로 저장되지 않는다 (src/features/ai/api.js)
+- [백엔드] FN-AIM-006-20 / REQ-AIM-001 — 수신자 조회가 빈 목록을 주는 가짜라 배치를 돌려도 알림이 하나도 생기지 않는다 (nyangmeong-backend scheduler/CaregiverFake.java)
+- [백엔드] FN-AIM-006-16 — 재시도 대기가 메모리 예약이라 서버를 재시작하면 남은 재시도가 사라진다 (nyangmeong-backend notification/service/CareScheduleAlarmService.java)
+- [코드] FN-AIM-006-02 — 알림 설정 화면의 "예정일 알림" 설명이 명세·백엔드(병원 일정만)보다 넓다. 화면 문구를 고친다
+- [결정] FN-AIM-013-03 / REQ-AIM-004 — 대상 반려동물을 명세는 "대화의 펫 태그"로 정하지만 코드는 사이드바에서 고른 칩으로 정한다 (src/pages/ai/AiChatPage.jsx handleSendReceipt)
+- [AI 서버] FN-AIM-004-08 — 변환표에 SCR-ACC-020(회원탈퇴)이 있으나 AI 서버 매핑표에는 그 화면이 없어 "탈퇴"는 회원정보 수정(SCR-MYP-040)으로 간다 (src/features/ai/shared/screenPaths.js, nyangmeong-ai data/routing.yaml)
+- [코드] FN-AIM-011-09 — 이어 쓴 대화를 목록 맨 위로 올리는 마지막 활동 시각이 이 창 메모리에만 있어 새로고침하면 등록일순으로 돌아간다 (src/features/ai/api.js lastActive)
