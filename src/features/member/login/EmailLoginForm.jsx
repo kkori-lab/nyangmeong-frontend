@@ -19,6 +19,7 @@ export default function EmailLoginForm({ onBack, onSuccess, onSignup }) {
       <AuthHeading
         title="이메일로 로그인하기"
         subtitle="이메일 아이디와 비밀번호를 입력하세요."
+        spacing="wide"
       />
       {form.notice && (
         <AuthNotice
