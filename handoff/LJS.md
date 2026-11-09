@@ -2,10 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · 시간대 한 줄 인사(문구 틀) — 끝(2026-11-09). 시간대 5개(새벽·아침·낮·저녁·밤) 문구 틀을 날짜+시간대로 골라 대표 반려동물 이름·조사를 넣고, 인사말 `h1`을 28px·자간 -0.03em으로 맞춤. 추가-1 낮 "뭐 하고 놀았나요?", 추가-2 밤 "포근한 밤 보내요"로 문구 교체
+SCR-MAN-001 메인페이지 · 검색창 이미지 첨부 → AI 대화창 의도 판단 — 끝(2026-11-09). 메인 검색창 음성 버튼 삭제·왼쪽 `+` 사진 첨부(썸네일은 검색창 안, 추가-1), 사진을 BroadcastChannel로 AI 창에 넘기고, 대화창이 사진+글로 종류를 판단(가짜)해 진료 영수증 분석·캐릭터 만들기·가계부 안내로 잇는다. 모르면 종류 칩. 대화창 `+`도 같은 판단
 
 ## 다음에 할 것
 
+- SCR-MAN-001 연결 남음(2026-11-09): A3 사진+글 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 연결, AI 서버 저장소에서 /start). 나오면 `features/ai/api.js`의 가짜 `judgeImageIntent`만 실제 요청으로 바꾼다. 가계부 바로 등록은 SJM `features/expense`와 맞춘다
+- SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09): ① 대화창 `ChatInput`의 첨부 미리보기도 메인처럼 썸네일만 크게 할지 ② 반려동물 칩 단계(대표 없는 여러 마리 계정)는 화면으로 못 봄 ③ 검증 대화방이 tester 계정에 남음(AI 창 [삭제])
 - ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에"): `features/health/CareItemMenu.jsx`·`features/expense/shared/ExpenseMenu.jsx`·`features/dashboard/MainShortcuts.jsx`의 `ShortcutMenu`가 같은 ⋮ 메뉴를 따로 갖고 있다. `components/KebabMenu.jsx`로 올리고 앞의 둘은 껍데기로 두면 쓰는 4개 파일은 안 바뀐다
 - SCR-MAN-001 연결 남음(2026-11-08): 반려동물 바로가기 (백엔드 연결 메인 바로가기 조회·저장 API, 백엔드 저장소에서 /start). 나오면 `features/dashboard/api.js` 가짜(sessionStorage `fake-main-shortcuts`)만 실제 요청으로, 코드는 `shortcutTypes.js`에서 맞춘다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-08): ① 영수증 인식 뒤 건강일지 주소에 `?recptSn=`이 남는다(`HealthDiaryPage.jsx`, JAJ, 가짜 응답에서 봄) ② 메인이 더는 `GET·PUT /members/me/dashboard-widgets`·`GET /pets/{petSn}/health-indicators`를 부르지 않는다(백엔드 정리는 담당과 상의) ③ `src/assets/index.css`의 `man-float` keyframes를 쓰는 곳이 없다 ④ `docs/routes.md` MAN-001 담당이 YAY로 남아 있다 ⑤ PR 캡처는 가짜 반려동물이 찍혀 실제 계정으로 다시 찍는 편이 낫다 ⑥ AI 건강분석 리포트 카드 행선지는 JAJ 건강기록 개편 공유 뒤

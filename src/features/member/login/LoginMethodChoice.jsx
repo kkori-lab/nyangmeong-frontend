@@ -15,7 +15,11 @@ export default function LoginMethodChoice({
 }) {
   return (
     <AuthCard onBack={onBack}>
-      <AuthHeading title="로그인" subtitle="가입한 방법으로 로그인해 주세요." />
+      <AuthHeading
+        title="로그인"
+        subtitle="가입한 방법으로 로그인해 주세요."
+        spacing="wide"
+      />
       {isJoined && (
         <AuthNotice
           type="ok"

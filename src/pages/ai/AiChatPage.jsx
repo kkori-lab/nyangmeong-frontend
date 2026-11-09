@@ -11,6 +11,8 @@ import AnswerBubble from '@/features/ai/chat/AnswerBubble';
 import FallbackBubble from '@/features/ai/chat/FallbackBubble';
 import ConversationSidebar from '@/features/ai/chat/ConversationSidebar';
 import ReceiptAnalysisBubble from '@/features/ai/chat/ReceiptAnalysisBubble';
+import ImageIntentBubble from '@/features/ai/chat/ImageIntentBubble';
+import { IMAGE_KIND } from '@/features/ai/api';
 import { AI_ROLE } from '@/features/ai/shared/aiCodes';
 import {
   FALLBACK_MESSAGE,
@@ -25,6 +27,7 @@ import {
   useCancelRegister,
   useConfirmRegister,
   useConversation,
+  useJudgeImageIntent,
 } from '@/features/ai/queries';
 import PetChoiceChips from '@/features/ai/chat/PetChoiceChips';
 import useAnswerStream from '@/features/ai/chat/useAnswerStream';
@@ -32,7 +35,8 @@ import useChatReceipt from '@/features/ai/chat/useChatReceipt';
 import RouteGuideBubble from '@/features/ai/chat/RouteGuideBubble';
 import WelcomeMessage from '@/features/ai/chat/WelcomeMessage';
 import { useMemberSummary } from '@/features/member/queries';
-import { usePets } from '@/features/pet/queries';
+import { useCreateCharacter, usePets } from '@/features/pet/queries';
+import { receiveAttachment } from '@/hooks/useAiWindow';
 import useChatWindow from '@/hooks/useChatWindow';
 import { PATHS } from '@/routes/paths';
 
@@ -65,6 +69,33 @@ const manualCheckupPath = (recptSn) => {
 /** 판정이 영수증일 때 안내(저장 안 함): 이미지 첨부로만 분석 */
 const RECEIPT_GUIDE = '영수증 사진을 첨부해 주세요.';
 
+/** 캐릭터 생성 실패 안내: 409·403은 서버 문구, 다시 해도 같아 [캐릭터 보기]로 */
+const characterFailure = (error) => {
+  if (
+    error.code === 'PIXEL_CHARACTER_CREATING' ||
+    error.code === 'PIXEL_CHARACTER_ALREADY_EXISTS'
+  ) {
+    return {
+      errorMessage: error.message || '이미 캐릭터를 만들었거나 만드는 중이에요',
+      isRetryable: false,
+    };
+  }
+  if (error.code === 'PET_PRIMARY_ONLY') {
+    return {
+      errorMessage: error.message || '주양육자만 캐릭터를 만들 수 있어요',
+      isRetryable: false,
+    };
+  }
+  return {
+    errorMessage: '캐릭터를 만들지 못했어요. 잠시 뒤 다시 시도해 주세요',
+    isRetryable: true,
+  };
+};
+
+/** 본창에서 넘긴 사진을 못 받았을 때 */
+const ATTACH_FAILED =
+  '첨부한 사진을 불러오지 못했어요. 대화창에서 다시 첨부해 주세요';
+
 /** 별도 창 전체 화면 AI 채팅 */
 export default function AiChatPage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -85,8 +116,11 @@ export default function AiChatPage() {
   /** 선택된 대화 번호 */
   const [selectedRoomSn, setSelectedRoomSn] = useState(null);
   /** 첫 메시지 */
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [firstMessage, setFirstMessage] = useState(() => searchParams.get('q'));
+  /** 본창 검색창에서 넘긴 사진 번호 */
+  const [attachId] = useState(() => searchParams.get('attach'));
+  const [isAttachFailed, setIsAttachFailed] = useState(false);
 
   const { data: member } = useMemberSummary();
   const { data: conversation, isError } = useConversation(selectedRoomSn);
@@ -102,6 +136,15 @@ export default function AiChatPage() {
       setSelectedRoomSn(aiCnvrsRoomSn);
     },
   });
+  const judgeImage = useJudgeImageIntent();
+  const createCharacter = useCreateCharacter();
+  /** 지금 사진 말풍선의 번호: 지난 판단 응답이 새 말풍선을 고치지 않게 */
+  const imageIdRef = useRef(0);
+  /**
+   * 첨부 사진 흐름(진료 영수증은 receipt가 이어 받음)
+   * - { id, file, text, previewUrl, status, pet, characterStatus, errorMessage, isRetryable }
+   */
+  const [image, setImage] = useState(null);
   /** 이동 안내 상태 */
   const [route, setRoute] = useState(null);
   /** 저장하지 않는 안내: 변환표에 없는 화면(fallback)·영수증 판정(receipt) */
@@ -135,15 +178,35 @@ export default function AiChatPage() {
     );
   const latestCardKey = registerCards.at(-1)?.key ?? null;
 
+  const updateImage = (id, patch) =>
+    setImage((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
+
+  const resetImage = () => {
+    imageIdRef.current += 1;
+    setImage(null);
+  };
+
+  /** 미리보기 주소 해제 */
+  const imagePreviewUrl = image?.previewUrl;
+  useEffect(
+    () => () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    },
+    [imagePreviewUrl],
+  );
+
   /** 대화를 옮기거나 지울 때 카드·초안·칩 상태 초기화 */
   const resetRegister = () => {
     setRegisterCards([]);
     setDraft(null);
     setPetChoices(null);
     receipt.reset();
+    resetImage();
   };
 
   const selectedPet = pets?.find((pet) => pet.petSn === selectedPetSn);
+  /** 분석·생성할 반려동물: 고른 칩, 1마리면 그 아이, 아니면 되묻기(null) */
+  const autoPet = selectedPet ?? (pets?.length === 1 ? pets[0] : null);
 
   /** 등록 판정의 카드: 되물음은 칩, 미리보기는 카드로 */
   const applyRegister = (aiCnvrsRoomSn, card, afterSn) => {
@@ -192,10 +255,12 @@ export default function AiChatPage() {
   /** 메시지 전송: 가장 최근 카드를 초안으로 함께 전송 */
   const handleSend = async (cnvrsCn) => {
     setFirstMessage(null);
+    setIsAttachFailed(false);
     setRoute(null);
     setNotice(null);
     setPetChoices(null);
     receipt.reset();
+    resetImage();
     const afterSn = lastServerSn(conversation?.messages ?? []);
     setPendingAfterSn(afterSn);
     const result = await answer.start({
@@ -226,20 +291,81 @@ export default function AiChatPage() {
     handleResult(result, lastUserSn - 1);
   };
 
-  /** 이미지 첨부 전송: 의도 분기 없이 영수증 분석, 1마리면 자동 선택 */
-  const handleSendReceipt = (file, text) => {
+  /** 판단한 종류의 흐름으로: 진료 영수증은 영수증 분석(1마리면 자동 선택)이 이어 받음 */
+  const goImageKind = (target, kind) => {
+    if (kind === IMAGE_KIND.MEDICAL_RECEIPT) {
+      setImage(null);
+      receipt.start({
+        file: target.file,
+        text: target.text,
+        aiCnvrsRoomSn: selectedRoomSn,
+        afterMsgSn: lastServerSn(conversation?.messages ?? []),
+        petSn: selectedPetSn ?? null,
+        pet: autoPet,
+      });
+      return;
+    }
+    if (kind === IMAGE_KIND.CHARACTER) {
+      updateImage(target.id, {
+        status: 'character',
+        pet: autoPet,
+        characterStatus: 'ready',
+      });
+      return;
+    }
+    updateImage(target.id, {
+      status: kind === IMAGE_KIND.EXPENSE_RECEIPT ? 'expense' : 'asking',
+    });
+  };
+
+  /** 사진 첨부 전송: 사진+글로 종류를 판단(가짜)한 뒤 그 흐름으로, 판단 실패면 종류 칩 */
+  const handleSendImage = (file, text) => {
+    setFirstMessage(null);
+    setIsAttachFailed(false);
     answer.reset();
     setRoute(null);
     setNotice(null);
     setPetChoices(null);
-    receipt.start({
+    receipt.reset();
+    imageIdRef.current += 1;
+    const target = {
+      id: imageIdRef.current,
       file,
       text,
-      aiCnvrsRoomSn: selectedRoomSn,
-      afterMsgSn: lastServerSn(conversation?.messages ?? []),
-      petSn: selectedPetSn ?? null,
-      pet: selectedPet ?? (pets?.length === 1 ? pets[0] : null),
-    });
+      previewUrl: URL.createObjectURL(file),
+      status: 'judging',
+      pet: null,
+      characterStatus: null,
+      errorMessage: null,
+      isRetryable: false,
+    };
+    setImage(target);
+    judgeImage.mutate(
+      { file, cnvrsCn: text, petSn: selectedPetSn ?? null },
+      {
+        onSuccess: ({ kind }) => {
+          if (target.id === imageIdRef.current) goImageKind(target, kind);
+        },
+        onError: () => updateImage(target.id, { status: 'asking' }),
+      },
+    );
+  };
+
+  /** 캐릭터 만들기 요청: 사진은 첨부한 그대로 */
+  const handleCreateCharacter = () => {
+    const target = image;
+    updateImage(target.id, { characterStatus: 'creating' });
+    createCharacter.mutate(
+      { petSn: target.pet.petSn, photo: target.file },
+      {
+        onSuccess: () => updateImage(target.id, { characterStatus: 'created' }),
+        onError: (error) =>
+          updateImage(target.id, {
+            characterStatus: 'failed',
+            ...characterFailure(error),
+          }),
+      },
+    );
   };
 
   /** 실패 안내에서 다시 올리기 */
@@ -296,10 +422,29 @@ export default function AiChatPage() {
     }
   };
 
-  /** 첫 메시지 전송: StrictMode가 effect를 정리했다 다시 돌리면(그때 답변 스트림도 취소) 예약을 지우고 새로 잡아 한 번만 전송 */
+  /**
+   * 첫 메시지 전송: StrictMode가 effect를 정리했다 다시 돌리면(그때 답변 스트림도 취소) 예약을 지우고 새로 잡아 한 번만 전송
+   * 본창에서 넘긴 사진이 있으면 받아서 사진+글로, 못 받으면 안내하고 글만 보낸다
+   */
   useEffect(() => {
-    if (!firstMessage || !isPetsReady) return;
-    const timer = setTimeout(() => handleSend(firstMessage.slice(0, 1000)));
+    if ((!firstMessage && !attachId) || !isPetsReady) return;
+    const timer = setTimeout(async () => {
+      const text = firstMessage?.slice(0, 1000) ?? '';
+      if (!attachId) return handleSend(text);
+      /** 새로고침해도 다시 받지 않게 주소에서 번호를 지운다 */
+      setSearchParams(
+        (prev) => {
+          prev.delete('attach');
+          return prev;
+        },
+        { replace: true },
+      );
+      const file = await receiveAttachment(attachId);
+      if (file) return handleSendImage(file, text);
+      /** handleSend가 안내를 지운 뒤 다시 켠다(같은 렌더에 묶여 마지막 값이 남음) */
+      if (text) handleSend(text);
+      setIsAttachFailed(true);
+    });
     return () => clearTimeout(timer);
     /* eslint-disable-next-line react-hooks/exhaustive-deps -- 창을 열고 반려동물 목록을 받은 뒤 한 번만 전송 */
   }, [isPetsReady]);
@@ -398,7 +543,7 @@ export default function AiChatPage() {
               대화를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
             </p>
           )}
-          {(conversation || receipt.receipt || isPendingShown) && (
+          {(conversation || receipt.receipt || image || isPendingShown) && (
             <ConversationMessages
               messages={[
                 ...(conversation?.messages ?? []).filter(
@@ -463,6 +608,20 @@ export default function AiChatPage() {
                   onSelect={handleSend}
                 />
               )}
+              {image && (
+                <ImageIntentBubble
+                  image={image}
+                  pets={pets ?? []}
+                  onChooseKind={(kind) => goImageKind(image, kind)}
+                  onChoosePet={(pet) => updateImage(image.id, { pet })}
+                  onCreateCharacter={handleCreateCharacter}
+                  onCancelCharacter={resetImage}
+                  onOpenCharacters={() =>
+                    openInMainWindow(PATHS.MYPAGE_CHARACTERS)
+                  }
+                  onOpenExpenses={() => openInMainWindow(PATHS.MYPAGE_EXPENSES)}
+                />
+              )}
               {receipt.receipt && (
                 <ReceiptAnalysisBubble
                   receipt={receipt.receipt}
@@ -494,6 +653,7 @@ export default function AiChatPage() {
           )}
           {selectedRoomSn === null &&
             !receipt.receipt &&
+            !image &&
             !answer.pendingText && (
               <div className="flex min-h-full items-center justify-center">
                 <WelcomeMessage
@@ -503,6 +663,11 @@ export default function AiChatPage() {
               </div>
             )}
         </div>
+        {isAttachFailed && (
+          <p role="alert" className="pb-2 text-center text-sm text-[#b42318]">
+            {ATTACH_FAILED}
+          </p>
+        )}
         {answer.status === 'failed' && (
           <p role="alert" className="pb-2 text-center text-sm text-[#b42318]">
             메시지를 보내지 못했어요. 잠시 뒤 다시 시도해 주세요
@@ -510,10 +675,15 @@ export default function AiChatPage() {
         )}
         <ChatInput
           petNm={selectedPet?.petNm}
-          isDisabled={isAnswering || receipt.isBusy}
+          isDisabled={
+            isAnswering ||
+            receipt.isBusy ||
+            judgeImage.isPending ||
+            image?.characterStatus === 'creating'
+          }
           fileInputRef={fileInputRef}
           onSubmit={handleSend}
-          onSubmitReceipt={handleSendReceipt}
+          onSubmitReceipt={handleSendImage}
         />
       </main>
     </div>

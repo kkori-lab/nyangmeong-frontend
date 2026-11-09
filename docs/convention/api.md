@@ -47,13 +47,13 @@
 | 코드 | 뜻 | 프론트가 하는 일 |
 | --- | --- | --- |
 | 400 | 입력값이 틀렸거나 업무 규칙에 어긋남 | `error.message`, `error.fields` 표시 |
-| 401 | 토큰 없음·틀림(`UNAUTHORIZED`)·만료(`TOKEN_EXPIRED`) | `TOKEN_EXPIRED`면 인터셉터가 재발급을 1회 시도. 실패하거나 `UNAUTHORIZED`면 로그인 화면으로 이동 |
+| 401 | 토큰 없음·틀림(`UNAUTHORIZED`)·만료(`TOKEN_EXPIRED`) | `TOKEN_EXPIRED`면 인터셉터가 재발급을 1회 시도하고 원래 요청을 다시 보낸다. 다시 보낸 요청도 401이거나 `UNAUTHORIZED`면 로그인 화면으로 이동 |
 | 403 | 권한 없음. `MEMBER_INACTIVE`는 정지·탈퇴 회원 | `MEMBER_INACTIVE`는 재발급 없이 로그인 화면으로 이동. 그 밖은 `error.message` 표시 |
 | 404 | 대상이 없음 | `error.message` 표시 |
 | 409 | 이미 있음 | `error.message` 표시 |
 | 429 | 로그인에 보안코드 필요 | 로그인 화면이 처리 |
 
-- 재발급은 1회만 한다. 다시 보낸 요청이 또 401이거나 `/auth/refresh` 자신이 401이면 더 시도하지 않는다.
+- 재발급은 1회만 한다. 재발급이 실패해도(다른 탭이 먼저 재발급해 쿠키가 이미 살아 있을 수 있다) 원래 요청을 한 번 다시 보낸다. 다시 보낸 요청이 또 401이면 더 시도하지 않고 로그인 화면으로 보낸다. `/auth/refresh` 자신의 401은 재발급을 다시 부르지 않는다.
 - 여러 요청이 동시에 401을 받아도 재발급 요청은 하나만 보내고 나머지는 그 결과를 같이 기다린다. 서버는 재발급할 때마다 Refresh Token을 바꾸므로, 재발급을 두 번 보내면 두 번째가 실패해 로그인한 사용자가 로그인 화면으로 튕긴다.
 - 로그인 화면으로 보낼 때는 현재 경로를 `redirect` 파라미터에 담는다(`utils/loginRedirect.js`의 `toLoginPath`). 랜딩·로그인 화면에서 보낼 때는 새로 담지 않고 지금 주소의 `redirect`를 넘긴다.
 - 이미 로그인 화면(`/login`)에 있으면 이동하지 않는다. 이동하면 같은 화면을 다시 불러오기만 한다.
@@ -99,8 +99,8 @@ api.interceptors.response.use(
       try {
         refreshing ??= api.post('/auth/refresh').finally(() => { refreshing = null; });
         await refreshing;
-        return api(config);
-      } catch { /* 아래 로그인 화면 이동으로 넘어간다 */ }
+      } catch { /* 다른 탭이 먼저 재발급했을 수 있어 실패해도 재전송한다 */ }
+      return api(config);                              // 또 401이면 이 인터셉터가 로그인 화면으로 보낸다
     }
     const loggedOut = response?.status === 401 || error.code === 'MEMBER_INACTIVE';
     // 재발급 요청 자신과 로그인 화면은 이동하지 않는다. 이동 여부는 원래 요청의 skipAuthRedirect로 정한다
