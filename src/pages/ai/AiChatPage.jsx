@@ -400,15 +400,19 @@ export default function AiChatPage() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps -- 창을 열고 반려동물 목록을 받은 뒤 한 번만 전송 */
   }, [isPetsReady]);
 
-  /** 설정은 본창에서 열기 */
-  const handleOpenSettings = () => {
-    const opener = window.opener;
-    if (opener && !opener.closed) {
-      opener.location.href = PATHS.SETTINGS_NOTIFICATIONS;
-      opener.focus();
-    } else {
-      window.open(PATHS.SETTINGS_NOTIFICATIONS, '_blank');
-    }
+  /** 연 대화가 지워졌을 때: 새 대화 화면으로 */
+  const handleOpenRoomDeleted = () => {
+    answer.reset();
+    setRoute(null);
+    setNotice(null);
+    resetCards();
+    setSelectedRoomSn(null);
+    setFallbackCount(0);
+  };
+
+  /** 사이드바에서 지운 방이 지금 연 방일 때만 화면을 비움 */
+  const handleRoomDeleted = (aiCnvrsRoomSn) => {
+    if (aiCnvrsRoomSn === selectedRoomSn) handleOpenRoomDeleted();
   };
 
   const handleSelectRoom = (aiCnvrsRoomSn) => {
@@ -465,7 +469,7 @@ export default function AiChatPage() {
         onSelectPet={handleSelectPet}
         onSelectRoom={handleSelectRoom}
         onNewChat={handleNewChat}
-        onOpenSettings={handleOpenSettings}
+        onRoomDeleted={handleRoomDeleted}
       />
 
       <main className="flex min-w-0 flex-1 flex-col">
@@ -493,14 +497,7 @@ export default function AiChatPage() {
             pets={pets}
             onOpenDrawer={openDrawer}
             onNewChat={handleNewChat}
-            onDeleted={() => {
-              answer.reset();
-              setRoute(null);
-              setNotice(null);
-              resetCards();
-              setSelectedRoomSn(null);
-              setFallbackCount(0);
-            }}
+            onDeleted={handleOpenRoomDeleted}
           />
         )}
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-8 max-[760px]:px-4 max-[760px]:py-5">
