@@ -4,6 +4,7 @@ import { actionFieldName } from '../shared/actionFields';
 import {
   hasPetChoice,
   isEmptyValue,
+  activeFields,
   missingFields,
   requiredFields,
   toFieldValue,
@@ -241,7 +242,7 @@ export default function ActionCard({
             )
           )}
 
-          {shownFields.map((field) => {
+          {activeFields(card, input, shownFields).map((field) => {
             const param = card.params[field];
             const id = `action-${item.key}-${field}`;
             const isChoice = ['code', 'boolean'].includes(param.type);

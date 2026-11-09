@@ -283,7 +283,8 @@ export default function AiChatPage() {
     setPendingAfterSn(afterSn);
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
-      petSn: selectedPetSn ?? null,
+      /** 펫 태그는 새 방을 만들 때만: 열린 방은 늘 방 태그 기준 */
+      ...(selectedRoomSn === null && { petSn: selectedPetSn ?? null }),
       cnvrsCn,
       draft,
       action: actions.pendingAction(latestCardKey),
@@ -491,7 +492,8 @@ export default function AiChatPage() {
     setIsDrawerOpen(false);
   };
 
-  const handleNewChat = () => {
+  /** 새 대화 화면으로: 답변·이동 안내·카드·사진 상태 초기화(입력창의 글은 남는다) */
+  const goNewChat = () => {
     answer.reset();
     setRoute(null);
     setNotice(null);
@@ -499,7 +501,21 @@ export default function AiChatPage() {
     setFirstMessage(null);
     setSelectedRoomSn(null);
     setFallbackCount(0);
+  };
+
+  const handleNewChat = () => {
+    goNewChat();
     setIsDrawerOpen(false);
+  };
+
+  /**
+   * 칩은 대화 목록 필터: 열린 방이 고른 칩 목록에 남으면([전체]이거나 방 태그와 같음) 그대로,
+   * 빠지면 그 반려동물의 새 대화로(상세를 받기 전이면 새 대화로). drawer는 닫지 않는다
+   */
+  const handleSelectPet = (petSn) => {
+    setPickedPetSn(petSn);
+    if (selectedRoomSn === null || petSn === null) return;
+    if (conversation?.petSn !== petSn) goNewChat();
   };
 
   const openDrawer = () => setIsDrawerOpen(true);
@@ -516,7 +532,7 @@ export default function AiChatPage() {
         onTogglePanel={() => setIsCollapsed((prev) => !prev)}
         onOpenDrawer={openDrawer}
         onCloseDrawer={closeDrawer}
-        onSelectPet={setPickedPetSn}
+        onSelectPet={handleSelectPet}
         onSelectRoom={handleSelectRoom}
         onNewChat={handleNewChat}
         onOpenSettings={handleOpenSettings}
