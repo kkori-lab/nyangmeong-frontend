@@ -5,15 +5,13 @@ import CareItemMenu from '../CareItemMenu';
 import LineChart from './LineChart';
 import ObservationPhoto from './ObservationPhoto';
 import {
+  CHART_COUNT,
   formatDiff,
   formatPart,
   formatSize,
   getSizeDiff,
   isEndedItem,
 } from './observationUtils';
-
-/** 크기 변화 그래프에 그릴 최대 회차 수 */
-const CHART_COUNT = 5;
 
 /**
  * [관찰 항목 상세]
