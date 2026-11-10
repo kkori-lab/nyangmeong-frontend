@@ -67,7 +67,7 @@ export default function AiRouteTable({ routes, allRoutes, onSelect }) {
         </thead>
         <tbody>
           {routes.map((route) => {
-            const isUsed = route.useYn === 'Y';
+            const isUsed = route.useYn;
             return (
               <tr
                 key={route.aiRoutMpngSn}
@@ -92,7 +92,7 @@ export default function AiRouteTable({ routes, allRoutes, onSelect }) {
                   </p>
                   <p className="truncate text-sm leading-[22px] text-subtle">
                     {route.trgtScrnNm}
-                    {route.rprsChipYn === 'Y' && ' · 대표 칩'}
+                    {route.rprsChipYn && ' · 대표 칩'}
                   </p>
                 </td>
                 <td className={`${CELL} truncate leading-[24px]`}>

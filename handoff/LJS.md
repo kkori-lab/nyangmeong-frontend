@@ -2,12 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-COM-007 AI 매니저 진입 · 모바일에서 AI 매니저를 모달로 — 끝(2026-11-10). 760px 이하에서 플로팅 [AI]·메인 검색창이 새 탭 대신 헤더 아래 전체 화면 AI 모달(`pages/ai/AiChatModal.jsx`)로 열린다. 대화 본문은 `pages/ai/AiChatScreen.jsx`로 나눠 새 창과 같이 쓴다. 추가-1로 761px 이상으로 넓히면 모달이 닫힌다
+SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 끝(2026-11-10). `features/adminAiRoute/api.js` 가짜 응답·sessionStorage를 지우고 `/api/admin/ai/routes` GET·POST·PATCH·DELETE로 연결했다. 대표 칩·사용은 true/false, 수정에서 비운 칸은 빈 문자열로 보낸다
 
 ## 다음에 할 것
 
-- 다음 작업 순서(사람 2026-11-10): ① SCR-ADM-080 라우팅 매핑표 API 연결(`/start ADM-080`. 백엔드 `/api/admin/ai/routes` GET·POST·PATCH·DELETE는 백엔드 c0bf1f2에 있고, AI 서버는 이미 백엔드 `/internal/ai/routes`(DB)를 10초 캐시로 읽는다. 가짜 필드 이름·순위 다시 매기기를 서버와 대조) ② AI 채팅 사진 용도 판단 가짜(`features/ai/api.js` `judgeImageIntent`)를 실제 판단으로(아래 SCR-MAN-001 연결 남음 줄, AI PR #53)
-- 프론트에 남은 가짜 응답(2026-11-10 조사): `adminAiRoute`·`adminAiKeyword`·`adminProcessing` 검사결과지 탭(SCR-ADM-080·081·082 대기), `features/ai/api.js` `judgeImageIntent`, `features/apiUsage/api.js`(SCR-ADM-112, 연결 마일스톤 없음), `features/chat/api.js` `searchChatPlaces`(장소 검색 API 담당 미정), `features/community/missingCodes.js` `DONG_BY_REGION`(주로 KSJ)
+- 다음 작업 순서(사람 2026-11-10): ① AI 채팅 사진 용도 판단 가짜(`features/ai/api.js` `judgeImageIntent`)를 실제 판단으로(아래 SCR-MAN-001 연결 남음 줄, AI PR #53)
+- SCR-ADM-080 매핑표 API 연결 정할 것(2026-11-10, 8081 DB): 검증 전부터 있던 sn 47 "확인용 매핑(수정)"(사용 안 함, 순위 1)을 지울지 사람이 정한다. 검증 때 만든 sn 48·49는 지웠다
+- 프론트에 남은 가짜 응답(2026-11-10 조사): `adminAiKeyword`·`adminProcessing` 검사결과지 탭(SCR-ADM-081·082 대기), `features/ai/api.js` `judgeImageIntent`, `features/apiUsage/api.js`(SCR-ADM-112, 연결 마일스톤 없음), `features/chat/api.js` `searchChatPlaces`(장소 검색 API 담당 미정), `features/community/missingCodes.js` `DONG_BY_REGION`(주로 KSJ)
 - SCR-COM-007 모바일 AI 모달 검증 데이터 정리(2026-11-10, 8081 DB·tester 계정): 까미(petSn 1) 일정 2026-11-11 10:00 "[검증] 까미 미용"(케어 캘린더에서 삭제), 건강 일지 체중 2026-11-10 09:40 4.5kg(건강 일지에서 삭제), AI 대화 "까미 미용 일정 등록"·사진 대화·"반려동물 케어 AI 첫 인사"·"까미 귀 청소 주간 케어 등록"(대화 목록에서 삭제)
 - SCR-COM-007 사람이 볼 것(판정 밖, 2026-11-10): ① 로그아웃·탈퇴 때 AI 모달 닫기는 코드로만 확인 ② 검증 중 AI 확인 카드로 케어 항목 등록 시 8081 `POST /api/pets/1/care-items` 500(이번 변경과 무관해 보임, 원인 안 봄) ③ 명세(공통레이아웃 기능명세서 v0.10 FN-COM-007-01)는 아직 "새 창, 모달 아님"이라 모바일 모달을 문서에 반영해 달라고 문서 담당에 알린다
 - SCR-ADM-001 대시보드 사람이 볼 것(판정 밖, 2026-11-10): ① 알림 실패·배치 실패는 검증 때 0건이라 링크 목록 건수와 대조 못 함(알림 실패는 최근 24시간 기준이라 날짜 필터 발송 이력과 다를 수 있다) ② 종·품종·즐겨찾기 빈 문구와 서버 오류 문구는 코드로만 확인
@@ -69,7 +70,6 @@ SCR-COM-007 AI 매니저 진입 · 모바일에서 AI 매니저를 모달로 —
 - SCR-ADM-081 연결 남음: FN-ADM-081-03 (백엔드 연결 가계부 분류 AIMC0038 초기 키워드, 백엔드 저장소에서 /start. 지금 가짜 가계부 3행은 예시)
 - SCR-ADM-081 연결 남음: AI 서버가 사전을 DB 조회 API로 읽기(백엔드 조회 API는 백엔드 저장소, AI 서버 전환은 ai 저장소). 예시 문구 형식 차이: AI 서버 `ai/data/register_dict.yaml`은 정규식(`(잡아|등록해)(줘|주|줄)`·`\d+일후`), DB `KWRD_CN`은 부록 B 예시 문구(`잡아줘, 등록해줘`·`○일 후`)라 그대로 못 쓴다. 사전에 정규식을 저장할지, 예시를 정규식으로 바꾸는 규칙을 둘지 정한다. 가계부 분류는 지금 OCR(`ai/app/ocr/clients.py`)의 고정 표가 쓴다
 - SCR-ADM-081 사람이 볼 것(판정 밖): ① 화면설계서 예시 `EXPC0001` 대신 실제 코드 MYPC0012~0018(MYPG05)을 썼다 ② 글자 수는 입력을 막지 않고 칸 아래 오류로 알린다(라우팅 매핑표 모달은 `maxLength`로 막는다) ③ `routes/paths.js`에 `ADMIN_AI_KEYWORDS`를 기능 커밋에 같이 넣었다
-- SCR-ADM-080 연결 남음: FN-ADM-080-01·02·03 (백엔드 연결 `GET /api/admin/ai/routes?q=`·`POST /api/admin/ai/routes`·`PATCH`·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`(등록·수정 본문에 `prrtSeq`, 그 자리에 넣고 나머지를 민다), 화면 ID 선택지 출처, 지시어 저장 형식(가정 쉼표 구분), `domnNm` 정하는 규칙, 백엔드 저장소에서 /start). 나오면 `features/adminAiRoute/api.js` 가짜 본문(sessionStorage `fakeAdminAiRoutes`)만 실제 요청으로, 선택지는 `routeLabels.js`에서 맞춘다
 - SCR-ADM-080 연결 남음: FN-ADM-080-04·05 (백엔드 연결 AI 서버·대화창용 조회 API와 부록 A 초기 데이터 INSERT, 백엔드 저장소에서 /start. AI 서버가 `data/routing.yaml` 대신 그 API를 읽는 것은 ai 저장소 몫)
 - SCR-ADM-080 사람이 볼 것(판정 밖): ① 화면 ID 선택지에 `docs/routes.md` ✓가 아닌 `SCR-COM-009`·`SCR-MYP-031`을 더했다(부록 A 행이 씀) ② 저장 토스트는 기획 문구 그대로 "~했습니다" 말투라 다른 관리자 화면("~했어요")과 다르다 ③ `routes/paths.js`에 `ADMIN_AI_ROUTES`를 기능 커밋에 같이 넣었다 ④ 스켈레톤 높이(3330px)는 45행 어림값
 - SCR-ADM-072 사람이 볼 것(판정 밖): ① 기획의 `nickNm`·`keyword=` 대신 서버 키 `mbrNcnm`·`q`를 썼다 ② 가짜 원장에 없는 실제 회원의 현재 잔액은 회원 상세 포인트 탭 API의 마지막 잔액으로 읽는다 ③ `routes/paths.js`에 `ADMIN_POINTS`를 기능 커밋에 같이 넣었다

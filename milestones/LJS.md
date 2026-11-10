@@ -1011,11 +1011,13 @@
 - 추가-1: 상태 필터를 카드 누르기에서 영수증 OCR 탭과 같은 필터 줄(기간 + 상태 드롭다운 + [조회])로, 건수 카드는 읽기 전용(사람 2026-11-10)
 - 연결 남음: 추가-1 기간 필터 (백엔드 연결 `GET /api/admin/processing/character-jobs` `fromYmd`·`toYmd`, 백엔드 저장소에서 /start)
 
-## SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 대기
+## SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·02·03
 - 기다리는 것: 백엔드 SCR-ADM-080 라우팅 매핑표 · 프론트 연결 관리자 매핑표 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/ai.md` "관리자 API" 절의 `/admin/ai/routes` 네 행
 - 완료 조건: `features/adminAiRoute/api.js`의 가짜 네 함수를 실제 `GET /api/admin/ai/routes?q=`(배열, 페이지 없음)·`POST /api/admin/ai/routes`(201 `{ aiRoutMpngSn }`)·`PATCH /api/admin/ai/routes/{aiRoutMpngSn}`(보낸 칸만, 바뀐 행을 돌려줌)·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`로 바꾸고 sessionStorage 가짜를 지운다. 가정과 다른 것: `rprsChipYn`·`useYn`은 true/false('Y'/'N' 아님, `routeLabels.js`·모달·표의 비교를 고친다), `domnNm`은 보내지 않는다(서버가 화면 ID로 정함), 수정에서 화면 ID·파라미터·지시어·비고를 비우려면 빈 문자열을 보낸다(`null`은 그대로 둠), `prrtSeq`는 1 이상(수정에서 없으면 순위 그대로). 화면 이동(AIMC0032)·모달 열기(AIMC0033)인데 화면 ID·지시어가 없으면 400 `INVALID_INPUT_VALUE`, 없는 행 404 `AI_ROUTE_NOT_FOUND`(가짜와 같은 이름). 화면 ID 선택지는 `SCREEN_OPTIONS` 그대로(서버 API 없음). 이동 방식 AIMC0036 보류도 서버는 받는다
 - 이미 바뀐 것: `features/adminAiRoute/api.js`·`routeLabels.js`·`AiRouteFormModal.jsx`·`AiRouteTable.jsx`(가짜)
+- 완료 조건 결과: 검증 `통과`(2026-11-10 1회차, 5180·8081 관리자), 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-ADM-081 키워드 사전 · 관리자 키워드 사전 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-081-01·02

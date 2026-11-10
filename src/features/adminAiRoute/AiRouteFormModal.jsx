@@ -139,8 +139,8 @@ export default function AiRouteFormModal({ route, onClose }) {
   const [scrnId, setScrnId] = useState(route?.scrnId ?? '');
   const [scrnParamCn, setScrnParamCn] = useState(route?.scrnParamCn ?? '');
   const [instKwrdCn, setInstKwrdCn] = useState(route?.instKwrdCn ?? '');
-  const [isChip, setIsChip] = useState(route?.rprsChipYn === 'Y');
-  const [isUsed, setIsUsed] = useState(route ? route.useYn === 'Y' : true);
+  const [isChip, setIsChip] = useState(route?.rprsChipYn === true);
+  const [isUsed, setIsUsed] = useState(route ? route.useYn : true);
   const [rmrkCn, setRmrkCn] = useState(route?.rmrkCn ?? '');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -186,15 +186,17 @@ export default function AiRouteFormModal({ route, onClose }) {
     if (isPending) return;
     setIsSubmitted(true);
     if (Object.keys(validate(values)).length > 0) return;
+    // 빈 칸: 수정은 ''를 보내야 서버가 비운다(null은 그대로 둠), 등록은 null
+    const empty = isEdit ? '' : null;
     const body = {
       trgtScrnNm: trgtScrnNm.trim(),
-      scrnId: scrnId.trim() || null,
-      scrnParamCn: scrnParamCn.trim() || null,
-      instKwrdCn: splitKeywords(instKwrdCn).join(', ') || null,
+      scrnId: scrnId.trim() || empty,
+      scrnParamCn: scrnParamCn.trim() || empty,
+      instKwrdCn: splitKeywords(instKwrdCn).join(', ') || empty,
       mvmnMthdCd,
-      rprsChipYn: isChip ? 'Y' : 'N',
-      rmrkCn: rmrkCn.trim() || null,
-      useYn: isUsed ? 'Y' : 'N',
+      rprsChipYn: isChip,
+      rmrkCn: rmrkCn.trim() || empty,
+      useYn: isUsed,
       prrtSeq: Number(shownSeq.trim()),
     };
     save.mutate(isEdit ? { aiRoutMpngSn: route.aiRoutMpngSn, ...body } : body, {
