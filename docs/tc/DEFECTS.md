@@ -5,11 +5,11 @@
 
 | 분류 | 건수 | 할 일 |
 | --- | --- | --- |
-| 프론트 코드 수정 `[코드]` | 78 | 프론트를 고친다. 각 도메인 담당이 `/start`로 |
+| 프론트 코드 수정 `[코드]` | 77 | 프론트를 고친다. 각 도메인 담당이 `/start`로 |
 | 백엔드 수정 `[백엔드]` | 11 | 백엔드 저장소에서 `/start`로 |
 | AI 서버 수정 `[AI 서버]` | 3 | AI 저장소에서 `/start`로 |
 | 결정 필요 `[결정]` | 23 | 회의에서 어느 쪽이 맞는지 정한 뒤 문서나 코드를 고친다 |
-| 다른 도메인 문서 수정 `[문서]` | 30 | 코드가 맞다. 그 도메인 명세·화면설계서 담당이 고친다 |
+| 다른 도메인 문서 수정 `[문서]` | 32 | 코드가 맞다. 그 도메인 명세·화면설계서 담당이 고친다 |
 
 ## 프론트 코드 수정
 
@@ -20,14 +20,13 @@
 - FN-AIM-006-02 — 알림 설정 화면의 "예정일 알림" 설명이 명세·백엔드(병원 일정만)보다 넓다. 화면 문구를 고친다
 - FN-AIM-011-09 — 이어 쓴 대화를 목록 맨 위로 올리는 마지막 활동 시각이 이 창 메모리에만 있어 새로고침하면 등록일순으로 돌아간다 (src/features/ai/api.js lastActive)
 
-### 건강기록 (9)
+### 건강기록 (8)
 - FN-HLT-011-02 — 요약 바에 나이·품종·성별·몸무게와 알레르기·기저질환 건수 배지가 없다. 배너는 이름·기준일·최근 검진·검사 수치·현재 처방만 보인다 (`features/health/summary/SummaryBanner.jsx`)
 - FN-HLT-011-05 — [입력하러 가기]/[수정하러 가기] 링크와 두 줄 사이 구분선이 없고, 카드 [더보기]가 마이페이지 반려동물 관리로 보낸다 (`WidgetCard.jsx` `allergyBody`, `DashboardCard.jsx`)
 - FN-HLT-011-07 — 그래프 아래 안내 문구("참고범위는 검사 기관·장비마다 다를 수 있어요…")가 없고, 기본 항목이 "기록 2건 이상인 첫 항목"이 아니라 CREA(없으면 첫 항목)이다. 직접입력 항목은 옵션이 "[] 항목명"으로 보일 수 있다 (`WidgetCard.jsx` `InspectionTrend`)
 - FN-HLT-011-08 — 처방 행을 눌러도 검진상세로 가지 않고 카드 [더보기]만 맨 위 처방의 처방약 탭으로 간다 (`WidgetCard.jsx` `prescriptionBody`)
 - FN-HLT-011-10 — 관찰중 항목 탭이 없어 첫 항목만 보이고, 사진을 눌러도 원본 미리보기가 열리지 않는다 (`WidgetCard.jsx` `observationBody`)
 - FN-HLT-002-15 — PC 관찰 항목 목록 줄에 대표 사진·부위가 없다(항목명·크기와 증감·최근 관찰일만) (`diary/ObservationCard.jsx` `ItemButton`)
-- FN-HLT-003-12 — 구역 제목이 "정기관리(REGULAR)"·"일상관리(DAILY)"로 영문 코드가 함께 보인다 (`CareList.jsx`)
 - FN-HLT-005-02 — 혈액검사 행에 [추이 보기 ›] 링크(종합 건강기록 검사 수치 카드로 이동)가 있다. 명세는 "추이로 가는 경로는 두지 않음(11-01)"이다 (`checkup/BloodResultList.jsx`)
 - REQ-NFR-003 / FN-HLT-011-09 — 요구사항은 검진 첨부 PDF를 "화면 내 미리보기·실행 없이 다운로드·[PDF 분석] 대상으로만" 취급한다고 하나 첨부 자료 탭 PDF 행의 [열기]가 새 창으로 연다 (`checkup/AttachmentTab.jsx` `handleOpenPdf`)
 
@@ -89,15 +88,15 @@
 - FN-MYP-004-04 — 명세의 공동양육자 본인 카드("나 …")가 없고, 연동 해제는 슬라이드 카드 왼쪽이 아니라 이름 줄 ⋮ 메뉴에 있다 (FamilySection.jsx, PetSlide.jsx `PetMenu`)
 - FN-MYP-005-01 — 대기 중 초대 안내 문구가 명세 "이미 초대를 보냈어요 (MM-DD에 만료돼요)"와 달리 "이미 초대를 보냈어요: 모리(MM-DD 만료)"이다 (src/features/pet/list/InviteModal.jsx)
 - FN-MYP-005-03 — 보낸 초대 조회가 실패해도 오류 안내 없이 "아직 보낸 초대가 없어요"가 보인다 (src/features/pet/list/SentInvitations.jsx)
-- FN-MYP-040-06 — 새 비밀번호가 현재 비밀번호와 같을 때 서버가 주는 `PASSWORD_SAME_AS_CURRENT` 안내를 쓰지 않고 토스트 "잠시 후 다시 시도해 주세요"를 띄운다 (PasswordChangeCard.jsx, ErrorCode.java)
+- FN-MYP-003-01 — `/mypage/pets?register=1`은 등록 한도(주양육 10마리)를 확인하지 않고 모달을 연다. 한도 계정은 등록 때 `PET_LIMIT_EXCEEDED` 토스트로만 알게 된다 (src/pages/mypage/PetListPage.jsx). 확인 필요
 
 ### 커뮤니티 (6)
+- FN-CMU-002-01 / REQ-NFR-004 — 11-09 결정으로 목록 10건 통일, 실종센터는 지금 12건(`MissingListPage` PAGE_SIZE)
 - FN-CMU-004-11 — 서버는 모집중인 글만 수정할 수 있는데 코드는 매칭완료·거래완료 글에도 [수정]을 보여 주고 저장 시 서버 문구로 거절한다 (`care/CareDetail.jsx`, `CARE_RECRUITMENT_NOT_EDITABLE`)
 - FN-CMU-005-02·04 — 명세·서버(`ctptProfileAtchFileSn`)는 상대 프로필 사진을 주는데 채팅 화면은 닉네임 첫 글자 동그라미(`src/features/chat/room/ChatAvatar.jsx`)만 그린다
 - FN-CMU-005-05 / REQ-NFR-003 — 주소 공유 모달의 장소 검색이 가짜 4곳이다 (`src/features/chat/api.js` `searchChatPlaces`). 또 채팅 사진 검사는 MIME 형식만 보고 확장자·실제 파일 형식을 함께 검증하지 않는다 (`room/ChatMessageInput.jsx` `checkPhotos`)
 - FN-CMU-005-11 — 명세는 조건·확인자·확인 시각을 보관(거래 기록 조회)하는데 채팅 화면에는 합의 조건 한 줄만 보이고 확인자·확인 시각 표시가 없다 (`room/CareDealCard.jsx` `formatCondition`)
 - FN-CMU-001-06 — 명세는 7일 → 30일 → 전체 순으로 대체하는데 화면 안내 글자는 어느 기간이든 "이번 주"로 고정이다 (`src/features/community/StoryRail.jsx`)
-- FN-CMU-001-09·002-08·004-12 — 좋아요 실패(서버 꺼짐 등) 때 화면에 아무 안내가 없다 (`PostDetail.jsx`·`MissingDetail.jsx`·`care/CareDetail.jsx`에 `onError` 없음)
 
 ### 플레이스 (8)
 - FN-HOS-001-03 / REQ-HOS-002 — 입력 중 관련 후보 표시가 없고 고정된 "추천" 버튼만 있다 (`features/place/PlacePanel.jsx`, `placeData.js`의 `SUGGESTIONS`)
@@ -150,8 +149,9 @@
 ### AI매니저 (1)
 - FN-AIM-013-03 / REQ-AIM-004 — 대상 반려동물을 명세는 "대화의 펫 태그"로 정하지만 코드는 사이드바에서 고른 칩으로 정한다 (src/pages/ai/AiChatPage.jsx handleSendReceipt)
 
-### 건강기록 (1)
-- FN-HLT-005-15 / FN-HLT-003-12 / REQ-HLT-002 — FN-HLT-005-15와 REQ-HLT-002는 케어 항목의 [출처 보기] 역링크를 말하지만 FN-HLT-003-12는 11-01자로 삭제했고 코드에도 없다. 종합 건강기록 타임라인의 반복 예방 진입도 타임라인이 없어 사라졌다 (`CareTile.jsx`)
+### 건강기록 (2)
+- FN-HLT-005-15 / FN-HLT-003-12 / REQ-HLT-002 — FN-HLT-005-15와 REQ-HLT-002는 케어 항목의 [출처 보기] 역링크를 말하지만 FN-HLT-003-12는 11-01자로 삭제했고 코드에도 없다. 종합 건강기록 타임라인의 반복 예방 진입도 타임라인이 없어 사라졌고, 2026-11-09 결정으로 대시보드 카드에 다시 붙일 예정이다 (`CareTile.jsx`)
+- FN-HLT-003-13 / REQ-HLT-003 — 메인 표시(★)가 74d7215에서 제거됐다. 메인 개편으로 메인에 케어리스트가 없어 의도된 제거로 보이나 명세·요구사항은 남아 있다
 
 ### 고객센터 (2)
 - FN-CSC-003-09 — 명세 총 110MB, 서버 `max-request-size` 100MB(`application.properties.example`)이고 프론트는 총합을 검사하지 않는다. 명세 문장도 "최대 10개이미지 첨부 가능며"로 깨져 있다 (`ImageAttach.jsx`)
@@ -172,10 +172,9 @@
 - FN-MYP-010-24 / REQ-COM-002 — 요구사항은 오류 유형 필수 선택 뒤 AI 1차 판정으로 접수하라고 하나 명세·코드는 유형 선택 없이 고객센터 1:1 문의(유형 "픽셀 캐릭터")로 연결한다 (src/features/pet/character/CharacterDecorate.jsx)
 - REQ-MYP-002 — 요구사항 세부내용은 식사량·음수량 권장 범위를 등록·수정할 수 있어야 한다고 하나 명세 FN-MYP-003-01과 등록/수정 모달에 입력란이 없다 (src/features/pet/list/PetFormModal.jsx). 확인 필요
 
-### 커뮤니티 (6)
+### 커뮤니티 (5)
 - FN-CMU-002-10·13 — 명세는 품종 필수(미선택·미입력 시 저장 차단)인데 코드는 실종 글쓰기·수정의 품종을 선택 항목으로 바꿨다 (`src/features/community/missing/MissingForm.jsx` validate, `BreedCombobox required={false}`, 커밋 b099d67). 펫돌봄(FN-CMU-004-13)은 필수 그대로다
 - FN-CMU-001-04 / REQ-CMU-005 — 요구사항은 인기글을 "좋아요·댓글 수 기반" 가중치로 산정하는데 명세는 "최근 7일 글, 좋아요 높은 순 5개"뿐이고 화면·서버도 좋아요 기준이다 (`src/features/community/PostList.jsx`, `docs/api/community.md` GET /posts)
-- FN-CMU-001-01·002-01·003-01·004-01 / REQ-NFR-004 — 요구사항은 "1페이지 20건 기준"인데 명세·코드는 펫이야기·뉴스·펫돌봄 10건, 실종센터 12건이다 (`pages/community/*ListPage.jsx` PAGE_SIZE)
 - FN-CMU-005-06 — 화면 문구와 명세는 "14일 동안 수락이 없으면 자동 취소"인데 상태 이름에는 "요청 취소"와 별도로 "무응답 종료"가 있어 14일 경과 때 어느 쪽이 되는지 코드·계약에 없다 (`room/dealSteps.js`, `shared/chatCodes.js`)
 - FN-CMU-005-09 / REQ-CMU-010 — 요구사항은 "보완 요청, 영수증 확인 후 거래완료"인데 명세·코드는 보완 요청 버튼과 영수증 확인 단계가 없고 보완은 채팅으로 협의한다 (`room/dealSteps.js`)
 - REQ-CMU-010 — "실종센터 등 커뮤니티 1:1 문의에서 재사용"을 요구하지만 채팅방 생성 API는 펫돌봄 글(`pstSn`)만 받고 실종센터에는 채팅 진입이 없다 (`docs/api/community.md` ChatRoomCreateRequest, `features/community/missing/MissingSideBox.jsx`)
@@ -188,18 +187,20 @@
 
 ## 다른 도메인 문서 수정
 
-### 건강기록 (12)
+### 건강기록 (14)
 - FN-HLT-011-01 / FN-HLT-002-01 / FN-HLT-003-01 — 반려동물 선택이 탭·드롭다운이 아니라 건강기록 공통 반려동물 카드(알약/카드+팝오버)이고 1마리여도 노출된다. [+ 반려동물 등록]은 팝오버의 [등록] 칸이다 (`features/health/shared/PetSwitcher.jsx`, `pages/health/*Page.jsx`)
-- FN-HLT-011-03 — 건강 이력 타임라인(검진기록+반복 예방 5건, 클릭→검진상세, [전체 보기])이 없다. 대신 '검진기록' 카드(최근 5건)가 있고 반복 예방이 빠졌으며 줄을 눌러도 이동하지 않는다 (`dashboard/WidgetCard.jsx` `checkupBody`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다
+- FN-HLT-011-03 — 건강 이력 타임라인(검진기록+반복 예방 5건, 클릭→검진상세, [전체 보기])이 없다. 대신 '검진기록' 카드(최근 5건)가 있고 반복 예방이 빠졌으며 줄을 눌러도 이동하지 않는다 (`dashboard/WidgetCard.jsx` `checkupBody`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다. 다만 줄→검진상세 이동과 반복 예방 진입은 2026-11-09 결정으로 카드에 다시 붙인다(수정 예정, TC-HLT-011-03-05·TC-HLT-005-15-05)
 - FN-HLT-011-04 — 예방·정기검진 이력이 '예방접종·구충' 카드 한 장(예방접종·다음 접종·최근 검진·다음 검진 4줄)이다. 예방접종/정기검진 상자 분리와 줄 사이 점선이 없고 이름에 있는 구충은 표시되지 않는다 (`WidgetCard.jsx` `preventionBody`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다
-- FN-HLT-011-06 — 최근 1회차 검사 표(항목·결과·참고범위·기능 태그), 행 클릭 시 추이 전환, [전체 보기]→검진상세가 없다. '검사 수치' 카드가 항목 선택창+최신 값만 보여 준다 (`WidgetCard.jsx` `InspectionTrend`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다
+- FN-HLT-011-06 — 최근 1회차 검사 표(항목·결과·참고범위·기능 태그), 행 클릭 시 추이 전환, [전체 보기]→검진상세가 없다. '검사 수치' 카드가 항목 선택창+최신 값만 보여 준다 (`WidgetCard.jsx` `InspectionTrend`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다. 다만 검사 결과 줄→검진상세 이동은 2026-11-09 결정으로 카드에 다시 붙인다(수정 예정, TC-HLT-011-06-06)
 - FN-HLT-011-09 — 첨부 자료가 가로 4칸 썸네일·유형 아이콘·접기/펼치기 카드가 아니라 세로 4줄 목록이고, 명세에 없는 [더보기](건강 일지 검진기록 탭)가 있다 (`WidgetCard.jsx` `AttachmentRows`) — 2026-11-09 의도된 개편으로 확인, 건강기록 명세를 대시보드에 맞춘다
-- FN-HLT-011 화면 전체 — 대시보드 기록 항목 고르기·튜토리얼 3단계·기록 항목 편집·위젯 순서 변경·'AI 건강분석 리포트(준비 중)' 카드는 기능명세서에 없는 신규 정책이다. 고른 항목·순서는 백엔드 저장 API가 없어 `localStorage`에 저장한다 (`dashboard/*`, `docs/api/issues.md` 위젯 항목)
+- FN-HLT-011 화면 전체 — 대시보드 기록 항목 고르기·튜토리얼 3단계·기록 항목 편집·위젯 순서 변경·'AI 건강분석 리포트(준비 중)' 카드는 기능명세서에 없는 신규 정책이다 (`dashboard/*`)
+- 건강기록 대시보드 항목 저장 — 코드는 `GET·PUT /members/me/dashboard-widgets`에 건강기록 전용 13개 코드(HLTC0084~0096)·`indctYn`·`savedYn`을 쓰지만, 백엔드 `docs/api/member.md`에는 메인 위젯용 초안(`DashboardWidgetSaveRequest`의 `dshbdWdgtCds`, 응답 `sortSeq`)만 있고 건강기록용 계약이 없다. 요청·응답 모양은 프론트 코드 기준으로 정했다 (`dashboardApi.js`, `dashboard/widgetItems.js`)
 - FN-HLT-002-09·10 — 건강기록 변화 그래프가 최근 14개가 아니라 최근 5개 기록(커밋 2d738df)이다. 배변 상태는 최근 5개 기록의 횟수 막대다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
 - FN-HLT-002-11 — 대시보드에서 고른 매일 기록만 종류로 보이고 [항목 편집] 버튼이 생겼다. 명세·요구사항에 없다 (`diary/TodayRecordForm.jsx`)
+- FN-HLT-002-13 — 날짜 행을 누르면 명세의 상세 표 모달(체중·식사량 등 열, 총계 줄, 한 번에 한 줄 수정)이 아니라 그날 기록 수정 모달(종류별 묶음, 줄마다 시각·값 수정과 [삭제], [취소]/[저장])이 열린다. 오늘의 기록 카드 [오늘 기록 수정하기]도 같은 모달이다 (`diary/DayRecordEditModal.jsx`, `RecentRecordTable.jsx`, `TodayRecordCard.jsx`)
 - FN-HLT-002-17·18 — 사진 줄이 최신 5회차만 나열하고 앞은 "+N 이전 회차" 칸으로 접히며, 크기 그래프도 크기 입력 회차 중 최신 5개만 그린다 (`diary/ObservationDetail.jsx` `CHART_COUNT`)
 - FN-HLT-002-19 — [사진 원본 보기]·[이 회차 수정]·[삭제]가 버튼이 아니라 선택 회차 줄의 ⋮ 메뉴에 있다 (`diary/ObservationDetail.jsx`)
-- FN-HLT-002-36 — 구역이 있는 영수증은 탭 드롭다운 대신 맨 위 [반려동물 연결] 상자에서 고르고 선택지가 "기록 안 함"이다(명세 "저장 안 함"). 구역이 없는 영수증은 탭이 1개여도 선택창이 보이고 "자동 연결" 탭 표식은 더 이상 쓰이지 않는다 (`diary/ReceiptPetLink.jsx`, `ReceiptPetTab.jsx`, `receiptUtils.js`)
+- FN-HLT-002-36 — 구역이 있는 영수증은 탭 드롭다운 대신 맨 위 [반려동물 연결] 상자에서 고르고 선택지가 "기록 안 함"이다(명세 "저장 안 함"). 한 아이를 여러 줄에 고를 수 있고 저장할 때 같은 아이의 줄을 검진기록 1건으로 합친다(검진 종류가 다르면 저장 막음, 요구사항·명세에 없는 신규 정책). 구역이 없는 영수증은 탭이 1개여도 선택창이 보이고 "자동 연결" 탭 표식은 더 이상 쓰이지 않는다 (`diary/ReceiptPetLink.jsx`, `ReceiptPetTab.jsx`, `receiptUtils.js`)
 - FN-HLT-003-39 — 표시 반려동물 필터가 [전체]+칩 다중 선택(최소 1마리)이 아니라 "모든 아이 일정 같이 보기" 스위치(켬/끔)이다. 다른 아이 일정을 누르면 공통 카드가 그 아이로 바뀐다 (`pages/health/CareCalendarPage.jsx`)
 
 ### 고객센터 (2)
