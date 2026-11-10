@@ -14,7 +14,7 @@ import { BRUP_ROLE, MAX_OWN_PETS, PET_SE } from '@/utils/petCodes';
 import { useCaregiversOf } from '../queries';
 import FamilySection, { OwnerLine } from './FamilySection';
 import {
-  formatAge,
+  formatBirthAge,
   formatWeight,
   getColrName,
   getGndrName,
@@ -271,13 +271,8 @@ function AddSlide({ isFull, onAdd, children }) {
 function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
   const isCoParent = pet.brupRoleCd === BRUP_ROLE.CO_PARENT;
   const vrtyName = getVrtyName(pet);
-  const metaText = [
-    formatAge(pet.petBrdt),
-    getVrtyName(pet),
-    `${getGndrName(pet)}${pet.nutrYn ? '(중성화)' : ''}`,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const birthText = formatBirthAge(pet.petBrdt);
+  const gndrText = `${getGndrName(pet)}${pet.nutrYn ? '(중성화)' : ''}`;
 
   return (
     <article
@@ -316,9 +311,15 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
                   </Badge>
                 )}
               </span>
+              {birthText && (
+                <span className="text-base font-normal tracking-normal text-muted tabular-nums max-[760px]:hidden">
+                  {birthText}
+                </span>
+              )}
             </h2>
             <p className="mt-1 hidden text-sm break-keep text-muted max-[760px]:block">
-              {metaText}
+              {birthText && <span className="block">{birthText}</span>}
+              <span className="block">{gndrText}</span>
             </p>
             {isCoParent && <OwnerLine pet={pet} />}
           </div>
@@ -328,36 +329,37 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
             onRemove={() => (isCoParent ? onUnlink(pet) : onDelete(pet))}
           />
         </div>
-        <div className="grid grid-cols-2 gap-x-6 max-[760px]:hidden min-[1281px]:gap-x-12">
-          <InfoGroup>
-            <InfoRow label="종">
-              {vrtyName || getPetSeName(pet)}
-              {vrtyName && <SubText>{getPetSeName(pet)}</SubText>}
-            </InfoRow>
-            <InfoRow label="성별">
-              {getGndrName(pet)}
-              {pet.nutrYn && <SubText>중성화 완료</SubText>}
-            </InfoRow>
-            <InfoRow label="체중">{formatWeight(pet.petBdwg)}</InfoRow>
-            <InfoRow label="털색">{getColrName(pet)}</InfoRow>
-          </InfoGroup>
-          <InfoGroup>
-            <InfoRow
-              label="인식 번호"
-              valueClassName="tabular-nums [overflow-wrap:normal]"
-            >
-              <ChipNo value={pet.chipNo} />
-            </InfoRow>
-            <ChrcRow value={pet.chrcCn} />
-            <ListRow label="알레르기" value={pet.algyCn} />
-            <ListRow label="기저질환" value={pet.dssCn} />
-          </InfoGroup>
-        </div>
+        <InfoGrid pet={pet} vrtyName={vrtyName} />
         <MobileInfo pet={pet} />
       </div>
       <FamilySection pet={pet} onInvite={onInvite} />
       {children}
     </article>
+  );
+}
+
+/** PC 상세: 2열 × 4행 grid 하나. 같은 행끼리 높이가 같아 좌우 구분선이 맞는다 */
+function InfoGrid({ pet, vrtyName }) {
+  return (
+    <dl className="m-0 grid grid-cols-2 gap-x-6 max-[760px]:hidden min-[1281px]:gap-x-12">
+      <InfoRow label="품종">{vrtyName || getPetSeName(pet)}</InfoRow>
+      <InfoRow label="인식 번호" valueClassName="tabular-nums">
+        <ChipNo value={pet.chipNo} />
+      </InfoRow>
+      <InfoRow label="성별">
+        <span className="truncate">{getGndrName(pet)}</span>
+        {pet.nutrYn && (
+          <Badge className="shrink-0 bg-tone-blue-bg text-tone-blue-fg">
+            중성화
+          </Badge>
+        )}
+      </InfoRow>
+      <ChrcRow value={pet.chrcCn} />
+      <InfoRow label="체중">{formatWeight(pet.petBdwg)}</InfoRow>
+      <ListRow label="알레르기" value={pet.algyCn} />
+      <InfoRow label="털색">{getColrName(pet)}</InfoRow>
+      <ListRow label="기저질환" value={pet.dssCn} />
+    </dl>
   );
 }
 
@@ -428,6 +430,9 @@ function MobileInfo({ pet }) {
   return (
     <div className="col-span-full hidden max-[760px]:block">
       <dl className="m-0 mt-4 border-t border-line-strong">
+        <MobileRow label="품종">
+          {getVrtyName(pet) || getPetSeName(pet)}
+        </MobileRow>
         <MobileRow label="체중">
           {formatWeight(pet.petBdwg)}
           {range && (
@@ -507,26 +512,11 @@ function Badge({ className, children }) {
   );
 }
 
-function InfoGroup({ className = '', children }) {
-  return (
-    <dl
-      className={`m-0 grid min-w-0 grid-cols-[max-content_minmax(0,1fr)] content-start border-t border-line-strong ${className}`}
-    >
-      {children}
-    </dl>
-  );
-}
-
+/** 한 줄 행. 위 두 칸은 위 선, 마지막 두 칸은 아래 선이 없다 */
 const ROW =
-  'col-span-full grid grid-cols-subgrid items-baseline gap-x-6 border-b border-line-soft py-4 last:border-b-0';
-const DT = 'min-w-20 text-subtle';
-
-/** 값 아래 줄에 작고 옅게 붙는 보조 설명 */
-function SubText({ children }) {
-  return (
-    <span className="block text-sm font-normal text-subtle">{children}</span>
-  );
-}
+  'flex h-14 min-w-0 items-center gap-6 border-b border-line-soft [&:nth-child(-n+2)]:border-t [&:nth-child(-n+2)]:border-t-line-strong [&:nth-last-child(-n+2)]:border-b-0';
+const DT = 'w-20 shrink-0 text-subtle';
+const DD = 'relative m-0 flex min-w-0 flex-1 items-center gap-2 font-semibold';
 
 /** 인식 번호: 띄어쓰기 없이 이어 쓴다. 15자리는 국가번호(앞 3자리) 뒤에서만 줄이 바뀔 수 있다 */
 function ChipNo({ value }) {
@@ -542,16 +532,20 @@ function ChipNo({ value }) {
   );
 }
 
-function InfoRow({
-  label,
-  valueClassName = '[overflow-wrap:anywhere]',
-  children,
-}) {
+function InfoRow({ label, valueClassName = '', children }) {
   return (
     <div className={ROW}>
       <dt className={DT}>{label}</dt>
       {children && (
-        <dd className={`m-0 font-semibold ${valueClassName}`}>{children}</dd>
+        <dd className={`${DD} ${valueClassName}`}>
+          {typeof children === 'string' ? (
+            <span className="min-w-0 truncate" title={children}>
+              {children}
+            </span>
+          ) : (
+            children
+          )}
+        </dd>
       )}
     </div>
   );
@@ -577,7 +571,7 @@ function ChrcRow({ value }) {
     <div className={ROW}>
       <dt className={DT}>특징</dt>
       {value && (
-        <dd className="relative m-0 flex min-w-0 items-baseline gap-2 font-semibold">
+        <dd className={DD}>
           <span ref={textRef} className="min-w-0 truncate">
             {value}
           </span>
@@ -612,20 +606,18 @@ function ListRow({ label, value }) {
     <div className={ROW}>
       <dt className={DT}>{label}</dt>
       {items.length > 0 && (
-        <dd className="relative m-0 font-semibold [overflow-wrap:anywhere]">
-          {hiddenCount > 0 ? (
-            <>
-              {items.slice(0, VISIBLE_LIST_COUNT).join(', ')}{' '}
-              <button
-                type="button"
-                onClick={() => setIsOpen(true)}
-                className="font-semibold text-brand-600 underline underline-offset-3"
-              >
-                외 {hiddenCount}개
-              </button>
-            </>
-          ) : (
-            items.join(', ')
+        <dd className={DD}>
+          <span className="min-w-0 truncate">
+            {items.slice(0, VISIBLE_LIST_COUNT).join(', ')}
+          </span>
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsOpen(true)}
+              className="shrink-0 font-semibold text-brand-600 underline underline-offset-3"
+            >
+              외 {hiddenCount}개
+            </button>
           )}
           {isOpen && (
             <ListLayer

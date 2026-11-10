@@ -5,6 +5,7 @@ import userAvatar from '@/assets/user.svg';
 import ConfirmModal from '@/components/ConfirmModal';
 import Skeleton from '@/components/Skeleton';
 import { useLogout, useMemberSummary } from '@/features/member/queries';
+import { useAiModal } from '@/context/aiModal';
 import { useChatModal } from '@/context/chatModal';
 import { closeAiWindow } from '@/hooks/useAiWindow';
 import { closeChatWindow } from '@/hooks/useChatWindow';
@@ -70,6 +71,7 @@ export function LogoutConfirm({ onClose }) {
   const queryClient = useQueryClient();
   const logout = useLogout();
   const { close: closeChatModal } = useChatModal();
+  const { close: closeAiModal } = useAiModal();
 
   const handleConfirm = () => {
     logout.mutate(undefined, {
@@ -77,6 +79,7 @@ export function LogoutConfirm({ onClose }) {
         closeAiWindow();
         closeChatWindow();
         closeChatModal();
+        closeAiModal();
         /** 이전 회원 캐시 비우기 */
         queryClient.clear();
         onClose();
