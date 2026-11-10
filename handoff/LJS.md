@@ -2,11 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-AIM-011 대화창 · 사이드바 설정 삭제 · 목록 ⋮ 삭제 · 메인 로고 — 끝(2026-11-09). 사이드바 하단 [설정] 버튼 삭제(닉네임 줄은 남김), 대화 행 ⋮(`components/KebabMenu.jsx`, 아래 공간이 모자라면 위로 펼침) → [삭제], 삭제 확인 모달을 `features/ai/chat/DeleteConversationModal.jsx`로 헤더와 같이 씀(연 방을 지우면 새 대화 화면), 사이드바 상단 로고를 `nm_logo.svg`로. 추가-1 대화 헤더의 "대화 제목은 첫 메시지로 자동 생성돼요" 문구 삭제
+SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 끝(2026-11-10). `features/adminCommunity/api.js` 노출 콘텐츠 가짜를 `/api/admin/community/exposure` 실제 API 9개로 바꿈, `HealthTipTable.jsx`는 서버가 3건 미만을 줘도 지정 글을 그 자리에 두고 3줄을 유지
 
 ## 다음에 할 것
 
-- ⋮ 메뉴 공통화 이어서(2026-11-09): `components/KebabMenu.jsx`가 생겼다(AI 사이드바만 씀). 리팩토링 때 `CareItemMenu`·`ExpenseMenu`·`ShortcutMenu`를 이것으로 바꾼다
+- SCR-ADM-023 노출 콘텐츠 연결 검증 데이터(2026-11-10, 8081 DB·관리자 계정): 후보 문구 `todayPhrsSn` 3 "[검증] 수정한 문구"(사용 안 함, 삭제 API 없음). 건강팁 1·2번 지정(pstSn 2·3)과 문구 1·2는 검증 전부터 있던 것
+- SCR-COM-002 ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에", 2026-11-10 기획했다가 관리자 연결 먼저로 미룸, 마일스톤 `대기`): A1 `components/KebabMenu.jsx`에 `variant`(`reveal` 기본=지금, `inline`=항상 보임·32px 버튼·아이콘 18px·`min-w-24`), A2 `features/health/CareItemMenu.jsx`·A3 `features/expense/shared/ExpenseMenu.jsx`는 props 그대로 KebabMenu 껍데기(쓰는 파일 안 바뀜, JAJ·SEO1216 알림), A4 `MainShortcuts.jsx`의 `ShortcutMenu`를 KebabMenu로
 - SCR-AIM-011 사이드바 정리 알림(2026-11-09): 문서 담당에게 FN-AIM-011-20 설정 진입 입구(사이드바 하단 [설정])를 없앴고, 대화 헤더 안내 문구 "대화 제목은 첫 메시지로 자동 생성돼요"를 지웠다고 알림
 - SCR-AIM-011 사이드바 정리 사람이 볼 것(판정 밖, 2026-11-09): 터치 기기에서 ⋮가 hover 없이 항상 보이는지는 코드(`@media(hover:hover)`일 때만 숨김)로만 확인
 - SCR-AIM-011 새 방 펫 태그 검증 데이터 정리(2026-11-09, 8081 DB·tester 계정): AI 대화 330~339(제목 "까미 귀청소 주간 반복 등록"·"까미 체중 변화" 등)는 AI 창 [삭제]. 2026-11-09 사이드바 정리 검증에서 "까미 귀청소 주간 반복 등록" 6개를 지웠고 같은 제목이 3개 남았다
@@ -27,7 +28,6 @@ SCR-AIM-011 대화창 · 사이드바 설정 삭제 · 목록 ⋮ 삭제 · 메�
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09 푸터·AI 버튼): ① 모바일 dock 접기는 검증에서 터치 이벤트로만 확인(Playwright 마우스 드래그로는 안 접힘, `useAiDock.js`는 안 바뀜) ② `/community` 한 화면에서 `character-image?part=face` 요청이 수백 건 보였다(AI 버튼은 `part=full`만 부름, 원인 미확인) ③ 메인 바로가기 얼굴이 반려동물 1·2·14에서 404(기존 동작, 아이콘으로 대체) ④ 전신 이미지 오른쪽 투명 여백 14px는 서버 문서의 캐릭터 위치(512 중 x 96~416) 기준이라 캐릭터마다 조금 다를 수 있다 ⑤ PR 캡처는 `.playwright-mcp/pr/LJS-20261109-SCR-MAN-001-after-*`·`-community-after-*`(`-ai-face-after-*`는 얼굴 버전이라 쓰지 않음)
 - SCR-MAN-001 연결 남음(2026-11-09, AI develop에 첨부 사진 용도 판단 API 병합됨 PR #53): A3 사진+글 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 연결, AI 서버 저장소에서 /start). 나오면 `features/ai/api.js`의 가짜 `judgeImageIntent`만 실제 요청으로 바꾼다. 가계부 바로 등록은 SJM `features/expense`와 맞춘다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09): ① 대화창 `ChatInput`의 첨부 미리보기도 메인처럼 썸네일만 크게 할지 ② 반려동물 칩 단계(대표 없는 여러 마리 계정)는 화면으로 못 봄 ③ 검증 대화방이 tester 계정에 남음(AI 창 [삭제])
-- ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에"): `features/health/CareItemMenu.jsx`·`features/expense/shared/ExpenseMenu.jsx`·`features/dashboard/MainShortcuts.jsx`의 `ShortcutMenu`가 같은 ⋮ 메뉴를 따로 갖고 있다. `components/KebabMenu.jsx`로 올리고 앞의 둘은 껍데기로 두면 쓰는 4개 파일은 안 바뀐다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-08): ① 영수증 인식 뒤 건강일지 주소에 `?recptSn=`이 남는다(`HealthDiaryPage.jsx`, JAJ, 가짜 응답에서 봄) ② 메인이 더는 `GET·PUT /members/me/dashboard-widgets`·`GET /pets/{petSn}/health-indicators`를 부르지 않는다(백엔드 정리는 담당과 상의) ③ `src/assets/index.css`의 `man-float` keyframes를 쓰는 곳이 없다 ④ `docs/routes.md` MAN-001 담당이 YAY로 남아 있다 ⑤ PR 캡처는 가짜 반려동물이 찍혀 실제 계정으로 다시 찍는 편이 낫다 ⑥ AI 건강분석 리포트 카드 행선지는 JAJ 건강기록 개편 공유 뒤
 - SCR-MAN-001 로컬 검증 데이터(2026-11-08): 실제 영수증 업로드로 영수증 기록이 로컬 DB에 남았다(지우는 API 없음). 검증용 복사 파일 `.playwright-mcp/tmp/receipt.png`
 - SCR-ADM-090 백엔드 후보(2026-11-05, 기획 밖): 템플릿 저장 400(`checkVariables`)에 모르는 변수 이름을 `data`로 실어 주면 프론트 전용 문구 대신 그 이름을 보일 수 있다(LJS 백엔드, 필요하면 백엔드 저장소에서 /start). 지금 프론트가 저장 전에 같은 패턴으로 먼저 검사한다
@@ -79,7 +79,6 @@ SCR-AIM-011 대화창 · 사이드바 설정 삭제 · 목록 ⋮ 삭제 · 메�
 - SCR-ADM-050 로컬 정리(2026-11-03): 뉴스 수집 배치 실행 이력 `btchExcnHstrySn` 308과 실제 RSS 수집 기사가 로컬 DB에 남았다(되돌리는 API 없음). 백엔드 로컬 설정 `app.news.batch-enabled=true`는 확인용으로 켰으니 끄려면 `false`로 되돌린다
 - 추가-1(SCR-AIM-010) 알릴 것: ai-47에게 "프론트 반영 끝. `ReceiptUploadModal`이 `error.data?.recptSn`을 [직접 입력]에 `rcptSn` 키로 넘기고(받는 쪽 `HealthDiaryPage`도 `rcptSn`), 다시 올리기·닫기 때 비운다. AI `LJS` PR과 같이 낸다". JAJ에게 "`HealthDiaryPage.jsx`가 받은 `rcptSn`을 `receiptFlow`에 넣기만 하고 `CheckupModal`·검진기록 등록 요청에 넘기지 않아 영수증 연결이 실제 저장에 빠진다(추출 0건도 같음)"
 
-- SCR-ADM-023 연결 남음: FN-ADM-023-01~06 (백엔드 연결 `/api/admin/community/exposure` 건강팁 목록·지정·해제·자동 대체, 후보 문구 테이블·API(가정 필드 `todayPhrsSn`·`phrsCn`·200자)·00:00 배치·오늘 문구 `todayPhrs`, AI 코멘트 목록·사용 전환, 백엔드 저장소에서 /start). 나오면 `features/adminCommunity/api.js` 노출 콘텐츠 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-023 사람이 볼 것(판정 밖): `routes/paths.js`에 `ADMIN_EXPOSURE`를 기능 커밋에 같이 넣었다. 스켈레톤 높이는 잰 값이 아니라 행 높이로 어림한 값이다(`AdminExposurePage.jsx`). AI 코멘트 탭은 미사용을 글자 없이 스위치·회색 글자로만 보인다
 
 - SCR-ADM-090 로컬 DB 검증 데이터(2026-11-03): 템플릿 `notiTmpltSn` 5(케어 일정·이메일, 제목 "검증 등록", 미사용)가 남았다(삭제 API 없음). 3번은 원래 값으로 되돌렸다. 수정 모달은 제목을 필수로 검사하지만 서버는 선택 값이다(DB에 제목 null 템플릿 3번)
