@@ -2,12 +2,11 @@
 
 ## 지금 하는 것
 
-SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 끝(2026-11-10). `features/adminCommunity/api.js` 노출 콘텐츠 가짜를 `/api/admin/community/exposure` 실제 API 9개로 바꿈, `HealthTipTable.jsx`는 서버가 3건 미만을 줘도 지정 글을 그 자리에 두고 3줄을 유지
+SCR-ADM-071 케어미션 · 케어미션 API 연결 — 끝(2026-11-10). `features/adminCareMission/api.js` 가짜를 `/api/admin/care-missions` 실제 GET·PATCH로 바꿈, `useYn`은 true/false, 수정 모달 서버 오류는 `toFieldErrors`·`toFormError`(칸 아래·폼 아래)
 
 ## 다음에 할 것
 
 - SCR-ADM-023 노출 콘텐츠 연결 검증 데이터(2026-11-10, 8081 DB·관리자 계정): 후보 문구 `todayPhrsSn` 3 "[검증] 수정한 문구"(사용 안 함, 삭제 API 없음). 건강팁 1·2번 지정(pstSn 2·3)과 문구 1·2는 검증 전부터 있던 것
-- SCR-COM-002 ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에", 2026-11-10 기획했다가 관리자 연결 먼저로 미룸, 마일스톤 `대기`): A1 `components/KebabMenu.jsx`에 `variant`(`reveal` 기본=지금, `inline`=항상 보임·32px 버튼·아이콘 18px·`min-w-24`), A2 `features/health/CareItemMenu.jsx`·A3 `features/expense/shared/ExpenseMenu.jsx`는 props 그대로 KebabMenu 껍데기(쓰는 파일 안 바뀜, JAJ·SEO1216 알림), A4 `MainShortcuts.jsx`의 `ShortcutMenu`를 KebabMenu로
 - SCR-AIM-011 사이드바 정리 알림(2026-11-09): 문서 담당에게 FN-AIM-011-20 설정 진입 입구(사이드바 하단 [설정])를 없앴고, 대화 헤더 안내 문구 "대화 제목은 첫 메시지로 자동 생성돼요"를 지웠다고 알림
 - SCR-AIM-011 사이드바 정리 사람이 볼 것(판정 밖, 2026-11-09): 터치 기기에서 ⋮가 hover 없이 항상 보이는지는 코드(`@media(hover:hover)`일 때만 숨김)로만 확인
 - SCR-AIM-011 새 방 펫 태그 검증 데이터 정리(2026-11-09, 8081 DB·tester 계정): AI 대화 330~339(제목 "까미 귀청소 주간 반복 등록"·"까미 체중 변화" 등)는 AI 창 [삭제]. 2026-11-09 사이드바 정리 검증에서 "까미 귀청소 주간 반복 등록" 6개를 지웠고 같은 제목이 3개 남았다
@@ -67,7 +66,6 @@ SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 끝(2026-11-10).
 - SCR-ADM-080 사람이 볼 것(판정 밖): ① 화면 ID 선택지에 `docs/routes.md` ✓가 아닌 `SCR-COM-009`·`SCR-MYP-031`을 더했다(부록 A 행이 씀) ② 저장 토스트는 기획 문구 그대로 "~했습니다" 말투라 다른 관리자 화면("~했어요")과 다르다 ③ `routes/paths.js`에 `ADMIN_AI_ROUTES`를 기능 커밋에 같이 넣었다 ④ 스켈레톤 높이(3330px)는 45행 어림값
 - SCR-ADM-072 연결 남음: FN-ADM-072-01·02 (백엔드 연결 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments { mbrSn, dlngPnt, memoCn }`, 회원 보유 포인트 응답 필드, 상한(프론트 가정 1회 100,000P·사유 200자), 백엔드 저장소에서 /start). 나오면 `features/adminPoint/api.js` 가짜 본문(sessionStorage 보관, 가짜 회원 9001~9005)만 실제 요청으로, 상한은 `pointLabels.js`에서 맞춘다. FN-ADM-072-03은 그 뒤 회원 포인트 내역에 "관리자 조정"으로 보이는지 화면으로 확인
 - SCR-ADM-072 사람이 볼 것(판정 밖): ① 기획의 `nickNm`·`keyword=` 대신 서버 키 `mbrNcnm`·`q`를 썼다 ② 가짜 원장에 없는 실제 회원의 현재 잔액은 회원 상세 포인트 탭 API의 마지막 잔액으로 읽는다 ③ `routes/paths.js`에 `ADMIN_POINTS`를 기능 커밋에 같이 넣었다
-- SCR-ADM-071 연결 남음: FN-ADM-071-01·02 (백엔드 연결 `GET /api/admin/care-missions?msnPoolCd=`·`PATCH /api/admin/care-missions/{careMsnSn}`, 허용 범위(프론트 가정 1 이상 정수·보상 1000P·횟수 10회 이하), 출제 배치 `CareMissionJob`이 `CARE_MSN`의 `useYn`·값을 읽는지, 백엔드 저장소에서 /start). 나오면 `features/adminCareMission/api.js` 가짜 본문(sessionStorage 보관 포함)만 실제 요청으로, 상한은 `careMissionLabels.js`에서 맞춘다
 - SCR-ADM-071 사람이 볼 것(판정 밖): ① `routes/paths.js`에 `ADMIN_CARE_MISSIONS`를 기능 커밋에 같이 넣었다 ② 스켈레톤 높이는 행 높이로 계산한 값(풀마다 21·9·12행, `AdminCareMissionsPage.jsx`) ③ 조회 오류·저장 실패 문구는 가짜가 실패하지 않아 검증에서 응답을 바꿔서만 봤다 ④ 백엔드 마일스톤 SCR-ADM-071의 "`pet` 케어미션 협의 (SJM)"는 사람이 맞춘다
 - 대기 순서(사람 결정 2026-11-03): SCR-ADM-060 장소는 없앰(사람 결정 2026-11-04, 메뉴·`docs/routes.md` 행 삭제, 마일스톤 제외 절). 백엔드 `milestones/LJS.md`의 SCR-ADM-060 절도 백엔드 저장소에서 제외로 옮긴다. SCR-ADM-001 페이지 틀·조회 오류 정리는 남은 관리자 화면 구현 뒤 맨 마지막
 - SCR-ADM-051 사람이 볼 것(판정 밖): ① 같은 버전 값은 확인 모달을 누른 뒤에 막힌다 ② 로컬 DB `TRMS`의 `MARKETING`에 검증용 `v9.9-check`·`v9.9-verify`가 남아 있다(삭제 API 없음, 지우려면 두 행 삭제 후 `v1.0` 사용 여부를 되돌린다) ③ 기능별 동의 2종이 `TRMS`에 생기면 `termsKinds.js`에 다시 넣는다
@@ -274,3 +272,4 @@ SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 끝(2026-11-10).
 - SCR-COM-002 연결 남음: 002-02 `ProtectedRoute`로 감싸기(user 레이아웃은 끝, ai·chat·place·main bare는 위 SCR-COM-003 연결 남음), 002-06 GNB 대상 페이지를 `UserLayout` 아래 라우트로 붙이기(각 담당), 002-09 알림 미확인 수 API(LJS 백엔드), 002-11 채팅 안 읽은 수 조회 위치를 KSJ와 맞추고 연결(KSJ), 002-15 회원 프로필 이미지, 002-24 세션 만료 토스트(SCR-COM-003과 함께)
 - SCR-ADM-090 검증 오류 메시지 구체화(마일스톤 `대기`, 사람 결정 2026-11-03: 맨 마지막에 한다, 사람 요청 2026-11-03): 모르는 치환 변수를 넣으면 "입력값이 올바르지 않습니다."만 보여 무엇이 문제인지 알 수 없다. 저장 전에 칸·변수 이름을 보이게 한다
 - SCR-COM-007·SCR-AIM-011 모바일 AI 매니저를 모달로(후순위, 사람 결정 2026-11-09 "펫돌봄 채팅이랑 동일하게", 마일스톤 `대기`): 모바일에서 플로팅 AI·메인 검색창이 새 탭 대신 채팅 모달(`layouts/ChatModal.jsx`, 760px 이하 헤더 아래 전체 화면)처럼 연다. `pages/ai/AiChatPage.jsx`(691줄) 본문을 모달·새 창이 같이 쓰는 판으로 나누고, 사진 넘기기(`useAiWindow` BroadcastChannel)와 `features/ai/chat/openInMainWindow.js`(본창 이동·창 닫기)를 모달용으로 맞춘다. 명세 FN-COM-007-01·FN-AIM-011-01 "새 창(탭)·모달 아님"과 달라 문서 담당에 알린다. 정할 것: PC는 새 창 그대로인지, 모달에 [새 창으로 띄우기]를 둘지
+- SCR-COM-002 ⋮ 메뉴 공통화(사람 2026-11-08 "리팩토링 때 한번에", 2026-11-10 기획했다가 관리자 연결 먼저로 미룸, 마일스톤 `대기`, 사람 2026-11-10 "제일 마지막으로"): A1 `components/KebabMenu.jsx`에 `variant`(`reveal` 기본=지금, `inline`=항상 보임·32px 버튼·아이콘 18px·`min-w-24`), A2 `features/health/CareItemMenu.jsx`·A3 `features/expense/shared/ExpenseMenu.jsx`는 props 그대로 KebabMenu 껍데기(쓰는 파일 안 바뀜, JAJ·SEO1216 알림), A4 `MainShortcuts.jsx`의 `ShortcutMenu`를 KebabMenu로

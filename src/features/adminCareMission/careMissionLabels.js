@@ -14,8 +14,8 @@ export const MSN_POOL_TABS = [
   { value: MSN_POOL.ACTIVITY, label: MSN_POOL_LABELS[MSN_POOL.ACTIVITY] },
 ];
 
-/** 보상 포인트 최대(가정, 백엔드 연결 때 맞춘다) */
+/** 보상 포인트 최대(백엔드 AdminCareMissionUpdateRequest 1~1000) */
 export const CMPN_PNT_MAX = 1000;
 
-/** 달성 기준 횟수 최대(가정, 백엔드 연결 때 맞춘다) */
+/** 달성 기준 횟수 최대(백엔드 AdminCareMissionUpdateRequest 1~10) */
 export const ACHV_CRTR_NMTM_MAX = 10;

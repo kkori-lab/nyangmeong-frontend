@@ -2,11 +2,6 @@
 
 기준: 공통레이아웃_기능명세서_v0.4_20261001, AI매니저_기능명세서_v0.7_20261009 (DMS, 2026-10-17), 커뮤니티_기능명세서_v0.7_20261019 (CMU-005만, KSJ 마일스톤에서 옮김, 2026-10-21), AI매니저_기능명세서_v0.9_20261026 (SCR-AIM-013만, DMS 업로드 전 로컬 사본, 2026-10-26), 관리자_기능명세서_v0.2_20261030 (DMS, 2026-10-30. 화면설계서 `관리자_화면설계서_v0.1_20261030`, 순서는 백엔드 `docs/admin/implementation-plan.md` 3절 단계)
 
-## SCR-COM-002 공통 ⋮ 메뉴 공통화 — 대기
-- 기능: (사람 지시 2026-11-08 "리팩토링 때 한번에", 명세 FN 추가 없음) A1 `components/KebabMenu.jsx` variant 추가, A2 `CareItemMenu`·A3 `ExpenseMenu`를 KebabMenu 껍데기로, A4 `MainShortcuts`의 `ShortcutMenu`를 KebabMenu로
-- 기다리는 것: 없음
-- 완료 조건: 네 곳(AI 사이드바·건강기록 3곳·가계부·메인 바로가기) ⋮ 메뉴가 전과 같은 항목·모양으로 열리고 닫힌다 / `MoreVertical`은 `KebabMenu`에만 남는다
-
 ## SCR-AIM-011 사이드바 설정 삭제 · 목록 ⋮ 삭제 · 메인 로고 — 끝
 - 기능: (사람 요청 2026-11-09, 명세 FN 추가 없음) A1 하단 [설정] 삭제(FN-AIM-011-20 입구 제거), A2 대화 행 ⋮ 메뉴 삭제(FN-AIM-011-13 입구 추가, `components/KebabMenu.jsx` 새로), A2-1 삭제 확인 모달 공통화, A3 사이드바 로고를 `nm_logo.svg`로
 - 기다리는 것: 없음
@@ -950,11 +945,12 @@
 - 완료 조건: `features/adminTerms/api.js` 가짜를 실제 API로 바꿔 목록·이력·상세·새 버전 등록이 화면에서 동작한다. 종류 키 `AGE`→`AGE_14`, 글자 수 상한 80·200·4000. 400·404·409 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminTerms/api.js`(가짜 응답)
 
-## SCR-ADM-071 케어미션 · 케어미션 API 연결 — 대기
+## SCR-ADM-071 케어미션 · 케어미션 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-071-01·02
 - 기다리는 것: `GET /api/admin/care-missions?msnPoolCd=`(사용 안 함 포함, 번호순 `[{ careMsnSn, msnPoolCd, msnNm, cmpnPnt, achvCrtrNmtm, mvmnPath, useYn(true/false) }]`, 풀 코드 없으면 전체, 모르는 풀 400 `INVALID_INPUT_VALUE`)·`PATCH /api/admin/care-missions/{careMsnSn}` `{ cmpnPnt?(1~1000), achvCrtrNmtm?(1~10), useYn? }` → 200 미션 행(보낸 칸만, 미션명·풀·경로는 안 바꿈, 빈 본문·범위 밖 400 `INVALID_INPUT_VALUE`, 없는 미션 404 `CARE_MISSION_NOT_FOUND`) (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/care-missions` 행)
 - 완료 조건: `features/adminCareMission/api.js` 가짜를 실제 API로 바꿔 목록(풀 탭)·수정 모달이 화면에서 동작한다. `useYn`은 'Y'/'N' 가정이 아니라 true/false. 모달의 "다음 날 00:00 출제부터 반영" 안내 그대로. 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCareMission/api.js`(가짜 응답)
+- 완료 조건 결과: 검증 `통과`(2026-11-10, 2회차. 1회차는 공용 DB 쓰기 권한 거부로 실제 저장 확인 못 함, 코드 변경 없이 재검증), 실제 8081 저장·새로고침 유지 확인 뒤 원래 값으로 되돌림, 400·404 문구는 가짜 응답으로 확인, 사람 확인 2026-11-10
 
 ## SCR-ADM-070 아이템 · 전체 굽기 나눠 호출 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-070-02
@@ -1146,6 +1142,12 @@
 - 기다리는 것: 없음
 - 완료 조건: 칩 취두부에서 "까미 …" 새 대화 → 방 태그·칩·카드 모두 까미 / 이름 없음·둘 이상이면 칩 태그 / 열린 방은 그대로
 - 완료 조건 결과: 검증 `통과`(2026-11-09, 1회차), 사람 확인 2026-11-09
+
+## SCR-COM-002 공통 ⋮ 메뉴 공통화 — 대기
+- 기능: (사람 지시 2026-11-08 "리팩토링 때 한번에", 명세 FN 추가 없음) A1 `components/KebabMenu.jsx` variant 추가, A2 `CareItemMenu`·A3 `ExpenseMenu`를 KebabMenu 껍데기로, A4 `MainShortcuts`의 `ShortcutMenu`를 KebabMenu로
+- 기다리는 것: 없음
+- 완료 조건: 네 곳(AI 사이드바·건강기록 3곳·가계부·메인 바로가기) ⋮ 메뉴가 전과 같은 항목·모양으로 열리고 닫힌다 / `MoreVertical`은 `KebabMenu`와 범위 밖 CommentSection·PetSlide에만 남는다
+- 순서: 남은 작업 중 맨 마지막(사람 2026-11-10 "메뉴 공통화는 제일 마지막으로")
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
