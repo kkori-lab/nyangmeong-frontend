@@ -111,11 +111,20 @@ export default function PlaceMap({
     );
   }, [map, kakao, isSky]);
 
-  // 새 검색의 결과가 오면 한 번 맞춘다. 재검색·정렬로 결과가 바뀔 때는 지도를 그대로 둔다
+  // 위치를 찾는 동안 전주로 만든 지도를 찾은 처음 영역으로 옮긴다(처음 영역은 한 번만 바뀐다).
+  // 결과가 없으면 아래에서 지도를 옮기지 않으므로 여기서 맞춰 둔다
+  useEffect(() => {
+    if (!map) return;
+    isAutoMoveRef.current = true;
+    map.setCenter(new kakao.maps.LatLng(homeArea.cntrLat, homeArea.cntrLot));
+  }, [map, kakao, homeArea]);
+
+  // 새 검색의 결과가 오면 한 번 맞춘다. 재검색·정렬로 결과가 바뀔 때는 지도를 그대로 둔다.
+  // 결과가 없으면 지도를 옮기지 않고 검색한 그 자리에 둔다
   useEffect(() => {
     if (!map || !isReady || fittedKeyRef.current === fitKey) return;
     fittedKeyRef.current = fitKey;
-    fitPlaces(map, results);
+    if (results.length > 0) fitPlaces(map, results);
     // 결과가 바뀔 때마다가 아니라 새 검색일 때만 맞춘다
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, isReady, fitKey]);
