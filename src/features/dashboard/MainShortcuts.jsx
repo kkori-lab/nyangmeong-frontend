@@ -7,7 +7,7 @@ import PetFace from '@/components/PetFace';
 import Select from '@/components/Select';
 import Skeleton from '@/components/Skeleton';
 import { useMainShortcuts, useSaveMainShortcuts } from './queries';
-import ShortcutEditModal from './ShortcutEditModal';
+import ShortcutEditModal, { SHORTCUT_MAX } from './ShortcutEditModal';
 import { SHORTCUT_TYPES } from './shortcutTypes';
 
 const TYPE_BY_CD = Object.fromEntries(
@@ -18,6 +18,8 @@ const TYPE_BY_CD = Object.fromEntries(
 const TILE =
   'flex w-24 flex-col items-center gap-1.5 rounded-box p-3 text-center group-hover:bg-brand-50';
 const CIRCLE = 'size-[52px] rounded-full';
+/** 모바일(760px 이하, Modal isSheet와 같은 경계)에서 보이는 바로가기 수. 마지막 칸은 [바로가기 편집] */
+const MOBILE_VISIBLE = 5;
 
 /** 반려동물별 바로가기 코드: 서버가 양육 중인 반려동물 전부를 주므로 응답에 없으면 빈 목록 */
 const toShortcutMap = (pets, saved) =>
@@ -53,6 +55,8 @@ const toBody = (rows, change) =>
  * [메인 반려동물 바로가기]
  * - 누르면 그 반려동물로 건강기록 화면을 연다(?petSn=)
  * - [바로가기 편집]으로 여러 반려동물의 종류를 한 번에 골라 더한다(ShortcutEditModal). 목록은 서버에 저장
+ * - 배치: 웹은 한 줄 6칸·최대 SHORTCUT_MAX개, 12개가 차면 [바로가기 편집] 칸이 없다
+ *   모바일은 한 줄 3칸, 앞 MOBILE_VISIBLE개 + [바로가기 편집](항상 보임)
  * - 타일 오른쪽 위 ⋮: [바로가기 수정](반려동물·종류 바꾸기)·[삭제](확인 없이 뺌) (추가-5)
  *   마우스가 있는 기기는 올리거나 포커스할 때만 보이고, 터치 기기는 항상 보인다
  */
@@ -75,10 +79,13 @@ export default function MainShortcuts({ pets }) {
   const rows = toShortcutMap(pets, saved ?? []);
   const addable = toChoices(rows);
   const closeForm = () => setForm(null);
-  const savedCount = rows.reduce(
-    (sum, { shrtcCds }) => sum + shrtcCds.filter((cd) => TYPE_BY_CD[cd]).length,
-    0,
-  );
+  const tiles = rows
+    .flatMap(({ pet, shrtcCds }) =>
+      shrtcCds.filter((cd) => TYPE_BY_CD[cd]).map((cd) => ({ pet, cd })),
+    )
+    .slice(0, SHORTCUT_MAX);
+  const savedCount = tiles.length;
+  const canAddOnWeb = addable.length > 0 && savedCount < SHORTCUT_MAX;
 
   const handleAdd = (picks) =>
     save.mutate(
@@ -118,56 +125,52 @@ export default function MainShortcuts({ pets }) {
     <>
       <ul
         aria-label="반려동물 바로가기"
-        className="flex flex-wrap justify-center gap-2"
+        className="mx-auto flex max-w-[304px] flex-wrap justify-center gap-2 min-[761px]:max-w-[616px]"
       >
-        {rows.flatMap(({ pet, shrtcCds }) =>
-          shrtcCds
-            .filter((cd) => TYPE_BY_CD[cd])
-            .map((cd) => (
-              <li key={`${pet.petSn}-${cd}`} className="group relative">
-                <Link
-                  to={`${TYPE_BY_CD[cd].path}?${new URLSearchParams({ petSn: pet.petSn })}`}
-                  className={TILE}
-                >
-                  <PetFace
-                    petSn={pet.petSn}
-                    petSeCd={pet.petSeCd}
-                    isError={pet.bscCharSbstYn}
-                    className={`${CIRCLE} border-2 border-brand-100 bg-white`}
-                  />
-                  <b className="w-full truncate text-xs text-ink">
-                    {pet.petNm}
-                  </b>
-                  <span className="w-full truncate text-[11px] text-muted">
-                    {TYPE_BY_CD[cd].label}
-                  </span>
-                </Link>
-                <ShortcutMenu
-                  label={`${pet.petNm} ${TYPE_BY_CD[cd].label} 바로가기 메뉴`}
-                  onEdit={() => setForm({ mode: 'edit', petSn: pet.petSn, cd })}
-                  onDelete={() => handleDelete(pet.petSn, cd)}
-                />
-              </li>
-            )),
-        )}
-        {addable.length > 0 && (
-          <li className="group">
-            <button
-              type="button"
-              onClick={() => setForm({ mode: 'add' })}
+        {tiles.map(({ pet, cd }, index) => (
+          <li
+            key={`${pet.petSn}-${cd}`}
+            className={`group relative ${index >= MOBILE_VISIBLE ? 'max-[760px]:hidden' : ''}`}
+          >
+            <Link
+              to={`${TYPE_BY_CD[cd].path}?${new URLSearchParams({ petSn: pet.petSn })}`}
               className={TILE}
             >
-              <span
-                className={`${CIRCLE} grid place-items-center bg-surface-3 text-ink-2`}
-              >
-                <Plus className="size-4" aria-hidden="true" />
+              <PetFace
+                petSn={pet.petSn}
+                petSeCd={pet.petSeCd}
+                isError={pet.bscCharSbstYn}
+                className={`${CIRCLE} border-2 border-brand-100 bg-white`}
+              />
+              <b className="w-full truncate text-xs text-ink">{pet.petNm}</b>
+              <span className="w-full truncate text-[11px] text-muted">
+                {TYPE_BY_CD[cd].label}
               </span>
-              <span className="text-xs whitespace-nowrap text-ink-2">
-                바로가기 편집
-              </span>
-            </button>
+            </Link>
+            <ShortcutMenu
+              label={`${pet.petNm} ${TYPE_BY_CD[cd].label} 바로가기 메뉴`}
+              onEdit={() => setForm({ mode: 'edit', petSn: pet.petSn, cd })}
+              onDelete={() => handleDelete(pet.petSn, cd)}
+            />
           </li>
-        )}
+        ))}
+        {/* 모바일은 항상, 웹은 더할 수 있을 때만 */}
+        <li className={`group ${canAddOnWeb ? '' : 'min-[761px]:hidden'}`}>
+          <button
+            type="button"
+            onClick={() => setForm({ mode: 'add' })}
+            className={TILE}
+          >
+            <span
+              className={`${CIRCLE} grid place-items-center bg-surface-3 text-ink-2`}
+            >
+              <Plus className="size-4" aria-hidden="true" />
+            </span>
+            <span className="text-xs whitespace-nowrap text-ink-2">
+              바로가기 편집
+            </span>
+          </button>
+        </li>
       </ul>
       {form?.mode === 'add' && (
         <ShortcutEditModal
