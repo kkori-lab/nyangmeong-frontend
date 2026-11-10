@@ -2,10 +2,10 @@ import Badge from '@/components/Badge';
 import { getCategoryName, NEWS_SRC_ADMIN } from './newsCodes';
 
 const CATEGORY_TONES = {
-  건강: 'bg-[#e6f4ec] text-[#22744a]',
-  생활: 'bg-[#fcf1df] text-[#9a5c0c]',
-  정책: 'bg-[#eaf1fc] text-[#2d5fb8]',
-  여행: 'bg-[#efecfa] text-[#5f49b0]',
+  건강: 'bg-[#e6f4ec] text-[#22744a] ring-1 ring-current/10 ring-inset',
+  생활: 'bg-[#fcf1df] text-[#9a5c0c] ring-1 ring-current/10 ring-inset',
+  정책: 'bg-[#eaf1fc] text-[#2d5fb8] ring-1 ring-current/10 ring-inset',
+  여행: 'bg-[#efecfa] text-[#5f49b0] ring-1 ring-current/10 ring-inset',
 };
 
 /** 카테고리 배지 + 관리자 등록 뉴스면 「관리자 등록」 배지 */
@@ -21,7 +21,9 @@ export default function NewsCategoryBadge({ news }) {
         </span>
       )}
       {news.newsSrcCd === NEWS_SRC_ADMIN && (
-        <Badge tone="brand">관리자 등록</Badge>
+        <Badge tone="brand" bordered>
+          관리자 등록
+        </Badge>
       )}
     </div>
   );

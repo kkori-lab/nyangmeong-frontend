@@ -49,7 +49,9 @@ export function FoundConfirmModal({
             className="block size-8 shrink-0 rounded-full border border-line bg-white bg-cover bg-center"
           />
           <b className="text-base font-semibold text-ink">{post.mbrNcnm}</b>
-          <Badge tone="ok">찾았어요</Badge>
+          <Badge tone="ok" bordered>
+            찾았어요
+          </Badge>
         </p>
         <p className="mt-1.5 text-base leading-[1.6] text-ink">
           {foundCommentText(post.petNm)}
