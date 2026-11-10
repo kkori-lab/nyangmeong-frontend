@@ -2,10 +2,13 @@
 
 ## 지금 하는 것
 
-SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 끝(2026-11-10). `features/adminProcessing/api.js` `getAdminCharacterJobs` 가짜를 지우고 실제 `GET /api/admin/processing/character-jobs`로 연결, 상태 `crtJobSttsCd`(CHRG01 CHRC0001~0004)·일시 `regDt`로 맞춤. 추가-1로 상태 필터를 카드 누르기에서 영수증 OCR 탭과 같은 필터 줄(기간 + 상태 드롭다운 + [조회])로 바꾸고 건수 카드는 읽기 전용
+SCR-ADM-110 운영 설정 · 운영 설정 API 연결 — 끝(2026-11-10). `features/setting/api.js` 가짜를 지우고 실제 `GET`·`PATCH /api/admin/settings`로 연결, 묶음별 응답(`memberPet` 등)을 `settingFields.js` `resKey`로 읽음, 입력 자릿수를 서버 범위에 맞춤, 탈퇴 회원 보관 기간은 읽기 전용, 수정자 "관리자 #번호". 추가-1로 저장 400이면 첫 오류 칸으로 스크롤·포커스(390폭은 그 묶음으로 바꾼 뒤)
 
 ## 다음에 할 것
 
+- SCR-ADM-110 검증 데이터 정리(2026-11-10, 8081 DB): 운영 설정 읽은 알림 숨김 기준(`notiHideCrtrDayCnt`)이 8로 남았다(처음 7, 12:31 변경). 관리자 `/admin/settings`에서 7로 되돌린다. 감사 로그 354·355 등 검증 기록은 지우는 API가 없다
+- SCR-ADM-110 사람이 볼 것(판정 밖, 2026-11-10): ① 시드 설정 행은 수정자가 `SEED`라 아무도 저장 안 한 DB에서는 "관리자 #SEED"로 보인다 ② 검증용 8081 백엔드가 SYS_STNG 컬럼 삭제 커밋 전 코드라 500이 났었다. 사람용 8080도 11:52 전에 띄웠으면 재시작 ③ 입력 자릿수는 기획의 두 항목 말고도 개수 3자리·파일 크기 2자리로 줄였다(서버 범위 안)
+- 넘긴 것(사람 2026-11-10): AI 매니저·AI 운영 쪽 SCR-ADM-080 매핑표·081 키워드 사전·082 검사결과지 API 연결은 `대기`로 두고 넘김
 - SCR-ADM-082 연결 남음(2026-11-10): 추가-1 캐릭터 생성 탭 기간 필터 (백엔드 연결 `GET /api/admin/processing/character-jobs` `fromYmd`·`toYmd`, 백엔드 저장소에서 /start). 백엔드 세션에 알렸고 SCR-ADM-110 다음에 하기로 답함. 프론트는 이미 보내므로 끝나면 화면에서 기간 조회만 확인
 - SCR-ADM-072 연결 남음(2026-11-10): FN-ADM-072-03 회원 포인트 내역(`/mypage/points`)에 관리자 조정 사유 `memoCn`을 보일지 SJM과 정한다. 지금은 `features/point/history/PointHistory.jsx` `getTitle`이 일부러 "관리자 조정" 고정 문구만 보인다(SJM, SCR-MYP-020)
 - SCR-ADM-072 검증 데이터(2026-11-10, 8081 DB): 회원 #1(tester)에 원장 2줄 "+10 [검증] 포인트 지급"·"-10 [검증] 되돌림"이 남았다(잔액은 처음과 같은 2,209, 원장 삭제 API 없음)
