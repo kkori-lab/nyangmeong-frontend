@@ -53,9 +53,12 @@ export const useAdminInquiryTypes = () =>
 
 /**
  * 첨부 이미지 주소: { [atchFileSn]: object URL }
- * - 큰 원본이라 화면을 떠나면 주소 해제, 캐시도 남기지 않음
+ * - 큰 원본이라 gcTime을 0으로 해 화면을 떠나면 캐시 삭제, 주소도 그때 해제
+ * - 해제는 떠난 뒤 한 틱 미룬다: 상세 ↔ 수정처럼 바로 다음 화면이 같은 캐시 주소를 받아 쓰고 있으면 해제하지 않는다
+ *   (그 화면이 떠날 때 해제). 바로 해제하면 다음 화면에 깨진 이미지가 보인다
  */
 export const useAdminInquiryImageUrls = (otoInqrySn, imgs) => {
+  const queryClient = useQueryClient();
   const urls = useQueries({
     queries: imgs.map(({ atchFileSn }) => ({
       queryKey: adminInquiryKeys.image(otoInqrySn, atchFileSn),
@@ -69,14 +72,29 @@ export const useAdminInquiryImageUrls = (otoInqrySn, imgs) => {
     combine: (results) =>
       results.map((result) => (result.isError ? null : result.data)),
   });
-  const urlsRef = useRef([]);
+  const entriesRef = useRef([]);
   useEffect(() => {
-    urlsRef.current = urls;
+    entriesRef.current = imgs.map(({ atchFileSn }, index) => [
+      adminInquiryKeys.image(otoInqrySn, atchFileSn),
+      urls[index],
+    ]);
   });
   useEffect(
-    () => () =>
-      urlsRef.current.forEach((url) => url && URL.revokeObjectURL(url)),
-    [],
+    () => () => {
+      const entries = entriesRef.current;
+      setTimeout(() =>
+        entries.forEach(([queryKey, url]) => {
+          if (!url) return;
+          const query = queryClient
+            .getQueryCache()
+            .find({ queryKey, exact: true });
+          const inUse =
+            query?.getObserversCount() > 0 && query.state.data === url;
+          if (!inUse) URL.revokeObjectURL(url);
+        }),
+      );
+    },
+    [queryClient],
   );
   return Object.fromEntries(
     imgs.map(({ atchFileSn }, index) => [atchFileSn, urls[index]]),
