@@ -51,3 +51,11 @@ export const formatAge = (petBrdt, today = new Date()) => {
   if (years === 0) return `${rest}개월`;
   return rest === 0 ? `${years}살` : `${years}살 ${rest}개월`;
 };
+
+// "21.04.12 (5살 6개월)". 날짜 문자열을 그대로 잘라 쓴다. 생일이 없으면 빈 문자열
+export const formatBirthAge = (petBrdt, today = new Date()) => {
+  if (!petBrdt) return '';
+  const [year, month, day] = petBrdt.slice(0, 10).split('-');
+  const age = formatAge(`${year}-${month}-${day}T00:00:00`, today);
+  return `${year.slice(2)}.${month}.${day} (${age})`;
+};
