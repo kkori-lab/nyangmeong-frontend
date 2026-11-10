@@ -1,6 +1,6 @@
 # TC · 건강기록 (SCR-HLT-011·002·003·005·007)
 
-- 기준: 건강기록_기능명세서_v1.4_20261110 (SCR-HLT-* 5개 화면, FN-HLT 98개), 건강기록_화면설계서_v1.4_20261110, 요구사항정의서_v0.10.4_20261109(REQ-HLT-001·002·003·006, 영수증 검진 경로 REQ-AIM-004, 파일 제한 REQ-NFR-003), 백엔드 `docs/api/health.md`·`receipt.md`·`ErrorCode.java`(develop 2026-11-08. 대시보드 항목 저장 `GET·PUT /members/me/dashboard-widgets`의 건강기록용 계약은 이 문서들에 없어 프론트 코드 `dashboardApi.js` 기준)
+- 기준: 건강기록_기능명세서_v1.4_20261110 (SCR-HLT-* 5개 화면, FN-HLT 98개), 건강기록_화면설계서_v1.4_20261110, 요구사항정의서_v0.10.5_20261110(REQ-HLT-001·002·003·006, 영수증 검진 경로 REQ-AIM-004, 파일 제한 REQ-NFR-003), 백엔드 `docs/api/health.md`·`receipt.md`·`ErrorCode.java`(develop 2026-11-08. 대시보드 항목 저장 `GET·PUT /members/me/dashboard-widgets`의 건강기록용 계약은 이 문서들에 없어 프론트 코드 `dashboardApi.js` 기준)
 - 코드: origin/develop 35f39ca (2026-11-10)
 - 구현 상태: 5개 화면 모두 서버 데이터는 실제 API(`milestones/JAJ.md`). SCR-HLT-011의 대시보드 기록 항목 선택·카드 순서도 서버 `GET·PUT /members/me/dashboard-widgets`에 회원 단위로 저장한다(2026-11-09 연결, 커밋 80d2348. 예전 브라우저 `localStorage` 저장소 `widgetStore.js`는 없어졌다). 11-04 이후 화면이 크게 바뀐 곳: SCR-HLT-011(명세의 카드 8장 → 배너 + 고른 기록 대시보드로 개편, 2026-11-09 의도된 개편으로 확인. 11-10 휴대폰 화면은 요약 띠 + 2열 요약 타일, 옛 히어로 `SummaryHero` 삭제), 건강기록 3개 화면의 공통 반려동물 카드, 건강 일지(그래프 5개 기록, 오늘의 기록·최근 건강기록 날짜 행이 같은 기록 수정 모달을 여는 것, 태블릿 640~1100px 배치, 지속 관찰 모바일을 PC와 같은 증감·사진 줄 5개로 맞춤), 케어 캘린더("모든 아이 일정 같이 보기" 스위치, 태블릿 배치: 달력은 휴대폰형 기준 640px, 케어리스트는 1024px 이상 2열), 영수증 결과 확인의 [반려동물 연결](한 아이를 여러 줄에 고르면 저장 때 검진기록 1건으로 합침). 검사결과지 PDF 분석(FN-HLT-005-04, 007-04·06)은 AI 서버 `POST /ai/checkups/lab-results`, 영수증 인식 결과 확인(FN-HLT-002-34~46)은 AI 서버 `POST /ai/receipts`로 만든 영수증이 있어야 확인할 수 있고, 그런 행은 사전 조건 맨 앞에 `[AI 서버]`가 붙어 있다. 2026-11-10 결정: 대시보드 카드의 줄 클릭 이동과 반복 예방 진입은 명세 v1.4대로 두지 않는다(11-09 '다시 붙임' 결정을 취소).
 - 준비
@@ -1417,7 +1417,7 @@
 
 - [문서] 건강기록 대시보드 항목 저장 — 코드는 `GET·PUT /members/me/dashboard-widgets`에 건강기록 전용 13개 코드(HLTC0084~0096)·`indctYn`·`savedYn`을 쓰지만, 백엔드 `docs/api/member.md`에는 메인 위젯용 초안(`DashboardWidgetSaveRequest`의 `dshbdWdgtCds`, 응답 `sortSeq`)만 있고 건강기록용 계약이 없다. 요청·응답 모양은 프론트 코드 기준으로 정했다 (`dashboardApi.js`, `dashboard/widgetItems.js`)
 - [코드] FN-HLT-011-13 — 체중 카드 0건 문구가 명세 v1.4는 "첫 기록을 남기면 그래프로 보여요", 코드는 "기록이 없어요"다 (`dashboard/widgetItems.js` `emptyText`)
-- [문서] REQ-HLT-003 — 요구사항정의서 v0.10.4은 건강기록 변화 그래프를 최근 14개로 적었으나 명세 v1.4·코드는 최근 5개 기록이다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
+- [문서] REQ-HLT-003 — 요구사항정의서 v0.10.5는 건강기록 변화 그래프를 최근 14개로 적었으나 명세 v1.4·코드는 최근 5개 기록이다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
 - [코드] FN-HLT-002-15 — PC 관찰 항목 목록 줄에 대표 사진·부위가 없다(항목명·크기와 증감·최근 관찰일만) (`diary/ObservationCard.jsx` `ItemButton`)
 - [문서] FN-HLT-002-17·18 — 사진 줄이 최신 5회차만 나열하고 앞은 "+N 이전 회차" 칸으로 접히며, 크기 그래프도 크기 입력 회차 중 최신 5개만 그린다 (`diary/ObservationDetail.jsx` `CHART_COUNT`)
 - [문서] FN-HLT-002-19 — [사진 원본 보기]·[이 회차 수정]·[삭제]가 버튼이 아니라 선택 회차 줄의 ⋮ 메뉴에 있다 (`diary/ObservationDetail.jsx`)
