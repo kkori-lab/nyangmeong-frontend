@@ -7,13 +7,12 @@ import { CARE_ZONE, getCareCycleName, getDueBadge } from './careDue';
 
 const BADGE_TONES = { today: 'brand', upcoming: 'gray', late: 'amber' };
 
-// 케어 항목 한 줄(FN-HLT-003-12·13). 본문 클릭 = 완료 체크, ★ = 메인 표시. 완료는 배경, 메인은 ★로 따로 보여 준다
+// 케어 항목 한 줄(FN-HLT-003-12·13). 본문 클릭 = 완료 체크, 완료는 배경으로 보여 준다
 // isDone: 오늘 완료(목록 응답에 없어 CareList가 완료 기록으로 계산)
 export default function CareTile({
   item,
   isDone,
   onCheck,
-  onToggleMain,
   onCancelLastDose,
   onEdit,
   onDelete,
@@ -29,7 +28,7 @@ export default function CareTile({
     isRegular && item.nxtmPrnmntYmd ? getDueBadge(item.nxtmPrnmntYmd) : null;
 
   // 640px 미만은 항목마다 테두리 있는 둥근 칸이고, 완료하면 칸 전체를 초록으로 채운다
-  // 투약 항목은 640px 미만에서 두 줄, 640px 이상에서 [마지막 1회 취소]를 ★ 앞으로 올려 한 줄로 둔다
+  // 투약 항목은 640px 미만에서 두 줄, 640px 이상에서 [마지막 1회 취소]를 ⋮ 메뉴 앞으로 올려 한 줄로 둔다
   return (
     <div
       className={`grid grid-cols-[minmax(0,1fr)_auto] content-start items-center border-b [grid-template-areas:'b_s'_'a_a'] max-sm:rounded-[10px] max-sm:border ${
@@ -123,21 +122,8 @@ export default function CareTile({
         )}
       </button>
 
-      {/* ★와 ⋮ 메뉴: 완료 토글 버튼 밖에 둬서 눌러도 완료가 바뀌지 않는다. 메뉴가 없는 줄도 자리를 비워 ★ 위치를 맞춘다 */}
+      {/* ⋮ 메뉴: 완료 토글 버튼 밖에 둬서 눌러도 완료가 바뀌지 않는다. 메뉴가 없는 줄도 같은 폭을 비워 줄마다 오른쪽 끝을 맞춘다 */}
       <div className="mr-2 flex items-center [grid-area:s]">
-        <button
-          type="button"
-          aria-label={`${item.careArtclNm} 메인 표시`}
-          aria-pressed={item.mainExpsrYn}
-          className="grid size-8 place-items-center rounded-full hover:bg-surface-3"
-          onClick={() => onToggleMain(item)}
-        >
-          <Icon
-            name="star"
-            filled={item.mainExpsrYn}
-            className={item.mainExpsrYn ? 'text-ink' : 'text-line-strong'}
-          />
-        </button>
         {canEdit ? (
           <CareItemMenu
             label={`${item.careArtclNm} 메뉴`}
@@ -149,7 +135,7 @@ export default function CareTile({
         )}
       </div>
 
-      {/* 투약 항목: 640px 미만은 둘째 줄에 복용 종료일·마지막 1회 취소, 640px 이상은 종료일은 이름 줄에 두고 취소만 ★ 앞에 */}
+      {/* 투약 항목: 640px 미만은 둘째 줄에 복용 종료일·마지막 1회 취소, 640px 이상은 종료일은 이름 줄에 두고 취소만 ⋮ 메뉴 앞에 */}
       {isDose && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pr-2 pb-3 pl-13 [grid-area:a] sm:p-0 sm:pr-3">
           {item.mdcnEndYmd && (
