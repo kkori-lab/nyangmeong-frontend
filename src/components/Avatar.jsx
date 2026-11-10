@@ -10,10 +10,11 @@ import FileImage from '@/components/FileImage';
  * - src: 사진 주소. null이거나 열리지 않으면(404 등) 기본 아이콘
  * - className: 크기(`size-*`). 이미지와 기본 아이콘 자리에 똑같이 붙는다
  * - iconSize: 기본 아이콘 크기(px)
+ * - 연한 회색 테두리(border-line)가 늘 붙는다: 흰 배경 사진도 경계가 보이게
  * - 꾸밈용이라 화면 읽기에서는 숨긴다(옆에 닉네임이 있음)
  */
 export default function Avatar({ src, className = '', iconSize = 18 }) {
-  const shape = `block shrink-0 rounded-full ${className}`;
+  const shape = `block shrink-0 rounded-full border border-line ${className}`;
   return (
     <FileImage
       src={src}

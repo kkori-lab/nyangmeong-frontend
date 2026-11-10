@@ -83,6 +83,11 @@ function PostHead({ post, children, actions }) {
     <>
       <div className="flex flex-wrap gap-1.5">
         <MissingStatusBadge post={post} />
+        {post.owner && (
+          <Badge tone="amber" bordered>
+            내 글
+          </Badge>
+        )}
         {post.petSeCd && (
           <Badge tone="outline">{getPetName(post.petSeCd)}</Badge>
         )}
@@ -303,11 +308,6 @@ export default function MissingDetail({ post }) {
             <p
               className={`${NOTE_CLASS} border border-[#cfe3d6] bg-tone-green-bg text-tone-green-fg`}
             >
-              <PartyPopper
-                size={18}
-                aria-hidden="true"
-                className="mt-0.5 shrink-0"
-              />
               <span>
                 &apos;찾았어요&apos;로 바뀌었어요. 이제 다른 사용자에게는 본문 ·
                 사진 · 연락처 · 위치 · 댓글이 보이지 않아요.
@@ -420,7 +420,7 @@ export default function MissingDetail({ post }) {
                 >
                   {post.wtnsPlcNm}
                   <span className="mt-0.5 block text-sm text-muted">
-                    실종 지역: {post.rgnNm}
+                    {post.rgnNm}
                   </span>
                 </InfoRow>
               </dl>
