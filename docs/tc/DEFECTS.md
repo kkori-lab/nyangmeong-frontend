@@ -5,11 +5,11 @@
 
 | 분류 | 건수 | 할 일 |
 | --- | --- | --- |
-| 프론트 코드 수정 `[코드]` | 72 | 프론트를 고친다. 각 도메인 담당이 `/start`로 |
+| 프론트 코드 수정 `[코드]` | 67 | 프론트를 고친다. 각 도메인 담당이 `/start`로 |
 | 백엔드 수정 `[백엔드]` | 11 | 백엔드 저장소에서 `/start`로 |
 | AI 서버 수정 `[AI 서버]` | 3 | AI 저장소에서 `/start`로 |
 | 결정 필요 `[결정]` | 22 | 회의에서 어느 쪽이 맞는지 정한 뒤 문서나 코드를 고친다 |
-| 다른 도메인 문서 수정 `[문서]` | 23 | 코드가 맞다. 그 도메인 명세·화면설계서 담당이 고친다 |
+| 다른 도메인 문서 수정 `[문서]` | 21 | 코드가 맞다. 그 도메인 명세·화면설계서 담당이 고친다 |
 
 ## 프론트 코드 수정
 
@@ -73,17 +73,12 @@
 - FN-ACC-020-17 — 명세는 결과 불명확 상태에서 다음 계정 접근 전에 기존 요청 결과를 먼저 확인한다고 하나 코드는 [안내 닫기]가 랜딩 이동만 한다 (`withdraw/WithdrawFlow.jsx`, `pages/mypage/WithdrawPage.jsx`)
 - FN-ACC-020-15 — 결과 미확인(`unknown`)은 네트워크 끊김·15초 시간 초과(`NETWORK_ERROR`)일 때만이고, 프록시·서버 5xx는 "탈퇴를 처리하지 못했습니다."(실패)로 본다 (`withdraw/useWithdraw.js`)
 
-### 마이페이지 (10)
-- FN-MYP-001-05 / FN-MYP-002-01 — 명세는 "최대 10마리" 문구를 반려동물 관리의 0마리 안내(2-2)에만 두라는데 홈의 0마리 안내에도 같은 문구가 나온다 (src/features/pet/list/PetEmpty.jsx를 홈과 공유)
+### 마이페이지 (5)
 - FN-MYP-002-06 — 반려동물 목록 조회가 실패해도 오류 안내·[다시 시도] 없이 "아직 등록된 반려동물이 없어요"가 보인다 (src/pages/mypage/PetListPage.jsx에 isError 처리 없음)
-- FN-MYP-004-01 — 명세는 카드에 이름·권한·연동일을 표시하라는데 코드는 "공동양육" 배지와 연도 없는 "MM-DD 연동"만 보이고 권한(조회+수정) 문구는 없다 (src/features/pet/list/FamilySection.jsx, pet.md `CaregiverSummary`)
-- FN-MYP-004-01 — 명세는 인원 수(N/5명)를 따로 표시하지 않는다고 하나 모바일 가족 제목 옆에 "2/5"가 보이고, 한 줄 5칸 배치 대신 모바일은 한 줄 1명 목록과 "N명 더보기"를 쓴다 (FamilySection.jsx)
-- FN-MYP-004-02 — 모바일에서 5명이 차면 명세의 "5명이 모두 연동돼 더 초대할 수 없어요"가 보이지 않고 [+ 초대]를 누르면 토스트 "최대 5명까지 함께할 수 있어요"가 뜬다 (FamilySection.jsx)
-- FN-MYP-004-03 — 명세는 주양육자 첫 카드와 [주양육] 배지를 가족 영역에 두라는데, 주양육자 시점에는 주양육자 카드가 없고 공동양육자 시점에서만 "주양육자 {닉네임}" 한 줄이 나온다 (FamilySection.jsx `OwnerLine`)
-- FN-MYP-004-04 — 명세의 공동양육자 본인 카드("나 …")가 없고, 연동 해제는 슬라이드 카드 왼쪽이 아니라 이름 줄 ⋮ 메뉴에 있다 (FamilySection.jsx, PetSlide.jsx `PetMenu`)
-- FN-MYP-005-01 — 대기 중 초대 안내 문구가 명세 "이미 초대를 보냈어요 (MM-DD에 만료돼요)"와 달리 "이미 초대를 보냈어요: 모리(MM-DD 만료)"이다 (src/features/pet/list/InviteModal.jsx)
 - FN-MYP-005-03 — 보낸 초대 조회가 실패해도 오류 안내 없이 "아직 보낸 초대가 없어요"가 보인다 (src/features/pet/list/SentInvitations.jsx)
-- FN-MYP-003-01 — `/mypage/pets?register=1`은 등록 한도(주양육 10마리)를 확인하지 않고 모달을 연다. 한도 계정은 등록 때 `PET_LIMIT_EXCEEDED` 토스트로만 알게 된다 (src/pages/mypage/PetListPage.jsx). 확인 필요
+- FN-MYP-002-09 — `/mypage/pets?register=1`은 등록 한도(주양육 10마리)를 확인하지 않고 모달을 연다. 한도 계정은 등록 때 `PET_LIMIT_EXCEEDED` 토스트로만 알게 된다 (src/pages/mypage/PetListPage.jsx). 확인 필요
+- FN-MYP-003-01 — 체중 기록일이 명세 "MM.DD 기록"과 달리 코드는 "MM-DD 기록"이다 (src/features/pet/list/PetFormModal.jsx `formatRecordDate`)
+- FN-MYP-031-05 — 분석 중 모달에 명세의 썸네일·"분석 중…"·"15초 안에 끝나요. 기다리기 어려우면 취소할 수 있어요." 문구가 없고 진행 막대와 "영수증을 분석하고 있어요"만 있다 (src/features/expense/dashboard/ExpenseReceiptUpload.jsx)
 
 ### 커뮤니티 (6)
 - FN-CMU-002-01 / REQ-NFR-004 — 11-09 결정으로 목록 10건 통일, 실종센터는 지금 12건(`MissingListPage` PAGE_SIZE)
@@ -119,7 +114,7 @@
 ### 마이페이지 (4)
 - FN-MYP-001-01 — 명세는 얼굴 원형에 "착용 아이템 없이" 캐릭터 얼굴을 보이라는데, 서버 `character-image?part=face`는 착용 모습 대표 이미지가 있으면 그것을 잘라 줘서 아이템이 보일 수 있다 (pet.md, PetFace.jsx). 확인 필요
 - FN-MYP-011-05 — 명세는 구매 시 포인트 차감을 요구하나 서버 `ItemService`가 `PointFake`(보유 8,450P 고정, 차감 없음)를 써서 포인트가 줄지 않고 상점 보유 포인트가 포인트 페이지와 다르다 (nyangmeong-backend src/main/java/com/nyangmeong/pet/service/ItemService.java:63·85, PointFake.java)
-- FN-MYP-040-09 — 명세는 SNS 계정 표시만 두는데 코드는 "SNS 계정 연동" 절과 [연동하기]를 추가했고, 백엔드 develop에 `POST /members/me/sns-links`가 없다 (src/features/member/profile/SnsLinkCard.jsx, src/features/member/api.js `linkSns`). 명세 보완과 서버 구현이 필요하다
+- FN-MYP-040-14 — 백엔드 develop에 `POST /members/me/sns-links`가 없어 [연동하기]가 서버 연동까지 닿지 못한다 (src/features/member/profile/SnsLinkCard.jsx, src/features/member/api.js `linkSns`). 서버 구현이 필요하다
 - REQ-MYP-004 — 한도 알림은 "각 1회, 같은 달 재발송 없음"인데 서버는 한도·90% 경계를 새로 넘을 때마다 발송해 지출을 지웠다 다시 넘는 경우 재발송될 수 있다 (ExpenseService.java). 확인 필요
 
 ### 메인페이지 (1)
@@ -145,7 +140,7 @@
 - FN-AIM-013-03 / REQ-AIM-004 — 대상 반려동물을 명세는 "대화의 펫 태그"로 정하지만 코드는 사이드바에서 고른 칩으로 정한다 (src/pages/ai/AiChatPage.jsx handleSendReceipt)
 
 ### 건강기록 (1)
-- FN-HLT-005-15 / FN-HLT-003-12 / REQ-HLT-002 — FN-HLT-005-15와 REQ-HLT-002는 케어 항목의 [출처 보기] 역링크를 말하지만 FN-HLT-003-12는 11-01자로 삭제했고 코드에도 없다. 종합 건강기록 타임라인의 반복 예방 진입도 타임라인이 없어 사라졌고, 2026-11-09 결정으로 대시보드 카드에 다시 붙일 예정이다 (`CareTile.jsx`)
+- FN-HLT-005-15 / FN-HLT-003-12 / REQ-HLT-002 — FN-HLT-005-15와 REQ-HLT-002는 케어 항목의 [출처 보기] 역링크를 말하지만 FN-HLT-003-12는 11-01자로 삭제했고 코드에도 없다. 종합 건강기록 대시보드 진입은 11-10 결정으로 두지 않는다 (`CareTile.jsx`)
 
 ### 고객센터 (2)
 - FN-CSC-003-09 — 명세 총 110MB, 서버 `max-request-size` 100MB(`application.properties.example`)이고 프론트는 총합을 검사하지 않는다. 명세 문장도 "최대 10개이미지 첨부 가능며"로 깨져 있다 (`ImageAttach.jsx`)
@@ -181,10 +176,9 @@
 
 ## 다른 도메인 문서 수정
 
-### 건강기록 (5)
-- FN-HLT-011-03 — 11-09 결정(카드 줄 클릭·반복 예방 진입 다시 붙임)이 명세 v1.4에 없다. v1.4는 검진기록 카드 행을 "조회 전용(눌러도 이동 없음)", 반복 예방은 "넣지 않음"으로 적었고 검사 수치 카드(FN-HLT-011-07)의 검사 결과 줄→검진상세 이동도 없다 (TC-HLT-011-03-05·011-07-13·005-15-05는 수정 예정)
+### 건강기록 (4)
 - 건강기록 대시보드 항목 저장 — 코드는 `GET·PUT /members/me/dashboard-widgets`에 건강기록 전용 13개 코드(HLTC0084~0096)·`indctYn`·`savedYn`을 쓰지만, 백엔드 `docs/api/member.md`에는 메인 위젯용 초안(`DashboardWidgetSaveRequest`의 `dshbdWdgtCds`, 응답 `sortSeq`)만 있고 건강기록용 계약이 없다. 요청·응답 모양은 프론트 코드 기준으로 정했다 (`dashboardApi.js`, `dashboard/widgetItems.js`)
-- REQ-HLT-003 — 요구사항정의서 v0.10.3은 건강기록 변화 그래프를 최근 14개로 적었으나 명세 v1.4·코드는 최근 5개 기록이다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
+- REQ-HLT-003 — 요구사항정의서 v0.10.4은 건강기록 변화 그래프를 최근 14개로 적었으나 명세 v1.4·코드는 최근 5개 기록이다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
 - FN-HLT-002-17·18 — 사진 줄이 최신 5회차만 나열하고 앞은 "+N 이전 회차" 칸으로 접히며, 크기 그래프도 크기 입력 회차 중 최신 5개만 그린다 (`diary/ObservationDetail.jsx` `CHART_COUNT`)
 - FN-HLT-002-19 — [사진 원본 보기]·[이 회차 수정]·[삭제]가 버튼이 아니라 선택 회차 줄의 ⋮ 메뉴에 있다 (`diary/ObservationDetail.jsx`)
 
@@ -197,9 +191,8 @@
 - FN-ACC-001-09·10 / FN-ACC-012-01 — 비밀번호 규칙이 명세는 "8자 이상, 문자와 숫자를 함께"인데 코드·서버는 영문+숫자 ASCII 8~64자(공백 불가)다. 오류 문구도 명세 "비밀번호는 8자 이상, 문자와 숫자를 함께 입력해 주세요."가 아니라 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)" (`shared/validate.js`, `password/passwordMessages.js`)
 - 명세 밖 — SNS 계정 연동(`linkSns`, 회원정보의 [연동하기], 콜백 `mode: 'link'`)은 이 명세에 기능 ID가 없다. 마이페이지(MYP-040) TC에서 다룬다 (`login/useSnsCallback.js`, `profile/SnsLinkCard.jsx`)
 
-### 마이페이지 (2)
-- FN-MYP-001-01 — 나이 표기가 명세는 "N살"인데 코드는 "3살 2개월"·"5개월"처럼 개월까지 표시한다 (src/utils/petFormat.js `formatAge`)
-- FN-MYP-040-06 — 명세는 "8자 이상, 문자·숫자 조합"인데 코드와 서버는 영문+숫자 8~64자·공백/한글 불가이고 안내 문구도 다르다 (src/features/member/profile/PasswordChangeCard.jsx, src/features/member/shared/validate.js, milestones/SJM.md 2026-11-04 결정)
+### 마이페이지 (1)
+- FN-MYP-040-06 — 명세 v0.6은 규칙을 영문+숫자 8~64자로 고쳤지만 새 비밀번호 칸 안내 문구가 "…8자 이상 입력해 주세요"로 남아 코드 "…8~64자로 입력해 주세요(공백 제외)"와 다르다 (src/features/member/profile/PasswordChangeCard.jsx, src/features/member/shared/validate.js, milestones/SJM.md 2026-11-04 결정)
 
 ### 메인페이지 (5)
 - FN-MAN-001 — 명세는 히어로에 대표 반려동물 캐릭터를 이름·품종 캡션과 함께 노출하고 미등록·비로그인은 기본 캐릭터로 대체한다고 하나, 코드는 인사말만 있고 캐릭터는 바로가기 타일 얼굴에만 있다 (`MainPage.jsx`)
