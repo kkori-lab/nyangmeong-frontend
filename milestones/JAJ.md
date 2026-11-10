@@ -2,6 +2,15 @@
 
 기준: 건강기록_기능명세서_v1.4_20261110 (DMS, 2026-11-10)
 
+## SCR-HLT-005·007 건강기록 상세 화면 · 반려동물 표시 — 끝
+
+- 기능: FN-HLT-005-16 · 007-07 이 기록의 아이(보기 전용, ※신규 정책, v1.4에 없음)
+- 기다리는 것: 없음
+- 완료 조건: 명령: lint·build 0 / 화면: 검진상세·검사 수치 입력에 주소 petSn 아이 카드(1101px 이상)·알약(1100px 이하), 눌러도 반응 없음, 공통 선택값 그대로, 공동양육 아이도 표시, 로딩·오류에서는 없음
+- 결정(사람, 2026-11-10): `shared/PetSwitcher.jsx`에 `export function PetBadge({ pet, variant })`(`<div>`, 포커스·팝오버 없음, `useStickBelowMenu` 재사용). 카드·알약 모두 `bg-surface-3`·`border-transparent`. `useMyPets()` 목록에서 주소 petSn으로 찾고 없으면 안 그림
+- 결과: 2026-11-10 검증 2회차 통과(1회차는 카드 `max-[1100px]:hidden`이라 정확히 1100px에서 카드·알약이 같이 보여 실패 → `max-[1101px]:hidden`). 화면은 user0006(까미 공동양육)으로 확인, 사람 확인 끝
+- 연결 남음: 없음
+
 ## SCR-HLT-011 종합 건강기록 · 휴대폰 요약 띠와 2열 요약 타일 — 끝
 
 - 기능: FN-HLT-011-17 휴대폰 요약 타일(v1.4 신설, 만들 때는 ID 없음), 640px 미만(`max-sm`)에서만 바꾼다(640px 이상은 그대로). 바꿀 파일 `summary/SummaryBanner.jsx`·`dashboard/HealthDashboard.jsx`·`dashboard/DashboardCard.jsx`(AiReportCard)·`dashboard/WidgetCard.jsx`, 필요하면 새 `dashboard/WidgetTile.jsx`. 공용 `Card.jsx` 등은 건드리지 않음
