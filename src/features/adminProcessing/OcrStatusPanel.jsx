@@ -13,7 +13,7 @@ import ReceiptTable from './ReceiptTable';
 const PAGE_SIZE = 20;
 
 /** 필터 칸 이름(URL 쿼리와 같다) */
-const FILTER_NAMES = ['fromYmd', 'toYmd', 'ocrRqstSrcCd', 'ocrPrcsSttsCd'];
+const FILTER_NAMES = ['fromYmd', 'toYmd', 'ocrDmndSrcCd', 'ocrPrcsSttsCd'];
 
 /** 값이 있는 칸만 남긴 객체 */
 const pickFilled = (filter) =>
@@ -55,8 +55,8 @@ export default function OcrStatusPanel({
     return (
       <ProcessingSkeleton
         filterClass="h-10 w-full max-w-[820px] max-[760px]:h-[184px]"
-        cardCount={4}
-        cardGridClass="min-[761px]:grid-cols-4"
+        cardCount={5}
+        cardGridClass="min-[761px]:grid-cols-5"
         cardClass="h-[106px]"
         tableClass="h-[1105px]"
       />
@@ -74,7 +74,7 @@ export default function OcrStatusPanel({
         key={JSON.stringify(filter)}
         filter={filter}
         selects={[
-          { name: 'ocrRqstSrcCd', label: '출처', codes: OCR_SOURCES },
+          { name: 'ocrDmndSrcCd', label: '출처', codes: OCR_SOURCES },
           { name: 'ocrPrcsSttsCd', label: '상태', codes: statuses.data },
         ]}
         onSearch={handleSearch}
@@ -87,7 +87,7 @@ export default function OcrStatusPanel({
       ) : (
         <>
           <ProcessingStatCards
-            className="min-[761px]:grid-cols-4"
+            className="min-[761px]:grid-cols-5"
             items={[
               { key: 'tot', label: '요청', value: summary.totCnt },
               { key: 'scs', label: '성공', value: summary.scsCnt },
@@ -99,6 +99,7 @@ export default function OcrStatusPanel({
                 isDanger: summary.failCnt > 0,
               },
               { key: 'prcs', label: '처리 중', value: summary.prcsCnt },
+              { key: 'err', label: '일시 오류', value: summary.errCnt },
             ]}
           />
           {receipts.data.content.length === 0 ? (
