@@ -107,10 +107,6 @@ export const cancelLastDose = ({ petSn, careArtclSn }) =>
 export const cancelCareRecord = ({ petSn, careCmptnHstrySn }) =>
   api.delete(`/pets/${petSn}/care-completions/${careCmptnHstrySn}`);
 
-/** 메인 표시(★) 항목 전체 저장: 배열 순서가 메인 정렬 순서 */
-export const saveCareMain = ({ petSn, careArtclSns }) =>
-  api.put(`/pets/${petSn}/care-item-exposures`, { careArtclSns });
-
 export const createCareItem = ({ petSn, body }) =>
   api.post(`/pets/${petSn}/care-items`, body);
 

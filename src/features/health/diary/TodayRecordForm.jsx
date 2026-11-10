@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import { getNowHm, getTodayYmd, makeDateTime } from '@/utils/formatDate';
@@ -237,16 +238,10 @@ export default function TodayRecordForm({
 
           {type && (
             <div className="flex flex-wrap items-end gap-4 @4xl:min-w-0 @4xl:flex-1 @4xl:flex-nowrap">
-              <label className="flex min-w-40 flex-1 flex-col gap-1.5">
+              <div className="flex min-w-40 flex-1 flex-col gap-1.5">
                 <span className={LABEL_CLASS}>시간</span>
-                <input
-                  ref={timeRef}
-                  type="time"
-                  value={rcdTm}
-                  className={`${INPUT_CLASS} tabular-nums`}
-                  onChange={(event) => setRcdTm(event.target.value)}
-                />
-              </label>
+                <TimeSelect ref={timeRef} value={rcdTm} onChange={setRcdTm} />
+              </div>
               {isStool ? (
                 <label className="flex min-w-40 flex-1 flex-col gap-1.5">
                   <span className={LABEL_CLASS}>{type.valueLabel}</span>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
 import {
@@ -318,14 +319,13 @@ function RecordRow({
   return (
     <li className="mt-2 flex flex-col gap-1 pl-7 max-[760px]:pl-0">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3">
-        <div className="grid grid-cols-2 gap-2 max-[760px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <input
-            type="time"
+        {/* 시간 세 칸이 값 칸과 한 줄에 안 들어가는 760px 이하는 위아래로 쌓는다 */}
+        <div className="grid grid-cols-2 gap-2 max-[760px]:grid-cols-1">
+          <TimeSelect
             aria-label={`${type.nm} 시각`}
             value={draft.rcdTm}
             disabled={isDisabled}
-            className={`${INPUT_CLASS} tabular-nums`}
-            onChange={(event) => onChange({ rcdTm: event.target.value })}
+            onChange={(rcdTm) => onChange({ rcdTm })}
           />
           {isStool ? (
             <select
