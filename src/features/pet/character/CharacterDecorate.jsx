@@ -2,6 +2,9 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
+import EmptyResult from '@/components/EmptyResult';
+import Skeleton from '@/components/Skeleton';
+import SkeletonCard from '@/components/SkeletonCard';
 import { showToast } from '@/components/toastStore';
 import { useCharacterImage } from '@/hooks/useCharacterImage';
 import { PATHS } from '@/routes/paths';
@@ -121,20 +124,15 @@ export default function CharacterDecorate({ pet }) {
     />
   );
 
-  if (isPending) return null;
+  if (isPending) return <DecorateSkeleton />;
 
   if (isError) {
     return (
-      <p className="py-10 text-center text-muted">
-        꾸미기 정보를 불러오지 못했어요{' '}
-        <button
-          type="button"
-          onClick={() => refetch()}
-          className="font-semibold text-brand-600 underline"
-        >
+      <EmptyResult title="꾸미기 정보를 불러오지 못했어요">
+        <button type="button" onClick={() => refetch()} className={BTN_PRIMARY}>
           다시 시도
         </button>
-      </p>
+      </EmptyResult>
     );
   }
 
@@ -236,6 +234,25 @@ export default function CharacterDecorate({ pet }) {
         />
       )}
     </>
+  );
+}
+
+/** 꾸미기 로딩 자리: 미리보기 카드 + 보관함 카드 (CharacterPage 로딩도 같이 쓴다) */
+export function DecorateSkeleton() {
+  return (
+    <div aria-busy="true" className="contents">
+      <div className="flex justify-end max-[760px]:mb-4 max-[760px]:-translate-y-3">
+        <Skeleton className="h-10 w-24" />
+      </div>
+      <div className="mt-4 grid items-start gap-4 max-[760px]:col-span-full min-[1101px]:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
+        <SkeletonCard className="h-[478px] max-[760px]:h-[346px]" />
+        <SkeletonCard className="h-[187px]" />
+      </div>
+      <div className="mt-5 flex justify-end gap-2 border-t border-line pt-5 max-[760px]:col-span-full">
+        <Skeleton className="h-10 w-24 max-[760px]:flex-1" />
+        <Skeleton className="h-10 w-24 max-[760px]:flex-1" />
+      </div>
+    </div>
   );
 }
 
