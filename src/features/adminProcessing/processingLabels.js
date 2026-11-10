@@ -1,7 +1,6 @@
 /**
  * [처리 현황 코드·이름]
- * - 확인된 값: 영수증 출처 AIMC0026·AIMC0027·AIMC0031(AIMG07), 인식 실패 AIMC0004(AIMG01), 호출결과 SYSG06
- * - TMP로 시작하는 값은 공통코드를 몰라 둔 임시 값 -> 백엔드 연결 때 교체
+ * - 영수증 출처 AIMG07, 인식 실패 AIMC0004(AIMG01), 캐릭터 생성 작업 상태 CHRG01, 호출결과 SYSG06
  */
 
 /** 탭: ?tab=ocr|character|pdf */
@@ -31,16 +30,16 @@ export const OCR_SOURCES = [
   { comCd: 'AIMC0031', comCdNm: 'AI 대화창' },
 ];
 
-/** 캐릭터 생성 작업 상태: 공통코드 미확인 */
+/** 캐릭터 생성 작업 상태(CHRG01) */
 export const CHAR_JOB_STTS = [
-  { comCd: 'TMP00041', comCdNm: '대기' },
-  { comCd: 'TMP00042', comCdNm: '생성 중' },
-  { comCd: 'TMP00043', comCdNm: '완료' },
-  { comCd: 'TMP00044', comCdNm: '실패' },
+  { comCd: 'CHRC0001', comCdNm: '요청' },
+  { comCd: 'CHRC0002', comCdNm: '생성 중' },
+  { comCd: 'CHRC0003', comCdNm: '생성 완료' },
+  { comCd: 'CHRC0004', comCdNm: '생성 실패' },
 ];
 
-/** 캐릭터 생성 작업 상태: 실패 */
-export const CHAR_JOB_STTS_FAIL = 'TMP00044';
+/** 캐릭터 생성 작업 상태: 생성 실패 */
+export const CHAR_JOB_STTS_FAIL = 'CHRC0004';
 
 /** 외부 API 호출결과(SYSG06) */
 export const CALL_RSLT = {

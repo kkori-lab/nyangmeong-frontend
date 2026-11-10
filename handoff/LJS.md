@@ -2,10 +2,11 @@
 
 ## 지금 하는 것
 
-SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 끝(2026-11-10). `features/adminProcessing/api.js` `getAdminReceipts` 가짜를 지우고 실제 `GET /api/admin/processing/receipts`로 연결, 출처 `ocrDmndSrcCd`·일시 `regDt`·가계부 `AIMC0027`로 맞추고 건수 카드에 "일시 오류"(`errCnt`)를 더함
+SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 끝(2026-11-10). `features/adminProcessing/api.js` `getAdminCharacterJobs` 가짜를 지우고 실제 `GET /api/admin/processing/character-jobs`로 연결, 상태 `crtJobSttsCd`(CHRG01 CHRC0001~0004)·일시 `regDt`로 맞춤. 추가-1로 상태 필터를 카드 누르기에서 영수증 OCR 탭과 같은 필터 줄(기간 + 상태 드롭다운 + [조회])로 바꾸고 건수 카드는 읽기 전용
 
 ## 다음에 할 것
 
+- SCR-ADM-082 연결 남음(2026-11-10): 추가-1 캐릭터 생성 탭 기간 필터 (백엔드 연결 `GET /api/admin/processing/character-jobs` `fromYmd`·`toYmd`, 백엔드 저장소에서 /start). 백엔드 세션에 알렸고 SCR-ADM-110 다음에 하기로 답함. 프론트는 이미 보내므로 끝나면 화면에서 기간 조회만 확인
 - SCR-ADM-072 연결 남음(2026-11-10): FN-ADM-072-03 회원 포인트 내역(`/mypage/points`)에 관리자 조정 사유 `memoCn`을 보일지 SJM과 정한다. 지금은 `features/point/history/PointHistory.jsx` `getTitle`이 일부러 "관리자 조정" 고정 문구만 보인다(SJM, SCR-MYP-020)
 - SCR-ADM-072 검증 데이터(2026-11-10, 8081 DB): 회원 #1(tester)에 원장 2줄 "+10 [검증] 포인트 지급"·"-10 [검증] 되돌림"이 남았다(잔액은 처음과 같은 2,209, 원장 삭제 API 없음)
 
@@ -54,9 +55,8 @@ SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 끝(2026-11-10)
 - SCR-ADM-101 사람이 볼 것(판정 밖, 2026-11-04): ① 강아지 "확인용품종"(정렬 5) 등 로컬 DB 확인용 품종은 [수정]에서 사용을 끈다(삭제 API 없음) ② 400 `fields`에 `vrtyNm`·`sortSeq` 밖 칸만 오면 문구가 안 보인다(약관 폼과 같음)
 - SCR-ADM-001 연결 남음: FN-ADM-001-02·03 (백엔드 연결 `GET /api/admin/dashboard`(운영 현황 `totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs`·`recentPsts`, 처리 대기 `dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`, 가정 필드), 백엔드 저장소에서 /start). 나오면 `features/adminDashboard/api.js` 가짜 본문만 실제 요청으로 바꾼다
 - SCR-ADM-001 연결 남음: FN-ADM-001-04·05 (백엔드 연결 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(`daily`[`ymd`·`joinCnt`·`whdwlCnt`·`aiChatCnt`·`ocrRqstCnt`]·`pstCntByBbs`·`expnsCntByCtgry`·`petDstrb`·`fvrtPlcs`, 가정 필드, 최대 90일), 백엔드 저장소에서 /start)
-- SCR-ADM-001 사람이 볼 것(판정 밖): ① 캐릭터 생성 실패 링크의 `jobSttsCd=TMP00044`는 SCR-ADM-082와 같은 임시 코드 ② 실패한 배치는 배치 화면에 실패 필터가 없어 필터 없이 간다 ③ 스켈레톤은 검증에서 코드로만 확인했다
+- SCR-ADM-001 사람이 볼 것(판정 밖): ② 실패한 배치는 배치 화면에 실패 필터가 없어 필터 없이 간다 ③ 스켈레톤은 검증에서 코드로만 확인했다
 
-- SCR-ADM-082 연결 남음: FN-ADM-082-02 (백엔드 연결 `GET /api/admin/processing/character-jobs?jobSttsCd=&page=`(`sttsCnts` 가정)·CHAR_CRT_JOB 상태 공통코드(지금 임시 `TMP00041~44`), 백엔드 저장소에서 /start)
 - SCR-ADM-082 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=`(summary `totCnt`·`scsCnt`·`tmotCnt`·`errCnt` 가정)·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
 - SCR-ADM-082 사람이 볼 것(판정 밖): ① `routes/paths.js`에 `ADMIN_PROCESSING`을 기능 커밋에 같이 넣었다(사람 2026-11-04 추천안대로) ② 대시보드 링크는 `?tab=ocr&ocrPrcsSttsCd=AIMC0004`(기획의 `status=`를 서버 키 이름으로 고침) ③ 스켈레톤 높이는 브라우저로 재지 않고 계산한 값 ④ 가짜 영수증 성공·처리 중 코드 AIMC0003·0002는 가정(AIMG01에서 확인된 것은 인식 실패 AIMC0004뿐)
 - SCR-ADM-081 연결 남음: FN-ADM-081-01·02 (백엔드 연결 `GET /api/admin/ai/keywords?dictUsgCd=&kwrdClsfNm=`·`POST /api/admin/ai/keywords`·`PATCH`·`DELETE /api/admin/ai/keywords/{kwrdDictSn}`, 새 행 `sortSeq` 규칙(가정: 그 탭 맨 아래), 백엔드 저장소에서 /start). 나오면 `features/adminAiKeyword/api.js` 가짜 본문(sessionStorage `fakeAdminAiKeywords`)만 실제 요청으로, 코드 선택지는 `keywordLabels.js`에서 맞춘다
