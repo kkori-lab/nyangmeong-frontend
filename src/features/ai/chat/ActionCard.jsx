@@ -11,7 +11,7 @@ import { BADGE_COLORS, TONE_CLASSES } from '@/constants/calendarBadge';
 import { PATHS } from '@/routes/paths';
 import { formatYmdWeekday } from '@/utils/formatDate';
 import { actionFieldName } from '../shared/actionFields';
-import { openInMainWindow } from './openInMainWindow';
+import { useOpenMain } from './aiHost';
 import {
   CARE_ITEM_TOOL,
   hasPetChoice,
@@ -57,7 +57,7 @@ const toInputValue = (type, value) => {
 const fromInputValue = (type, raw) =>
   type === 'datetime' && raw.length === 16 ? `${raw}:00` : raw;
 
-/** 칩 고르기: 필수가 아닌 칸은 고른 칩을 다시 누르면 비운다 */
+/** 칩 고르기: 필수가 아닌 칸은 고른 칩을 다시 누르면 비움 */
 function ChoiceChips({ choices, value, isRequired, isDisabled, onPick }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -216,7 +216,7 @@ function FieldControl({
 
 /**
  * 등록한 반려동물로 케어 캘린더 열기: 캘린더가 `?petSn=`을 보고 있는 아이로 고름
- * - 케어 항목은 케어리스트 탭(#hlt003-care)에서 보인다. 일정은 달력 탭
+ * - 보이는 곳: 케어 항목은 케어리스트 탭(#hlt003-care), 일정은 달력 탭
  */
 const calendarPath = (petSn, isCareItem) => {
   const query = petSn == null ? '' : `?petSn=${encodeURIComponent(petSn)}`;
@@ -226,6 +226,7 @@ const calendarPath = (petSn, isCareItem) => {
 
 /** 결과 줄: 저장한 요약 메시지와 같은 글, 등록 직후에는 그 아래 오른쪽에 케어 캘린더 바로가기 */
 function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
+  const openMain = useOpenMain();
   const isDone = status === 'done';
   const Icon = isDone ? CircleCheck : CircleX;
   let color = 'text-[#667374]';
@@ -244,7 +245,7 @@ function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
           <button
             type="button"
             className="flex items-center gap-1 text-base font-semibold leading-6 text-[#1e4a4c] hover:underline"
-            onClick={() => openInMainWindow(calendarPath(petSn, isCareItem))}
+            onClick={() => openMain(calendarPath(petSn, isCareItem))}
           >
             {isCareItem ? '케어리스트에서 보기' : '케어 캘린더에서 보기'}
             <ArrowRight aria-hidden="true" className="size-[18px]" />
@@ -257,8 +258,8 @@ function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
 
 /**
  * [확인 카드(2단계 쓰기)]
- * - 서버가 준 칸 규칙(params)으로 폼을 그리고, 빈 필수 칸이 있으면 [확인]이 눌리지 않는다
- * - 가장 최근 카드의 버튼만 활성, 처리한 카드는 결과 줄만 남는다
+ * - 서버가 준 칸 규칙(params)으로 그린 폼, 빈 필수 칸이 있으면 [확인] 비활성
+ * - 가장 최근 카드의 버튼만 활성, 처리한 카드는 결과 줄만
  */
 export default function ActionCard({
   item,

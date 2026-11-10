@@ -1102,11 +1102,12 @@
 - 완료 조건: `features/dashboard/api.js`의 가짜 두 함수를 실제 API로 바꾸고, `shortcutTypes.js`의 임시 코드 `HEALTH`·`DIARY`·`CALENDAR`를 `MANC0008`(종합 건강기록)·`MANC0009`(건강 일지)·`MANC0010`(케어 캘린더)로 바꾼다. 저장한 적 없는 반려동물은 서버가 `[MANC0008]`을 주므로 프론트 기본값 분기를 없앤다. 바로가기를 추가·수정·삭제하고 새로고침해도 남는다(실제 API 기준). 저장 400의 `data[].field`는 `[i].petSn`·`[i].shrtcCds[j]` 형식
 - 이미 바뀐 것: `features/dashboard/api.js`(가짜 조회·저장), `shortcutTypes.js`(임시 코드), SCR-MAN-001 구글 시작 화면형 개편(끝)
 
-## SCR-COM-007 AI 매니저 진입 · 모바일에서 AI 매니저를 모달로 — 대기
-- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-COM-007-01, FN-AIM-011-01
-- 기다리는 것: 없음(후순위, 사람 결정 2026-11-09. 명세가 "새 창(탭), 모달 아님"이라 문서 담당에 알림)
-- 완료 조건: 모바일에서 플로팅 AI와 메인 검색창이 새 탭 대신 펫돌봄 채팅 모달(`layouts/ChatModal.jsx`)처럼 헤더 아래 전체 화면으로 열린다. 사진 넘기기, 본창 이동, 닫기가 모달에서 동작한다
-- 정할 것: PC는 새 창 그대로인지, 모달에 [새 창으로 띄우기]를 둘지
+## SCR-COM-007 AI 매니저 진입 · 모바일에서 AI 매니저를 모달로 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-COM-007-01·03·05, FN-AIM-011-01. M1 760px 이하면 `hooks/useAiWindow.js`가 새 창 대신 AI 모달(`context/AiModalProvider.jsx`) / M2 대화 본문 `pages/ai/AiChatScreen.jsx`로 분리, `AiChatPage`는 새 창 껍데기, 말풍선·카드의 본창 이동은 `features/ai/chat/aiHost.js` `useOpenMain` / M3 `pages/ai/AiChatModal.jsx`(헤더 아래 전체 화면, [✕]·Esc·페이지 이동으로 닫힘, 모달 안 이동은 같은 창, 펫돌봄 채팅은 채팅 모달, 로그아웃·탈퇴 때 닫힘, 대화 목록 drawer Esc는 drawer만)
+- 결정(사람 2026-11-10): PC는 새 창 그대로, 모바일 모달에 [새 창으로 띄우기] 없음, 닫았다 다시 열면 새 대화
+- 추가 요청: 추가-1 761px 이상으로 넓히면 모달 닫기(`AiChatModal.jsx`, 요청 2026-11-10 15:10) — 검증 통과
+- 검증: 2회 모두 통과, 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-AIM-012 대화창 · 확인 카드(ACTION) 연결 — 끝
 - 기능: (연결 작업, 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-04·09·10·11·16) 2단계 쓰기 확인 카드 `done.action`을 `params`·`rules`·`missing`·`petChoices`로 폼으로 그리고 [확인]은 카드의 `call`로 Java를 부른 뒤 `action-result`에 저장. 도구 7개(케어 완료·건강 일지·월 지출 한도, 일정·케어 항목·지출·반려동물 수정)

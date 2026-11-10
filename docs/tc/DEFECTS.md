@@ -5,20 +5,23 @@
 
 | 분류 | 건수 | 할 일 |
 | --- | --- | --- |
-| 프론트 코드 수정 `[코드]` | 66 | 프론트를 고친다. 각 도메인 담당이 `/start`로 |
+| 프론트 코드 수정 `[코드]` | 69 | 프론트를 고친다. 각 도메인 담당이 `/start`로 |
 | 백엔드 수정 `[백엔드]` | 10 | 백엔드 저장소에서 `/start`로 |
-| AI 서버 수정 `[AI 서버]` | 3 | AI 저장소에서 `/start`로 |
-| 결정 필요 `[결정]` | 22 | 회의에서 어느 쪽이 맞는지 정한 뒤 문서나 코드를 고친다 |
-| 다른 도메인 문서 수정 `[문서]` | 19 | 코드가 맞다. 그 도메인 명세·화면설계서 담당이 고친다 |
+| AI 서버 수정 `[AI 서버]` | 5 | AI 저장소에서 `/start`로 |
+| 결정 필요 `[결정]` | 21 | 회의에서 어느 쪽이 맞는지 정한 뒤 문서나 코드를 고친다 |
+| 다른 도메인 문서 수정 `[문서]` | 22 | 코드가 맞다. 그 도메인 명세·화면설계서 담당이 고친다 |
 
 ## 프론트 코드 수정
 
-### AI매니저 (5)
+### AI매니저 (8)
 - FN-AIM-011-03 / FN-AIM-011-17 / REQ-AIM-003 — 세션 만료 시 명세는 "인증 오류 표시 후 대화창 닫기", 코드는 401이면 창이 로그인 화면으로 이동한다 (src/api/axios.js, milestones/LJS.md "연결 남음")
 - FN-AIM-005-08 / FN-AIM-005-03 — 범위 밖 안내가 일반 AI 말풍선이라 칩 7개·고객센터 안내가 나오지 않는다. 연속 실패 횟수만 오른다 (src/features/ai/chat/ConversationMessages.jsx, src/pages/ai/AiChatPage.jsx)
-- FN-AIM-012-09 / FN-AIM-012-13 / FN-AIM-012-14 / FN-AIM-012-17 / REQ-AIM-007 — [등록]의 일정·케어 항목 저장이 가짜 응답이라 실제로 저장되지 않는다 (src/features/ai/api.js)
-- FN-AIM-006-02 — 알림 설정 화면의 "예정일 알림" 설명이 명세·백엔드(병원 일정만)보다 넓다. 화면 문구를 고친다
 - FN-AIM-011-09 — 이어 쓴 대화를 목록 맨 위로 올리는 마지막 활동 시각이 이 창 메모리에만 있어 새로고침하면 등록일순으로 돌아간다 (src/features/ai/api.js lastActive)
+- FN-AIM-013-10 / REQ-AIM-004 — 사진 용도 판단이 프론트 가짜다. 사진은 보지 않고 400ms 뒤 함께 보낸 글의 낱말로만 고른다("캐릭터" → 캐릭터, "진료"·"병원"·"검진" → 진료 영수증, "가계부"·"지출"·"사료"·"용품" → 가계부, 그 밖 → 종류 칩). 글 없이 사진만 보내면 항상 종류 칩이 뜬다. AI 서버 `POST /ai/image-intent`는 있으나 연결 전이다 (src/features/ai/api.js judgeImageIntent)
+- FN-AIM-013-03 / REQ-AIM-004 — 명세는 대화의 펫 태그가 특정 반려동물이면 그 아이로 정하지만, 코드는 사이드바 칩만 본다. 태그가 콩이인 대화를 연 채 칩을 [전체]로 바꾸면(대화는 유지) 사진을 보낼 때 반려동물을 되묻는다 (src/pages/ai/AiChatPage.jsx goImageKind·autoPet). 새 대화는 칩이 곧 태그라 어긋나지 않는다
+- FN-AIM-012-19 — 관찰 기록 추가: 프론트 확인 카드에 파일 입력이 없어 사진(file) 칸이 글 입력으로 그려지고, 필수 file 칸이 비어 [확인]을 누를 수 없다. 관찰 일시·크기·변화·사진 칸은 표시 이름(shared/actionFields.js)이 없어 칸 이름 그대로 보인다 (src/features/ai/chat/ActionCard.jsx FieldControl)
+- FN-AIM-012-19 — 지출 등록: 배열 칸(lines: 반려동물·금액)을 폼에서 숨겨 카드에서 금액을 고칠 수 없다. 빈 필수 칸 판정이 맨 위 칸만 봐서 줄 안 빈 금액(lines[0].expndAmt)이 있어도 [확인]이 눌리고 Java 400이 나며 오류 문구는 카드 아래에 보인다 (src/features/ai/chat/actionForm.js visibleFields·missingFields)
+- FN-AIM-006-02 — 알림 설정 화면의 "예정일 알림" 설명이 명세·백엔드(병원 일정만)보다 넓다. 화면 문구를 고친다
 
 ### 건강기록 (3)
 - FN-HLT-011-13 — 체중 카드 0건 문구가 명세 v1.4는 "첫 기록을 남기면 그래프로 보여요", 코드는 "기록이 없어요"다 (`dashboard/widgetItems.js` `emptyText`)
@@ -121,7 +124,9 @@
 
 ## AI 서버 수정
 
-### AI매니저 (1)
+### AI매니저 (3)
+- FN-AIM-012-01 / REQ-AIM-007 — 옛 등록 카드 계약이 AI 서버에 남아 있다. chat.md·service.py에 REGISTER(`done.card`)·`register-result`가 "프론트 전환 뒤 삭제"로 남아 있다. 프론트는 이미 지웠고(8e070f2) `draft`를 보내지 않으므로 화면에서는 나오지 않는다 (nyangmeong-ai docs/api/chat.md RegisterDraft·RegisterCard)
+- FN-AIM-002-08 — 읽기 도구 중 `data/tool_prompts.yaml`에 실린 것만 쓰인다. 반려동물 정보(생일·품종 등)·커뮤니티·포인트 읽기 도구는 실리지 않아 "우리 애 생일이 언제야?"를 조회하지 못할 수 있다 (nyangmeong-ai data/tool_prompts.yaml, data/tools.snapshot.json)
 - FN-AIM-004-08 — 변환표에 SCR-ACC-020(회원탈퇴)이 있으나 AI 서버 매핑표에는 그 화면이 없어 "탈퇴"는 회원정보 수정(SCR-MYP-040)으로 간다 (src/features/ai/shared/screenPaths.js, nyangmeong-ai data/routing.yaml)
 
 ### 관리자 (1)
@@ -131,9 +136,6 @@
 - FN-MYP-010-13 / FN-MYP-010-16 — 착용 합성(미리보기·[장착] 뒤 대표 이미지)이 AI 서버의 아이템 굽기에 달려 있어, 설정이 꺼져 있으면 `ITEM_BAKING`(409)로 동작하지 않는다 (milestones/SJM.md, WearPreview.jsx)
 
 ## 결정 필요
-
-### AI매니저 (1)
-- FN-AIM-013-03 / REQ-AIM-004 — 대상 반려동물을 명세는 "대화의 펫 태그"로 정하지만 코드는 사이드바에서 고른 칩으로 정한다 (src/pages/ai/AiChatPage.jsx handleSendReceipt)
 
 ### 건강기록 (1)
 - FN-HLT-005-15 / FN-HLT-003-12 / REQ-HLT-002 — FN-HLT-005-15와 REQ-HLT-002는 케어 항목의 [출처 보기] 역링크를 말하지만 FN-HLT-003-12는 11-01자로 삭제했고 코드에도 없다. 종합 건강기록 대시보드 진입은 11-10 결정으로 두지 않는다 (`CareTile.jsx`)
@@ -173,6 +175,11 @@
 - FN-HOS-001-33 / REQ-HOS-005 — 요구사항은 비로그인 즐겨찾기 시도에 로그인 유도 컴포넌트(SCR-COM-903)를 표시한다고 하지만, 명세는 플레이스 안의 로그인 유도 팝업을 표시하지 않는다고 한다. 코드는 명세를 따른다 (`routes/domains/place/placeRoutes.js`)
 
 ## 다른 도메인 문서 수정
+
+### AI매니저 (3)
+- FN-AIM-001-05 / FN-AIM-004-01·12 / FN-AIM-005-01 — 의도 분기 서술(규칙 4단계: 등록 판정 → 라우팅 → 검색 → 폴백)이 AI 서버의 도구 흐름(항상 도구 고르기 LLM, 키워드는 힌트)과 다르다. 이 TC의 004·005 행은 사람이 보는 결과(이동 안내·폴백 안내)만 적었다
+- FN-AIM-012-02 — 도구 흐름의 칸 해석에 "오전·오후 없는 1~7시는 오후", "'했어' 앞 날짜는 마지막으로 한 날" 규칙이 적용되는지 문서로 확인하지 못했다(규칙 코드는 nyangmeong-ai app/chat/rules.py에 남아 있음). TC-AIM-012-02-04에 확인 필요로 적었다
+- FN-AIM-013-10 — AI 서버 chat.md의 `POST /ai/image-intent`가 기능 ID를 "메인 개편 뒤"로 비워 두었다. 이 문서는 FN-AIM-013-10으로 붙였으니 AI 서버 문서에 반영이 필요하다
 
 ### 건강기록 (4)
 - 건강기록 대시보드 항목 저장 — 코드는 `GET·PUT /members/me/dashboard-widgets`에 건강기록 전용 13개 코드(HLTC0084~0096)·`indctYn`·`savedYn`을 쓰지만, 백엔드 `docs/api/member.md`에는 메인 위젯용 초안(`DashboardWidgetSaveRequest`의 `dshbdWdgtCds`, 응답 `sortSeq`)만 있고 건강기록용 계약이 없다. 요청·응답 모양은 프론트 코드 기준으로 정했다 (`dashboardApi.js`, `dashboard/widgetItems.js`)

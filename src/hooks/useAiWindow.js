@@ -1,8 +1,12 @@
 import { useCallback } from 'react';
+import { useAiModal } from '@/context/aiModal';
 import { PATHS } from '@/routes/paths';
 
 /** 고정된 창 이름: window.open이 기존 채팅 창 재사용 */
 const AI_WINDOW_NAME = 'nyangmeong-ai';
+
+/** 새 창 대신 모달로 여는 폭 (사람 결정 2026-11-09) */
+const MODAL_QUERY = '(max-width: 760px)';
 
 /** 본창 ↔ AI 창 첨부 사진 전달 채널(같은 origin의 모든 창) */
 const ATTACH_CHANNEL = 'nyangmeong-ai-attach';
@@ -13,8 +17,8 @@ const ATTACH_WAIT_MS = 3000;
 
 /**
  * 본창: 사진을 메모리에 잡아 두고 번호 반환
- * - AI 창이 그 번호로 요청하면 File을 돌려주고 채널을 닫는다
- * - AI 창을 연 탭이 아니어도 같은 origin이면 받는다(이미 열린 창 재사용 대비)
+ * - AI 창이 그 번호로 요청하면 File 전달 뒤 채널 닫기
+ * - AI 창을 연 탭이 아니어도 같은 origin이면 전달(이미 열린 창 재사용 대비)
  */
 const holdAttachment = (file) => {
   const attachId = crypto.randomUUID();
@@ -52,22 +56,31 @@ export function closeAiWindow() {
   window.open('', AI_WINDOW_NAME)?.close();
 }
 
-/** open(firstMessage?, file?) 반환, 창 열림 true·팝업 차단 false */
+/** open(firstMessage?, file?) 반환, 창·모달 열림 true·팝업 차단 false */
 export default function useAiWindow() {
-  return useCallback((firstMessage, file) => {
-    /** 빈 URL: 기존 창 재사용 */
-    const aiWindow = window.open('', AI_WINDOW_NAME);
-    if (!aiWindow) return false;
+  const { open: openAiModal } = useAiModal();
+  return useCallback(
+    (firstMessage, file) => {
+      /** 760px 이하: 같은 창의 모달 */
+      if (window.matchMedia(MODAL_QUERY).matches) {
+        openAiModal(firstMessage, file);
+        return true;
+      }
+      /** 빈 URL: 기존 창 재사용 */
+      const aiWindow = window.open('', AI_WINDOW_NAME);
+      if (!aiWindow) return false;
 
-    if (aiWindow.location.href === 'about:blank' || firstMessage || file) {
-      /** 새 창이거나 첫 메시지·사진이 있으면 채팅 페이지로 이동: 열린 창도 그 내용으로 새 대화 */
-      const params = new URLSearchParams();
-      if (firstMessage) params.set('q', firstMessage);
-      if (file) params.set('attach', holdAttachment(file));
-      const query = params.size > 0 ? `?${params}` : '';
-      aiWindow.location.href = `${PATHS.AI}${query}`;
-    }
-    aiWindow.focus();
-    return true;
-  }, []);
+      if (aiWindow.location.href === 'about:blank' || firstMessage || file) {
+        /** 새 창이거나 첫 메시지·사진이 있으면 채팅 페이지로 이동: 열린 창도 그 내용으로 새 대화 */
+        const params = new URLSearchParams();
+        if (firstMessage) params.set('q', firstMessage);
+        if (file) params.set('attach', holdAttachment(file));
+        const query = params.size > 0 ? `?${params}` : '';
+        aiWindow.location.href = `${PATHS.AI}${query}`;
+      }
+      aiWindow.focus();
+      return true;
+    },
+    [openAiModal],
+  );
 }
