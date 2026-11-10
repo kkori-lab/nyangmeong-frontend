@@ -2,9 +2,12 @@
 
 ## 지금 하는 것
 
-SCR-ADM-071 케어미션 · 케어미션 API 연결 — 끝(2026-11-10). `features/adminCareMission/api.js` 가짜를 `/api/admin/care-missions` 실제 GET·PATCH로 바꿈, `useYn`은 true/false, 수정 모달 서버 오류는 `toFieldErrors`·`toFormError`(칸 아래·폼 아래)
+SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 끝(2026-11-10). `features/adminPoint/api.js` 가짜를 지우고 실제 `GET /api/admin/points`·`POST /api/admin/points/adjustments`로 연결, 잔액은 회원 상세 `hldPnt`, 조정 뒤 회원 상세·포인트 탭도 무효화
 
 ## 다음에 할 것
+
+- SCR-ADM-072 연결 남음(2026-11-10): FN-ADM-072-03 회원 포인트 내역(`/mypage/points`)에 관리자 조정 사유 `memoCn`을 보일지 SJM과 정한다. 지금은 `features/point/history/PointHistory.jsx` `getTitle`이 일부러 "관리자 조정" 고정 문구만 보인다(SJM, SCR-MYP-020)
+- SCR-ADM-072 검증 데이터(2026-11-10, 8081 DB): 회원 #1(tester)에 원장 2줄 "+10 [검증] 포인트 지급"·"-10 [검증] 되돌림"이 남았다(잔액은 처음과 같은 2,209, 원장 삭제 API 없음)
 
 - SCR-ADM-023 노출 콘텐츠 연결 검증 데이터(2026-11-10, 8081 DB·관리자 계정): 후보 문구 `todayPhrsSn` 3 "[검증] 수정한 문구"(사용 안 함, 삭제 API 없음). 건강팁 1·2번 지정(pstSn 2·3)과 문구 1·2는 검증 전부터 있던 것
 - SCR-AIM-011 사이드바 정리 알림(2026-11-09): 문서 담당에게 FN-AIM-011-20 설정 진입 입구(사이드바 하단 [설정])를 없앴고, 대화 헤더 안내 문구 "대화 제목은 첫 메시지로 자동 생성돼요"를 지웠다고 알림

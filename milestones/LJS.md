@@ -913,7 +913,7 @@
 
 ## SCR-ADM-001 관리자 공통 · 페이지 틀·조회 오류 컴포넌트 정리 — 대기
 - 기능: 명세 기능 ID 추가 없음. 관리자 페이지(`pages/admin/`) 전체와 관리자 features의 조회 오류 묶음
-- 기다리는 것: 남은 관리자 화면 구현이 다 끝난 뒤 맨 마지막에 한다(사람 결정 2026-11-03 "리팩토링이니까 마지막으로")
+- 기다리는 것: 남은 관리자 화면 구현이 다 끝난 뒤 맨 마지막에 한다(사람 결정 2026-11-03 "리팩토링이니까 마지막으로", 2026-11-10 다시 "후순위, 백엔드 연결부터")
 - 완료 조건: 조회 오류 안내 + [다시 시도] 묶음(지금 36개 파일에 복사)을 `components/` 공통 컴포넌트 하나로 바꾸고, 가운데 정렬 틀(`mx-auto max-w-[1200px]`)·제목 `h1`·오른쪽 버튼 줄(27~29개 페이지에 복사)을 공통 페이지 틀로 묶는다. 바꾼 뒤에도 화면 모양과 동작(403 `AdminForbidden` 포함)은 그대로다. 기능 작업과 섞지 않는다(요청 2026-11-03)
 - 기획 초안(2026-11-03, 승인 전 보류): `components/LoadError.jsx`(`message`·`onRetry`·`className`) 38곳, `pages/admin/AdminPageFrame.jsx`(`title`·`actions`·`children`) 28개 파일 31곳
 
@@ -966,11 +966,13 @@
 - 기다리는 것: 등록 도구의 범위·흐름(지금 등록 모달을 바꿀지, 따로 둘지)이 정해지는 것. 백엔드·AI 서버 API가 더 필요한지는 기획 때 본다
 - 완료 조건: 기획 때 정한다
 
-## SCR-ADM-011 회원 상세 · 관리자 [정지] 숨김 확인 — 대기
+## SCR-ADM-011 회원 상세 · 관리자 [정지] 숨김 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-011-01
 - 기다리는 것: 백엔드 SCR-ADM-011 회원 상세 · 응답에 회원 권한 추가(LJS, 끝 2026-11-05)
 - 완료 조건: 실제 API로 관리자 회원(`mbrAuthrtCd` `USRC0005`) 상세를 열면 [정지]가 안 보이고, 정상 일반회원(`USRC0004`)은 보인다. 가짜 응답(`features/adminMember/api.js`)에도 `mbrAuthrtCd`가 있는지 맞춘다
 - 이미 바뀐 것: `pages/admin/AdminMemberDetailPage.jsx` `canSuspend`가 `mbrAuthrtCd !== ROLE_OPTIONS[1].value`로 판정(2026-11-02)
+- 완료 조건 결과: 검증 `통과`(2026-11-10, 1회차, 코드 변경 없음). 8081에서 관리자 회원은 [정지] 없음, 정상 일반회원 [정지] 있음, 정지 회원 [정지 해제]만 있음. 가짜 응답은 이미 없어 맞출 것 없음, 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-COM-004 알림 드롭다운 · 크기·스크롤·닫기 버튼 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-COM-004-01·05·15
@@ -978,11 +980,13 @@
 - 기다리는 것: 없음(화면만, `layouts/NotificationDropdown.jsx`)
 - 완료 조건: 웹(1440)·모바일(390) 모두 알림 개수(0건 포함)·탭이 달라도 패널 크기가 같다. 안 읽은 알림이 5개 이상이면 목록 안에서만 세로로 스크롤된다(패널·페이지는 늘지 않는다). 웹·모바일 모두 패널에 닫기 버튼이 있고 누르면 패널이 닫힌다. 고정 높이 값과 "5개 이상"을 안 읽은 알림 기준으로 할지 목록 전체 기준으로 할지는 `/start` 기획에서 정한다
 
-## SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 대기
+## SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-072-01·02
 - 기다리는 것: 백엔드 SCR-ADM-072 포인트 · 프론트 연결 관리자 포인트 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/points` 두 행
 - 완료 조건: `features/adminPoint/api.js`의 가짜 원장 목록·조정을 실제 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments` `{ mbrSn, dlngPnt, memoCn }`(201, 응답은 원장 한 줄)로 바꾸고 sessionStorage 가짜를 지운다. 조정 모달 현재 잔액은 `GET /api/admin/members/{mbrSn}`의 `hldPnt`(가짜의 원장 마지막 잔액 대신). 잔액 부족은 `POINT_BALANCE_NOT_ENOUGH`가 아니라 400 `POINT_NOT_ENOUGH`, 탈퇴·없는 회원 404 `MEMBER_NOT_FOUND`, 형식 오류 400 `INVALID_INPUT_VALUE`. 같은 요청을 두 번 보내면 두 건이 되므로 조정 버튼을 요청 중 잠근다
 - 이미 바뀐 것: `features/adminPoint/api.js`(가짜, 목록 필드는 실제와 같음)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-10, 1회차, 연결 남음만). FN-ADM-072-01·02 통과(8081 실제 원장·+10 지급 뒤 -10으로 되돌림, 400·404 문구는 가짜 응답), FN-ADM-072-03은 "관리자 조정"은 보이고 사유는 안 보임, 사람 확인 2026-11-10
+- 연결 남음: FN-ADM-072-03 (회원 포인트 내역에 조정 사유 `memoCn` 표시 여부, `PointHistory.jsx` `getTitle`, SJM)
 
 ## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-01

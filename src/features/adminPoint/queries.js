@@ -12,6 +12,7 @@ import {
   getPointDealTypes,
   searchAdminPointMembers,
 } from './api';
+import { adminMemberKeys } from '@/features/adminMember/queries';
 
 export const adminPointKeys = {
   all: ['adminPoint'],
@@ -66,9 +67,18 @@ export const useAdjustAdminPoint = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: adjustAdminPoint,
-    onSuccess: () => {
+    onSuccess: (_data, { mbrSn }) => {
       queryClient.invalidateQueries({ queryKey: adminPointKeys.lists });
       queryClient.invalidateQueries({ queryKey: adminPointKeys.balances });
+      queryClient.invalidateQueries({ queryKey: adminPointKeys.member(mbrSn) });
+      // 회원 상세의 보유 포인트·포인트 탭도 바뀐다
+      queryClient.invalidateQueries({
+        queryKey: adminMemberKeys.detail(mbrSn),
+      });
+      // params 중 mbrSn만 맞으면 쪽 번호와 상관없이 무효화된다(부분 일치)
+      queryClient.invalidateQueries({
+        queryKey: adminMemberKeys.points({ mbrSn }),
+      });
     },
   });
 };
