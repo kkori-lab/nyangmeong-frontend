@@ -26,7 +26,7 @@ const GUIDE_ITEMS = [
 
 const H2_CLASS = 'pb-3 text-lg leading-[1.4] font-bold text-ink';
 
-/** 실종센터 목록 오른쪽 레일: 실종 Check 가이드 · 최근 실종 소식 · 최근 찾은 반려동물 */
+/** 실종센터 목록 오른쪽 레일: 실종 체크 가이드 · 최근 실종 소식 · 최근 찾은 반려동물 */
 export default function MissingRail() {
   const { data } = useMissingRail();
 
@@ -34,7 +34,7 @@ export default function MissingRail() {
     <aside aria-label="실종 안내" className="flex min-w-0 flex-col gap-10">
       <section aria-labelledby="missing-guide-title">
         <h2 id="missing-guide-title" className={H2_CLASS}>
-          실종 Check 가이드
+          실종 체크 가이드
         </h2>
         <CheckList items={GUIDE_ITEMS} />
         <Link

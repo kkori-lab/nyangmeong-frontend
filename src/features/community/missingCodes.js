@@ -126,4 +126,4 @@ export const EXTEND_DAYS = 30;
 
 /** 찾았어요 처리 때 서버가 자동으로 다는 댓글 문구(확인 모달 미리보기용). 사용자가 수정 불가 */
 export const foundCommentText = (petNm) =>
-  `🎉 여러분의 제보와 관심 덕분에 ${petNm}가 무사히 가족의 품으로 돌아갔어요.`;
+  `여러분의 제보와 관심 덕분에 ${petNm}가 무사히 가족의 품으로 돌아갔어요.`;
