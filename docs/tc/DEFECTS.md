@@ -6,10 +6,10 @@
 | 분류 | 건수 | 할 일 |
 | --- | --- | --- |
 | 프론트 코드 수정 `[코드]` | 66 | 프론트를 고친다. 각 도메인 담당이 `/start`로 |
-| 백엔드 수정 `[백엔드]` | 11 | 백엔드 저장소에서 `/start`로 |
+| 백엔드 수정 `[백엔드]` | 10 | 백엔드 저장소에서 `/start`로 |
 | AI 서버 수정 `[AI 서버]` | 3 | AI 저장소에서 `/start`로 |
-| 결정 필요 `[결정]` | 21 | 회의에서 어느 쪽이 맞는지 정한 뒤 문서나 코드를 고친다 |
-| 다른 도메인 문서 수정 `[문서]` | 25 | 코드가 맞다. 그 도메인 명세·화면설계서 담당이 고친다 |
+| 결정 필요 `[결정]` | 22 | 회의에서 어느 쪽이 맞는지 정한 뒤 문서나 코드를 고친다 |
+| 다른 도메인 문서 수정 `[문서]` | 19 | 코드가 맞다. 그 도메인 명세·화면설계서 담당이 고친다 |
 
 ## 프론트 코드 수정
 
@@ -116,9 +116,6 @@
 - FN-MYP-040-14 — 백엔드 develop에 `POST /members/me/sns-links`가 없어 [연동하기]가 서버 연동까지 닿지 못한다 (src/features/member/profile/SnsLinkCard.jsx, src/features/member/api.js `linkSns`). 서버 구현이 필요하다
 - REQ-MYP-004 — 한도 알림은 "각 1회, 같은 달 재발송 없음"인데 서버는 한도·90% 경계를 새로 넘을 때마다 발송해 지출을 지웠다 다시 넘는 경우 재발송될 수 있다 (ExpenseService.java). 확인 필요
 
-### 메인페이지 (1)
-- FN-MAN-008 — 명세의 [건강기록 전체 보기]는 없고, 명세에 없는 "반려동물 바로가기"(추가·수정·삭제)가 그 자리를 대신한다. 바로가기 저장 API는 백엔드 `docs/api`에 없어 가짜 응답이며 필드(`petSn`·`shrtcCds`)와 코드(`HEALTH`·`DIARY`·`CALENDAR`)는 프론트 가정이다 (`features/dashboard/api.js`, `shortcutTypes.js`)
-
 ### 커뮤니티 (1)
 - FN-CMU-004-05 — 명세는 "첫 메시지를 보내면 보호자의 채팅 목록에 등록"인데 서버 목록 쿼리는 메시지 없이 방만 만든 경우도 목록에 준다. 「채팅 n명」 집계만 메시지 1건 이상 기준이다 (`ChatRoomMapper.xml selectList`, `docs/api/community.md` CareRecruitmentSummary.aplcntCnt)
 
@@ -159,6 +156,9 @@
 - FN-MYP-010-24 / REQ-COM-002 — 요구사항은 오류 유형 필수 선택 뒤 AI 1차 판정으로 접수하라고 하나 명세·코드는 유형 선택 없이 고객센터 1:1 문의(유형 "픽셀 캐릭터")로 연결한다 (src/features/pet/character/CharacterDecorate.jsx)
 - REQ-MYP-002 — 요구사항 세부내용은 식사량·음수량 권장 범위를 등록·수정할 수 있어야 한다고 하나 명세 FN-MYP-003-01과 등록/수정 모달에 입력란이 없다 (src/features/pet/list/PetFormModal.jsx). 확인 필요
 
+### 메인페이지 (1)
+- FN-MAN-008 / REQ-MAN-006 — 바로가기 목록 조회(`GET /pets/main-shortcuts`)만 실패하면 명세에 표시 방식이 없고, 코드는 빈 목록으로 보아 타일 없이 [바로가기 추가]만 보인다. 반려동물 조회 실패처럼 "불러오지 못했어요"를 보일지 정해야 한다 (`MainShortcuts.jsx`)
+
 ### 커뮤니티 (5)
 - FN-CMU-002-10·13 — 명세는 품종 필수(미선택·미입력 시 저장 차단)인데 코드는 실종 글쓰기·수정의 품종을 선택 항목으로 바꿨다 (`src/features/community/missing/MissingForm.jsx` validate, `BreedCombobox required={false}`, 커밋 b099d67). 펫돌봄(FN-CMU-004-13)은 필수 그대로다
 - FN-CMU-001-04 / REQ-CMU-005 — 요구사항은 인기글을 "좋아요·댓글 수 기반" 가중치로 산정하는데 명세는 "최근 7일 글, 좋아요 높은 순 5개"뿐이고 화면·서버도 좋아요 기준이다 (`src/features/community/PostList.jsx`, `docs/api/community.md` GET /posts)
@@ -176,7 +176,7 @@
 
 ### 건강기록 (4)
 - 건강기록 대시보드 항목 저장 — 코드는 `GET·PUT /members/me/dashboard-widgets`에 건강기록 전용 13개 코드(HLTC0084~0096)·`indctYn`·`savedYn`을 쓰지만, 백엔드 `docs/api/member.md`에는 메인 위젯용 초안(`DashboardWidgetSaveRequest`의 `dshbdWdgtCds`, 응답 `sortSeq`)만 있고 건강기록용 계약이 없다. 요청·응답 모양은 프론트 코드 기준으로 정했다 (`dashboardApi.js`, `dashboard/widgetItems.js`)
-- REQ-HLT-003 — 요구사항정의서 v0.10.4은 건강기록 변화 그래프를 최근 14개로 적었으나 명세 v1.4·코드는 최근 5개 기록이다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
+- REQ-HLT-003 — 요구사항정의서 v0.10.5는 건강기록 변화 그래프를 최근 14개로 적었으나 명세 v1.4·코드는 최근 5개 기록이다 (`diary/recordUtils.js` `RECENT_RECORD_COUNT`)
 - FN-HLT-002-17·18 — 사진 줄이 최신 5회차만 나열하고 앞은 "+N 이전 회차" 칸으로 접히며, 크기 그래프도 크기 입력 회차 중 최신 5개만 그린다 (`diary/ObservationDetail.jsx` `CHART_COUNT`)
 - FN-HLT-002-19 — [사진 원본 보기]·[이 회차 수정]·[삭제]가 버튼이 아니라 선택 회차 줄의 ⋮ 메뉴에 있다 (`diary/ObservationDetail.jsx`)
 
@@ -184,24 +184,16 @@
 - FN-CSC-001-05 — 명세는 상세에 조회수를 보인다고 하나 화면에 없다(서버가 조회수를 쓰지 않기로 2026-10-30 결정). 명세를 고쳐야 한다 (`docs/api/support.md`, `NoticeDetail.jsx`)
 - FN-CSC-003-06 — 명세는 "7종"이라 하면서 이름을 10개(건강기록 문의·픽셀 캐릭터·플레이스·커뮤니티·포인트·결제·가계부·계정·로그인·기타) 나열한다. 서버 공통코드는 7개(건강기록·픽셀 캐릭터·플레이스·커뮤니티·포인트·결제·가계부 묶음·계정·로그인 묶음·기타)이고 화면은 응답 이름 그대로 쓴다 (`InquiryType.java`, `InquiryForm.jsx`)
 
-### 로그인·회원가입 (7)
+### 로그인·회원가입 (6)
 - FN-ACC-002-03·04·20 / FN-ACC-001-03·29·09·10 — 명세는 미입력 문구("아이디를 입력해 주세요." 등)를 입력칸과 AI로 안내한다고 하나, 코드는 빈 칸이면 버튼을 비활성으로 막아(추가-1) 미입력 문구가 나오지 않는다 (`login/useEmailLogin.js`, `signup/useSignup.js`)
 - FN-ACC-002-14·15·16 / FN-ACC-001-15·18 — 명세는 AI 말풍선을 "기존 입력칸 아래 문구나 폼 상단 공통 알림과 함께" 표시한다고 하나, 코드는 AI 말풍선이 붙은 칸은 오류 문구를 말풍선에만 보이고(입력칸 아래 문구는 화면 읽기용 `sr-only`), 폼 위 오류 알림도 색 상자 없이 말풍선만 보인다. 11-09 의도한 변경이다: 같은 문구가 두 번 보이지 않게 함(`11b2623`, `07f660a` A5). 보안코드 칸(`login/CaptchaBlock.jsx`)은 아직 문구와 말풍선이 함께 보인다 (`shared/AuthField.jsx`, `shared/AuthNotice.jsx`)
 - FN-ACC-002-21 / FN-ACC-001-04·06·15 / FN-ACC-011-09 — 문구 표기·말투를 화면설계서에 맞춰 통일해(`07f660a` B, 설계서 담당에게 목록 전달) 명세 문구와 다르다: "이메일 주소 형식을 확인해 주세요."(명세 "확인해주세요."), "인증 시간이 만료되었습니다."(명세 "인증시간"), 가입 완료 "가입한 방법으로 로그인해 주세요."(명세 "다시 로그인해 주세요."), 버튼 [인증번호 발송](명세 기능명 "인증코드 발송") (`signup/signupMessages.js`, `login/loginMessages.js`, `signup/EmailStep.jsx`, `login/LoginMethodChoice.jsx`)
 - FN-ACC-001-04 — 명세는 발송 실패를 "인증번호를 보내지 못했습니다. 다시 시도해 주세요."로 안내하나, 메일 발송 실패(502 `MAIL_SEND_FAILED`)는 서버 문구를 공통 알림(AI 말풍선)으로 보이고 재전송 대기를 시작하지 않는다. 그 밖의 발송 실패는 명세 문구다(`fe95eba`, 마일스톤 YAY 완료 조건) (`signup/useSignup.js` submitSend)
 - FN-ACC-001-09·10 / FN-ACC-012-01 — 비밀번호 규칙이 명세는 "8자 이상, 문자와 숫자를 함께"인데 코드·서버는 영문+숫자 ASCII 8~64자(공백 불가)다. 오류 문구도 명세 "비밀번호는 8자 이상, 문자와 숫자를 함께 입력해 주세요."가 아니라 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)."이다. 가입 4단계는 같은 문구를 부제에만 두고 칸 아래 안내는 지웠다 (`shared/validate.js`, `password/passwordMessages.js`)
-- FN-ACC-001-29·30 / REQ-ACC-001 — 명세 v0.8은 휴대전화번호 필수·"공개 연락처로 자동 사용하지 않는다"인데 요구사항정의서 v0.10.4 REQ-ACC-001이 아직 "선택 입력"이다(11-09 결정: 필수·비공개, 코드·명세 v0.8이 맞음) (`signup/PhoneStep.jsx`)
 - 명세 밖 — SNS 계정 연동(`linkSns`, 회원정보의 [연동하기], 콜백 `mode: 'link'`)은 이 명세에 기능 ID가 없다. 마이페이지(MYP-040) TC에서 다룬다 (`login/useSnsCallback.js`, `profile/SnsLinkCard.jsx`)
 
 ### 마이페이지 (1)
 - FN-MYP-040-06 — 명세 v0.6은 규칙을 영문+숫자 8~64자로 고쳤지만 새 비밀번호 칸 안내 문구가 "…8자 이상 입력해 주세요"로 남아 코드 "…8~64자로 입력해 주세요(공백 제외)"와 다르다 (src/features/member/profile/PasswordChangeCard.jsx, src/features/member/shared/validate.js, milestones/SJM.md 2026-11-04 결정)
-
-### 메인페이지 (5)
-- FN-MAN-001 — 명세는 히어로에 대표 반려동물 캐릭터를 이름·품종 캡션과 함께 노출하고 미등록·비로그인은 기본 캐릭터로 대체한다고 하나, 코드는 인사말만 있고 캐릭터는 바로가기 타일 얼굴에만 있다 (`MainPage.jsx`)
-- FN-MAN-002 — 명세는 검색바가 아래로 확장되는 대화창(SCR-AIM-001 재사용)이라 하나 코드는 새 창(`/ai-chat?q=`)을 연다. REQ-MAN-002 수행방안은 "AI 대화창은 새 창"이라 요구사항과는 맞다 (`HeroAsk.jsx`, `useAiWindow.js`)
-- FN-MAN-002 — 명세에 없는 제안 카드 2장(AI 건강분석 리포트·영수증 올리기)과 음성 질문 버튼이 생겼고, 화면설계서의 설명 한 줄("AI매니저가 반려동물 케어에 필요한 정보를 대화로 찾아드려요")은 사라졌다 (`HeroAsk.jsx`)
-- FN-MAN-003 / FN-MAN-004 / FN-MAN-005 / FN-MAN-006 / FN-MAN-007 / FN-MAN-009 — 프로필 요약, 반려동물 선택 탭, 기준일 표시, 위젯 6종, 위젯 순서, 토탈 케어리스트가 11-08 개편으로 메인에서 빠졌다. 기능명세서와 화면설계서 v0.10은 그대로다. 서버의 위젯 API는 그대로 있으나 메인이 부르지 않는다 (`MainPage.jsx`, `milestones/LJS.md`)
-- FN-MAN-001 — 명세는 "별도 기능으로 분리하지 않았다"고 하나, 인사말 문구("오늘 <이름>은/는 어땠나요?")와 영수증 올리기 연결(추가-3)은 명세 기능 ID 없이 마일스톤 추가 요청으로만 정의돼 있다 (`milestones/LJS.md`)
 
 ### 커뮤니티 (5)
 - FN-CMU-004-05 — 명세는 돌봄 상세 [채팅하기]도 사이트 안 채팅 모달인데, 코드는 새 창(`/chat`)을 연다. 헤더 아이콘·알림만 모달(`src/features/community/care/CareDetail.jsx`의 `useChatWindow`, 마일스톤 LJS "FN-COM-009-02 `useChatModal`의 `open({ pstSn })` 호출" 연결 남음)

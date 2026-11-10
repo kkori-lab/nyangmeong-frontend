@@ -1,6 +1,6 @@
 # TC · 로그인·회원가입 (SCR-ACC-001 · 002 · 011 · 012 · 020)
 
-- 기준: 로그인·회원가입_기능명세서_v0.8_20261101, 요구사항정의서_v0.10.4_20261109(REQ-ACC-001~004, REQ-MYP-001), 백엔드 `docs/api/member.md`·`ErrorCode.java`(develop 2026-11-08), 프론트 `src/features/member`·`src/pages/auth`·`src/pages/mypage/WithdrawPage.jsx`·`src/routes`·`src/api/axios.js`, 마일스톤 `milestones/YAY.md`
+- 기준: 로그인·회원가입_기능명세서_v0.8_20261101, 요구사항정의서_v0.10.5_20261110(REQ-ACC-001~004, REQ-MYP-001), 백엔드 `docs/api/member.md`·`ErrorCode.java`(develop 2026-11-08), 프론트 `src/features/member`·`src/pages/auth`·`src/pages/mypage/WithdrawPage.jsx`·`src/routes`·`src/api/axios.js`, 마일스톤 `milestones/YAY.md`
 - 코드: origin/develop 921f88a (2026-11-10)
 제외: 없음
 - 참고: 명세에 행이 없는 번호(FN-ACC-001-21, FN-ACC-002-06·17, FN-ACC-011-04, FN-ACC-020-07~11)는 결번 표시가 아니라 행 자체가 없어 TC를 만들지 않았다
@@ -1185,7 +1185,6 @@
 - [코드] FN-ACC-002-19 / FN-ACC-002-20 — 보안코드 새로고침 뒤·표시 직후 입력칸으로 포커스를 옮기지 않는다 (`login/CaptchaBlock.jsx`)
 - [코드] FN-ACC-001-14 — 최종 저장에서 번호 중복(409 `PHONE_ALREADY_USED`)·이메일 중복(409 `EMAIL_ALREADY_REGISTERED`)이면 명세는 3단계 번호·이메일 단계로 돌아가 비밀번호를 비운다고 하나, 코드는 4단계 위 알림으로 서버 문구만 보인다 (`signup/useSignup.js` handleJoinError)
 - [문서] FN-ACC-001-09·10 / FN-ACC-012-01 — 비밀번호 규칙이 명세는 "8자 이상, 문자와 숫자를 함께"인데 코드·서버는 영문+숫자 ASCII 8~64자(공백 불가)다. 오류 문구도 명세 "비밀번호는 8자 이상, 문자와 숫자를 함께 입력해 주세요."가 아니라 "영문과 숫자를 함께 써서 8~64자로 입력해 주세요(공백 제외)."이다. 가입 4단계는 같은 문구를 부제에만 두고 칸 아래 안내는 지웠다 (`shared/validate.js`, `password/passwordMessages.js`)
-- [문서] FN-ACC-001-29·30 / REQ-ACC-001 — 명세 v0.8은 휴대전화번호 필수·"공개 연락처로 자동 사용하지 않는다"인데 요구사항정의서 v0.10.4 REQ-ACC-001이 아직 "선택 입력"이다(11-09 결정: 필수·비공개, 코드·명세 v0.8이 맞음) (`signup/PhoneStep.jsx`)
 - [코드] FN-ACC-001-22·28 — 닉네임 설정용 쿠키가 만료됐을 때 명세는 닉네임을 유지하고 로그인 화면으로 안내하나, 코드는 "닉네임을 저장하지 못했습니다. 다시 시도해 주세요."만 보인다 (`signup/NicknameModal.jsx`)
 - [백엔드] FN-ACC-001-12·11 — 외부 연령 확인(네이버 로그인 플러스·카카오싱크) 자동 반영은 화면에 구현돼 있으나 서버가 `ageCnfrmd`를 항상 false로 준다 (`docs/api/member.md`, `signup/useSnsSignup.js`)
 - [코드] FN-ACC-001-40 — 이메일 인증을 이미 마친 경우의 생략, 기존 연결과 같은 SNS 새 인증의 본인확인 사용이 없고 항상 복구용 이메일 인증번호를 새로 받는다 (`recovery/useRecovery.js`, 백엔드 `docs/api/member.md` 449줄)

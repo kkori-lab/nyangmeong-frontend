@@ -1,16 +1,23 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import AmountInput from '@/components/AmountInput';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Card from '@/components/Card';
 import { showToast } from '@/components/toastStore';
 import { useUpdateAdminSettings } from '../queries';
-import { SETTING_GROUPS, toBody, toDraft } from '../shared/settingFields';
+import {
+  SETTING_FIELDS,
+  SETTING_GROUPS,
+  toBody,
+  toDraft,
+} from '../shared/settingFields';
 import { toFieldErrors } from '@/utils/fieldErrors';
 
 /**
  * [운영 설정 수정 폼]
  * - 묶음 5개 카드 + 되돌리기·저장: 바뀐 값이 있을 때만 켜짐
  * - 저장은 바뀐 항목만 전송, 서버 입력값 오류는 해당 항목 아래에 표시
+ * - 조회만 하는 항목(readOnly)은 입력칸을 막는다
+ * - 저장이 칸별 오류로 실패하면 화면 순서상 첫 오류 칸으로 스크롤하고 포커스
  * - 760px 이하: 하단 바텀 네비로 고른 묶음 카드만 보임 (입력값은 묶음을 바꿔도 유지)
  */
 
@@ -77,11 +84,12 @@ function SettingInput({ field, value, error, onChange }) {
         id={field.key}
         inputMode="numeric"
         autoComplete="off"
+        disabled={field.readOnly}
         aria-invalid={Boolean(error)}
         aria-describedby={describedBy}
         value={display}
         onChange={handleDigitsChange}
-        className={`${inputClass} ${borderClass} pr-14 text-right`}
+        className={`${inputClass} ${borderClass} pr-14 text-right disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-subtle disabled:hover:border-input-line`}
       />
       <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-subtle">
         {field.unit}
@@ -185,7 +193,16 @@ export default function SettingForm({ settings }) {
   const base = toDraft(settings);
   const [draft, setDraft] = useState(base);
   const [activeTitle, setActiveTitle] = useState(SETTING_GROUPS[0].title);
+  /** 저장 실패 뒤 스크롤할 첫 오류 칸 { key }: 묶음이 바뀐 화면이 그려진 뒤 옮긴다. 실패마다 새 객체라 같은 칸도 다시 옮긴다 */
+  const [scrollTarget, setScrollTarget] = useState(null);
   const save = useUpdateAdminSettings();
+
+  useEffect(() => {
+    if (!scrollTarget) return;
+    const input = document.getElementById(scrollTarget.key);
+    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input?.focus({ preventScroll: true });
+  }, [scrollTarget]);
 
   const body = toBody(draft, base);
   const isDirty = Object.keys(body).length > 0;
@@ -207,17 +224,20 @@ export default function SettingForm({ settings }) {
     if (window.matchMedia(NARROW_QUERY).matches) window.scrollTo(0, 0);
   };
 
-  /** 오류 항목이 숨은 묶음에 있으면 그 묶음으로 이동 */
+  /** 오류 항목이 숨은 묶음에 있으면 그 묶음으로 바꾸고, 첫 오류 칸으로 스크롤 */
   const handleSaveError = (error) => {
     const errorKeys = (error.fields ?? []).map((item) => item.field);
-    const errorGroup = SETTING_GROUPS.find((group) =>
-      group.rows.some((row) =>
-        row.fields.some((field) => errorKeys.includes(field.key)),
-      ),
+    const firstField = SETTING_FIELDS.find((field) =>
+      errorKeys.includes(field.key),
     );
-    if (errorGroup && errorGroup.title !== activeTitle) {
+    if (!firstField) return;
+    const errorGroup = SETTING_GROUPS.find((group) =>
+      group.rows.some((row) => row.fields.includes(firstField)),
+    );
+    if (errorGroup.title !== activeTitle) {
       handleSectionSelect(errorGroup.title);
     }
+    setScrollTarget({ key: firstField.key });
   };
 
   const handleSubmit = (event) => {
