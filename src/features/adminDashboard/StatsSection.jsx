@@ -81,6 +81,11 @@ function GroupBarChart({ rows, nameKey, label }) {
  */
 export default function StatsSection({ stats, fromYmd, toYmd, picker }) {
   const labels = stats.daily.map(({ ymd }) => toMonthDay(ymd));
+  // 품종 "직접 입력"은 종마다 한 줄씩 와서 품종 이름만으로는 행 키가 겹친다
+  const petRows = stats.petDstrb.map((row) => ({
+    ...row,
+    rowKey: `${row.petSeNm}-${row.vrtyNm}`,
+  }));
   const hasDaily = stats.daily.some(
     (row) => row.joinCnt || row.whdwlCnt || row.aiChatCnt || row.ocrRqstCnt,
   );
@@ -161,9 +166,9 @@ export default function StatsSection({ stats, fromYmd, toYmd, picker }) {
         <DashboardPanel title="종·품종 분포">
           <DashboardTable
             columns={PET_COLUMNS}
-            rows={stats.petDstrb}
-            rowKey="vrtyNm"
-            emptyText={EMPTY_TEXT}
+            rows={petRows}
+            rowKey="rowKey"
+            emptyText="등록된 반려동물이 없어요"
           />
         </DashboardPanel>
         <DashboardPanel title="즐겨찾기 상위 장소">
@@ -171,7 +176,7 @@ export default function StatsSection({ stats, fromYmd, toYmd, picker }) {
             columns={PLACE_COLUMNS}
             rows={stats.fvrtPlcs}
             rowKey="plcSn"
-            emptyText={EMPTY_TEXT}
+            emptyText="즐겨찾기한 장소가 없어요"
           />
         </DashboardPanel>
       </div>
