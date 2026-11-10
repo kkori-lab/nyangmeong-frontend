@@ -52,19 +52,12 @@ export default function ScheduleDayDetail({
       }
     >
       {sorted.length === 0 ? (
-        <div className="rounded-[10px] border border-dashed border-[#b9c4c4]">
-          <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+        <div className="h-full rounded-[10px] border border-dashed border-[#b9c4c4]">
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-4 py-6 text-center">
             <span className="grid size-10 place-items-center rounded-full bg-[#f4f6f6] text-[#667374]">
               <Icon name="calendar_month" />
             </span>
             <p className="text-sm text-[#566465]">등록된 일정이 없습니다</p>
-            <button
-              type="button"
-              className="inline-flex h-8 items-center rounded-[6px] bg-brand-500 px-3 text-sm font-semibold text-white hover:bg-brand-600"
-              onClick={onCreate}
-            >
-              새 일정 등록
-            </button>
           </div>
         </div>
       ) : (

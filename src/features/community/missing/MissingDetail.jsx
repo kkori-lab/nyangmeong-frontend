@@ -3,7 +3,6 @@ import {
   ChevronLeft,
   Clock,
   Flag,
-  Heart,
   LockKeyhole,
   MapPin,
   PartyPopper,
@@ -17,6 +16,8 @@ import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
+import ImageViewer from '@/components/ImageViewer';
+import LikeButton from '@/components/LikeButton';
 import PostBody from '@/components/PostBody';
 import ReportModal from '@/components/ReportModal';
 import SharePanel from '@/components/SharePanel';
@@ -76,11 +77,17 @@ function InfoRow({ icon, label, children }) {
 }
 
 /** 제목 위: 상태 · 반려동물 종류 배지, 제목, 작성자 · 등록일시 · 조회수 */
-function PostHead({ post, children }) {
+/** actions: 작성자 줄 오른쪽(좁은 폭에서는 아래)에 두는 작성자 메뉴 */
+function PostHead({ post, children, actions }) {
   return (
     <>
       <div className="flex flex-wrap gap-1.5">
         <MissingStatusBadge post={post} />
+        {post.owner && (
+          <Badge tone="amber" bordered>
+            내 글
+          </Badge>
+        )}
         {post.petSeCd && (
           <Badge tone="outline">{getPetName(post.petSeCd)}</Badge>
         )}
@@ -101,6 +108,7 @@ function PostHead({ post, children }) {
           )}
           {children}
         </p>
+        {actions}
       </div>
     </>
   );
@@ -207,12 +215,13 @@ function FoundPublicView({ post, listTo }) {
 export default function MissingDetail({ post }) {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const toggleLike = useToggleMissingLike();
+  const toggleLike = useToggleMissingLike(post.lostTpofSn);
   const remove = useDeleteMissing();
   const report = useReportMissing();
   const markFound = useMarkMissingFound();
   const extend = useExtendMissing();
   const [modal, setModal] = useState('');
+  const [viewerIndex, setViewerIndex] = useState(null);
   const listTo = `${PATHS.COMMUNITY_MISSING}${state?.listSearch ?? ''}`;
   const isMine = post.owner;
   const found = isFound(post);
@@ -249,36 +258,40 @@ export default function MissingDetail({ post }) {
     <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
       <div className="flex min-w-0 flex-col gap-4">
         <article className={ARTICLE_CLASS} aria-labelledby="missing-title">
-          <PostHead post={post}>
+          <PostHead
+            post={post}
+            actions={
+              isMine && (
+                <p className="flex items-center gap-2 text-sm font-medium text-muted">
+                  {!expired && !found && (
+                    <>
+                      <Link
+                        to={generatePath(PATHS.COMMUNITY_MISSING_EDIT, {
+                          lostTpofSn: post.lostTpofSn,
+                        })}
+                        className="hover:text-ink"
+                      >
+                        수정
+                      </Link>
+                      <i className="text-input-line not-italic">·</i>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setModal('delete')}
+                    className="cursor-pointer hover:text-ink"
+                  >
+                    삭제
+                  </button>
+                </p>
+              )
+            }
+          >
             <Dot />
             <time>{formatDateTime(post.regDt)} 등록</time>
             <Dot />
             <span>조회 {post.inqCnt}</span>
           </PostHead>
-          {isMine && (
-            <p className="mt-1 flex items-center gap-2 text-sm font-medium text-muted">
-              {!expired && (
-                <>
-                  <Link
-                    to={generatePath(PATHS.COMMUNITY_MISSING_EDIT, {
-                      lostTpofSn: post.lostTpofSn,
-                    })}
-                    className="hover:text-ink"
-                  >
-                    수정
-                  </Link>
-                  <i className="text-input-line not-italic">·</i>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => setModal('delete')}
-                className="cursor-pointer hover:text-ink"
-              >
-                삭제
-              </button>
-            </p>
-          )}
 
           {expiringSoon && (
             <p
@@ -295,11 +308,6 @@ export default function MissingDetail({ post }) {
             <p
               className={`${NOTE_CLASS} border border-[#cfe3d6] bg-tone-green-bg text-tone-green-fg`}
             >
-              <PartyPopper
-                size={18}
-                aria-hidden="true"
-                className="mt-0.5 shrink-0"
-              />
               <span>
                 &apos;찾았어요&apos;로 바뀌었어요. 이제 다른 사용자에게는 본문 ·
                 사진 · 연락처 · 위치 · 댓글이 보이지 않아요.
@@ -309,14 +317,21 @@ export default function MissingDetail({ post }) {
 
           <PostBody content={post.pstCn}>
             {post.imgs.length > 0 && (
-              <div className="mb-6 flex flex-col gap-3">
+              <div className="mb-6 flex flex-col items-center gap-3">
                 {post.imgs.map((img, index) => (
-                  <img
+                  <button
                     key={img.atchFileSn}
-                    src={publicFileUrl(img.atchFileSn)}
-                    alt={`첨부 이미지 ${index + 1}`}
-                    className="h-auto max-w-full rounded-[10px]"
-                  />
+                    type="button"
+                    aria-label={`첨부 이미지 ${index + 1} 크게 보기`}
+                    onClick={() => setViewerIndex(index)}
+                    className="max-w-full cursor-zoom-in"
+                  >
+                    <img
+                      src={publicFileUrl(img.atchFileSn)}
+                      alt={`첨부 이미지 ${index + 1}`}
+                      className="h-auto max-h-[min(640px,75vh)] w-auto max-w-full rounded-[10px] object-contain"
+                    />
+                  </button>
                 ))}
               </div>
             )}
@@ -405,7 +420,7 @@ export default function MissingDetail({ post }) {
                 >
                   {post.wtnsPlcNm}
                   <span className="mt-0.5 block text-sm text-muted">
-                    실종 지역: {post.rgnNm}
+                    {post.rgnNm}
                   </span>
                 </InfoRow>
               </dl>
@@ -432,19 +447,14 @@ export default function MissingDetail({ post }) {
               </span>
             </Link>
             <div className="ml-auto flex items-center gap-2 max-[760px]:gap-1">
-              <button
-                type="button"
-                aria-pressed={isLiked}
-                aria-label="좋아요"
+              <LikeButton
+                isLiked={isLiked}
+                count={post.rcmdtnCnt}
                 disabled={toggleLike.isPending}
-                onClick={() =>
+                onToggle={() =>
                   toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
                 }
-                className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-base font-semibold text-ink-2 ${isLiked ? 'text-[#f44b21]' : '[&_svg]:text-line-strong'}`}
-              >
-                <Heart size={22} aria-hidden="true" fill="currentColor" />
-                {post.rcmdtnCnt}
-              </button>
+              />
               <i
                 className="mx-1 h-3.5 w-px bg-line-strong"
                 aria-hidden="true"
@@ -497,6 +507,18 @@ export default function MissingDetail({ post }) {
         )}
       </div>
 
+      {viewerIndex !== null && (
+        <ImageViewer
+          images={post.imgs.map((img, index) => ({
+            key: img.atchFileSn,
+            src: publicFileUrl(img.atchFileSn),
+            name: `첨부 이미지 ${index + 1}`,
+          }))}
+          index={viewerIndex}
+          onChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
       {modal === 'delete' && (
         <ConfirmModal
           title="실종 게시글을 삭제할까요? 삭제한 글과 제보 댓글은 되돌릴 수 없어요. 찾으셨다면 삭제 대신 '찾았어요'를 눌러 주세요"

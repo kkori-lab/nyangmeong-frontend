@@ -23,6 +23,7 @@ export const DEFAULT_PERIOD_KEY = '7';
 export const getRangeError = (fromYmd, toYmd) => {
   if (!fromYmd || !toYmd) return '시작일과 종료일을 골라 주세요.';
   if (fromYmd > toYmd) return '시작일은 종료일보다 늦을 수 없어요.';
+  if (toYmd > getTodayYmd()) return '종료일은 오늘보다 늦을 수 없어요.';
   if (diffDays(fromYmd, toYmd) + 1 > MAX_CUSTOM_DAYS) {
     return `기간은 최대 ${MAX_CUSTOM_DAYS}일까지 고를 수 있어요.`;
   }

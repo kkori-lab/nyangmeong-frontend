@@ -3,7 +3,7 @@ import { IS_DEV } from '@/api/env';
 
 /**
  * 대화 생성·목록·상세·삭제와 메시지 전송(판정·답변 SSE)은 Python AI 서버(/ai/conversations, ai 저장소 docs/api/chat.md)
- * 일정 등록 카드는 messages(draft·done.card)·register-result로 AI 서버, 일정·케어 항목 저장(Java, JAJ)은 아직 없어 가짜
+ * 확인 카드(2단계 쓰기)는 messages(action·done.action)로 받고, 실행은 카드의 call로 Java, 결과는 action-result로 AI 서버
  * 영수증 분석은 AI 서버 /ai/receipts(docs/api/ocr.md), 대화창 결과 이력은 receipt-result
  * 본창이 다시 여는 인식 결과는 Spring /api/receipts/{recptSn}
  * 펫 태그: 새 대화는 선택한 반려동물 칩의 petSn([전체]면 null), 목록은 그 petSn으로 거름([전체]면 전부)
@@ -57,15 +57,16 @@ const STREAM_CLOSED = { code: 'STREAM_CLOSED', message: '연결이 끊겼어요'
 /**
  * 메시지 전송: 판정(intent) → 답변 조각(delta) → 끝(done)|오류(error) SSE
  * - 방이 없으면 대화 생성(첫 메시지 저장, 펫 태그 petSn) 뒤 같은 방에 cnvrsCn 없이 전송
+ * - petSn은 방을 만들 때만 쓴다: 열린 방 메시지 본문에는 싣지 않는다(늘 방 태그 기준)
  * - cnvrsCn이 없으면 저장 없이 방의 마지막 사용자 메시지에 답한다([다시 시도]·[다시 생성])
- * - draft: 가장 최근 등록 카드(done.card 그대로), 새 방에는 없음
+ * - action: 가장 최근 처리 안 한 확인 카드 { tool, input }(회원이 고친 값 포함), 새 방에는 없음
  * - error 이벤트는 { code, message }로 실패
  */
 export const sendMessage = async ({
   aiCnvrsRoomSn,
   petSn,
   cnvrsCn,
-  draft,
+  action,
   signal,
   onRoom,
   onIntent,
@@ -74,7 +75,7 @@ export const sendMessage = async ({
   let roomSn = aiCnvrsRoomSn;
   let body = {
     ...(cnvrsCn != null && { cnvrsCn }),
-    ...(draft && { draft }),
+    ...(action && { action }),
   };
   if (roomSn == null) {
     roomSn = (await createConversation({ petSn, cnvrsCn })).aiCnvrsRoomSn;
@@ -106,53 +107,19 @@ export const sendMessage = async ({
     intent,
     message: done.message,
     shortcut: done.shortcut,
-    card: done.card ?? null,
+    action: done.action ?? null,
   };
 };
 
-/** 일정·케어 항목 저장 (Java, JAJ 연결 전 가짜): 출처 HLTC0067 AI 생성 */
-const registerToHealth = async () => {
-  await wait(300);
-  if (fakeFlagOnce('fakeRegisterError')) throw new Error('register error');
-};
+/** 확인 카드 실행: 카드의 call로 Java 공개 API(요청 모양은 actionForm.buildActionRequest) */
+export const executeAction = (request) => api.request(request);
 
-/** 등록 카드 결과를 요약 AI 메시지로 저장: 저장된 ConversationMessage */
-const saveRegisterResult = ({ aiCnvrsRoomSn, result, card }) =>
-  aiApi.post(`/conversations/${aiCnvrsRoomSn}/register-result`, {
-    result,
-    card,
-  });
-
-/** 등록 확정: 저장한 뒤 결과 저장 */
-export const confirmRegister = async ({ aiCnvrsRoomSn, card }) => {
-  await registerToHealth(card);
-  return saveRegisterResult({ aiCnvrsRoomSn, result: 'REGISTERED', card });
-};
-
-/** 등록 취소 */
-export const cancelRegister = ({ aiCnvrsRoomSn, card }) =>
-  saveRegisterResult({ aiCnvrsRoomSn, result: 'CANCELED', card });
-
-/** 개발 환경 전용 실패 상황 쿼리 */
-const fakeFlag = (name) =>
-  IS_DEV ? new URLSearchParams(window.location.search).get(name) : null;
-
-/** 첫 요청에만 실패 상황 적용: 재시도 성공 확인용 */
-const usedFakeFlags = new Set();
-const fakeFlagOnce = (name) => {
-  if (usedFakeFlags.has(name)) return null;
-  const value = fakeFlag(name);
-  if (value !== null) usedFakeFlags.add(name);
-  return value;
-};
-
-const wait = (ms, signal) =>
-  new Promise((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener('abort', () => {
-      clearTimeout(timer);
-      resolve();
-    });
+/** 확인 카드 결과를 요약 AI 메시지로 저장(요약 글은 서버가 만든다): 저장된 ConversationMessage */
+export const saveActionResult = ({ aiCnvrsRoomSn, tool, status, input }) =>
+  aiApi.post(`/conversations/${aiCnvrsRoomSn}/action-result`, {
+    tool,
+    status,
+    input,
   });
 
 /** 건강 일지에서 연 영수증 분석의 요청 출처 */
@@ -219,3 +186,23 @@ export const saveReceiptResult = async ({
  */
 export const getChatReceiptResult = ({ recptSn, petSn }) =>
   api.get(`/receipts/${recptSn}`, { params: { petSn } });
+
+/** 대화창에 첨부한 사진의 종류 */
+export const IMAGE_KIND = {
+  CHARACTER: 'CHARACTER',
+  MEDICAL_RECEIPT: 'MEDICAL_RECEIPT',
+  EXPENSE_RECEIPT: 'EXPENSE_RECEIPT',
+  ASK: 'ASK',
+};
+
+/**
+ * 첨부 사진+글의 의도 판단 (POST /ai/image-intent, multipart): { kind }
+ * - 글은 공백만이면 보내지 않는다, 판단에만 쓰이고 저장되지 않는다
+ */
+export const judgeImageIntent = ({ file, cnvrsCn, petSn }) => {
+  const form = new FormData();
+  form.append('file', file);
+  if (cnvrsCn?.trim()) form.append('cnvrsCn', cnvrsCn);
+  if (petSn != null) form.append('petSn', petSn);
+  return aiApi.post('/image-intent', form);
+};

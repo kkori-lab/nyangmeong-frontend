@@ -5,15 +5,13 @@ import CareItemMenu from '../CareItemMenu';
 import LineChart from './LineChart';
 import ObservationPhoto from './ObservationPhoto';
 import {
+  CHART_COUNT,
   formatDiff,
   formatPart,
   formatSize,
   getSizeDiff,
   isEndedItem,
 } from './observationUtils';
-
-/** 크기 변화 그래프에 그릴 최대 회차 수 */
-const CHART_COUNT = 5;
 
 /**
  * [관찰 항목 상세]
@@ -143,6 +141,7 @@ export default function ObservationDetail({
 
       {sizedCycles.length >= 2 && (
         <div className="mb-4">
+          {/* 그래프 높이는 건강기록 변화와 같은 기본값 (※신규 정책) */}
           <LineChart
             points={sizedCycles.map((target) => ({
               label: formatMonthDayDot(getYmdOf(target.obsrvDt)),
@@ -150,7 +149,6 @@ export default function ObservationDetail({
             }))}
             formatValue={formatSize}
             formatTag={(value) => value.toFixed(1)}
-            height={200}
             labelFill="var(--color-placeholder)"
             isEdgeToEdge
             ariaLabel={`크기 변화 선그래프 · ${sizedCycles

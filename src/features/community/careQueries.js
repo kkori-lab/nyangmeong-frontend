@@ -12,7 +12,8 @@ import {
   getMinimumWage,
   updateCare,
 } from './careApi';
-import { reportPost, togglePostLike } from './api';
+import { reportPost } from './api';
+import { useOptimisticLike } from './optimisticLike';
 
 export const careKeys = {
   all: ['care'],
@@ -67,7 +68,12 @@ export const useDeleteCare = () => {
       queryClient.invalidateQueries({ queryKey: [...careKeys.all, 'list'] }),
   });
 };
-export const useToggleCareLike = () => useInvalidatingMutation(togglePostLike);
+/** 누르는 즉시 그 글 상세의 좋아요·개수가 바뀐다(optimisticLike) */
+export const useToggleCareLike = (petPrtcRcrtSn) =>
+  useOptimisticLike({
+    detailKey: careKeys.detail(petPrtcRcrtSn),
+    allKey: careKeys.all,
+  });
 
 /** 신고는 화면이 바뀌지 않아 재조회 없음 */
 export const useReportCare = () => useMutation({ mutationFn: reportPost });

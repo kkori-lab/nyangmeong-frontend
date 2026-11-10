@@ -1,9 +1,12 @@
 import StatLink from '@/components/StatLink';
 import { PATHS } from '@/routes/paths';
 import { usePointBalance } from '../queries';
+import StatSkeleton from './StatSkeleton';
 
 export default function PointSummaryCard() {
-  const { data: balance, isError } = usePointBalance();
+  const { data: balance, isPending, isError } = usePointBalance();
+
+  if (isPending) return <StatSkeleton />;
 
   return (
     <StatLink

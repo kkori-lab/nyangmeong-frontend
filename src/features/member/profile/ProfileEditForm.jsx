@@ -9,6 +9,7 @@ import PasswordChangeCard from './PasswordChangeCard';
 import PhoneField from './PhoneField';
 import ProfileImageField from './ProfileImageField';
 import SnsBadge from './SnsBadge';
+import SnsLinkCard from './SnsLinkCard';
 
 export default function ProfileEditForm({ profile, hidePassword, onWithdraw }) {
   const {
@@ -17,6 +18,7 @@ export default function ProfileEditForm({ profile, hidePassword, onWithdraw }) {
     mblTelno,
     atchFileSn,
     joinPathCd,
+    snsAcntLinks,
     joinDt,
     lastLgnDt,
   } = profile;
@@ -84,6 +86,14 @@ export default function ProfileEditForm({ profile, hidePassword, onWithdraw }) {
             joinDt={joinDt}
             lastLgnDt={lastLgnDt}
           />
+        </div>
+      </section>
+      <section aria-labelledby="sns-link-title" className="flex flex-col gap-5">
+        <h2 id="sns-link-title" className={SECTION_TITLE}>
+          SNS 계정 연동
+        </h2>
+        <div className={CARD_ROWS}>
+          <SnsLinkCard joinPathCd={joinPathCd} snsAcntLinks={snsAcntLinks} />
         </div>
       </section>
       <div className="-mt-6">

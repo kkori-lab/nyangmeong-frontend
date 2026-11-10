@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
+import SkeletonCard from '@/components/SkeletonCard';
 import { parseYmd, toYmd } from '@/utils/formatDate';
 import { useCareMissions } from '../queries';
 import {
@@ -77,7 +78,7 @@ function MissionError({ onRetry }) {
   );
 }
 
-function MissionPanel({ pet }) {
+function MissionPanel({ pet, isToday }) {
   const doneList = pet.missions.filter((mission) => mission.cmptnYn);
   const restList = pet.missions.filter((mission) => !mission.cmptnYn);
   const percent = getPercent(doneList.length, pet.missions.length);
@@ -110,7 +111,7 @@ function MissionPanel({ pet }) {
         </div>
         <p className="mt-3 flex flex-wrap gap-2 text-sm text-muted">
           <span>
-            오늘 획득{' '}
+            {isToday ? '오늘 획득' : '이날 획득'}{' '}
             <b className="text-brand-600">
               +{formatPoint(sumGiven(pet.missions))}
             </b>
@@ -151,16 +152,49 @@ function MissionPanel({ pet }) {
 }
 
 /** todayYmd: 날짜 이동의 오른쪽 끝(미래는 조회하지 않음). ownPets: 주양육 동물 [{ petSn, petNm }], 불러오는 중이면 null */
-export default function CareMission({ todayYmd, ownPets, onRegister }) {
+/** isPetsError·onRetryPets: 내 반려동물 조회가 실패했을 때 */
+export default function CareMission({
+  todayYmd,
+  ownPets,
+  isPetsError,
+  onRetryPets,
+  onRegister,
+}) {
   const [ymd, setYmd] = useState(todayYmd);
   const [selectedPetSn, setSelectedPetSn] = useState(null);
   const { data, retry } = useCareMissions(ymd, ownPets ?? []);
 
-  if (!ownPets || !data) return null;
+  if (!ownPets && isPetsError)
+    return (
+      <section
+        id="care-mission"
+        aria-labelledby="care-mission-title"
+        className={`${CARD} scroll-mt-20`}
+      >
+        <div className={CARD_HEAD}>
+          <h2 id="care-mission-title" className={CARD_TITLE}>
+            <CircleCheckBig
+              className="size-5 text-brand-500"
+              aria-hidden="true"
+            />
+            케어미션
+          </h2>
+        </div>
+        <MissionError onRetry={onRetryPets} />
+      </section>
+    );
+
+  if (!ownPets || !data)
+    return (
+      <div aria-busy="true">
+        <SkeletonCard className="h-[927px] lg:h-[839px]" />
+      </div>
+    );
 
   const pets = data.pets;
   const pet = pets.find((item) => item.petSn === selectedPetSn) ?? pets[0];
   const hasOwnPets = ownPets.length > 0;
+  const isToday = ymd === todayYmd;
 
   return (
     <section
@@ -174,7 +208,7 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
             className="size-5 text-brand-500"
             aria-hidden="true"
           />
-          오늘의 케어미션
+          {isToday ? '오늘의 케어미션' : '케어미션'}
         </h2>
         {hasOwnPets && (
           <div className="flex items-center gap-2">
@@ -187,7 +221,7 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
               <ChevronLeft className="size-5" />
             </button>
             <b>{ymd}</b>
-            {ymd === todayYmd && (
+            {isToday && (
               <span className="inline-flex h-6 items-center rounded-full bg-brand-50 px-2.5 text-badge font-semibold text-brand-600">
                 오늘
               </span>
@@ -242,7 +276,7 @@ export default function CareMission({ todayYmd, ownPets, onRegister }) {
           ) : pet.missions.length === 0 ? (
             <MissionNone />
           ) : (
-            <MissionPanel pet={pet} />
+            <MissionPanel pet={pet} isToday={isToday} />
           )}
           <p className="mt-2 flex items-center gap-2 text-sm text-subtle">
             <Info className="size-4 shrink-0" aria-hidden="true" />

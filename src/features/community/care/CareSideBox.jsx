@@ -3,7 +3,6 @@ import {
   MapPin,
   MessageCircle,
   MessagesSquare,
-  RefreshCw,
   User,
 } from 'lucide-react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
@@ -57,49 +56,44 @@ function OwnerPanel({ post, onOpenList }) {
   return (
     <>
       <div className="mt-4 rounded-lg bg-surface-2 px-3.5 py-3">
-        <p className="flex items-center justify-between gap-2 text-sm font-semibold text-ink-2">
-          모집 상태
-          <CareStatusBadge post={post} />
-        </p>
-        <p className="mt-1.5 flex items-start gap-1.5 text-sm leading-[1.6] text-muted">
-          <RefreshCw
-            size={16}
-            aria-hidden="true"
-            className="mt-1 shrink-0 text-tone-green-fg"
-          />
+        <CareStatusBadge post={post} />
+        <p className="mt-1.5 text-sm leading-[1.6] text-muted">
           {AUTO_HELP[post.rcrtSttsCd]}
         </p>
       </div>
-      {isOpen(post) ? (
-        <p className="mt-3 flex items-center gap-2 rounded-lg bg-brand-50 px-3.5 py-3 text-brand-600">
-          <MessagesSquare size={20} aria-hidden="true" />
-          <span>
-            지금 <b className="font-bold">{post.aplcntCnt}명</b>과 채팅 중
+      {!isOpen(post) && post.mtchSitterNcnm && (
+        <p className="mt-3 flex items-center gap-2.5 rounded-lg border border-line px-3.5 py-3">
+          <span
+            aria-hidden="true"
+            className="grid size-8 place-items-center rounded-full bg-brand-50 text-brand-500"
+          >
+            <User size={18} />
+          </span>
+          <span className="flex min-w-0 flex-col">
+            <small className="text-sm text-muted">매칭된 돌보미</small>
+            <b className="truncate font-bold">{post.mtchSitterNcnm}</b>
           </span>
         </p>
-      ) : (
-        post.mtchSitterNcnm && (
-          <p className="mt-3 flex items-center gap-2.5 rounded-lg border border-line px-3.5 py-3">
-            <span
-              aria-hidden="true"
-              className="grid size-8 place-items-center rounded-full bg-brand-50 text-brand-500"
-            >
-              <User size={18} />
-            </span>
-            <span className="flex min-w-0 flex-col">
-              <small className="text-sm text-muted">매칭된 돌보미</small>
-              <b className="truncate font-bold">{post.mtchSitterNcnm}</b>
-            </span>
-          </p>
-        )
       )}
       <button
         type="button"
         onClick={onOpenList}
+        aria-label={
+          isOpen(post)
+            ? `채팅 목록 보기, 지금 ${post.aplcntCnt}명이 채팅 중`
+            : undefined
+        }
         className={`${isOpen(post) ? BTN_PRIMARY : BTN_SECONDARY} mt-4 w-full`}
       >
         <MessageCircle size={16} aria-hidden="true" />
-        {isOpen(post) ? '채팅 목록 보기' : '이 글의 채팅 목록'}
+        {isOpen(post) ? (
+          <>
+            채팅 목록 보기
+            <span className="text-sm font-normal">· {post.aplcntCnt}명</span>
+          </>
+        ) : (
+          '이 글의 채팅 목록'
+        )}
       </button>
     </>
   );

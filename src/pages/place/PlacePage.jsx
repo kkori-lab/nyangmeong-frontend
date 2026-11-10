@@ -56,7 +56,6 @@ export default function PlacePage() {
       </nav>
 
       <PlacePanel
-        category={category}
         search={search}
         sort={place.sort}
         regionText={place.regionText}
@@ -78,6 +77,7 @@ export default function PlacePage() {
         strayFavorites={strayFavorites}
         selectedPlace={place.selectedPlace}
         fitKey={search.fitKey}
+        homeArea={place.homeArea}
         isReady={place.query.isSuccess}
         regionText={place.regionText}
         isMoved={search.isMoved}

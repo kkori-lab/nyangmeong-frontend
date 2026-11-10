@@ -8,7 +8,11 @@ import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 export default function PasswordStep({ form }) {
   const target = form.guideTarget;
   return (
-    <form noValidate onSubmit={form.submitJoin} className="flex flex-col gap-4">
+    <form
+      noValidate
+      onSubmit={form.submitJoin}
+      className="flex flex-col gap-4 max-md:gap-5"
+    >
       <AuthField
         id="signup-password"
         icon={Lock}
@@ -19,7 +23,6 @@ export default function PasswordStep({ form }) {
         placeholder="비밀번호 입력"
         autoComplete="new-password"
         error={form.passwordError}
-        help={MSG.pwHelp}
         hasGuide={target === 'password'}
       />
       <AuthField
@@ -46,12 +49,12 @@ export default function PasswordStep({ form }) {
         ]}
       />
       <p className="text-sm leading-5 text-muted">
-        가입 후 기본 닉네임을 원하는 닉네임으로 설정할 수 있어요.
+        가입 후 기본 닉네임을 원하는 닉네임으로 설정할 수 있습니다.
       </p>
       <button
         type="submit"
         disabled={!form.canJoin || form.isJoining}
-        className={`${PRIMARY_BTN} mt-1`}
+        className={`${PRIMARY_BTN} mt-1 max-md:mt-3`}
       >
         회원가입
       </button>

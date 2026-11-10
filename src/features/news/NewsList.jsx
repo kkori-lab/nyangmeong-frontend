@@ -15,6 +15,55 @@ import {
   NEWS_SRC_ADMIN,
 } from './newsCodes';
 
+/**
+ * 뉴스 카드 한 장
+ * - 썸네일이 없거나 불러오지 못하면 칸을 접어 제목·요약이 카드 전체 폭을 쓴다(점선 자리 표시 없음)
+ * - 요약은 2줄 높이를 늘 차지해(1줄이어도, 없어도) 카드 높이를 맞춘다
+ */
+function NewsCard({ item, search }) {
+  const [thumbFailed, setThumbFailed] = useState(false);
+  const isAdmin = item.newsSrcCd === NEWS_SRC_ADMIN;
+  /** 관리자 글은 첨부 공개 파일, 수집 기사는 썸네일 URL */
+  const thumbSrc = isAdmin ? publicFileUrl(item.atchFileSn) : item.thmbUrlPath;
+  const hasThumb = Boolean(thumbSrc) && !thumbFailed;
+  return (
+    <li>
+      <Link
+        to={generatePath(PATHS.COMMUNITY_NEWS_DETAIL, {
+          newsSn: item.newsSn,
+        })}
+        state={{ listSearch: search }}
+        className={`group grid gap-x-8 gap-y-3.5 rounded-[14px] border border-[#e2e7e7] bg-white px-7 py-6 shadow-[0_1px_2px_rgba(26,50,52,0.06)] transition hover:border-[#cfe2e2] hover:shadow-[0_4px_12px_rgba(26,50,52,0.1)] max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-[18px] ${hasThumb ? 'grid-cols-[minmax(0,1fr)_200px]' : 'grid-cols-1'}`}
+      >
+        <div className="min-w-0 max-[760px]:order-2">
+          <NewsCategoryBadge news={item} />
+          <h3 className="mt-2.5 truncate text-lg leading-[1.4] font-semibold tracking-[-0.18px] text-[#1a3234] group-hover:text-[#285a5c] max-[760px]:line-clamp-2 max-[760px]:whitespace-normal">
+            {item.newsTtl}
+          </h3>
+          <p className="mt-3.5 line-clamp-2 min-h-[3.2em] text-base leading-[1.6] text-[#3d4a4b] max-[760px]:mt-2 max-[760px]:text-sm">
+            {hasSummary(item) ? item.newsCn : ''}
+          </p>
+        </div>
+        {hasThumb && (
+          <NewsThumb
+            src={thumbSrc}
+            onError={() => setThumbFailed(true)}
+            className="col-start-2 row-span-2 row-start-1 h-[150px] w-full self-start max-[760px]:order-1 max-[760px]:h-auto max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
+          />
+        )}
+        <div className="flex items-center gap-x-3 text-sm text-[#667374] max-[760px]:order-3">
+          <span className="inline-flex items-center gap-1.5 font-semibold text-[#3d4a4b]">
+            {isAdmin ? <Megaphone size={16} /> : <Newspaper size={16} />}
+            {getPressName(item)}
+          </span>
+          <i className="text-[#b9c4c4] not-italic">·</i>
+          <time>{formatDate(item.pblcnDt)}</time>
+        </div>
+      </Link>
+    </li>
+  );
+}
+
 export default function NewsList({
   news,
   category,
@@ -97,56 +146,9 @@ export default function NewsList({
           </div>
         ) : (
           <ul className="flex flex-col gap-3 max-[760px]:gap-2.5">
-            {content.map((item) => {
-              const isAdmin = item.newsSrcCd === NEWS_SRC_ADMIN;
-              /** 관리자 글은 첨부 공개 파일, 수집 기사는 썸네일 URL. 사진 없는 관리자 글은 칸 없음 */
-              const thumbSrc = isAdmin
-                ? publicFileUrl(item.atchFileSn)
-                : item.thmbUrlPath;
-              const hasThumb = !isAdmin || thumbSrc != null;
-              return (
-                <li key={item.newsSn}>
-                  <Link
-                    to={generatePath(PATHS.COMMUNITY_NEWS_DETAIL, {
-                      newsSn: item.newsSn,
-                    })}
-                    state={{ listSearch: search }}
-                    className={`group grid gap-x-8 gap-y-3.5 rounded-[14px] border border-[#e2e7e7] bg-white px-7 py-6 shadow-[0_1px_2px_rgba(26,50,52,0.06)] transition hover:border-[#cfe2e2] hover:shadow-[0_4px_12px_rgba(26,50,52,0.1)] max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-[18px] ${hasThumb ? 'grid-cols-[minmax(0,1fr)_200px]' : 'grid-cols-1'}`}
-                  >
-                    <div className="min-w-0 max-[760px]:order-2">
-                      <NewsCategoryBadge news={item} />
-                      <h3 className="mt-2.5 truncate text-lg leading-[1.4] font-semibold tracking-[-0.18px] text-[#1a3234] group-hover:text-[#285a5c] max-[760px]:line-clamp-2 max-[760px]:whitespace-normal">
-                        {item.newsTtl}
-                      </h3>
-                      {hasSummary(item) && (
-                        <p className="mt-3.5 line-clamp-2 min-h-[3.2em] text-base leading-[1.6] text-[#3d4a4b] max-[760px]:mt-2 max-[760px]:text-sm">
-                          {item.newsCn}
-                        </p>
-                      )}
-                    </div>
-                    {hasThumb && (
-                      <NewsThumb
-                        src={thumbSrc}
-                        iconSize={40}
-                        className="col-start-2 row-span-2 row-start-1 h-[150px] w-full self-start max-[760px]:order-1 max-[760px]:h-auto max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
-                      />
-                    )}
-                    <div className="flex items-center gap-x-3 text-sm text-[#667374] max-[760px]:order-3">
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-[#3d4a4b]">
-                        {isAdmin ? (
-                          <Megaphone size={16} />
-                        ) : (
-                          <Newspaper size={16} />
-                        )}
-                        {getPressName(item)}
-                      </span>
-                      <i className="text-[#b9c4c4] not-italic">·</i>
-                      <time>{formatDate(item.pblcnDt)}</time>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+            {content.map((item) => (
+              <NewsCard key={item.newsSn} item={item} search={search} />
+            ))}
           </ul>
         )}
 

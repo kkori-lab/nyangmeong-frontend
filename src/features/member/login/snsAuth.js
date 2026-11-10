@@ -7,7 +7,7 @@ import {
 } from '@/api/env';
 import { PATHS } from '@/routes/paths';
 
-/** 인가 창에 넘긴 state·제공자·로그인 뒤 갈 곳. 콜백에서 한 번 읽고 지운다 */
+/** 인가 창에 넘긴 state·제공자·로그인 뒤 갈 곳·연동 모드. 콜백에서 한 번 읽고 지운다 */
 const STORAGE_KEY = 'snsLoginRequest';
 
 /** 제공자 코드(snsOffrCd, 서버 공통코드 USRG03) -> 인가 창, 콜백 경로의 provider */
@@ -52,8 +52,9 @@ export const canStartSnsLogin = (snsOffrCd) =>
  * state를 만들어 두고 제공자 인가 창으로 간다
  * - 앱 ID가 없는 개발 서버: 인가 창 대신 이름을 받아 fake-이름 코드로 바로 돌아온다(백엔드 app.sns.client=fake)
  * - 이름 입력을 취소하면 아무것도 하지 않는다
+ * - mode: 'link'면 로그인이 아니라 로그인한 회원에게 SNS 계정을 연동하는 요청이다
  */
-export const startSnsLogin = ({ snsOffrCd, redirect }) => {
+export const startSnsLogin = ({ snsOffrCd, redirect, mode }) => {
   const { url, clientId, scope } = AUTHORIZE[snsOffrCd];
   const state = crypto.randomUUID();
   const params = new URLSearchParams({ state });
@@ -71,7 +72,7 @@ export const startSnsLogin = ({ snsOffrCd, redirect }) => {
 
   sessionStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({ state, snsOffrCd, redirect }),
+    JSON.stringify({ state, snsOffrCd, redirect, mode }),
   );
   window.location.assign(
     clientId ? `${url}?${params}` : `${redirectUri(snsOffrCd)}?${params}`,
@@ -83,23 +84,30 @@ export const isSnsCallback = (searchParams) =>
   searchParams.has('state') &&
   (searchParams.has('code') || searchParams.has('error'));
 
+/** 콜백 주소가 연동 요청에서 돌아온 것인지. 저장값은 지우지 않고 읽기만 한다(첫 그림부터 로그인 폼을 숨기는 데 쓴다) */
+export const isSnsLinkCallback = (searchParams) =>
+  isSnsCallback(searchParams) && readRequest()?.mode === 'link';
+
 /**
  * 콜백 주소를 저장해 둔 요청과 맞춰 본다. 저장값은 맞든 틀리든 지운다(같은 state를 두 번 쓰지 않는다)
- * - { status: 'ok', snsOffrCd, code, state, redirect }
- * - { status: 'cancelled' }: 사용자가 동의를 거절했거나 인증을 취소했다
- * - { status: 'mismatch' }: 저장한 state가 없거나 다르다
+ * - { status: 'ok', snsOffrCd, code, state, redirect, mode }
+ * - { status: 'cancelled', mode }: 사용자가 동의를 거절했거나 인증을 취소했다
+ * - { status: 'mismatch', mode }: 저장한 state가 없거나 다르다(저장한 요청이 없으면 mode 없음)
  */
 export const takeSnsCallback = (searchParams) => {
   const saved = readRequest();
   sessionStorage.removeItem(STORAGE_KEY);
   const state = searchParams.get('state');
-  if (!saved || saved.state !== state) return { status: 'mismatch' };
-  if (!searchParams.get('code')) return { status: 'cancelled' };
+  if (!saved) return { status: 'mismatch' };
+  const { mode } = saved;
+  if (saved.state !== state) return { status: 'mismatch', mode };
+  if (!searchParams.get('code')) return { status: 'cancelled', mode };
   return {
     status: 'ok',
     snsOffrCd: saved.snsOffrCd,
     code: searchParams.get('code'),
     state,
     redirect: saved.redirect,
+    mode,
   };
 };

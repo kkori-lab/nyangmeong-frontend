@@ -31,18 +31,27 @@ export const formatSeenAtShort = (dateTime) =>
 /** 입력창 id: 「댓글로 제보하기」가 이 입력창으로 이동 */
 export const MISSING_COMMENT_INPUT_ID = 'missing-cmnt-input';
 
+const toBreedValue = (post) => {
+  if (post.vrtySn) {
+    return { vrtyNm: post.vrtyNm, vrtyDrctInptNm: null, typed: '' };
+  }
+  if (post.vrtyNm) {
+    return { vrtyNm: null, vrtyDrctInptNm: post.vrtyNm, typed: '' };
+  }
+  return { vrtyNm: null, vrtyDrctInptNm: null, typed: '' };
+};
+
 /**
  * 서버 글 → 폼 값. 개인정보 동의는 수정할 때도 재체크
- * - 서버 vrtyNm은 마스터 품종명 또는 직접 입력명: vrtySn이 있으면 목록 품종, 없으면 직접 입력
+ * - 서버 vrtyNm은 마스터 품종명 또는 직접 입력명: vrtySn이 있으면 목록 품종, vrtyNm만 있으면 직접 입력,
+ *   둘 다 없으면 품종 미선택(품종은 선택 항목)
  * - 장소는 서버에 이름·좌표만 있어 주소 자리에 장소 이름, 실종 지역은 서버 rgnNm
  */
 export const toFormValues = (post) => ({
   petSeCd: post.petSeCd,
   petNm: post.petNm,
   colrNm: post.colrNm,
-  breed: post.vrtySn
-    ? { vrtyNm: post.vrtyNm, vrtyDrctInptNm: null, typed: '' }
-    : { vrtyNm: null, vrtyDrctInptNm: post.vrtyNm ?? '', typed: '' },
+  breed: toBreedValue(post),
   chrcCn: post.chrcCn ?? '',
   seenDate: post.lastWtnsDt.slice(0, 10),
   seenTime: post.lastWtnsDt.slice(11, 16),

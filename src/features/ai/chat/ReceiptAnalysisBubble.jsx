@@ -1,6 +1,7 @@
 import { ReceiptText } from 'lucide-react';
 import aiCharacter from '@/assets/ai-character.png';
 import { formatDate } from '@/utils/formatDate';
+import { callName } from '@/utils/josa';
 import { FAILURE } from '../receipt/receiptFailure';
 import PetChoiceChips from './PetChoiceChips';
 
@@ -163,7 +164,7 @@ export default function ReceiptAnalysisBubble({
       {(status === 'analyzing' || status === 'cancelled') && (
         <AiRow>
           <div role="status" className={bubbleClass}>
-            <p>{pet.petNm}의 영수증을 분석하고 있어요…</p>
+            <p>{callName(pet.petNm)}의 영수증을 분석하고 있어요…</p>
             {status === 'cancelled' && <p className={noteClass}>취소됨</p>}
           </div>
           {status === 'analyzing' && (

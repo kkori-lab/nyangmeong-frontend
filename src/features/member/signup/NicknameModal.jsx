@@ -20,18 +20,16 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
   // 입력을 자르거나 지우지 않고 그대로 두고, 길이·문자 오류를 문구로 알린다
   const isTooLong = value.length > NICKNAME_MAX;
   const isValid = !isTooLong && isValidNickname(value);
-  const error =
-    isEdited && !value
-      ? MSG.nickEmpty
-      : isTooLong
-        ? MSG.nickTooLong
-        : value && !isValid
-          ? MSG.nickRule
-          : status === 'duplicate'
-            ? MSG.nickDuplicate
-            : status === 'failed'
-              ? MSG.nickFailed
-              : '';
+  // 빈 칸이면 오류를 띄우지 않는다. [중복 확인]·[설정 완료]가 isValid로 막힌다(추가-1)
+  const error = isTooLong
+    ? MSG.nickTooLong
+    : value && !isValid
+      ? MSG.nickRule
+      : status === 'duplicate'
+        ? MSG.nickDuplicate
+        : status === 'failed'
+          ? MSG.nickFailed
+          : '';
   const help =
     isEdited && isValid && !isSame && status === 'idle'
       ? MSG.nickNeedCheck
@@ -97,7 +95,7 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
           label="닉네임"
           value={value}
           onChange={change}
-          placeholder="닉네임을 입력하세요"
+          placeholder="닉네임 입력"
           autoComplete="off"
           error={error}
           success={status === 'available' ? MSG.nickAvailable : ''}
@@ -122,7 +120,7 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
         <p className="mt-2 text-sm leading-5 text-muted">
           최대 10글자 · 한글·영문·숫자만 가능
           <br />
-          특수문자·공백·이모지는 사용할 수 없어요.
+          특수문자·공백·이모지는 사용할 수 없습니다.
         </p>
       </div>
     </Modal>

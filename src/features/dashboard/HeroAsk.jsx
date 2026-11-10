@@ -1,37 +1,107 @@
-import { ArrowUp } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, Sparkles, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import useAiWindow from '@/hooks/useAiWindow';
+import {
+  RECEIPT_ACCEPT,
+  RECEIPT_HELP,
+  validateReceiptFile,
+} from '@/utils/receiptFile';
 
-const SUGGESTIONS = [
-  '체중 변화 알려줘',
-  '다음 접종 언제야?',
-  '근처 동물병원 찾아줘',
-  '미용실 추천해줘',
-];
-
+/**
+ * [메인 AI 매니저 검색창] (FN-MAN-002)
+ * - 질문을 보내면 AI 창을 그 질문으로 연다
+ * - 왼쪽 [+]로 사진 1장 첨부: 사진+글(글은 없어도 됨)을 AI 창으로 넘기면 대화창이 종류를 판단한다
+ * - 음성 질문 버튼·제안 카드는 뺐다(사람 요청 2026-11-09)
+ */
 export default function HeroAsk({ petNm }) {
   const openAiWindow = useAiWindow();
+  const fileInputRef = useRef(null);
   const [text, setText] = useState('');
+  /** { file, previewUrl } */
+  const [picked, setPicked] = useState(null);
+  const [fileError, setFileError] = useState('');
   const [isBlocked, setIsBlocked] = useState(false);
 
-  const ask = (question) => {
-    const message = question.trim();
-    if (!message) return;
-    setIsBlocked(!openAiWindow(message));
+  /** 미리보기 주소 해제 */
+  useEffect(
+    () => () => {
+      if (picked) URL.revokeObjectURL(picked.previewUrl);
+    },
+    [picked],
+  );
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    const reason = await validateReceiptFile(file);
+    setFileError(reason ?? '');
+    if (reason) return;
+    setPicked({ file, previewUrl: URL.createObjectURL(file) });
+  };
+
+  const handleRemoveFile = () => {
+    setPicked(null);
+    setFileError('');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    ask(text);
+    const message = text.trim();
+    if (!message && !picked) return;
+    const isOpened = openAiWindow(message, picked?.file);
+    setIsBlocked(!isOpened);
+    /** 사진은 AI 창으로 넘겼으니 비운다 */
+    if (isOpened) setPicked(null);
   };
 
   return (
-    <div className="flex w-full min-w-0 flex-col items-center gap-4">
+    <div className="flex w-full min-w-0 flex-col items-center gap-3">
+      {/** 사진이 있으면 테두리 안 위쪽에 썸네일, 입력 줄은 그 아래(Claude 입력창처럼) */}
       <form
         role="search"
         onSubmit={handleSubmit}
-        className="mt-10 flex h-[52px] w-full max-w-[600px] items-center gap-2 rounded-md border border-brand-500 bg-white py-0 pr-1.5 pl-5 shadow-depth-sm focus-within:ring-focus max-[700px]:pl-4"
+        className={`flex w-full max-w-[600px] flex-wrap items-center gap-2 border border-line bg-white px-1.5 focus-within:border-brand-500 focus-within:ring-focus ${
+          picked ? 'rounded-[26px] pt-3 pb-1.5' : 'h-[52px] rounded-full'
+        }`}
       >
+        {picked && (
+          <ul aria-label="첨부한 사진" className="flex basis-full px-2">
+            <li className="relative size-24">
+              <img
+                src={picked.previewUrl}
+                alt={picked.file.name}
+                className="size-full rounded-xl border border-line object-cover"
+              />
+              <button
+                type="button"
+                aria-label={`${picked.file.name} 첨부 삭제`}
+                onClick={handleRemoveFile}
+                className="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full border border-line bg-white text-ink-2 shadow-depth-sm hover:bg-surface-2"
+              >
+                <X className="size-3.5" aria-hidden="true" />
+              </button>
+            </li>
+          </ul>
+        )}
+        <button
+          type="button"
+          aria-label="사진 첨부"
+          title={`사진 첨부 (${RECEIPT_HELP})`}
+          onClick={() => fileInputRef.current.click()}
+          className="grid size-10 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-surface-2"
+        >
+          <Plus className="size-5" aria-hidden="true" />
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={RECEIPT_ACCEPT}
+          tabIndex={-1}
+          aria-hidden="true"
+          className="hidden"
+          onChange={handleFileChange}
+        />
         <label htmlFor="main-ask" className="sr-only">
           AI 매니저에게 질문
         </label>
@@ -40,41 +110,28 @@ export default function HeroAsk({ petNm }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           autoComplete="off"
-          required
+          required={!picked}
           placeholder={`${petNm}의 건강, 근처 병원, 놀거리까지 무엇이든 물어보세요`}
-          className="min-w-0 flex-1 truncate bg-transparent outline-none placeholder:text-placeholder"
+          className="min-w-0 flex-1 truncate bg-transparent text-sm outline-none placeholder:text-placeholder"
         />
         <button
           type="submit"
-          aria-label="AI 매니저에게 보내기"
-          className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-500 text-white hover:bg-brand-600"
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-brand-50 px-4 text-sm font-semibold text-brand-600 hover:bg-brand-100 max-[700px]:px-3"
         >
-          <ArrowUp className="size-5" />
+          <Sparkles className="size-4" aria-hidden="true" />
+          <span className="max-[480px]:sr-only">AI 매니저</span>
         </button>
       </form>
-      <div
-        aria-label="추천 질문"
-        className="flex max-w-full gap-2 overflow-x-auto max-[700px]:self-stretch max-[700px]:[scrollbar-width:none] max-[700px]:[&::-webkit-scrollbar]:hidden"
-      >
-        {SUGGESTIONS.map((question) => (
-          <button
-            key={question}
-            type="button"
-            onClick={() => ask(question)}
-            className="h-9 shrink-0 rounded-full border border-line bg-white/85 px-3.5 text-sm max-[700px]:h-8 max-[700px]:px-3 whitespace-nowrap text-ink-2 hover:border-brand-500 hover:text-brand-600"
-          >
-            {question}
-          </button>
-        ))}
-      </div>
+      {fileError && (
+        <p role="alert" className="text-sm text-danger">
+          {fileError}
+        </p>
+      )}
       {isBlocked && (
         <p role="alert" className="text-sm text-danger">
           팝업이 차단되어 AI 매니저를 열 수 없어요.
         </p>
       )}
-      <p className="text-muted">
-        AI 매니저가 반려동물 케어에 필요한 정보를 대화로 찾아드려요
-      </p>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import AuthField from '../shared/AuthField';
 import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
 import { PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
+import { normalizePhone } from '../shared/validate';
 import { SNS_NAME } from '../shared/snsCodes';
 import TermsModal from '../shared/TermsModal';
 import { SignupComplete } from './SignupForm';
@@ -25,6 +26,7 @@ export default function SnsSignupForm({ snsSignup, onCancel, onGoLogin }) {
       <AuthHeading
         title="가입 정보를 확인해 주세요"
         subtitle="냥멍케어 이용에 필요한 동의를 확인해 주세요."
+        spacing="step"
       />
       {form.notice && (
         <AuthNotice
@@ -61,7 +63,7 @@ export default function SnsSignupForm({ snsSignup, onCancel, onGoLogin }) {
             help={
               form.isPhoneProvided
                 ? MSG.snsPhoneProvided
-                : form.phone
+                : normalizePhone(form.phone)
                   ? MSG.phoneNeedCheck
                   : MSG.snsPhoneMissing
             }
@@ -71,7 +73,7 @@ export default function SnsSignupForm({ snsSignup, onCancel, onGoLogin }) {
                 <button
                   type="button"
                   onClick={form.submitPhoneCheck}
-                  disabled={form.isPhoneChecking}
+                  disabled={!normalizePhone(form.phone) || form.isPhoneChecking}
                   className={SIDE_BTN}
                 >
                   중복확인
@@ -84,8 +86,8 @@ export default function SnsSignupForm({ snsSignup, onCancel, onGoLogin }) {
           <TermsChecklist form={form} lockedSn={form.lockedSn} />
         </div>
         <p className="mt-2 text-sm leading-5 text-muted">
-          필수 동의·연령 확인과 번호 중복확인을 모두 마쳐야 가입할 수 있습니다.
-          전화번호는 가입정보 관리와 중복확인에 사용합니다.
+          필수 동의·연령 확인과 휴대전화번호 중복확인을 마치면 가입할 수
+          있습니다. 휴대전화번호는 가입 정보 관리와 중복확인에만 씁니다.
         </p>
         {form.isExpired ? (
           <button

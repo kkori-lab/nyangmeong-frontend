@@ -39,7 +39,7 @@ export default function CareMissionTable({ missions, onEdit }) {
         </thead>
         <tbody>
           {missions.map((mission) => {
-            const isUsed = mission.useYn === 'Y';
+            const isUsed = mission.useYn;
             return (
               <tr
                 key={mission.careMsnSn}

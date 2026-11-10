@@ -28,7 +28,7 @@ export default function ReceiptImageModal({ receipt, onClose }) {
       }
     >
       <p className="mb-3 text-sm text-subtle tabular-nums">
-        {receipt.mbrNcnm} · {formatDateTime(receipt.frstRegDt)}
+        {receipt.mbrNcnm} · {formatDateTime(receipt.regDt)}
       </p>
       <FileImage
         src={src}

@@ -9,22 +9,18 @@ import { HOSPITAL } from './scheduleTypes';
 
 /**
  * [종합 건강기록 API]
- * - 반려동물 한 마리의 프로필·일상 기록·검진기록·반복 예방·검사 수치·처방약·첨부·지속 관찰·병원 일정을 한꺼번에 받아 화면 묶음으로 합친다
- * - 검사 수치·처방약·첨부·반복 예방은 ckupRcdSn을 빼고 불러 반려동물 전체를 받는다(반복 예방 전체 조회에만 hsptlNm이 채워진다)
- * - 서버 필드 이름은 바꾸지 않는다. 합치기·정렬·자르기만 화면이 한다
+ * - 반려동물 한 마리의 프로필·일상 기록·검진기록·검사 수치·처방약·첨부·지속 관찰·병원 일정을 한꺼번에 받아 히어로·대시보드 카드 묶음으로 합침
+ * - 검사 수치·처방약·첨부는 ckupRcdSn을 빼고 불러 반려동물 전체를 받음
+ * - 서버 필드 이름은 바꾸지 않음. 합치기·정렬·자르기만 화면 몫
  */
 
-const TIMELINE_COUNT = 5;
-const TREND_COUNT = 4;
+/** 히어로 최근 검진을 고를 최근 검진기록 수(미래 날짜를 거른 뒤 첫 건) */
+const RECENT_CHECKUP_COUNT = 5;
+/** 검사 수치 카드 항목별 최근 회수 */
+const TREND_COUNT = 5;
 const ATTACHMENT_COUNT = 4;
 const VACCINATION = 'HLTC0002';
 const REGULAR = 'HLTC0001';
-
-/** 타임라인 항목 종류 */
-export const TIMELINE_CHECKUP = 'CKUP';
-export const TIMELINE_PREVENTION = 'PRVNT';
-
-const compareDesc = (a, b) => (a === b ? 0 : a < b ? 1 : -1);
 
 /** 검사 항목 이름: 직접입력이면 입력한 이름 */
 export const getInspectionName = (item) =>
@@ -51,7 +47,7 @@ const getNextHospitalYmd = async (petSn, ckupTypeCd, today) => {
   return schedules.length > 0 ? getYmdOf(schedules[0].schdlDt) : null;
 };
 
-/** 검사 수치 전체(검진일 오름차순)로 최근 1회차 표와 항목별 추이(최근 4회)를 만든다 */
+/** 검사 수치 전체(검진일 오름차순) → 최근 1회차(히어로)와 항목별 추이(최근 5회, 검사 수치 카드) */
 const buildLab = (petSn, values) => {
   const latestSn = values.reduce(
     (latest, value) =>
@@ -102,7 +98,6 @@ export const getHealthSummary = async (petSn) => {
     recentCheckups,
     vaccinationCheckups,
     regularCheckups,
-    repeatPreventions,
     nextVaccinationYmd,
     nextRegularYmd,
     inspectionValues,
@@ -112,10 +107,9 @@ export const getHealthSummary = async (petSn) => {
   ] = await Promise.all([
     getPet(petSn),
     getLatestWeight(petSn),
-    getCheckupList(petSn, { size: TIMELINE_COUNT }),
+    getCheckupList(petSn, { size: RECENT_CHECKUP_COUNT }),
     getCheckupList(petSn, { ckupTypeCd: VACCINATION, size: 2 }),
     getCheckupList(petSn, { ckupTypeCd: REGULAR, size: 1 }),
-    api.get(`/pets/${petSn}/repeat-preventions`),
     getNextHospitalYmd(petSn, VACCINATION, today),
     getNextHospitalYmd(petSn, REGULAR, today),
     api.get(`/pets/${petSn}/inspection-values`),
@@ -127,42 +121,6 @@ export const getHealthSummary = async (petSn) => {
   const isPast = (checkup) => checkup.ckupYmd <= today;
   const pastCheckups = recentCheckups.filter(isPast);
 
-  /** 건강 이력 타임라인: 검진기록과 반복 예방(시작일)을 날짜순으로 섞은 최신 5건 */
-  const timeline = [
-    ...pastCheckups.map((checkup) => ({
-      tlKey: `ckup-${checkup.ckupRcdSn}`,
-      tlTypeCd: TIMELINE_CHECKUP,
-      ymd: checkup.ckupYmd,
-      petSn,
-      ckupRcdSn: checkup.ckupRcdSn,
-      ckupTypeCd: checkup.ckupTypeCd,
-      hsptlNm: checkup.hsptlNm,
-      // 진료 내용: 목록 응답에 아직 없음(백엔드 연결 대기). 오면 타임라인 상세 줄
-      ckupCn: checkup.ckupCn,
-    })),
-    ...repeatPreventions
-      .filter((prevention) => prevention.bgngYmd <= today)
-      .map((prevention) => ({
-        tlKey: `prvnt-${prevention.reptPrvntMngSn}`,
-        tlTypeCd: TIMELINE_PREVENTION,
-        ymd: prevention.bgngYmd,
-        petSn,
-        ckupRcdSn: prevention.ckupRcdSn,
-        hsptlNm: prevention.hsptlNm,
-        reptPrvntArtclCdNm: prevention.reptPrvntArtclCdNm,
-      })),
-  ]
-    .sort(
-      (a, b) =>
-        compareDesc(a.ymd, b.ymd) ||
-        (a.tlTypeCd === b.tlTypeCd
-          ? 0
-          : a.tlTypeCd === TIMELINE_CHECKUP
-            ? -1
-            : 1),
-    )
-    .slice(0, TIMELINE_COUNT);
-
   const { lab, trends } = buildLab(petSn, inspectionValues);
 
   return {
@@ -171,7 +129,6 @@ export const getHealthSummary = async (petSn) => {
     /** 요약 바 몸무게: 일상 기록의 최신 체중, 없으면 프로필 체중 */
     weight: latestWeight ?? pet.petBdwg,
     latestCheckup: pastCheckups[0] ?? null,
-    timeline,
     prevention: {
       vaccinations: vaccinationCheckups.filter(isPast),
       nextVaccinationYmd,

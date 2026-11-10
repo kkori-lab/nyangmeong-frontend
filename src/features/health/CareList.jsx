@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Card from '@/components/Card';
-import DropdownSelect from '@/components/DropdownSelect';
 import Icon from '@/components/Icon';
 import SkeletonCard from '@/components/SkeletonCard';
 import { getTodayYmd } from '@/utils/formatDate';
@@ -8,21 +7,20 @@ import ConfirmModal from '@/components/ConfirmModal';
 import CareItemModal from './CareItemModal';
 import CareRecordList from './CareRecordList';
 import CareTile from './CareTile';
-import { CARE_ZONE, MAX_MAIN_CARE } from './careDue';
+import { CARE_ZONE } from './careDue';
 import {
   useCancelCareRecord,
   useCancelLastDose,
   useCareItems,
   useCheckCareItem,
   useDeleteCareItem,
-  useSaveCareMain,
 } from './queries';
 
 // 640px 미만에서 구역마다 처음 보여 주는 칸 수
 const MOBILE_VISIBLE_COUNT = 3;
 
-// 토탈 케어리스트 카드(FN-HLT-003-12·13). 제목 왼쪽 반려동물 셀렉트(FN-HLT-003-01)에서 고른 반려동물 기준이다
-export default function CareList({ petSn, pets, onSelectPet }) {
+// 토탈 케어리스트 카드(FN-HLT-003-12·13). 건강기록 공통 반려동물 카드에서 고른 반려동물(petSn) 기준이다. 제목은 「토탈 케어리스트」
+export default function CareList({ petSn }) {
   const { data, isPending, isError, error, refetch } = useCareItems(petSn);
   const [isAdding, setIsAdding] = useState(false);
   // 수정 중인 항목, 삭제 확인 중인 항목
@@ -33,7 +31,6 @@ export default function CareList({ petSn, pets, onSelectPet }) {
   const checkCareItem = useCheckCareItem();
   const cancelLastDose = useCancelLastDose();
   const cancelCareRecord = useCancelCareRecord();
-  const saveCareMain = useSaveCareMain();
   const deleteCareItem = useDeleteCareItem();
 
   if (isPending) {
@@ -67,9 +64,6 @@ export default function CareList({ petSn, pets, onSelectPet }) {
     (item) => item.careZoneCd === CARE_ZONE.REGULAR,
   );
   const regularSns = new Set(regularItems.map((item) => item.careArtclSn));
-  const mainItems = careItems
-    .filter((item) => item.mainExpsrYn)
-    .sort((a, b) => a.mainSortSeq - b.mainSortSeq);
 
   const findTodayRecord = (item) =>
     careRecords.find(
@@ -99,18 +93,8 @@ export default function CareList({ petSn, pets, onSelectPet }) {
     else checkCareItem.mutate({ petSn, careArtclSn: item.careArtclSn });
   };
 
-  // ★: 켜면 메인 순서 끝에 더하고 끄면 뺀다. 7개째는 서버가 막고 안내 문구를 준다
-  const handleToggleMain = (item) => {
-    const careArtclSns = item.mainExpsrYn
-      ? mainItems
-          .filter((main) => main.careArtclSn !== item.careArtclSn)
-          .map((main) => main.careArtclSn)
-      : [...mainItems.map((main) => main.careArtclSn), item.careArtclSn];
-    saveCareMain.mutate({ petSn, careArtclSns });
-  };
-
-  // 640px 이상: 앞 절반은 왼쪽 열, 나머지는 오른쪽 열에 세로로 채우고, 같은 줄의 두 칸은 높이가 같다.
-  // 개수가 홀수면 오른쪽 마지막 빈 자리에도 밑줄을 그어 두 열의 끝을 맞춘다
+  // 1024px 이상: 앞 절반은 왼쪽 열, 나머지는 오른쪽 열에 세로로 채우고, 같은 줄의 두 칸은 높이가 같다.
+  // 개수가 홀수면 오른쪽 마지막 빈 자리에도 밑줄을 그어 두 열의 끝을 맞춘다. 640~1023px은 1열 (※신규 정책)
   // 640px 미만: 처음 MOBILE_VISIBLE_COUNT칸만 보이고 나머지는 [더보기]로 펼친다
   const renderZone = (zoneCd, label, items, note, className = '') => {
     const rowCount = Math.ceil(items.length / 2);
@@ -127,7 +111,7 @@ export default function CareList({ petSn, pets, onSelectPet }) {
           {label}
         </p>
         <div
-          className="grid gap-y-2 pt-3 sm:grid-flow-col sm:grid-cols-2 sm:grid-rows-[repeat(var(--care-rows),auto)] sm:gap-x-8 sm:gap-y-0 sm:pt-0"
+          className="grid gap-y-2 pt-3 lg:grid-flow-col lg:grid-cols-2 lg:grid-rows-[repeat(var(--care-rows),auto)] lg:gap-x-8 sm:gap-y-0 sm:pt-0"
           style={{ '--care-rows': rowCount }}
         >
           {items.map((item, index) => (
@@ -141,7 +125,6 @@ export default function CareList({ petSn, pets, onSelectPet }) {
                   : ''
               }
               onCheck={handleCheck}
-              onToggleMain={handleToggleMain}
               onEdit={setEditingItem}
               onDelete={setDeletingItem}
               onCancelLastDose={(target) =>
@@ -155,7 +138,7 @@ export default function CareList({ petSn, pets, onSelectPet }) {
           {items.length % 2 === 1 && (
             <div
               aria-hidden="true"
-              className="border-b border-[#edf1f1] max-sm:hidden"
+              className="border-b border-[#edf1f1] max-lg:hidden"
             />
           )}
         </div>
@@ -186,28 +169,11 @@ export default function CareList({ petSn, pets, onSelectPet }) {
     <>
       <Card
         title="토탈 케어리스트"
-        // 760px 이하에서는 완료 개수를 숨기고 [셀렉트][제목] … [＋] 한 줄로 둔다
+        // 760px 이하에서는 완료 개수를 숨기고 [제목] … [＋] 한 줄로 둔다
         sub={
           <span className="max-[760px]:hidden">
             오늘 {doneCount}/{careItems.length} 완료
           </span>
-        }
-        leading={
-          pets.length > 1 && (
-            <div className="shrink-0">
-              <DropdownSelect
-                label="반려동물 선택 (토탈 케어리스트)"
-                isPill
-                value={petSn}
-                options={pets.map((pet) => ({
-                  value: pet.petSn,
-                  label: pet.petNm,
-                }))}
-                onChange={onSelectPet}
-                className="w-[calc(3em+3.75rem)]"
-              />
-            </div>
-          )
         }
         action={
           // 좁은 화면에서는 제목·부제가 잘리지 않게 ＋ 아이콘만 남긴다(날짜 상세 카드와 같음)
@@ -222,30 +188,13 @@ export default function CareList({ petSn, pets, onSelectPet }) {
           </button>
         }
       >
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-[#566465]">
-          <span>★ 표시한 항목이 메인 화면에 보여요</span>
-          <span className="ml-auto">
-            메인 표시{' '}
-            <span className="text-lg font-semibold text-[#1a3234] tabular-nums">
-              {mainItems.length}
-            </span>{' '}
-            / {MAX_MAIN_CARE}
-          </span>
-        </div>
-
         {renderZone(
           CARE_ZONE.REGULAR,
-          '정기관리(REGULAR)',
+          '정기관리',
           regularItems,
           '심장사상충 예방·구충제는 검진상세에서 반복 예방을 등록하면 여기에 추가돼요',
         )}
-        {renderZone(
-          CARE_ZONE.DAILY,
-          '일상관리(DAILY)',
-          dailyItems,
-          null,
-          'mt-8',
-        )}
+        {renderZone(CARE_ZONE.DAILY, '일상관리', dailyItems, null, 'mt-8')}
 
         <CareRecordList
           key={petSn}

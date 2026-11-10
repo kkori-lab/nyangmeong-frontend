@@ -1,12 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   createComment,
   deleteComment,
   getComments,
   reportComment,
   reportPost,
-  togglePostLike,
 } from './api';
+import { useOptimisticLike } from './optimisticLike';
 import {
   createMissing,
   deleteMissing,
@@ -35,6 +40,8 @@ export const useMissingList = (params) =>
   useQuery({
     queryKey: missingKeys.list(params),
     queryFn: () => getMissingList(params),
+    /** 필터를 바꾸는 동안 이전 목록 유지로 필터 영역 보존 */
+    placeholderData: keepPreviousData,
   });
 
 export const useMissingRail = () =>
@@ -107,8 +114,12 @@ export const useDeleteMissing = () => {
       ]),
   });
 };
-export const useToggleMissingLike = () =>
-  useInvalidatingMutation(togglePostLike);
+/** 누르는 즉시 그 글 상세의 좋아요·개수가 바뀐다(optimisticLike) */
+export const useToggleMissingLike = (lostTpofSn) =>
+  useOptimisticLike({
+    detailKey: missingKeys.detail(lostTpofSn),
+    allKey: missingKeys.all,
+  });
 export const useMarkMissingFound = () =>
   useInvalidatingMutation(markMissingFound);
 export const useExtendMissing = () => useInvalidatingMutation(extendMissing);

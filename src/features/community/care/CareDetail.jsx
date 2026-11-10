@@ -2,7 +2,6 @@ import {
   CalendarDays,
   ChevronLeft,
   Flag,
-  Heart,
   HeartHandshake,
   MapPin,
   PawPrint,
@@ -13,6 +12,8 @@ import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import ConfirmModal from '@/components/ConfirmModal';
+import ImageViewer from '@/components/ImageViewer';
+import LikeButton from '@/components/LikeButton';
 import PostBody from '@/components/PostBody';
 import ReportModal from '@/components/ReportModal';
 import SharePanel from '@/components/SharePanel';
@@ -62,10 +63,11 @@ export default function CareDetail({ post }) {
   const { state } = useLocation();
   const navigate = useNavigate();
   const openChatWindow = useChatWindow();
-  const toggleLike = useToggleCareLike();
+  const toggleLike = useToggleCareLike(post.petPrtcRcrtSn);
   const remove = useDeleteCare();
   const report = useReportCare();
   const [modal, setModal] = useState('');
+  const [viewerIndex, setViewerIndex] = useState(null);
   const listTo = `${PATHS.COMMUNITY_PETCARE}${state?.listSearch ?? ''}`;
   const isMine = post.owner;
   const isLiked = post.liked;
@@ -87,6 +89,11 @@ export default function CareDetail({ post }) {
     <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1101px]:grid-cols-1 max-[1101px]:gap-10">
       <article className={ARTICLE_CLASS} aria-labelledby="care-title">
         <div className="flex flex-wrap gap-1.5">
+          {post.owner && (
+            <Badge tone="amber" bordered>
+              내 글
+            </Badge>
+          )}
           <CareStatusBadge post={post} />
           {badges.map((name) => (
             <Badge key={name} tone="outline">
@@ -138,14 +145,21 @@ export default function CareDetail({ post }) {
 
         <PostBody content={post.pstCn}>
           {post.imgs.length > 0 && (
-            <div className="mb-6 flex flex-col gap-3">
+            <div className="mb-6 flex flex-col items-center gap-3">
               {post.imgs.map(({ atchFileSn }, index) => (
-                <img
+                <button
                   key={atchFileSn}
-                  src={publicFileUrl(atchFileSn)}
-                  alt={`첨부 이미지 ${index + 1}`}
-                  className="h-auto max-w-full rounded-[10px]"
-                />
+                  type="button"
+                  aria-label={`첨부 이미지 ${index + 1} 크게 보기`}
+                  onClick={() => setViewerIndex(index)}
+                  className="max-w-full cursor-zoom-in"
+                >
+                  <img
+                    src={publicFileUrl(atchFileSn)}
+                    alt={`첨부 이미지 ${index + 1}`}
+                    className="h-auto max-h-[min(640px,75vh)] w-auto max-w-full rounded-[10px] object-contain"
+                  />
+                </button>
               ))}
             </div>
           )}
@@ -210,19 +224,14 @@ export default function CareDetail({ post }) {
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-2 max-[760px]:gap-1">
-            <button
-              type="button"
-              aria-pressed={isLiked}
-              aria-label="좋아요"
+            <LikeButton
+              isLiked={isLiked}
+              count={post.rcmdtnCnt}
               disabled={toggleLike.isPending}
-              onClick={() =>
+              onToggle={() =>
                 toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
               }
-              className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-base font-semibold text-ink-2 ${isLiked ? '[&_svg]:text-[#f44b21]' : '[&_svg]:text-line-strong'}`}
-            >
-              <Heart size={22} aria-hidden="true" fill="currentColor" />
-              {post.rcmdtnCnt}
-            </button>
+            />
             <i className="mx-1 h-3.5 w-px bg-line-strong" aria-hidden="true" />
             <SharePanel title={post.pstTtl} />
             {!isMine && (
@@ -259,6 +268,18 @@ export default function CareDetail({ post }) {
         <CareCheckGuide />
       </div>
 
+      {viewerIndex !== null && (
+        <ImageViewer
+          images={post.imgs.map(({ atchFileSn }, index) => ({
+            key: atchFileSn,
+            src: publicFileUrl(atchFileSn),
+            name: `첨부 이미지 ${index + 1}`,
+          }))}
+          index={viewerIndex}
+          onChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
       {modal === 'delete' && (
         <ConfirmModal
           title="돌봄 요청을 삭제할까요? 삭제한 글은 되돌릴 수 없어요. 이미 나눈 채팅 기록은 그대로 남아요"

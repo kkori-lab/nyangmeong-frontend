@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Menu, SquarePen, Trash2 } from 'lucide-react';
-import ConfirmModal from '@/components/ConfirmModal';
-import { useDeleteConversation } from '../queries';
+import DeleteConversationModal from './DeleteConversationModal';
 
 /** 일시 표기 변환 */
 const formatDate = (regDt) => regDt.slice(0, 10).replaceAll('-', '.');
@@ -50,18 +49,6 @@ export default function ConversationHeader({
   onNewChat,
 }) {
   const [isConfirming, setIsConfirming] = useState(false);
-  const deleteConversation = useDeleteConversation();
-
-  const handleDeleteConfirm = () => {
-    deleteConversation.mutate(conversation.aiCnvrsRoomSn, {
-      onSuccess: () => onDeleted(),
-    });
-  };
-
-  const handleDeleteCancel = () => {
-    deleteConversation.reset();
-    setIsConfirming(false);
-  };
 
   return (
     <header className={chatHeaderClass}>
@@ -73,7 +60,7 @@ export default function ConversationHeader({
         {pets?.find((pet) => pet.petSn === conversation.petSn)?.petNm ?? '전체'}
       </span>
       <span className="truncate text-sm text-[#667374] max-[760px]:hidden">
-        {formatDate(conversation.regDt)} · 대화 제목은 첫 메시지로 자동 생성돼요
+        {formatDate(conversation.regDt)}
       </span>
       <button
         type="button"
@@ -87,18 +74,10 @@ export default function ConversationHeader({
       <NewChatButton onClick={onNewChat} />
 
       {isConfirming && (
-        <ConfirmModal
-          title="이 대화를 삭제할까요?"
-          description="삭제한 대화와 메시지는 되돌릴 수 없어요."
-          confirmLabel="삭제하기"
-          errorMessage={
-            deleteConversation.isError
-              ? '삭제하지 못했어요. 잠시 뒤 다시 시도해 주세요'
-              : undefined
-          }
-          isPending={deleteConversation.isPending}
-          onConfirm={handleDeleteConfirm}
-          onCancel={handleDeleteCancel}
+        <DeleteConversationModal
+          aiCnvrsRoomSn={conversation.aiCnvrsRoomSn}
+          onDeleted={onDeleted}
+          onClose={() => setIsConfirming(false)}
         />
       )}
     </header>

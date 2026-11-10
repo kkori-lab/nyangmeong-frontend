@@ -8,13 +8,6 @@ import { CHECKUP_TYPES, TONE_CLASSES } from '../scheduleTypes';
  * - 서버 값(프로필·검진기록·검사 항목)을 화면 문구로 바꾸는 함수
  */
 
-/** 쉼표로 나눈 항목 수. 비어 있으면 0 */
-export const countItems = (text) =>
-  (text ?? '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean).length;
-
 /** 검진유형 이름·아이콘·톤 클래스(chip: 연한 바탕 + 진한 글자) */
 export const getCheckupType = (ckupTypeCd) => {
   const type = CHECKUP_TYPES.find((item) => item.cd === ckupTypeCd);
@@ -41,10 +34,3 @@ export const getCheckupDetailPath = ({ petSn, ckupRcdSn }, tab) => {
 /** 건강 일지의 검진기록·지속 관찰 영역 */
 export const DIARY_EXAM_PATH = `${PATHS.HEALTH_DIARY}#hlt002-exam`;
 export const DIARY_OBS_PATH = `${PATHS.HEALTH_DIARY}#hlt002-obs`;
-
-/** 타임라인 반복 예방 항목의 모양(시안의 기타 회색 톤) */
-export const PREVENTION_TIMELINE = {
-  nm: '반복 예방',
-  icon: 'event_repeat',
-  tone: TONE_CLASSES.gray,
-};

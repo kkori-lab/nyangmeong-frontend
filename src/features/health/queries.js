@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { showToast } from '@/components/toastStore';
 import { expenseKeys } from '@/features/expense/queries';
+import { notificationKeys } from '@/features/notification/queries';
 import {
   cancelCareRecord,
   cancelLastDose,
@@ -20,7 +21,6 @@ import {
   getPetDetail,
   getPixelCharacters,
   getSchedules,
-  saveCareMain,
   updateCareItem,
   updateSchedule,
 } from './api';
@@ -72,6 +72,13 @@ import {
   prepareReceiptSave,
   saveReceiptCheckups,
 } from './receiptApi';
+import {
+  getHealthIndicators,
+  getHealthWidgets,
+  getRecentStools,
+  removeOldHealthWidgets,
+  saveHealthWidgets,
+} from './dashboardApi';
 import { getHealthSummary } from './summaryApi';
 
 export const healthKeys = {
@@ -114,6 +121,10 @@ export const healthKeys = {
   checkupYears: (petSn) => ['health', 'checkups', 'years', petSn],
   checkupDetail: (ckupRcdSn) => ['health', 'checkups', 'detail', ckupRcdSn],
   summary: (petSn) => ['health', 'summary', petSn],
+  widgets: (mbrSn) => ['health', 'widgets', mbrSn],
+  /** 일상 기록을 바꾸면 같이 다시 읽도록 daily-records 아래 */
+  indicators: (petSn) => ['health', 'daily-records', petSn, 'indicators'],
+  recentStools: (petSn) => ['health', 'daily-records', petSn, 'stools'],
 };
 
 const showErrorToast = (error) => showToast(error.message);
@@ -193,8 +204,6 @@ export const useCheckCareItem = () => useCareMutation(checkCareItem);
 export const useCancelLastDose = () => useCareMutation(cancelLastDose);
 
 export const useCancelCareRecord = () => useCareMutation(cancelCareRecord);
-
-export const useSaveCareMain = () => useCareMutation(saveCareMain);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
 
@@ -496,6 +505,45 @@ export const useHealthSummary = (petSn) =>
     enabled: petSn != null,
   });
 
+/** 대시보드 고른 항목 id 배열(저장 순서). 저장한 적이 없으면 data가 null. 예전 브라우저 저장값은 이때 지움 */
+export const useHealthWidgets = (mbrSn) =>
+  useQuery({
+    queryKey: healthKeys.widgets(mbrSn),
+    queryFn: () => {
+      removeOldHealthWidgets(mbrSn);
+      return getHealthWidgets();
+    },
+    enabled: mbrSn != null,
+  });
+
+/** 고른 항목 저장(mbrSn은 캐시 키용). 실패하면 서버 message 토스트 */
+export const useSaveHealthWidgets = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: saveHealthWidgets,
+    onSuccess: (widgetIds, { mbrSn }) =>
+      queryClient.setQueryData(healthKeys.widgets(mbrSn), widgetIds),
+    onError: showErrorToast,
+  });
+};
+
+/** 체중·식사량·음수량·산책·크레아티닌 지표 */
+export const useHealthIndicators = (petSn) =>
+  useQuery({
+    queryKey: healthKeys.indicators(petSn),
+    queryFn: () => getHealthIndicators(petSn),
+    enabled: petSn != null,
+  });
+
+/** 배변 상태 카드용 최근 기록 */
+export const useRecentStools = (petSn, isEnabled) =>
+  useQuery({
+    queryKey: healthKeys.recentStools(petSn),
+    queryFn: () => getRecentStools(petSn),
+    enabled: isEnabled && petSn != null,
+  });
+
 /** 저장 전 가계부 중복·가까운 예정 일정 확인. 실패 안내는 모달 안에서 처리 */
 export const usePrepareReceiptSave = () =>
   useMutation({ mutationFn: prepareReceiptSave });
@@ -511,6 +559,9 @@ export const useSaveReceiptCheckups = () => {
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
       queryClient.invalidateQueries({ queryKey: expenseKeys.all });
+      /** 영수증 저장 시 서버가 가계부 지출을 만들고 한도 초과 알림을 저장하므로 알림 개수·목록 재조회 */
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.list });
     },
   });
 };

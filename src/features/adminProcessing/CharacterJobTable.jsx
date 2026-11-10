@@ -30,24 +30,24 @@ export default function CharacterJobTable({ jobs }) {
         </thead>
         <tbody>
           {jobs.map((job) => {
-            const isFail = job.jobSttsCd === CHAR_JOB_STTS_FAIL;
+            const isFail = job.crtJobSttsCd === CHAR_JOB_STTS_FAIL;
             return (
               <tr
                 key={job.charCrtJobSn}
                 className="border-b border-line text-ink-2 last:border-b-0"
               >
                 <td className="px-4 py-3 whitespace-nowrap tabular-nums">
-                  {formatDate(job.frstRegDt, {
+                  {formatDate(job.regDt, {
                     hasYear: false,
                     separator: '-',
                   })}{' '}
-                  {getHmOf(job.frstRegDt)}
+                  {getHmOf(job.regDt)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">{job.mbrNcnm}</td>
                 <td
                   className={`px-4 py-3 whitespace-nowrap ${isFail ? 'font-semibold text-danger' : ''}`}
                 >
-                  {getCodeName(CHAR_JOB_STTS, job.jobSttsCd)}
+                  {getCodeName(CHAR_JOB_STTS, job.crtJobSttsCd)}
                 </td>
                 <td className="px-4 py-3">{job.failRsn || '—'}</td>
                 <td className="px-4 py-3 whitespace-nowrap">

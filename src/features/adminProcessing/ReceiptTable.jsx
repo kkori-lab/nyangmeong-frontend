@@ -32,14 +32,14 @@ export default function ReceiptTable({ receipts, statuses, onOpenImage }) {
                 className="border-b border-line text-ink-2 last:border-b-0"
               >
                 <td className="px-4 py-3 whitespace-nowrap tabular-nums">
-                  {formatDate(receipt.frstRegDt, {
+                  {formatDate(receipt.regDt, {
                     hasYear: false,
                     separator: '-',
                   })}{' '}
-                  {getHmOf(receipt.frstRegDt)}
+                  {getHmOf(receipt.regDt)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  {getCodeName(OCR_SOURCES, receipt.ocrRqstSrcCd)}
+                  {getCodeName(OCR_SOURCES, receipt.ocrDmndSrcCd)}
                 </td>
                 <td
                   className={`px-4 py-3 whitespace-nowrap ${isFail ? 'font-semibold text-danger' : ''}`}

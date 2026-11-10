@@ -1,6 +1,7 @@
 import { ChevronDown, Receipt } from 'lucide-react';
 import { useState } from 'react';
 import MonthNav from '@/components/MonthNav';
+import SkeletonCard from '@/components/SkeletonCard';
 import { formatYm, getCurrentYm, shiftYm } from '@/utils/yearMonth';
 import { usePointHistory } from '../queries';
 import { PNT_DLNG_TYPE } from '../shared/pointCodes';
@@ -10,11 +11,13 @@ import { CARD, CARD_HEAD, CARD_TITLE } from '../shared/pointStyles';
 /** 앱은 안쪽 스크롤 없이 이만큼만 보이고 나머지는 [더보기] */
 const MOBILE_VISIBLE = 5;
 
-/** 내용: 관리자 조정은 고정 문구, 그 밖은 메모, 없으면 유형 이름 */
-const getTitle = (item) =>
-  item.pntDlngTypeCd === PNT_DLNG_TYPE.ADMIN_ADJUST
-    ? '관리자 조정'
-    : (item.memoCn ?? item.pntDlngTypeCdNm);
+/** 내용: 관리자 조정은 고정 문구, 검진기록은 "이름 · 유형"(서버 메모가 이름뿐), 그 밖은 메모, 없으면 유형 이름 */
+const getTitle = (item) => {
+  if (item.pntDlngTypeCd === PNT_DLNG_TYPE.ADMIN_ADJUST) return '관리자 조정';
+  if (item.pntDlngTypeCd === PNT_DLNG_TYPE.CHECKUP && item.memoCn)
+    return `${item.memoCn} · ${item.pntDlngTypeCdNm}`;
+  return item.memoCn ?? item.pntDlngTypeCdNm;
+};
 
 const sumBy = (items, predicate) =>
   items.filter(predicate).reduce((sum, item) => sum + item.dlngPnt, 0);
@@ -23,13 +26,19 @@ export default function PointHistory() {
   const maxYm = getCurrentYm();
   const [ym, setYm] = useState(maxYm);
   const [isOpen, setIsOpen] = useState(false);
-  const { data } = usePointHistory(ym);
+  const { data, isPending } = usePointHistory(ym);
 
   const moveYm = (step) => {
     setYm(shiftYm(ym, step));
     setIsOpen(false);
   };
 
+  if (isPending)
+    return (
+      <div aria-busy="true">
+        <SkeletonCard className="h-[476px] lg:h-[839px]" />
+      </div>
+    );
   if (!data) return null;
 
   const moreCount = data.length - MOBILE_VISIBLE;

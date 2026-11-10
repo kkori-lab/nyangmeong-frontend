@@ -11,9 +11,6 @@ import useKakaoMap from '@/hooks/useKakaoMap';
 import PlaceOverlay from './PlaceOverlay';
 import PlacePin from './PlacePin';
 import PlacePopup from './PlacePopup';
-import { JEONJU_AREA } from './placeData';
-
-const HOME_CENTER = [JEONJU_AREA.cntrLat, JEONJU_AREA.cntrLot];
 const INITIAL_LEVEL = 6;
 const SINGLE_LEVEL = 4;
 const BOUNDS_PADDING = 80;
@@ -28,6 +25,7 @@ export default function PlaceMap({
   strayFavorites,
   selectedPlace,
   fitKey,
+  homeArea,
   isReady,
   regionText,
   isMoved,
@@ -53,7 +51,7 @@ export default function PlaceMap({
     onMovedRef.current = onMoved;
   }, [onMoved]);
 
-  // 결과가 다 보이게 지도를 맞춘다. 결과가 없으면 전주시 대표 영역을 보인다
+  // 결과가 다 보이게 지도를 맞춘다. 결과가 없으면 처음 영역(내 주변·전주시 대표 영역)을 보인다
   const fitPlaces = (target, places) => {
     isAutoMoveRef.current = true;
     if (places.length === 1) {
@@ -65,12 +63,8 @@ export default function PlaceMap({
     }
     const bounds = new kakao.maps.LatLngBounds();
     if (places.length === 0) {
-      bounds.extend(
-        new kakao.maps.LatLng(JEONJU_AREA.swLat, JEONJU_AREA.swLot),
-      );
-      bounds.extend(
-        new kakao.maps.LatLng(JEONJU_AREA.neLat, JEONJU_AREA.neLot),
-      );
+      bounds.extend(new kakao.maps.LatLng(homeArea.swLat, homeArea.swLot));
+      bounds.extend(new kakao.maps.LatLng(homeArea.neLat, homeArea.neLot));
     } else {
       places.forEach(({ plcLat, plcLot }) =>
         bounds.extend(new kakao.maps.LatLng(plcLat, plcLot)),
@@ -88,7 +82,7 @@ export default function PlaceMap({
   useEffect(() => {
     if (!kakao) return;
     const kakaoMap = new kakao.maps.Map(containerRef.current, {
-      center: new kakao.maps.LatLng(...HOME_CENTER),
+      center: new kakao.maps.LatLng(homeArea.cntrLat, homeArea.cntrLot),
       level: INITIAL_LEVEL,
     });
     kakao.maps.event.addListener(kakaoMap, 'idle', () => {
@@ -106,7 +100,8 @@ export default function PlaceMap({
     const observer = new ResizeObserver(() => kakaoMap.relayout());
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-    // 지도는 SDK가 준비됐을 때 한 번만 만든다
+    // 지도는 SDK가 준비됐을 때 한 번만 만든다. 처음 영역이 나중에 정해지면 새 검색 결과로 맞춘다(fitPlaces)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kakao]);
 
   useEffect(() => {
@@ -116,11 +111,20 @@ export default function PlaceMap({
     );
   }, [map, kakao, isSky]);
 
-  // 새 검색의 결과가 오면 한 번 맞춘다. 재검색·정렬로 결과가 바뀔 때는 지도를 그대로 둔다
+  // 위치를 찾는 동안 전주로 만든 지도를 찾은 처음 영역으로 옮긴다(처음 영역은 한 번만 바뀐다).
+  // 결과가 없으면 아래에서 지도를 옮기지 않으므로 여기서 맞춰 둔다
+  useEffect(() => {
+    if (!map) return;
+    isAutoMoveRef.current = true;
+    map.setCenter(new kakao.maps.LatLng(homeArea.cntrLat, homeArea.cntrLot));
+  }, [map, kakao, homeArea]);
+
+  // 새 검색의 결과가 오면 한 번 맞춘다. 재검색·정렬로 결과가 바뀔 때는 지도를 그대로 둔다.
+  // 결과가 없으면 지도를 옮기지 않고 검색한 그 자리에 둔다
   useEffect(() => {
     if (!map || !isReady || fittedKeyRef.current === fitKey) return;
     fittedKeyRef.current = fitKey;
-    fitPlaces(map, results);
+    if (results.length > 0) fitPlaces(map, results);
     // 결과가 바뀔 때마다가 아니라 새 검색일 때만 맞춘다
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, isReady, fitKey]);

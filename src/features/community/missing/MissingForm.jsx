@@ -153,13 +153,8 @@ export default function MissingForm({
     const { breed } = values;
     if (!values.petNm.trim()) next.petNm = '반려동물 이름을 입력해 주세요';
     if (!values.colrNm.trim()) next.colrNm = '털 색상을 입력해 주세요';
-    if (
-      breed.vrtyNm === null &&
-      breed.vrtyDrctInptNm === null &&
-      !breed.typed
-    ) {
-      next.breed = '품종을 골라 주세요. 없으면 [직접 입력]을 골라 주세요';
-    } else if (breed.typed) {
+    /** 품종은 선택: 비워 둘 수 있고, 쓰다 만 값(목록에 없는 글자·빈 직접 입력)만 막는다 */
+    if (breed.typed) {
       next.breed =
         '목록에서 품종을 골라 주세요. 없으면 [직접 입력]을 골라 주세요';
     } else if (breed.vrtyDrctInptNm !== null && !breed.vrtyDrctInptNm.trim()) {
@@ -319,6 +314,7 @@ export default function MissingForm({
               breeds={breeds.map((row) => row.vrtyNm)}
               value={values.breed}
               error={errors.breed}
+              required={false}
               onChange={(breed) => set({ breed }, ['breed'])}
             />
 

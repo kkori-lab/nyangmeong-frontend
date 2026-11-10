@@ -23,10 +23,10 @@ export default function EmailStep({ form }) {
             <button
               type="button"
               onClick={form.submitSend}
-              disabled={form.isSending}
+              disabled={!form.email.trim() || form.isSending}
               className={SIDE_BTN}
             >
-              {form.isSent ? '다시 보내기' : '인증코드 발송'}
+              {form.isSent ? '다시 보내기' : '인증번호 발송'}
             </button>
           }
         />
@@ -53,7 +53,13 @@ export default function EmailStep({ form }) {
             readOnly={form.isEmailVerified}
             error={form.errors.code}
             success={form.isEmailVerified ? MSG.verified : ''}
-            help={MSG.sent}
+            help={
+              <>
+                {MSG.sent}
+                <br />
+                {MSG.spamHint}
+              </>
+            }
             hasGuide={target === 'code'}
             endAdornment={
               !form.isEmailVerified && (
@@ -66,7 +72,12 @@ export default function EmailStep({ form }) {
               <button
                 type="button"
                 onClick={form.submitVerify}
-                disabled={form.isVerifying || form.isEmailVerified}
+                disabled={
+                  !form.code ||
+                  form.isVerifying ||
+                  form.isEmailVerified ||
+                  form.isCodeLocked
+                }
                 className={`${SIDE_BTN} !border-transparent !bg-brand-50 !text-brand-600 hover:enabled:!bg-brand-100 disabled:!bg-surface-3 disabled:!text-line-strong`}
               >
                 인증 확인
@@ -78,7 +89,7 @@ export default function EmailStep({ form }) {
       <p className="mt-3 text-sm leading-5 text-muted">
         {form.isEmailVerified
           ? '다음을 눌러 휴대전화번호를 입력해 주세요.'
-          : '이메일 인증이 완료되면 다음으로 넘어갈 수 있어요.'}
+          : '이메일 인증이 완료되면 다음으로 넘어갈 수 있습니다.'}
       </p>
       <button
         type="button"

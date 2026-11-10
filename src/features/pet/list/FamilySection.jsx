@@ -143,7 +143,7 @@ function MobileCaregiverList({ caregivers, onRemove }) {
               type="button"
               onClick={() => onRemove(caregiver)}
               aria-label={`${caregiver.mbrNcnm} 가족에서 삭제`}
-              className={`${REMOVE_BUTTON} shrink-0`}
+              className={`${REMOVE_BUTTON} relative shrink-0 before:absolute before:-inset-y-2 before:-right-2 before:-left-1 before:content-['']`}
             >
               <X className="size-4" aria-hidden="true" />
             </button>

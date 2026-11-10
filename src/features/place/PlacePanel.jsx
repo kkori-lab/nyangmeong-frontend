@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { MapPinOff } from 'lucide-react';
 import PlaceListItem from './PlaceListItem';
 import PlaceSearchForm from './PlaceSearchForm';
-import { SORT_OPTIONS, SUGGESTIONS } from './placeData';
+import { SORT_OPTIONS } from './placeData';
+import { PLACE_LIST_ID } from './placeFormat';
 
 // 목록 끝에서 이만큼 남았을 때 다음 쪽을 부른다
 const END_MARGIN_PX = 120;
@@ -11,7 +12,6 @@ const groupTitle =
   'flex items-baseline gap-1.5 px-4 pt-4 text-sm font-semibold text-ink-2 md:px-5';
 
 export default function PlacePanel({
-  category,
   search,
   sort,
   regionText,
@@ -53,6 +53,7 @@ export default function PlacePanel({
 
   return (
     <section
+      id={PLACE_LIST_ID}
       aria-label="장소 목록"
       style={{ '--sheet-y': `${sheet.sheetY}px` }}
       className={`relative z-[2] flex min-h-0 min-w-0 flex-col overflow-hidden border-r border-line bg-white max-md:absolute max-md:inset-x-0 max-md:bottom-0 max-md:z-[6] max-md:h-[calc(100%-56px)] max-md:translate-y-[calc(100%-var(--sheet-y))] max-md:rounded-t-[20px] max-md:border-0 max-md:shadow-[0_-6px_24px_rgba(26,50,52,0.14)] ${
@@ -78,21 +79,6 @@ export default function PlacePanel({
           반려동물 플레이스
         </h1>
         <PlaceSearchForm id="place-q" q={search.q} onSearch={onSearch} />
-        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto whitespace-nowrap text-sm text-subtle [scrollbar-width:none]">
-          <span className="shrink-0">추천</span>
-          {SUGGESTIONS[category].map((text, index) => (
-            <span key={text} className="flex shrink-0 items-center gap-1.5">
-              {index > 0 && <i className="not-italic text-line-strong">·</i>}
-              <button
-                type="button"
-                onClick={() => onSearch(text)}
-                className="py-0.5 font-medium text-brand-600 hover:underline hover:underline-offset-[3px]"
-              >
-                {text}
-              </button>
-            </span>
-          ))}
-        </div>
       </div>
 
       <div className="flex min-h-12 items-center justify-between gap-3 border-y border-line bg-surface-2 px-5 max-md:border-t-0 max-md:bg-white max-md:px-4 md:min-h-[52px]">

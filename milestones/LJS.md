@@ -2,6 +2,14 @@
 
 기준: 공통레이아웃_기능명세서_v0.4_20261001, AI매니저_기능명세서_v0.7_20261009 (DMS, 2026-10-17), 커뮤니티_기능명세서_v0.7_20261019 (CMU-005만, KSJ 마일스톤에서 옮김, 2026-10-21), AI매니저_기능명세서_v0.9_20261026 (SCR-AIM-013만, DMS 업로드 전 로컬 사본, 2026-10-26), 관리자_기능명세서_v0.2_20261030 (DMS, 2026-10-30. 화면설계서 `관리자_화면설계서_v0.1_20261030`, 순서는 백엔드 `docs/admin/implementation-plan.md` 3절 단계)
 
+## SCR-AIM-011 사이드바 설정 삭제 · 목록 ⋮ 삭제 · 메인 로고 — 끝
+- 기능: (사람 요청 2026-11-09, 명세 FN 추가 없음) A1 하단 [설정] 삭제(FN-AIM-011-20 입구 제거), A2 대화 행 ⋮ 메뉴 삭제(FN-AIM-011-13 입구 추가, `components/KebabMenu.jsx` 새로), A2-1 삭제 확인 모달 공통화, A3 사이드바 로고를 `nm_logo.svg`로
+- 기다리는 것: 없음
+- 완료 조건: 대화 행 ⋮ → [삭제]로 목록에서 사라지고 연 방이면 새 대화 화면이 된다 / 사이드바에 [설정]이 없고 상단이 메인 로고다
+- 추가 요청: 추가-1 대화 헤더 안내 문구 "대화 제목은 첫 메시지로 자동 생성돼요" 삭제
+- 검증: `통과`(2026-11-09, 3회차. 1회차 실패는 서버 미기동으로 화면 미확인), 사람 확인 2026-11-09
+- 연결 남음: 없음
+
 ## SCR-COM-002 공통 인터셉터 오류 모양 · 401 재발급 조건 — 끝
 - 기능: (핸드오프 "다음에 할 것", 명세 FN 없음, `docs/convention/api.md` 맞춤) I-01 서버 오류 `{ code, message, data }` → `{ code, message, fields }`, I-02 재발급은 `TOKEN_EXPIRED`만
 - 기다리는 것: 없음
@@ -905,7 +913,7 @@
 
 ## SCR-ADM-001 관리자 공통 · 페이지 틀·조회 오류 컴포넌트 정리 — 대기
 - 기능: 명세 기능 ID 추가 없음. 관리자 페이지(`pages/admin/`) 전체와 관리자 features의 조회 오류 묶음
-- 기다리는 것: 남은 관리자 화면 구현이 다 끝난 뒤 맨 마지막에 한다(사람 결정 2026-11-03 "리팩토링이니까 마지막으로")
+- 기다리는 것: 남은 관리자 화면 구현이 다 끝난 뒤 맨 마지막에 한다(사람 결정 2026-11-03 "리팩토링이니까 마지막으로", 2026-11-10 다시 "후순위, 백엔드 연결부터")
 - 완료 조건: 조회 오류 안내 + [다시 시도] 묶음(지금 36개 파일에 복사)을 `components/` 공통 컴포넌트 하나로 바꾸고, 가운데 정렬 틀(`mx-auto max-w-[1200px]`)·제목 `h1`·오른쪽 버튼 줄(27~29개 페이지에 복사)을 공통 페이지 틀로 묶는다. 바꾼 뒤에도 화면 모양과 동작(403 `AdminForbidden` 포함)은 그대로다. 기능 작업과 섞지 않는다(요청 2026-11-03)
 - 기획 초안(2026-11-03, 승인 전 보류): `components/LoadError.jsx`(`message`·`onRetry`·`className`) 38곳, `pages/admin/AdminPageFrame.jsx`(`title`·`actions`·`children`) 28개 파일 31곳
 
@@ -923,11 +931,13 @@
 - 이미 바뀐 것: `features/adminNews/api.js`(가짜 응답)
 - 완료 조건 결과: 검증 `통과`(2026-11-04 1회차), 사람 확인 2026-11-04
 
-## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 대기
+## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-023-01·02·04·06
 - 기다리는 것: 백엔드 SCR-ADM-023 노출 콘텐츠 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/community/exposure` 행)
 - 완료 조건: `features/adminCommunity/api.js` 노출 콘텐츠 절 가짜를 `/api/admin/community/exposure` 실제 API로 바꿔 건강팁 지정·해제, 문구 등록·수정, AI 코멘트 사용 여부가 화면에서 동작한다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+- 검증: `통과`(2026-11-10, 1회차. 5180 + 백엔드 8081, 관리자 계정), 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-ADM-051 약관 · 약관 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-051-01·02·03·04
@@ -935,11 +945,12 @@
 - 완료 조건: `features/adminTerms/api.js` 가짜를 실제 API로 바꿔 목록·이력·상세·새 버전 등록이 화면에서 동작한다. 종류 키 `AGE`→`AGE_14`, 글자 수 상한 80·200·4000. 400·404·409 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminTerms/api.js`(가짜 응답)
 
-## SCR-ADM-071 케어미션 · 케어미션 API 연결 — 대기
+## SCR-ADM-071 케어미션 · 케어미션 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-071-01·02
 - 기다리는 것: `GET /api/admin/care-missions?msnPoolCd=`(사용 안 함 포함, 번호순 `[{ careMsnSn, msnPoolCd, msnNm, cmpnPnt, achvCrtrNmtm, mvmnPath, useYn(true/false) }]`, 풀 코드 없으면 전체, 모르는 풀 400 `INVALID_INPUT_VALUE`)·`PATCH /api/admin/care-missions/{careMsnSn}` `{ cmpnPnt?(1~1000), achvCrtrNmtm?(1~10), useYn? }` → 200 미션 행(보낸 칸만, 미션명·풀·경로는 안 바꿈, 빈 본문·범위 밖 400 `INVALID_INPUT_VALUE`, 없는 미션 404 `CARE_MISSION_NOT_FOUND`) (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/care-missions` 행)
 - 완료 조건: `features/adminCareMission/api.js` 가짜를 실제 API로 바꿔 목록(풀 탭)·수정 모달이 화면에서 동작한다. `useYn`은 'Y'/'N' 가정이 아니라 true/false. 모달의 "다음 날 00:00 출제부터 반영" 안내 그대로. 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCareMission/api.js`(가짜 응답)
+- 완료 조건 결과: 검증 `통과`(2026-11-10, 2회차. 1회차는 공용 DB 쓰기 권한 거부로 실제 저장 확인 못 함, 코드 변경 없이 재검증), 실제 8081 저장·새로고침 유지 확인 뒤 원래 값으로 되돌림, 400·404 문구는 가짜 응답으로 확인, 사람 확인 2026-11-10
 
 ## SCR-ADM-070 아이템 · 전체 굽기 나눠 호출 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-070-02
@@ -955,11 +966,13 @@
 - 기다리는 것: 등록 도구의 범위·흐름(지금 등록 모달을 바꿀지, 따로 둘지)이 정해지는 것. 백엔드·AI 서버 API가 더 필요한지는 기획 때 본다
 - 완료 조건: 기획 때 정한다
 
-## SCR-ADM-011 회원 상세 · 관리자 [정지] 숨김 확인 — 대기
+## SCR-ADM-011 회원 상세 · 관리자 [정지] 숨김 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-011-01
 - 기다리는 것: 백엔드 SCR-ADM-011 회원 상세 · 응답에 회원 권한 추가(LJS, 끝 2026-11-05)
 - 완료 조건: 실제 API로 관리자 회원(`mbrAuthrtCd` `USRC0005`) 상세를 열면 [정지]가 안 보이고, 정상 일반회원(`USRC0004`)은 보인다. 가짜 응답(`features/adminMember/api.js`)에도 `mbrAuthrtCd`가 있는지 맞춘다
 - 이미 바뀐 것: `pages/admin/AdminMemberDetailPage.jsx` `canSuspend`가 `mbrAuthrtCd !== ROLE_OPTIONS[1].value`로 판정(2026-11-02)
+- 완료 조건 결과: 검증 `통과`(2026-11-10, 1회차, 코드 변경 없음). 8081에서 관리자 회원은 [정지] 없음, 정상 일반회원 [정지] 있음, 정지 회원 [정지 해제]만 있음. 가짜 응답은 이미 없어 맞출 것 없음, 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-COM-004 알림 드롭다운 · 크기·스크롤·닫기 버튼 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-COM-004-01·05·15
@@ -967,13 +980,15 @@
 - 기다리는 것: 없음(화면만, `layouts/NotificationDropdown.jsx`)
 - 완료 조건: 웹(1440)·모바일(390) 모두 알림 개수(0건 포함)·탭이 달라도 패널 크기가 같다. 안 읽은 알림이 5개 이상이면 목록 안에서만 세로로 스크롤된다(패널·페이지는 늘지 않는다). 웹·모바일 모두 패널에 닫기 버튼이 있고 누르면 패널이 닫힌다. 고정 높이 값과 "5개 이상"을 안 읽은 알림 기준으로 할지 목록 전체 기준으로 할지는 `/start` 기획에서 정한다
 
-## SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 대기
+## SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-072-01·02
 - 기다리는 것: 백엔드 SCR-ADM-072 포인트 · 프론트 연결 관리자 포인트 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/points` 두 행
 - 완료 조건: `features/adminPoint/api.js`의 가짜 원장 목록·조정을 실제 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments` `{ mbrSn, dlngPnt, memoCn }`(201, 응답은 원장 한 줄)로 바꾸고 sessionStorage 가짜를 지운다. 조정 모달 현재 잔액은 `GET /api/admin/members/{mbrSn}`의 `hldPnt`(가짜의 원장 마지막 잔액 대신). 잔액 부족은 `POINT_BALANCE_NOT_ENOUGH`가 아니라 400 `POINT_NOT_ENOUGH`, 탈퇴·없는 회원 404 `MEMBER_NOT_FOUND`, 형식 오류 400 `INVALID_INPUT_VALUE`. 같은 요청을 두 번 보내면 두 건이 되므로 조정 버튼을 요청 중 잠근다
 - 이미 바뀐 것: `features/adminPoint/api.js`(가짜, 목록 필드는 실제와 같음)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-10, 1회차, 연결 남음만). FN-ADM-072-01·02 통과(8081 실제 원장·+10 지급 뒤 -10으로 되돌림, 400·404 문구는 가짜 응답), FN-ADM-072-03은 "관리자 조정"은 보이고 사유는 안 보임, 사람 확인 2026-11-10
+- 연결 남음: FN-ADM-072-03 (회원 포인트 내역에 조정 사유 `memoCn` 표시 여부, `PointHistory.jsx` `getTitle`, SJM)
 
-## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 대기
+## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-01
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/receipt.md` `/admin/processing/receipts` 두 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminReceipts` 가짜를 실제 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrDmndSrcCd=&ocrPrcsSttsCd=&page=&size=`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, failCnt, prcsCnt, errCnt }, content: [{ recptSn, mbrSn, mbrNcnm, ocrDmndSrcCd, ocrPrcsSttsCd, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 출처 `ocrRqstSrcCd` → `ocrDmndSrcCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` 가계부 출처 `TMP00031` → `AIMC0027`. 가짜의 처리 중 `AIMC0002`·성공 `AIMC0003`은 틀렸다(분석중 AIMC0001, 인식성공 AIMC0002, 부분인식 AIMC0003). summary는 현재 상태 기준(성공 = 인식성공·부분인식·저장완료, 실패 = 인식실패 AIMC0004, 처리 중 = 분석중, `errCnt` = 일시오류 AIMC0005는 새 키). 실패율은 `failCnt / totCnt`. 모르는 코드·`fromYmd > toYmd`는 400 `INVALID_INPUT_VALUE`. `ReceiptImageModal.jsx`의 원본 보기 `GET /api/admin/processing/receipts/{recptSn}/image`(경로 가정 그대로), 없는 영수증 404 `RECEIPT_NOT_FOUND`
@@ -987,17 +1002,22 @@
 - 연결 남음: FN-COM-009-08 주소 공유 장소 검색 (장소 검색 API, 담당 미정)
 - 연결 남음: FN-COM-009-18 열린 방 알림 억제 (서버 알림, YAY)
 
-## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 대기
+## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-02
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/processing/character-jobs` 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminCharacterJobs` 가짜를 실제 `GET /api/admin/processing/character-jobs?crtJobSttsCd=&page=&size=`로 바꾼다. 응답은 `{ sttsCnts: [{ crtJobSttsCd, cnt }], content: [{ charCrtJobSn, mbrSn, mbrNcnm, crtJobSttsCd, failRsn, otoInqrySn, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 상태 `jobSttsCd` → `crtJobSttsCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` `CHAR_JOB_STTS`는 CHRG01(CHRC0001 요청·CHRC0002 생성 중·CHRC0003 생성 완료·CHRC0004 생성 실패), `CHAR_JOB_STTS_FAIL` `TMP00044` → `CHRC0004`. `sttsCnts`는 상태 필터와 무관하게 네 줄을 순서대로 주고 없는 상태는 0. 모르는 상태 코드 400 `INVALID_INPUT_VALUE`. `CharacterJobTable.jsx`의 문의 링크는 `otoInqrySn` 그대로
 - 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`·`CharacterJobTable.jsx`(가짜)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-10, 1회차, 확인 못 함(내 것) 없음·연결 남음만), 사람 확인 2026-11-10
+- 추가-1: 상태 필터를 카드 누르기에서 영수증 OCR 탭과 같은 필터 줄(기간 + 상태 드롭다운 + [조회])로, 건수 카드는 읽기 전용(사람 2026-11-10)
+- 연결 남음: 추가-1 기간 필터 (백엔드 연결 `GET /api/admin/processing/character-jobs` `fromYmd`·`toYmd`, 백엔드 저장소에서 /start)
 
-## SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 대기
+## SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·02·03
 - 기다리는 것: 백엔드 SCR-ADM-080 라우팅 매핑표 · 프론트 연결 관리자 매핑표 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/ai.md` "관리자 API" 절의 `/admin/ai/routes` 네 행
 - 완료 조건: `features/adminAiRoute/api.js`의 가짜 네 함수를 실제 `GET /api/admin/ai/routes?q=`(배열, 페이지 없음)·`POST /api/admin/ai/routes`(201 `{ aiRoutMpngSn }`)·`PATCH /api/admin/ai/routes/{aiRoutMpngSn}`(보낸 칸만, 바뀐 행을 돌려줌)·`DELETE /api/admin/ai/routes/{aiRoutMpngSn}`로 바꾸고 sessionStorage 가짜를 지운다. 가정과 다른 것: `rprsChipYn`·`useYn`은 true/false('Y'/'N' 아님, `routeLabels.js`·모달·표의 비교를 고친다), `domnNm`은 보내지 않는다(서버가 화면 ID로 정함), 수정에서 화면 ID·파라미터·지시어·비고를 비우려면 빈 문자열을 보낸다(`null`은 그대로 둠), `prrtSeq`는 1 이상(수정에서 없으면 순위 그대로). 화면 이동(AIMC0032)·모달 열기(AIMC0033)인데 화면 ID·지시어가 없으면 400 `INVALID_INPUT_VALUE`, 없는 행 404 `AI_ROUTE_NOT_FOUND`(가짜와 같은 이름). 화면 ID 선택지는 `SCREEN_OPTIONS` 그대로(서버 API 없음). 이동 방식 AIMC0036 보류도 서버는 받는다
 - 이미 바뀐 것: `features/adminAiRoute/api.js`·`routeLabels.js`·`AiRouteFormModal.jsx`·`AiRouteTable.jsx`(가짜)
+- 완료 조건 결과: 검증 `통과`(2026-11-10 1회차, 5180·8081 관리자), 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-ADM-081 키워드 사전 · 관리자 키워드 사전 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-081-01·02
@@ -1011,11 +1031,144 @@
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminPdfAnalyses` 가짜를 실제 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=&size=20`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, tmotCnt, errCnt }, content: [{ extlApiCallLogSn, callRsltCd, failRsn, callDt }], page, size, totalElements, totalPages, hasNext }`로 가짜와 같은 모양이다. 기간은 둘 다 선택(호출일 양끝 포함), `fromYmd`가 `toYmd`보다 뒤면 400 `INVALID_INPUT_VALUE`. 검사결과지가 아닌 파일은 Python이 성공(SYSC0021)으로 통지해 `scsCnt`·`totCnt`에 들어가고 실패 목록에는 없다. 결과 코드 SYSC0021 성공·SYSC0022 실패(API 오류)·SYSC0023 시간초과
 - 이미 바뀐 것: `features/adminProcessing/api.js`(가짜 `getAdminPdfAnalyses`)
 
-## SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API 연결 — 대기
+## SCR-ADM-110 운영 설정 · 운영 설정 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-110-01~04 (2026-11-10 SCR-ADM-110 절 "연결 남음"에서 옮김)
+- 기다리는 것: 백엔드 `GET`·`PATCH /api/admin/settings`(LJS 백엔드, 있음). 프론트 가짜 주석은 `PUT`이라 맞춘다
+- 완료 조건: `features/setting/api.js` 가짜를 실제 API로 바꿔 운영 설정 조회·저장이 화면에서 동작한다. 400 칸별 오류·403을 화면에 보인다
+- 참고(백엔드 2026-11-10): 서버 운영 설정에서 대시보드 케어 최대 노출 수(`dshbdCareMaxExpsrCnt`)를 지웠다. 응답에 없고 PATCH로 보내도 무시한다. 프론트 화면·가짜에는 원래 이 칸이 없다
+- 결과(2026-11-10): `features/setting/api.js` 실제 `GET`·`PATCH /api/admin/settings`, 묶음별 응답을 `settingFields.js` `resKey`로 읽음, 입력 자릿수를 서버 범위에 맞춤, 탈퇴 회원 보관 기간은 읽기 전용(사람 결정), 수정자 "관리자 #번호". 추가-1 저장 400이면 첫 오류 칸으로 스크롤·포커스. 검증 통과, 사람 확인
+
+## SCR-ADM-001 대시보드 · 이용 통계 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-04·05 (2026-11-10 대시보드 연결 절에 빠져 있어 따로 둠)
+- 기다리는 것: 백엔드 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(LJS 백엔드, 있음)
+- 완료 조건: `features/adminDashboard/api.js` `getAdminDashboardStats` 가짜를 실제 API로 바꿔 기간을 고르면 이용 통계가 바뀐다. 운영 현황 연결(`getAdminDashboard`)과 같이 해도 된다
+- 결과(2026-11-10): 운영 현황 연결과 같이 함. `getAdminDashboardStats` 실제 `GET /api/admin/dashboard/stats`, 종료일 > 오늘 안내 문구·날짜 칸 `max`, 종·품종·즐겨찾기 빈 문구를 기간 무관 문구로, 종·품종 행 키를 종+품종으로("직접 입력"이 종마다 한 줄). 추가-1 기간 선택 영역이 직접 입력·오류 상태에서도 오른쪽 끝 같은 자리. 검증 통과, 사람 확인
+
+## SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-02·03
 - 기다리는 것: 백엔드 SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/admin.md` `/admin/dashboard` 행
 - 완료 조건: `features/adminDashboard/api.js`의 `getAdminDashboard` 가짜를 실제 `GET /api/admin/dashboard`로 바꾼다. 필드 이름·모양은 가짜 그대로(`totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs[{ mbrSn, mbrNcnm, regDt }]`·`recentPsts[{ pstSn, bbsCd, bbsNm, pstTtl, regDt }]`·`dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`). 회원 수는 일반 회원만(관리자 계정 제외), 게시글 수·최근 게시글은 관리자 게시글 목록 기본 조건과 같게 삭제 글 포함, 배치 실패는 마지막 실행이 실패한 배치 수. 처리 대기 건수를 누르면 같은 필터의 목록 건수와 같다. 이용 통계(`getAdminDashboardStats`)는 아직 가짜
 - 이미 바뀐 것: `features/adminDashboard/api.js`(가짜 `getAdminDashboard`), SCR-ADM-001 대시보드 화면(끝)
+- 결과(2026-11-10): `getAdminDashboard` 실제 `GET /api/admin/dashboard`, 개발용 `?fake=` 분기 삭제. 처리 대기 5종 건수가 목록 건수와 같음(알림·배치 실패는 0건이라 목록 대조 못 함). 검증 통과, 사람 확인
+
+## SCR-MAN-001 메인페이지 · 구글 시작 화면형 개편 — 끝
+- 기능: 명세 기능 ID 추가 없음(팀 회의 2026-11-08 개편, 기능명세서·화면설계서 미반영). 걸치는 기능 FN-MAN-001~009(원래 YAY 마일스톤에서 셈). 화면 담당을 YAY에서 LJS로 옮김(`docs/convention/milestone.md` 담당 표 2026-11-08)
+- 범위: 첫 화면 세로 가운데에 인사말 → AI 매니저 검색창 → 제안 카드 → 반려동물 바로가기 순서로 두고, 그 아래는 바로 푸터. 반려동물 프로필(`SummaryHero`)·건강기록 통합대시보드·토탈 케어리스트를 메인에서 뺀다. 대시보드 위젯 코드는 지운다(`MainPage.jsx`의 위젯 import·호출·렌더, `features/dashboard/`의 `api.js`·`queries.js`·`widgetCodes.js`·`IndicatorWidgets.jsx`·`HealthWidget.jsx`). `HeroAsk.jsx`는 남겨 고쳐 쓴다
+- 디자인: 팀 공유 스크린샷(로컬 `html/SCR-MAN-001.png`, git 제외) + 기존 부품 조합(`PetFace`, `HeroAsk`, 머리·푸터 픽셀 에셋). 순서는 필수, 크기·간격은 자유(사람 결정 2026-11-08)
+- 결정(사람 2026-11-08): `/health?petSn=` 링크는 반려동물마다 기본으로 넣는 "종합 건강기록" 바로가기가 맡는다. 바로가기 목록은 서버에 저장하고 API는 LJS가 만든다(가짜 응답으로 먼저). AI 건강분석 리포트 카드는 JAJ 건강기록 개편 공유 뒤 행선지를 정하고, 그때까지 모양만 둔다. 음성 질문 버튼은 모양만 두고 누르면 준비 중 안내. 시간대 인사말·검색창 테두리 색 변화·픽셀 장식은 선택 항목
+- 기다리는 것: 바로가기 조회·저장 API(LJS 백엔드, 아직 없음), 건강기록 개편 공유(JAJ, 리포트 카드 행선지)
+- 완료 조건 후보: 로그인 메인에서 네 요소가 순서대로 첫 화면 세로 가운데에 있고 그 아래 바로 푸터가 온다 / 바로가기를 누르면 그 반려동물의 건강기록 화면(`/health`·`/health/diary`·`/health/calendar` + `?petSn=`)이 그 아이로 열린다 / 바로가기를 추가하고 새로고침해도 남는다(가짜 응답 기준)
+- 백엔드 연결: 메인 바로가기 조회·저장 API (백엔드 저장소에서 /start)
+
+- 추가 요청(사람 2026-11-08): 추가-1 제안 카드는 시안대로 [AI 건강분석 리포트](모양만)·[영수증 올리기] 2장 / 추가-2 인사말은 대표 반려동물 이름("오늘 <이름>은/는 어땠나요?") / 추가-3 [영수증 올리기]는 건강기록 영수증 흐름(`ReceiptUploadModal` → 건강일지 결과 확인·직접 입력) / 추가-4 [바로가기 추가] 글자 한 줄
+- 추가 요청(사람 2026-11-08, 끝 판정 뒤): 추가-5 바로가기 ⋮ 메뉴로 [바로가기 수정](반려동물·종류)·[삭제](확인 없음), ⋮는 기기 기준(마우스 기기 hover·포커스, 터치 기기 항상) / 추가-6 ⋮ hover 배경 삭제, 동그라미와 겹침 해소 / 추가-7 타일 `w-24 p-3`, 배경은 li `group-hover`. 검증 `통과`(2026-11-08, 각 1회차), 사람 확인 2026-11-08
+- 이번에 안 한 것: 시안의 검색창 `+`·[간략히] 타일·픽셀 장식, 시간대 인사말(기획 밖·선택 항목)
+- 완료 조건 결과: 검증 `통과`(2026-11-08 3회차. 1·2회차는 백엔드·AI 서버 미기동으로 화면 확인 못 함), 사람 확인 2026-11-08(실제 영수증 업로드 뒤 건강기록으로 이동 확인)
+- 연결 남음: 반려동물 바로가기 (백엔드 연결 메인 바로가기 조회·저장 API, 백엔드 저장소에서 /start). 프론트 가정 `[{ petSn, shrtcCds }]`, 코드 `HEALTH`·`DIARY`·`CALENDAR`(`features/dashboard/shortcutTypes.js`), 가짜는 `features/dashboard/api.js` sessionStorage
+## SCR-MAN-001 메인페이지 · 시간대 한 줄 인사(문구 틀) — 끝
+- 기능: 명세 기능 ID 추가 없음(메인 개편 뒤 추가, 기능명세서 미반영), 걸치는 기능 FN-MAN-001(인사말)
+- 배경: 지금 인사말은 "오늘 <대표 반려동물>은/는 어땠나요?" 고정(추가-2). Claude 앱처럼 시간대·이름이 들어간 가벼운 한 줄 인사로 바꾼다(사람 2026-11-08)
+- 결정(사람 2026-11-08): AI 생성이 아니라 프론트 문구 틀 방식. AI 건강분석 리포트 `rptTtl`은 인사로 맞지 않아 쓰지 않는다. 서버·AI API 없음
+- 기다리는 것: 없음. 시간대 경계와 문구(사람이 쓰거나 AI 초안에서 고름)는 기획 때 정한다
+- 완료 조건 후보: 브라우저 현재 시각의 시간대(예: 아침·낮·저녁·밤)에 맞는 문구 틀 중 하나에 대표 반려동물 이름과 조사(`pickJosa`)가 들어간 한 줄이 보인다 / 반려동물이 없으면 이름 없는 틀 / 같은 날·같은 진입에서는 다시 그려도 문구가 바뀌지 않는다(렌더마다 `Math.random()` 금지) / 1440·390에서 한 줄 또는 두 줄 안, 배치(세로 가운데) 그대로
+- 결정(사람 2026-11-09): 시간대 새벽 0–5·아침 5–11·낮 11–17·저녁 17–21·밤 21–24시, 문구는 AI 초안대로(`features/dashboard/greeting.js`), 날짜+시간대 나머지로 골라 같은 날·같은 시간대면 새로고침해도 같다. 인사말 `h1`을 개인 스타일 규칙대로 28px·자간 -0.03em·행간 36px(390은 20px·28px)
+- 추가 요청(사람 2026-11-09): 추가-1 낮 "점심은 챙겼어요? {이름}도 같이요" → "오늘 {이름}{은/는} 뭐 하고 놀았나요?" / 추가-2 밤 "오늘도 {이름}{과/와} 수고 많았어요" → "{이름}{과/와} 포근한 밤 보내요"
+- 추가 요청(사람 2026-11-09, 끝 판정 뒤): 추가-3 메인 제안 카드 [AI 건강분석 리포트]·[영수증 올리기] 삭제(`HeroAsk.jsx` 카드·`onReceipt`, `MainPage.jsx` `ReceiptUploadModal` 흐름·스켈레톤 카드 자리). 검증 `통과`(2026-11-09, 1440·390·로딩 스켈레톤), 사람 확인 2026-11-09
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 추가-2까지 포함한 재검증. 07·13·19·23·03시 clock 고정·새로고침 2번·빈 반려동물 목록·390 폭), 사람 확인 2026-11-09
+- 연결 남음: 없음
+
+## SCR-MAN-001 메인페이지 · 검색창 이미지 첨부 → AI 대화창 의도 판단 — 끝
+- 기능: 명세 기능 ID 추가 없음(메인 개편 뒤 추가, 기능명세서·화면설계서 미반영). 걸치는 기능 FN-MAN-002(AI 매니저 검색바), SCR-AIM-013(대화창 영수증 첨부)
+- 배경(사람 2026-11-09): 메인 검색창의 음성 질문 버튼을 지우고 왼쪽에 `+`를 둔다. `+`는 이미지 첨부만 하고(종류 고르는 메뉴·바로 뜨는 모달 없음), "캐릭터 만들어줘" 같은 글과 함께 보내면 AI 대화창이 이미지+글로 의도를 판단해 등록까지 이어 간다. 받을 이미지: 캐릭터용 반려동물 사진, 진료 영수증, 가계부 영수증 등
+- 결정 후보(기획 때 확정): 의도를 모르면 대화창에서 [캐릭터]·[진료 영수증]·[가계부] 칩으로 되묻는다(`PetChoiceChips`와 같은 방식). 같은 날 앞선 추가-3으로 메인 제안 카드 [AI 건강분석 리포트]·[영수증 올리기]는 지웠다
+- 지금 상태: AI 창은 `window.open`으로 따로 열려 질문 글만 `?q=`로 넘긴다(이미지 넘기는 길 없음). 대화창 `+` 첨부는 무조건 진료 영수증 분석(SCR-AIM-013). 등록 카드는 일정·케어 항목뿐. 캐릭터 생성(`useCreateCharacter`)·가계부 영수증 API는 이미 있다
+- 기다리는 것: AI 서버의 이미지+글 의도 판단과 캐릭터·가계부 영수증 등록 응답(AI 서버 저장소에서 /start). 프론트는 가짜 응답으로 먼저
+- 완료 조건 후보: 메인 검색창에 음성 버튼이 없고 왼쪽 `+`로 이미지를 고르면 첨부 미리보기가 보인다 / 이미지+글을 보내면 AI 창이 열리고 그 이미지와 글로 대화가 시작된다 / 의도별로 캐릭터 생성·진료 영수증 결과·가계부 영수증 흐름으로 이어진다(가짜 응답 기준) / 의도를 모르면 종류 칩으로 되묻는다
+- AI 연결: 대화 이미지 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 서버 저장소에서 /start)
+- 결정(사람 2026-11-09, 질문 추천안): 대화창 첨부 모양 재사용, 대화창 `+`도 의도 판단, 가계부는 본창 가계부 화면 안내만, 사진만 보내기 허용. 사진 전달은 `window.opener` 대신 BroadcastChannel(이미 열린 창 재사용 대비)
+- 추가 요청(사람 2026-11-09): 추가-1 첨부 썸네일을 검색창 밖이 아니라 테두리 안 위쪽에(Claude 입력창처럼)
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 1회차 A6 [취소]·409 문구 실패 뒤 고침, 추가-1 포함 재검증), 사람 확인 2026-11-09
+- 연결 남음: A3 의도 판단 — 2026-11-10 "사진 용도 판단 AI 연결"에서 끝. 가계부 바로 등록은 AI 쪽 다음 차수
+
+## SCR-MAN-001 메인페이지 · 푸터·TOP 버튼 없애고 스크롤 막기 — 끝
+- 기능: 명세 기능 ID 추가 없음(사람 요청 2026-11-09). 화면 겉틀(`layouts/`)과 메인 페이지만
+- 기다리는 것: 없음
+- 완료 조건: `/main`에서 푸터·[TOP]이 없고 1440·390 폭 모두 스크롤되지 않는다. 다른 사용자 화면은 그대로다 / 다른 화면 AI 버튼이 대표 반려동물 캐릭터 얼굴(없으면 `Bot`)이다
+- 추가 요청: 추가-2 메인 맨 아래 픽셀 띠, 추가-3 PC 검색창 100px 위, 추가-4 검색창 그림자 제거, 추가-5 AI 버튼 틀 없는 전신 캐릭터(PC 96·모바일 72, dock 유지), 추가-6 모바일 캐릭터 오른쪽 투명 여백 없애기
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 추가-5·6에서 1회차 실패 두 번 뒤 통과), 사람 확인 2026-11-09
+- 연결 남음: 없음
+
+## SCR-MAN-001 메인페이지 · 반려동물 바로가기 API 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(팀 회의 2026-11-08 메인 개편), 걸치는 기능 FN-MAN-008
+- 기다리는 것: 백엔드 SCR-MAN-001 반려동물 바로가기 조회·저장 API(LJS, 2026-11-09 끝. `GET·PUT /api/pets/main-shortcuts`, 계약은 백엔드 `docs/api/pet.md`)
+- 완료 조건: `features/dashboard/api.js`의 가짜 두 함수를 실제 API로 바꾸고, `shortcutTypes.js`의 임시 코드 `HEALTH`·`DIARY`·`CALENDAR`를 `MANC0008`(종합 건강기록)·`MANC0009`(건강 일지)·`MANC0010`(케어 캘린더)로 바꾼다. 저장한 적 없는 반려동물은 서버가 `[MANC0008]`을 주므로 프론트 기본값 분기를 없앤다. 바로가기를 추가·수정·삭제하고 새로고침해도 남는다(실제 API 기준). 저장 400의 `data[].field`는 `[i].petSn`·`[i].shrtcCds[j]` 형식
+- 이미 바뀐 것: `features/dashboard/api.js`(가짜 조회·저장), `shortcutTypes.js`(임시 코드), SCR-MAN-001 구글 시작 화면형 개편(끝)
+
+## SCR-COM-007 AI 매니저 진입 · 모바일에서 AI 매니저를 모달로 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-COM-007-01·03·05, FN-AIM-011-01. M1 760px 이하면 `hooks/useAiWindow.js`가 새 창 대신 AI 모달(`context/AiModalProvider.jsx`) / M2 대화 본문 `pages/ai/AiChatScreen.jsx`로 분리, `AiChatPage`는 새 창 껍데기, 말풍선·카드의 본창 이동은 `features/ai/chat/aiHost.js` `useOpenMain` / M3 `pages/ai/AiChatModal.jsx`(헤더 아래 전체 화면, [✕]·Esc·페이지 이동으로 닫힘, 모달 안 이동은 같은 창, 펫돌봄 채팅은 채팅 모달, 로그아웃·탈퇴 때 닫힘, 대화 목록 drawer Esc는 drawer만)
+- 결정(사람 2026-11-10): PC는 새 창 그대로, 모바일 모달에 [새 창으로 띄우기] 없음, 닫았다 다시 열면 새 대화
+- 추가 요청: 추가-1 761px 이상으로 넓히면 모달 닫기(`AiChatModal.jsx`, 요청 2026-11-10 15:10) — 검증 통과
+- 검증: 2회 모두 통과, 사람 확인 2026-11-10
+- 연결 남음: 없음
+
+## SCR-AIM-012 대화창 · 확인 카드(ACTION) 연결 — 끝
+- 기능: (연결 작업, 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-04·09·10·11·16) 2단계 쓰기 확인 카드 `done.action`을 `params`·`rules`·`missing`·`petChoices`로 폼으로 그리고 [확인]은 카드의 `call`로 Java를 부른 뒤 `action-result`에 저장. 도구 7개(케어 완료·건강 일지·월 지출 한도, 일정·케어 항목·지출·반려동물 수정)
+- 기다리는 것: AI 저장소 수정 카드 4개 develop 병합(지금 `LJS` 브랜치에만)
+- 완료 조건: 확인 카드에서 고친 값이 다음 메시지의 `action`으로 가서 새 카드의 바탕이 된다 / 빈 필수·조건부 필수 칸이 있으면 [확인]이 눌리지 않는다 / [확인]·[취소] 결과 요약이 새로고침 뒤에도 남는다 / Java 400 칸 오류가 그 칸 밑에 보인다 / 성공하면 본창이 다시 불러온다
+- 결정: 디자인은 기존 등록 카드 틀, Java 5xx·네트워크 오류는 바로 `FAILED` 저장(사람 2026-11-09)
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 2회차. 1회차 실패: [취소]가 규칙 밖 값을 보냄 → 서버 원래 값으로, 고친 날짜가 새 카드에서 덮임 → AI 저장소에서 고침), 사람 확인 2026-11-09
+- 연결 남음: A1 고친 날짜 유지 (AI 저장소 `LJS` 작업 트리 커밋·develop 병합, AI 세션)
+
+## SCR-AIM-012 대화창 · 일정·케어 항목 등록 확인 카드 전환 — 끝
+- 기능: (AI 세션 알림 2026-11-09 ④, 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-06·07·08·09·11·15·16) 일정·케어 항목 등록(`draft_schedule`·`draft_care_item`)을 옛 등록 카드(`done.card`·`draft`·`register-result`)에서 확인 카드(`done.action`·`action-result`)로 옮기고 `notice`를 카드 위에 보인다. 옛 등록 카드 UI와 가짜 `registerToHealth`를 지운다
+- 기다리는 것: 없음(AI develop 병합 PR #53)
+- 완료 조건: 일정·케어 항목 등록 요청이 확인 카드로 오고 [확인]이 Java 등록 API를 불러 저장된다 / `notice`가 카드 위에 보인다 / 성공하면 [케어 캘린더에서 보기 →]가 응답 시점에만 보인다 / 케어 항목 카드에 다음 예정일이 보인다 / 옛 등록 카드 코드가 남지 않는다
+- 결정: 버튼은 다른 확인 카드와 같게 [확인]·[취소], 캘린더 뱃지 색은 케어 캘린더 색 상수를 `src/constants/calendarBadge.js`로 올려 재사용(`features/health/scheduleTypes.js`는 다시 내보내기, JAJ 알림)(사람 2026-11-09)
+- 추가 요청: 추가-1 [케어 캘린더에서 보기 →]가 등록한 반려동물로(`?petSn=`) 열림, 추가-2 결과 줄 요약은 카드 너비를 다 쓰고 바로가기는 그 아래 오른쪽(사람 2026-11-09)
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 추가 요청 포함 재검증도 `통과`), 사람 확인 2026-11-09
+
+## SCR-AIM-012 대화창 · 확인 카드 후속 정리(케어리스트 바로가기·숨은 조건 칸) — 끝
+- 기능: (2026-11-09 사람 답 대기 ②·③, 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-07·10·15) 케어 항목 등록 뒤 바로가기를 케어리스트 탭으로, 숨은 칸에 기대는 조건부 칸도 숨긴다
+- 기다리는 것: 없음
+- 결정: 케어 항목 바로가기 글자는 "케어리스트에서 보기", 명세 FN-AIM-012-15 글자와 달라 문서 담당에게 알림(사람 2026-11-09)
+- 완료 조건: 케어 항목 등록 뒤 [케어리스트에서 보기 →]가 케어리스트 탭을 연다, 일정은 그대로 / 직접입력 주기 뒤 반복 유형을 바꾸면 "주기(일)" 칸도 숨고 요청에서 빠진다
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 1회차), 사람 확인 2026-11-09
+- 연결 남음: FN-AIM-012-15 (명세 버튼 글자 "케어리스트에서 보기" 반영, 문서 담당)
+
+## SCR-AIM-002 대화창 · AI 답변 Markdown 표시 — 끝
+- 기능: (AI 세션 요청 2026-11-09, 명세 기능 ID 추가 없음) AI 답변 `cnvrsCn`·`delta`를 GFM으로 그린다. 사용자 메시지는 일반 글, HTML은 그리지 않음, 의료 고지 분리 유지, 표는 말풍선 안 가로 스크롤
+- 기다리는 것: 없음(새 의존성 `react-markdown`·`remark-gfm`은 사람 승인 2026-11-09, PR에 적어 팀에 알림)
+- 완료 조건: 표·목록·굵게가 Markdown으로 보인다 / 사용자 메시지는 글자 그대로 / 넓은 표가 말풍선 안에서 가로 스크롤 / `※` 고지가 구분선 아래 남는다
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 2회차. 1회차 실패: 본문 안 `※` 문단에서 고지가 잘림 → 맨 끝 `※` 문단만 뗌), 사람 확인 2026-11-09
+- 연결 남음: AI 세션 알림 (AI 쪽 `docs/api/chat.md`에 `cnvrsCn`은 Markdown(GFM), AI 세션)
+
+## SCR-AIM-011 대화창 · 반려동물 칩 목록 필터 정리 — 끝
+- 기능: (사람 결정 2026-11-09, 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-011-08) 칩은 대화 목록 필터로만 쓴다. 열린 방이 고른 칩 목록에서 빠지면 그 반려동물의 새 대화로 넘어가고 입력 글은 남긴다. 열린 방 메시지 요청에 `petSn`을 보내지 않는다. 방 태그 바꾸기·칩 잠그기 없음
+- 기다리는 것: 없음
+- 완료 조건: [전체]·같은 태그 칩에서는 열린 방이 그대로 / 다른 칩이면 그 칩의 새 대화로 가고 입력 글이 남는다 / 열린 방 메시지 요청 본문에 `petSn`이 없다
+- 결정: 답변 중에 방이 빠지는 칩을 누르면 [새 대화]와 같게 새 대화로 간다(사람 2026-11-09)
+- 추가 요청: 추가-1 확인 카드 조건부 칸(`rules`)은 조건이 맞을 때만 보이고 보낸다(음수량 카드 `crsdSttsCd` 400)
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 2회 검증 모두 통과. 2회째는 추가-1 포함), 사람 확인 2026-11-09
+- 연결 남음: AI 세션 알림 (열린 방 요청 `petSn` 제외·칩 필터·카드 조건부 칸, AI 세션)
+
+## SCR-AIM-011 대화창 · 새 방 펫 태그를 메시지 속 반려동물 이름으로 — 끝
+- 기능: (사람 2026-11-09, 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-011-07·08) 새 방의 펫 태그를 글에 이름이 하나만 나온 반려동물로 정하고(없거나 둘 이상이면 칩), 칩도 그 반려동물로 바꾼다
+- 기다리는 것: 없음
+- 완료 조건: 칩 취두부에서 "까미 …" 새 대화 → 방 태그·칩·카드 모두 까미 / 이름 없음·둘 이상이면 칩 태그 / 열린 방은 그대로
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 1회차), 사람 확인 2026-11-09
+
+## SCR-COM-002 공통 ⋮ 메뉴 공통화 — 대기
+- 기능: (사람 지시 2026-11-08 "리팩토링 때 한번에", 명세 FN 추가 없음) A1 `components/KebabMenu.jsx` variant 추가, A2 `CareItemMenu`·A3 `ExpenseMenu`를 KebabMenu 껍데기로, A4 `MainShortcuts`의 `ShortcutMenu`를 KebabMenu로
+- 기다리는 것: 없음
+- 완료 조건: 네 곳(AI 사이드바·건강기록 3곳·가계부·메인 바로가기) ⋮ 메뉴가 전과 같은 항목·모양으로 열리고 닫힌다 / `MoreVertical`은 `KebabMenu`와 범위 밖 CommentSection·PetSlide에만 남는다
+- 순서: 남은 작업 중 맨 마지막(사람 2026-11-10 "메뉴 공통화는 제일 마지막으로")
+
+## SCR-MAN-001 메인페이지 · 사진 용도 판단 AI 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(메인 개편 뒤 추가, 기능명세서·화면설계서 미반영). 걸치는 기능 FN-MAN-002, SCR-AIM-013. SCR-MAN-001 "검색창 이미지 첨부 → AI 대화창 의도 판단"의 연결 남음 A3
+- 기다리는 것: 없음(AI 서버 `POST /ai/image-intent`, AI develop PR #53 병합, 계약은 ai `docs/api/chat.md` ImageIntentRequest·Response)
+- 완료 조건: `features/ai/api.js`의 가짜 `judgeImageIntent`를 `POST /ai/image-intent`(multipart `file`·`cnvrsCn`·`petSn`) 요청으로 바꾼다 / 메인·대화창에서 사진+글을 보내면 응답 `kind`대로 캐릭터·진료 영수증·가계부 안내·종류 칩으로 이어진다 / 요청 실패는 지금처럼 종류 칩으로 되묻는다
+- 추가 요청(사람 2026-11-10): 추가-1 사진 흐름도 글에 이름이 하나 나온 반려동물로(캐릭터·진료 영수증) / 추가-2 새 대화면 칩도 그 반려동물로 / 추가-3 받침 있는 이름은 `이`를 붙여 부른다("구름이의", `utils/josa.js` `callName`)
+- 완료 조건 결과: 검증 `통과`(2026-11-10, 추가-1~3 포함 재검증), 사람 확인 2026-11-10
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

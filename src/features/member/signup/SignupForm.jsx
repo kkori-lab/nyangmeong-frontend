@@ -24,6 +24,8 @@ const STEPS = {
     title: '이메일을 인증해 주세요',
     subtitle: '인증한 이메일 주소를 로그인 아이디로 사용합니다.',
     Body: EmailStep,
+    // 이메일 입력칸을 이메일 로그인의 아이디 칸과 같은 높이에 둔다(추가-8)
+    spacing: 'stepEmail',
   },
   phone: {
     no: 3,
@@ -47,7 +49,7 @@ export function SignupComplete({ form, onGoLogin }) {
       <StepMotion stepKey="complete" direction={form.direction}>
         <AuthHeading
           title="회원가입이 완료되었습니다"
-          subtitle="가입한 계정으로 다시 로그인해 주세요."
+          subtitle="가입한 계정으로 로그인해 주세요."
         />
         <div className="rounded-box bg-surface-2 px-5 py-6 text-center">
           <small className="block text-muted">현재 저장된 닉네임</small>
@@ -90,11 +92,11 @@ export default function SignupForm({ onBackToLogin, onGoLogin, onRecover }) {
     return <SignupComplete form={form} onGoLogin={onGoLogin} />;
   }
 
-  const { no, title, subtitle, Body } = STEPS[form.step];
+  const { no, title, subtitle, Body, spacing = 'step' } = STEPS[form.step];
   return (
     <AuthCard onBack={form.goBack}>
       <StepMotion stepKey={`${form.step}-head`} direction={form.direction}>
-        <AuthHeading title={title} subtitle={subtitle} />
+        <AuthHeading title={title} subtitle={subtitle} spacing={spacing} />
       </StepMotion>
       <SignupStepper current={no} />
       <StepMotion stepKey={form.step} direction={form.direction}>

@@ -2,25 +2,17 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · 위젯 순서·건강 대시보드 API 연결 — 끝남 (승인 2026-11-05 16:07, 검증 통과 2회차(잠금을 버린 뒤, 앞 1회차 실패는 '메인은 공개 URL' 기획 전제가 틀려서), 사람 확인 2026-11-06). 메인은 회원 전용(`auth: 'member'` 그대로). 히어로는 대표 반려동물(`rprsPetYn`) `character-image` 전신 + 캡션, 없거나 실패면 기본 캐릭터. 탭·프로필·요약 3칸은 HLT-011 `SummaryHero`를 그대로(추가-1, `useHealthSummary`), 기준일·지표 5종은 `features/dashboard/IndicatorWidgets.jsx`(`GET /pets/{petSn}/health-indicators`, null이면 "기록이 없어요", `prevDiff` null이면 비교 숨김), 위젯 순서는 [순서 편집](끌어 놓기·앞뒤 버튼) → `PUT /members/me/dashboard-widgets` 7개(MANC0006은 그리드 밖 제자리), MANC0007은 "준비 중" 카드. 토탈 케어리스트는 `features/health/CarePreview.jsx`(읽기 전용 최대 6개). 가짜 `dashboardSample`·`MissionList`·`HealthSummary`와 안 쓰는 `AiReportCard`·`PetProfileCard`(추가-2) 지움. 로컬 백엔드에서 `character-image`·`daily-health-records` POST·`care-completions` POST가 500이라 캐릭터 있음·지표 값은 가짜 응답으로 검증했다
+SCR-HOS-001 플레이스 · 추천어 제거·결과 없을 때 지도 고정 — 끝남 (승인 2026-11-10 13:43, 검증 통과, 사람 확인 2026-11-10). 검색창 아래 추천어 줄을 지웠고(카카오 키워드 검색으로 결과가 안 나옴), 새 검색 결과가 0곳이면 지도를 옮기지 않는다. 추가-1: 정렬에서 추천순(카카오 정확도순)을 빼 거리순·이름순만 남김
 
-### 추가 요청
+SCR-HOS-001 플레이스 · 카카오맵 상세를 작은 팝업 창으로 — 끝남 (승인 2026-11-10 09:42, 검증 통과, 사람 확인 2026-11-10). 카드·병원명·핀 요약 카드 [상세보기]가 새 탭 대신 목록 패널 옆 420×760 작은 창 하나로 카카오맵 상세를 연다(창 이름 하나를 다시 써 내용만 바뀜, opener 유지). 추가 요청: 추가-1 opener 유지, 추가-2 창을 목록 패널 옆에, 추가-3 기본 위치를 내 위치(±3km)로, 추가-4 정확도 3km보다 나쁘면 전주시 전체. 앞서 우리 데이터 상세 패널(PC 옆 패널·모바일 시트)을 만들었다가 사람 요청으로 되돌렸다
 
-| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
-| --- | --- | --- | --- |
-| 추가-3 | `features/health/CarePreview.jsx` | `명령:` `yarn -s lint`·`yarn -s build` 0. `화면:` 메인 토탈 케어리스트 항목이 1개여도 줄을 꽉 채우지 않고 한 칸 크기(PC 6칸 중 1칸), 폭을 줄이면 1100px 이하 3칸·700px 이하 2칸으로 바뀐다. 6개면 전처럼 한 줄 | 요청 2026-11-06 10:16 "한개일 때 꽉 차지 말고 기본 크기, 화면을 줄이거나 늘릴 때만 반응형" |
+SCR-ACC-001 회원가입 (이메일) · 기호만 적은 휴대전화번호 중복확인 — 끝남 (승인 2026-11-09 16:50, 검증 통과 1회차, 사람 확인 2026-11-09). 이메일 가입 3단계와 SNS 가입 확인 직접 입력에서 공백·하이픈을 뺀 번호(`normalizePhone`)가 비면 [중복확인]을 끄고 중복확인 안내를 숨긴다
 
-SCR-ACC-020 회원탈퇴 + 탈퇴 API 연결 — 끝남 (승인 2026-11-05 14:48, 검증 2회차 확인 못 함 있음(연결 남음만, 1회차 실패는 로그인 가능한 로컬 계정이 없어서), 사람 확인 2026-11-05). 안내·문구 모달·실패/확인 중은 `/mypage/withdraw`(`pages/mypage/WithdrawPage.jsx`가 `usePets`와 `features/member/withdraw/`를 조립), 완료는 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, 로그인 캐시는 완료 화면이 비움, 바로 열면 랜딩). `withdrawMember`는 문구를 trim 없이 보내고 timeout 15초(끊기면 `NETWORK_ERROR` → 확인 중, [결과 확인]은 `getMe`만 부름). 마이페이지 [회원 탈퇴](SJM 버튼)와 AI `screenPaths.js`에 연결. 검증이 로컬 확인용 회원 mbrSn 211·212를 탈퇴시켰다(개발용 토큰 `POST /api/auth/dev-tokens`로 로그인)
+SCR-ACC-002 로그인 (이메일) · 방법 전환 중 입력 시 폼 밀림 — 끝남 (승인 2026-11-09 16:25, 검증 통과 1회차, 사람 확인 2026-11-09). `layouts/AuthSlider.jsx` 바깥 상자를 `overflow-clip`으로 바꿔 포커스·입력으로 가로 스크롤되지 않게 했다. 고치기 전 코드로도 Playwright에서는 재현되지 않아 예방 수정이다
 
-SCR-ACC-012 비밀번호 재설정 · 재설정 API 연결 — 끝남 (승인 2026-11-05 10:30, 검증 통과(잠금을 버린 뒤 1회차, 앞의 2회 실패는 로컬 백엔드가 SMTP라 인증번호를 못 읽어서), 사람 확인 2026-11-05). `resetPassword`가 `POST /email-certifications/{emlCertSn}/password-reset`을 부른다. 비밀번호 찾기가 라우터 state로 `{ emlCertSn, pswdInitTkn, initAuthrtExpryDt, certTrgtEml }`을 넘긴다. 400 `PASSWORD_RESET_NOT_AVAILABLE`은 만료 화면, `PASSWORD_MISMATCH`·`INVALID_INPUT_VALUE`는 칸 오류, 그 밖은 공통 알림. [취소]는 `invalidate` 뒤 결과와 상관없이 `/login`. 추가-1: 이메일 로그인 폼의 [회원가입]이 "준비 중" 토스트 대신 `/signup`으로 간다. 로컬 백엔드가 실제 메일(SMTP)을 보내면 인증번호를 로그로 읽을 수 없어, 받을 수 있는 메일 계정으로 사람이 번호를 넘겨 확인했다
+SCR-ACC-001 회원가입 (이메일) — 끝남 (승인 2026-11-09 16:00, 검증 통과 1회차, 사람 확인 2026-11-09). 코드 변경 없이 기본 절 완료 조건(FN-ACC-001-34·35·36·14 단계 열림, 22·19·20 가입 뒤 흐름)을 로컬 백엔드 실제 가입으로 확인했다. 코드 후보 2개(`---` 중복확인, 재진입 시 완료 화면 남음)는 "다음에 할 것"에 그대로
 
-SCR-ACC-002 SNS 로그인 · 제공자별 콜백 주소 — 끝남 (승인 2026-11-05 09:49, 검증 통과 1회차, 사람 확인 2026-11-05: 구글·카카오 실제 계정으로 SNS 가입 확인 화면까지). 콜백은 `/login/sns/:provider/callback`(`PATHS.SNS_CALLBACK`, `docs/routes.md` ACC-002 줄)이 받고 처리 뒤 `/login`(+`?redirect=`)으로 replace. 백엔드 `app.sns.*.redirect-uri`·제공자 콘솔이 이 주소다. 앞의 "콜백은 `/login`" 결정을 바꿨다
-
-SCR-ACC-002 SNS 로그인 · SNS 로그인·가입 API 연결 — 끝남 (승인 2026-11-04 17:06, 검증 통과 2회차(1회차는 로컬 백엔드가 real 모드라 확인 못 함), 사람 확인 2026-11-04). 콜백은 새 URL 없이 `/login`이 받는다(`features/member/login/snsAuth.js`·`useSnsCallback.js`). state·제공자·`redirect`는 sessionStorage `snsLoginRequest`. 앱 ID(`VITE_NAVER_CLIENT_ID`·`VITE_KAKAO_REST_KEY`·`VITE_GOOGLE_CLIENT_ID`)가 비면 개발 서버에서 이름을 받아 `fake-이름`으로 돌아온다(백엔드 `app.sns.client=fake`). SNS 가입 확인은 `features/member/signup/SnsSignupForm.jsx`·`useSnsSignup.js`(router state `snsSignup`). `TermsChecklist`·`SignupComplete`를 떼어 이메일 가입과 같이 쓴다. 확인용 로컬 SNS 회원 `verifysnsk1104@example.com`(카카오)·`verifysnsg1104@example.com`(구글)이 로컬 DB에 남아 있다
-
-코드 정리 · 약관 체크박스 합치기 — 끝남 (승인 2026-11-04 16:48, 검증 통과 1회차(확인 못 함 없음, 연결 남음 없음), 사람 확인 2026-11-04). `features/member/signup/TermsStep.jsx`의 지역 `CheckBox`를 지우고 `features/member/shared/AuthCheckBox.jsx`를 쓴다. 모양·동작은 그대로(체크 색은 `brand-500` 진녹색, 기획 문구의 '주황'은 틀림)
-
-SCR-HOS-001 플레이스 · FN-HOS-001-33 로그인 필수 접근 — 끝남 (승인 2026-11-04 16:10, 검증 통과 1회차(확인 못 함 없음, 연결 남음 없음), 사람 확인 2026-11-04). `routes/AppRoutes.jsx`의 `<ProtectedRoute />` 묶음에 `pick('bare', 'member')`를 더하고 `placeRoutes.js`를 `auth: 'member'`로 바꿨다. `PlaceLayout`은 헤더 있음·푸터 없음(기획 문구의 '헤더 없음'은 틀림). 확인용 로컬 계정 `verify1104place@example.com`이 로컬 DB에 남아 있다
+SCR-ACC-001 회원가입 (이메일) · 인증번호 1회·도메인 오류·비밀번호 재사용 안내 — 끝남 (승인 2026-11-09 14:26, 검증 통과 3회차, 사람 확인 2026-11-09). 인증번호 오답 한도 429면 재발송 전까지 확인 버튼을 막고(가입·비밀번호 찾기·복구), 받을 수 없는 도메인 400은 이메일 칸에, 같은 비밀번호 재설정 400은 새 비밀번호 칸에 서버 문구. 추가-1: 스팸함 안내를 발송 안내 다음 줄로
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
@@ -28,9 +20,19 @@ SCR-HOS-001 플레이스 · FN-HOS-001-33 로그인 필수 접근 — 끝남 (�
 
 ## 다음에 할 것
 
-- PR Breaking Changes(SCR-MAN-001): `features/pet/PetProfileCard.jsx`(SJM) 삭제, 메인이 HLT-011 `SummaryHero`(JAJ)를 그대로 씀(메인에서 `useHealthSummary` 호출), `features/health/CarePreview.jsx` 새 파일(JAJ 도메인). JAJ·SJM에게 알린다
-- 팀 알림: 로컬 백엔드 500 — `GET /pets/{petSn}/character-image`(LJS), `POST /pets/{petSn}/daily-health-records`·`POST /pets/{petSn}/care-completions`(JAJ). 실제 기록·캐릭터로 메인 지표·히어로를 다시 본다
-- 메인 남은 것: FN-MAN-002 AI 대화창, FN-MAN-008 전체 보기 반려동물 유지(`SCR-MAN-001 메인페이지` 절), MANC0007 AI 건강분석 리포트(명세 미결)
+- 팀 알림(SCR-HOS-001): 명세 담당(sannabi1)에게 FN-HOS-001-07·08·21·22·26 "카카오맵 상세 새 탭" → "작은 창", 처음 검색 영역 "전주시" → "내 위치 주변(정확도 3km 이내), 아니면 전주시"로 바뀐다고 알린다
+- 팀 알림(SCR-HOS-001): 명세 담당(sannabi1)에게 FN-HOS-001-06 정렬이 "추천순·거리순·이름순" → "거리순·이름순"(추천순은 카카오 정확도순이라 뺌), 검색창 아래 추천어를 지웠다고 알린다. FN-HOS-001-03 예시 "다리수술잘하는곳, 가까운곳"은 카카오 키워드 검색으로 찾을 수 없다
+- 코드 후보(SCR-HOS-001): 검색창 새 검색은 지금 지도 영역이 아니라 처음 영역 기준이라, 지도를 옮긴 뒤 결과 0곳이면 머리 "전주시 전체"와 지도 위치가 다르다. 결과 0곳에서 지도를 옮긴 뒤 [처음 위치로]를 누르면 머리가 "지도를 움직였어요"로 남는다. `PlaceMap.jsx` `fitPlaces` 주석 "결과가 없으면 처음 영역"은 이제 [처음 위치로]에만 맞다
+- 결정 필요(SCR-HOS-001): 위치를 못 받거나 정확도가 나쁘면 전주시로 간다. 서비스가 전국 대상이면 "내 위치 직접 정하기"(주소 입력·기억)를 따로 기획한다
+- 코드 후보: 플레이스 위치를 찾는 동안 목록 머리에 "내 위치를 찾는 중 · 결과 0곳"이 보인다(결과가 오기 전 0곳). 검증 메모
+- 코드 후보: `features/place/PlaceListItem.jsx` 9줄 주석 "카카오맵 업체 상세를 새 탭으로 연다"가 지금 동작(작은 창)과 다르다
+- 코드 후보: 재가입 복구(`recovery/RecoveryForm.jsx`)의 [중복확인]은 빈 칸에서도 켜져 있다(가입 화면은 꺼짐). 맞출지 정한다
+- 코드 후보: 휴대전화번호에 `+82`만 적으면 `normalizePhone`이 `0`이 되어 [중복확인]이 켜진다(누르면 형식 오류 안내). 검증 메모
+- PR Breaking Changes(SCR-ACC-012 문구 정리): 공통 `features/member/shared/AuthField.jsx`가 `hasGuide`면 칸 아래 오류를 숨기고 AI 말풍선만 보인다(로그인·가입·복구·비밀번호 찾기·재설정 칸 오류 모두)
+- 팀 알림: SJM `features/member/profile/PasswordChangeCard.jsx` 10줄 `PW_RULE` 끝에 마침표가 없다(가입·재설정은 마침표 있음)
+- 팀 알림(문구 정리): 화면설계서 담당에게 설계서와 달라진 로그인·회원가입 문구 목록을 보낸다(PR 본문 Design Decisions와 같은 목록). PR Breaking Changes: `AuthNotice`에 `hasGuide`를 주면 색 상자 없이 AI 말풍선만 보인다
+- 팀 알림: `docs/routes.md` 29줄 MAN-001 담당이 아직 YAY다. 담당 표(2026-11-08)대로 LJS로 고치도록 LJS에게 알린다
+
 - 연결 남음: FN-AIM-011-19 (AI 서버 `data/routing.yaml`에 SCR-ACC-020 행, AI 담당). 프론트 `screenPaths.js` 줄은 넣음
 - PR Breaking Changes(SCR-ACC-020): 새 공개 URL `/withdraw/complete`(`PATHS.WITHDRAW_COMPLETE`, `docs/routes.md`), SJM `ProfileEditPage.jsx` [회원 탈퇴] 이동 연결, LJS `screenPaths.js`에 `SCR-ACC-020` 행
 - SNS 배포 연결(팀): 배포 도메인의 `/login/sns/{naver|kakao|google}/callback`을 제공자 콘솔·배포 백엔드 `app.sns.*.redirect-uri`에 등록, 배포 프론트 환경에 `VITE_*` 앱 ID 3개. 카카오는 전화번호 동의항목 권한 신청 전이라 번호를 주지 않는다(직접 입력으로 감)

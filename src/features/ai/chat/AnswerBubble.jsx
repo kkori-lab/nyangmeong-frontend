@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import aiCharacter from '@/assets/ai-character.png';
-import { openInMainWindow } from './openInMainWindow';
+import MarkdownText from '@/components/MarkdownText';
+import { useOpenMain } from './aiHost';
 import { shortcutChips } from './shortcutChips';
 
 const NOTE_MARK = '\n\n※';
@@ -8,13 +9,18 @@ const NOTE_MARK = '\n\n※';
 const softButtonClass =
   'inline-flex h-8 items-center gap-1 rounded-full bg-[#e9f2f2] px-3 text-sm font-medium text-[#285a5c] hover:bg-[#cde0e0]';
 
-/** 의료 판단 제한 고지: 서버가 본문에 붙여 저장, 화면에서만 구분선 아래로 분리 */
+/**
+ * 의료 판단 제한 고지: 서버가 본문 끝에 붙여 저장, 화면에서만 구분선 아래로 분리.
+ * 본문 안에도 `※` 문단이 올 수 있어 마지막 문단일 때만 분리
+ */
 const splitNote = (text) => {
-  const index = text.indexOf(NOTE_MARK);
+  const index = text.lastIndexOf(NOTE_MARK);
   if (index === -1) return { body: text, note: null };
+  const note = text.slice(index + 2);
+  if (note.trimEnd().includes('\n\n')) return { body: text, note: null };
   return {
     body: text.slice(0, index),
-    note: text.slice(index + 2).replace(/^※\s*/, ''),
+    note: note.replace(/^※\s*/, ''),
   };
 };
 
@@ -45,6 +51,7 @@ export default function AnswerBubble({
   onRetry,
   onRegenerate,
 }) {
+  const openMain = useOpenMain();
   const { body, note } = splitNote(text);
 
   return (
@@ -57,12 +64,12 @@ export default function AnswerBubble({
         className="size-9 shrink-0 rounded-full border border-[#e2e7e7] bg-[#e9f2f2] object-contain p-1"
       />
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
-        <div className="max-w-[592px] rounded-[4px_18px_18px_18px] border border-[#e2e7e7] bg-white px-4 py-3 text-[15px] leading-relaxed text-[#1a3234]">
+        <div className="max-w-[min(592px,100%)] rounded-[4px_18px_18px_18px] border border-[#e2e7e7] bg-white px-4 py-3 text-[15px] leading-relaxed text-[#1a3234]">
           {status === 'waiting' && <TypingDots />}
           {status === 'error' && (
             <p role="alert">일시적으로 답변할 수 없어요</p>
           )}
-          {body !== '' && <p className="whitespace-pre-wrap">{body}</p>}
+          {body !== '' && <MarkdownText text={body} />}
           {note && (
             <p className="mt-2 border-t border-dashed border-[#e2e7e7] pt-2 text-sm text-[#667374]">
               {note}
@@ -81,7 +88,7 @@ export default function AnswerBubble({
                   key={chip.label}
                   type="button"
                   className="h-9 rounded-full border border-[#e2e7e7] bg-white px-4 text-base text-[#3d4a4b] hover:bg-[#f4f6f6]"
-                  onClick={() => openInMainWindow(chip.path)}
+                  onClick={() => openMain(chip.path)}
                 >
                   {chip.label}
                 </button>
@@ -115,7 +122,7 @@ export default function AnswerBubble({
                 key={shortcut.path}
                 type="button"
                 className={softButtonClass}
-                onClick={() => openInMainWindow(shortcut.path)}
+                onClick={() => openMain(shortcut.path)}
               >
                 {shortcut.label}
                 <ArrowRight aria-hidden="true" className="size-4" />
