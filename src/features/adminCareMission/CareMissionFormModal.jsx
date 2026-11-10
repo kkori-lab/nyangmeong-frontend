@@ -3,6 +3,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import { showToast } from '@/components/toastStore';
 import Toggle from '@/components/Toggle';
+import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import {
   ACHV_CRTR_NMTM_MAX,
   CMPN_PNT_MAX,
@@ -12,6 +13,9 @@ import { useUpdateAdminCareMission } from './queries';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
+
+/** 칸 아래에 서버 오류를 보이는 칸: 나머지 칸 오류는 폼 아래 줄 */
+const FIELD_NAMES = ['cmpnPnt', 'achvCrtrNmtm'];
 
 /** 1 이상 정수 */
 const POSITIVE_INT_PATTERN = /^[1-9]\d*$/;
@@ -97,11 +101,18 @@ export default function CareMissionFormModal({ mission, onClose }) {
   const [achvCrtrNmtm, setAchvCrtrNmtm] = useState(
     String(mission.achvCrtrNmtm),
   );
-  const [isUsed, setIsUsed] = useState(mission.useYn === 'Y');
+  const [isUsed, setIsUsed] = useState(mission.useYn);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const update = useUpdateAdminCareMission();
 
-  const errors = isSubmitted ? validate({ cmpnPnt, achvCrtrNmtm }) : {};
+  const clientErrors = isSubmitted ? validate({ cmpnPnt, achvCrtrNmtm }) : {};
+  // 400 칸별 오류: 클라이언트 안내가 없는 칸에만 서버 문구
+  const serverFieldErrors = toFieldErrors(update.error);
+  const errors = {
+    cmpnPnt: clientErrors.cmpnPnt ?? serverFieldErrors.cmpnPnt,
+    achvCrtrNmtm: clientErrors.achvCrtrNmtm ?? serverFieldErrors.achvCrtrNmtm,
+  };
+  const formError = toFormError(update.error, FIELD_NAMES);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -113,7 +124,7 @@ export default function CareMissionFormModal({ mission, onClose }) {
         careMsnSn: mission.careMsnSn,
         cmpnPnt: Number(cmpnPnt.trim()),
         achvCrtrNmtm: Number(achvCrtrNmtm.trim()),
-        useYn: isUsed ? 'Y' : 'N',
+        useYn: isUsed,
       },
       {
         onSuccess: () => {
@@ -196,9 +207,9 @@ export default function CareMissionFormModal({ mission, onClose }) {
           바꾼 값은 다음 날 00:00 출제부터 반영돼요. 오늘 출제된 미션은 바뀌지
           않아요.
         </p>
-        {update.isError && (
+        {formError && (
           <p role="alert" className="text-sm text-danger">
-            {update.error.message}
+            {formError}
           </p>
         )}
       </form>
