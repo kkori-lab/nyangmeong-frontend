@@ -2,8 +2,8 @@ import { Flame } from 'lucide-react';
 import { getBoardName } from './postCodes';
 
 const BOARD_TONES = {
-  펫정보: 'bg-[#eaf1fc] text-[#2d5fb8]',
-  펫일상: 'bg-[#fcf1df] text-[#9a5c0c]',
+  펫정보: 'bg-[#eaf1fc] text-[#2d5fb8] ring-1 ring-current/10 ring-inset',
+  펫일상: 'bg-[#fcf1df] text-[#9a5c0c] ring-1 ring-current/10 ring-inset',
 };
 
 const BADGE_CLASS =
@@ -18,7 +18,9 @@ export default function PostBadges({ post, showPopular = true }) {
         <span className={`${BADGE_CLASS} ${BOARD_TONES[name]}`}>{name}</span>
       )}
       {showPopular && post.popular && (
-        <span className={`${BADGE_CLASS} bg-[#fde8ea] text-[#c0394b]`}>
+        <span
+          className={`${BADGE_CLASS} bg-[#fde8ea] text-[#c0394b] ring-1 ring-current/10 ring-inset`}
+        >
           <Flame size={13} aria-hidden="true" />
           인기
         </span>
