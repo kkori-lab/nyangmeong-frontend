@@ -238,16 +238,36 @@ export default function PetFormModal({ petSn = null, onClose, onCreated }) {
   );
 }
 
-/** 수정 모달 로딩 자리: 사진·기본 정보·선택 정보 구역 (실제 폼 구역 높이대로) */
+/**
+ * 수정 모달 로딩 자리: 실제 폼과 같은 그리드·순서·폭 (추가 정보는 펼친 상태)
+ * - PC: 이름 / 종류 / [품종|생년월일] / [성별|털색] / [체중|정상범위] / 추가 정보
+ * - 760px 이하: 폼이 2칸 그리드로 다시 짜이고 Row는 풀린다. 순서·폭은 MOBILE 기준
+ */
 function PetFormSkeleton() {
   return (
-    <div aria-busy="true" className="flex flex-col gap-6 px-7 pt-6 pb-7">
-      <Skeleton className="h-[68px]" />
-      <Skeleton className="h-[62px]" />
-      <Skeleton className="h-[199px]" />
-      <Skeleton className="h-[94px]" />
-      <Skeleton className="h-[141px]" />
-      <Skeleton className="h-[200px]" />
+    <div
+      aria-busy="true"
+      className="flex flex-col gap-6 px-7 pt-6 pb-7 max-[760px]:grid max-[760px]:grid-cols-2 max-[760px]:gap-x-3 max-[760px]:gap-y-5"
+    >
+      <Skeleton className={`h-[68px] ${MOBILE.name}`} />
+      <Skeleton className={`h-[62px] max-[760px]:h-[68px] ${MOBILE.species}`} />
+      <Row>
+        <Skeleton
+          className={`h-[199px] max-[760px]:h-[178px] ${MOBILE.vrty}`}
+        />
+        <Skeleton className={`max-[760px]:h-[68px] ${MOBILE.brdt}`} />
+      </Row>
+      <Row>
+        <Skeleton className={`h-[94px] ${MOBILE.gndr}`} />
+        <Skeleton className={`h-[94px] ${MOBILE.colr}`} />
+      </Row>
+      <Row>
+        <Skeleton className={`h-[141px] ${MOBILE.bdwg}`} />
+        <Skeleton
+          className={`h-[141px] max-[760px]:h-[89px] ${MOBILE.range}`}
+        />
+      </Row>
+      <Skeleton className={`h-[387px] max-[760px]:h-[619px] ${MOBILE.rest}`} />
     </div>
   );
 }
