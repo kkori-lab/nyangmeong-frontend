@@ -2,6 +2,7 @@ import BoardPagination from '@/components/BoardPagination';
 import { isForbiddenError } from '@/utils/isForbiddenError';
 import CharacterJobTable from './CharacterJobTable';
 import { CHAR_JOB_STTS, CHAR_JOB_STTS_FAIL } from './processingLabels';
+import ProcessingFilter from './ProcessingFilter';
 import ProcessingListError from './ProcessingListError';
 import ProcessingSkeleton from './ProcessingSkeleton';
 import ProcessingStatCards from './ProcessingStatCards';
@@ -9,9 +10,17 @@ import { useAdminCharacterJobs } from './queries';
 
 const PAGE_SIZE = 20;
 
+/** 필터 칸 이름(URL 쿼리와 같다) */
+const FILTER_NAMES = ['fromYmd', 'toYmd', 'crtJobSttsCd'];
+
+/** 값이 있는 칸만 남긴 객체 */
+const pickFilled = (filter) =>
+  Object.fromEntries(Object.entries(filter).filter(([, value]) => value));
+
 /**
  * [캐릭터 생성 현황 탭]
- * - 상태 카드를 누르면 그 상태로 목록 거름, 전체 카드로 풀기
+ * - 기간·상태 필터([조회]로 적용) + 읽기 전용 건수 카드 + 목록
+ * - 기간(fromYmd·toYmd)은 백엔드가 아직 받지 않음 -> 받게 되면 그대로 동작
  * - params는 URL 쿼리, 바꾸면 onParamsChange
  */
 export default function CharacterJobPanel({
@@ -20,23 +29,24 @@ export default function CharacterJobPanel({
   renderForbidden,
 }) {
   const page = Number(params.page) || 1;
-  const jobSttsCd = params.jobSttsCd ?? '';
+  const filter = Object.fromEntries(
+    FILTER_NAMES.map((name) => [name, params[name] ?? '']),
+  );
 
   const jobs = useAdminCharacterJobs({
-    ...(jobSttsCd && { jobSttsCd }),
+    ...pickFilled(filter),
     page,
     size: PAGE_SIZE,
   });
 
-  /** 상태 선택: 같은 카드를 다시 누르면 전체 */
-  const handleSelectStatus = (nextSttsCd) =>
-    onParamsChange(nextSttsCd ? { jobSttsCd: nextSttsCd } : {});
+  const handleSearch = (nextFilter) => onParamsChange(pickFilled(nextFilter));
   const handlePageChange = (nextPage) =>
-    onParamsChange({ ...(jobSttsCd && { jobSttsCd }), page: nextPage });
+    onParamsChange({ ...pickFilled(filter), page: nextPage });
 
   if (jobs.isPending) {
     return (
       <ProcessingSkeleton
+        filterClass="h-10 w-full max-w-[620px] max-[760px]:h-[136px]"
         cardCount={5}
         cardGridClass="min-[761px]:grid-cols-5"
         cardClass="h-[84px]"
@@ -57,29 +67,28 @@ export default function CharacterJobPanel({
   }
 
   const countOf = (sttsCd) =>
-    jobs.data.sttsCnts.find((item) => item.jobSttsCd === sttsCd)?.cnt ?? 0;
+    jobs.data.sttsCnts.find((item) => item.crtJobSttsCd === sttsCd)?.cnt ?? 0;
   const total = jobs.data.sttsCnts.reduce((sum, item) => sum + item.cnt, 0);
 
   return (
     <>
+      <ProcessingFilter
+        key={JSON.stringify(filter)}
+        filter={filter}
+        selects={[
+          { name: 'crtJobSttsCd', label: '상태', codes: CHAR_JOB_STTS },
+        ]}
+        onSearch={handleSearch}
+      />
       <ProcessingStatCards
         className="min-[761px]:grid-cols-5"
         items={[
-          {
-            key: 'all',
-            label: '전체',
-            value: total,
-            isSelected: !jobSttsCd,
-            onSelect: () => handleSelectStatus(''),
-          },
+          { key: 'all', label: '전체', value: total },
           ...CHAR_JOB_STTS.map(({ comCd, comCdNm }) => ({
             key: comCd,
             label: comCdNm,
             value: countOf(comCd),
             isDanger: comCd === CHAR_JOB_STTS_FAIL && countOf(comCd) > 0,
-            isSelected: jobSttsCd === comCd,
-            onSelect: () =>
-              handleSelectStatus(jobSttsCd === comCd ? '' : comCd),
           })),
         ]}
       />
