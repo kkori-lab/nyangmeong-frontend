@@ -8,7 +8,8 @@ import {
 import PageSkeleton from '@/components/PageSkeleton';
 import SkeletonCard from '@/components/SkeletonCard';
 import LabInput from '@/features/health/labInput/LabInput';
-import { useCheckupDetail } from '@/features/health/queries';
+import { useCheckupDetail, useMyPets } from '@/features/health/queries';
+import { PetBadge } from '@/features/health/shared/PetSwitcher';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 
@@ -37,6 +38,7 @@ export default function LabInputPage() {
     petSn,
     ckupRcdSn: sn,
   });
+  const { data: pets } = useMyPets();
 
   const requestedMode = searchParams.get('mode');
   const itemSn = Number(searchParams.get('item'));
@@ -101,8 +103,14 @@ export default function LabInputPage() {
       ? 'pdf'
       : 'manual';
 
+  const recordPet = pets?.find((item) => item.petSn === petSn);
+
   return (
-    <SubPageLayout {...layoutProps}>
+    <SubPageLayout
+      {...layoutProps}
+      sideBottom={<PetBadge pet={recordPet} variant="card" />}
+    >
+      <PetBadge pet={recordPet} variant="pill" />
       <LabInput
         key={`${petSn}-${sn}-${mode}-${itemSn}`}
         petSn={petSn}
