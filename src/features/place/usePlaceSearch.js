@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { showToast } from '@/components/toastStore';
-import { CATEGORIES, DEFAULT_SORT, JEONJU_AREA } from './placeData';
+import { CATEGORIES, DEFAULT_SORT } from './placeData';
 import {
   usePlaceBookmarks,
   usePlaceSearchQuery,
   useTogglePlaceBookmark,
 } from './queries';
+import useMyArea from './useMyArea';
 
 // 다른 곳에서 이미 바뀐 상태. 목록이 새로 맞춰지므로 알림 없이 둔다
 const BOOKMARK_STALE_CODES = [
@@ -18,12 +19,13 @@ const categoryOf = (key) => CATEGORIES.find((item) => item.key === key);
 // 새 검색(카테고리 변경·검색어 실행)마다 달라지는 값. 지도가 결과에 맞춰 화면을 맞추는 때를 알린다
 let searchSeq = 0;
 
-// 카테고리를 처음 열었을 때의 검색 상태. 검색어 입력칸에는 카테고리 이름을 보이고 서버에는 검색어 없이 보낸다
-const initialSearch = (category) => ({
+// 카테고리를 처음 열었을 때의 검색 상태. 검색어 입력칸에는 카테고리 이름을 보이고 서버에는 검색어 없이 보낸다.
+// homeArea는 처음 검색할 영역(내 위치 둘레, 못 받으면 전주시 대표 영역)
+const initialSearch = (category, homeArea) => ({
   q: categoryOf(category).name,
   keyword: '',
-  area: JEONJU_AREA, // 마지막으로 검색한 지도 영역과 거리 기준 중앙
-  scope: 'first', // first: 시 전체, new: 지도 영역으로 다시 검색한 결과
+  area: homeArea, // 마지막으로 검색한 지도 영역과 거리 기준 중앙
+  scope: 'first', // first: 처음 영역(내 주변·전주시 전체), new: 지도 영역으로 다시 검색한 결과
   fitKey: ++searchSeq,
   isMoved: false,
   selected: null, // 선택한 장소의 plcSn
@@ -37,23 +39,35 @@ const isInside = (place, { swLat, swLot, neLat, neLot }) =>
   place.plcLot <= neLot;
 
 export default function usePlaceSearch(category, onCategoryChange) {
-  const [search, setSearch] = useState(() => initialSearch(category));
+  const home = useMyArea();
+  const [search, setSearch] = useState(() =>
+    initialSearch(category, home.area),
+  );
   const [syncedCategory, setSyncedCategory] = useState(category);
+  const [isHomeApplied, setIsHomeApplied] = useState(!home.isLocating);
   const [sort, setSort] = useState(DEFAULT_SORT);
 
   // 주소창이나 GNB로 카테고리가 바뀌면 검색 상태를 처음으로 되돌린다
   if (syncedCategory !== category) {
     setSyncedCategory(category);
-    setSearch(initialSearch(category));
+    setSearch(initialSearch(category, home.area));
+  }
+
+  // 위치를 찾고 나면 처음 영역을 그곳으로 바꾼다. 그 사이 지도 영역으로 다시 검색했으면 그대로 둔다
+  if (!home.isLocating && !isHomeApplied) {
+    setIsHomeApplied(true);
+    setSearch((prev) =>
+      prev.scope === 'first'
+        ? { ...prev, area: home.area, fitKey: ++searchSeq }
+        : prev,
+    );
   }
 
   const { code } = categoryOf(category);
-  const query = usePlaceSearchQuery({
-    plcClsfCd: code,
-    keyword: search.keyword,
-    sort,
-    ...search.area,
-  });
+  const query = usePlaceSearchQuery(
+    { plcClsfCd: code, keyword: search.keyword, sort, ...search.area },
+    { enabled: !home.isLocating },
+  );
   const bookmarks = usePlaceBookmarks(code);
   const toggle = useTogglePlaceBookmark();
 
@@ -82,12 +96,13 @@ export default function usePlaceSearch(category, onCategoryChange) {
     onCategoryChange(next);
   };
 
-  const selectCategory = (next) => changeCategory(next, initialSearch(next));
+  const selectCategory = (next) =>
+    changeCategory(next, initialSearch(next, home.area));
 
   const submitSearch = (text) => {
     const q = text.trim();
     if (!q) return;
-    setSearch({ ...initialSearch(category), q, keyword: q });
+    setSearch({ ...initialSearch(category, home.area), q, keyword: q });
   };
 
   const selectPlace = (plcSn, by) =>
@@ -132,7 +147,11 @@ export default function usePlaceSearch(category, onCategoryChange) {
     ? '지도를 움직였어요'
     : search.scope === 'new'
       ? '현재 지도 영역'
-      : '전주시 전체';
+      : home.isLocating
+        ? '내 위치를 찾는 중'
+        : home.isMine
+          ? '내 주변'
+          : '전주시 전체';
 
   return {
     search,
@@ -146,6 +165,7 @@ export default function usePlaceSearch(category, onCategoryChange) {
     bookmarkSnOf,
     isOutside,
     regionText,
+    homeArea: home.area,
     selectCategory,
     submitSearch,
     selectPlace,
