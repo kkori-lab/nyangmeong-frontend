@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import aiCharacter from '@/assets/ai-character.png';
 import MarkdownText from '@/components/MarkdownText';
-import { openInMainWindow } from './openInMainWindow';
+import { useOpenMain } from './aiHost';
 import { shortcutChips } from './shortcutChips';
 
 const NOTE_MARK = '\n\n※';
@@ -11,7 +11,7 @@ const softButtonClass =
 
 /**
  * 의료 판단 제한 고지: 서버가 본문 끝에 붙여 저장, 화면에서만 구분선 아래로 분리.
- * 본문 안에도 `※` 문단이 올 수 있어 마지막 문단일 때만 뗀다
+ * 본문 안에도 `※` 문단이 올 수 있어 마지막 문단일 때만 분리
  */
 const splitNote = (text) => {
   const index = text.lastIndexOf(NOTE_MARK);
@@ -51,6 +51,7 @@ export default function AnswerBubble({
   onRetry,
   onRegenerate,
 }) {
+  const openMain = useOpenMain();
   const { body, note } = splitNote(text);
 
   return (
@@ -87,7 +88,7 @@ export default function AnswerBubble({
                   key={chip.label}
                   type="button"
                   className="h-9 rounded-full border border-[#e2e7e7] bg-white px-4 text-base text-[#3d4a4b] hover:bg-[#f4f6f6]"
-                  onClick={() => openInMainWindow(chip.path)}
+                  onClick={() => openMain(chip.path)}
                 >
                   {chip.label}
                 </button>
@@ -121,7 +122,7 @@ export default function AnswerBubble({
                 key={shortcut.path}
                 type="button"
                 className={softButtonClass}
-                onClick={() => openInMainWindow(shortcut.path)}
+                onClick={() => openMain(shortcut.path)}
               >
                 {shortcut.label}
                 <ArrowRight aria-hidden="true" className="size-4" />

@@ -252,3 +252,64 @@ export default function PetSwitcher({ variant }) {
     </div>
   );
 }
+
+/**
+ * [건강기록 상세 화면 반려동물 표시] (※신규 정책) FN-HLT-005-16 · 007-07 — 보기 전용, 공통 선택값 변경 없음
+ * - 검진상세·검사 수치 입력에서 주소의 petSn 아이를 보여 준다. 누를 수 없는 정보 칸(div, 포커스 없음)
+ * - 배치·크기는 PetSwitcher와 같고, 면 bg-surface-3·테두리 없음, ⇅·▾·팝오버 없음
+ * - variant="card": 1101px 이상, 사이드 메뉴 아래. 사진 + 「이 기록의 아이」 + 이름 + 「종 · 나이」
+ * - variant="pill": 1100px 이하, 페이지 제목 아래. 사진 + 이름
+ * - pet이 없으면(목록을 받는 중·실패·목록에 없음) 그리지 않는다
+ */
+export function PetBadge({ pet, variant }) {
+  const rootRef = useRef(null);
+  const isCard = variant === 'card';
+  const visibility = isCard ? 'max-[1101px]:hidden' : 'min-[1101px]:hidden';
+
+  useStickBelowMenu(rootRef, isCard && Boolean(pet), 'card');
+
+  if (!pet) return null;
+  const meta = [getPetSeName(pet), formatAge(pet.petBrdt)]
+    .filter(Boolean)
+    .join(' · ');
+
+  if (!isCard) {
+    return (
+      <div
+        ref={rootRef}
+        className={`${visibility} inline-flex h-10 items-center gap-2 self-start rounded-full border border-transparent bg-surface-3 pr-3 pl-1.25 font-semibold text-ink max-[760px]:h-11`}
+      >
+        <PetFace
+          petSn={pet.petSn}
+          petSeCd={pet.petSeCd}
+          isError={pet.bscCharSbstYn}
+          className="size-7.5 shrink-0 overflow-hidden rounded-full border border-line bg-white text-subtle"
+          iconClassName="size-3/5"
+        />
+        <span className="max-w-40 truncate">{pet.petNm}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={rootRef}
+      className={`${visibility} z-20 mt-6 border-t border-line pt-6 min-[1101px]:sticky`}
+    >
+      <div className="flex w-full items-center gap-3 rounded-card border border-transparent bg-surface-3 p-3">
+        <PetFace
+          petSn={pet.petSn}
+          petSeCd={pet.petSeCd}
+          isError={pet.bscCharSbstYn}
+          className="size-12 shrink-0 overflow-hidden rounded-full bg-brand-50 text-subtle"
+          iconClassName="size-3/5"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-badge text-subtle">이 기록의 아이</p>
+          <p className="truncate font-bold text-ink">{pet.petNm}</p>
+          <p className="truncate text-sm text-muted">{meta}</p>
+        </div>
+      </div>
+    </div>
+  );
+}

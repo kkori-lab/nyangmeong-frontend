@@ -26,7 +26,10 @@ export default function ConversationSidebar({
     if (!isDrawerOpen) return undefined;
     const wideQuery = window.matchMedia(WIDE_QUERY);
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onCloseDrawer();
+      if (event.key !== 'Escape') return;
+      /** AI 모달의 Esc 닫기 방지 */
+      event.preventDefault();
+      onCloseDrawer();
     };
     const handleWide = (event) => {
       if (event.matches) onCloseDrawer();
