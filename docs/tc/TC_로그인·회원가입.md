@@ -1,6 +1,6 @@
 # TC · 로그인·회원가입 (SCR-ACC-001 · 002 · 011 · 012 · 020)
 
-- 기준: 로그인·회원가입_기능명세서_v0.8_20261101, 요구사항정의서_v0.10.3_20261109(REQ-ACC-001~004, REQ-MYP-001), 백엔드 `docs/api/member.md`·`ErrorCode.java`(develop 2026-11-08), 프론트 `src/features/member`·`src/pages/auth`·`src/pages/mypage/WithdrawPage.jsx`·`src/routes`·`src/api/axios.js`, 마일스톤 `milestones/YAY.md`
+- 기준: 로그인·회원가입_기능명세서_v0.8_20261101, 요구사항정의서_v0.10.4_20261109(REQ-ACC-001~004, REQ-MYP-001), 백엔드 `docs/api/member.md`·`ErrorCode.java`(develop 2026-11-08), 프론트 `src/features/member`·`src/pages/auth`·`src/pages/mypage/WithdrawPage.jsx`·`src/routes`·`src/api/axios.js`, 마일스톤 `milestones/YAY.md`
 - 코드: origin/develop 425199e (2026-11-08)
 제외: 없음
 - 참고: 명세에 행이 없는 번호(FN-ACC-001-21, FN-ACC-002-06·17, FN-ACC-011-04, FN-ACC-020-07~11)는 결번 표시가 아니라 행 자체가 없어 TC를 만들지 않았다
