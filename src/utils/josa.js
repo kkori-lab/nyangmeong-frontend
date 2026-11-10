@@ -18,3 +18,17 @@ export const pickJosa = (word, pair) => {
   }
   return (code - HANGUL_FIRST) % FINAL_COUNT === 0 ? withoutFinal : withFinal;
 };
+
+/**
+ * 부르는 이름: 끝 글자에 받침이 있으면 '이'를 붙인다(구름 → 구름이, 코코 → 코코)
+ * - 끝 글자가 한글이 아니면 그대로
+ */
+export const callName = (name) => {
+  const text = (name ?? '').trim();
+  const code = text.slice(-1).charCodeAt(0);
+  const hasFinal =
+    code >= HANGUL_FIRST &&
+    code <= HANGUL_LAST &&
+    (code - HANGUL_FIRST) % FINAL_COUNT !== 0;
+  return hasFinal ? `${text}이` : text;
+};

@@ -2,13 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 끝(2026-11-10). `features/adminAiRoute/api.js` 가짜 응답·sessionStorage를 지우고 `/api/admin/ai/routes` GET·POST·PATCH·DELETE로 연결했다. 대표 칩·사용은 true/false, 수정에서 비운 칸은 빈 문자열로 보낸다
+SCR-MAN-001 메인페이지 · 사진 용도 판단 AI 연결 — 끝(2026-11-10). `features/ai/api.js` 가짜 `judgeImageIntent`를 AI `POST /ai/image-intent`(multipart)로 연결했다. 추가-1~3: 사진 흐름도 글에 이름이 하나 나온 반려동물로 가고(새 대화면 칩도 바꿈), 받침 있는 이름은 `callName`(`utils/josa.js`)으로 "구름이의"처럼 부른다
 
 ## 다음에 할 것
 
-- 다음 작업 순서(사람 2026-11-10): ① AI 채팅 사진 용도 판단 가짜(`features/ai/api.js` `judgeImageIntent`)를 실제 판단으로(아래 SCR-MAN-001 연결 남음 줄, AI PR #53)
+- SCR-MAN-001 사진 용도 판단 연결 검증 데이터(2026-11-10, 8081 DB·tester 계정): AI 대화방 393("진료 영수증")·395("탄이 진료 영수증이야")는 AI 창 [삭제]. 영수증 결과는 저장하지 않았다
+- SCR-MAN-001 사진 용도 판단 사람이 볼 것(판정 밖, 2026-11-10): ① 판단 요청의 `petSn`은 글에 나온 반려동물이 아니라 칩 값을 보낸다(AI 서버는 판단에 쓰지 않음) ② 부르는 이름(`callName`)은 대화창 캐릭터·영수증 분석 말풍선에만 넣었다
 - SCR-ADM-080 매핑표 API 연결 정할 것(2026-11-10, 8081 DB): 검증 전부터 있던 sn 47 "확인용 매핑(수정)"(사용 안 함, 순위 1)을 지울지 사람이 정한다. 검증 때 만든 sn 48·49는 지웠다
-- 프론트에 남은 가짜 응답(2026-11-10 조사): `adminAiKeyword`·`adminProcessing` 검사결과지 탭(SCR-ADM-081·082 대기), `features/ai/api.js` `judgeImageIntent`, `features/apiUsage/api.js`(SCR-ADM-112, 연결 마일스톤 없음), `features/chat/api.js` `searchChatPlaces`(장소 검색 API 담당 미정), `features/community/missingCodes.js` `DONG_BY_REGION`(주로 KSJ)
+- 프론트에 남은 가짜 응답(2026-11-10 조사): `adminAiKeyword`·`adminProcessing` 검사결과지 탭(SCR-ADM-081·082 대기), `features/apiUsage/api.js`(SCR-ADM-112, 연결 마일스톤 없음), `features/chat/api.js` `searchChatPlaces`(장소 검색 API 담당 미정), `features/community/missingCodes.js` `DONG_BY_REGION`(주로 KSJ)
 - SCR-COM-007 모바일 AI 모달 검증 데이터 정리(2026-11-10, 8081 DB·tester 계정): 까미(petSn 1) 일정 2026-11-11 10:00 "[검증] 까미 미용"(케어 캘린더에서 삭제), 건강 일지 체중 2026-11-10 09:40 4.5kg(건강 일지에서 삭제), AI 대화 "까미 미용 일정 등록"·사진 대화·"반려동물 케어 AI 첫 인사"·"까미 귀 청소 주간 케어 등록"(대화 목록에서 삭제)
 - SCR-COM-007 사람이 볼 것(판정 밖, 2026-11-10): ① 로그아웃·탈퇴 때 AI 모달 닫기는 코드로만 확인 ② 검증 중 AI 확인 카드로 케어 항목 등록 시 8081 `POST /api/pets/1/care-items` 500(이번 변경과 무관해 보임, 원인 안 봄) ③ 명세(공통레이아웃 기능명세서 v0.10 FN-COM-007-01)는 아직 "새 창, 모달 아님"이라 모바일 모달을 문서에 반영해 달라고 문서 담당에 알린다
 - SCR-ADM-001 대시보드 사람이 볼 것(판정 밖, 2026-11-10): ① 알림 실패·배치 실패는 검증 때 0건이라 링크 목록 건수와 대조 못 함(알림 실패는 최근 24시간 기준이라 날짜 필터 발송 이력과 다를 수 있다) ② 종·품종·즐겨찾기 빈 문구와 서버 오류 문구는 코드로만 확인
@@ -38,7 +39,6 @@ SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 끝(2026-1
 
 - SCR-MAN-001 정리(2026-11-09): tester 계정의 까미(petSn 1) 바로가기가 비어 있다(검증 시작 때부터, 원인 모름). 처음 상태로 두려면 `/main` [바로가기 추가] → 까미 → 종합 건강기록
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09 푸터·AI 버튼): ① 모바일 dock 접기는 검증에서 터치 이벤트로만 확인(Playwright 마우스 드래그로는 안 접힘, `useAiDock.js`는 안 바뀜) ② `/community` 한 화면에서 `character-image?part=face` 요청이 수백 건 보였다(AI 버튼은 `part=full`만 부름, 원인 미확인) ③ 메인 바로가기 얼굴이 반려동물 1·2·14에서 404(기존 동작, 아이콘으로 대체) ④ 전신 이미지 오른쪽 투명 여백 14px는 서버 문서의 캐릭터 위치(512 중 x 96~416) 기준이라 캐릭터마다 조금 다를 수 있다 ⑤ PR 캡처는 `.playwright-mcp/pr/LJS-20261109-SCR-MAN-001-after-*`·`-community-after-*`(`-ai-face-after-*`는 얼굴 버전이라 쓰지 않음)
-- SCR-MAN-001 연결 남음(2026-11-09, AI develop에 첨부 사진 용도 판단 API 병합됨 PR #53): A3 사진+글 의도 판단·캐릭터·가계부 영수증 등록 응답 (AI 연결, AI 서버 저장소에서 /start). 나오면 `features/ai/api.js`의 가짜 `judgeImageIntent`만 실제 요청으로 바꾼다. 가계부 바로 등록은 SJM `features/expense`와 맞춘다
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-09): ① 대화창 `ChatInput`의 첨부 미리보기도 메인처럼 썸네일만 크게 할지 ② 반려동물 칩 단계(대표 없는 여러 마리 계정)는 화면으로 못 봄 ③ 검증 대화방이 tester 계정에 남음(AI 창 [삭제])
 - SCR-MAN-001 사람이 볼 것(판정 밖, 2026-11-08): ① 영수증 인식 뒤 건강일지 주소에 `?recptSn=`이 남는다(`HealthDiaryPage.jsx`, JAJ, 가짜 응답에서 봄) ② 메인이 더는 `GET·PUT /members/me/dashboard-widgets`·`GET /pets/{petSn}/health-indicators`를 부르지 않는다(백엔드 정리는 담당과 상의) ③ `src/assets/index.css`의 `man-float` keyframes를 쓰는 곳이 없다 ④ `docs/routes.md` MAN-001 담당이 YAY로 남아 있다 ⑤ PR 캡처는 가짜 반려동물이 찍혀 실제 계정으로 다시 찍는 편이 낫다 ⑥ AI 건강분석 리포트 카드 행선지는 JAJ 건강기록 개편 공유 뒤
 - SCR-MAN-001 로컬 검증 데이터(2026-11-08): 실제 영수증 업로드로 영수증 기록이 로컬 DB에 남았다(지우는 API 없음). 검증용 복사 파일 `.playwright-mcp/tmp/receipt.png`

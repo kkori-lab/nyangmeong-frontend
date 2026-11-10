@@ -276,8 +276,15 @@ export default function AiChatScreen({
     handleResult(result, lastUserSn - 1);
   };
 
-  /** 판단한 종류의 흐름으로: 진료 영수증은 영수증 분석(1마리면 자동 선택)이 이어 받음 */
+  /**
+   * 판단한 종류의 흐름으로: 진료 영수증은 영수증 분석(1마리면 자동 선택)이 이어 받음
+   * - 반려동물: 글에 이름이 나온 아이가 하나뿐이면 그 아이, 아니면 칩·한 마리 기준
+   */
   const goImageKind = (target, kind) => {
+    const namedPetSn = petTagFor(target.text, pets, null);
+    const namedPet = pets?.find((pet) => pet.petSn === namedPetSn);
+    /** 새 방이면 칩도 그 반려동물로(글 질문의 새 방 태그와 같은 규칙) */
+    if (namedPet && selectedRoomSn === null) setPickedPetSn(namedPet.petSn);
     if (kind === IMAGE_KIND.MEDICAL_RECEIPT) {
       setImage(null);
       receipt.start({
@@ -285,15 +292,15 @@ export default function AiChatScreen({
         text: target.text,
         aiCnvrsRoomSn: selectedRoomSn,
         afterMsgSn: lastServerSn(conversation?.messages ?? []),
-        petSn: selectedPetSn ?? null,
-        pet: autoPet,
+        petSn: namedPet?.petSn ?? selectedPetSn ?? null,
+        pet: namedPet ?? autoPet,
       });
       return;
     }
     if (kind === IMAGE_KIND.CHARACTER) {
       updateImage(target.id, {
         status: 'character',
-        pet: autoPet,
+        pet: namedPet ?? autoPet,
         characterStatus: 'ready',
       });
       return;
@@ -303,7 +310,7 @@ export default function AiChatScreen({
     });
   };
 
-  /** 사진 첨부 전송: 사진+글로 종류를 판단(가짜)한 뒤 그 흐름으로, 판단 실패면 종류 칩 */
+  /** 사진 첨부 전송: 사진+글로 종류를 판단한 뒤 그 흐름으로, 판단 실패면 종류 칩 */
   const handleSendImage = (file, text) => {
     setFirstMessage(null);
     setIsAttachFailed(false);

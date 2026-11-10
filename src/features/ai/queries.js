@@ -84,7 +84,7 @@ export const useSaveActionResult = () => useResultMessage(saveActionResult);
 export const useRecognizeCheckupReceipt = () =>
   useMutation({ mutationFn: recognizeCheckupReceipt });
 
-/** 첨부 사진+글의 의도 판단 (가짜) */
+/** 첨부 사진+글의 의도 판단 */
 export const useJudgeImageIntent = () =>
   useMutation({ mutationFn: judgeImageIntent });
 
