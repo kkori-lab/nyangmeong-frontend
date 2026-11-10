@@ -1,8 +1,9 @@
 import { Lock } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
-import userIcon from '@/assets/user.svg';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { addDays, formatDate, getYmdOf } from '@/utils/formatDate';
 import { EXTEND_DAYS, foundCommentText } from '../missingCodes';
 
@@ -43,11 +44,7 @@ export function FoundConfirmModal({
       <p className="mb-3 text-sm text-muted">아래 댓글이 자동으로 등록돼요</p>
       <div className="rounded-lg border border-warn-line bg-warn-soft px-4 py-3.5">
         <p className="flex items-center gap-2 text-sm">
-          <span
-            aria-hidden="true"
-            style={{ backgroundImage: `url(${userIcon})` }}
-            className="block size-8 shrink-0 rounded-full border border-line bg-white bg-cover bg-center"
-          />
+          <Avatar src={publicFileUrl(post.mbrAtchFileSn)} className="size-8" />
           <b className="text-base font-semibold text-ink">{post.mbrNcnm}</b>
           <Badge tone="ok" bordered>
             찾았어요

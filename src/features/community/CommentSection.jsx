@@ -191,7 +191,9 @@ function CommentRow({
         ) : (
           <>
             <p className="mt-0.5 text-base leading-[1.6] break-words whitespace-pre-line text-[#1a3234]">
-              {comment.cmntCn}
+              {isFoundNotice
+                ? stripLeadingEmoji(comment.cmntCn)
+                : comment.cmntCn}
             </p>
             <p
               className={`mt-0.5 -ml-1.5 flex items-center ${isFoundNotice ? 'hidden' : ''}`}
@@ -227,6 +229,10 @@ function CommentRow({
 /** 답글: 왼쪽에 ㄴ 모양 연결선, 마지막이 아니면 세로선이 아래로 연결 */
 const REPLY_ITEM_CLASS =
   "relative before:absolute before:top-0 before:-left-[29px] before:h-[21px] before:w-[23px] before:rounded-bl-[14px] before:border-b-2 before:border-l-2 before:border-[#e2e7e7] before:content-[''] [&:not(:last-child)]:after:absolute [&:not(:last-child)]:after:top-0 [&:not(:last-child)]:after:bottom-0 [&:not(:last-child)]:after:-left-[29px] [&:not(:last-child)]:after:border-l-2 [&:not(:last-child)]:after:border-[#e2e7e7] [&:not(:last-child)]:after:content-[''] max-[760px]:before:-left-[27px] max-[760px]:before:w-[23px] max-[760px]:[&:not(:last-child)]:after:-left-[27px]";
+
+/** 서버가 만든 자동 댓글(찾았어요 안내)은 글자 맨 앞에 🎉가 붙어 오므로 보일 때만 떼고 보인다(저장 글자는 그대로) */
+const stripLeadingEmoji = (text) =>
+  text.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '');
 
 /**
  * 댓글 영역: 댓글 + 대댓글 1단계

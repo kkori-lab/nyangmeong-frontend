@@ -89,6 +89,11 @@ export default function CareDetail({ post }) {
     <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1101px]:grid-cols-1 max-[1101px]:gap-10">
       <article className={ARTICLE_CLASS} aria-labelledby="care-title">
         <div className="flex flex-wrap gap-1.5">
+          {post.owner && (
+            <Badge tone="amber" bordered>
+              내 글
+            </Badge>
+          )}
           <CareStatusBadge post={post} />
           {badges.map((name) => (
             <Badge key={name} tone="outline">
