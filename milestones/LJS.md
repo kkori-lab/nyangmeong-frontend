@@ -988,7 +988,7 @@
 - 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-10, 1회차, 연결 남음만). FN-ADM-072-01·02 통과(8081 실제 원장·+10 지급 뒤 -10으로 되돌림, 400·404 문구는 가짜 응답), FN-ADM-072-03은 "관리자 조정"은 보이고 사유는 안 보임, 사람 확인 2026-11-10
 - 연결 남음: FN-ADM-072-03 (회원 포인트 내역에 조정 사유 `memoCn` 표시 여부, `PointHistory.jsx` `getTitle`, SJM)
 
-## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 대기
+## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-01
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/receipt.md` `/admin/processing/receipts` 두 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminReceipts` 가짜를 실제 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrDmndSrcCd=&ocrPrcsSttsCd=&page=&size=`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, failCnt, prcsCnt, errCnt }, content: [{ recptSn, mbrSn, mbrNcnm, ocrDmndSrcCd, ocrPrcsSttsCd, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 출처 `ocrRqstSrcCd` → `ocrDmndSrcCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` 가계부 출처 `TMP00031` → `AIMC0027`. 가짜의 처리 중 `AIMC0002`·성공 `AIMC0003`은 틀렸다(분석중 AIMC0001, 인식성공 AIMC0002, 부분인식 AIMC0003). summary는 현재 상태 기준(성공 = 인식성공·부분인식·저장완료, 실패 = 인식실패 AIMC0004, 처리 중 = 분석중, `errCnt` = 일시오류 AIMC0005는 새 키). 실패율은 `failCnt / totCnt`. 모르는 코드·`fromYmd > toYmd`는 400 `INVALID_INPUT_VALUE`. `ReceiptImageModal.jsx`의 원본 보기 `GET /api/admin/processing/receipts/{recptSn}/image`(경로 가정 그대로), 없는 영수증 404 `RECEIPT_NOT_FOUND`
@@ -1002,11 +1002,14 @@
 - 연결 남음: FN-COM-009-08 주소 공유 장소 검색 (장소 검색 API, 담당 미정)
 - 연결 남음: FN-COM-009-18 열린 방 알림 억제 (서버 알림, YAY)
 
-## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 대기
+## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-02
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/processing/character-jobs` 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminCharacterJobs` 가짜를 실제 `GET /api/admin/processing/character-jobs?crtJobSttsCd=&page=&size=`로 바꾼다. 응답은 `{ sttsCnts: [{ crtJobSttsCd, cnt }], content: [{ charCrtJobSn, mbrSn, mbrNcnm, crtJobSttsCd, failRsn, otoInqrySn, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 상태 `jobSttsCd` → `crtJobSttsCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` `CHAR_JOB_STTS`는 CHRG01(CHRC0001 요청·CHRC0002 생성 중·CHRC0003 생성 완료·CHRC0004 생성 실패), `CHAR_JOB_STTS_FAIL` `TMP00044` → `CHRC0004`. `sttsCnts`는 상태 필터와 무관하게 네 줄을 순서대로 주고 없는 상태는 0. 모르는 상태 코드 400 `INVALID_INPUT_VALUE`. `CharacterJobTable.jsx`의 문의 링크는 `otoInqrySn` 그대로
 - 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`·`CharacterJobTable.jsx`(가짜)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-10, 1회차, 확인 못 함(내 것) 없음·연결 남음만), 사람 확인 2026-11-10
+- 추가-1: 상태 필터를 카드 누르기에서 영수증 OCR 탭과 같은 필터 줄(기간 + 상태 드롭다운 + [조회])로, 건수 카드는 읽기 전용(사람 2026-11-10)
+- 연결 남음: 추가-1 기간 필터 (백엔드 연결 `GET /api/admin/processing/character-jobs` `fromYmd`·`toYmd`, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·02·03

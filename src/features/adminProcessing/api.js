@@ -1,19 +1,15 @@
 import { api } from '@/api/axios';
 import { IS_DEV } from '@/api/env';
-import {
-  CALL_RSLT,
-  CHAR_JOB_STTS,
-  CHAR_JOB_STTS_FAIL,
-  OCR_SOURCES,
-  OCR_STTS_FAIL,
-  OCR_STTS_GROUP,
-} from './processingLabels';
+import { CALL_RSLT, OCR_STTS_GROUP } from './processingLabels';
 
 /**
  * [관리자 처리 현황 API]
- * - 영수증 상태 이름은 실제 공통코드 API, 나머지는 /api/admin/processing/* 나오기 전까지 메모리 가짜 -> 나오면 본문만 api 요청으로 교체
- * - 필드는 RECPT·CHAR_CRT_JOB·EXTL_API_CALL_LOG 컬럼 이름 가정, 건수 묶음(summary) 키도 가정. 결과 내용(건강기록·이미지 결과)은 받지 않음
- * - 개발 환경에서 ?fake=forbidden이면 403, ?fake=error면 조회 오류
+ * - 영수증 OCR: 실제 API. 계약은 백엔드 `docs/api/receipt.md` `/admin/processing/receipts` 두 행
+ * - 캐릭터 생성: 실제 API. 계약은 백엔드 `docs/api/pet.md` `/admin/processing/character-jobs` 행
+ * - 검사결과지: /api/admin/processing/pdf-analyses 연결 전까지 메모리 가짜 -> 연결 때 본문만 api 요청으로 교체
+ *   (필드는 EXTL_API_CALL_LOG 컬럼 이름 가정, 건수 묶음 키도 가정)
+ * - 결과 내용(OCR 응답·건강기록·이미지 결과)은 받지 않음
+ * - 개발 환경에서 ?fake=forbidden이면 403, ?fake=error면 조회 오류(검사결과지 가짜만)
  */
 
 /** 영수증 처리 상태 목록: [{ comCd, comCdNm, sortSeq }] */
@@ -24,12 +20,6 @@ export const getOcrStatuses = () =>
 export const getReceiptImageUrl = (recptSn) =>
   `/admin/processing/receipts/${recptSn}/image`;
 
-const FAKE_NICKNAMES = ['초코맘', '나비집사', '보리아빠', '콩이네', '두부언니'];
-
-/** 가짜 영수증 상태: 처리 중·성공 */
-const FAKE_OCR_PROCESSING = 'AIMC0002';
-const FAKE_OCR_SUCCESS = 'AIMC0003';
-
 const pad = (value) => String(value).padStart(2, '0');
 
 /** 기준 시각에서 시간 단위로 거슬러 간 일시 문자열 */
@@ -38,53 +28,6 @@ const toDateTime = (hoursAgo, minute = 0) => {
   time.setHours(time.getHours() - hoursAgo);
   return `${time.getFullYear()}-${pad(time.getMonth() + 1)}-${pad(time.getDate())}T${pad(time.getHours())}:${pad(time.getMinutes())}:00`;
 };
-
-/** 가짜 영수증 60건: 6건마다 인식 실패, 맨 앞 1건 처리 중 */
-const fakeReceipts = Array.from({ length: 60 }, (_, index) => {
-  const isFail = index % 6 === 0 && index > 0;
-  return {
-    recptSn: 60 - index,
-    mbrSn: 100 + (index % FAKE_NICKNAMES.length),
-    mbrNcnm: FAKE_NICKNAMES[index % FAKE_NICKNAMES.length],
-    ocrRqstSrcCd: OCR_SOURCES[index % OCR_SOURCES.length].comCd,
-    ocrPrcsSttsCd:
-      index === 0
-        ? FAKE_OCR_PROCESSING
-        : isFail
-          ? OCR_STTS_FAIL
-          : FAKE_OCR_SUCCESS,
-    frstRegDt: toDateTime(index * 3, (index * 7) % 60),
-  };
-});
-
-const CHAR_FAIL_REASONS = [
-  '이미지 생성 API 시간 초과',
-  '원본 사진에서 반려동물을 찾지 못함',
-  '이미지 생성 API 오류',
-];
-
-/** 가짜 캐릭터 생성 작업 32건: 5건마다 실패(그중 일부 1:1 문의 연결) */
-const fakeCharacterJobs = Array.from({ length: 32 }, (_, index) => {
-  const isFail = index % 5 === 2;
-  const sttsCd = isFail
-    ? CHAR_JOB_STTS_FAIL
-    : index === 0
-      ? CHAR_JOB_STTS[0].comCd
-      : index === 1
-        ? CHAR_JOB_STTS[1].comCd
-        : CHAR_JOB_STTS[2].comCd;
-  return {
-    charCrtJobSn: 32 - index,
-    mbrSn: 100 + (index % FAKE_NICKNAMES.length),
-    mbrNcnm: FAKE_NICKNAMES[index % FAKE_NICKNAMES.length],
-    jobSttsCd: sttsCd,
-    failRsn: isFail
-      ? CHAR_FAIL_REASONS[index % CHAR_FAIL_REASONS.length]
-      : null,
-    otoInqrySn: isFail && index % 2 === 0 ? 10 + index : null,
-    frstRegDt: toDateTime(index * 5, (index * 11) % 60),
-  };
-});
 
 const PDF_ERROR_MESSAGES = [
   'Upstream 500 Internal Server Error',
@@ -154,56 +97,34 @@ const toPage = (rows, dateKey, page, size) => {
 };
 
 /**
- * 영수증 OCR 현황: { summary: { totCnt, scsCnt, failCnt, prcsCnt }, ...쪽 }
- * - summary는 기간·출처 기준(상태 필터와 무관), 목록은 상태까지 건 것
- * - 미확정: 경로 GET /api/admin/processing/receipts, summary 키 이름
+ * 영수증 OCR 현황: { summary: { totCnt, scsCnt, failCnt, prcsCnt, errCnt }, content, page, size, totalElements, totalPages, hasNext }
+ * - params: page(1부터)·size·fromYmd·toYmd(YYYY-MM-DD)·ocrDmndSrcCd·ocrPrcsSttsCd, 값이 없는 칸은 보내지 않는다
+ * - summary는 현재 상태 기준(기간·출처만 걸고 상태 필터와 무관), 목록은 상태까지 건 것(최신순)
+ * - 행: recptSn, mbrSn, mbrNcnm, ocrDmndSrcCd, ocrPrcsSttsCd, regDt
+ * - 오류: 400 INVALID_INPUT_VALUE(fromYmd > toYmd, 모르는 출처·상태 코드)
  */
-export const getAdminReceipts = async ({
-  page = 1,
-  size = 20,
-  fromYmd,
-  toYmd,
-  ocrRqstSrcCd,
-  ocrPrcsSttsCd,
-} = {}) => {
-  throwFakeError();
-  const scoped = fakeReceipts
-    .filter(({ frstRegDt }) => isInRange(frstRegDt, fromYmd, toYmd))
-    .filter((row) => !ocrRqstSrcCd || row.ocrRqstSrcCd === ocrRqstSrcCd);
-  const countOf = (sttsCd) =>
-    scoped.filter((row) => row.ocrPrcsSttsCd === sttsCd).length;
-  const summary = {
-    totCnt: scoped.length,
-    scsCnt: countOf(FAKE_OCR_SUCCESS),
-    failCnt: countOf(OCR_STTS_FAIL),
-    prcsCnt: countOf(FAKE_OCR_PROCESSING),
-  };
-  const filtered = scoped.filter(
-    (row) => !ocrPrcsSttsCd || row.ocrPrcsSttsCd === ocrPrcsSttsCd,
-  );
-  return { summary, ...toPage(filtered, 'frstRegDt', page, size) };
-};
+export const getAdminReceipts = (params = {}) =>
+  api.get('/admin/processing/receipts', {
+    params: Object.fromEntries(
+      Object.entries(params).filter(
+        ([, value]) => value !== undefined && value !== null && value !== '',
+      ),
+    ),
+  });
 
 /**
- * 캐릭터 생성 현황: { sttsCnts: [{ jobSttsCd, cnt }], ...쪽 }
- * - sttsCnts는 전체 기준, 목록은 상태 필터를 건 것. 결과 이미지는 받지 않음
- * - 미확정: 경로 GET /api/admin/processing/character-jobs, 상태 코드, sttsCnts 모양
+ * 캐릭터 생성 현황: { sttsCnts: [{ crtJobSttsCd, cnt }], content: [{ charCrtJobSn, mbrSn, mbrNcnm, crtJobSttsCd, failRsn, otoInqrySn, regDt }], page, size, totalElements, totalPages, hasNext }
+ * - sttsCnts는 CHRG01 네 상태를 순서대로, 상태 필터와 무관. 목록만 상태 필터를 건다
+ * - 결과 이미지·원본 사진은 받지 않음. 모르는 상태 코드는 400 INVALID_INPUT_VALUE
  */
-export const getAdminCharacterJobs = async ({
-  page = 1,
-  size = 20,
-  jobSttsCd,
-} = {}) => {
-  throwFakeError();
-  const sttsCnts = CHAR_JOB_STTS.map(({ comCd }) => ({
-    jobSttsCd: comCd,
-    cnt: fakeCharacterJobs.filter((job) => job.jobSttsCd === comCd).length,
-  }));
-  const filtered = fakeCharacterJobs.filter(
-    (job) => !jobSttsCd || job.jobSttsCd === jobSttsCd,
-  );
-  return { sttsCnts, ...toPage(filtered, 'frstRegDt', page, size) };
-};
+export const getAdminCharacterJobs = (params = {}) =>
+  api.get('/admin/processing/character-jobs', {
+    params: Object.fromEntries(
+      Object.entries(params).filter(
+        ([, value]) => value !== undefined && value !== null && value !== '',
+      ),
+    ),
+  });
 
 /**
  * 검사결과지 분석 현황: { summary: { totCnt, scsCnt, tmotCnt, errCnt }, ...실패 목록 쪽 }

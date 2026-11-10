@@ -65,7 +65,7 @@ const toPendingItems = (overview) => {
       value: overview.charFailCnt,
       to: withQuery(PATHS.ADMIN_PROCESSING, {
         tab: 'character',
-        jobSttsCd: CHAR_JOB_STTS_FAIL,
+        crtJobSttsCd: CHAR_JOB_STTS_FAIL,
       }),
     },
     {
