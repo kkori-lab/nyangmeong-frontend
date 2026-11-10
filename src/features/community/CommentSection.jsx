@@ -172,9 +172,13 @@ function CommentRow({
           <b className="text-base font-semibold text-[#1a3234]">
             {comment.mbrNcnm}
           </b>
-          {isFoundNotice && <Badge tone="ok">찾았어요</Badge>}
+          {isFoundNotice && (
+            <Badge tone="ok" bordered>
+              찾았어요
+            </Badge>
+          )}
           {comment.mbrSn === authorSn && !isFoundNotice && (
-            <Badge tone="brand" className="h-[22px] px-2">
+            <Badge tone="brand" bordered className="h-[22px] px-2">
               작성자
             </Badge>
           )}

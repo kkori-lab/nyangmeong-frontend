@@ -16,10 +16,11 @@ export const placeKeys = {
   bookmarks: (plcClsfCd) => ['places', 'bookmarks', plcClsfCd],
 };
 
-/** 검색 결과를 쪽 단위로 이어 불러온다 */
-export const usePlaceSearchQuery = (cond) =>
+/** 검색 결과를 쪽 단위로 이어 불러온다. enabled가 false면(내 위치를 찾는 중) 보내지 않는다 */
+export const usePlaceSearchQuery = (cond, { enabled = true } = {}) =>
   useInfiniteQuery({
     queryKey: placeKeys.search(cond),
+    enabled,
     queryFn: ({ pageParam }) => searchPlaces({ ...cond, page: pageParam }),
     initialPageParam: 1,
     getNextPageParam: (last) => (last.hasNext ? last.page + 1 : undefined),

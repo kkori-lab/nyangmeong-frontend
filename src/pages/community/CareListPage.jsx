@@ -23,8 +23,8 @@ const pick = (value, options) =>
 
 const pickDate = (value) => (YMD_PATTERN.test(value ?? '') ? value : '');
 
-/** 로딩 자리: 카드 안쪽도 실제 카드 모양(왼쪽 글 · 정보 줄 · 오른쪽 썸네일)으로 그린다 */
-function CareCardSkeleton() {
+/** 로딩 자리: 카드 안쪽도 실제 카드 모양(왼쪽 글 · 정보 줄 · 오른쪽 썸네일)으로 그린다. 모바일은 사진 있는 카드와 없는 카드를 섞는다 */
+function CareCardSkeleton({ hasThumbOnMobile }) {
   return (
     <div
       aria-hidden="true"
@@ -45,7 +45,9 @@ function CareCardSkeleton() {
           <Skeleton className="h-3.5 w-20" />
         </div>
       </div>
-      <Skeleton className="col-start-2 row-span-2 row-start-1 min-h-[132px] self-stretch rounded-[10px] max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0" />
+      <Skeleton
+        className={`col-start-2 row-span-2 row-start-1 min-h-[132px] self-stretch rounded-[10px] ${hasThumbOnMobile ? '' : 'max-[760px]:hidden'} max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0`}
+      />
       <div className="flex items-center gap-2 border-t border-[#e2e7e7] pt-3.5 max-[760px]:order-3">
         <Skeleton className="size-6 rounded-full" />
         <Skeleton className="h-3.5 w-20" />
@@ -80,7 +82,7 @@ function CareListSkeleton() {
       <div className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-col gap-3">
           {Array.from({ length: PAGE_SIZE }, (_, index) => (
-            <CareCardSkeleton key={index} />
+            <CareCardSkeleton key={index} hasThumbOnMobile={index % 2 === 0} />
           ))}
         </div>
         <div aria-hidden="true" className="flex flex-col gap-4">
