@@ -1,7 +1,15 @@
 import { ExternalLink, MapPin, Navigation, Phone, X } from 'lucide-react';
-import { detailUrl, formatDistance, routeUrl } from './placeFormat';
+import { detailUrl, formatDistance, openDetail, routeUrl } from './placeFormat';
 
 export default function PlacePopup({ place, onClose }) {
+  // 그냥 누르면 카드와 같은 작은 창으로 연다. Ctrl·Shift·휠 클릭은 브라우저 기본(새 탭)으로 둔다
+  const handleDetailClick = (event) => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0)
+      return;
+    event.preventDefault();
+    openDetail(place);
+  };
+
   return (
     <div
       role="dialog"
@@ -25,6 +33,7 @@ export default function PlacePopup({ place, onClose }) {
           href={detailUrl(place)}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={handleDetailClick}
           className="hover:underline hover:underline-offset-[3px]"
         >
           {place.plcConm}
@@ -49,6 +58,7 @@ export default function PlacePopup({ place, onClose }) {
           href={detailUrl(place)}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={handleDetailClick}
           className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-brand-500 font-semibold text-white hover:bg-brand-600"
         >
           상세보기
