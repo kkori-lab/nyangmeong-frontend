@@ -2,10 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-ADM-001 대시보드 · 운영 현황·처리 대기 + 이용 통계 API 연결 — 끝(2026-11-10). `features/adminDashboard/api.js` 가짜를 지우고 실제 `GET /api/admin/dashboard`·`/admin/dashboard/stats`로 연결, 기간 직접 입력에 종료일 > 오늘 안내, 종·품종 행 키 겹침 수정. 추가-1로 기간 선택 영역이 상태와 관계없이 오른쪽 끝 같은 자리
+SCR-COM-007 AI 매니저 진입 · 모바일에서 AI 매니저를 모달로 — 끝(2026-11-10). 760px 이하에서 플로팅 [AI]·메인 검색창이 새 탭 대신 헤더 아래 전체 화면 AI 모달(`pages/ai/AiChatModal.jsx`)로 열린다. 대화 본문은 `pages/ai/AiChatScreen.jsx`로 나눠 새 창과 같이 쓴다. 추가-1로 761px 이상으로 넓히면 모달이 닫힌다
 
 ## 다음에 할 것
 
+- 다음 작업 순서(사람 2026-11-10): ① SCR-ADM-080 라우팅 매핑표 API 연결(`/start ADM-080`. 백엔드 `/api/admin/ai/routes` GET·POST·PATCH·DELETE는 백엔드 c0bf1f2에 있고, AI 서버는 이미 백엔드 `/internal/ai/routes`(DB)를 10초 캐시로 읽는다. 가짜 필드 이름·순위 다시 매기기를 서버와 대조) ② AI 채팅 사진 용도 판단 가짜(`features/ai/api.js` `judgeImageIntent`)를 실제 판단으로(아래 SCR-MAN-001 연결 남음 줄, AI PR #53)
+- 프론트에 남은 가짜 응답(2026-11-10 조사): `adminAiRoute`·`adminAiKeyword`·`adminProcessing` 검사결과지 탭(SCR-ADM-080·081·082 대기), `features/ai/api.js` `judgeImageIntent`, `features/apiUsage/api.js`(SCR-ADM-112, 연결 마일스톤 없음), `features/chat/api.js` `searchChatPlaces`(장소 검색 API 담당 미정), `features/community/missingCodes.js` `DONG_BY_REGION`(주로 KSJ)
+- SCR-COM-007 모바일 AI 모달 검증 데이터 정리(2026-11-10, 8081 DB·tester 계정): 까미(petSn 1) 일정 2026-11-11 10:00 "[검증] 까미 미용"(케어 캘린더에서 삭제), 건강 일지 체중 2026-11-10 09:40 4.5kg(건강 일지에서 삭제), AI 대화 "까미 미용 일정 등록"·사진 대화·"반려동물 케어 AI 첫 인사"·"까미 귀 청소 주간 케어 등록"(대화 목록에서 삭제)
+- SCR-COM-007 사람이 볼 것(판정 밖, 2026-11-10): ① 로그아웃·탈퇴 때 AI 모달 닫기는 코드로만 확인 ② 검증 중 AI 확인 카드로 케어 항목 등록 시 8081 `POST /api/pets/1/care-items` 500(이번 변경과 무관해 보임, 원인 안 봄) ③ 명세(공통레이아웃 기능명세서 v0.10 FN-COM-007-01)는 아직 "새 창, 모달 아님"이라 모바일 모달을 문서에 반영해 달라고 문서 담당에 알린다
 - SCR-ADM-001 대시보드 사람이 볼 것(판정 밖, 2026-11-10): ① 알림 실패·배치 실패는 검증 때 0건이라 링크 목록 건수와 대조 못 함(알림 실패는 최근 24시간 기준이라 날짜 필터 발송 이력과 다를 수 있다) ② 종·품종·즐겨찾기 빈 문구와 서버 오류 문구는 코드로만 확인
 - SCR-ADM-110 검증 데이터 정리(2026-11-10, 8081 DB): 운영 설정 읽은 알림 숨김 기준(`notiHideCrtrDayCnt`)이 8로 남았다(처음 7, 12:31 변경). 관리자 `/admin/settings`에서 7로 되돌린다. 감사 로그 354·355 등 검증 기록은 지우는 API가 없다
 - SCR-ADM-110 사람이 볼 것(판정 밖, 2026-11-10): ① 시드 설정 행은 수정자가 `SEED`라 아무도 저장 안 한 DB에서는 "관리자 #SEED"로 보인다 ② 검증용 8081 백엔드가 SYS_STNG 컬럼 삭제 커밋 전 코드라 500이 났었다. 사람용 8080도 11:52 전에 띄웠으면 재시작 ③ 입력 자릿수는 기획의 두 항목 말고도 개수 3자리·파일 크기 2자리로 줄였다(서버 범위 안)
@@ -57,8 +61,6 @@ SCR-ADM-001 대시보드 · 운영 현황·처리 대기 + 이용 통계 API 연
 - SCR-ADM-070 다음에(결정 2026-11-05): 굽기 지시를 고친 뒤 이미 구운 캐릭터 다시 굽기는 넣지 않았다. AI 서버는 안 구운 캐릭터만 굽는다(다시 굽기는 ai·백엔드 몫 포함)
 - SCR-ADM-070 새 아이템 등록 도구(마일스톤 `대기`, 사람 2026-11-05): 범위·흐름이 정해지면 `/start`
 - SCR-ADM-101 사람이 볼 것(판정 밖, 2026-11-04): ① 강아지 "확인용품종"(정렬 5) 등 로컬 DB 확인용 품종은 [수정]에서 사용을 끈다(삭제 API 없음) ② 400 `fields`에 `vrtyNm`·`sortSeq` 밖 칸만 오면 문구가 안 보인다(약관 폼과 같음)
-- SCR-ADM-001 연결 남음: FN-ADM-001-02·03 (백엔드 연결 `GET /api/admin/dashboard`(운영 현황 `totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs`·`recentPsts`, 처리 대기 `dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`, 가정 필드), 백엔드 저장소에서 /start). 나오면 `features/adminDashboard/api.js` 가짜 본문만 실제 요청으로 바꾼다
-- SCR-ADM-001 연결 남음: FN-ADM-001-04·05 (백엔드 연결 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(`daily`[`ymd`·`joinCnt`·`whdwlCnt`·`aiChatCnt`·`ocrRqstCnt`]·`pstCntByBbs`·`expnsCntByCtgry`·`petDstrb`·`fvrtPlcs`, 가정 필드, 최대 90일), 백엔드 저장소에서 /start)
 - SCR-ADM-001 사람이 볼 것(판정 밖): ② 실패한 배치는 배치 화면에 실패 필터가 없어 필터 없이 간다 ③ 스켈레톤은 검증에서 코드로만 확인했다
 
 - SCR-ADM-082 연결 남음: FN-ADM-082-03 (백엔드 연결 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=`(summary `totCnt`·`scsCnt`·`tmotCnt`·`errCnt` 가정)·Python→Java 통지 내부 API, 백엔드 저장소에서 /start)
@@ -143,7 +145,6 @@ SCR-ADM-001 대시보드 · 운영 현황·처리 대기 + 이용 통계 API 연
 - 팀에 알릴 것(PR 전): 공용 `components/ToastContainer.jsx`를 고쳤다. 760px 이하에서 토스트가 76px 위에 뜬다(바텀 네비 없는 `/main` 등도 같음)
 - 사람이 고치는 문서(운영 설정 모바일 네비): 관리자 화면설계서 SCR-ADM-001 처리 조건을 "1100px 이하: 사이드바를 숨기고 상단 바 왼쪽 [≡]로 연다(덮는 서랍). 관리자 화면은 PC 사용 기준이라 공통 모바일 전용 배치는 두지 않음. 예외로 운영 설정(SCR-ADM-110)은 760px 이하에서 묶음 5개를 하단 바텀 네비로 나눠 고른 묶음만 표시"로 고친다
 - 운영 설정 연결 때 확인: 묶음 바텀 네비의 저장 포함은 가짜 API에서 다시 불러온 값으로만 확인했다. 스켈레톤 카드 1장도 화면으로 보지 못했다
-- SCR-ADM-110 프론트 연결 남음(FN-ADM-110-01~04): 백엔드는 이미 있다(`global/setting/AdminSystemSettingController`, 문서 `docs/api/global.md`). 가짜(`features/setting/api.js`)와 다른 점: 수정이 PUT이 아니라 `PATCH`, 응답이 묶음별 중첩(`memberPet`·`community`·`notification`·`ai`·`file`), `lowstHrwgAplcnYr`가 문자열, 응답에 `dshbdCareMaxExpsrCnt`가 있음(화면에는 두지 않음). 실제 항목별 오류 모양과 허용 범위를 맞춘다
 - SCR-ADM-110 스켈레톤 높이는 계산값이다(`AdminSettingsPage.jsx`, 383·503·143·203·143px). 실제 API 연결 때 1440px·390px로 잰다(`docs/convention/ui.md`)
 - `AdminLayout`의 `AdminLogoutConfirm`은 `ProfileDropdown`의 `LogoutConfirm`과 달리 AI 창·채팅 창을 닫지 않는다(관리자 화면에 여는 버튼이 없음). 이동 대상도 `/login`으로 다르다. 공통화할지 정한다
 - YAY에게 알릴 것(PR 전): 로그인 성공 뒤 이동을 `LoginPage.jsx`에서 바꿨다. 관리자는 `?redirect=`와 상관없이 `/admin`, 이동 전 `/auth/me`를 새로 받는다
