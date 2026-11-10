@@ -56,7 +56,6 @@ export default function PlacePage() {
       </nav>
 
       <PlacePanel
-        category={category}
         search={search}
         sort={place.sort}
         regionText={place.regionText}
