@@ -52,8 +52,8 @@ export default function ScheduleDayDetail({
       }
     >
       {sorted.length === 0 ? (
-        <div className="rounded-[10px] border border-dashed border-[#b9c4c4]">
-          <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+        <div className="h-full rounded-[10px] border border-dashed border-[#b9c4c4]">
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-4 py-6 text-center">
             <span className="grid size-10 place-items-center rounded-full bg-[#f4f6f6] text-[#667374]">
               <Icon name="calendar_month" />
             </span>

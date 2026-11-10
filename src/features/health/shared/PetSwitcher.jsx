@@ -47,7 +47,7 @@ const useStickBelowMenu = (ref, isEnabled, layoutKey) => {
 /**
  * [건강기록 공통 반려동물 카드] (※신규 정책)
  * - 건강기록 3개 화면(종합 건강기록·건강 일지·케어 캘린더)이 같은 아이를 보게 하는 선택 위치
- * - variant="card": 1101px 이상, 사이드 메뉴 아래. 사진 + 「보고 있는 아이」 + 이름 + 「종 · 나이」 + ⇅. 팝오버는 카드 오른쪽에 열림
+ * - variant="card": 1101px 이상, 사이드 메뉴 아래. 사진 + 「보고 있는 아이」 + 이름 + 「종 · 나이」 + ⇅. 팝오버는 카드 아래에 왼쪽 끝을 맞춰 열림
  * - variant="pill": 1100px 이하, 페이지 제목 아래 알약 버튼(사진 + 이름 + ▾). 같은 팝오버가 버튼 아래에 열림
  * - 반려동물 1마리여도 눌러서 팝오버를 열 수 있다(그 아이 1칸 + 「+ 등록」)
  * - 반려동물 0마리면 카드 대신 점선 박스와 [반려동물 등록]
@@ -192,9 +192,7 @@ export default function PetSwitcher({ variant }) {
           id={panelId}
           role="dialog"
           aria-label="반려동물 선택"
-          className={`absolute z-30 w-80 max-w-[calc(100vw-2rem)] rounded-card border border-line bg-white p-3 shadow-depth-sm ${
-            isCard ? 'top-0 left-full ml-3' : 'top-full left-0 mt-2'
-          }`}
+          className="absolute top-full left-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-card border border-line bg-white p-3 shadow-depth-sm"
         >
           <div className="flex items-center justify-between px-1 pb-2 text-sm">
             <span className="font-semibold text-ink">반려동물</span>

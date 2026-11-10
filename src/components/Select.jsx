@@ -3,13 +3,16 @@ import { ChevronDown } from 'lucide-react';
 /**
  * options: [{ value, label }], value는 문자열 비교
  * placeholder: 첫 항목이 선택된 상태(선택 전)에서 닫힌 칸에 보여 줄 문구. 안 넘기면 선택한 항목의 라벨 그대로 표시
+ * ref: 안쪽 select 요소에 붙는다(바깥에서 포커스를 줄 때)
  */
 export default function Select({
+  ref,
   value,
   onChange,
   options,
   label,
   placeholder,
+  disabled = false,
   className = '',
 }) {
   const hasPlaceholder = placeholder != null;
@@ -20,10 +23,12 @@ export default function Select({
   return (
     <div className={`relative ${className}`}>
       <select
+        ref={ref}
         aria-label={label}
         value={value}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className={`block h-10 w-full cursor-pointer appearance-none rounded-md border border-input-line bg-white pr-9 pl-3 hover:border-line-strong focus:border-brand-500 focus:ring-focus focus:outline-none${hasPlaceholder ? ' text-transparent [&>option]:text-ink' : ''}`}
+        className={`block h-10 w-full cursor-pointer appearance-none rounded-md border border-input-line bg-white pr-9 pl-3 hover:border-line-strong focus:border-brand-500 focus:ring-focus focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-subtle${hasPlaceholder ? ' text-transparent [&>option]:text-ink' : ''}`}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

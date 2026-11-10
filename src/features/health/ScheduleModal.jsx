@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import TimeSelect from '@/components/TimeSelect';
 import ConfirmModal from '@/components/ConfirmModal';
 import Icon from '@/components/Icon';
 import { getHmOf, getYmdOf, makeDateTime } from '@/utils/formatDate';
@@ -252,7 +253,8 @@ export default function ScheduleModal({
             <FieldError message={fieldError('schdlKndCd')} />
           </fieldset>
 
-          <div className="grid grid-cols-2 gap-x-8">
+          {/* 시간 세 칸이 날짜 옆에 안 들어가는 640px 미만은 위아래로 쌓는다 */}
+          <div className="grid grid-cols-2 gap-x-8 max-sm:grid-cols-1 max-sm:gap-y-5">
             <label className="flex flex-col gap-1.5">
               <span className={labelClass}>날짜{required}</span>
               <input
@@ -266,18 +268,16 @@ export default function ScheduleModal({
               />
               <FieldError message={fieldError('schdlDt')} />
             </label>
-            <label className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5">
               <span className={labelClass}>시간{optional}</span>
-              <input
-                type="time"
+              <TimeSelect
                 value={form.scheduleTime}
-                className={`${inputClass} tabular-nums`}
-                onChange={(event) =>
-                  setField('scheduleTime', event.target.value)
+                onChange={(scheduleTime) =>
+                  setField('scheduleTime', scheduleTime)
                 }
               />
               <FieldError message={fieldError('hrInptYn')} />
-            </label>
+            </div>
           </div>
 
           {isHospitalForm && (
