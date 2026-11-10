@@ -2,6 +2,11 @@
 
 기준: 공통레이아웃_기능명세서_v0.4_20261001, AI매니저_기능명세서_v0.7_20261009 (DMS, 2026-10-17), 커뮤니티_기능명세서_v0.7_20261019 (CMU-005만, KSJ 마일스톤에서 옮김, 2026-10-21), AI매니저_기능명세서_v0.9_20261026 (SCR-AIM-013만, DMS 업로드 전 로컬 사본, 2026-10-26), 관리자_기능명세서_v0.2_20261030 (DMS, 2026-10-30. 화면설계서 `관리자_화면설계서_v0.1_20261030`, 순서는 백엔드 `docs/admin/implementation-plan.md` 3절 단계)
 
+## SCR-COM-002 공통 ⋮ 메뉴 공통화 — 대기
+- 기능: (사람 지시 2026-11-08 "리팩토링 때 한번에", 명세 FN 추가 없음) A1 `components/KebabMenu.jsx` variant 추가, A2 `CareItemMenu`·A3 `ExpenseMenu`를 KebabMenu 껍데기로, A4 `MainShortcuts`의 `ShortcutMenu`를 KebabMenu로
+- 기다리는 것: 없음
+- 완료 조건: 네 곳(AI 사이드바·건강기록 3곳·가계부·메인 바로가기) ⋮ 메뉴가 전과 같은 항목·모양으로 열리고 닫힌다 / `MoreVertical`은 `KebabMenu`에만 남는다
+
 ## SCR-AIM-011 사이드바 설정 삭제 · 목록 ⋮ 삭제 · 메인 로고 — 끝
 - 기능: (사람 요청 2026-11-09, 명세 FN 추가 없음) A1 하단 [설정] 삭제(FN-AIM-011-20 입구 제거), A2 대화 행 ⋮ 메뉴 삭제(FN-AIM-011-13 입구 추가, `components/KebabMenu.jsx` 새로), A2-1 삭제 확인 모달 공통화, A3 사이드바 로고를 `nm_logo.svg`로
 - 기다리는 것: 없음
@@ -931,11 +936,13 @@
 - 이미 바뀐 것: `features/adminNews/api.js`(가짜 응답)
 - 완료 조건 결과: 검증 `통과`(2026-11-04 1회차), 사람 확인 2026-11-04
 
-## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 대기
+## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-023-01·02·04·06
 - 기다리는 것: 백엔드 SCR-ADM-023 노출 콘텐츠 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/community/exposure` 행)
 - 완료 조건: `features/adminCommunity/api.js` 노출 콘텐츠 절 가짜를 `/api/admin/community/exposure` 실제 API로 바꿔 건강팁 지정·해제, 문구 등록·수정, AI 코멘트 사용 여부가 화면에서 동작한다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+- 검증: `통과`(2026-11-10, 1회차. 5180 + 백엔드 8081, 관리자 계정), 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-ADM-051 약관 · 약관 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-051-01·02·03·04
@@ -1018,6 +1025,16 @@
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 검사결과지 분석 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/global.md` `/admin/processing/pdf-analyses` 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminPdfAnalyses` 가짜를 실제 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=&size=20`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, tmotCnt, errCnt }, content: [{ extlApiCallLogSn, callRsltCd, failRsn, callDt }], page, size, totalElements, totalPages, hasNext }`로 가짜와 같은 모양이다. 기간은 둘 다 선택(호출일 양끝 포함), `fromYmd`가 `toYmd`보다 뒤면 400 `INVALID_INPUT_VALUE`. 검사결과지가 아닌 파일은 Python이 성공(SYSC0021)으로 통지해 `scsCnt`·`totCnt`에 들어가고 실패 목록에는 없다. 결과 코드 SYSC0021 성공·SYSC0022 실패(API 오류)·SYSC0023 시간초과
 - 이미 바뀐 것: `features/adminProcessing/api.js`(가짜 `getAdminPdfAnalyses`)
+
+## SCR-ADM-110 운영 설정 · 운영 설정 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-110-01~04 (2026-11-10 SCR-ADM-110 절 "연결 남음"에서 옮김)
+- 기다리는 것: 백엔드 `GET`·`PATCH /api/admin/settings`(LJS 백엔드, 있음). 프론트 가짜 주석은 `PUT`이라 맞춘다
+- 완료 조건: `features/setting/api.js` 가짜를 실제 API로 바꿔 운영 설정 조회·저장이 화면에서 동작한다. 400 칸별 오류·403을 화면에 보인다
+
+## SCR-ADM-001 대시보드 · 이용 통계 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-04·05 (2026-11-10 대시보드 연결 절에 빠져 있어 따로 둠)
+- 기다리는 것: 백엔드 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(LJS 백엔드, 있음)
+- 완료 조건: `features/adminDashboard/api.js` `getAdminDashboardStats` 가짜를 실제 API로 바꿔 기간을 고르면 이용 통계가 바뀐다. 운영 현황 연결(`getAdminDashboard`)과 같이 해도 된다
 
 ## SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-02·03
