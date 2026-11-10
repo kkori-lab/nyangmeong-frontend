@@ -2,6 +2,14 @@
 
 기준: 공통레이아웃_기능명세서_v0.4_20261001, AI매니저_기능명세서_v0.7_20261009 (DMS, 2026-10-17), 커뮤니티_기능명세서_v0.7_20261019 (CMU-005만, KSJ 마일스톤에서 옮김, 2026-10-21), AI매니저_기능명세서_v0.9_20261026 (SCR-AIM-013만, DMS 업로드 전 로컬 사본, 2026-10-26), 관리자_기능명세서_v0.2_20261030 (DMS, 2026-10-30. 화면설계서 `관리자_화면설계서_v0.1_20261030`, 순서는 백엔드 `docs/admin/implementation-plan.md` 3절 단계)
 
+## SCR-AIM-011 사이드바 설정 삭제 · 목록 ⋮ 삭제 · 메인 로고 — 끝
+- 기능: (사람 요청 2026-11-09, 명세 FN 추가 없음) A1 하단 [설정] 삭제(FN-AIM-011-20 입구 제거), A2 대화 행 ⋮ 메뉴 삭제(FN-AIM-011-13 입구 추가, `components/KebabMenu.jsx` 새로), A2-1 삭제 확인 모달 공통화, A3 사이드바 로고를 `nm_logo.svg`로
+- 기다리는 것: 없음
+- 완료 조건: 대화 행 ⋮ → [삭제]로 목록에서 사라지고 연 방이면 새 대화 화면이 된다 / 사이드바에 [설정]이 없고 상단이 메인 로고다
+- 추가 요청: 추가-1 대화 헤더 안내 문구 "대화 제목은 첫 메시지로 자동 생성돼요" 삭제
+- 검증: `통과`(2026-11-09, 3회차. 1회차 실패는 서버 미기동으로 화면 미확인), 사람 확인 2026-11-09
+- 연결 남음: 없음
+
 ## SCR-COM-002 공통 인터셉터 오류 모양 · 401 재발급 조건 — 끝
 - 기능: (핸드오프 "다음에 할 것", 명세 FN 없음, `docs/convention/api.md` 맞춤) I-01 서버 오류 `{ code, message, data }` → `{ code, message, fields }`, I-02 재발급은 `TOKEN_EXPIRED`만
 - 기다리는 것: 없음
@@ -905,7 +913,7 @@
 
 ## SCR-ADM-001 관리자 공통 · 페이지 틀·조회 오류 컴포넌트 정리 — 대기
 - 기능: 명세 기능 ID 추가 없음. 관리자 페이지(`pages/admin/`) 전체와 관리자 features의 조회 오류 묶음
-- 기다리는 것: 남은 관리자 화면 구현이 다 끝난 뒤 맨 마지막에 한다(사람 결정 2026-11-03 "리팩토링이니까 마지막으로")
+- 기다리는 것: 남은 관리자 화면 구현이 다 끝난 뒤 맨 마지막에 한다(사람 결정 2026-11-03 "리팩토링이니까 마지막으로", 2026-11-10 다시 "후순위, 백엔드 연결부터")
 - 완료 조건: 조회 오류 안내 + [다시 시도] 묶음(지금 36개 파일에 복사)을 `components/` 공통 컴포넌트 하나로 바꾸고, 가운데 정렬 틀(`mx-auto max-w-[1200px]`)·제목 `h1`·오른쪽 버튼 줄(27~29개 페이지에 복사)을 공통 페이지 틀로 묶는다. 바꾼 뒤에도 화면 모양과 동작(403 `AdminForbidden` 포함)은 그대로다. 기능 작업과 섞지 않는다(요청 2026-11-03)
 - 기획 초안(2026-11-03, 승인 전 보류): `components/LoadError.jsx`(`message`·`onRetry`·`className`) 38곳, `pages/admin/AdminPageFrame.jsx`(`title`·`actions`·`children`) 28개 파일 31곳
 
@@ -923,11 +931,13 @@
 - 이미 바뀐 것: `features/adminNews/api.js`(가짜 응답)
 - 완료 조건 결과: 검증 `통과`(2026-11-04 1회차), 사람 확인 2026-11-04
 
-## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 대기
+## SCR-ADM-023 노출 콘텐츠 · 노출 콘텐츠 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-023-01·02·04·06
 - 기다리는 것: 백엔드 SCR-ADM-023 노출 콘텐츠 API (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/community.md` `/admin/community/exposure` 행)
 - 완료 조건: `features/adminCommunity/api.js` 노출 콘텐츠 절 가짜를 `/api/admin/community/exposure` 실제 API로 바꿔 건강팁 지정·해제, 문구 등록·수정, AI 코멘트 사용 여부가 화면에서 동작한다
 - 이미 바뀐 것: `features/adminCommunity/api.js`(가짜 응답)
+- 검증: `통과`(2026-11-10, 1회차. 5180 + 백엔드 8081, 관리자 계정), 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-ADM-051 약관 · 약관 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-051-01·02·03·04
@@ -935,11 +945,12 @@
 - 완료 조건: `features/adminTerms/api.js` 가짜를 실제 API로 바꿔 목록·이력·상세·새 버전 등록이 화면에서 동작한다. 종류 키 `AGE`→`AGE_14`, 글자 수 상한 80·200·4000. 400·404·409 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminTerms/api.js`(가짜 응답)
 
-## SCR-ADM-071 케어미션 · 케어미션 API 연결 — 대기
+## SCR-ADM-071 케어미션 · 케어미션 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-071-01·02
 - 기다리는 것: `GET /api/admin/care-missions?msnPoolCd=`(사용 안 함 포함, 번호순 `[{ careMsnSn, msnPoolCd, msnNm, cmpnPnt, achvCrtrNmtm, mvmnPath, useYn(true/false) }]`, 풀 코드 없으면 전체, 모르는 풀 400 `INVALID_INPUT_VALUE`)·`PATCH /api/admin/care-missions/{careMsnSn}` `{ cmpnPnt?(1~1000), achvCrtrNmtm?(1~10), useYn? }` → 200 미션 행(보낸 칸만, 미션명·풀·경로는 안 바꿈, 빈 본문·범위 밖 400 `INVALID_INPUT_VALUE`, 없는 미션 404 `CARE_MISSION_NOT_FOUND`) (LJS 백엔드, 끝. 계약은 백엔드 `docs/api/pet.md` `/admin/care-missions` 행)
 - 완료 조건: `features/adminCareMission/api.js` 가짜를 실제 API로 바꿔 목록(풀 탭)·수정 모달이 화면에서 동작한다. `useYn`은 'Y'/'N' 가정이 아니라 true/false. 모달의 "다음 날 00:00 출제부터 반영" 안내 그대로. 400·404 오류 문구를 화면에 보인다
 - 이미 바뀐 것: `features/adminCareMission/api.js`(가짜 응답)
+- 완료 조건 결과: 검증 `통과`(2026-11-10, 2회차. 1회차는 공용 DB 쓰기 권한 거부로 실제 저장 확인 못 함, 코드 변경 없이 재검증), 실제 8081 저장·새로고침 유지 확인 뒤 원래 값으로 되돌림, 400·404 문구는 가짜 응답으로 확인, 사람 확인 2026-11-10
 
 ## SCR-ADM-070 아이템 · 전체 굽기 나눠 호출 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-070-02
@@ -955,11 +966,13 @@
 - 기다리는 것: 등록 도구의 범위·흐름(지금 등록 모달을 바꿀지, 따로 둘지)이 정해지는 것. 백엔드·AI 서버 API가 더 필요한지는 기획 때 본다
 - 완료 조건: 기획 때 정한다
 
-## SCR-ADM-011 회원 상세 · 관리자 [정지] 숨김 확인 — 대기
+## SCR-ADM-011 회원 상세 · 관리자 [정지] 숨김 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-011-01
 - 기다리는 것: 백엔드 SCR-ADM-011 회원 상세 · 응답에 회원 권한 추가(LJS, 끝 2026-11-05)
 - 완료 조건: 실제 API로 관리자 회원(`mbrAuthrtCd` `USRC0005`) 상세를 열면 [정지]가 안 보이고, 정상 일반회원(`USRC0004`)은 보인다. 가짜 응답(`features/adminMember/api.js`)에도 `mbrAuthrtCd`가 있는지 맞춘다
 - 이미 바뀐 것: `pages/admin/AdminMemberDetailPage.jsx` `canSuspend`가 `mbrAuthrtCd !== ROLE_OPTIONS[1].value`로 판정(2026-11-02)
+- 완료 조건 결과: 검증 `통과`(2026-11-10, 1회차, 코드 변경 없음). 8081에서 관리자 회원은 [정지] 없음, 정상 일반회원 [정지] 있음, 정지 회원 [정지 해제]만 있음. 가짜 응답은 이미 없어 맞출 것 없음, 사람 확인 2026-11-10
+- 연결 남음: 없음
 
 ## SCR-COM-004 알림 드롭다운 · 크기·스크롤·닫기 버튼 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-COM-004-01·05·15
@@ -967,13 +980,15 @@
 - 기다리는 것: 없음(화면만, `layouts/NotificationDropdown.jsx`)
 - 완료 조건: 웹(1440)·모바일(390) 모두 알림 개수(0건 포함)·탭이 달라도 패널 크기가 같다. 안 읽은 알림이 5개 이상이면 목록 안에서만 세로로 스크롤된다(패널·페이지는 늘지 않는다). 웹·모바일 모두 패널에 닫기 버튼이 있고 누르면 패널이 닫힌다. 고정 높이 값과 "5개 이상"을 안 읽은 알림 기준으로 할지 목록 전체 기준으로 할지는 `/start` 기획에서 정한다
 
-## SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 대기
+## SCR-ADM-072 포인트 · 관리자 포인트 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-072-01·02
 - 기다리는 것: 백엔드 SCR-ADM-072 포인트 · 프론트 연결 관리자 포인트 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/points` 두 행
 - 완료 조건: `features/adminPoint/api.js`의 가짜 원장 목록·조정을 실제 `GET /api/admin/points?mbrSn=&mbrNcnm=&pntDlngTypeCd=&fromDt=&toDt=&page=&size=`·`POST /api/admin/points/adjustments` `{ mbrSn, dlngPnt, memoCn }`(201, 응답은 원장 한 줄)로 바꾸고 sessionStorage 가짜를 지운다. 조정 모달 현재 잔액은 `GET /api/admin/members/{mbrSn}`의 `hldPnt`(가짜의 원장 마지막 잔액 대신). 잔액 부족은 `POINT_BALANCE_NOT_ENOUGH`가 아니라 400 `POINT_NOT_ENOUGH`, 탈퇴·없는 회원 404 `MEMBER_NOT_FOUND`, 형식 오류 400 `INVALID_INPUT_VALUE`. 같은 요청을 두 번 보내면 두 건이 되므로 조정 버튼을 요청 중 잠근다
 - 이미 바뀐 것: `features/adminPoint/api.js`(가짜, 목록 필드는 실제와 같음)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-10, 1회차, 연결 남음만). FN-ADM-072-01·02 통과(8081 실제 원장·+10 지급 뒤 -10으로 되돌림, 400·404 문구는 가짜 응답), FN-ADM-072-03은 "관리자 조정"은 보이고 사유는 안 보임, 사람 확인 2026-11-10
+- 연결 남음: FN-ADM-072-03 (회원 포인트 내역에 조정 사유 `memoCn` 표시 여부, `PointHistory.jsx` `getTitle`, SJM)
 
-## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 대기
+## SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-01
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 영수증 OCR 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/receipt.md` `/admin/processing/receipts` 두 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminReceipts` 가짜를 실제 `GET /api/admin/processing/receipts?fromYmd=&toYmd=&ocrDmndSrcCd=&ocrPrcsSttsCd=&page=&size=`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, failCnt, prcsCnt, errCnt }, content: [{ recptSn, mbrSn, mbrNcnm, ocrDmndSrcCd, ocrPrcsSttsCd, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 출처 `ocrRqstSrcCd` → `ocrDmndSrcCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` 가계부 출처 `TMP00031` → `AIMC0027`. 가짜의 처리 중 `AIMC0002`·성공 `AIMC0003`은 틀렸다(분석중 AIMC0001, 인식성공 AIMC0002, 부분인식 AIMC0003). summary는 현재 상태 기준(성공 = 인식성공·부분인식·저장완료, 실패 = 인식실패 AIMC0004, 처리 중 = 분석중, `errCnt` = 일시오류 AIMC0005는 새 키). 실패율은 `failCnt / totCnt`. 모르는 코드·`fromYmd > toYmd`는 400 `INVALID_INPUT_VALUE`. `ReceiptImageModal.jsx`의 원본 보기 `GET /api/admin/processing/receipts/{recptSn}/image`(경로 가정 그대로), 없는 영수증 404 `RECEIPT_NOT_FOUND`
@@ -987,11 +1002,14 @@
 - 연결 남음: FN-COM-009-08 주소 공유 장소 검색 (장소 검색 API, 담당 미정)
 - 연결 남음: FN-COM-009-18 열린 방 알림 억제 (서버 알림, YAY)
 
-## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 대기
+## SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-082-02
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 캐릭터 생성 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/pet.md` `/admin/processing/character-jobs` 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminCharacterJobs` 가짜를 실제 `GET /api/admin/processing/character-jobs?crtJobSttsCd=&page=&size=`로 바꾼다. 응답은 `{ sttsCnts: [{ crtJobSttsCd, cnt }], content: [{ charCrtJobSn, mbrSn, mbrNcnm, crtJobSttsCd, failRsn, otoInqrySn, regDt }], page, size, totalElements, totalPages, hasNext }`. 이름이 가정과 다르다: 상태 `jobSttsCd` → `crtJobSttsCd`(파라미터도), 요청 일시 `frstRegDt` → `regDt`. `processingLabels.js` `CHAR_JOB_STTS`는 CHRG01(CHRC0001 요청·CHRC0002 생성 중·CHRC0003 생성 완료·CHRC0004 생성 실패), `CHAR_JOB_STTS_FAIL` `TMP00044` → `CHRC0004`. `sttsCnts`는 상태 필터와 무관하게 네 줄을 순서대로 주고 없는 상태는 0. 모르는 상태 코드 400 `INVALID_INPUT_VALUE`. `CharacterJobTable.jsx`의 문의 링크는 `otoInqrySn` 그대로
 - 이미 바뀐 것: `features/adminProcessing/api.js`·`processingLabels.js`·`CharacterJobTable.jsx`(가짜)
+- 완료 조건 결과: 검증 `확인 못 함 있음`(2026-11-10, 1회차, 확인 못 함(내 것) 없음·연결 남음만), 사람 확인 2026-11-10
+- 추가-1: 상태 필터를 카드 누르기에서 영수증 OCR 탭과 같은 필터 줄(기간 + 상태 드롭다운 + [조회])로, 건수 카드는 읽기 전용(사람 2026-11-10)
+- 연결 남음: 추가-1 기간 필터 (백엔드 연결 `GET /api/admin/processing/character-jobs` `fromYmd`·`toYmd`, 백엔드 저장소에서 /start)
 
 ## SCR-ADM-080 라우팅 매핑표 · 관리자 매핑표 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-080-01·02·03
@@ -1010,6 +1028,16 @@
 - 기다리는 것: 백엔드 SCR-ADM-082 처리 현황 · 검사결과지 분석 현황 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/global.md` `/admin/processing/pdf-analyses` 행
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminPdfAnalyses` 가짜를 실제 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=&size=20`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, tmotCnt, errCnt }, content: [{ extlApiCallLogSn, callRsltCd, failRsn, callDt }], page, size, totalElements, totalPages, hasNext }`로 가짜와 같은 모양이다. 기간은 둘 다 선택(호출일 양끝 포함), `fromYmd`가 `toYmd`보다 뒤면 400 `INVALID_INPUT_VALUE`. 검사결과지가 아닌 파일은 Python이 성공(SYSC0021)으로 통지해 `scsCnt`·`totCnt`에 들어가고 실패 목록에는 없다. 결과 코드 SYSC0021 성공·SYSC0022 실패(API 오류)·SYSC0023 시간초과
 - 이미 바뀐 것: `features/adminProcessing/api.js`(가짜 `getAdminPdfAnalyses`)
+
+## SCR-ADM-110 운영 설정 · 운영 설정 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-110-01~04 (2026-11-10 SCR-ADM-110 절 "연결 남음"에서 옮김)
+- 기다리는 것: 백엔드 `GET`·`PATCH /api/admin/settings`(LJS 백엔드, 있음). 프론트 가짜 주석은 `PUT`이라 맞춘다
+- 완료 조건: `features/setting/api.js` 가짜를 실제 API로 바꿔 운영 설정 조회·저장이 화면에서 동작한다. 400 칸별 오류·403을 화면에 보인다
+
+## SCR-ADM-001 대시보드 · 이용 통계 API 연결 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-04·05 (2026-11-10 대시보드 연결 절에 빠져 있어 따로 둠)
+- 기다리는 것: 백엔드 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(LJS 백엔드, 있음)
+- 완료 조건: `features/adminDashboard/api.js` `getAdminDashboardStats` 가짜를 실제 API로 바꿔 기간을 고르면 이용 통계가 바뀐다. 운영 현황 연결(`getAdminDashboard`)과 같이 해도 된다
 
 ## SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API 연결 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-02·03
@@ -1115,6 +1143,18 @@
 - 추가 요청: 추가-1 확인 카드 조건부 칸(`rules`)은 조건이 맞을 때만 보이고 보낸다(음수량 카드 `crsdSttsCd` 400)
 - 완료 조건 결과: 검증 `통과`(2026-11-09, 2회 검증 모두 통과. 2회째는 추가-1 포함), 사람 확인 2026-11-09
 - 연결 남음: AI 세션 알림 (열린 방 요청 `petSn` 제외·칩 필터·카드 조건부 칸, AI 세션)
+
+## SCR-AIM-011 대화창 · 새 방 펫 태그를 메시지 속 반려동물 이름으로 — 끝
+- 기능: (사람 2026-11-09, 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-011-07·08) 새 방의 펫 태그를 글에 이름이 하나만 나온 반려동물로 정하고(없거나 둘 이상이면 칩), 칩도 그 반려동물로 바꾼다
+- 기다리는 것: 없음
+- 완료 조건: 칩 취두부에서 "까미 …" 새 대화 → 방 태그·칩·카드 모두 까미 / 이름 없음·둘 이상이면 칩 태그 / 열린 방은 그대로
+- 완료 조건 결과: 검증 `통과`(2026-11-09, 1회차), 사람 확인 2026-11-09
+
+## SCR-COM-002 공통 ⋮ 메뉴 공통화 — 대기
+- 기능: (사람 지시 2026-11-08 "리팩토링 때 한번에", 명세 FN 추가 없음) A1 `components/KebabMenu.jsx` variant 추가, A2 `CareItemMenu`·A3 `ExpenseMenu`를 KebabMenu 껍데기로, A4 `MainShortcuts`의 `ShortcutMenu`를 KebabMenu로
+- 기다리는 것: 없음
+- 완료 조건: 네 곳(AI 사이드바·건강기록 3곳·가계부·메인 바로가기) ⋮ 메뉴가 전과 같은 항목·모양으로 열리고 닫힌다 / `MoreVertical`은 `KebabMenu`와 범위 밖 CommentSection·PetSlide에만 남는다
+- 순서: 남은 작업 중 맨 마지막(사람 2026-11-10 "메뉴 공통화는 제일 마지막으로")
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

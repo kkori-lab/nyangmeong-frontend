@@ -1,6 +1,6 @@
 # TC · AI매니저 (SCR-AIM-011·001·002·004·005·012·013·008·009·010·006)
 
-- 기준: AI매니저_기능명세서_v0.14_20261109, 요구사항정의서_v0.10.3_20261109(REQ-AIM-001·003·004·005·007), 백엔드 `docs/api/notification.md`·`receipt.md`·`ai.md`(develop 2026-11-08), AI 서버 `docs/api/chat.md`·`ocr.md`
+- 기준: AI매니저_기능명세서_v0.14_20261109, 요구사항정의서_v0.10.4_20261109(REQ-AIM-001·003·004·005·007), 백엔드 `docs/api/notification.md`·`receipt.md`·`ai.md`(develop 2026-11-08), AI 서버 `docs/api/chat.md`·`ocr.md`
 - 코드: origin/develop 425199e (2026-11-08)
 - 준비
   - 백엔드 develop을 :8080에 띄운다. **AI 서버(Python)를 :8000에 띄운다.** 프론트 개발 서버는 `/ai/` 요청을 `VITE_AI_API_URL`(없으면 `http://localhost:8000`)로 넘긴다(`vite.config.js`). AI 서버 계약은 `nyangmeong-ai/docs/api/`(chat.md·ocr.md)에 있다

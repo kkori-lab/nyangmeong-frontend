@@ -1,9 +1,12 @@
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import { BTN_SECONDARY } from '@/components/buttonStyles';
+import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
+import EmptyResult from '@/components/EmptyResult';
 import MonthNav from '@/components/MonthNav';
 import MonthPicker from '@/components/MonthPicker';
 import Pagination from '@/components/Pagination';
+import Skeleton from '@/components/Skeleton';
+import SkeletonCard from '@/components/SkeletonCard';
 import { showToast } from '@/components/toastStore';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import { getCurrentYm, isYm, shiftYm } from '@/utils/yearMonth';
@@ -66,6 +69,19 @@ const toFilterCond = (petFilter, categoryFilter) => ({
   ...(categoryFilter !== FILTER_ALL && { expndClsfCd: categoryFilter }),
 });
 
+/** 첫 로딩 자리: 실제 배치(1440px·390px에서 잰 높이, 한 쪽 20건 기준) */
+function ExpenseHistorySkeleton() {
+  return (
+    <div aria-busy="true" className="flex flex-col gap-5">
+      <Skeleton className="h-[74px] rounded-card max-[760px]:h-[124px]" />
+      <Skeleton className="h-10 rounded-card" />
+      <Skeleton className="-mb-2 h-7 min-[761px]:hidden" />
+      <SkeletonCard className="h-[1786px] max-[760px]:h-[1854px]" />
+      <Skeleton className="mx-auto h-9 w-64" />
+    </div>
+  );
+}
+
 /** initialYm: 진입 시 보던 달 */
 export default function ExpenseHistory({ initialYm }) {
   const [maxYm] = useState(getCurrentYm);
@@ -95,8 +111,10 @@ export default function ExpenseHistory({ initialYm }) {
   const [deletingExpense, setDeletingExpense] = useState(null);
   const isMobile = useMediaQuery(MOBILE_QUERY);
 
-  const { data: months } = useExpenseMonths();
-  const { data: pets } = useExpensePets();
+  const monthsQuery = useExpenseMonths();
+  const petsQuery = useExpensePets();
+  const { data: months } = monthsQuery;
+  const { data: pets } = petsQuery;
 
   const queryRange = getQueryRange(range, isEditing, ym);
   const filterCond = toFilterCond(petFilter, categoryFilter);
@@ -107,9 +125,8 @@ export default function ExpenseHistory({ initialYm }) {
   };
 
   /** 상단 합계·건수는 필터와 무관한 그 달 전체 */
-  const { data: monthTotals } = useExpenseTotals(
-    toDateCond({ fromYm: ym, toYm: ym }),
-  );
+  const totalsQuery = useExpenseTotals(toDateCond({ fromYm: ym, toYm: ym }));
+  const { data: monthTotals } = totalsQuery;
   /** 편집 중 조회 결과 전체의 건수·합계 */
   const { data: resultTotals } = useExpenseTotals(resultCond, {
     enabled: isEditing,
@@ -122,13 +139,34 @@ export default function ExpenseHistory({ initialYm }) {
   /** 마지막 쪽 항목을 다 지우면 앞 쪽으로 */
   if (!isMobile && pageQuery.data && page > pageCount) setPage(pageCount);
 
-  if (!months || !pets) return null;
+  if (!months || !pets || (!monthTotals && !totalsQuery.isError)) {
+    const failed = [monthsQuery, petsQuery].filter(
+      (query) => !query.data && query.isError,
+    );
+    if (failed.length === 0) return <ExpenseHistorySkeleton />;
+    return (
+      <EmptyResult title="가계부를 불러오지 못했어요">
+        <button
+          type="button"
+          onClick={() => failed.forEach((query) => query.refetch())}
+          className={BTN_PRIMARY}
+        >
+          다시 시도
+        </button>
+      </EmptyResult>
+    );
+  }
+
+  /** 목록 데이터가 없을 때만 로딩·오류 자리(다음 쪽만 실패하면 불러온 목록을 둔다) */
+  const listQuery = isMobile ? infiniteQuery : pageQuery;
+  const isListLoading = !listQuery.data && !listQuery.isError;
+  const isListError = !listQuery.data && listQuery.isError;
 
   const pageItems = isMobile
     ? (infiniteQuery.data?.pages.flatMap((result) => result.content) ?? [])
     : (pageQuery.data?.content ?? []);
   const isPlaceholderData = isMobile
-    ? infiniteQuery.isRefetching
+    ? infiniteQuery.isRefetching || infiniteQuery.isPlaceholderData
     : pageQuery.isPlaceholderData;
   const isLoadEnd = !infiniteQuery.hasNextPage;
   let loadStatus = LOAD.IDLE;
@@ -325,9 +363,11 @@ export default function ExpenseHistory({ initialYm }) {
           </MonthNav>
           <p className="flex items-baseline gap-2">
             <b className="text-page leading-[1.35] font-bold">
-              {formatWon(monthTotals?.totalExpndAmt ?? 0)}
+              {monthTotals ? formatWon(monthTotals.totalExpndAmt) : '-'}
             </b>
-            <span className="text-subtle">{monthTotals?.expndCnt ?? 0}건</span>
+            <span className="text-subtle">
+              {monthTotals ? `${monthTotals.expndCnt}건` : '-'}
+            </span>
           </p>
         </section>
       )}
@@ -377,55 +417,72 @@ export default function ExpenseHistory({ initialYm }) {
           </button>
         </div>
       )}
-      <section aria-label="지출 내역" className={`${CARD} overflow-hidden`}>
-        {isEditing && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-2 px-4 py-3">
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                ref={setPageCheckbox}
-                type="checkbox"
-                checked={isPageAllSelected}
-                onChange={handleTogglePage}
-                disabled={pageItems.length === 0}
-                className="size-5 cursor-pointer accent-brand-500"
-              />
-              <span>
-                전체 선택{' '}
-                <span className="text-subtle">
-                  (<span className="max-[760px]:hidden">이 페이지</span>
-                  <span className="hidden max-[760px]:inline">불러온</span>{' '}
-                  {pageItems.length}건)
+      {isListLoading ? (
+        <SkeletonCard className="h-[1786px] max-[760px]:h-[1854px]" />
+      ) : (
+        <section aria-label="지출 내역" className={`${CARD} overflow-hidden`}>
+          {isEditing && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-2 px-4 py-3">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  ref={setPageCheckbox}
+                  type="checkbox"
+                  checked={isPageAllSelected}
+                  onChange={handleTogglePage}
+                  disabled={pageItems.length === 0}
+                  className="size-5 cursor-pointer accent-brand-500"
+                />
+                <span>
+                  전체 선택{' '}
+                  <span className="text-subtle">
+                    (<span className="max-[760px]:hidden">이 페이지</span>
+                    <span className="hidden max-[760px]:inline">
+                      불러온
+                    </span>{' '}
+                    {pageItems.length}건)
+                  </span>
                 </span>
-              </span>
-            </label>
-            <button
-              type="button"
-              onClick={handleToggleResult}
-              disabled={resultCount === 0}
-              className="font-semibold text-brand-600 hover:underline disabled:text-line-strong disabled:no-underline"
-            >
-              {isAllResult
-                ? '선택 모두 해제'
-                : `조회 결과 ${resultCount}건 모두 선택`}
-            </button>
-          </div>
-        )}
-        {pageItems.length === 0 ? (
-          <p className="px-4 py-10 text-center text-subtle">
-            조회된 지출이 없어요
-          </p>
-        ) : (
-          <ExpenseGroupList
-            items={pageItems}
-            groups={groupByDay(pageItems)}
-            hasDayHead={sort === SORT.LATEST}
-            isEditing={isEditing}
-            selected={{ has: isChecked }}
-            onToggle={handleToggle}
-            onOpenItem={handleOpenItem}
-          />
-        )}
-      </section>
+              </label>
+              <button
+                type="button"
+                onClick={handleToggleResult}
+                disabled={resultCount === 0}
+                className="font-semibold text-brand-600 hover:underline disabled:text-line-strong disabled:no-underline"
+              >
+                {isAllResult
+                  ? '선택 모두 해제'
+                  : `조회 결과 ${resultCount}건 모두 선택`}
+              </button>
+            </div>
+          )}
+          {isListError ? (
+            <div className="flex flex-col items-center gap-4 px-4 py-10 text-center">
+              <p className="text-subtle">지출 내역을 불러오지 못했어요</p>
+              <button
+                type="button"
+                onClick={() => listQuery.refetch()}
+                className={BTN_PRIMARY}
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : pageItems.length === 0 ? (
+            <p className="px-4 py-10 text-center text-subtle">
+              조회된 지출이 없어요
+            </p>
+          ) : (
+            <ExpenseGroupList
+              items={pageItems}
+              groups={groupByDay(pageItems)}
+              hasDayHead={sort === SORT.LATEST}
+              isEditing={isEditing}
+              selected={{ has: isChecked }}
+              onToggle={handleToggle}
+              onOpenItem={handleOpenItem}
+            />
+          )}
+        </section>
+      )}
       {isMobile ? (
         pageItems.length > 0 && (
           <ExpenseLoadMore
@@ -435,14 +492,18 @@ export default function ExpenseHistory({ initialYm }) {
             onRetry={handleLoadMore}
           />
         )
+      ) : isListLoading ? (
+        <Skeleton className="mx-auto h-9 w-64" />
       ) : (
-        <Pagination
-          page={currentPage}
-          pageCount={pageCount}
-          onChange={setPage}
-        />
+        !isListError && (
+          <Pagination
+            page={currentPage}
+            pageCount={pageCount}
+            onChange={setPage}
+          />
+        )
       )}
-      {!isEditing && (
+      {!isEditing && pageItems.length > 0 && (
         <p className="text-center text-sm text-subtle max-[760px]:hidden">
           항목을 누르면 바로 수정할 수 있어요
         </p>

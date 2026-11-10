@@ -2,20 +2,39 @@
 
 ## 지금 하는 것
 
-SCR-MYP-031 가계부 영수증 인식: 분석 중 표시를 건강 일지 영수증 모달과 같은 게이지로 — 끝 (2026-11-09, 검증 `통과` 1회차, lint·build 0, 사람 확인 완료)
+SCR-MYP-040 회원정보 수정 · 새 비밀번호가 현재와 같을 때 실제 서버 응답으로 확인 — 끝 (2026-11-10, 검증 `통과` 3회차, lint·build 0, 사람 확인 완료)
 
-- 공용 `components/AnalyzeProgress.jsx`를 새로 만들고(`label` prop, 기본값 '영수증 분석 진행') 가계부 `ExpenseReceiptUpload.jsx`의 `Loader2`를 바꿨다. 건강 일지 `ReceiptUploadModal.jsx`(JAJ)는 정의를 지우고 import만 바꿨다
-- 부를 API·새 의존성·DB 변경 없음. 연결 작업 없음
+이전 작업 SCR-MYP-003 수정 모달 스켈레톤은 끝(검증 `통과`, 사람 확인 완료).
+
+- 코드 변경 없음. lint·build 종료 코드 0
+- 실제 응답 확인: 같은 비밀번호 → 400 `PASSWORD_SAME_AS_CURRENT`, 새 비밀번호 칸 아래 "현재 비밀번호와 다른 비밀번호를 입력해 주세요.", 변경 영역 유지, 토스트 없음 / 틀린 현재 비밀번호 → 400 `CURRENT_PASSWORD_MISMATCH`, 현재 비밀번호 칸 아래 "현재 비밀번호가 일치하지 않아요", 토스트 없음. 성공(실제 변경) 경우는 하지 않았다
+- 1·2회차는 비밀번호를 아는 이메일 계정이 없어 화면을 확인하지 못했고(인증번호가 에이전트에게 안 보임), 사람이 만든 계정으로 3회차에 통과했다
+- 공용 DB 정리: 확인용 계정 y·z 두 개는 사이트에서 탈퇴(소프트 딜리트)로 정리했다. `EML_CERT`는 만료라 둔다
+- 백엔드 설정: 확인용으로 로컬 `application.properties`를 `app.mail.client=log`로 바꿨다(커밋 안 되는 파일). 확인이 끝났으니 원래 값(`smtp`)으로 되돌린다
+
+### 기획
+
+- 배경: 지난 작업은 `PASSWORD_SAME_AS_CURRENT`를 page.route 가짜 400으로만 확인했다. 서버(`MemberPasswordService.change`)는 확인값 → 현재 비밀번호 일치 → 새=현재 순으로 검사하므로, 현재 비밀번호를 실제로 아는 이메일 계정이어야 이 오류가 난다(모르면 `CURRENT_PASSWORD_MISMATCH`). 같은 값이면 저장·세션 폐기 전에 막히므로 DB가 바뀌지 않는다
+- 디자인: 바꾸는 UI 없음(기존 `PasswordChangeCard` 그대로)
+- FN-MYP-040-06 비밀번호 변경 · 실제 응답 확인
+  - 바꿀 파일: 기본은 없음. 실제 응답의 `code`·`message`·`fields`가 가짜와 다를 때만 `src/features/member/profile/PasswordChangeCard.jsx`의 판정을 고친다
+  - 부를 API: `PATCH /api/members/me/password`(YAY, develop에 있음)
+  - 준비: 로컬 백엔드를 develop으로 맞춘다(지금 develop보다 39커밋 뒤). 백엔드 저장소 작업이라 이 세션에서는 고치지 않고, 사람이 맞추거나 이미 떠 있는 develop 서버를 쓴다
+  - 완료 조건
+    - 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0
+    - 화면: 이메일 계정으로 로그인 → 회원정보 수정 → 비밀번호 변경에 현재 비밀번호와 같은 새 비밀번호(규칙 맞음)를 넣고 [저장] → 네트워크 응답 400 `code=PASSWORD_SAME_AS_CURRENT`, 새 비밀번호 입력란 아래 "현재 비밀번호와 다른 비밀번호를 입력해 주세요.", 토스트 없음, 변경 영역이 닫히지 않음
+    - 화면: 현재 비밀번호를 틀리게 넣으면 현재 비밀번호 입력란 아래 안내(`CURRENT_PASSWORD_MISMATCH`)로 갈라지는 것도 같이 본다
+    - 확인은 위 두 경우만 한다. 실제로 비밀번호가 바뀌는 성공 경우는 하지 않는다
+- 계정: 이메일로 새로 회원가입해 쓴다(인증 코드는 백엔드 로그에서 확인). 만든 행(MBR 등)은 보고의 "정리"에 복구 SQL과 함께 적는다. DB에는 직접 접속하지 않는다
+- 백엔드: 사람이 develop으로 맞춰 띄운다
+- 새 의존성: 없음
 
 ## 다음에 할 것
 
 ### 내 코드 작업
 
 - JAJ·LJS 알림: 공용 `components/AnalyzeProgress.jsx`를 새로 만들었다(영수증 분석 게이지, `label` prop). JAJ의 `features/ai/receipt/ReceiptUploadModal.jsx`는 함수·상수를 지우고 import만 바꿨고 화면 동작은 같다. 새 분석 화면에 게이지가 필요하면 이 컴포넌트를 쓴다
-- SCR-MYP-040 (선택) `PASSWORD_SAME_AS_CURRENT`는 page.route 400으로만 확인했다. 로컬 백엔드를 develop으로 맞추고 규칙에 맞는 비밀번호의 이메일 계정으로 실제 응답 `message`가 같은지 본다
 - SCR-MYP-002 10마리 보유 때 삭제하면 등록 카드로 바뀌는지 화면 확인(데이터가 없어 못 함)
-- 로딩 스켈레톤 2차 SCR-MYP-030: `ExpenseDashboard.jsx`(58행)·`ExpenseHistory.jsx`(125행)의 `return null`을 실제 배치 스켈레톤으로(`ui.md` "로딩 표시"). 같이 SCR-MYP-020: `PointPage`가 pets 조회 실패를 알려 `CareMission`이 스켈레톤 대신 오류를 보이게(지금은 실패하면 스켈레톤이 계속 남음)
-- 로딩 스켈레톤 3차: SCR-MYP-010 `CharacterPage.jsx`(본문 빔)·`CharacterDecorate.jsx`(null), SCR-MYP-040 `ProfileEditPage.jsx`(로딩 중 본문 없음), SCR-MYP-003 `PetFormModal.jsx`(수정 모달 로딩 null)
 - SCR-MYP-002·005 화면 확인: 삭제 때 공동양육자에게 알림이 실제로 갔는지(백엔드 알림 테스트), 초대 → 수락 → 삭제 → 자동 해제 흐름
 - (선택) SCR-MYP-030 시드 `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(병원·공용, "병원은 공용 불가" 규칙 위반): 팀장에게 알리고 백엔드 저장소에서 고침. 서버가 저장을 막아 급하지 않음
 
