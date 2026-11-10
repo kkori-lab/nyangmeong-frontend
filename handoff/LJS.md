@@ -2,7 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-ADM-071 케어미션 · 케어미션 API 연결 — 끝(2026-11-10). `features/adminCareMission/api.js` 가짜를 `/api/admin/care-missions` 실제 GET·PATCH로 바꿈, `useYn`은 true/false, 수정 모달 서버 오류는 `toFieldErrors`·`toFormError`(칸 아래·폼 아래)
+SCR-ADM-011 회원 상세 · 관리자 [정지] 숨김 확인 — 끝(2026-11-10). 코드 변경 없음, 실제 `GET /api/admin/members/{mbrSn}`의 `mbrAuthrtCd`로 관리자(USRC0005)는 [정지]가 없고 정상 일반회원은 [정지], 정지 회원은 [정지 해제]만 보이는 것을 확인
 
 ## 다음에 할 것
 
