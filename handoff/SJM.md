@@ -2,21 +2,22 @@
 
 ## 지금 하는 것
 
-SCR-MYP-030 가계부 목록 · 가계부·포인트 화면 로딩을 스켈레톤으로(2차) — 끝 (2026-11-09, 검증 `통과` 2회차 보고 기준, lint·build 0, 사람 확인 완료)
+SCR-MYP-010 픽셀 캐릭터 관리 · 캐릭터·회원정보·반려동물 수정 로딩을 스켈레톤으로(3차) — 끝 (2026-11-10, 검증 `통과` 1회차 보고 기준, lint·build 0, 사람 확인 완료)
 
-- 가계부 대시보드·전체 내역: 첫 로딩을 실제 배치 스켈레톤으로(`return null` 제거). 대시보드 조회 실패는 월 이동 줄 + 오류 + [다시 시도], 전체 내역은 months·pets 실패 시 오류 화면, 합계만 실패하면 "-", 목록 실패는 오류 + [다시 시도]. 모바일 목록(`useInfiniteExpenses`)도 `keepPreviousData`
-- 포인트: `PointPage`가 pets 조회 실패를 `CareMission`에 넘겨 카드 안에 `MissionError`를 보인다
-- 추가-1: 전체 내역의 "항목을 누르면 바로 수정할 수 있어요" 안내는 목록에 항목이 있을 때만 보인다
+- 캐릭터 목록(MYP-010): 탭+카드 6장 스켈레톤(`CharacterPageSkeleton`), 꾸미기 주소로 들어오면 `DecorateSkeleton`(제목 줄 자리 포함, 추가-1). pets·캐릭터 조회 실패는 `EmptyResult` + [다시 시도](실패한 조회만 refetch)
+- 꾸미기: `return null` 대신 `DecorateSkeleton`, 실패는 `EmptyResult` + [다시 시도](추가-3)
+- 회원정보 수정(MYP-040): 본인 확인 카드 크기 스켈레톤 1장, 실패는 `EmptyResult` + [다시 시도]
+- 반려동물 수정 모달(MYP-003): 폼 구역 스켈레톤(실제 폼과 같은 여백, 추가-2), 단건 조회 실패는 폼 없이 오류 + [다시 시도], [저장]은 로딩·오류 동안 비활성
 - 부를 API·새 의존성·DB 변경 없음. 연결 작업 없음
 
 ## 다음에 할 것
 
 ### 내 코드 작업
 
+- (선택) SCR-MYP-003 수정 모달 스켈레톤은 모달 높이는 같지만 안 스크롤 길이가 실제 폼보다 짧다(390px에서 68%). 필요하면 구역을 더 쌓는다
 - JAJ·LJS 알림: 공용 `components/AnalyzeProgress.jsx`를 새로 만들었다(영수증 분석 게이지, `label` prop). JAJ의 `features/ai/receipt/ReceiptUploadModal.jsx`는 함수·상수를 지우고 import만 바꿨고 화면 동작은 같다. 새 분석 화면에 게이지가 필요하면 이 컴포넌트를 쓴다
 - SCR-MYP-040 (선택) `PASSWORD_SAME_AS_CURRENT`는 page.route 400으로만 확인했다. 로컬 백엔드를 develop으로 맞추고 규칙에 맞는 비밀번호의 이메일 계정으로 실제 응답 `message`가 같은지 본다
 - SCR-MYP-002 10마리 보유 때 삭제하면 등록 카드로 바뀌는지 화면 확인(데이터가 없어 못 함)
-- 로딩 스켈레톤 3차: SCR-MYP-010 `CharacterPage.jsx`(본문 빔)·`CharacterDecorate.jsx`(null), SCR-MYP-040 `ProfileEditPage.jsx`(로딩 중 본문 없음), SCR-MYP-003 `PetFormModal.jsx`(수정 모달 로딩 null)
 - SCR-MYP-002·005 화면 확인: 삭제 때 공동양육자에게 알림이 실제로 갔는지(백엔드 알림 테스트), 초대 → 수락 → 삭제 → 자동 해제 흐름
 - (선택) SCR-MYP-030 시드 `db/seed/20261028_seed_data.sql`의 `EXPND_SN=406`(병원·공용, "병원은 공용 불가" 규칙 위반): 팀장에게 알리고 백엔드 저장소에서 고침. 서버가 저장을 막아 급하지 않음
 

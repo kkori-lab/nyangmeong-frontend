@@ -1,7 +1,9 @@
 import { Check, ChevronDown, CircleAlert, Lock } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BTN_PRIMARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
+import Skeleton from '@/components/Skeleton';
 import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import {
@@ -161,13 +163,22 @@ const validate = ({ form, breedText, isWeightLocked, isColrMismatched }) => {
 
 /** onCreated(새 동물): 등록 성공 때 onClose 대신 부른다(없으면 onClose) */
 export default function PetFormModal({ petSn = null, onClose, onCreated }) {
-  const { data: pet, isPending: isPetPending } = usePet(petSn);
+  const {
+    data: pet,
+    isPending: isPetPending,
+    isError: isPetError,
+    refetch: refetchPet,
+  } = usePet(petSn);
   const { data: lastBdwgRcd = null, isPending: isWeightPending } =
     useLastWeightRecord(petSn);
   const createPet = useCreatePet();
   const updatePet = useUpdatePet();
   const isEdit = petSn != null;
   const isPending = createPet.isPending || updatePet.isPending;
+  const isFormLoading = isEdit && (isPetPending || isWeightPending);
+  /** 수정인데 반려동물을 못 읽었으면 빈 폼 대신 오류만 보인다 */
+  const isLoadFailed = isEdit && isPetError && !pet;
+  const isSaveDisabled = isPending || isFormLoading || isLoadFailed;
 
   return (
     <Modal
@@ -192,7 +203,7 @@ export default function PetFormModal({ petSn = null, onClose, onCreated }) {
           <button
             type="submit"
             form="pet-form"
-            disabled={isPending}
+            disabled={isSaveDisabled}
             className="inline-flex h-10 min-w-24 items-center justify-center rounded-md bg-brand-500 px-4 font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-line-strong"
           >
             {isEdit ? '저장' : '등록하기'}
@@ -200,7 +211,20 @@ export default function PetFormModal({ petSn = null, onClose, onCreated }) {
         </div>
       }
     >
-      {isEdit && (isPetPending || isWeightPending) ? null : (
+      {isLoadFailed ? (
+        <div className="flex flex-col items-center gap-4 py-16 text-center">
+          <p className="text-muted">반려동물 정보를 불러오지 못했어요</p>
+          <button
+            type="button"
+            onClick={() => refetchPet()}
+            className={BTN_PRIMARY}
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : isFormLoading ? (
+        <PetFormSkeleton />
+      ) : (
         <PetForm
           pet={isEdit ? pet : null}
           lastBdwgRcd={isEdit ? lastBdwgRcd : null}
@@ -211,6 +235,20 @@ export default function PetFormModal({ petSn = null, onClose, onCreated }) {
         />
       )}
     </Modal>
+  );
+}
+
+/** 수정 모달 로딩 자리: 사진·기본 정보·선택 정보 구역 (실제 폼 구역 높이대로) */
+function PetFormSkeleton() {
+  return (
+    <div aria-busy="true" className="flex flex-col gap-6 px-7 pt-6 pb-7">
+      <Skeleton className="h-[68px]" />
+      <Skeleton className="h-[62px]" />
+      <Skeleton className="h-[199px]" />
+      <Skeleton className="h-[94px]" />
+      <Skeleton className="h-[141px]" />
+      <Skeleton className="h-[200px]" />
+    </div>
   );
 }
 
