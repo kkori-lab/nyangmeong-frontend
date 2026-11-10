@@ -7,21 +7,20 @@ import ConfirmModal from '@/components/ConfirmModal';
 import CareItemModal from './CareItemModal';
 import CareRecordList from './CareRecordList';
 import CareTile from './CareTile';
-import { CARE_ZONE, MAX_MAIN_CARE } from './careDue';
+import { CARE_ZONE } from './careDue';
 import {
   useCancelCareRecord,
   useCancelLastDose,
   useCareItems,
   useCheckCareItem,
   useDeleteCareItem,
-  useSaveCareMain,
 } from './queries';
 
 // 640px 미만에서 구역마다 처음 보여 주는 칸 수
 const MOBILE_VISIBLE_COUNT = 3;
 
-// 토탈 케어리스트 카드(FN-HLT-003-12·13). 건강기록 공통 반려동물 카드에서 고른 반려동물(petSn·petNm) 기준이다. 제목은 「{이름}의 토탈 케어리스트」 (※신규 정책)
-export default function CareList({ petSn, petNm }) {
+// 토탈 케어리스트 카드(FN-HLT-003-12·13). 건강기록 공통 반려동물 카드에서 고른 반려동물(petSn) 기준이다. 제목은 「토탈 케어리스트」
+export default function CareList({ petSn }) {
   const { data, isPending, isError, error, refetch } = useCareItems(petSn);
   const [isAdding, setIsAdding] = useState(false);
   // 수정 중인 항목, 삭제 확인 중인 항목
@@ -32,7 +31,6 @@ export default function CareList({ petSn, petNm }) {
   const checkCareItem = useCheckCareItem();
   const cancelLastDose = useCancelLastDose();
   const cancelCareRecord = useCancelCareRecord();
-  const saveCareMain = useSaveCareMain();
   const deleteCareItem = useDeleteCareItem();
 
   if (isPending) {
@@ -66,9 +64,6 @@ export default function CareList({ petSn, petNm }) {
     (item) => item.careZoneCd === CARE_ZONE.REGULAR,
   );
   const regularSns = new Set(regularItems.map((item) => item.careArtclSn));
-  const mainItems = careItems
-    .filter((item) => item.mainExpsrYn)
-    .sort((a, b) => a.mainSortSeq - b.mainSortSeq);
 
   const findTodayRecord = (item) =>
     careRecords.find(
@@ -96,16 +91,6 @@ export default function CareList({ petSn, petNm }) {
         careCmptnHstrySn: todayRecord.careCmptnHstrySn,
       });
     else checkCareItem.mutate({ petSn, careArtclSn: item.careArtclSn });
-  };
-
-  // ★: 켜면 메인 순서 끝에 더하고 끄면 뺀다. 7개째는 서버가 막고 안내 문구를 준다
-  const handleToggleMain = (item) => {
-    const careArtclSns = item.mainExpsrYn
-      ? mainItems
-          .filter((main) => main.careArtclSn !== item.careArtclSn)
-          .map((main) => main.careArtclSn)
-      : [...mainItems.map((main) => main.careArtclSn), item.careArtclSn];
-    saveCareMain.mutate({ petSn, careArtclSns });
   };
 
   // 1024px 이상: 앞 절반은 왼쪽 열, 나머지는 오른쪽 열에 세로로 채우고, 같은 줄의 두 칸은 높이가 같다.
@@ -140,7 +125,6 @@ export default function CareList({ petSn, petNm }) {
                   : ''
               }
               onCheck={handleCheck}
-              onToggleMain={handleToggleMain}
               onEdit={setEditingItem}
               onDelete={setDeletingItem}
               onCancelLastDose={(target) =>
@@ -184,7 +168,7 @@ export default function CareList({ petSn, petNm }) {
   return (
     <>
       <Card
-        title={`${petNm}의 토탈 케어리스트`}
+        title="토탈 케어리스트"
         // 760px 이하에서는 완료 개수를 숨기고 [제목] … [＋] 한 줄로 둔다
         sub={
           <span className="max-[760px]:hidden">
@@ -204,30 +188,13 @@ export default function CareList({ petSn, petNm }) {
           </button>
         }
       >
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-[#566465]">
-          <span>★ 표시한 항목이 메인 화면에 보여요</span>
-          <span className="ml-auto">
-            메인 표시{' '}
-            <span className="text-lg font-semibold text-[#1a3234] tabular-nums">
-              {mainItems.length}
-            </span>{' '}
-            / {MAX_MAIN_CARE}
-          </span>
-        </div>
-
         {renderZone(
           CARE_ZONE.REGULAR,
-          '정기관리(REGULAR)',
+          '정기관리',
           regularItems,
           '심장사상충 예방·구충제는 검진상세에서 반복 예방을 등록하면 여기에 추가돼요',
         )}
-        {renderZone(
-          CARE_ZONE.DAILY,
-          '일상관리(DAILY)',
-          dailyItems,
-          null,
-          'mt-8',
-        )}
+        {renderZone(CARE_ZONE.DAILY, '일상관리', dailyItems, null, 'mt-8')}
 
         <CareRecordList
           key={petSn}

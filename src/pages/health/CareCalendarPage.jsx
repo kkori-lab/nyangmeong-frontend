@@ -251,7 +251,7 @@ function CareCalendarContent() {
         >
           {/* 반려동물은 공통 카드에서 고른 아이. 새 일정 모달 기본값에도 쓰인다 */}
           {selectedPet && (
-            <CareList petSn={selectedPet.petSn} petNm={selectedPet.petNm} />
+            <CareList petSn={selectedPet.petSn} />
           )}
         </div>
       )}
