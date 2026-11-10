@@ -7,6 +7,7 @@ import PetFace from '@/components/PetFace';
 import Select from '@/components/Select';
 import Skeleton from '@/components/Skeleton';
 import { useMainShortcuts, useSaveMainShortcuts } from './queries';
+import ShortcutEditModal from './ShortcutEditModal';
 import { SHORTCUT_TYPES } from './shortcutTypes';
 
 const TYPE_BY_CD = Object.fromEntries(
@@ -51,7 +52,7 @@ const toBody = (rows, change) =>
 /**
  * [메인 반려동물 바로가기]
  * - 누르면 그 반려동물로 건강기록 화면을 연다(?petSn=)
- * - [바로가기 추가]로 반려동물과 종류를 골라 더한다. 목록은 서버에 저장
+ * - [바로가기 편집]으로 여러 반려동물의 종류를 한 번에 골라 더한다(ShortcutEditModal). 목록은 서버에 저장
  * - 타일 오른쪽 위 ⋮: [바로가기 수정](반려동물·종류 바꾸기)·[삭제](확인 없이 뺌) (추가-5)
  *   마우스가 있는 기기는 올리거나 포커스할 때만 보이고, 터치 기기는 항상 보인다
  */
@@ -74,6 +75,21 @@ export default function MainShortcuts({ pets }) {
   const rows = toShortcutMap(pets, saved ?? []);
   const addable = toChoices(rows);
   const closeForm = () => setForm(null);
+  const savedCount = rows.reduce(
+    (sum, { shrtcCds }) => sum + shrtcCds.filter((cd) => TYPE_BY_CD[cd]).length,
+    0,
+  );
+
+  const handleAdd = (picks) =>
+    save.mutate(
+      toBody(rows, (rowPetSn, shrtcCds) => [
+        ...shrtcCds,
+        ...picks
+          .filter((pick) => pick.petSn === rowPetSn)
+          .map((pick) => pick.cd),
+      ]),
+      { onSuccess: closeForm },
+    );
 
   const handleSubmit = (petSn, cd) => {
     const editing = form.mode === 'edit' ? form : null;
@@ -147,17 +163,26 @@ export default function MainShortcuts({ pets }) {
                 <Plus className="size-4" aria-hidden="true" />
               </span>
               <span className="text-xs whitespace-nowrap text-ink-2">
-                바로가기 추가
+                바로가기 편집
               </span>
             </button>
           </li>
         )}
       </ul>
-      {form && (
+      {form?.mode === 'add' && (
+        <ShortcutEditModal
+          rows={rows}
+          savedCount={savedCount}
+          isPending={save.isPending}
+          onSubmit={handleAdd}
+          onClose={closeForm}
+        />
+      )}
+      {form?.mode === 'edit' && (
         <ShortcutFormModal
-          key={form.mode === 'edit' ? `${form.petSn}-${form.cd}` : 'add'}
-          isEdit={form.mode === 'edit'}
-          choices={form.mode === 'edit' ? toChoices(rows, form) : addable}
+          key={`${form.petSn}-${form.cd}`}
+          isEdit
+          choices={toChoices(rows, form)}
           initialPetSn={form.petSn}
           initialCd={form.cd}
           isPending={save.isPending}
