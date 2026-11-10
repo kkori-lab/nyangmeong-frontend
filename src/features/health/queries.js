@@ -21,7 +21,6 @@ import {
   getPetDetail,
   getPixelCharacters,
   getSchedules,
-  saveCareMain,
   updateCareItem,
   updateSchedule,
 } from './api';
@@ -205,8 +204,6 @@ export const useCheckCareItem = () => useCareMutation(checkCareItem);
 export const useCancelLastDose = () => useCareMutation(cancelLastDose);
 
 export const useCancelCareRecord = () => useCareMutation(cancelCareRecord);
-
-export const useSaveCareMain = () => useCareMutation(saveCareMain);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
 

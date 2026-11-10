@@ -30,7 +30,7 @@ export default function DiaryPetBar({ tabs, activeTabId, onSelectTab }) {
   return (
     <div
       ref={barRef}
-      className={`z-30 flex flex-col gap-3 border-b border-line min-[1101px]:sticky min-[1101px]:top-16 min-[1101px]:flex-row min-[1101px]:items-center min-[1101px]:gap-5 ${
+      className={`flex flex-col gap-3 border-b border-line min-[1101px]:sticky min-[1101px]:top-16 min-[1101px]:z-30 min-[1101px]:flex-row min-[1101px]:items-center min-[1101px]:gap-5 ${
         isStuck ? 'bg-[#faf8f5]' : ''
       }`}
     >

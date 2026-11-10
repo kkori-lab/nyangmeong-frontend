@@ -14,8 +14,6 @@ export const CARE_CYCLES = [
   { cd: CUSTOM_CYCLE, nm: '직접입력' },
 ];
 
-export const MAX_MAIN_CARE = 6;
-
 /** 검진상세 반복 예방의 주기 이름 */
 export const getCycleName = (item) =>
   item.rptCycleCd === CUSTOM_CYCLE
