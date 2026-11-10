@@ -1,19 +1,15 @@
 import { api } from '@/api/axios';
 import { IS_DEV } from '@/api/env';
-import {
-  CALL_RSLT,
-  CHAR_JOB_STTS,
-  CHAR_JOB_STTS_FAIL,
-  OCR_STTS_GROUP,
-} from './processingLabels';
+import { CALL_RSLT, OCR_STTS_GROUP } from './processingLabels';
 
 /**
  * [관리자 처리 현황 API]
  * - 영수증 OCR: 실제 API. 계약은 백엔드 `docs/api/receipt.md` `/admin/processing/receipts` 두 행
- * - 캐릭터 생성·검사결과지: /api/admin/processing/* 연결 전까지 메모리 가짜 -> 연결 때 본문만 api 요청으로 교체
- *   (필드는 CHAR_CRT_JOB·EXTL_API_CALL_LOG 컬럼 이름 가정, 건수 묶음 키도 가정)
+ * - 캐릭터 생성: 실제 API. 계약은 백엔드 `docs/api/pet.md` `/admin/processing/character-jobs` 행
+ * - 검사결과지: /api/admin/processing/pdf-analyses 연결 전까지 메모리 가짜 -> 연결 때 본문만 api 요청으로 교체
+ *   (필드는 EXTL_API_CALL_LOG 컬럼 이름 가정, 건수 묶음 키도 가정)
  * - 결과 내용(OCR 응답·건강기록·이미지 결과)은 받지 않음
- * - 개발 환경에서 ?fake=forbidden이면 403, ?fake=error면 조회 오류(가짜 탭만)
+ * - 개발 환경에서 ?fake=forbidden이면 403, ?fake=error면 조회 오류(검사결과지 가짜만)
  */
 
 /** 영수증 처리 상태 목록: [{ comCd, comCdNm, sortSeq }] */
@@ -24,8 +20,6 @@ export const getOcrStatuses = () =>
 export const getReceiptImageUrl = (recptSn) =>
   `/admin/processing/receipts/${recptSn}/image`;
 
-const FAKE_NICKNAMES = ['초코맘', '나비집사', '보리아빠', '콩이네', '두부언니'];
-
 const pad = (value) => String(value).padStart(2, '0');
 
 /** 기준 시각에서 시간 단위로 거슬러 간 일시 문자열 */
@@ -34,35 +28,6 @@ const toDateTime = (hoursAgo, minute = 0) => {
   time.setHours(time.getHours() - hoursAgo);
   return `${time.getFullYear()}-${pad(time.getMonth() + 1)}-${pad(time.getDate())}T${pad(time.getHours())}:${pad(time.getMinutes())}:00`;
 };
-
-const CHAR_FAIL_REASONS = [
-  '이미지 생성 API 시간 초과',
-  '원본 사진에서 반려동물을 찾지 못함',
-  '이미지 생성 API 오류',
-];
-
-/** 가짜 캐릭터 생성 작업 32건: 5건마다 실패(그중 일부 1:1 문의 연결) */
-const fakeCharacterJobs = Array.from({ length: 32 }, (_, index) => {
-  const isFail = index % 5 === 2;
-  const sttsCd = isFail
-    ? CHAR_JOB_STTS_FAIL
-    : index === 0
-      ? CHAR_JOB_STTS[0].comCd
-      : index === 1
-        ? CHAR_JOB_STTS[1].comCd
-        : CHAR_JOB_STTS[2].comCd;
-  return {
-    charCrtJobSn: 32 - index,
-    mbrSn: 100 + (index % FAKE_NICKNAMES.length),
-    mbrNcnm: FAKE_NICKNAMES[index % FAKE_NICKNAMES.length],
-    jobSttsCd: sttsCd,
-    failRsn: isFail
-      ? CHAR_FAIL_REASONS[index % CHAR_FAIL_REASONS.length]
-      : null,
-    otoInqrySn: isFail && index % 2 === 0 ? 10 + index : null,
-    frstRegDt: toDateTime(index * 5, (index * 11) % 60),
-  };
-});
 
 const PDF_ERROR_MESSAGES = [
   'Upstream 500 Internal Server Error',
@@ -148,25 +113,18 @@ export const getAdminReceipts = (params = {}) =>
   });
 
 /**
- * 캐릭터 생성 현황: { sttsCnts: [{ jobSttsCd, cnt }], ...쪽 }
- * - sttsCnts는 전체 기준, 목록은 상태 필터를 건 것. 결과 이미지는 받지 않음
- * - 미확정: 경로 GET /api/admin/processing/character-jobs, 상태 코드, sttsCnts 모양
+ * 캐릭터 생성 현황: { sttsCnts: [{ crtJobSttsCd, cnt }], content: [{ charCrtJobSn, mbrSn, mbrNcnm, crtJobSttsCd, failRsn, otoInqrySn, regDt }], page, size, totalElements, totalPages, hasNext }
+ * - sttsCnts는 CHRG01 네 상태를 순서대로, 상태 필터와 무관. 목록만 상태 필터를 건다
+ * - 결과 이미지·원본 사진은 받지 않음. 모르는 상태 코드는 400 INVALID_INPUT_VALUE
  */
-export const getAdminCharacterJobs = async ({
-  page = 1,
-  size = 20,
-  jobSttsCd,
-} = {}) => {
-  throwFakeError();
-  const sttsCnts = CHAR_JOB_STTS.map(({ comCd }) => ({
-    jobSttsCd: comCd,
-    cnt: fakeCharacterJobs.filter((job) => job.jobSttsCd === comCd).length,
-  }));
-  const filtered = fakeCharacterJobs.filter(
-    (job) => !jobSttsCd || job.jobSttsCd === jobSttsCd,
-  );
-  return { sttsCnts, ...toPage(filtered, 'frstRegDt', page, size) };
-};
+export const getAdminCharacterJobs = (params = {}) =>
+  api.get('/admin/processing/character-jobs', {
+    params: Object.fromEntries(
+      Object.entries(params).filter(
+        ([, value]) => value !== undefined && value !== null && value !== '',
+      ),
+    ),
+  });
 
 /**
  * 검사결과지 분석 현황: { summary: { totCnt, scsCnt, tmotCnt, errCnt }, ...실패 목록 쪽 }
