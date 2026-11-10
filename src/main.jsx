@@ -4,10 +4,12 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import ToastContainer from '@/components/ToastContainer';
+import AiModalProvider from '@/context/AiModalProvider';
 import ChatModalProvider from '@/context/ChatModalProvider';
 import { getMe } from '@/features/member/api';
 import { memberKeys } from '@/features/member/queries';
 import ChatModal from '@/layouts/ChatModal';
+import AiChatModal from '@/pages/ai/AiChatModal';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,10 +24,13 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        {/** 채팅 모달: UserLayout·PlaceLayout 헤더가 같이 쓰도록 앱 전체 */}
+        {/** 채팅 모달·AI 모달: UserLayout·PlaceLayout 헤더가 같이 쓰도록 앱 전체 */}
         <ChatModalProvider>
-          <App />
-          <ChatModal />
+          <AiModalProvider>
+            <App />
+            <ChatModal />
+            <AiChatModal />
+          </AiModalProvider>
         </ChatModalProvider>
       </BrowserRouter>
       <ToastContainer />

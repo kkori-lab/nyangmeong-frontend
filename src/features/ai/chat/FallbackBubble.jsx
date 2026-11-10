@@ -1,7 +1,7 @@
 import { Headset, ArrowRight } from 'lucide-react';
 import aiCharacter from '@/assets/ai-character.png';
 import { PATHS } from '@/routes/paths';
-import { openInMainWindow } from './openInMainWindow';
+import { useOpenMain } from './aiHost';
 import { shortcutChips } from './shortcutChips';
 
 /**
@@ -9,6 +9,7 @@ import { shortcutChips } from './shortcutChips';
  * - 안내 문구는 저장된 AI 메시지, 칩·고객센터 안내는 최신 실패 메시지에만 표시
  */
 export default function FallbackBubble({ text, hasActions, hasFaqGuide }) {
+  const openMain = useOpenMain();
   return (
     <div className="flex min-w-0 items-start gap-3">
       <img
@@ -29,7 +30,7 @@ export default function FallbackBubble({ text, hasActions, hasFaqGuide }) {
                 key={chip.label}
                 type="button"
                 className="h-9 rounded-full border border-[#e2e7e7] bg-white px-4 text-base text-[#3d4a4b] hover:bg-[#f4f6f6]"
-                onClick={() => openInMainWindow(chip.path)}
+                onClick={() => openMain(chip.path)}
               >
                 {chip.label}
               </button>
@@ -43,7 +44,7 @@ export default function FallbackBubble({ text, hasActions, hasFaqGuide }) {
             <button
               type="button"
               className="flex items-center gap-1.5 font-bold text-[#285a5c] hover:underline"
-              onClick={() => openInMainWindow(PATHS.FAQS)}
+              onClick={() => openMain(PATHS.FAQS)}
             >
               자주 묻는 질문 보기
               <ArrowRight aria-hidden="true" className="size-4" />
