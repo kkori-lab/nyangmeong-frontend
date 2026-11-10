@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
+import { getTodayYmd } from '@/utils/formatDate';
 import {
   getRangeError,
   PERIOD_CUSTOM,
@@ -25,6 +26,7 @@ export default function PeriodPicker({ period, onChange }) {
   const [rangeError, setRangeError] = useState(null);
 
   const selectedKey = isCustomOpen ? PERIOD_CUSTOM : period.periodKey;
+  const todayYmd = getTodayYmd();
 
   const handleSelect = (key) => {
     setRangeError(null);
@@ -54,7 +56,8 @@ export default function PeriodPicker({ period, onChange }) {
   };
 
   return (
-    <div className="space-y-2">
+    // 넓은 폭: 기간 버튼 묶음은 늘 오른쪽 끝, 날짜 칸·오류 문구는 그 아래 오른쪽을 맞춘다
+    <div className="flex flex-col items-start gap-2 max-[760px]:w-full min-[761px]:items-end">
       <div
         role="group"
         aria-label="통계 기간"
@@ -82,30 +85,39 @@ export default function PeriodPicker({ period, onChange }) {
       {isCustomOpen && (
         <form
           onSubmit={handleSubmit}
-          className="flex flex-wrap items-center gap-2"
+          noValidate
+          className="flex flex-col gap-2 self-stretch"
         >
-          <div className="flex items-center gap-2 max-[760px]:w-full">
-            <input
-              type="date"
-              aria-label="통계 시작일"
-              value={draft.fromYmd}
-              className={`${INPUT_CLASS} tabular-nums min-[761px]:w-40`}
-              onChange={(event) => setField('fromYmd', event.target.value)}
-            />
-            <span className="text-subtle">~</span>
-            <input
-              type="date"
-              aria-label="통계 종료일"
-              value={draft.toYmd}
-              className={`${INPUT_CLASS} tabular-nums min-[761px]:w-40`}
-              onChange={(event) => setField('toYmd', event.target.value)}
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 max-[760px]:w-full">
+              <input
+                type="date"
+                aria-label="통계 시작일"
+                value={draft.fromYmd}
+                max={todayYmd}
+                className={`${INPUT_CLASS} tabular-nums min-[761px]:w-40`}
+                onChange={(event) => setField('fromYmd', event.target.value)}
+              />
+              <span className="text-subtle">~</span>
+              <input
+                type="date"
+                aria-label="통계 종료일"
+                value={draft.toYmd}
+                max={todayYmd}
+                className={`${INPUT_CLASS} tabular-nums min-[761px]:w-40`}
+                onChange={(event) => setField('toYmd', event.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              className={`${BTN_PRIMARY} max-[760px]:w-full`}
+            >
+              조회
+            </button>
           </div>
-          <button type="submit" className={`${BTN_PRIMARY} max-[760px]:w-full`}>
-            조회
-          </button>
           {rangeError && (
-            <p role="alert" className="w-full text-sm text-danger">
+            // w-0 min-w-full: 문구 길이가 영역 폭을 늘리지 않는다
+            <p role="alert" className="w-0 min-w-full text-sm text-danger">
               {rangeError}
             </p>
           )}

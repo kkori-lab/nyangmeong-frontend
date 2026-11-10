@@ -1029,21 +1029,25 @@
 - 완료 조건: `features/adminProcessing/api.js`의 `getAdminPdfAnalyses` 가짜를 실제 `GET /api/admin/processing/pdf-analyses?fromYmd=&toYmd=&page=&size=20`로 바꾼다. 응답은 `{ summary: { totCnt, scsCnt, tmotCnt, errCnt }, content: [{ extlApiCallLogSn, callRsltCd, failRsn, callDt }], page, size, totalElements, totalPages, hasNext }`로 가짜와 같은 모양이다. 기간은 둘 다 선택(호출일 양끝 포함), `fromYmd`가 `toYmd`보다 뒤면 400 `INVALID_INPUT_VALUE`. 검사결과지가 아닌 파일은 Python이 성공(SYSC0021)으로 통지해 `scsCnt`·`totCnt`에 들어가고 실패 목록에는 없다. 결과 코드 SYSC0021 성공·SYSC0022 실패(API 오류)·SYSC0023 시간초과
 - 이미 바뀐 것: `features/adminProcessing/api.js`(가짜 `getAdminPdfAnalyses`)
 
-## SCR-ADM-110 운영 설정 · 운영 설정 API 연결 — 대기
+## SCR-ADM-110 운영 설정 · 운영 설정 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-110-01~04 (2026-11-10 SCR-ADM-110 절 "연결 남음"에서 옮김)
 - 기다리는 것: 백엔드 `GET`·`PATCH /api/admin/settings`(LJS 백엔드, 있음). 프론트 가짜 주석은 `PUT`이라 맞춘다
 - 완료 조건: `features/setting/api.js` 가짜를 실제 API로 바꿔 운영 설정 조회·저장이 화면에서 동작한다. 400 칸별 오류·403을 화면에 보인다
+- 참고(백엔드 2026-11-10): 서버 운영 설정에서 대시보드 케어 최대 노출 수(`dshbdCareMaxExpsrCnt`)를 지웠다. 응답에 없고 PATCH로 보내도 무시한다. 프론트 화면·가짜에는 원래 이 칸이 없다
+- 결과(2026-11-10): `features/setting/api.js` 실제 `GET`·`PATCH /api/admin/settings`, 묶음별 응답을 `settingFields.js` `resKey`로 읽음, 입력 자릿수를 서버 범위에 맞춤, 탈퇴 회원 보관 기간은 읽기 전용(사람 결정), 수정자 "관리자 #번호". 추가-1 저장 400이면 첫 오류 칸으로 스크롤·포커스. 검증 통과, 사람 확인
 
-## SCR-ADM-001 대시보드 · 이용 통계 API 연결 — 대기
+## SCR-ADM-001 대시보드 · 이용 통계 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-04·05 (2026-11-10 대시보드 연결 절에 빠져 있어 따로 둠)
 - 기다리는 것: 백엔드 `GET /api/admin/dashboard/stats?fromYmd=&toYmd=`(LJS 백엔드, 있음)
 - 완료 조건: `features/adminDashboard/api.js` `getAdminDashboardStats` 가짜를 실제 API로 바꿔 기간을 고르면 이용 통계가 바뀐다. 운영 현황 연결(`getAdminDashboard`)과 같이 해도 된다
+- 결과(2026-11-10): 운영 현황 연결과 같이 함. `getAdminDashboardStats` 실제 `GET /api/admin/dashboard/stats`, 종료일 > 오늘 안내 문구·날짜 칸 `max`, 종·품종·즐겨찾기 빈 문구를 기간 무관 문구로, 종·품종 행 키를 종+품종으로("직접 입력"이 종마다 한 줄). 추가-1 기간 선택 영역이 직접 입력·오류 상태에서도 오른쪽 끝 같은 자리. 검증 통과, 사람 확인
 
-## SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API 연결 — 대기
+## SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-ADM-001-02·03
 - 기다리는 것: 백엔드 SCR-ADM-001 대시보드 · 운영 현황·처리 대기 API(LJS, 끝 2026-11-05). 계약은 백엔드 `docs/api/admin.md` `/admin/dashboard` 행
 - 완료 조건: `features/adminDashboard/api.js`의 `getAdminDashboard` 가짜를 실제 `GET /api/admin/dashboard`로 바꾼다. 필드 이름·모양은 가짜 그대로(`totMbrCnt`·`nrmlMbrCnt`·`stopMbrCnt`·`todayJoinCnt`·`weekJoinCnt`·`totPstCnt`·`recentMbrs[{ mbrSn, mbrNcnm, regDt }]`·`recentPsts[{ pstSn, bbsCd, bbsNm, pstTtl, regDt }]`·`dclrRcptCnt`·`unansInqryCnt`·`pixelInqryCnt`·`charFailCnt`·`ocrFailCnt`·`notiFailCnt`·`btchFailCnt`). 회원 수는 일반 회원만(관리자 계정 제외), 게시글 수·최근 게시글은 관리자 게시글 목록 기본 조건과 같게 삭제 글 포함, 배치 실패는 마지막 실행이 실패한 배치 수. 처리 대기 건수를 누르면 같은 필터의 목록 건수와 같다. 이용 통계(`getAdminDashboardStats`)는 아직 가짜
 - 이미 바뀐 것: `features/adminDashboard/api.js`(가짜 `getAdminDashboard`), SCR-ADM-001 대시보드 화면(끝)
+- 결과(2026-11-10): `getAdminDashboard` 실제 `GET /api/admin/dashboard`, 개발용 `?fake=` 분기 삭제. 처리 대기 5종 건수가 목록 건수와 같음(알림·배치 실패는 0건이라 목록 대조 못 함). 검증 통과, 사람 확인
 
 ## SCR-MAN-001 메인페이지 · 구글 시작 화면형 개편 — 끝
 - 기능: 명세 기능 ID 추가 없음(팀 회의 2026-11-08 개편, 기능명세서·화면설계서 미반영). 걸치는 기능 FN-MAN-001~009(원래 YAY 마일스톤에서 셈). 화면 담당을 YAY에서 LJS로 옮김(`docs/convention/milestone.md` 담당 표 2026-11-08)

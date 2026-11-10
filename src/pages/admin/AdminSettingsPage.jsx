@@ -47,11 +47,11 @@ export default function AdminSettingsPage() {
     <div className="mx-auto max-w-[960px]">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
         <h1 className="text-2xl font-bold text-ink">운영 설정</h1>
-        {/** 마지막 수정 */}
-        {data && (
+        {/** 마지막 수정: 설정 행이 아직 없으면 서버가 주지 않는다. 수정자는 관리자 회원 번호 */}
+        {data?.mdfcnDt && (
           <p className="text-base text-subtle">
-            마지막 수정 {getYmdOf(data.mdfcnDt)} {getHmOf(data.mdfcnDt)} ·{' '}
-            {data.mdfrId}
+            마지막 수정 {getYmdOf(data.mdfcnDt)} {getHmOf(data.mdfcnDt)}
+            {data.mdfrId && ` · 관리자 #${data.mdfrId}`}
           </p>
         )}
       </div>
