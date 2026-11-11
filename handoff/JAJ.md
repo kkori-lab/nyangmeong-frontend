@@ -2,9 +2,10 @@
 
 ## 지금 하는 것
 
-주기 직접입력 일수 1~365 검사·안내 — 끝 (SCR-HLT-003 FN-HLT-003-24, SCR-HLT-005 FN-HLT-005-05, 커밋 11d6e50, 사람 확인 2026-11-11). 기록은 `milestones/JAJ.md` 같은 절
+검사 수치 0 이상·정수 7자리 검사 통일 — 진행, 사람 확인 기다림 (SCR-HLT-005·007, 커밋 ad52dbc). 기획·결과는 `milestones/JAJ.md` 같은 절(사람 작업 지시를 그대로 기획으로 봄)
 
-- 프론트 `대기` 마일스톤 없음, 열린 `연결 남음` 없음
+- 참고범위 문구는 앞말 「참고범위는 」을 그대로 붙여 「참고범위는 정수는 7자리까지 입력할 수 있어요」처럼 읽힌다(지시대로 둠)
+- `1e3` 같은 지수 표기는 이제 「숫자로 입력해 주세요」(백엔드 소수 자릿수 검사와 어긋나지 않게)
 
 ## 결정
 
@@ -61,4 +62,4 @@ v1.4(2026-11-10)와 대조한 뒤 남은 것만 둔다.
 - 지속 관찰: 사진 줄은 전체 회차, 차트는 크기 입력 회차 기준 최신 5개라 어긋날 수 있다(사람 결정). 회차 삭제는 `DEL_YN='Y'`만, 사진 파일은 남는다. 사진 캐시 키 `healthKeys.observationPhoto`(사진을 바꾼 수정만 다시 받음)
 - 그래프: `diary/LineChart.jsx` 선택 속성 `bandLabelSide`·`isLeftColumn`·`activeIndex`·`labelFill`·`isEdgeToEdge`, 말풍선은 가장자리 `TIP_INSET` 안쪽. 체중 범위 태그는 "상한/하한"(시안 "정상범위 최소/최대"와 다름). 390px x축 날짜가 붙는다. 일상 기록은 선택 지표만 `size=5`, 식사량·음수량·산책은 `fromYmd`로 한 번 더
 - 요청 크기: 검진기록 연도 목록은 `size=1` 두 번, 첨부 목록은 서버 최대 50건. 검사 분류(신장·혈구 등)는 `labInput/bloodItems.js`에서 약어로 찾는다. 첨부 썸네일은 `summary/AttachmentImage.jsx`(검진상세 영상검사와 같은 캐시 키), `PhotoModal`은 비공개 이미지를 `children`으로 받는다
-- 실패 아님: `PetBadge`는 정확히 1100px에서 알약만(`max-[1101px]`), 기존 `PetSwitcher`는 1100px에서 카드·알약 둘 다 보인다(이전부터). 검사 수치 입력 1100px 이하에서 알약과 폼 카드 사이 간격 0(사람 확인 끝). 건강 일지 탭은 처음 열 때만 주소 `#`를 읽는다. 폭이 정확히 760px이면 `isLarge` 모달이 기본 크기. 1280px에서 구충제·심장사상충 예방 이름 말줄임. 검사 수치 [직접 입력하기] 뒤에도 `?mode=pdf&atch=`가 남아 새로고침하면 분석이 다시 뜬다. `labInput/ItemSelect.jsx` key `GLU` 겹침 콘솔 경고. `BloodResultForm.jsx`와 `labInput/LabInput.jsx` 입력 검사가 거의 같아 합칠 수 있다
+- 실패 아님: `PetBadge`는 정확히 1100px에서 알약만(`max-[1101px]`), 기존 `PetSwitcher`는 1100px에서 카드·알약 둘 다 보인다(이전부터). 검사 수치 입력 1100px 이하에서 알약과 폼 카드 사이 간격 0(사람 확인 끝). 건강 일지 탭은 처음 열 때만 주소 `#`를 읽는다. 폭이 정확히 760px이면 `isLarge` 모달이 기본 크기. 1280px에서 구충제·심장사상충 예방 이름 말줄임. 검사 수치 [직접 입력하기] 뒤에도 `?mode=pdf&atch=`가 남아 새로고침하면 분석이 다시 뜬다. `labInput/ItemSelect.jsx` key `GLU` 겹침 콘솔 경고. `BloodResultForm.jsx`와 `labInput/LabInput.jsx` 숫자·참고범위 검사는 `numberFormat.js`로 합쳤다(항목·단위 검사는 아직 따로)
