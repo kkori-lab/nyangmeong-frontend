@@ -18,6 +18,7 @@ const WIDE_QUERY = '(min-width: 1100px)';
 
 /** 2차 메뉴와 별개인 보조 메뉴 */
 const ETC_LINKS = [
+  { label: '마이페이지', to: { pathname: PATHS.MYPAGE } },
   { label: '고객센터', to: { pathname: PATHS.NOTICES } },
   { label: '설정', to: { pathname: PATHS.SETTINGS_NOTIFICATIONS } },
 ];
@@ -90,8 +91,8 @@ export default function NavDrawer({ onClose, onLogout }) {
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <Link
-            to={PATHS.MYPAGE}
-            aria-label="마이페이지로 이동"
+            to={PATHS.MYPAGE_PROFILE}
+            aria-label="회원 정보로 이동"
             className="flex items-center gap-4 bg-[#f4f6f6] py-5 pl-8 pr-5"
             onClick={onClose}
           >
