@@ -27,6 +27,7 @@ export const hasOverTwoDecimals = (text) =>
 /** 소수점 표기 숫자만 (1e3·0x10 같은 표기는 숫자로 보지 않음) */
 const PLAIN_NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)$/;
 const MAX_INTEGER = 1e7;
+const INTEGER_MESSAGE = '정수는 7자리까지 입력할 수 있어요';
 
 /**
  * [검사 수치 숫자 검사] (※신규 정책: 0 이상 · 정수 7자리 · 소수 둘째 자리, 백엔드 @Digits(7, 2)·@DecimalMin("0"))
@@ -40,9 +41,7 @@ export const getLabNumberError = (text) => {
   const number = Number(trimmed);
   if (number < 0) return '0 이상으로 입력해 주세요';
   if (hasOverTwoDecimals(trimmed)) return DECIMAL_MESSAGE;
-  if (Math.trunc(number) >= MAX_INTEGER) {
-    return '정수는 7자리까지 입력할 수 있어요';
-  }
+  if (Math.trunc(number) >= MAX_INTEGER) return INTEGER_MESSAGE;
   return null;
 };
 
@@ -59,6 +58,9 @@ export const getLabRangeError = (rangeMin, rangeMax) => {
   }
   const numberError =
     getLabNumberError(rangeMin) || getLabNumberError(rangeMax);
+  if (numberError === INTEGER_MESSAGE) {
+    return '참고범위는 정수 7자리까지 입력할 수 있어요';
+  }
   if (numberError) return `참고범위는 ${numberError}`;
   if (Number(rangeMin) > Number(rangeMax)) {
     return '참고범위 최소는 최대보다 클 수 없어요';

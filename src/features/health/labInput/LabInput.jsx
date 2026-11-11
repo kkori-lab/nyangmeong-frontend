@@ -39,6 +39,19 @@ const EMPTY_FORM = {
 
 const toText = (value) => (value == null ? '' : String(value));
 
+/**
+ * 분석이 읽은 참고범위 (※신규 정책: 분석 참고범위 이상값은 비움)
+ * - 소수 둘째 자리로 반올림한 뒤 입력칸과 같은 규칙(0 이상·정수 7자리·한쪽만 안 됨·최소 ≤ 최대)으로 검사
+ * - 검수 표에는 고칠 칸이 없으므로 어긋나면 최소·최대를 둘 다 비워 보낸다
+ */
+const toAnalyzedRange = (item) => {
+  const refLlmtNvl = round2(item.refLlmtNvl ?? null);
+  const refUplmtNvl = round2(item.refUplmtNvl ?? null);
+  return getLabRangeError(toText(refLlmtNvl), toText(refUplmtNvl))
+    ? { refLlmtNvl: null, refUplmtNvl: null }
+    : { refLlmtNvl, refUplmtNvl };
+};
+
 /** 분석 항목 → 검수 행. 결과값은 입력칸이라 글자로 둔다 */
 const toRows = (items) =>
   items.map((item, index) => {
@@ -50,8 +63,7 @@ const toRows = (items) =>
       rsltNvl: toInputText(item.rsltNvl),
       unitNm: toText(item.unitNm),
       hasUnitInput: !item.unitNm,
-      refLlmtNvl: round2(item.refLlmtNvl ?? null),
-      refUplmtNvl: round2(item.refUplmtNvl ?? null),
+      ...toAnalyzedRange(item),
     };
   });
 
