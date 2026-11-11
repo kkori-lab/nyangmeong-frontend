@@ -10,6 +10,7 @@ import {
 } from '@/components/buttonStyles';
 import FieldError from '../diary/FieldError';
 import { INPUT_CLASS, LABEL_CLASS } from '../diary/formStyles';
+import CharCount from '../shared/CharCount';
 import {
   useCreatePrescription,
   useDeletePrescription,
@@ -115,6 +116,7 @@ export default function PrescriptionForm({
           className={INPUT_CLASS}
           onChange={(event) => setMedNm(event.target.value)}
         />
+        <CharCount value={medNm} max={MAX_MEDICINE_NAME_LENGTH} />
         {isInvalid('name') && <FieldError>약품명을 입력해 주세요</FieldError>}
       </label>
 

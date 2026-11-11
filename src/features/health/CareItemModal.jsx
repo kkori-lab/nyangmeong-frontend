@@ -14,6 +14,7 @@ import {
 import { toCareIcon } from './careIcons';
 import FieldError from './diary/FieldError';
 import FormModal from './diary/FormModal';
+import CharCount from './shared/CharCount';
 import { useCreateCareItem, useUpdateCareItem } from './queries';
 
 // 아이콘 목록과 이름은 퍼블리싱 html/hlt-calendar.html의 관리 항목 추가 모달과 같다
@@ -183,11 +184,7 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
           className={`${inputClass} disabled:bg-[#f4f6f6] disabled:text-[#667374]`}
           onChange={(event) => setCareArtclNm(event.target.value)}
         />
-        {!isBasic && (
-          <span className="self-end text-sm text-subtle tabular-nums">
-            {careArtclNm.length} / {MAX_NAME_LENGTH}
-          </span>
-        )}
+        {!isBasic && <CharCount value={careArtclNm} max={MAX_NAME_LENGTH} />}
       </label>
 
       <fieldset className="flex flex-col gap-1.5">
@@ -254,7 +251,7 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
                     placeholder="예: 10"
                     aria-label="반복 일수"
                     aria-invalid={showDaysError}
-                    className={`${inputClass} pr-16 tabular-nums`}
+                    className={`${inputClass} pr-16 tabular-nums aria-invalid:border-danger`}
                     onChange={(event) =>
                       setCycleDrctInptDayCnt(event.target.value)
                     }
