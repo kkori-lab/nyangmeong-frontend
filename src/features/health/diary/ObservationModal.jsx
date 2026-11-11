@@ -25,6 +25,7 @@ import FormModal from './FormModal';
 import { INPUT_CLASS, LABEL_CLASS, TEXTAREA_CLASS } from './formStyles';
 import ObservationPhoto from './ObservationPhoto';
 import { formatPart } from './observationUtils';
+import CharCount from '../shared/CharCount';
 
 const MAX_ITEM_NAME_LENGTH = 40;
 const MAX_PART_DETAIL_LENGTH = 40;
@@ -199,6 +200,9 @@ export default function ObservationModal({
           className={INPUT_CLASS}
           onChange={(event) => setName(event.target.value)}
         />
+        {isCreateItem && (
+          <CharCount value={name} max={MAX_ITEM_NAME_LENGTH} />
+        )}
         {isInvalid('name') && (
           <FieldError>관찰 항목을 입력해 주세요</FieldError>
         )}
@@ -209,7 +213,7 @@ export default function ObservationModal({
           관찰 부위{REQUIRED}
         </span>
         {isCreateItem ? (
-          <div className="grid grid-cols-2 gap-x-4">
+          <div className="grid grid-cols-2 items-start gap-x-4">
             <DropdownSelect
               label="관찰 부위"
               value={partCd}
@@ -221,14 +225,17 @@ export default function ObservationModal({
               }))}
               onChange={setPartCd}
             />
-            <input
-              value={partDetail}
-              maxLength={MAX_PART_DETAIL_LENGTH}
-              placeholder="세부 위치 (선택)"
-              aria-label="세부 위치 (선택)"
-              className={INPUT_CLASS}
-              onChange={(event) => setPartDetail(event.target.value)}
-            />
+            <div className="flex flex-col gap-1.5">
+              <input
+                value={partDetail}
+                maxLength={MAX_PART_DETAIL_LENGTH}
+                placeholder="세부 위치 (선택)"
+                aria-label="세부 위치 (선택)"
+                className={INPUT_CLASS}
+                onChange={(event) => setPartDetail(event.target.value)}
+              />
+              <CharCount value={partDetail} max={MAX_PART_DETAIL_LENGTH} />
+            </div>
           </div>
         ) : (
           <input
@@ -375,6 +382,7 @@ export default function ObservationModal({
           className={TEXTAREA_CLASS}
           onChange={(event) => setMemo(event.target.value)}
         />
+        <CharCount value={memo} max={MAX_MEMO_LENGTH} />
       </label>
     </FormModal>
   );

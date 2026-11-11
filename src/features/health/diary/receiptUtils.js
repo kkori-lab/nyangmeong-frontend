@@ -7,7 +7,7 @@ import { addDays } from '@/utils/formatDate';
  * - 인식 결과는 AI 서버 영수증 분석 응답의 ocr(hsptlNm·ckupYmd·recptAmt·btmDscntAmt·sections)을 그대로 사용
  */
 
-export const MAX_HOSPITAL_NAME_LENGTH = 50;
+export const MAX_HOSPITAL_NAME_LENGTH = 80;
 export const MAX_CONTENT_LENGTH = 500;
 export const MAX_MEMO_LENGTH = 200;
 export const MAX_DRUG_NAME_LENGTH = 40;

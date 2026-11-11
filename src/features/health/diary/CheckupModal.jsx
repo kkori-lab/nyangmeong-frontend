@@ -17,9 +17,10 @@ import { CHECKUP_TYPES } from '../scheduleTypes';
 import FieldError from './FieldError';
 import FormModal from './FormModal';
 import NearScheduleModal from './NearScheduleModal';
+import CharCount from '../shared/CharCount';
 import { INPUT_CLASS, LABEL_CLASS, TEXTAREA_CLASS } from './formStyles';
 
-const MAX_HOSPITAL_NAME_LENGTH = 50;
+const MAX_HOSPITAL_NAME_LENGTH = 80;
 const MAX_CONTENT_LENGTH = 500;
 const MAX_MEMO_LENGTH = 200;
 
@@ -241,6 +242,7 @@ export default function CheckupModal({
                   className={INPUT_CLASS}
                   onChange={(event) => setHsptlNm(event.target.value)}
                 />
+                <CharCount value={hsptlNm} max={MAX_HOSPITAL_NAME_LENGTH} />
                 {isInvalid('hosp') && (
                   <FieldError>병원명을 입력해 주세요</FieldError>
                 )}
@@ -272,6 +274,7 @@ export default function CheckupModal({
                 className={TEXTAREA_CLASS}
                 onChange={(event) => setCkupCn(event.target.value)}
               />
+              <CharCount value={ckupCn} max={MAX_CONTENT_LENGTH} />
             </label>
 
             <label className="flex flex-col gap-1.5">
@@ -283,6 +286,7 @@ export default function CheckupModal({
                 className={INPUT_CLASS}
                 onChange={(event) => setCkupMemoCn(event.target.value)}
               />
+              <CharCount value={ckupMemoCn} max={MAX_MEMO_LENGTH} />
             </label>
 
             <p className="flex gap-2 rounded-[10px] bg-surface-2 px-4 py-3 text-muted">
