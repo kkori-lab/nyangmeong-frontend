@@ -6,6 +6,19 @@ export const CARE_ZONE = { DAILY: 'HLTC0036', REGULAR: 'HLTC0037' };
 // 케어 주기 공통코드(HLTG15)
 export const CUSTOM_CYCLE = 'HLTC0042';
 
+// 직접입력 일수는 1~365 정수(서버 @Min(1)·@Max(365)와 같음)
+export const MAX_CYCLE_DAYS = 365;
+export const CYCLE_DAYS_ERROR = `1~${MAX_CYCLE_DAYS} 사이 정수로 입력해 주세요`;
+export const isValidCycleDays = (value) => {
+  const days = Number(value);
+  return (
+    String(value).trim() !== '' &&
+    Number.isInteger(days) &&
+    days >= 1 &&
+    days <= MAX_CYCLE_DAYS
+  );
+};
+
 export const CARE_CYCLES = [
   { cd: 'HLTC0038', nm: '1주' },
   { cd: 'HLTC0039', nm: '2주' },

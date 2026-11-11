@@ -1,5 +1,5 @@
 import { Cat, Dog, ImagePlus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from '@/components/Modal';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
@@ -34,14 +34,25 @@ export default function CharacterCreateModal({ pet, onClose }) {
   const [phase, setPhase] = useState('photo');
   const [photo, setPhoto] = useState(null);
   const [photoError, setPhotoError] = useState(null);
+  /** 고른 사진 미리보기 주소: 사진이 바뀌거나 닫히면 해제 */
+  const [photoUrl, setPhotoUrl] = useState(null);
   const { mutate, isPending } = useCreateCharacter();
   const characterImage = useCharacterImage(pet.petSn, 'full');
 
   const colrNm = getColrName(pet);
 
+  useEffect(
+    () => () => {
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
+    },
+    [photoUrl],
+  );
+
   const handlePhotoChange = (event) => {
     const file = event.target.files[0] ?? null;
-    setPhoto(file && !getPhotoError(file) ? file : null);
+    const nextPhoto = file && !getPhotoError(file) ? file : null;
+    setPhoto(nextPhoto);
+    setPhotoUrl(nextPhoto ? URL.createObjectURL(nextPhoto) : null);
     setPhotoError(file ? getPhotoError(file) : null);
   };
 
@@ -181,7 +192,18 @@ export default function CharacterCreateModal({ pet, onClose }) {
             htmlFor="char-photo"
             className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-[1.5px] border-dashed border-line-strong p-6 text-center text-muted hover:border-brand-500 hover:bg-brand-50 hover:text-brand-600"
           >
-            <ImagePlus className="size-9 text-line-strong" aria-hidden="true" />
+            {photoUrl ? (
+              <img
+                src={photoUrl}
+                alt="첨부한 사진"
+                className="max-h-60 max-w-full rounded-md object-contain"
+              />
+            ) : (
+              <ImagePlus
+                className="size-9 text-line-strong"
+                aria-hidden="true"
+              />
+            )}
             <b className="font-semibold">{photo ? photo.name : '사진 첨부'}</b>
             <input
               id="char-photo"
