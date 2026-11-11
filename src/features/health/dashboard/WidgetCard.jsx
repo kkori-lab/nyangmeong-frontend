@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
 import BarChart from '@/components/BarChart';
 import CurveChart from '@/components/CurveChart';
 import Icon from '@/components/Icon';
@@ -16,7 +17,6 @@ import { CARE_ZONE } from '../careDue';
 import { DOSING, FILE_EXT_PDF } from '../checkup/checkupTypes';
 import { getAttachmentFile } from '../checkupApi';
 import ObservationPhoto from '../diary/ObservationPhoto';
-import { SELECT_ARROW_STYLE, SELECT_CLASS } from '../diary/formStyles';
 import { formatDiff, formatPart, formatSize } from '../diary/observationUtils';
 import { STOOL_STATES } from '../diaryTypes';
 import AttachmentImage from '../summary/AttachmentImage';
@@ -274,19 +274,16 @@ function InspectionTrend({ trends, initialInspection }) {
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="shrink-0 text-sm text-subtle">최근 {points.length}회</p>
-        <select
-          aria-label="검사 항목 선택"
+        <DropdownSelect
+          label="검사 항목 선택"
           value={trend.inspNm}
-          className={`${SELECT_CLASS} w-auto! min-w-0 max-w-[60%]`}
-          style={SELECT_ARROW_STYLE}
-          onChange={(event) => setSelectedNm(event.target.value)}
-        >
-          {itemNames.map((name) => (
-            <option key={name} value={name}>
-              [{getFunctionTagName(trends[name].fnctTagCd)}] {name}
-            </option>
-          ))}
-        </select>
+          options={itemNames.map((name) => ({
+            value: name,
+            label: `[${getFunctionTagName(trends[name].fnctTagCd)}] ${name}`,
+          }))}
+          className="max-w-[60%]"
+          onChange={setSelectedNm}
+        />
       </div>
       <ValueRow value={latest} unit={unitNm}>
         <Delta label="지난 검사 대비" delta={delta} unit="" />

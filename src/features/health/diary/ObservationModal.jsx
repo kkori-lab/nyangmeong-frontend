@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { getTodayYmd, getYmdOf } from '@/utils/formatDate';
@@ -15,13 +17,7 @@ import {
 } from '../queries';
 import FieldError from './FieldError';
 import FormModal from './FormModal';
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  SELECT_ARROW_STYLE,
-  SELECT_CLASS,
-  TEXTAREA_CLASS,
-} from './formStyles';
+import { INPUT_CLASS, LABEL_CLASS, TEXTAREA_CLASS } from './formStyles';
 import ObservationPhoto from './ObservationPhoto';
 import { formatPart } from './observationUtils';
 
@@ -207,21 +203,17 @@ export default function ObservationModal({
         </span>
         {isCreateItem ? (
           <div className="grid grid-cols-2 gap-x-4">
-            <select
-              aria-labelledby="obsv-part-label"
+            <DropdownSelect
+              label="관찰 부위"
               value={partCd}
-              aria-invalid={isInvalid('part')}
-              className={SELECT_CLASS}
-              style={SELECT_ARROW_STYLE}
-              onChange={(event) => setPartCd(event.target.value)}
-            >
-              <option value="">대분류 선택</option>
-              {OBSERVATION_PARTS.map((part) => (
-                <option key={part.cd} value={part.cd}>
-                  {part.nm}
-                </option>
-              ))}
-            </select>
+              invalid={isInvalid('part')}
+              placeholder="대분류 선택"
+              options={OBSERVATION_PARTS.map((part) => ({
+                value: part.cd,
+                label: part.nm,
+              }))}
+              onChange={setPartCd}
+            />
             <input
               value={partDetail}
               maxLength={MAX_PART_DETAIL_LENGTH}
@@ -246,13 +238,11 @@ export default function ObservationModal({
 
       <label className="flex flex-col gap-1.5">
         <span className={LABEL_CLASS}>관찰일{REQUIRED}</span>
-        <input
-          type="date"
+        <DatePicker
           value={obsrvYmd}
           max={today}
-          aria-invalid={isInvalid('date')}
-          className={`${INPUT_CLASS} tabular-nums`}
-          onChange={(event) => setObsrvYmd(event.target.value)}
+          invalid={isInvalid('date')}
+          onChange={setObsrvYmd}
         />
         {isInvalid('date') && (
           <FieldError>오늘 이후 날짜는 고를 수 없어요</FieldError>
@@ -353,19 +343,17 @@ export default function ObservationModal({
               className={INPUT_CLASS}
             />
           ) : (
-            <select
+            <DropdownSelect
               value={chgCd}
-              className={SELECT_CLASS}
-              style={SELECT_ARROW_STYLE}
-              onChange={(event) => setChgCd(event.target.value)}
-            >
-              <option value="">선택 안 함</option>
-              {OBSERVATION_CHANGES.map((change) => (
-                <option key={change.cd} value={change.cd}>
-                  {change.nm}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: '', label: '선택 안 함' },
+                ...OBSERVATION_CHANGES.map((change) => ({
+                  value: change.cd,
+                  label: change.nm,
+                })),
+              ]}
+              onChange={setChgCd}
+            />
           )}
         </label>
       </div>

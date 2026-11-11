@@ -6,6 +6,8 @@ import {
   Navigation,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import DatePicker from '@/components/DatePicker';
+import TimeSelect from '@/components/TimeSelect';
 import AutoTextarea from '@/components/AutoTextarea';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import ImageAttach from '@/components/ImageAttach';
@@ -348,26 +350,18 @@ export default function MissingForm({
                 <Required />
               </legend>
               <div className="grid grid-cols-2 gap-8 max-[760px]:grid-cols-1">
-                <input
-                  type="date"
-                  aria-label="목격 날짜"
+                <DatePicker
+                  label="목격 날짜"
                   max={getTodayYmd()}
                   value={values.seenDate}
-                  aria-invalid={Boolean(errors.seen)}
-                  onChange={(event) =>
-                    set({ seenDate: event.target.value }, ['seen'])
-                  }
-                  className={`${INPUT_CLASS} ${borderOf(errors.seen)}`}
+                  invalid={Boolean(errors.seen)}
+                  onChange={(value) => set({ seenDate: value }, ['seen'])}
                 />
-                <input
-                  type="time"
+                <TimeSelect
                   aria-label="목격 시간"
                   value={values.seenTime}
-                  aria-invalid={Boolean(errors.seen)}
-                  onChange={(event) =>
-                    set({ seenTime: event.target.value }, ['seen'])
-                  }
-                  className={`${INPUT_CLASS} ${borderOf(errors.seen)}`}
+                  onChange={(value) => set({ seenTime: value }, ['seen'])}
+                  className={errors.seen ? '[&_button]:border-danger' : ''}
                 />
               </div>
               <FieldError message={errors.seen} />

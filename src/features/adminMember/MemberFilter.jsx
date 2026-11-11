@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DatePicker from '@/components/DatePicker';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import Select from '@/components/Select';
 import {
@@ -75,20 +76,18 @@ export default function MemberFilter({ filter, onSearch }) {
           onChange={(value) => setField('role', value)}
         />
         <div className="flex items-center gap-2 max-[760px]:w-full">
-          <input
-            type="date"
-            aria-label="가입일 시작일"
+          <DatePicker
+            label="가입일 시작일"
             value={draft.bgngYmd}
-            className={`${INPUT_CLASS} tabular-nums min-w-0 flex-1 min-[761px]:w-40`}
-            onChange={(event) => setField('bgngYmd', event.target.value)}
+            onChange={(value) => setField('bgngYmd', value)}
+            className="min-w-0 flex-1 min-[761px]:w-40"
           />
           <span className="text-subtle">~</span>
-          <input
-            type="date"
-            aria-label="가입일 종료일"
+          <DatePicker
+            label="가입일 종료일"
             value={draft.endYmd}
-            className={`${INPUT_CLASS} tabular-nums min-w-0 flex-1 min-[761px]:w-40`}
-            onChange={(event) => setField('endYmd', event.target.value)}
+            onChange={(value) => setField('endYmd', value)}
+            className="min-w-0 flex-1 min-[761px]:w-40"
           />
         </div>
         <button type="submit" className={`${BTN_PRIMARY} max-[760px]:w-full`}>
