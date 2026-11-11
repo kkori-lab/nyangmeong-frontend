@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import useKakaoMap from '@/hooks/useKakaoMap';
 import MissingMap from '../missing/MissingMap';
-import { findDongCenter } from '../missing/placeSearch';
+import { findDongCenter } from '@/utils/placeSearch';
 
 /**
  * 돌봄 장소 지도: 실종센터 지도(MissingMap)와 같은 크기·형태(높이 400px, 반경 원, +/−)
