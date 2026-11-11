@@ -72,7 +72,7 @@ export default function ExpenseGroupList({
         <div key={`${group.expndYmd}-${index}`}>
           <div className={DAY_HEAD}>
             <span>{formatDayHeader(group.expndYmd)}</span>
-            <span>
+            <span className="tabular-nums">
               {formatWon(group.totalAmt)}
               {group.items.length > 1 && ` · ${group.items.length}건`}
             </span>

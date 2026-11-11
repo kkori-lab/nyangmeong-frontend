@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Icon from '@/components/Icon';
 import { useAiModal } from '@/context/aiModal';
 import { useChatModal } from '@/context/chatModal';
 import useScrollLock from '@/hooks/useScrollLock';
@@ -9,7 +8,7 @@ import AiChatScreen from './AiChatScreen';
 /**
  * [AI 매니저 모달] (SCR-COM-007, 모든 폭: 사람 결정 2026-11-11 PC도 새 창 대신 모달)
  * - 헤더 아래 전체 화면, 본문은 `/ai` 새 창과 같은 AiChatScreen
- * - [✕]·Esc·페이지 이동에 닫힘, 다시 열면 새 대화
+ * - 대화 제목 줄 오른쪽 끝 [✕]·Esc·페이지 이동에 닫힘, 다시 열면 새 대화
  * - 여는 연출(useOpenMotion): 메인 검색창에서 열면 검색창이 대화창 입력 자리로 옮겨 가며 대화창으로 바뀌고,
  *   플로팅 버튼에서 열면 오른쪽 아래에서 커진다
  * - 닫는 연출(useCloseWithMotion): [✕]·Esc로 닫을 때 플로팅 버튼에서 연 모달은 오른쪽 아래로 작아지고,
@@ -313,34 +312,17 @@ function AiChatModalPanel({ backdropRef }) {
     <div
       ref={panelRef}
       role="dialog"
-      aria-labelledby="ai-modal-title"
+      aria-label="AI 매니저"
       tabIndex={-1}
       className="fixed inset-x-0 top-16 bottom-0 z-35 flex origin-bottom-right transform-gpu flex-col overflow-hidden bg-white pb-[env(safe-area-inset-bottom)] outline-none"
     >
-      <header className="flex h-16 shrink-0 items-center gap-1 border-b border-line pr-4 pl-5">
-        <h2
-          id="ai-modal-title"
-          className="flex-1 text-xl leading-[1.3] font-bold tracking-[-0.03em] text-ink"
-        >
-          AI 매니저
-        </h2>
-        <button
-          type="button"
-          aria-label="닫기"
-          title="닫기"
-          className="grid size-11 place-items-center rounded-full text-ink-2 hover:bg-surface-3"
-          onClick={close}
-        >
-          <Icon name="close" className="text-2xl" />
-        </button>
-      </header>
-
       <AiChatScreen
         key={openKey}
         initialMessage={firstMessage}
         loadAttachment={loadAttachment}
         onOpenMain={handleOpenMain}
         onOpenCareChat={handleOpenCareChat}
+        onBack={close}
         className="min-h-0 flex-1"
       />
     </div>
@@ -366,7 +348,7 @@ export default function AiChatModal() {
     <>
       <div
         ref={backdropRef}
-        className="fixed inset-0 z-35 bg-[#0f1723]/45"
+        className="fixed inset-x-0 top-16 bottom-0 z-35 bg-[#0f1723]/45"
         aria-hidden="true"
       />
       <AiChatModalPanel backdropRef={backdropRef} />

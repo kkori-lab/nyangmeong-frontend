@@ -112,12 +112,12 @@ function MissionPanel({ pet, isToday }) {
         <p className="mt-3 flex flex-wrap gap-2 text-sm text-muted">
           <span>
             {isToday ? '오늘 획득' : '이날 획득'}{' '}
-            <b className="text-brand-600">
+            <b className="text-brand-600 tabular-nums">
               +{formatPoint(sumGiven(pet.missions))}
             </b>
           </span>
           <span aria-hidden="true">·</span>
-          <span>
+          <span className="tabular-nums">
             남은 미션 {restList.length}개 (+{formatPoint(sumScore(restList))})
           </span>
         </p>
@@ -134,7 +134,7 @@ function MissionPanel({ pet, isToday }) {
                 {mission.msnNm}
               </span>
               <span
-                className={`text-sm font-medium ${isDone ? 'text-brand-600' : 'text-subtle'}`}
+                className={`text-sm font-medium tabular-nums ${isDone ? 'text-brand-600' : 'text-subtle'}`}
               >
                 +{formatPoint(mission.scorPnt)}
               </span>

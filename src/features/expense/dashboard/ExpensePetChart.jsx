@@ -1,7 +1,12 @@
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { formatWon } from '../shared/expenseFormat';
-import { CARD, CARD_BODY, CARD_HEAD, CARD_TITLE } from '../shared/expenseStyles';
+import {
+  CARD,
+  CARD_BODY,
+  CARD_HEAD,
+  CARD_TITLE,
+} from '../shared/expenseStyles';
 
 /** 초기 노출 마릿수 */
 const VISIBLE_PET_COUNT = 4;
@@ -64,7 +69,7 @@ function PetBar({ label, totalAmt, ratio }) {
     <li>
       <p className="mb-1 flex justify-between gap-2 text-sm">
         <span>{label}</span>
-        <span className="text-subtle">
+        <span className="text-subtle tabular-nums">
           {formatWon(totalAmt)} · {ratio}%
         </span>
       </p>

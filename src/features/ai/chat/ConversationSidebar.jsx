@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Menu, Plus, User, X } from 'lucide-react';
-import logo from '@/assets/nm_logo.svg';
 import KebabMenu from '@/components/KebabMenu';
 import Skeleton from '@/components/Skeleton';
 import DeleteConversationModal from './DeleteConversationModal';
@@ -148,8 +147,7 @@ function SidebarPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center justify-between border-b border-[#edf1f1] px-4">
-        <img src={logo} alt="냥멍케어" className="h-8 w-[121px]" />
+      <div className="flex h-16 items-center justify-end border-b border-[#edf1f1] px-4">
         <button
           type="button"
           aria-label={headerButton.label}

@@ -190,7 +190,7 @@ export default function MainShortcuts({ pets, mbrSn }) {
     <>
       <ul
         aria-label="반려동물 바로가기"
-        className="mx-auto flex max-w-[304px] flex-wrap justify-center gap-2 min-[761px]:max-w-[616px]"
+        className="mx-auto flex w-fit max-w-[304px] flex-wrap justify-start gap-2 min-[761px]:max-w-[616px]"
       >
         {tiles.map(({ pet, cd }, index) => {
           const key = shortcutKey({ pet, cd });

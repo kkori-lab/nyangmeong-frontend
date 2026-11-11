@@ -362,7 +362,7 @@ export default function ExpenseHistory({ initialYm }) {
             />
           </MonthNav>
           <p className="flex items-baseline gap-2">
-            <b className="text-page leading-[1.35] font-bold">
+            <b className="text-page leading-[1.35] font-bold tabular-nums">
               {monthTotals ? formatWon(monthTotals.totalExpndAmt) : '-'}
             </b>
             <span className="text-subtle">

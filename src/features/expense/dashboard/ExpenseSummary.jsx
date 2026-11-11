@@ -43,11 +43,11 @@ export default function ExpenseSummary({
           <div>
             <p className="text-muted">이번달 총 지출</p>
             <p className="flex flex-wrap items-baseline gap-2">
-              <b className="text-page leading-[1.35] font-bold">
+              <b className="text-page leading-[1.35] font-bold tabular-nums">
                 {formatWon(totalAmt)}
               </b>
               {hasLimit && (
-                <span className="text-subtle">
+                <span className="text-subtle tabular-nums">
                   / {formatWon(mmExpndLimAmt)}
                 </span>
               )}
