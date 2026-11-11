@@ -289,6 +289,7 @@ function HealthDiaryContent({ mbrSn }) {
             />
             <TodayRecordCard
               petSn={selectedPet.petSn}
+              petBdwg={selectedPet.petBdwg}
               records={records}
               todayYmd={todayYmd}
               isFormOpen={recordForm !== null}
@@ -302,6 +303,7 @@ function HealthDiaryContent({ mbrSn }) {
             <TodayRecordForm
               key={recordForm.token}
               petSn={selectedPet.petSn}
+              petBdwg={selectedPet.petBdwg}
               initialTypeCd={recordForm.typeCd}
               mbrSn={mbrSn}
               widgetIds={widgetIds}
@@ -310,6 +312,7 @@ function HealthDiaryContent({ mbrSn }) {
 
           <RecentRecordTable
             petSn={selectedPet.petSn}
+            petBdwg={selectedPet.petBdwg}
             records={records}
             todayYmd={todayYmd}
           />
