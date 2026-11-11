@@ -30,14 +30,16 @@ const withPetSn = (returnTo, petSn) => {
 
 export default function PetListPage() {
   const { data: pets = [], isPending } = usePets();
-  /** 초대 수락 직후 보여 줄 동물 */
-  const focusPetSn = useLocation().state?.petSn;
+  const [searchParams, setSearchParams] = useSearchParams();
+  /** 메인 바로가기(?edit=petSn)로 연 수정 대상: 주소에서 지운 뒤에도 쓰려고 처음 값만 둔다 */
+  const [editPetSn] = useState(() => Number(searchParams.get('edit')) || null);
+  /** 초대 수락 직후 보여 줄 동물(없으면 바로가기 수정 대상) */
+  const focusPetSn = useLocation().state?.petSn ?? editPetSn;
   const [slideIndex, setSlideIndex] = useState(null);
   /** undefined: 닫힘, null: 등록, 숫자: 해당 petSn 수정 */
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [modalPetSn, setModalPetSn] = useState(() =>
-    searchParams.get('register') === '1' ? null : undefined,
+    searchParams.get('register') === '1' ? null : (editPetSn ?? undefined),
   );
   /** ?register=1로 연 등록 모달이 끝나면 돌아갈 주소(처음 열 때 주소에서 읽는다) */
   const [returnTo, setReturnTo] = useState(() => {
@@ -52,12 +54,18 @@ export default function PetListPage() {
   const [unlinkingPet, setUnlinkingPet] = useState(null);
   const [invitingPet, setInvitingPet] = useState(null);
 
-  /** register·returnTo는 읽은 뒤 주소에서 지운다(새로고침·뒤로 가기에서 다시 열리지 않게) */
+  /** register·returnTo·edit은 읽은 뒤 주소에서 지운다(새로고침·뒤로 가기에서 다시 열리지 않게) */
   useEffect(() => {
-    if (!searchParams.has('register') && !searchParams.has('returnTo')) return;
+    if (
+      !searchParams.has('register') &&
+      !searchParams.has('returnTo') &&
+      !searchParams.has('edit')
+    )
+      return;
     const next = new URLSearchParams(searchParams);
     next.delete('register');
     next.delete('returnTo');
+    next.delete('edit');
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
@@ -119,13 +127,16 @@ export default function PetListPage() {
         />
       )}
       {!isPending && <SentInvitations />}
-      {modalPetSn !== undefined && (
-        <PetFormModal
-          petSn={modalPetSn}
-          onClose={handleModalClose}
-          onCreated={handleCreated}
-        />
-      )}
+      {/* 수정은 목록에 있는 동물만(바로가기로 온 번호가 내 목록에 없으면 열지 않는다) */}
+      {modalPetSn !== undefined &&
+        (modalPetSn === null ||
+          pets.some((pet) => pet.petSn === modalPetSn)) && (
+          <PetFormModal
+            petSn={modalPetSn}
+            onClose={handleModalClose}
+            onCreated={handleCreated}
+          />
+        )}
       {deletingPet && (
         <PetDeleteDialog
           pet={deletingPet}

@@ -153,15 +153,17 @@ function MissionPanel({ pet, isToday }) {
 
 /** todayYmd: 날짜 이동의 오른쪽 끝(미래는 조회하지 않음). ownPets: 주양육 동물 [{ petSn, petNm }], 불러오는 중이면 null */
 /** isPetsError·onRetryPets: 내 반려동물 조회가 실패했을 때 */
+/** initialPetSn: 처음 고를 반려동물(메인 바로가기 ?petSn=). 주양육 동물이 아니거나 없으면 첫 동물 */
 export default function CareMission({
   todayYmd,
   ownPets,
   isPetsError,
   onRetryPets,
   onRegister,
+  initialPetSn,
 }) {
   const [ymd, setYmd] = useState(todayYmd);
-  const [selectedPetSn, setSelectedPetSn] = useState(null);
+  const [selectedPetSn, setSelectedPetSn] = useState(initialPetSn);
   const { data, retry } = useCareMissions(ymd, ownPets ?? []);
 
   if (!ownPets && isPetsError)

@@ -15,7 +15,7 @@ import {
   shortcutKey,
   writeShortcutOrder,
 } from './shortcutOrder';
-import { SHORTCUT_TYPES } from './shortcutTypes';
+import { SHORTCUT_TYPES, shortcutHref } from './shortcutTypes';
 
 const TYPE_BY_CD = Object.fromEntries(
   SHORTCUT_TYPES.map((type) => [type.cd, type]),
@@ -225,7 +225,7 @@ export default function MainShortcuts({ pets, mbrSn }) {
               }`}
             >
               <Link
-                to={`${TYPE_BY_CD[cd].path}?${new URLSearchParams({ petSn: pet.petSn })}`}
+                to={shortcutHref(TYPE_BY_CD[cd], pet.petSn)}
                 draggable={false}
                 className={TILE}
               >
