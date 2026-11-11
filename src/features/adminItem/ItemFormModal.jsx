@@ -1,4 +1,3 @@
-import { ImagePlus } from 'lucide-react';
 import { useId, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
@@ -6,13 +5,12 @@ import Select from '@/components/Select';
 import { showToast } from '@/components/toastStore';
 import Toggle from '@/components/Toggle';
 import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
+import ItemPixelImageField from './ItemPixelImageField';
 import {
-  RECEIPT_ACCEPT,
-  RECEIPT_HELP,
-  validateReceiptFile,
-} from '@/utils/receiptFile';
-import { ItemImage } from './ItemTable';
-import { useCreateAdminItem, useUpdateAdminItem } from './queries';
+  useCreateAdminItem,
+  useCreateItemPixelImage,
+  useUpdateAdminItem,
+} from './queries';
 
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
@@ -41,14 +39,19 @@ function FieldError({ id, message }) {
   );
 }
 
-/** 칸마다 빠졌거나 틀린 값 안내: 없으면 빈 객체 */
-const validate = ({ itemRegnCd, itemNm, needPnt, image, isEdit }) => ({
+/** 픽셀 그림을 만들 때 필요한 부위·이름 안내: 없으면 빈 객체 */
+const validatePixelInputs = ({ itemRegnCd, itemNm }) => ({
   ...(itemRegnCd ? {} : { itemRegnCd: '부위를 골라 주세요' }),
   ...(itemNm.trim() ? {} : { itemNm: '이름을 입력해 주세요' }),
+});
+
+/** 칸마다 빠졌거나 틀린 값 안내: 없으면 빈 객체 */
+const validate = ({ itemRegnCd, itemNm, needPnt, image, isEdit }) => ({
+  ...validatePixelInputs({ itemRegnCd, itemNm }),
   ...(NEED_PNT_PATTERN.test(needPnt.trim())
     ? {}
     : { needPnt: '포인트는 0 이상 정수로 입력해 주세요' }),
-  ...(image || isEdit ? {} : { image: '이미지를 골라 주세요' }),
+  ...(image || isEdit ? {} : { image: '픽셀 그림을 만들어 골라 주세요' }),
 });
 
 /**
@@ -56,6 +59,7 @@ const validate = ({ itemRegnCd, itemNm, needPnt, image, isEdit }) => ({
  * - item이 있으면 그 행 값으로 채운 수정, 없으면 등록
  * - 삭제는 없고 판매를 끄면 판매 중지: 이미 산 회원의 아이템은 남음
  * - [등록]·[저장]을 누르면 칸마다 검사하고, 저장하면 토스트 후 닫음. 실패하면 입력 유지 + 서버 문구
+ * - 이미지는 실사 사진으로 만든 픽셀 그림만 올림(ItemPixelImageField)
  * - 등록 성공 뒤 onCreated({ itemSn, ...보낸 값 }): 화면이 전체 굽기를 시작할지 정함
  */
 export default function ItemFormModal({ item, parts, onClose, onCreated }) {
@@ -67,18 +71,23 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
   const [needPnt, setNeedPnt] = useState(item ? String(item.needPnt) : '');
   const [ntslYn, setNtslYn] = useState(item?.ntslYn ?? true);
   const [bakeHint, setBakeHint] = useState(item?.bakeHint ?? '');
-  /** 새로 고른 이미지: { file, url } */
+  /** 고른 픽셀 그림: { file, url } */
   const [image, setImage] = useState(null);
-  const [imageError, setImageError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  /** [픽셀로 만들기]를 눌렀으면 부위·이름 안내를 보임 */
+  const [isPixelRequested, setIsPixelRequested] = useState(false);
 
   const create = useCreateAdminItem();
   const update = useUpdateAdminItem();
   const save = isEdit ? update : create;
+  const pixelMake = useCreateItemPixelImage();
+  const isBusy = save.isPending || pixelMake.isPending;
 
   const clientErrors = isSubmitted
     ? validate({ itemRegnCd, itemNm, needPnt, image, isEdit })
-    : {};
+    : isPixelRequested
+      ? validatePixelInputs({ itemRegnCd, itemNm })
+      : {};
   // 400 칸별 오류: 클라이언트 안내가 없는 칸에만 서버 문구
   const serverFieldErrors = toFieldErrors(save.error);
   const errors = Object.fromEntries(
@@ -88,24 +97,18 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
     ]),
   );
   const formError = toFormError(save.error, FORM_FIELDS);
-  const imageMessage = imageError || errors.image;
 
   const partOptions = [
     { value: '', label: '부위 선택' },
     ...parts.map(({ comCd, comCdNm }) => ({ value: comCd, label: comCdNm })),
   ];
 
-  const handleImageChange = async (event) => {
-    const [file] = event.target.files;
-    event.target.value = '';
-    if (!file) return;
-    const reason = await validateReceiptFile(file);
-    if (reason) {
-      setImageError(reason);
-      return;
-    }
-    setImageError('');
-    setImage({ file, url: URL.createObjectURL(file) });
+  /** 픽셀 그림을 만들 수 있으면 true, 아니면 부위·이름 안내를 보임 */
+  const handleRequirePixelInputs = () => {
+    setIsPixelRequested(true);
+    return (
+      Object.keys(validatePixelInputs({ itemRegnCd, itemNm })).length === 0
+    );
   };
 
   const handleSaved = () => {
@@ -115,7 +118,7 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (save.isPending) return;
+    if (isBusy) return;
     setIsSubmitted(true);
     const nextErrors = validate({ itemRegnCd, itemNm, needPnt, image, isEdit });
     if (Object.keys(nextErrors).length > 0) return;
@@ -148,14 +151,14 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
       title={isEdit ? '아이템 수정' : '아이템 등록'}
       isWide
       isTop
-      isPending={save.isPending}
+      isPending={isBusy}
       onClose={onClose}
       footer={
         <>
           <button
             type="button"
             className={BTN_SECONDARY}
-            disabled={save.isPending}
+            disabled={isBusy}
             onClick={onClose}
           >
             취소
@@ -164,7 +167,7 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
             type="submit"
             form={formId}
             className={BTN_PRIMARY}
-            disabled={save.isPending}
+            disabled={isBusy}
           >
             {isEdit ? '저장' : '등록'}
           </button>
@@ -207,40 +210,17 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
           />
           <FieldError id={`${formId}-itemNm-error`} message={errors.itemNm} />
         </div>
-        <div>
-          <p className="mb-1.5 text-sm font-semibold text-ink-2">이미지</p>
-          <div className="flex items-center gap-4">
-            {image ? (
-              <img
-                src={image.url}
-                alt="고른 이미지 미리보기"
-                className="size-20 rounded-[6px] bg-surface-2 object-contain"
-              />
-            ) : (
-              isEdit && (
-                <ItemImage item={item} className="size-20 bg-surface-2" />
-              )
-            )}
-            <div>
-              <label
-                htmlFor={`${formId}-image`}
-                className={`${BTN_SECONDARY} cursor-pointer gap-1.5`}
-              >
-                <ImagePlus className="size-4" aria-hidden="true" />
-                {image || isEdit ? '이미지 바꾸기' : '이미지 고르기'}
-              </label>
-              <input
-                id={`${formId}-image`}
-                type="file"
-                accept={RECEIPT_ACCEPT}
-                className="sr-only"
-                onChange={handleImageChange}
-              />
-              <p className="mt-1.5 text-sm text-subtle">{RECEIPT_HELP}</p>
-            </div>
-          </div>
-          <FieldError message={imageMessage} />
-        </div>
+        <ItemPixelImageField
+          formId={formId}
+          item={item}
+          itemRegnCd={itemRegnCd}
+          itemNm={itemNm}
+          image={image}
+          message={errors.image}
+          pixelMake={pixelMake}
+          onImageChange={setImage}
+          onRequireInputs={handleRequirePixelInputs}
+        />
         <div>
           <label
             htmlFor={`${formId}-bakeHint`}
