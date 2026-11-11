@@ -360,8 +360,8 @@ export default function MissingForm({
                 <TimeSelect
                   aria-label="목격 시간"
                   value={values.seenTime}
+                  invalid={Boolean(errors.seen)}
                   onChange={(value) => set({ seenTime: value }, ['seen'])}
-                  className={errors.seen ? '[&_button]:border-danger' : ''}
                 />
               </div>
               <FieldError message={errors.seen} />
