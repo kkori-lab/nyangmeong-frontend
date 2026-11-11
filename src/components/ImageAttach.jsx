@@ -10,6 +10,7 @@ export const MAX_IMAGES = 10;
  * - 서버에서 받아 온 첨부는 file 없이 url도 null일 수 있다(받는 중이거나 실패): 이름만 있는 자리 표시
  * - hint: 안내 문구 위에 덧붙일 한 줄(선택)
  * - max: 올릴 수 있는 장수(선택, 기본 MAX_IMAGES)
+ * - fixedImage: { url, name } 서버가 따로 붙이는 첨부(예: 캐릭터 이미지). 「이미지 추가」 칸 오른쪽에 같은 크기 칸으로 보이고 삭제할 수 없다. 장수(images·max)에는 세지 않는다
  * - 형식·용량 검사는 영수증 업로드와 같은 validateReceiptFile 사용
  * - 미리보기 주소(blob:)는 삭제해도 해제 안 함
  */
@@ -18,6 +19,7 @@ export default function ImageAttach({
   onChange,
   hint,
   max = MAX_IMAGES,
+  fixedImage = null,
 }) {
   const inputId = useId();
   const [errorMessage, setErrorMessage] = useState('');
@@ -114,6 +116,29 @@ export default function ImageAttach({
             <b className="font-semibold">이미지 추가</b>
           </label>
         </li>
+        {fixedImage && (
+          <li className="flex min-w-0 flex-col gap-1.5">
+            <div className="relative aspect-square overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-white">
+              {fixedImage.url ? (
+                <img
+                  src={fixedImage.url}
+                  alt={fixedImage.name}
+                  className="size-full object-contain"
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="grid size-full place-items-center bg-[#eef1f1] text-[#b9c4c4]"
+                >
+                  <ImageIcon size={32} />
+                </span>
+              )}
+            </div>
+            <span className="truncate text-sm leading-[1.4] text-[#566465]">
+              {fixedImage.name}
+            </span>
+          </li>
+        )}
         {images.map((image) => (
           <li key={image.id} className="flex min-w-0 flex-col gap-1.5">
             <div className="group relative aspect-square overflow-hidden rounded-[10px] border border-[#e2e7e7] bg-[#eef1f1]">

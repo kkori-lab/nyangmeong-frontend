@@ -9,6 +9,7 @@ import SkeletonCard from '@/components/SkeletonCard';
 import { INQUIRY_TYPE_PIXEL_CHARACTER } from '@/features/inquiry/api';
 import InquiryForm from '@/features/inquiry/InquiryForm';
 import { useCreateInquiry, useInquiryTypes } from '@/features/inquiry/queries';
+import { useCharacterImage } from '@/hooks/useCharacterImage';
 import { PATHS } from '@/routes/paths';
 
 /**
@@ -33,6 +34,11 @@ export default function InquiryWritePage() {
   const [searchParams] = useSearchParams();
   const types = useInquiryTypes();
   const { mutate, isPending, error } = useCreateInquiry();
+  /** 캐릭터 화면에서 넘어왔으면 자동 첨부될 캐릭터 이미지(미리보기). 새로고침해도 보이게 번호로 다시 받는다 */
+  const characterImage = useCharacterImage(
+    state?.pixelCharSn != null ? state.petSn : null,
+    'full',
+  );
 
   if (types.isPending) {
     return (
@@ -80,6 +86,7 @@ export default function InquiryWritePage() {
       errorMessage={error?.message}
       fieldErrors={error?.fields}
       characterLinked={state?.pixelCharSn != null}
+      characterImage={characterImage}
       onSubmit={handleSubmit}
     />
   );
