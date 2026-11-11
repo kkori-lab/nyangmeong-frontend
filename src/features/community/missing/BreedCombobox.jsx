@@ -133,7 +133,7 @@ export default function BreedCombobox({
           onClick={() => setIsOpen(true)}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
-          className={`block h-10 w-full rounded-md border bg-white pr-11 pl-10 text-base placeholder:text-placeholder hover:border-line-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none ${error ? 'border-danger' : 'border-input-line'}`}
+          className={`block h-10 w-full rounded-md border bg-white pr-11 pl-10 text-base placeholder:text-placeholder hover:border-line-strong focus:border-brand-500 focus:ring-focus focus:outline-none ${error ? 'border-danger' : 'border-input-line'}`}
         />
         <button
           type="button"
@@ -217,7 +217,7 @@ export default function BreedCombobox({
                 typed: '',
               })
             }
-            className={`block h-10 w-full rounded-md border bg-white px-3 text-base placeholder:text-placeholder hover:border-line-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none ${error ? 'border-danger' : 'border-input-line'}`}
+            className={`block h-10 w-full rounded-md border bg-white px-3 text-base placeholder:text-placeholder hover:border-line-strong focus:border-brand-500 focus:ring-focus focus:outline-none ${error ? 'border-danger' : 'border-input-line'}`}
           />
         </div>
       )}

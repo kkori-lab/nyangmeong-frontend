@@ -21,7 +21,7 @@ export default function SearchInput({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-10 w-full rounded-md border border-[#d3dae2] bg-white pr-10 pl-[15px] text-base placeholder:text-[#8c9899]"
+        className="h-10 w-full rounded-md border border-[#d3dae2] bg-white pr-10 pl-[15px] text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-focus"
       />
       <button
         type="submit"
