@@ -49,7 +49,12 @@ const formatDaySummary = (dayRecords) => {
  * - 행을 누르면 그날 기록 수정 모달(오늘의 기록 카드 [오늘 기록 수정하기]와 같은 모달). 상세 표 모달 대신 (※신규 정책)
  * - 640px 미만: 표 대신 "날짜 줄 + 한 줄 요약" 목록 (※신규 정책)
  */
-export default function RecentRecordTable({ petSn, records, todayYmd }) {
+export default function RecentRecordTable({
+  petSn,
+  petBdwg,
+  records,
+  todayYmd,
+}) {
   const [periodDays, setPeriodDays] = useState(DEFAULT_PERIOD);
   const [detailYmd, setDetailYmd] = useState(null);
   const isPc = useMediaQuery('(min-width: 640px)');
@@ -137,6 +142,7 @@ export default function RecentRecordTable({ petSn, records, todayYmd }) {
       {detailYmd !== null && (
         <DayRecordEditModal
           petSn={petSn}
+          petBdwg={petBdwg}
           ymd={detailYmd}
           isToday={detailYmd === todayYmd}
           dayRecords={records.filter(

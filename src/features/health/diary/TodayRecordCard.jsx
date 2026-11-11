@@ -29,6 +29,7 @@ const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
  */
 export default function TodayRecordCard({
   petSn,
+  petBdwg,
   records,
   todayYmd,
   isFormOpen,
@@ -90,6 +91,7 @@ export default function TodayRecordCard({
       {isEditOpen && hasRecords && (
         <DayRecordEditModal
           petSn={petSn}
+          petBdwg={petBdwg}
           ymd={todayYmd}
           isToday
           dayRecords={todayRecords}
