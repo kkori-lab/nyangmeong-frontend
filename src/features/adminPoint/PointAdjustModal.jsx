@@ -305,7 +305,7 @@ export default function PointAdjustModal({ initialMember, onClose }) {
                 value={pnt}
                 aria-invalid={Boolean(errors.pnt)}
                 aria-describedby={`${formId}-pnt-error`}
-                className={INPUT_CLASS}
+                className={`${INPUT_CLASS} tabular-nums`}
                 onChange={(event) => setPnt(event.target.value)}
               />
               <span className="shrink-0 text-base text-ink-2">P</span>

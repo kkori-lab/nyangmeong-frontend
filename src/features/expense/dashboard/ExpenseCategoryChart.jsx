@@ -51,7 +51,9 @@ export default function ExpenseCategoryChart({ stats }) {
                     style={{ background: stat.color }}
                   />
                   <span className="flex-1 text-ink-2">{stat.name}</span>
-                  <b className="font-semibold">{formatWon(stat.totalAmt)}</b>
+                  <b className="font-semibold tabular-nums">
+                    {formatWon(stat.totalAmt)}
+                  </b>
                   <em className="w-10 text-right text-subtle not-italic">
                     {stat.ratio}%
                   </em>

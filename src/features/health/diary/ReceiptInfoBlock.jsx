@@ -60,7 +60,7 @@ export default function ReceiptInfoBlock({
             value={
               tab.amt === '' ? '' : Number(tab.amt).toLocaleString('ko-KR')
             }
-            className={`${INPUT_CLASS} pr-11 text-right ${aiClass(!tab.edited.amt && tab.amt !== '')}`}
+            className={`${INPUT_CLASS} pr-11 text-right tabular-nums ${aiClass(!tab.edited.amt && tab.amt !== '')}`}
             onChange={(event) =>
               onAmountChange(
                 event.target.value

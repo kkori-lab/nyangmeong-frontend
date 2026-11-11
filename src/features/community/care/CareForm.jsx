@@ -531,7 +531,7 @@ export default function CareForm({
                 />
               </div>
               {minWage && (
-                <p className="text-sm text-muted">
+                <p className="text-sm text-muted tabular-nums">
                   시급은 {minWage.lowstHrwgAplcnYr}년 최저시급{' '}
                   {minWage.lowstHrwgAmt.toLocaleString()}원 이상으로 적어 주세요
                 </p>

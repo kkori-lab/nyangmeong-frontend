@@ -102,7 +102,7 @@ export default function ExpenseBulkDeleteDialog({
         <span>
           {rangeText} · {filterLabel}
           <br />
-          <b>
+          <b className="tabular-nums">
             {count}건 · {formatWon(totalAmt)}
           </b>
         </span>

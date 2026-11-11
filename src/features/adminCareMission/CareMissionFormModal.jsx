@@ -76,7 +76,7 @@ function CountField({ id, label, unit, value, error, onChange }) {
           value={value}
           aria-invalid={Boolean(error)}
           aria-describedby={`${id}-error`}
-          className={INPUT_CLASS}
+          className={`${INPUT_CLASS} tabular-nums`}
           onChange={(event) => onChange(event.target.value)}
         />
         <span className="shrink-0 text-base text-ink-2">{unit}</span>

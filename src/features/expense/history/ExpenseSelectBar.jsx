@@ -6,7 +6,8 @@ export default function ExpenseSelectBar({ count, totalAmt, onDelete }) {
   return (
     <div className="sticky bottom-4 z-5 flex items-center justify-between gap-3 rounded-card bg-brand-900 py-3 pr-3 pl-5 text-white shadow-depth-md">
       <span>
-        <b>{count}건</b> 선택 · <b>{formatWon(totalAmt)}</b>
+        <b>{count}건</b> 선택 ·{' '}
+        <b className="tabular-nums">{formatWon(totalAmt)}</b>
       </span>
       <button
         type="button"

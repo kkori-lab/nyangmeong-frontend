@@ -45,7 +45,12 @@ export default function MemberDetailInfo({ member }) {
         member.lastLgnDt ? formatDateTime(member.lastLgnDt) : '—'
       }`,
     ],
-    ['보유 포인트', `${member.hldPnt.toLocaleString()}P`],
+    [
+      '보유 포인트',
+      <span key="hldPnt" className="tabular-nums">
+        {member.hldPnt.toLocaleString()}P
+      </span>,
+    ],
     ['상태', formatStatus(member)],
   ];
 

@@ -67,11 +67,13 @@ export default function PointHistory() {
       <div className="grid grid-cols-2 border-b border-line-soft text-muted">
         <div className="flex items-center justify-between px-6 py-3">
           <span>적립</span>
-          <b className="text-brand-600">{formatSignedPoint(earnTotal)}</b>
+          <b className="text-brand-600 tabular-nums">
+            {formatSignedPoint(earnTotal)}
+          </b>
         </div>
         <div className="flex items-center justify-between border-l border-line-soft px-6 py-3">
           <span>사용</span>
-          <b className="text-ink">{formatSignedPoint(useTotal)}</b>
+          <b className="text-ink tabular-nums">{formatSignedPoint(useTotal)}</b>
         </div>
       </div>
       {/* PC: 카드 높이를 채우고 넘치면 영역 안에서 스크롤 / 앱: 스크롤 없이 5건 + 더보기 */}
@@ -98,7 +100,9 @@ export default function PointHistory() {
               <span className="min-w-0 flex-1 font-semibold">
                 {getTitle(item)}
               </span>
-              <b className={isUse ? 'text-ink-2' : 'text-brand-600'}>
+              <b
+                className={`tabular-nums ${isUse ? 'text-ink-2' : 'text-brand-600'}`}
+              >
                 {formatSignedPoint(item.dlngPnt)}
               </b>
             </li>
