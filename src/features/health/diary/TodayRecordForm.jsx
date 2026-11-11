@@ -14,8 +14,10 @@ import {
   WEIGHT_MAX,
   WEIGHT_MAX_MESSAGE,
   findRecordType,
+  getOnceMaxMessage,
 } from '../diaryTypes';
 import { useCreateDailyRecord, useSaveHealthWidgets } from '../queries';
+import { DECIMAL_MESSAGE, hasOverTwoDecimals } from '../numberFormat';
 import FieldError from './FieldError';
 import { INPUT_CLASS, LABEL_CLASS } from './formStyles';
 
@@ -27,12 +29,14 @@ import { INPUT_CLASS, LABEL_CLASS } from './formStyles';
  *   더 좁으면(모바일) 종류 버튼이 줄 전체를 나눠 채우고, 둘째 줄은 칸이 모자라면 줄바꿈
  * - [신규 정책] 마지막 입력칸에서 Enter를 누르면 등록하기와 같이 등록하고, 등록이 끝나면 값을 비우고
  *   시간을 현재 시각으로 다시 채우고 마지막 입력칸에 커서를 둔다 (화면설계서에 없는 동작)
+ * - petBdwg: 선택된 반려동물의 프로필 체중(kg). 음수량·식사량 1회 상한 계산용 (※신규 정책)
  * - 대시보드에서 고른 매일 기록만 종류로 보임 (※신규 정책, D11). widgetIds가 null(고른 적 없음)이면 5종 모두, [항목 편집] 없음
  * - [항목 편집]: 종류 줄 아래에 매일 기록 5개 칩을 펼침. 칩을 누를 때마다 켜고 끄며 바로 저장(대시보드 기록 항목과 같은 저장소).
  *   마지막으로 켜 둔 하나는 끌 수 없음. [완료]로 접음 (※신규 정책, 2026-11-08)
  */
 export default function TodayRecordForm({
   petSn,
+  petBdwg,
   initialTypeCd,
   mbrSn,
   widgetIds,
@@ -94,12 +98,17 @@ export default function TodayRecordForm({
   };
   const type = typeCd ? findRecordType(typeCd) : null;
   const isStool = typeCd === STOOL;
-  /** 체중 상한 초과는 입력하는 동안 바로 안내하고 등록을 막음 */
-  const isOverWeight = typeCd === WEIGHT && Number(value) > WEIGHT_MAX;
+  /** 체중 상한·산책·음수량·식사량 1회 상한 초과, 소수 셋째 자리 이상은 입력하는 동안 바로 안내하고 등록을 막음 */
+  const valueError = isStool
+    ? null
+    : typeCd === WEIGHT && Number(value) > WEIGHT_MAX
+      ? WEIGHT_MAX_MESSAGE
+      : (getOnceMaxMessage(typeCd, value, petBdwg) ??
+        (hasOverTwoDecimals(value) ? DECIMAL_MESSAGE : null));
   const canSubmit =
     type != null &&
     rcdTm !== '' &&
-    !isOverWeight &&
+    valueError == null &&
     (isStool || (value !== '' && Number(value) > 0));
 
   const handleTypeChange = (nextTypeCd) => {
@@ -135,7 +144,7 @@ export default function TodayRecordForm({
       ref={formRef}
       id="hlt002-record-form"
       className={`rounded-[14px] border border-line bg-white px-6 pt-5 shadow-[0_1px_2px_rgba(26,50,52,0.04)] ${
-        isOverWeight ? 'pb-12' : 'pb-5'
+        valueError ? 'pb-12' : 'pb-5'
       }`}
       onSubmit={handleSubmit}
     >
@@ -147,7 +156,7 @@ export default function TodayRecordForm({
       <div className="@container mt-3">
         <div
           className={`flex flex-col gap-4 @4xl:flex-row @4xl:flex-wrap @4xl:items-end ${
-            isOverWeight ? '@4xl:gap-y-10' : ''
+            valueError ? '@4xl:gap-y-10' : ''
           }`}
         >
           <div className="relative flex flex-col gap-1.5 @4xl:shrink-0">
@@ -248,7 +257,7 @@ export default function TodayRecordForm({
           {type && (
             <div
               className={`flex flex-wrap items-end gap-x-4 @4xl:min-w-0 @4xl:flex-1 @4xl:flex-nowrap ${
-                isOverWeight ? 'gap-y-10' : 'gap-y-4'
+                valueError ? 'gap-y-10' : 'gap-y-4'
               }`}
             >
               <div className="flex min-w-40 flex-1 flex-col gap-1.5">
@@ -287,9 +296,9 @@ export default function TodayRecordForm({
                     </span>
                   </span>
                   {/* 안내가 줄 높이를 늘려 라벨·입력칸 높이가 어긋나지 않게 입력칸 아래에 겹쳐 띄우고, 그만큼 아래 간격을 넓힌다 */}
-                  {isOverWeight && (
+                  {valueError && (
                     <div className="absolute top-full left-0 mt-1 whitespace-nowrap">
-                      <FieldError>{WEIGHT_MAX_MESSAGE}</FieldError>
+                      <FieldError>{valueError}</FieldError>
                     </div>
                   )}
                 </label>

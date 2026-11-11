@@ -6,6 +6,7 @@ import {
   findRecordType,
   findStoolState,
 } from '../diaryTypes';
+import { round2 } from '../numberFormat';
 
 /**
  * [일상 기록 계산]
@@ -14,8 +15,6 @@ import {
 
 /** 건강기록 변화 그래프에 쓰는 최근 기록 수 */
 export const RECENT_RECORD_COUNT = 5;
-
-const roundValue = (value) => Math.round(value * 10) / 10;
 
 const compareRecords = (a, b) => {
   const aKey = a.rcdDt;
@@ -31,10 +30,10 @@ export const pickType = (records, typeCd) =>
     .sort(compareRecords);
 
 const sumValues = (records) =>
-  roundValue(records.reduce((sum, record) => sum + record.rcdNvl, 0));
+  round2(records.reduce((sum, record) => sum + record.rcdNvl, 0));
 
 export const formatAmount = (typeCd, value) =>
-  `${roundValue(value)}${findRecordType(typeCd).unit}`;
+  `${round2(value)}${findRecordType(typeCd).unit}`;
 
 /** 기록 한 건의 표시 값. 배변상태는 상태 이름 */
 export const formatRecordValue = (record) =>
@@ -62,7 +61,7 @@ export const getTrendPoints = (records, typeCd) => {
       recordCount: recent.length,
       points: recent.map((record) => ({
         ymd: getYmdOf(record.rcdDt),
-        value: record.rcdNvl,
+        value: round2(record.rcdNvl),
       })),
     };
   }
@@ -80,7 +79,7 @@ export const getTrendPoints = (records, typeCd) => {
     recordCount: recent.length,
     points: [...sumsByYmd].map(([ymd, value]) => ({
       ymd,
-      value: roundValue(value),
+      value: round2(value),
     })),
   };
 };

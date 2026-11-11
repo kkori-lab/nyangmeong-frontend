@@ -1,3 +1,4 @@
+import { round2 } from '../numberFormat';
 import useElementWidth from './useElementWidth';
 
 const PAD = { left: 8, top: 32, bottom: 34 };
@@ -101,7 +102,7 @@ function Chart({ width, points, formatValue, ariaLabel }) {
         fontSize="14"
         fill="#1e4a4c"
       >
-        평균 {formatValue(Math.round(average * 10) / 10)}
+        평균 {formatValue(round2(average))}
       </text>
     </svg>
   );
