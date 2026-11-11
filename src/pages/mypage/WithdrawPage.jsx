@@ -6,7 +6,6 @@ import { useAiModal } from '@/context/aiModal';
 import { useChatModal } from '@/context/chatModal';
 import WithdrawFlow from '@/features/member/withdraw/WithdrawFlow';
 import { usePets } from '@/features/pet/queries';
-import { closeAiWindow } from '@/hooks/useAiWindow';
 import { closeChatWindow } from '@/hooks/useChatWindow';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
@@ -42,7 +41,6 @@ export default function WithdrawPage() {
 
   /** 탈퇴 완료: 열린 창·모달 닫고 완료 화면으로(로그인 캐시는 완료 화면이 비움) */
   const handleWithdrawn = () => {
-    closeAiWindow();
     closeChatWindow();
     closeChatModal();
     closeAiModal();
