@@ -122,15 +122,6 @@ export const saveActionResult = ({ aiCnvrsRoomSn, tool, status, input }) =>
     input,
   });
 
-const wait = (ms, signal) =>
-  new Promise((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener('abort', () => {
-      clearTimeout(timer);
-      resolve();
-    });
-  });
-
 /** 건강 일지에서 연 영수증 분석의 요청 출처 */
 const OCR_SOURCE_HEALTH = 'AIMC0026';
 /** AI 대화창에서 연 영수증 분석의 요청 출처 */
@@ -204,23 +195,14 @@ export const IMAGE_KIND = {
   ASK: 'ASK',
 };
 
-/** 가짜 판단의 낱말: 앞의 것부터 맞춰 본다 */
-const IMAGE_KIND_WORDS = [
-  [IMAGE_KIND.CHARACTER, ['캐릭터']],
-  [IMAGE_KIND.MEDICAL_RECEIPT, ['진료', '병원', '검진']],
-  [IMAGE_KIND.EXPENSE_RECEIPT, ['가계부', '지출', '사료', '용품']],
-];
-
 /**
- * 첨부 사진+글의 의도 판단 (AI 서버 연결 전 가짜): { kind }
- * - 사진은 보지 않고 함께 보낸 글의 낱말로만 고른다, 모르면 ASK
- * - AI 연결 때 이 함수만 실제 요청으로 바꾼다(file·cnvrsCn·petSn을 보냄)
+ * 첨부 사진+글의 의도 판단 (POST /ai/image-intent, multipart): { kind }
+ * - 글은 공백만이면 보내지 않는다, 판단에만 쓰이고 저장되지 않는다
  */
-export const judgeImageIntent = async ({ cnvrsCn }) => {
-  await wait(400);
-  const text = cnvrsCn ?? '';
-  const matched = IMAGE_KIND_WORDS.find(([, words]) =>
-    words.some((word) => text.includes(word)),
-  );
-  return { kind: matched?.[0] ?? IMAGE_KIND.ASK };
+export const judgeImageIntent = ({ file, cnvrsCn, petSn }) => {
+  const form = new FormData();
+  form.append('file', file);
+  if (cnvrsCn?.trim()) form.append('cnvrsCn', cnvrsCn);
+  if (petSn != null) form.append('petSn', petSn);
+  return aiApi.post('/image-intent', form);
 };

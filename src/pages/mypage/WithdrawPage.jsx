@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import PageSkeleton from '@/components/PageSkeleton';
 import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
+import { useAiModal } from '@/context/aiModal';
 import { useChatModal } from '@/context/chatModal';
 import WithdrawFlow from '@/features/member/withdraw/WithdrawFlow';
 import { usePets } from '@/features/pet/queries';
@@ -19,7 +20,10 @@ function WithdrawSkeleton() {
         <SkeletonCard className="h-[176px] max-md:h-[248px]" />
         <SkeletonCard className="h-[153px] max-md:h-[201px]" />
         <SkeletonCard className="h-[60px] max-md:h-[85px]" />
-        <div aria-hidden="true" className="mt-2 flex gap-2 max-md:flex-col-reverse">
+        <div
+          aria-hidden="true"
+          className="mt-2 flex gap-2 max-md:flex-col-reverse"
+        >
           <Skeleton className="h-[50px] rounded-full md:flex-1" />
           <Skeleton className="h-[50px] rounded-full md:flex-1" />
         </div>
@@ -28,18 +32,20 @@ function WithdrawSkeleton() {
   );
 }
 
-/** 회원탈퇴(SCR-ACC-020). 반려동물 수(pet)와 탈퇴 흐름(member)을 나란히 조립한다 */
+/** 회원탈퇴(SCR-ACC-020): 반려동물 수(pet)와 탈퇴 흐름(member) 조립 */
 export default function WithdrawPage() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { data: pets, isPending, isError: isPetsError } = usePets();
   const { close: closeChatModal } = useChatModal();
+  const { close: closeAiModal } = useAiModal();
 
-  /** 탈퇴 완료: 열린 창을 닫고 완료 화면으로(로그인 캐시는 완료 화면이 비운다) */
+  /** 탈퇴 완료: 열린 창·모달 닫고 완료 화면으로(로그인 캐시는 완료 화면이 비움) */
   const handleWithdrawn = () => {
     closeAiWindow();
     closeChatWindow();
     closeChatModal();
+    closeAiModal();
     navigate(PATHS.WITHDRAW_COMPLETE, {
       replace: true,
       state: { isWithdrawn: true },

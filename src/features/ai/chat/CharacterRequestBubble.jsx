@@ -1,3 +1,4 @@
+import { callName } from '@/utils/josa';
 import PetChoiceChips from './PetChoiceChips';
 
 const bubbleClass =
@@ -51,7 +52,7 @@ export default function CharacterRequestBubble({
   if (characterStatus === 'creating') {
     return (
       <p role="status" className={bubbleClass}>
-        {pet.petNm}의 캐릭터를 요청하고 있어요…
+        {callName(pet.petNm)}의 캐릭터를 요청하고 있어요…
       </p>
     );
   }
@@ -60,8 +61,8 @@ export default function CharacterRequestBubble({
     return (
       <>
         <p role="status" className={bubbleClass}>
-          {pet.petNm}의 캐릭터를 만들고 있어요. 완성되면 캐릭터 화면에서 볼 수
-          있어요.
+          {callName(pet.petNm)}의 캐릭터를 만들고 있어요. 완성되면 캐릭터
+          화면에서 볼 수 있어요.
         </p>
         <button
           type="button"
@@ -100,7 +101,7 @@ export default function CharacterRequestBubble({
   return (
     <>
       <p className={bubbleClass}>
-        이 사진으로 {pet.petNm}의 캐릭터를 만들까요?
+        이 사진으로 {callName(pet.petNm)}의 캐릭터를 만들까요?
       </p>
       {characterStatus === 'ready' && (
         <div className="flex gap-2">

@@ -22,6 +22,7 @@ import {
   getTabId,
 } from '@/features/health/checkup/checkupTypes';
 import { useCheckupDetail, useMyPets } from '@/features/health/queries';
+import { PetBadge } from '@/features/health/shared/PetSwitcher';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 
@@ -113,6 +114,7 @@ function CheckupDetail({ petSn, ckupRcdSn }) {
   const otherSavedCheckups = (state?.savedCheckups ?? []).filter(
     (saved) => saved.ckupRcdSn !== ckupRcdSn,
   );
+  const recordPet = pets?.find((item) => item.petSn === petSn);
 
   const selectTab = (key) => {
     setIsAddOpenOnEnter(false);
@@ -125,7 +127,11 @@ function CheckupDetail({ petSn, ckupRcdSn }) {
   };
 
   return (
-    <SubPageLayout {...LAYOUT_PROPS}>
+    <SubPageLayout
+      {...LAYOUT_PROPS}
+      sideBottom={<PetBadge pet={recordPet} variant="card" />}
+    >
+      <PetBadge pet={recordPet} variant="pill" />
       {otherSavedCheckups.length > 0 && (
         <p role="status" className="flex flex-wrap gap-x-4 gap-y-1">
           {otherSavedCheckups.map((saved) => (

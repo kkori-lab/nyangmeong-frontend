@@ -35,10 +35,9 @@ export const CATEGORIES = [
 
 export const DEFAULT_CATEGORY = 'hospital';
 
-// value는 서버 sort 값
+// value는 서버 sort 값. 추천순(RECOMMEND)은 카카오 정확도순을 이름만 바꾼 것이라 뺐다
 export const SORT_OPTIONS = [
   { label: '거리순', value: 'DISTANCE' },
-  { label: '추천순', value: 'RECOMMEND' },
   { label: '이름순', value: 'NAME' },
 ];
 
@@ -52,12 +51,4 @@ export const JEONJU_AREA = {
   neLot: 127.2,
   cntrLat: 35.832,
   cntrLot: 127.1385,
-};
-
-export const SUGGESTIONS = {
-  hospital: ['24시 동물병원', '야간진료', '가까운 곳'],
-  'pet-friendly': ['대형견 가능', '야외석', '가까운 곳'],
-  hotel: ['CCTV', '가까운 곳'],
-  beauty: ['예약 가능', '가까운 곳'],
-  goods: ['예약 가능', '가까운 곳'],
 };

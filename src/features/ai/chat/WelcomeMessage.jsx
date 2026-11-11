@@ -1,8 +1,9 @@
-import { openInMainWindow } from './openInMainWindow';
+import { useOpenMain } from './aiHost';
 import { shortcutChips } from './shortcutChips';
 
 /** 환영 메시지 */
 export default function WelcomeMessage({ nickname, petNm }) {
+  const openMain = useOpenMain();
   return (
     <section className="mx-auto flex max-w-[820px] flex-col items-center gap-4 text-center">
       <div>
@@ -20,7 +21,7 @@ export default function WelcomeMessage({ nickname, petNm }) {
             key={chip.label}
             type="button"
             className="h-9 rounded-full border border-[#e2e7e7] bg-white px-4 text-base text-[#3d4a4b] hover:bg-[#f4f6f6]"
-            onClick={() => openInMainWindow(chip.path)}
+            onClick={() => openMain(chip.path)}
           >
             {chip.label}
           </button>

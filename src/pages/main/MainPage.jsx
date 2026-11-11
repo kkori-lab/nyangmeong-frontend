@@ -6,6 +6,7 @@ import { pickGreeting } from '@/features/dashboard/greeting';
 import HeroAsk from '@/features/dashboard/HeroAsk';
 import MainShortcuts from '@/features/dashboard/MainShortcuts';
 import { useMyPets } from '@/features/health/queries';
+import { useMe } from '@/features/member/queries';
 import { PATHS } from '@/routes/paths';
 
 /**
@@ -18,6 +19,7 @@ import { PATHS } from '@/routes/paths';
  */
 export default function MainPage() {
   const { data: pets, isError } = useMyPets();
+  const { data: me } = useMe();
   const representativePet =
     pets?.find((pet) => pet.rprsPetYn) ?? pets?.[0] ?? null;
   /** 인사말 시간대는 들어온 시각으로 한 번 정한다(머무는 동안 다시 그려도 그대로) */
@@ -44,7 +46,7 @@ export default function MainPage() {
           </h1>
           <HeroAsk petNm={representativePet?.petNm ?? '우리 아이'} />
           {pets?.length > 0 ? (
-            <MainShortcuts pets={pets} />
+            <MainShortcuts pets={pets} mbrSn={me?.mbrSn} />
           ) : (
             <p className="text-muted">
               {isError

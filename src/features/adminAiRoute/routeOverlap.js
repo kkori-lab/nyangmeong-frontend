@@ -28,7 +28,7 @@ export const findDuplicates = (instKwrdCn, routes, aiRoutMpngSn) =>
 /** 사용 중인 행마다 겹치는 지시어: Map(aiRoutMpngSn -> [{ keyword, count, order }]) */
 export const buildOverlapMap = (routes) => {
   const usedRoutes = routes
-    .filter((route) => route.useYn === 'Y')
+    .filter((route) => route.useYn)
     .sort((a, b) => a.prrtSeq - b.prrtSeq);
 
   /** 지시어별 그 지시어를 가진 행(순서대로) */
