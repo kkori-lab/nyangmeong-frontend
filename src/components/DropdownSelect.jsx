@@ -1,5 +1,5 @@
 import { Check, ChevronDown } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useImperativeHandle, useRef, useState } from 'react';
 
 const ITEM_HEIGHT = 36;
 const LIST_MAX_HEIGHT = 256;
@@ -8,15 +8,18 @@ const LIST_MAX_HEIGHT = 256;
  * 목록을 직접 그리는 셀렉트 (디자인의 custom select)
  * - options: [{ value, label }], 고르지 않았을 때는 placeholder 표시
  * - isPill: 알약형 버튼에 종합 건강기록 히어로와 같은 색(초록 바탕·흰 글자). 목록은 버튼보다 좁아지지 않고 긴 이름만큼 넓어짐
+ * - disabled: 열리지 않고 회색. ref: 버튼에 붙는다(바깥에서 포커스를 줄 때)
  * - 키보드: ↑↓ 이동, Enter·Space 선택, Esc·Tab 닫기. 아래 공간이 모자라면 위로 열림
  */
 export default function DropdownSelect({
+  ref,
   value,
   onChange,
   options,
   placeholder,
   label,
   isPill = false,
+  disabled = false,
   className = '',
 }) {
   const listId = useId();
@@ -26,6 +29,8 @@ export default function DropdownSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [isUp, setIsUp] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+
+  useImperativeHandle(ref, () => buttonRef.current, []);
 
   const selectedIndex = options.findIndex((option) => option.value === value);
   const selected = options[selectedIndex];
@@ -97,16 +102,17 @@ export default function DropdownSelect({
         aria-expanded={isOpen}
         aria-controls={listId}
         aria-activedescendant={isOpen ? `${listId}-${activeIndex}` : undefined}
+        disabled={disabled}
         onClick={() => (isOpen ? close() : open())}
         onKeyDown={handleKeyDown}
-        className={`flex h-10 w-full cursor-pointer items-center border text-left text-base focus:outline-none max-[760px]:h-11 ${
+        className={`flex h-10 w-full cursor-pointer items-center border text-left text-base focus:outline-none disabled:cursor-not-allowed max-[760px]:h-11 ${
           isPill
-            ? `rounded-full border-brand-500 bg-brand-500 pr-10 pl-5 font-semibold text-white hover:bg-brand-600 ${isOpen ? 'shadow-[0_0_0_3px_rgba(249,234,166,0.6)]' : ''}`
-            : `rounded-md bg-white pr-9 pl-3 hover:border-[#b9c4c4] ${isOpen ? 'border-[#285a5c] shadow-[0_0_0_3px_rgba(182,218,172,0.5)]' : 'border-[#d3dae2]'}`
+            ? `rounded-full border-brand-500 bg-brand-500 pr-10 pl-5 font-semibold text-white hover:enabled:bg-brand-600 disabled:opacity-60 ${isOpen ? 'shadow-[0_0_0_3px_rgba(249,234,166,0.6)]' : ''}`
+            : `rounded-md bg-white pr-9 pl-3 hover:enabled:border-[#b9c4c4] disabled:bg-surface-2 ${isOpen ? 'border-[#285a5c] shadow-[0_0_0_3px_rgba(182,218,172,0.5)]' : 'border-[#d3dae2]'}`
         }`}
       >
         <span
-          className={`min-w-0 flex-1 truncate ${isPill ? '' : selected ? 'text-[#1a3234]' : 'text-[#8c9899]'}`}
+          className={`min-w-0 flex-1 truncate ${isPill ? '' : selected && !disabled ? 'text-[#1a3234]' : 'text-[#8c9899]'}`}
         >
           {selected ? selected.label : placeholder}
         </span>
