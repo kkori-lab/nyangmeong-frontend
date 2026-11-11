@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import DropdownSelect from '@/components/DropdownSelect';
 import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
@@ -6,6 +6,7 @@ import { BTN_PRIMARY } from '@/components/buttonStyles';
 import { getNowHm, getTodayYmd, makeDateTime } from '@/utils/formatDate';
 import { DAILY_ITEMS, keepWidgetOrder } from '../dashboard/widgetItems';
 import {
+  FUTURE_TIME_MESSAGE,
   NORMAL_STOOL,
   RECORD_TYPES,
   STOOL,
@@ -15,6 +16,7 @@ import {
   WEIGHT_MAX_MESSAGE,
   findRecordType,
   getOnceMaxMessage,
+  isAfterNow,
 } from '../diaryTypes';
 import { useCreateDailyRecord, useSaveHealthWidgets } from '../queries';
 import { DECIMAL_MESSAGE, hasOverTwoDecimals } from '../numberFormat';
@@ -29,6 +31,7 @@ import { INPUT_CLASS, LABEL_CLASS } from './formStyles';
  *   더 좁으면(모바일) 종류 버튼이 줄 전체를 나눠 채우고, 둘째 줄은 칸이 모자라면 줄바꿈
  * - [신규 정책] 마지막 입력칸에서 Enter를 누르면 등록하기와 같이 등록하고, 등록이 끝나면 값을 비우고
  *   시간을 현재 시각으로 다시 채우고 마지막 입력칸에 커서를 둔다 (화면설계서에 없는 동작)
+ * - 지금(분 단위) 이후 시각은 시간 칸 아래 안내하고 등록을 막음. [등록하기] 순간에도 현재 시각으로 다시 봄 (※신규 정책)
  * - petBdwg: 선택된 반려동물의 프로필 체중(kg). 음수량·식사량 1회 상한 계산용 (※신규 정책)
  * - 대시보드에서 고른 매일 기록만 종류로 보임 (※신규 정책, D11). widgetIds가 null(고른 적 없음)이면 5종 모두, [항목 편집] 없음
  * - [항목 편집]: 종류 줄 아래에 매일 기록 5개 칩을 펼침. 칩을 누를 때마다 켜고 끄며 바로 저장(대시보드 기록 항목과 같은 저장소).
@@ -52,6 +55,8 @@ export default function TodayRecordForm({
   const [isEditOpen, setIsEditOpen] = useState(false);
   const createRecord = useCreateDailyRecord();
   const saveWidgets = useSaveHealthWidgets();
+  /** 다시 그리기만 한다: 시각 검사는 그릴 때마다 현재 시각으로 하므로, 등록 순간 검사 결과를 화면에 맞춘다 */
+  const [, rerender] = useReducer((count) => count + 1, 0);
 
   const isFiltered = widgetIds != null;
   const shownTypeCds = isFiltered
@@ -105,10 +110,21 @@ export default function TodayRecordForm({
       ? WEIGHT_MAX_MESSAGE
       : (getOnceMaxMessage(typeCd, value, petBdwg) ??
         (hasOverTwoDecimals(value) ? DECIMAL_MESSAGE : null));
+  const timeError = isAfterNow(getTodayYmd(), rcdTm)
+    ? FUTURE_TIME_MESSAGE
+    : null;
+  const hasError = valueError != null || timeError != null;
+
+  /** 지금 이후 시각 안내 중에는 시간이 흘러 그 시각이 되면 안내를 걷고 [등록하기]를 켠다 */
+  useEffect(() => {
+    if (timeError == null) return undefined;
+    const timer = setInterval(rerender, 10_000);
+    return () => clearInterval(timer);
+  }, [timeError]);
   const canSubmit =
     type != null &&
     rcdTm !== '' &&
-    valueError == null &&
+    !hasError &&
     (isStool || (value !== '' && Number(value) > 0));
 
   const handleTypeChange = (nextTypeCd) => {
@@ -119,6 +135,11 @@ export default function TodayRecordForm({
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!canSubmit || createRecord.isPending) return;
+    /** 폼을 열어 둔 사이 시간이 흘러도 누르는 순간 기준으로 한 번 더 본다 */
+    if (isAfterNow(getTodayYmd(), rcdTm)) {
+      rerender();
+      return;
+    }
     createRecord.mutate(
       {
         petSn,
@@ -144,7 +165,7 @@ export default function TodayRecordForm({
       ref={formRef}
       id="hlt002-record-form"
       className={`rounded-[14px] border border-line bg-white px-6 pt-5 shadow-[0_1px_2px_rgba(26,50,52,0.04)] ${
-        valueError ? 'pb-12' : 'pb-5'
+        hasError ? 'pb-12' : 'pb-5'
       }`}
       onSubmit={handleSubmit}
     >
@@ -155,9 +176,7 @@ export default function TodayRecordForm({
 
       <div className="@container mt-3">
         <div
-          className={`flex flex-col gap-4 @4xl:flex-row @4xl:flex-wrap @4xl:items-end ${
-            valueError ? '@4xl:gap-y-10' : ''
-          }`}
+          className="flex flex-col gap-4 @4xl:flex-row @4xl:flex-wrap @4xl:items-end"
         >
           <div className="relative flex flex-col gap-1.5 @4xl:shrink-0">
             <span className={LABEL_CLASS}>종류</span>
@@ -208,11 +227,14 @@ export default function TodayRecordForm({
             </div>
           </div>
 
-          {/** 종류 줄 바로 아래 줄. 넓은 칸(한 줄 배치)에서는 맨 뒤로 보내 종류·입력 줄 아래 전체 폭 */}
+          {/** 종류 줄 바로 아래 줄. 넓은 칸(한 줄 배치)에서는 맨 뒤로 보내 종류·입력 줄 아래 전체 폭.
+           *  그때 입력칸 아래 겹쳐 뜬 안내와 부딪히지 않게 안내가 있으면 위를 띄운다(줄 사이 간격을 넓히면 두 줄 배치의 종류·입력 줄 사이도 벌어진다) */}
           {isFiltered && isEditOpen && (
             <div
               id="hlt002-record-edit"
-              className="flex flex-col gap-2 border-l-2 border-brand-100 pl-3 @4xl:order-last @4xl:basis-full"
+              className={`flex flex-col gap-2 border-l-2 border-brand-100 pl-3 @4xl:order-last @4xl:basis-full ${
+                hasError ? '@4xl:mt-6' : ''
+              }`}
             >
               <div
                 role="group"
@@ -256,13 +278,19 @@ export default function TodayRecordForm({
 
           {type && (
             <div
-              className={`flex flex-wrap items-end gap-x-4 @4xl:min-w-0 @4xl:flex-1 @4xl:flex-nowrap ${
-                valueError ? 'gap-y-10' : 'gap-y-4'
+              className={`flex flex-wrap items-end gap-x-4 @4xl:flex-1 @4xl:flex-nowrap ${
+                hasError ? 'gap-y-10' : 'gap-y-4'
               }`}
             >
-              <div className="flex min-w-40 flex-1 flex-col gap-1.5">
+              <div className="relative flex min-w-fit flex-1 flex-col gap-1.5">
                 <span className={LABEL_CLASS}>시간</span>
                 <TimeSelect ref={timeRef} value={rcdTm} onChange={setRcdTm} />
+                {/* 값 칸 안내와 같이 입력칸 아래에 겹쳐 띄운다 */}
+                {timeError && (
+                  <div className="absolute top-full left-0 mt-1 whitespace-nowrap">
+                    <FieldError>{timeError}</FieldError>
+                  </div>
+                )}
               </div>
               {isStool ? (
                 <label className="flex min-w-40 flex-1 flex-col gap-1.5">
