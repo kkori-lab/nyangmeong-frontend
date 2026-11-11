@@ -3,6 +3,7 @@ import FieldError from '../diary/FieldError';
 import FormModal from '../diary/FormModal';
 import { INPUT_CLASS, LABEL_CLASS, TEXTAREA_CLASS } from '../diary/formStyles';
 import { useCreateEtcInspection, useUpdateEtcInspection } from '../queries';
+import CharCount from '../shared/CharCount';
 
 const MAX_NAME_LENGTH = 100;
 const MAX_RESULT_LENGTH = 500;
@@ -75,6 +76,7 @@ export default function EtcInspectionModal({
           className={INPUT_CLASS}
           onChange={(event) => setInspNm(event.target.value)}
         />
+        <CharCount value={inspNm} max={MAX_NAME_LENGTH} />
         {isInvalid('name') && <FieldError>검사명을 입력해 주세요</FieldError>}
       </label>
 
@@ -87,9 +89,7 @@ export default function EtcInspectionModal({
           className={TEXTAREA_CLASS}
           onChange={(event) => setRsltCn(event.target.value)}
         />
-        <span className="self-end text-sm text-subtle tabular-nums">
-          {rsltCn.length} / {MAX_RESULT_LENGTH}
-        </span>
+        <CharCount value={rsltCn} max={MAX_RESULT_LENGTH} />
         {isInvalid('result') && (
           <FieldError>검사 결과를 입력해 주세요</FieldError>
         )}
@@ -103,9 +103,7 @@ export default function EtcInspectionModal({
           className={TEXTAREA_CLASS}
           onChange={(event) => setMemoCn(event.target.value)}
         />
-        <span className="self-end text-sm text-subtle tabular-nums">
-          {memoCn.length} / {MAX_MEMO_LENGTH}
-        </span>
+        <CharCount value={memoCn} max={MAX_MEMO_LENGTH} />
       </label>
     </FormModal>
   );

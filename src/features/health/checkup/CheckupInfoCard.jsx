@@ -7,6 +7,7 @@ import { useUpdateCheckup } from '../queries';
 import CheckupModal from '../diary/CheckupModal';
 import { INPUT_CLASS, TEXTAREA_CLASS } from '../diary/formStyles';
 import { CHECKUP_TYPES } from '../scheduleTypes';
+import CharCount from '../shared/CharCount';
 import { BTN_SM, TEXT_BTN } from './checkupStyles';
 import { findName } from './checkupTypes';
 
@@ -100,22 +101,28 @@ export default function CheckupInfoCard({ checkup, pets }) {
               </div>
             </Row>
             <Row label="검진 내용" htmlFor="info-ckup-cn">
-              <textarea
-                id="info-ckup-cn"
-                value={ckupCn}
-                maxLength={MAX_CONTENT_LENGTH}
-                className={TEXTAREA_CLASS}
-                onChange={(event) => setCkupCn(event.target.value)}
-              />
+              <div className="flex flex-col gap-1.5">
+                <textarea
+                  id="info-ckup-cn"
+                  value={ckupCn}
+                  maxLength={MAX_CONTENT_LENGTH}
+                  className={TEXTAREA_CLASS}
+                  onChange={(event) => setCkupCn(event.target.value)}
+                />
+                <CharCount value={ckupCn} max={MAX_CONTENT_LENGTH} />
+              </div>
             </Row>
             <Row label="검진 메모" htmlFor="info-ckup-memo">
-              <input
-                id="info-ckup-memo"
-                value={ckupMemoCn}
-                maxLength={MAX_MEMO_LENGTH}
-                className={INPUT_CLASS}
-                onChange={(event) => setCkupMemoCn(event.target.value)}
-              />
+              <div className="flex flex-col gap-1.5">
+                <input
+                  id="info-ckup-memo"
+                  value={ckupMemoCn}
+                  maxLength={MAX_MEMO_LENGTH}
+                  className={INPUT_CLASS}
+                  onChange={(event) => setCkupMemoCn(event.target.value)}
+                />
+                <CharCount value={ckupMemoCn} max={MAX_MEMO_LENGTH} />
+              </div>
             </Row>
           </dl>
           <div className="mt-4 flex justify-end gap-2">

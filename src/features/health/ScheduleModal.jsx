@@ -17,10 +17,11 @@ import {
   useDeleteSchedule,
   useUpdateSchedule,
 } from './queries';
+import CharCount from './shared/CharCount';
 
-const MAX_HOSPITAL_NAME_LENGTH = 50;
+const MAX_HOSPITAL_NAME_LENGTH = 80;
 const MAX_SCHEDULE_NAME_LENGTH = 40;
-const MAX_MEMO_LENGTH = 200;
+const MAX_MEMO_LENGTH = 500;
 
 const toForm = (schedule, defaultPetSn, defaultYmd) => ({
   petSn: schedule?.petSn ?? defaultPetSn ?? null,
@@ -283,6 +284,10 @@ export default function ScheduleModal({
                       setField('hsptlNm', event.target.value)
                     }
                   />
+                  <CharCount
+                    value={form.hsptlNm}
+                    max={MAX_HOSPITAL_NAME_LENGTH}
+                  />
                   <FieldError message={fieldError('hsptlNm')} />
                 </label>
               </div>
@@ -298,6 +303,10 @@ export default function ScheduleModal({
                 className={inputClass}
                 onChange={(event) => setField('schdlNm', event.target.value)}
               />
+              <CharCount
+                value={form.schdlNm}
+                max={MAX_SCHEDULE_NAME_LENGTH}
+              />
               <FieldError message={fieldError('schdlNm')} />
             </label>
           )}
@@ -310,6 +319,7 @@ export default function ScheduleModal({
               className={inputClass}
               onChange={(event) => setField('memoCn', event.target.value)}
             />
+            <CharCount value={form.memoCn} max={MAX_MEMO_LENGTH} />
             <FieldError message={fieldError('memoCn')} />
           </label>
 

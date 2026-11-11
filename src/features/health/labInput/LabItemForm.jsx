@@ -1,6 +1,7 @@
 import FieldError from '../diary/FieldError';
 import { INPUT_CLASS, LABEL_CLASS } from '../diary/formStyles';
 import { LAB_NUMBER_MAX_LENGTH } from '../numberFormat';
+import CharCount from '../shared/CharCount';
 import ItemSelect, { DIRECT } from './ItemSelect';
 
 const MAX_DIRECT_LENGTH = 40;
@@ -62,6 +63,9 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
             onChange={(event) => onChange('directNm', event.target.value)}
           />
         )}
+        {isDirect && !isEdit && (
+          <CharCount value={form.directNm} max={MAX_DIRECT_LENGTH} />
+        )}
         <p className="text-sm/[1.5] text-muted">
           {isEdit
             ? '수정할 때는 검사 항목을 바꿀 수 없어요'
@@ -92,6 +96,7 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
             className={INPUT_CLASS}
             onChange={(event) => onChange('unit', event.target.value)}
           />
+          <CharCount value={form.unit} max={MAX_UNIT_LENGTH} />
           {errors.unit && <FieldError>{errors.unit}</FieldError>}
         </label>
       </div>
@@ -132,6 +137,7 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
           className={INPUT_CLASS}
           onChange={(event) => onChange('memo', event.target.value)}
         />
+        <CharCount value={form.memo} max={MAX_MEMO_LENGTH} />
       </label>
     </div>
   );
