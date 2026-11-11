@@ -72,6 +72,15 @@ export const saveAdminItemOrder = ({ itemRegnCd, itemSns }) =>
   api.put('/admin/items/order', { itemRegnCd, itemSns });
 
 /**
+ * 실사 사진으로 픽셀 아이템 그림 만들기(AI 서버): multipart(image·regnCd·itemNm)
+ * 256×256 투명 배경 PNG Blob, 30~40초, 부를 때마다 이미지 1장 과금, 서버에 저장하지 않음
+ */
+export const createItemPixelImage = ({ image, regnCd, itemNm }) =>
+  aiApi.post('/items/pixel-image', toItemForm({ image, regnCd, itemNm }), {
+    responseType: 'blob',
+  });
+
+/**
  * 전체 굽기 한 묶음(AI 서버): 아직 안 구운 캐릭터를 최대 13개 굽고 답함(약 30초)
  * { itemSn, bakedCnt, failedCnt, lastYn }, lastYn이 false면 다시 부름
  */
