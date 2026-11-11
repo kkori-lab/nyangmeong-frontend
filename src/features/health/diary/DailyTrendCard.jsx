@@ -12,6 +12,7 @@ import {
   findStoolState,
 } from '../diaryTypes';
 import { useDailyTrend, usePetDetail } from '../queries';
+import { round2 } from '../numberFormat';
 import BarChart from './BarChart';
 import CountBars from './CountBars';
 import EmptyBox from './EmptyBox';
@@ -206,7 +207,7 @@ function TrendBody({ pet, goalBdwg, trend, type, isPc, onAddRecord }) {
       }
       goal={isWeight ? goalBdwg : undefined}
       formatValue={(value) => formatAmount(type.cd, value)}
-      formatTag={(value) => value.toFixed(1)}
+      formatTag={round2}
       isLeftColumn={!isPc}
       ariaLabel={`${type.nm} 변화 선그래프 · ${summary}`}
     />

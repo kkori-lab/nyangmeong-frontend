@@ -13,6 +13,11 @@ import {
   useCreateObservationItem,
   useUpdateObservationCycle,
 } from '../queries';
+import {
+  DECIMAL_MESSAGE,
+  hasOverTwoDecimals,
+  toInputText,
+} from '../numberFormat';
 import FieldError from './FieldError';
 import FormModal from './FormModal';
 import {
@@ -68,7 +73,7 @@ export default function ObservationModal({
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [photoError, setPhotoError] = useState('');
-  const [size, setSize] = useState(cycle?.obsrvSz ?? '');
+  const [size, setSize] = useState(toInputText(cycle?.obsrvSz));
   const [chgCd, setChgCd] = useState(cycle?.obsrvChgCd ?? '');
   const [memo, setMemo] = useState(cycle?.memoCn ?? '');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -97,6 +102,8 @@ export default function ObservationModal({
     part: isCreateItem && partCd === '',
     date: obsrvYmd === '' || obsrvYmd > today,
     photo: file === null && !isEdit,
+    /** 폼이 noValidate라 step이 막지 못해 코드로 검사 */
+    size: hasOverTwoDecimals(size),
   };
   const hasError = Object.values(errors).some(Boolean);
   const isInvalid = (field) => isSubmitted && errors[field];
@@ -331,7 +338,7 @@ export default function ObservationModal({
             <input
               type="number"
               min="0"
-              step="0.1"
+              step="0.01"
               inputMode="decimal"
               value={size}
               placeholder="선택 입력"
@@ -342,6 +349,7 @@ export default function ObservationModal({
               mm
             </span>
           </span>
+          {isInvalid('size') && <FieldError>{DECIMAL_MESSAGE}</FieldError>}
         </label>
         <label className="flex flex-col gap-1.5">
           <span className={LABEL_CLASS}>변화{OPTIONAL}</span>

@@ -15,6 +15,7 @@ import {
   findRecordType,
 } from '../diaryTypes';
 import { useCreateDailyRecord, useSaveHealthWidgets } from '../queries';
+import { DECIMAL_MESSAGE, hasOverTwoDecimals } from '../numberFormat';
 import FieldError from './FieldError';
 import {
   INPUT_CLASS,
@@ -98,12 +99,18 @@ export default function TodayRecordForm({
   };
   const type = typeCd ? findRecordType(typeCd) : null;
   const isStool = typeCd === STOOL;
-  /** 체중 상한 초과는 입력하는 동안 바로 안내하고 등록을 막음 */
-  const isOverWeight = typeCd === WEIGHT && Number(value) > WEIGHT_MAX;
+  /** 체중 상한 초과·소수 셋째 자리 이상은 입력하는 동안 바로 안내하고 등록을 막음 */
+  const valueError = isStool
+    ? null
+    : typeCd === WEIGHT && Number(value) > WEIGHT_MAX
+      ? WEIGHT_MAX_MESSAGE
+      : hasOverTwoDecimals(value)
+        ? DECIMAL_MESSAGE
+        : null;
   const canSubmit =
     type != null &&
     rcdTm !== '' &&
-    !isOverWeight &&
+    valueError == null &&
     (isStool || (value !== '' && Number(value) > 0));
 
   const handleTypeChange = (nextTypeCd) => {
@@ -139,7 +146,7 @@ export default function TodayRecordForm({
       ref={formRef}
       id="hlt002-record-form"
       className={`rounded-[14px] border border-line bg-white px-6 pt-5 shadow-[0_1px_2px_rgba(26,50,52,0.04)] ${
-        isOverWeight ? 'pb-12' : 'pb-5'
+        valueError ? 'pb-12' : 'pb-5'
       }`}
       onSubmit={handleSubmit}
     >
@@ -151,7 +158,7 @@ export default function TodayRecordForm({
       <div className="@container mt-3">
         <div
           className={`flex flex-col gap-4 @4xl:flex-row @4xl:flex-wrap @4xl:items-end ${
-            isOverWeight ? '@4xl:gap-y-10' : ''
+            valueError ? '@4xl:gap-y-10' : ''
           }`}
         >
           <div className="relative flex flex-col gap-1.5 @4xl:shrink-0">
@@ -252,7 +259,7 @@ export default function TodayRecordForm({
           {type && (
             <div
               className={`flex flex-wrap items-end gap-x-4 @4xl:min-w-0 @4xl:flex-1 @4xl:flex-nowrap ${
-                isOverWeight ? 'gap-y-10' : 'gap-y-4'
+                valueError ? 'gap-y-10' : 'gap-y-4'
               }`}
             >
               <div className="flex min-w-40 flex-1 flex-col gap-1.5">
@@ -295,9 +302,9 @@ export default function TodayRecordForm({
                     </span>
                   </span>
                   {/* 안내가 줄 높이를 늘려 라벨·입력칸 높이가 어긋나지 않게 입력칸 아래에 겹쳐 띄우고, 그만큼 아래 간격을 넓힌다 */}
-                  {isOverWeight && (
+                  {valueError && (
                     <div className="absolute top-full left-0 mt-1 whitespace-nowrap">
-                      <FieldError>{WEIGHT_MAX_MESSAGE}</FieldError>
+                      <FieldError>{valueError}</FieldError>
                     </div>
                   )}
                 </label>

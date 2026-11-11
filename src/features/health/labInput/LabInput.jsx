@@ -11,6 +11,12 @@ import {
 import { getInspectionName } from '../checkup/checkupTypes';
 import AnalysisReview from './AnalysisReview';
 import { findBloodItem } from './bloodItems';
+import {
+  DECIMAL_MESSAGE,
+  hasOverTwoDecimals,
+  round2,
+  toInputText,
+} from '../numberFormat';
 import { DIRECT } from './ItemSelect';
 import LabItemForm from './LabItemForm';
 import {
@@ -43,11 +49,11 @@ const toRows = (items) =>
       key: `${name}-${index}`,
       name,
       isBlood: !item.isNonBlood,
-      rsltNvl: toText(item.rsltNvl),
+      rsltNvl: toInputText(item.rsltNvl),
       unitNm: toText(item.unitNm),
       hasUnitInput: !item.unitNm,
-      refLlmtNvl: item.refLlmtNvl ?? null,
-      refUplmtNvl: item.refUplmtNvl ?? null,
+      refLlmtNvl: round2(item.refLlmtNvl ?? null),
+      refUplmtNvl: round2(item.refUplmtNvl ?? null),
     };
   });
 
@@ -57,10 +63,10 @@ const toEditForm = (item) => {
   return {
     item: findBloodItem(name) ? name : DIRECT,
     directNm: findBloodItem(name) ? '' : name,
-    val: toText(item.rsltNvl),
+    val: toInputText(item.rsltNvl),
     unit: toText(item.unitNm),
-    rangeMin: toText(item.refLlmtNvl),
-    rangeMax: toText(item.refUplmtNvl),
+    rangeMin: toInputText(item.refLlmtNvl),
+    rangeMax: toInputText(item.refUplmtNvl),
     memo: toText(item.memoCn),
   };
 };
@@ -150,6 +156,11 @@ export default function LabInput({
         .filter((row) => row.unitNm.trim() === '')
         .map((row) => row.name)
     : [];
+  const decimalErrorNames = isSubmitted
+    ? savableRows
+        .filter((row) => hasOverTwoDecimals(row.rsltNvl))
+        .map((row) => row.name)
+    : [];
 
   /** PDF 분석 중에는 입력칸이 선택 사항: 아무것도 넣지 않았으면 검사 생략 */
   const isFormUsed =
@@ -175,6 +186,7 @@ export default function LabInput({
     }
     if (form.val.trim() === '') errors.val = '검사 결과값을 입력해 주세요';
     else if (!isNumber(form.val)) errors.val = '숫자로 입력해 주세요';
+    else if (hasOverTwoDecimals(form.val)) errors.val = DECIMAL_MESSAGE;
     if (form.unit.trim() === '') errors.unit = '단위를 입력해 주세요';
     if (hasOneSideRange) {
       errors.range = '참고범위는 최소·최대를 함께 입력하거나 둘 다 비워 주세요';
@@ -188,6 +200,11 @@ export default function LabInput({
       Number(form.rangeMin) > Number(form.rangeMax)
     ) {
       errors.range = '참고범위 최소는 최대보다 클 수 없어요';
+    } else if (
+      hasOverTwoDecimals(form.rangeMin) ||
+      hasOverTwoDecimals(form.rangeMax)
+    ) {
+      errors.range = `참고범위는 ${DECIMAL_MESSAGE}`;
     }
     return errors;
   };
@@ -215,7 +232,9 @@ export default function LabInput({
     setIsSubmitted(true);
     const hasFormError = Object.keys(formErrors).length > 0;
     const hasRowError = savableRows.some((row) => row.unitNm.trim() === '');
-    const hasRowNumberError = savableRows.some((row) => !isNumber(row.rsltNvl));
+    const hasRowNumberError = savableRows.some(
+      (row) => !isNumber(row.rsltNvl) || hasOverTwoDecimals(row.rsltNvl),
+    );
     if (hasFormError || hasRowError || hasRowNumberError) return;
 
     const rangeOf = (min, max) => ({
@@ -286,6 +305,7 @@ export default function LabInput({
           rows={rows}
           registeredNames={registeredNames}
           unitErrorNames={unitErrorNames}
+          decimalErrorNames={decimalErrorNames}
           analysisError={analysisError}
           isAnalyzing={analyzeLabPdf.isPending}
           onChangeRow={changeRow}

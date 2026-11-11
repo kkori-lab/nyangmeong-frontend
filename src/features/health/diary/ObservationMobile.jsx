@@ -3,6 +3,7 @@ import Badge from '@/components/Badge';
 import Icon from '@/components/Icon';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDate, formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
+import { round2 } from '../numberFormat';
 import LineChart from './LineChart';
 import ObservationPhoto from './ObservationPhoto';
 import {
@@ -260,7 +261,7 @@ export function ObservationMobileDetail({
               value: target.obsrvSz,
             }))}
             formatValue={formatSize}
-            formatTag={(value) => value.toFixed(1)}
+            formatTag={round2}
             activeIndex={activePoint >= 0 ? activePoint : null}
             ariaLabel={`크기 변화 선그래프 · ${sizedCycles
               .map((target) => formatSize(target.obsrvSz))

@@ -2,7 +2,28 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-002 건강 일지 · 체중 200kg 상한 안내(FN-HLT-002-11, 추가-1 안내 겹쳐 띄우기) (2026-11-11). 프론트 `대기` 마일스톤 없음, 열린 `연결 남음` 없음
+건강기록 수치 소수 둘째 자리 입력·표시 통일 — 사람 확인 대기 (요청 2026-11-11, 회의 결정 "전체 수치는 소수 둘째 자리까지 입력·표시", ※신규 정책)
+
+`/start` 기획 없이 사람의 작업 지시로 바로 진행함. 직전 끝난 것: SCR-HLT-002 체중 200kg 상한 안내(2026-11-11)
+
+- 규칙: 최대 소수 둘째 자리, 끝의 0 없음(1.4673 → 1.47, 15.5 → 15.5, 12 → 12). 입력은 셋째 자리부터 「소수 둘째 자리까지 입력해 주세요」, 저장 요청 없음
+- 함수: `src/features/health/numberFormat.js`(새 파일) `round2`·`toInputText`·`hasOverTwoDecimals`·`DECIMAL_MESSAGE`. 기존 `recordUtils.js` `roundValue`, `WidgetCard.jsx` `round1`, 관찰 `toFixed(1)`은 없앰
+- 수정 파일(+148 −53)
+  - 표시: `diary/recordUtils.js`·`observationUtils.js`·`BarChart.jsx`·`DailyTrendCard.jsx`·`ObservationDetail.jsx`·`ObservationMobile.jsx`, `dashboard/WidgetCard.jsx`, `summary/summaryUtils.js`·`SummaryBanner.jsx`, `checkup/BloodResultList.jsx`(▲▼는 반올림한 결과·참고범위끼리 비교)
+  - 입력: `diary/TodayRecordForm.jsx`([등록하기] 끄고 입력칸 아래 안내), `diary/DayRecordEditModal.jsx`(처음 값 반올림, `validateDraft`), `diary/ObservationModal.jsx`(처음 값 반올림, noValidate라 코드 검사, `step="0.01"`), `labInput/LabInput.jsx`·`AnalysisReview.jsx`(수정·PDF 검수 값 반올림, 결과값·참고범위·검수 행 검사), `checkup/BloodResultForm.jsx`(검진상세 [＋ 검사 수치 추가], 지시 목록 밖이지만 같은 검사 수치 입력이라 포함)
+- 완료 조건 결과(2026-11-11, tester·까미, Playwright)
+  1. 통과: 식사량 280.617 → 타일·표·그래프 280.62g, 수정 모달 입력칸 280.62(10-01 기록이 14일 표 밖이라 응답을 가로채 오늘 날짜로 넣어 확인, DB 변경 없음)
+  2. 통과: 확인용 2회차를 크기 1.25로 새로 저장(POST 201) → 목록 「1.25mm ▲0.25」, 상세 1.25mm → 그 회차 삭제(DELETE 200, 1회차 1mm만 남음)
+  3. 통과: 검진 4 CREA 1.47 mg/dL·참고범위 0.5~1.8·▲ 없음. 종합 건강기록 요약 띠 0.71, 검사 수치 카드 1.47 → 0.71, 식사량 303.19 등
+  4. 통과: 체중 4.231(오늘 기록하기·수정 모달), 관찰 크기 1.255, 검사 결과 1.255(검사 수치 추가·수정 화면) → 안내, 저장 요청 없음. 체중 4.23 저장 확인 후 삭제, 관찰 크기 1.25는 2번
+  5. 미확인: PDF 분석 검수(AI 서버 꺼져 있음)
+  6. 통과: `yarn -s lint`·`yarn -s build` 0, 새로고침 뒤 새 콘솔 오류 없음(기존 404 캐릭터 이미지·관찰 사진만)
+  - 390: 오늘 기록하기 안내 한 줄·[등록하기]와 안 겹침, 관찰 모달 안내는 칸 폭에서 두 줄로 접히지만 크기·변화 입력칸 줄 맞음, 검사 수치 추가 안내 안 겹침, 가로 넘침 없음
+- 미확인: 검사 결과 둘째 자리 값 저장(시도 안 함), PDF 분석 검수
+- 알아 둘 것: 셋째 자리 값이 저장된 관찰 회차·검사 수치를 수정 화면에서 그대로 저장하면 반올림 값이 서버로 감(일상 기록 수정 모달은 안 바뀐 줄을 안 보냄). 크기 `1.0mm`는 이제 `1mm`
+- 다른 도메인(고치지 않음, 담당에 전달): `utils/petFormat.js` `formatWeight`(`features/pet/list/PetSlide.jsx` 358·437행), `features/pet/list/PetFormModal.jsx` 체중 4칸 입력 검사 없음, `features/ai/shared/actionFields.js` → `features/ai/chat/ActionCard.jsx` 값 표시
+- 추가 작업(요청 2026-11-11): 같은 날 체중 2건이면 나던 중복 key 경고 → `components/CurveChart.jsx` 77행 점 key를 `${labels[i]}-${i}`로(날짜 글자·band key는 그대로). 까미(11.09·11.10 각 2건) 경고 없음, 날짜 11.09·11.09·11.10·11.10·11.11 그대로, 탄이 → 까미로 바꿔도 점 4개 → 5개 맞음, lint·build 0
+- 프론트 `대기` 마일스톤 없음, 열린 `연결 남음` 없음
 
 ## 결정
 

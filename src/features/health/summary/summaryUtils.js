@@ -1,6 +1,7 @@
 import { generatePath } from 'react-router-dom';
 import { PATHS } from '@/routes/paths';
 import { FUNCTION_TAGS, findName } from '../checkup/checkupTypes';
+import { round2 } from '../numberFormat';
 import { CHECKUP_TYPES, TONE_CLASSES } from '../scheduleTypes';
 
 /**
@@ -18,12 +19,12 @@ export const getCheckupType = (ckupTypeCd) => {
 export const getFunctionTagName = (fnctTagCd) =>
   findName(FUNCTION_TAGS, fnctTagCd);
 
-/** 참고범위 "0.5 ~ 1.6". 한쪽이 없으면 있는 쪽만 */
+/** 참고범위 "0.5 ~ 1.6". 한쪽이 없으면 있는 쪽만. 소수 둘째 자리까지 */
 export const formatRange = (refMinVal, refMaxVal, separator = ' ~ ') => {
   if (refMinVal == null && refMaxVal == null) return '-';
-  if (refMinVal == null) return `${refMaxVal} 이하`;
-  if (refMaxVal == null) return `${refMinVal} 이상`;
-  return `${refMinVal}${separator}${refMaxVal}`;
+  if (refMinVal == null) return `${round2(refMaxVal)} 이하`;
+  if (refMaxVal == null) return `${round2(refMinVal)} 이상`;
+  return `${round2(refMinVal)}${separator}${round2(refMaxVal)}`;
 };
 
 export const getCheckupDetailPath = ({ petSn, ckupRcdSn }, tab) => {

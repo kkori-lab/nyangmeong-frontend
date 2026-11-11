@@ -2,6 +2,7 @@ import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import FieldError from '../diary/FieldError';
+import { DECIMAL_MESSAGE } from '../numberFormat';
 import { INPUT_CLASS } from '../diary/formStyles';
 import { getExcludeReason } from './labRows';
 
@@ -30,6 +31,7 @@ const DEFAULT_ANALYZE_ERROR =
  * - 인식 실패 항목은 빈 값으로 두고 직접 입력, 단위가 없는 행은 단위도 입력
  * - 이미 등록된 항목·혈액검사가 아닌 항목은 저장 대상에서 제외
  * - unitErrorNames: 값은 있는데 단위가 빈 행의 항목 이름
+ * - decimalErrorNames: 결과값이 소수 셋째 자리 이상인 행의 항목 이름 (※신규 정책)
  * - analysisError: 분석 실패(NOT_LAB_RESULT·PDF_ANALYZE_TIMEOUT·PDF_ANALYZE_API_ERROR 등)면 표 대신 안내, 다시 분석·직접 입력은 그대로
  * - AI 주의 문구는 분석 결과 행이 있을 때만
  */
@@ -38,6 +40,7 @@ export default function AnalysisReview({
   rows,
   registeredNames,
   unitErrorNames,
+  decimalErrorNames,
   analysisError,
   isAnalyzing,
   onChangeRow,
@@ -107,6 +110,7 @@ export default function AnalysisReview({
                         value={row.rsltNvl}
                         disabled={isExcluded}
                         inputMode="decimal"
+                        aria-invalid={decimalErrorNames.includes(row.name)}
                         placeholder={
                           row.rsltNvl === '' ? '인식 실패' : undefined
                         }
@@ -152,6 +156,12 @@ export default function AnalysisReview({
       {unitErrorNames.length > 0 && (
         <FieldError>
           단위를 입력해 주세요: {unitErrorNames.join(', ')}
+        </FieldError>
+      )}
+
+      {decimalErrorNames.length > 0 && (
+        <FieldError>
+          {DECIMAL_MESSAGE}: {decimalErrorNames.join(', ')}
         </FieldError>
       )}
 
