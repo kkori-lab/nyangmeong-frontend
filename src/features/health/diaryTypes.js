@@ -1,3 +1,4 @@
+import { getNowHm, getTodayYmd, makeDateTime } from '@/utils/formatDate';
 import { round2 } from './numberFormat';
 
 /**
@@ -73,6 +74,13 @@ export const getOnceMaxMessage = (typeCd, value, petBdwg) => {
   const { nm, unit } = findRecordType(typeCd);
   return `${nm}은 한 번에 ${max}${unit}까지 입력해 주세요`;
 };
+
+/** 일상 기록은 지난 일만 기록: 지금(분 단위) 이후 시각은 막음. 지난 날짜는 시각 제한 없음 (※신규 정책, FN-HLT-002-11, 백엔드도 400) */
+export const FUTURE_TIME_MESSAGE = '지금 이후 시각은 기록할 수 없어요';
+
+/** ymd 날짜의 hm 시각이 지금보다 늦으면 true. 부를 때마다 현재 시각으로 판단 */
+export const isAfterNow = (ymd, hm) =>
+  hm !== '' && makeDateTime(ymd, hm) > makeDateTime(getTodayYmd(), getNowHm());
 
 /** 오늘의 기록 줄 순서 */
 export const TODAY_RECORD_ORDER = [MEAL, WATER, WALK, WEIGHT, STOOL];

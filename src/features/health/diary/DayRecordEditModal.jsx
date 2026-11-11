@@ -10,6 +10,7 @@ import {
 } from '@/components/buttonStyles';
 import { formatDate, getHmOf, makeDateTime } from '@/utils/formatDate';
 import {
+  FUTURE_TIME_MESSAGE,
   STOOL,
   STOOL_STATES,
   TODAY_RECORD_ORDER,
@@ -19,6 +20,7 @@ import {
   WEIGHT_MAX_MESSAGE,
   findRecordType,
   getOnceMaxMessage,
+  isAfterNow,
 } from '../diaryTypes';
 import { useDeleteDailyRecord, useUpdateDailyRecord } from '../queries';
 import {
@@ -57,9 +59,10 @@ const withTopicParticle = (text) => {
 
 const isSameDraft = (a, b) => a.rcdTm === b.rcdTm && a.value === b.value;
 
-/** 저장 전 검사: 시각 필수, 배변상태 외에는 0보다 큰 값·소수 둘째 자리까지, 체중·산책·음수량·식사량은 상한 이하 */
-const validateDraft = (typeCd, draft, petBdwg) => {
+/** 저장 전 검사: 시각 필수·오늘이면 지금 이후 시각 안 됨(지난 날짜는 제한 없음), 배변상태 외에는 0보다 큰 값·소수 둘째 자리까지, 체중·산책·음수량·식사량은 상한 이하 */
+const validateDraft = (ymd, typeCd, draft, petBdwg) => {
   if (draft.rcdTm === '') return '시각을 입력해주세요';
+  if (isAfterNow(ymd, draft.rcdTm)) return FUTURE_TIME_MESSAGE;
   if (typeCd === STOOL) return draft.value ? null : '상태를 선택해주세요';
   if (draft.value === '' || !(Number(draft.value) > 0))
     return '0보다 큰 값을 입력해주세요';
@@ -138,6 +141,7 @@ export default function DayRecordEditModal({
     const nextErrors = {};
     changedRecords.forEach((record) => {
       const message = validateDraft(
+        ymd,
         record.dailyRcdIdctCd,
         draftOf(record),
         petBdwg,
