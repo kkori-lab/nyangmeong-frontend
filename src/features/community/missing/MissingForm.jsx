@@ -26,7 +26,7 @@ const BODY_MAX = 2000;
 const TEL_PATTERN = /^01\d-\d{3,4}-\d{4}$/;
 
 const TEXTAREA_BASE =
-  'block w-full rounded-md border bg-white px-3 text-base placeholder:text-placeholder hover:border-line-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20';
+  'block w-full rounded-md border bg-white px-3 text-base placeholder:text-placeholder hover:border-line-strong focus:border-brand-500 focus:outline-none focus:ring-focus';
 const INPUT_CLASS = `${TEXTAREA_BASE} h-10`;
 const LABEL_CLASS =
   'flex items-center gap-0.5 text-base leading-[1.4] font-semibold text-ink';

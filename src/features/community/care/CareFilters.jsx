@@ -5,7 +5,7 @@ import { ALL_REGION, PET_FILTERS, SIZE_FILTERS } from '../careCodes';
 import { useJeonbukRegions, useSubRegions } from '../missingQueries';
 
 const DATE_CLASS =
-  'block h-10 min-w-0 flex-1 rounded-md border border-input-line bg-white px-3 text-base hover:border-line-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none';
+  'block h-10 min-w-0 flex-1 rounded-md border border-input-line bg-white px-3 text-base hover:border-line-strong focus:border-brand-500 focus:ring-focus focus:outline-none';
 
 /**
  * 한 줄: 라벨 + 입력. 1280px 초과에서는 두 줄이 한 행에 나란히(라벨·입력 열을 가장 긴 라벨에 맞춘다),

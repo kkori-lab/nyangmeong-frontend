@@ -157,7 +157,7 @@ export default function PlaceSearchModal({
                   setKeyword(event.target.value);
                   setPickError('');
                 }}
-                className="block h-10 w-full rounded-md border border-input-line bg-white pr-11 pl-3 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
+                className="block h-10 w-full rounded-md border border-input-line bg-white pr-11 pl-3 text-base focus:border-brand-500 focus:ring-focus focus:outline-none"
               />
               <button
                 type="submit"

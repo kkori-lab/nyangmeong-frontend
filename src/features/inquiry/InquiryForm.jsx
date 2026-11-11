@@ -1,4 +1,4 @@
-import { ChevronLeft, CircleAlert, Info } from 'lucide-react';
+import { ChevronLeft, CircleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import AutoTextarea from '@/components/AutoTextarea';
@@ -23,7 +23,7 @@ const toAttachItems = (imgs = []) =>
   }));
 
 const INPUT_CLASS =
-  'block w-full rounded-md border bg-white px-3 text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-2 focus:ring-[#285a5c]/20';
+  'block w-full rounded-md border bg-white px-3 text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-focus';
 
 function FieldError({ message }) {
   if (!message) return null;
@@ -143,18 +143,15 @@ export default function InquiryForm({
         {isEdit ? '문의 수정' : '새 문의 작성'}
       </h2>
       {!isEdit && (
-        <p className="mb-6 flex items-start gap-2.5 rounded-[10px] border border-[#cfe3d6] bg-[#ebf3ee] px-4 py-3.5 text-sm font-medium text-[#2f6f57]">
-          <Info size={16} aria-hidden="true" className="mt-[3px] shrink-0" />
-          <span>
-            답변이 등록되면 알림으로 알려 드려요. 자주 묻는 내용은{' '}
-            <Link
-              to={PATHS.FAQS}
-              className="font-bold underline underline-offset-[3px]"
-            >
-              자주 묻는 질문
-            </Link>
-            에서 바로 확인할 수 있어요.
-          </span>
+        <p className="mb-6 text-sm font-medium text-[#2f6f57]">
+          답변이 등록되면 알림으로 알려 드려요. 자주 묻는 내용은{' '}
+          <Link
+            to={PATHS.FAQS}
+            className="font-bold underline underline-offset-[3px]"
+          >
+            자주 묻는 질문
+          </Link>
+          에서 바로 확인할 수 있어요.
         </p>
       )}
       <form
