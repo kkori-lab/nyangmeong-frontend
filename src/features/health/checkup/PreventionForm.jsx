@@ -3,7 +3,12 @@ import DropdownSelect from '@/components/DropdownSelect';
 import DatePicker from '@/components/DatePicker';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { getTodayYmd } from '@/utils/formatDate';
-import { CARE_CYCLES, CUSTOM_CYCLE } from '../careDue';
+import {
+  CARE_CYCLES,
+  CUSTOM_CYCLE,
+  CYCLE_DAYS_ERROR,
+  isValidCycleDays,
+} from '../careDue';
 import FieldError from '../diary/FieldError';
 import { INPUT_CLASS, LABEL_CLASS } from '../diary/formStyles';
 import { useCreatePrevention } from '../queries';
@@ -35,9 +40,7 @@ export default function PreventionForm({ petSn, ckupRcdSn, onClose }) {
   }, []);
 
   const errors = {
-    days:
-      isCustom &&
-      (!Number.isInteger(Number(rptCycleDayCnt)) || Number(rptCycleDayCnt) < 1),
+    days: isCustom && !isValidCycleDays(rptCycleDayCnt),
     start: startYmd === '',
   };
   const isInvalid = (field) => isSubmitted && errors[field];
@@ -98,6 +101,7 @@ export default function PreventionForm({ petSn, ckupRcdSn, onClose }) {
             <input
               type="number"
               min="1"
+              max="365"
               value={rptCycleDayCnt}
               placeholder="예: 10"
               aria-invalid={isInvalid('days')}
@@ -109,7 +113,7 @@ export default function PreventionForm({ petSn, ckupRcdSn, onClose }) {
             </span>
           </span>
           {isInvalid('days') && (
-            <FieldError>일수를 1일 이상으로 입력해 주세요</FieldError>
+            <FieldError>{CYCLE_DAYS_ERROR}</FieldError>
           )}
         </label>
       )}

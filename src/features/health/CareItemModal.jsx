@@ -2,8 +2,17 @@ import { useState } from 'react';
 import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
 import { formatYmdWeekday, getTodayYmd } from '@/utils/formatDate';
-import { CARE_CYCLES, CARE_ZONE, CUSTOM_CYCLE, addCycle } from './careDue';
+import {
+  CARE_CYCLES,
+  CARE_ZONE,
+  CUSTOM_CYCLE,
+  CYCLE_DAYS_ERROR,
+  MAX_CYCLE_DAYS,
+  addCycle,
+  isValidCycleDays,
+} from './careDue';
 import { toCareIcon } from './careIcons';
+import FieldError from './diary/FieldError';
 import FormModal from './diary/FormModal';
 import { useCreateCareItem, useUpdateCareItem } from './queries';
 
@@ -46,7 +55,12 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
   const isRegular = careZoneCd === CARE_ZONE.REGULAR;
   const isCustomCycle = careCycleCd === CUSTOM_CYCLE;
   const hasValidCycle =
-    careCycleCd && (!isCustomCycle || Number(cycleDrctInptDayCnt) >= 1);
+    careCycleCd && (!isCustomCycle || isValidCycleDays(cycleDrctInptDayCnt));
+  // 빈 칸은 버튼만 끄고, 값이 있는데 범위 밖일 때만 안내한다
+  const showDaysError =
+    isCustomCycle &&
+    cycleDrctInptDayCnt !== '' &&
+    !isValidCycleDays(cycleDrctInptDayCnt);
   const canSubmit =
     careArtclNm.trim() !== '' &&
     careZoneCd !== null &&
@@ -235,9 +249,11 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
                   <input
                     type="number"
                     min={1}
+                    max={MAX_CYCLE_DAYS}
                     value={cycleDrctInptDayCnt}
                     placeholder="예: 10"
                     aria-label="반복 일수"
+                    aria-invalid={showDaysError}
                     className={`${inputClass} pr-16 tabular-nums`}
                     onChange={(event) =>
                       setCycleDrctInptDayCnt(event.target.value)
@@ -248,6 +264,7 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
                   </span>
                 </div>
                 <p className={helpClass}>마지막으로 한 날부터 n일마다</p>
+                {showDaysError && <FieldError>{CYCLE_DAYS_ERROR}</FieldError>}
               </>
             )}
           </fieldset>
