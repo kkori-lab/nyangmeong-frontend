@@ -12,6 +12,7 @@ const LIST_MAX_HEIGHT = 256;
  * - size: 'md'(기본, 높이 40px·16px) / 'sm'(높이 36px·14px)
  * - variant: 'box'(기본, 테두리 칸) / 'text'(테두리·배경 없이 글자 + 화살표, 목록 머리·칩 안에 둘 때)
  * - invalid: 빨간 테두리 + aria-invalid. id·describedBy: 버튼에 붙는다(<label htmlFor>·오류 문구 연결)
+ * - listMaxHeight: 목록 최대 높이(px, 기본 256). 항목이 이보다 많으면 목록 안에서 스크롤. 항목 수가 정해진 짧은 목록은 더 크게 줘 스크롤을 없앤다
  * - disabled: 열리지 않고 회색. ref: 버튼에 붙는다(바깥에서 포커스를 줄 때)
  * - 키보드: ↑↓ 이동, Enter·Space 선택, Esc·Tab 닫기. 아래 공간이 모자라면 위로 열림
  */
@@ -24,6 +25,7 @@ export default function DropdownSelect({
   placeholderValue,
   label,
   isPill = false,
+  listMaxHeight = LIST_MAX_HEIGHT,
   size = 'md',
   variant = 'box',
   invalid = false,
@@ -72,7 +74,7 @@ export default function DropdownSelect({
     const rect = buttonRef.current.getBoundingClientRect();
     const below = window.innerHeight - rect.bottom;
     const need =
-      Math.min(options.length * ITEM_HEIGHT + 8, LIST_MAX_HEIGHT) + 12;
+      Math.min(options.length * ITEM_HEIGHT + 10, listMaxHeight) + 12;
     setIsUp(below < need && rect.top > below);
     setActiveIndex(Math.max(selectedIndex, 0));
     setIsOpen(true);
@@ -172,7 +174,8 @@ export default function DropdownSelect({
           aria-label={label}
           // <label> 안에 둘 때 목록 클릭이 라벨을 거쳐 버튼을 다시 누르지 않게(목록이 다시 열림)
           onClick={(event) => event.preventDefault()}
-          className={`absolute left-0 z-30 max-h-64 ${isText ? 'w-max min-w-28' : 'right-0'} ${isPill ? 'min-w-max' : ''} overflow-y-auto rounded-lg border border-[#e2e7e7] bg-white p-1 shadow-[0_12px_32px_-8px_rgba(15,23,35,0.18),0_2px_6px_rgba(15,23,35,0.06)] ${isUp ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'}`}
+          style={{ maxHeight: listMaxHeight }}
+          className={`absolute left-0 z-30 ${isText ? 'w-max min-w-28' : 'right-0'} ${isPill ? 'min-w-max' : ''} overflow-y-auto rounded-lg border border-[#e2e7e7] bg-white p-1 shadow-[0_12px_32px_-8px_rgba(15,23,35,0.18),0_2px_6px_rgba(15,23,35,0.06)] ${isUp ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'}`}
         >
           {options.map((option, index) => {
             const isSelected = index === selectedIndex;

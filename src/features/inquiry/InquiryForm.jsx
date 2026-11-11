@@ -43,6 +43,7 @@ function FieldError({ message }) {
  * - types: 문의 유형 공통코드 [{ comCd, comCdNm }]
  * - errorMessage·fieldErrors: 서버 오류의 message와 입력값 검증 오류 fields([{ field, message }])
  * - characterLinked: 캐릭터 화면에서 넘겨받은 캐릭터가 있음. 유형이 픽셀 캐릭터면 서버가 캐릭터 이미지를 첫 첨부로 붙이므로 사용자 첨부는 1장 적게
+ * - characterImage: 자동 첨부될 캐릭터 이미지 주소(못 받으면 null). characterLinked이고 유형이 픽셀 캐릭터일 때 「이미지 추가」 칸 오른쪽에 삭제 불가 칸으로 보임(못 받으면 자리 표시)
  * - onSubmit({ inqryTypeCd, inqryTtl, inqryCn, images(새 File들), keepAtchFileSns(남길 기존 첨부) })
  */
 export default function InquiryForm({
@@ -54,6 +55,7 @@ export default function InquiryForm({
   errorMessage,
   fieldErrors,
   characterLinked = false,
+  characterImage = null,
   onSubmit,
 }) {
   const navigate = useNavigate();
@@ -71,10 +73,9 @@ export default function InquiryForm({
   const [leaveTo, setLeaveTo] = useState(null);
 
   const isEdit = mode === 'edit';
-  const maxImages =
-    characterLinked && type === INQUIRY_TYPE_PIXEL_CHARACTER
-      ? MAX_IMAGES - 1
-      : MAX_IMAGES;
+  const hasCharacterImage =
+    characterLinked && type === INQUIRY_TYPE_PIXEL_CHARACTER;
+  const maxImages = hasCharacterImage ? MAX_IMAGES - 1 : MAX_IMAGES;
   const isDirty =
     type !== initial.inqryTypeCd ||
     title !== initial.inqryTtl ||
@@ -175,6 +176,7 @@ export default function InquiryForm({
             placeholder="선택해 주세요"
             value={type}
             options={typeOptions}
+            listMaxHeight={320}
             onChange={(value) => {
               setType(value);
               clearError('type');
@@ -270,7 +272,16 @@ export default function InquiryForm({
             clearError('images');
           }}
           max={maxImages}
-          hint="화면 캡처를 함께 올려 주시면 확인이 빨라요."
+          fixedImage={
+            hasCharacterImage
+              ? { url: characterImage, name: '캐릭터 이미지' }
+              : null
+          }
+          hint={
+            hasCharacterImage
+              ? '캐릭터 이미지가 자동으로 함께 접수돼요.'
+              : '화면 캡처를 함께 올려 주시면 확인이 빨라요.'
+          }
         />
         <FieldError message={errors.images} />
       </form>
