@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowUp, Plus, X } from 'lucide-react';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import {
   RECEIPT_ACCEPT,
   RECEIPT_HELP,
@@ -25,6 +26,8 @@ export default function ChatInput({
   /** { file, previewUrl } */
   const [picked, setPicked] = useState(null);
   const [fileError, setFileError] = useState('');
+  // 480px 이하는 안내 문구가 잘리므로 짧은 문구를 쓴다
+  const isNarrow = useMediaQuery('(max-width: 480px)');
 
   const canSubmit = (picked !== null || text.trim() !== '') && !isDisabled;
 
@@ -146,7 +149,11 @@ export default function ChatInput({
           value={text}
           rows={1}
           aria-label="메시지 입력"
-          placeholder={`${petNm ?? '반려동물'}에 대해 물어보거나, "병원 찾아줘"처럼 말해보세요`}
+          placeholder={
+            isNarrow
+              ? `${petNm ?? '반려동물'}에 대해 물어보세요`
+              : `${petNm ?? '반려동물'}에 대해 물어보거나, "병원 찾아줘"처럼 말해보세요`
+          }
           className={`max-h-40 min-w-0 flex-1 resize-none bg-transparent py-2.5 text-sm text-ink outline-none placeholder:text-placeholder ${
             text
               ? '[field-sizing:content]'
