@@ -19,6 +19,9 @@ const WIDTH_CLASSES = {
  *          isLarge와 함께 쓰면 760px 이하에서 화면 전체 대신 이 시트(높이는 화면 − 2rem까지, 넘치면 본문 안쪽 스크롤)
  * isWide: 가로 688px(본문 640px) 입력 모달. 제목 줄 위아래 8px, 푸터 버튼은 내용 너비로 오른쪽 정렬
  * width: 가로 폭(px) 560·688·720, 없으면 440(isLarge는 760). isWide(688)보다 우선. 화면보다 좁으면 양옆 1rem을 남긴다
+ * headerLead: 제목 줄 왼쪽에 제목 대신 둘 요소(예: 「‹ 다시 검색」). isTitleHidden와 함께 쓴다
+ * isHeaderBorderHidden: 제목 줄 아래 구분선을 없앤다
+ * isTitleHidden: 제목 글자를 화면에서 숨긴다(화면 읽기용 이름은 유지, ✕는 오른쪽에 그대로)
  * isDismissDisabled: 배경 클릭·ESC로 닫지 않는다(입력 유실 방지). ✕·푸터 버튼으로만 닫힌다
  * isSpacious: isConfirm과 함께 쓴다. 본문 안쪽 여백을 넓혀(가로 40px, 위 40px) 좁은 문구 확인 창에 맞춘다
  * 열려 있는 동안 페이지 스크롤을 잠근다(useScrollLock, 창이 겹쳐도 마지막이 닫힐 때 풀린다)
@@ -38,6 +41,9 @@ export default function Modal({
   width = null,
   isSpacious = false,
   isTop = false,
+  isTitleHidden = false,
+  headerLead = null,
+  isHeaderBorderHidden = false,
   isDismissDisabled = false,
   isPending = false,
   onClose,
@@ -124,9 +130,13 @@ export default function Modal({
             />
           )}
           <header
-            className={`flex shrink-0 items-center justify-between gap-3 border-b border-line-soft px-6 ${isLarge ? 'py-2.5' : isWide ? 'py-2' : 'py-4'}`}
+            className={`flex shrink-0 items-center justify-between gap-3 px-6 ${isHeaderBorderHidden ? '' : 'border-b border-line-soft'} ${isLarge ? 'py-2.5' : isWide ? 'py-2' : 'py-4'}`}
           >
-            <h2 id={titleId} className="text-lg font-bold">
+            {headerLead}
+            <h2
+              id={titleId}
+              className={isTitleHidden ? 'sr-only' : 'text-lg font-bold'}
+            >
               {title}
             </h2>
             {!isCloseIconHidden && (
@@ -135,7 +145,7 @@ export default function Modal({
                 onClick={onClose}
                 disabled={isPending}
                 aria-label="닫기"
-                className="grid size-8 place-items-center rounded-md text-subtle hover:bg-surface-2"
+                className="ml-auto grid size-8 place-items-center rounded-md text-subtle hover:bg-surface-2"
               >
                 <X className="size-5" />
               </button>

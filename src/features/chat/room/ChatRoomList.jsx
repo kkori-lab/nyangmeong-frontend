@@ -1,16 +1,17 @@
 /**
  * [채팅 목록]
- * - 전체·내 글·지원한 글 탭, 안 읽음만, 글별 보기 (FN-COM-009-05~08, FN-CMU-005-02)
+ * - 전체·내 글·지원한 글 탭, 안읽음, 글별 보기 (FN-COM-009-05~08, FN-CMU-005-02)
  * - 방을 열어도 마운트를 유지해 탭·체크·스크롤 위치 보존
  */
 import { useEffect, useRef, useState } from 'react';
+import Avatar from '@/components/Avatar';
 import CountBadge from '@/components/CountBadge';
 import Icon from '@/components/Icon';
 import Skeleton from '@/components/Skeleton';
 import { formatChatListTime } from '@/utils/formatDate';
+import { publicFileUrl } from '@/utils/fileUrl';
 import { useChatRooms } from '../queries';
-import { ROLE, ROLE_LABEL, getOtherRole } from '../shared/chatCodes';
-import ChatAvatar from './ChatAvatar';
+import { ROLE } from '../shared/chatCodes';
 import DealBadge from './DealBadge';
 
 const TABS = [
@@ -46,13 +47,14 @@ function ChatRoomRow({ room, isSelected, onSelect }) {
         }`}
         onClick={() => onSelect(room.otoChatRoomSn)}
       >
-        <ChatAvatar name={room.ctptMbrNcnm} size="lg" />
-        <span className="flex min-w-0 flex-col gap-0.5">
+        <Avatar
+          src={publicFileUrl(room.ctptProfileAtchFileSn)}
+          className="size-11"
+          iconSize={20}
+        />
+        <span className="flex min-w-0 flex-col">
           <span className="flex items-center gap-1.5">
             <b className="font-bold text-ink">{room.ctptMbrNcnm}</b>
-            <span className="text-sm text-subtle">
-              {ROLE_LABEL[getOtherRole(room.myRole)]}
-            </span>
             {room.lastMsgDt && (
               <time className="ml-auto text-sm text-placeholder">
                 {formatChatListTime(room.lastMsgDt)}
@@ -60,7 +62,7 @@ function ChatRoomRow({ room, isSelected, onSelect }) {
             )}
           </span>
           <span className="truncate text-sm text-subtle">{room.pstTtl}</span>
-          <span className="mt-0.5 flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5">
             <span
               className={`min-w-0 flex-1 truncate ${
                 hasUnread ? 'font-semibold text-ink' : 'text-ink-2'
@@ -143,11 +145,11 @@ export default function ChatRoomList({
         <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 text-sm font-medium text-ink-2">
           <input
             type="checkbox"
-            className="size-5 accent-brand-500"
+            className="size-4 accent-brand-500"
             checked={isUnreadOnly}
             onChange={(event) => setIsUnreadOnly(event.target.checked)}
           />
-          안 읽음만
+          안읽음
         </label>
       </div>
 

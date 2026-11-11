@@ -2,23 +2,18 @@
 
 ## 지금 하는 것
 
-SCR-CSC-001 공지사항 · 목록 번호를 순번으로 (2026-11-11) — 상태: 끝 (검증 5회차 `통과`, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-11)
+SCR-CMU-005 우리동네 펫돌봄 채팅 · 채팅 영역 정리 (2026-11-11) — 상태: 끝 (검증 7회차 `통과`, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-11)
 
-- FN-CSC-001-01: `features/notice/NoticeList.jsx` 번호 = `totalElements − (page − 1) × size − index`(`size`는 응답 값). 고정 공지는 「공지」 배지로 순서 자리만 차지, 일반 공지는 (전체 − 고정 수)부터 1까지. 원인은 번호 칸이 DB 고유번호(`ntcMttrSn`)였던 것. 백엔드 변경 없음, 새 의존성 없음
-- FN-CSC-001-02: 변경 없음(고정 공지 배경색·배지 유지)
-
-### 추가 요청
-| 추가 | 바꿀 파일 | 완료 조건 | 요청 |
-| --- | --- | --- | --- |
-| 추가-1 | `src/features/community/missing/CheckList.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 1행 주석의 「실종 Check 가이드」가 「실종 체크 가이드」(이미 사람이 고친 미커밋 변경을 남긴다) | 요청 2026-11-11 "실종 체크 가이드는 내가 수정했음" |
-| 추가-2 | `src/features/inquiry/InquiryForm.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 화면: 새 문의 작성의 「답변이 등록되면 알림으로…」 안내 문구에서 왼쪽 아이콘과 초록 박스(배경·테두리)를 없애고 글만 보인다 | 요청 2026-11-11 "이 텍스트 왼쪽 아이콘 삭제하고, 그린컬러 박스도 삭제" |
-| 추가-3 | `src/features/inquiry/InquiryForm.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 화면: 추가-2 문구의 글자색을 기존 그린(`#2f6f57`, `font-medium`)으로 되돌린다(아이콘·박스는 없는 채로) | 요청 2026-11-11 "안내 문구의 컬러는 기존 그린 컬러 유지" |
-| 추가-4 | `src/features/inquiry/InquiryForm.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 화면: 문의 작성의 제목·내용 입력칸을 선택했을 때 효과를 셀렉트박스(`DropdownSelect`가 열릴 때: 테두리 `#285a5c` + 연두 `rgba(182,218,172,0.5)` 3px 그림자)와 같게 한다 | 요청 2026-11-11 "텍스트 인풋박스와 셀렉트박스를 선택했을 때 컬러가 다름. 셀렉트박스 효과(연두색)를 인풋필드에 동일하게" |
-| 추가-5 | `features/community/` 입력칸 파일(`care/CareFilters.jsx`·`care/careFormStyles.js`·`missing/BreedCombobox.jsx`·`missing/MissingForm.jsx`·`missing/PlaceSearchModal.jsx`·`PostForm.jsx`·`CommentSection.jsx`), `features/inquiry/InquiryForm.jsx`, `components/ReportModal.jsx`, `components/SearchInput.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 화면: 커뮤니티·고객센터의 모든 입력칸(글자 입력·검색·내용)을 선택했을 때 효과가 셀렉트와 같은 `ring-focus`(테두리 `#285a5c` + 연두 3px) | 요청 2026-11-11 "커뮤니티와 고객센터 페이지 모두" (추가-4 범위를 넓힘) |
+- 담당: 채팅 화면은 LJS(`milestones/LJS.md` SCR-CMU-005). 이번 정리만 KSJ가 맡기로 합의. 디자인은 `html/SCR-CMU-005-final.html`(+`-01`·`-02`)
+- 바꾼 것: 상대 아바타를 공용 `Avatar`(사진 또는 기본 아이콘)로, 「돌보미·보호자」 글자·배지 삭제, 목록 칸 356px·「안읽음」·줄 틈 삭제, 상단 바 부제는 글 제목, 말풍선 높이 2px·글자 14px, 입력 줄 아이콘 간격 절반, 거래 바 한 줄(좁으면 두 줄·가로 전체 버튼, `@container` 560px)·펼침 정리·버튼 14px·500, 주소 공유를 카카오 주소·장소 검색(전북)과 지도 핀(320px)으로(`placeSearch.js`는 `utils/`로 옮김, 가짜 검색 삭제)
+- 추가 요청: 추가-1 말풍선 글자 14px, 추가-2·3 주소 공유 모달 위 80px 고정·제목 숨김·「‹ 다시 검색」을 제목 줄로(공용 `Modal`에 `isTitleHidden`·`headerLead`·`isHeaderBorderHidden`, 기본값 꺼짐), 추가-4 「안읽음」 체크박스 16px, 추가-5 사진 미리보기 ✕ 잘림 여백
 
 ## 다음에 할 것
 
 ### 내가 할 것(프론트)
+- SCR-CMU-005: 주소 공유 말풍선을 지도 카드로 보이고 [장소 보기]로 큰 지도 창을 연다(사람 결정: 받는 쪽이 주소로 위치를 찾는 프론트만 방식. 핀이 어긋나면 백엔드에 좌표 저장 요청). 이번 정리 PR 뒤 `/start CMU-005`
+- SCR-CSC-003: 캐릭터 오류 문의 작성 화면에 자동 첨부될 캐릭터 이미지 미리보기가 없다(`InquiryForm.jsx`가 `state.imageUrl`을 안 씀). 마이페이지 캐릭터 생성 완료 창 「오류 문의」 링크는 `pixelCharSn`도 안 넘겨 자동 첨부 자체가 안 된다(SJM 영역, 알림)
+- SCR-CMU-005: 「내 돌봄 글의 채팅 / 전체 채팅」 띠 삭제는 사람이 더 생각해 보기로 함(보류)
 - 수집 기사로 펫뉴스 상세·목록 높이 기준을 운영 데이터에서 다시 확인한다(로컬은 수집 기사가 없고 시드 썸네일이 가짜 주소)
 
 ### 남을 기다리는 것(연결 남음)
@@ -41,6 +36,7 @@ SCR-CSC-001 공지사항 · 목록 번호를 순번으로 (2026-11-11) — 상�
 - 펫뉴스 데이터: 시드 뉴스 썸네일이 `news.example.com` 가짜 주소라 자리 표시로 나옴, 수집 기사 요약에 `&#39;` 같은 HTML 엔티티가 남음(100번). 공용 DB에 v0.11 (7)·(8) 뉴스 제외 키워드가 들어갔는지 확인 뒤 수집
 
 ### 사람이 할 것(DB·파일·문서)
+- SCR-CMU-005: LJS에 이번 정리(채팅 아바타·역할 글자 삭제·거래 카드 한 줄·주소 공유 검색형, 공용 `Modal` 옵션 3개) 알리기. 기능명세서 FN-CMU-005-02(역할 표시·「안 읽음만」)·005-04·005-05(「처음에는 돌봄 글 동네 근처 장소」)와 화면설계서 SCR-CMU-005-01·02·주소공유모달을 변경에 맞춰 고치기. 검증 중 방 271에 생긴 주소 공유 테스트 메시지(`OTO_CHAT_MSG`) 삭제
 - 로컬 이미지: `D:\home\ggorilab\attachment\seed\post`·`character`를 `attachment\public\seed\`로 복사한다(시드 SQL이 `public/seed/post|character/…`로 저장했는데 파일이 `seed/…`에만 있어 404). 나머지 `seed` 폴더(비공개)는 그대로 둔다. 복사해도 post는 SQL 636건 중 약 50건이 없다(시드 이미지 묶음이 SQL과 다른 생성본)
 - 기능명세서 FN-CMU-004-09는 「사진은 선택 사항」 그대로 맞다(사진 필수는 하지 않기로 함)
 - 로컬 백엔드 `app.file.root-dir`이 `/home/ggorilab/attachment`라 시드 이미지(`uploads/`)를 못 찾아 `/api/files/public/*`가 404(커뮤니티 썸네일·첨부가 깨져 보임). 개인 `application.properties`의 `app.file.root-dir`을 백엔드 저장소 `uploads` 폴더로 맞추고 서버를 다시 시작한다
