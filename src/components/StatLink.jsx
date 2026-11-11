@@ -29,7 +29,7 @@ export default function StatLink({
         </span>
         <span className="font-semibold text-ink-2">
           <b
-            className={`mr-0.5 text-2xl leading-tight font-bold tracking-[-0.02em] md:text-[30px] ${
+            className={`mr-0.5 text-2xl leading-tight font-bold tracking-[-0.02em] tabular-nums md:text-[30px] ${
               emphasis ? 'text-brand-600' : 'text-ink'
             }`}
           >

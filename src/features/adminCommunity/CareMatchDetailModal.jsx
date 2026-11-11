@@ -276,7 +276,9 @@ export default function CareMatchDetailModal({ petPrtcRcrtSn, onClose }) {
           <InfoRow label="모집글">{data.pstTtl}</InfoRow>
           <InfoRow label="모집 상태">
             {getRcrtStatusLabel(data.rcrtSttsCd)} · {data.mbrNcnm} ·{' '}
-            {formatCost(data.cstAmt, data.cstUnitCd)}
+            <span className="tabular-nums">
+              {formatCost(data.cstAmt, data.cstUnitCd)}
+            </span>
           </InfoRow>
         </dl>
         {data.mtchs.length === 0 ? (

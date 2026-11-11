@@ -196,7 +196,9 @@ export default function CareDetail({ post }) {
                 )}
               </InfoRow>
               <InfoRow icon={<Wallet {...iconProps} />} label="비용">
-                <span className="text-lg font-bold">{getCostLabel(post)}</span>
+                <span className="text-lg font-bold tabular-nums">
+                  {getCostLabel(post)}
+                </span>
               </InfoRow>
               <InfoRow icon={<MapPin {...iconProps} />} label="장소">
                 전북 {post.rlsRgnNm} 인근

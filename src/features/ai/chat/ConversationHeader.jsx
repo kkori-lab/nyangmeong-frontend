@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, SquarePen, Trash2 } from 'lucide-react';
+import { Menu, SquarePen, Trash2, X } from 'lucide-react';
 import DeleteConversationModal from './DeleteConversationModal';
 
 /** 일시 표기 변환 */
@@ -11,6 +11,31 @@ export const chatHeaderClass =
 
 const mobileIconButton =
   'hidden size-9 shrink-0 items-center justify-center rounded-full text-[#3d4a4b] hover:bg-[#f4f6f6] max-[760px]:flex';
+
+/**
+ * 대화 제목 줄 오른쪽 끝 AI 매니저 닫기(모달만, 모든 폭 같은 자리)
+ * - hasDivider: 앞에 [삭제]가 있으면 구분선으로 떼어 둠
+ */
+export function CloseButton({ onClick, hasDivider = false }) {
+  return (
+    <>
+      {hasDivider ? (
+        <span aria-hidden="true" className="h-5 w-px shrink-0 bg-[#e2e7e7]" />
+      ) : (
+        <span aria-hidden="true" className="ml-auto" />
+      )}
+      <button
+        type="button"
+        aria-label="AI 매니저 닫기"
+        title="닫기"
+        className="flex size-9 shrink-0 items-center justify-center rounded-full text-[#3d4a4b] hover:bg-[#f4f6f6]"
+        onClick={onClick}
+      >
+        <X size={20} aria-hidden="true" />
+      </button>
+    </>
+  );
+}
 
 /** 760px 미만: 사이드바 띠 대신 헤더에서 대화 목록 drawer를 엶 */
 export function DrawerButton({ onClick }) {
@@ -47,6 +72,7 @@ export default function ConversationHeader({
   onDeleted,
   onOpenDrawer,
   onNewChat,
+  onBack,
 }) {
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -72,6 +98,7 @@ export default function ConversationHeader({
         <span className="max-[760px]:hidden">삭제</span>
       </button>
       <NewChatButton onClick={onNewChat} />
+      {onBack && <CloseButton onClick={onBack} hasDivider />}
 
       {isConfirming && (
         <DeleteConversationModal

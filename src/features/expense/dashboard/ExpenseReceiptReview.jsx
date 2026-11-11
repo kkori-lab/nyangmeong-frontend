@@ -270,12 +270,15 @@ export default function ExpenseReceiptReview({
               )}
               <p className="mt-2 flex flex-wrap justify-between gap-2 text-sm text-subtle">
                 {hasReceiptAmt ? (
-                  <span>영수증 금액 {formatWon(result.expndAmt)}</span>
+                  <span className="tabular-nums">
+                    영수증 금액 {formatWon(result.expndAmt)}
+                  </span>
                 ) : (
                   <span />
                 )}
                 <span>
-                  나눈 합계 <b className="text-ink">{formatWon(totalAmt)}</b>
+                  나눈 합계{' '}
+                  <b className="text-ink tabular-nums">{formatWon(totalAmt)}</b>
                 </span>
               </p>
               {hasReceiptAmt && totalAmt !== result.expndAmt && (

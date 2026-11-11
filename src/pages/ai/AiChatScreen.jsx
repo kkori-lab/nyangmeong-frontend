@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ChatInput from '@/features/ai/chat/ChatInput';
 import Skeleton from '@/components/Skeleton';
 import ConversationHeader, {
+  CloseButton,
   DrawerButton,
   chatHeaderClass,
 } from '@/features/ai/chat/ConversationHeader';
@@ -93,15 +94,18 @@ const ATTACH_FAILED =
  * - 새 창(AiChatPage)·모바일 모달(AiChatModal) 공용 본문
  * - 본창 이동·펫돌봄 채팅 열기: 놓인 곳이 넘기는 onOpenMain·onOpenCareChat
  * - loadAttachment: 본창에서 넘긴 사진 받기 -> File, 못 받으면 null
+ * - onBack: 있으면(모달) 대화 제목 줄 오른쪽 끝 [✕]로 닫기
  */
 export default function AiChatScreen({
   initialMessage = null,
   loadAttachment = null,
   onOpenMain,
   onOpenCareChat,
+  onBack = null,
   className = 'h-dvh',
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  /** 사이드바 기본 접힘(사람 요청 2026-11-11) */
+  const [isCollapsed, setIsCollapsed] = useState(true);
   /** 1100px 미만 대화 목록 drawer */
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const closeDrawer = useCallback(() => setIsDrawerOpen(false), []);
@@ -483,13 +487,15 @@ export default function AiChatScreen({
               <span className="shrink-0 rounded-full bg-[#e9f2f2] px-2.5 py-0.5 text-xs font-medium text-[#285a5c]">
                 {selectedPet?.petNm ?? '전체'}
               </span>
+              {onBack && <CloseButton onClick={onBack} />}
             </header>
           )}
-          {/** 방이 생겼거나 골랐는데 상세를 받기 전: 헤더 틀 유지 */}
-          {selectedRoomSn !== null && !conversation && !isError && (
+          {/** 방이 생겼거나 골랐는데 상세를 받기 전·못 받음: 헤더 틀과 닫기 유지 */}
+          {selectedRoomSn !== null && !conversation && (
             <header className={chatHeaderClass}>
               <DrawerButton onClick={openDrawer} />
-              <Skeleton className="h-6 w-48" />
+              {!isError && <Skeleton className="h-6 w-48" />}
+              {onBack && <CloseButton onClick={onBack} />}
             </header>
           )}
           {conversation && (
@@ -498,6 +504,7 @@ export default function AiChatScreen({
               pets={pets}
               onOpenDrawer={openDrawer}
               onNewChat={handleNewChat}
+              onBack={onBack}
               onDeleted={handleOpenRoomDeleted}
             />
           )}

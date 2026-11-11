@@ -341,7 +341,7 @@ export default function CareDealCard({ room }) {
           className="absolute inset-x-0 top-full max-h-[min(70vh,520px)] overflow-y-auto border-b border-line bg-white px-4 pt-3 pb-4 shadow-[0_12px_24px_-12px_rgba(26,50,52,0.25)]"
         >
           {careMatch && (
-            <p className="text-sm text-muted">
+            <p className="text-sm text-muted tabular-nums">
               {formatCondition(careMatch.cnd)}
             </p>
           )}

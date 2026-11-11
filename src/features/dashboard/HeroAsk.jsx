@@ -1,4 +1,4 @@
-import { Plus, Sparkles, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import useAiWindow from '@/hooks/useAiWindow';
 import {
@@ -146,7 +146,6 @@ export default function HeroAsk({ petNm }) {
           type="submit"
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-brand-50 px-4 text-sm font-semibold text-brand-600 hover:bg-brand-100 max-[700px]:px-3"
         >
-          <Sparkles className="size-4" aria-hidden="true" />
           <span className="max-[480px]:sr-only">AI 매니저</span>
         </button>
       </form>
