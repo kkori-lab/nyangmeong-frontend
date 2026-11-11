@@ -14,8 +14,12 @@ const lock = () => {
     bodyOverflow: body.style.overflow,
     bodyOverscroll: body.style.overscrollBehavior,
   };
-  /** 스크롤바가 사라지며 화면이 밀리지 않게 자리를 남긴다 */
-  html.style.scrollbarGutter = 'stable';
+  /**
+   * 스크롤바가 사라지며 화면이 밀리지 않게 자리를 남긴다
+   * - 원래 스크롤바가 있을 때만: 없는 화면(메인 등)에 빈 자리를 새로 만들면 오히려 폭이 줄어 화면이 밀린다(2026-11-11)
+   */
+  const hasScrollbar = window.innerWidth > html.clientWidth;
+  if (hasScrollbar) html.style.scrollbarGutter = 'stable';
   html.style.overflow = 'hidden';
   body.style.overflow = 'hidden';
   body.style.overscrollBehavior = 'none';

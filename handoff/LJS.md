@@ -2,9 +2,15 @@
 
 ## 지금 하는 것
 
-없음(2026-11-11 SCR-COM-002 공통 셀렉트·날짜 피커 교체 뒷정리 끝. `TimeSelect`에 `invalid`(세 칸 빨간 테두리 + `aria-invalid`)를 더해 실종 글쓰기 목격 시간에 쓰고, 영수증 결과 반려동물 칩 셀렉트를 화면으로 확인. 필수 셀렉트를 빈 값으로 못 되돌리는 것은 그대로 두기로 함(사람 결정). 검증 1회차 통과, 사람 확인 2026-11-11)
+없음(2026-11-11 SCR-MAN-001 메인 검색창 간격·빈 입력 열기·입력 비우기·PC도 같은 창 AI 모달(열고 닫는 공유 요소 전환·플로팅 버튼 확대/축소)·업로드 미리보기 끝. 추가 요청 5건(검색창 이동 연출·플로팅 축소·끊김 없는 전환·닫을 때 복귀·스크롤 잠금 흔들림). 검증 2회차 통과, 사람 확인 2026-11-11)
 
 ## 다음에 할 것
+
+- SCR-MAN-001 AI 매니저 같은 창 모달 알림(2026-11-11): 명세 FN-COM-007-01·FN-MAN-002는 "새 창(탭)"이라 PC도 같은 창 모달로 바뀐 것을 문서 담당에 알린다. 팀에는 `useScrollLock`(공용 훅)이 이제 원래 스크롤바가 있을 때만 `scrollbar-gutter`를 남긴다는 것(스크롤 없는 화면에서 모달 여닫을 때 흔들림 없어짐), 캐릭터 생성 모달(SJM `pet/character/CharacterCreateModal`)에 사진 미리보기를 넣고 영수증 업로드 모달(`ai/receipt/ReceiptUploadModal`) 미리보기를 키운 것을 PR 본문·팀 채널에 알린다
+- SCR-MAN-001 로그아웃·탈퇴 AI 창 닫기 정리(2026-11-11, 기획 밖이라 안 함): PC도 AI 창을 따로 열지 않게 되어 `ProfileDropdown`·`WithdrawPage`의 `closeAiWindow()`(`window.open('', name)`)가 빈 창을 잠깐 열었다 닫을 수 있다. `/ai` 주소로 직접 연 창만 남았으므로 지울지 정한다
+- SCR-MAN-001 업로드 미리보기(2026-11-11): 검증 브라우저(Chromium)에서는 다섯 곳 모두 JPG·PNG 미리보기가 보였다. 사람이 본 "안 보임"이 특정 브라우저·파일(휴대폰 사진 등)에서만이면 그 조건을 받아 다시 본다
+- SCR-MAN-001 검증 데이터(2026-11-11, tester 계정): AI 대화방 "강아지가 밥을 안 먹어요"·"가계부 화면으로 이동해줘"·"고양이 하루 물 섭취량"·"강아지 산책 몇 분이 좋아?"·"390 질문 테스트"·사진 첨부 대화 등은 AI 매니저 대화 목록에서 지운다. 1회차 검증이 이전 PR 캡처 `.playwright-mcp/pr/LJS-20261111-SCR-HLT-002-after-1440.png`를 영수증 미리보기로 덮어썼다(필요하면 다시 찍음)
+- 검증 브라우저에서 `fetch('/ai/...')`가 net::ERR_FAILED(2026-11-11 검증 보고, 같은 주소 XHR은 200): 이번 변경과 무관해 보임, 원인 안 봄
 
 - SCR-COM-002 셀렉트·날짜 교체 팀 알림(2026-11-11): PR 본문과 팀 채널에 알린다. 남의 담당 파일을 고쳤다(JAJ `health/` 15파일, SJM `expense/`·`pet/list/PetFormModal`, KSJ `community/care/CareFilters·CareForm`·`community/missing/MissingForm`, YAY `place/PlacePanel`). 기본 셀렉트·날짜·시간 입력 대신 `DropdownSelect`·`DatePicker`·`TimeSelect`를 쓰고, `onChange`는 이벤트가 아니라 값을 바로 받는다. `Select.jsx`도 안에서 `DropdownSelect`를 써서 쓰는 27곳 모양이 바뀌었다. 공용 검증 스킬에 "이전 통과 유지"(`.cache/verify/<이름>.md`)가 들어갔다
 - SCR-COM-002 셀렉트 교체 뒷정리 남은 것(2026-11-11): `health/diary/formStyles.js`의 `SELECT_CLASS`·`SELECT_ARROW_STYLE`은 쓰는 곳이 없다(JAJ에게 지울지 묻는다). `TimeSelect`에 `invalid`가 생긴 것도 알린다(건강기록 3곳은 안 넘겨 모양 그대로)

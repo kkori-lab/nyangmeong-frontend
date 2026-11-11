@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Bot } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import arrow from '@/assets/arrow.svg';
@@ -13,7 +12,6 @@ import { PATHS } from '@/routes/paths';
 export default function FloatingButtons({ hasBottomNav = false }) {
   const openAiWindow = useAiWindow();
   const isMain = useLocation().pathname === PATHS.MAIN;
-  const [blocked, setBlocked] = useState(false);
   const dock = useAiDock();
   /** AI 버튼 캐릭터: 대표 반려동물, 없으면 첫 마리 */
   const { data: pets } = useMyPets();
@@ -22,7 +20,7 @@ export default function FloatingButtons({ hasBottomNav = false }) {
   const handleAiClick = () => {
     if (!dock.consumeClick()) return;
     dock.closeBubble();
-    setBlocked(!openAiWindow());
+    openAiWindow(null, null, { from: 'fab' });
   };
 
   return (
@@ -54,21 +52,6 @@ export default function FloatingButtons({ hasBottomNav = false }) {
                 className="fill-none stroke-fab-line"
               />
             </svg>
-          </div>
-        )}
-        {blocked && (
-          <div
-            role="alert"
-            className="absolute right-full top-1/2 mr-3 flex w-64 max-w-[calc(100vw-7.5rem)] -translate-y-1/2 items-center gap-2 rounded-xl border border-[#e2e7e7] bg-white p-3 text-sm text-[#3d4a4b] shadow"
-          >
-            <span>팝업이 차단되어 AI 매니저를 열 수 없어요.</span>
-            <button
-              type="button"
-              className="shrink-0 rounded-lg bg-[#285a5c] px-2 py-1 text-white"
-              onClick={handleAiClick}
-            >
-              다시 열기
-            </button>
           </div>
         )}
         {dock.folded ? (
