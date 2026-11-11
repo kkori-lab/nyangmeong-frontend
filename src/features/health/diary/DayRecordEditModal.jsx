@@ -14,6 +14,8 @@ import {
   TODAY_RECORD_ORDER,
   TYPE_ICONS,
   WEIGHT,
+  WEIGHT_MAX,
+  WEIGHT_MAX_MESSAGE,
   findRecordType,
 } from '../diaryTypes';
 import { useDeleteDailyRecord, useUpdateDailyRecord } from '../queries';
@@ -46,12 +48,14 @@ const withTopicParticle = (text) => {
 
 const isSameDraft = (a, b) => a.rcdTm === b.rcdTm && a.value === b.value;
 
-/** 저장 전 검사: 시각 필수, 배변상태 외에는 0보다 큰 값 */
+/** 저장 전 검사: 시각 필수, 배변상태 외에는 0보다 큰 값, 체중은 상한 이하 */
 const validateDraft = (typeCd, draft) => {
   if (draft.rcdTm === '') return '시각을 입력해주세요';
   if (typeCd === STOOL) return draft.value ? null : '상태를 선택해주세요';
   if (draft.value === '' || !(Number(draft.value) > 0))
     return '0보다 큰 값을 입력해주세요';
+  if (typeCd === WEIGHT && Number(draft.value) > WEIGHT_MAX)
+    return WEIGHT_MAX_MESSAGE;
   return null;
 };
 

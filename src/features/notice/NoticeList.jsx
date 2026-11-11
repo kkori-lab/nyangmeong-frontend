@@ -14,7 +14,7 @@ export default function NoticeList({
   onPageChange,
 }) {
   const [input, setInput] = useState(keyword);
-  const { content, page, totalElements, totalPages } = notices;
+  const { content, page, size, totalElements, totalPages } = notices;
 
   const handleReset = () => {
     setInput('');
@@ -61,7 +61,7 @@ export default function NoticeList({
             <span className="w-9 shrink-0" />
           </div>
           <ul className="divide-y divide-[#e2e7e7]">
-            {content.map((notice) => (
+            {content.map((notice, index) => (
               <li key={notice.ntcMttrSn} className="h-16 max-[760px]:h-auto">
                 {/** 좁은 화면: 제목 한 줄 + 작성일 한 줄, 번호 숨김, 고정 공지 배지 유지 */}
                 <Link
@@ -78,7 +78,8 @@ export default function NoticeList({
                         공지
                       </span>
                     ) : (
-                      notice.ntcMttrSn
+                      // 번호는 DB 고유번호가 아니라 전체 건수 기준 순번(최신이 가장 큼)
+                      totalElements - (page - 1) * size - index
                     )}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-base leading-normal font-medium text-[#1a3234] max-[760px]:order-1 max-[760px]:basis-full max-[760px]:flex-none">

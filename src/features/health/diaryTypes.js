@@ -43,6 +43,10 @@ export const WATER = 'HLTC0016';
 export const STOOL = 'HLTC0017';
 export const WALK = 'HLTC0018';
 
+/** 체중 입력 상한(kg). 200은 허용, 넘으면 저장 요청을 보내지 않음 (※신규 정책, 백엔드도 400) */
+export const WEIGHT_MAX = 200;
+export const WEIGHT_MAX_MESSAGE = `체중은 ${WEIGHT_MAX}kg 이하로 입력해 주세요`;
+
 /** 오늘의 기록 줄 순서 */
 export const TODAY_RECORD_ORDER = [MEAL, WATER, WALK, WEIGHT, STOOL];
 
