@@ -21,9 +21,11 @@ import {
   useViewingChatRoom,
 } from '../queries';
 import { MSG_TYPE, ROOM_STTS } from '../shared/chatCodes';
+import AddressMessage from './AddressMessage';
 import CareDealCard from './CareDealCard';
 import ChatMessageInput from './ChatMessageInput';
 import ChatRoomHeader from './ChatRoomHeader';
+import PhotoViewer from './PhotoViewer';
 import { getLeaveText } from './dealSteps';
 
 const BUBBLE_BASE =
@@ -52,48 +54,58 @@ function SystemNotice({ message }) {
 }
 
 /** 비공개 채팅 사진: 참여자 쿠키로 받아 그린다 */
-function ChatPhoto({ otoChatRoomSn, atchFileSn }) {
+/** isGrid: 여러 장을 묶은 격자 칸(정사각형, 칸 폭에 맞춤). 아니면 한 장짜리 큰 사진 */
+function ChatPhoto({ otoChatRoomSn, atchFileSn, onOpen, isGrid = false }) {
   const { src, isPending } = useChatImage(otoChatRoomSn, atchFileSn);
 
   return (
-    <FileImage
-      src={src}
-      pending={isPending}
-      alt="보낸 사진"
-      className="aspect-[4/3] w-[200px] rounded-[14px] border border-line object-cover"
-    />
+    <button
+      type="button"
+      aria-label="사진 크게 보기"
+      className={`block cursor-zoom-in ${isGrid ? 'w-full' : ''}`}
+      onClick={() => onOpen(atchFileSn)}
+    >
+      <FileImage
+        src={src}
+        pending={isPending}
+        alt="보낸 사진"
+        className={
+          isGrid
+            ? 'aspect-square w-full rounded-[10px] border border-line object-cover'
+            : 'aspect-[4/3] w-[200px] rounded-[14px] border border-line object-cover'
+        }
+      />
+    </button>
   );
 }
 
-function MessageBody({ message, otoChatRoomSn }) {
+function MessageBody({ message, otoChatRoomSn, onOpenPhoto }) {
   if (message.msgTypeCd === MSG_TYPE.IMAGE) {
+    const { photos } = message;
+    /** 2장 이상은 폭이 정해진 한 덩어리 격자(2장·4장은 2칸, 그 밖은 3칸)라 오른쪽 끝이 한 장짜리와 맞는다 */
+    const isGrid = photos.length > 1;
+    const columns =
+      photos.length === 2 || photos.length === 4 ? 'grid-cols-2' : 'grid-cols-3';
     return (
-      <span className="flex flex-wrap gap-1.5">
-        {message.photos.map((photo) => (
+      <span
+        className={
+          isGrid ? `grid w-[220px] max-w-full gap-1 ${columns}` : 'block'
+        }
+      >
+        {photos.map((photo) => (
           <ChatPhoto
             key={photo.atchFileSn}
             otoChatRoomSn={otoChatRoomSn}
             atchFileSn={photo.atchFileSn}
+            onOpen={onOpenPhoto}
+            isGrid={isGrid}
           />
         ))}
       </span>
     );
   }
   if (message.msgTypeCd === MSG_TYPE.ADDRESS) {
-    return (
-      <span
-        className={`flex min-w-[200px] flex-col gap-0.5 ${
-          message.mine ? BUBBLE_MINE : BUBBLE_PEER
-        }`}
-      >
-        <b className="flex items-center gap-1 text-sm">
-          <Icon name="location_on" className="text-base" />
-          주소 공유
-        </b>
-        {message.shrnAddr}
-        {message.dtlAddr && <span>{message.dtlAddr}</span>}
-      </span>
-    );
+    return <AddressMessage message={message} />;
   }
   return (
     <span className={message.mine ? BUBBLE_MINE : BUBBLE_PEER}>
@@ -108,6 +120,7 @@ function MessageItem({
   ctptMbrNcnm,
   ctptProfileAtchFileSn,
   otoChatRoomSn,
+  onOpenPhoto,
 }) {
   if (message.msgTypeCd === MSG_TYPE.SYSTEM) {
     return <SystemNotice message={message} />;
@@ -136,7 +149,11 @@ function MessageItem({
         {!message.mine && !isContinued && (
           <span className="text-sm text-subtle">{ctptMbrNcnm}</span>
         )}
-        <MessageBody message={message} otoChatRoomSn={otoChatRoomSn} />
+        <MessageBody
+          message={message}
+          otoChatRoomSn={otoChatRoomSn}
+          onOpenPhoto={onOpenPhoto}
+        />
       </div>
       {!message.mine && <MessageTime message={message} />}
     </li>
@@ -146,6 +163,8 @@ function MessageItem({
 /** 채팅 목록으로 돌아가며 onBack(없으면 ‹ 없음: 목록이 옆에 있는 두 칸), 나가기 끝나면 onLeft */
 export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
+  /** 사진 보기에서 처음 보여 줄 사진(없으면 닫힘) */
+  const [viewerPhotoSn, setViewerPhotoSn] = useState(null);
   const {
     data: room,
     isError: isRoomError,
@@ -236,6 +255,10 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
     ? getLeaveText(room.mtchDlngSttsCd)
     : [];
   const isClosed = room && room.chatRoomSttsCd !== ROOM_STTS.ACTIVE;
+  /** 사진 보기에서 넘겨 볼 방의 모든 사진(시간 순, 지금까지 불러온 것) */
+  const roomPhotos = (messages ?? []).flatMap((message) =>
+    message.msgTypeCd === MSG_TYPE.IMAGE ? message.photos : [],
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -303,6 +326,7 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
                   ctptMbrNcnm={room?.ctptMbrNcnm}
                   ctptProfileAtchFileSn={room?.ctptProfileAtchFileSn}
                   otoChatRoomSn={otoChatRoomSn}
+                  onOpenPhoto={setViewerPhotoSn}
                 />
               );
             })}
@@ -321,6 +345,18 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
           otoChatRoomSn={otoChatRoomSn}
           stage={room.mtchDlngSttsCd}
           ctptMbrNcnm={room.ctptMbrNcnm}
+        />
+      )}
+
+      {viewerPhotoSn !== null && (
+        <PhotoViewer
+          photos={roomPhotos}
+          startIndex={Math.max(
+            roomPhotos.findIndex((photo) => photo.atchFileSn === viewerPhotoSn),
+            0,
+          )}
+          otoChatRoomSn={otoChatRoomSn}
+          onClose={() => setViewerPhotoSn(null)}
         />
       )}
 
