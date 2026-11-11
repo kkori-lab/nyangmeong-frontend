@@ -49,12 +49,14 @@ function toTime({ period, hour, minute }) {
  * - value·onChange는 input type="time"과 같은 "HH:mm"(24시간) 문자열. 세 칸이 다 골라지기 전에는 ""
  * - 일부만 고른 칸은 안에 들고 있어 다시 그려도 지워지지 않음
  * - ref: 첫 칸(오전/오후) 버튼에 붙음
+ * - invalid: 세 칸 모두 빨간 테두리 + aria-invalid(공용 DropdownSelect·DatePicker와 같은 오류 표시)
  */
 export default function TimeSelect({
   ref,
   value,
   onChange,
   disabled = false,
+  invalid = false,
   'aria-label': ariaLabel = '시간',
   className = '',
 }) {
@@ -87,6 +89,7 @@ export default function TimeSelect({
         value={draft.period}
         options={PERIOD_OPTIONS}
         disabled={disabled}
+        invalid={invalid}
         onChange={change('period')}
       />
       <TimeDropdown
@@ -95,6 +98,7 @@ export default function TimeSelect({
         value={draft.hour}
         options={HOUR_OPTIONS}
         disabled={disabled}
+        invalid={invalid}
         onChange={change('hour')}
       />
       <TimeDropdown
@@ -103,6 +107,7 @@ export default function TimeSelect({
         value={draft.minute}
         options={MINUTE_OPTIONS}
         disabled={disabled}
+        invalid={invalid}
         onChange={change('minute')}
       />
     </div>
@@ -172,6 +177,7 @@ function TimeDropdown({
   options,
   label,
   disabled,
+  invalid,
   onChange,
   className,
 }) {
@@ -307,8 +313,9 @@ function TimeDropdown({
         aria-expanded={isOpen}
         aria-controls={isOpen ? listId : undefined}
         aria-activedescendant={isOpen ? `${listId}-${activeIndex}` : undefined}
+        aria-invalid={invalid || undefined}
         disabled={disabled}
-        className="block h-10 w-full cursor-pointer rounded-md border border-input-line bg-white pr-9 pl-3 text-left whitespace-nowrap hover:border-line-strong focus:border-brand-500 focus:ring-focus focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-subtle"
+        className={`block h-10 w-full cursor-pointer rounded-md border bg-white pr-9 pl-3 text-left whitespace-nowrap focus:ring-focus focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-subtle ${invalid ? 'border-danger' : 'border-input-line hover:border-line-strong focus:border-brand-500'}`}
         onClick={() => (isOpen ? close() : open())}
         onKeyDown={handleKeyDown}
       >
