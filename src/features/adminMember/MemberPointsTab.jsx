@@ -38,8 +38,12 @@ export default function MemberPointsTab({ mbrSn, page, size, onPageChange }) {
         renderCells={(point) => [
           formatDateTime(point.regDt),
           point.pntDlngTypeCdNm,
-          formatPointChange(point.dlngPnt),
-          `${point.dlngAftrBlncPnt.toLocaleString()}P`,
+          <span key="dlngPnt" className="tabular-nums">
+            {formatPointChange(point.dlngPnt)}
+          </span>,
+          <span key="blncPnt" className="tabular-nums">
+            {point.dlngAftrBlncPnt.toLocaleString()}P
+          </span>,
           point.memoCn ?? '—',
         ]}
         page={page}

@@ -5,6 +5,7 @@ import Modal from '@/components/Modal';
 import { BTN_DANGER, BTN_SECONDARY } from '@/components/buttonStyles';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
+import { round2 } from '../numberFormat';
 import { useDeleteInspections } from '../queries';
 import BloodResultForm from './BloodResultForm';
 import {
@@ -22,10 +23,14 @@ import { FUNCTION_TAGS, findName, getInspectionName } from './checkupTypes';
 const getFunctionTag = (item) =>
   findBloodItem(getInspectionName(item))?.fnctTagCd;
 
-/** 참고범위를 벗어난 방향: 초과 'high', 미만 'low', 범위 안이거나 미입력이면 null */
+/**
+ * 참고범위를 벗어난 방향: 초과 'high', 미만 'low', 범위 안이거나 미입력이면 null
+ * - 화면에 보이는 값끼리 비교하도록 결과·참고범위 모두 소수 둘째 자리로 반올림해 비교 (※신규 정책)
+ */
 const getOutDirection = ({ rsltNvl, refLlmtNvl, refUplmtNvl }) => {
-  if (refLlmtNvl != null && rsltNvl < refLlmtNvl) return 'low';
-  if (refUplmtNvl != null && rsltNvl > refUplmtNvl) return 'high';
+  const value = round2(rsltNvl);
+  if (refLlmtNvl != null && value < round2(refLlmtNvl)) return 'low';
+  if (refUplmtNvl != null && value > round2(refUplmtNvl)) return 'high';
   return null;
 };
 
@@ -172,15 +177,15 @@ export default function BloodResultList({ checkup, items }) {
                     </Link>
                     {hasRange && (
                       <span className="block text-sm text-subtle tabular-nums">
-                        참고범위 {item.refLlmtNvl}~{item.refUplmtNvl}{' '}
-                        {item.unitNm}
+                        참고범위 {round2(item.refLlmtNvl)}~
+                        {round2(item.refUplmtNvl)} {item.unitNm}
                       </span>
                     )}
                   </span>
                   <span
                     className={`text-right text-lg/[1.6] font-semibold whitespace-nowrap tabular-nums ${direction ? 'text-danger' : ''}`}
                   >
-                    {item.rsltNvl}{' '}
+                    {round2(item.rsltNvl)}{' '}
                     <span className="text-sm font-normal text-subtle">
                       {item.unitNm}
                     </span>

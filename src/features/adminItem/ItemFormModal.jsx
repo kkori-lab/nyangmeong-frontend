@@ -289,7 +289,7 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
               placeholder="0 이상 숫자"
               aria-invalid={Boolean(errors.needPnt)}
               aria-describedby={`${formId}-needPnt-error`}
-              className={INPUT_CLASS}
+              className={`${INPUT_CLASS} tabular-nums`}
               onChange={(event) => setNeedPnt(event.target.value)}
             />
             <FieldError

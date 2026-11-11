@@ -1,3 +1,6 @@
+import { getNowHm, getTodayYmd, makeDateTime } from '@/utils/formatDate';
+import { round2 } from './numberFormat';
+
 /**
  * [건강 일지 코드값]
  * - 코드값은 백엔드 공통코드(HLTG09 지표·HLTG10 배변상태)
@@ -42,6 +45,42 @@ export const MEAL = 'HLTC0015';
 export const WATER = 'HLTC0016';
 export const STOOL = 'HLTC0017';
 export const WALK = 'HLTC0018';
+
+/** 체중 입력 상한(kg). 200은 허용, 넘으면 저장 요청을 보내지 않음 (※신규 정책, 백엔드도 400) */
+export const WEIGHT_MAX = 200;
+export const WEIGHT_MAX_MESSAGE = `체중은 ${WEIGHT_MAX}kg 이하로 입력해 주세요`;
+
+/** 산책 1회 상한(분), 음수량·식사량 1회 상한 배율(프로필 체중 1kg당 ml·g) (※신규 정책, FN-HLT-002-11, 백엔드도 400) */
+export const WALK_MAX = 120;
+export const WATER_PER_KG = 100;
+export const MEAL_PER_KG = 50;
+
+/**
+ * 1회 상한을 넘으면 안내 문구, 아니면 null
+ * - 음수량·식사량 상한은 반려동물 프로필 체중(petBdwg) × 배율을 소수 둘째 자리로 반올림 (5.3kg → 530ml·265g)
+ * - 프로필 체중이 없으면 음수량·식사량은 검사하지 않음
+ */
+export const getOnceMaxMessage = (typeCd, value, petBdwg) => {
+  if (value === '' || value == null) return null;
+  if (typeCd === WALK)
+    return Number(value) > WALK_MAX
+      ? `산책은 한 번에 ${WALK_MAX}분까지 입력해 주세요`
+      : null;
+  const perKg =
+    typeCd === WATER ? WATER_PER_KG : typeCd === MEAL ? MEAL_PER_KG : null;
+  if (perKg == null || petBdwg == null) return null;
+  const max = round2(Number(petBdwg) * perKg);
+  if (!(Number(value) > max)) return null;
+  const { nm, unit } = findRecordType(typeCd);
+  return `${nm}은 한 번에 ${max}${unit}까지 입력해 주세요`;
+};
+
+/** 일상 기록은 지난 일만 기록: 지금(분 단위) 이후 시각은 막음. 지난 날짜는 시각 제한 없음 (※신규 정책, FN-HLT-002-11, 백엔드도 400) */
+export const FUTURE_TIME_MESSAGE = '지금 이후 시각은 기록할 수 없어요';
+
+/** ymd 날짜의 hm 시각이 지금보다 늦으면 true. 부를 때마다 현재 시각으로 판단 */
+export const isAfterNow = (ymd, hm) =>
+  hm !== '' && makeDateTime(ymd, hm) > makeDateTime(getTodayYmd(), getNowHm());
 
 /** 오늘의 기록 줄 순서 */
 export const TODAY_RECORD_ORDER = [MEAL, WATER, WALK, WEIGHT, STOOL];

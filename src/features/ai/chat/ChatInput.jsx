@@ -8,11 +8,6 @@ import {
 
 const MAX_LENGTH = 1000;
 
-const formatSize = (bytes) =>
-  bytes < 1024 * 1024
-    ? `${Math.max(1, Math.round(bytes / 1024))}KB`
-    : `${(bytes / 1024 / 1024).toFixed(1)}MB`;
-
 /**
  * [대화 입력창]
  * - 글 입력 규칙과 영수증 이미지 1장 첨부(SCR-AIM-013)
@@ -95,41 +90,35 @@ export default function ChatInput({
   return (
     /** 760px 미만: 화면 아래에 붙고 글자 수는 숨김(넘으면 아래 안내가 대신함) */
     <div className="mx-auto w-full max-w-[820px] px-6 pb-4 max-[760px]:px-3 max-[760px]:pb-[calc(8px+env(safe-area-inset-bottom))]">
+      {/**
+       * 메인 검색창(HeroAsk)과 같은 모양: 한 줄이면 테두리 포함 52px 알약(40px 단추 + 위아래 5px), 사진이 있으면 테두리 안 위쪽에 썸네일.
+       * 빈 입력은 한 줄 높이로 고정(좁은 폭에서 안내 문구 줄바꿈으로 높아지지 않게)
+       */}
       <form
-        className="flex flex-wrap items-center gap-3 rounded-[14px] border border-[#d3dae2] bg-white py-3 pl-3 pr-4 max-[760px]:items-end max-[760px]:gap-2 max-[760px]:rounded-[22px] max-[760px]:py-1 max-[760px]:pl-2 max-[760px]:pr-2"
+        data-ai-chat-input
+        className={`flex flex-wrap items-end gap-2 rounded-[26px] border border-line bg-white px-1.5 focus-within:border-brand-500 focus-within:ring-focus ${
+          picked ? 'pt-3 pb-1.5' : 'py-[5px]'
+        }`}
         onSubmit={(event) => {
           event.preventDefault();
           submit();
         }}
       >
         {picked && (
-          <ul
-            aria-label="첨부한 파일"
-            className="flex basis-full flex-wrap gap-2 border-b border-[#edf1f1] pb-3 max-[760px]:pt-2"
-          >
-            <li className="relative flex max-w-[240px] items-center gap-2.5 rounded-[10px] border border-[#e2e7e7] bg-white py-2 pl-2 pr-9">
-              <span className="size-10 shrink-0 overflow-hidden rounded-md bg-[#ebf0f0]">
-                <img
-                  src={picked.previewUrl}
-                  alt=""
-                  className="size-full object-cover"
-                />
-              </span>
-              <span className="flex min-w-0 flex-col">
-                <b className="truncate text-sm font-semibold text-[#1a3234]">
-                  {picked.file.name}
-                </b>
-                <small className="text-sm text-[#667374]">
-                  {formatSize(picked.file.size)}
-                </small>
-              </span>
+          <ul aria-label="첨부한 파일" className="flex basis-full px-2">
+            <li className="relative size-24">
+              <img
+                src={picked.previewUrl}
+                alt={picked.file.name}
+                className="size-full rounded-xl border border-line object-cover"
+              />
               <button
                 type="button"
                 aria-label={`${picked.file.name} 첨부 삭제`}
-                className="absolute right-1.5 top-1/2 -mt-3.5 flex size-7 items-center justify-center rounded-full text-[#667374] hover:bg-[#ebf0f0] hover:text-[#1a3234]"
                 onClick={handleRemoveFile}
+                className="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full border border-line bg-white text-ink-2 shadow-depth-sm hover:bg-surface-2"
               >
-                <X size={18} aria-hidden="true" />
+                <X className="size-3.5" aria-hidden="true" />
               </button>
             </li>
           </ul>
@@ -139,10 +128,10 @@ export default function ChatInput({
           aria-label="파일 첨부"
           title={`파일 첨부 (${RECEIPT_HELP})`}
           disabled={isDisabled}
-          className="flex size-10 shrink-0 items-center justify-center rounded-md text-[#3d4a4b] enabled:hover:bg-[#ebf0f0] enabled:hover:text-[#1a3234] disabled:text-[#8c9899] max-[760px]:size-8 max-[760px]:rounded-full"
+          className="grid size-10 shrink-0 place-items-center rounded-full text-ink-2 enabled:hover:bg-surface-2 disabled:text-placeholder"
           onClick={() => fileInputRef.current.click()}
         >
-          <Plus size={24} strokeWidth={1.7} aria-hidden="true" />
+          <Plus className="size-5" aria-hidden="true" />
         </button>
         <input
           ref={fileInputRef}
@@ -158,18 +147,22 @@ export default function ChatInput({
           rows={1}
           aria-label="메시지 입력"
           placeholder={`${petNm ?? '반려동물'}에 대해 물어보거나, "병원 찾아줘"처럼 말해보세요`}
-          className="max-h-40 min-w-0 flex-1 resize-none bg-transparent text-base text-[#1a3234] outline-none [field-sizing:content] placeholder:text-[#8c9899] max-[760px]:mb-1 max-[760px]:placeholder:text-[13px]/6"
+          className={`max-h-40 min-w-0 flex-1 resize-none bg-transparent py-2.5 text-sm text-ink outline-none placeholder:text-placeholder ${
+            text
+              ? '[field-sizing:content]'
+              : 'h-10 overflow-hidden placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap'
+          }`}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
         />
-        <span className="shrink-0 text-sm text-[#667374] max-[760px]:hidden">
+        <span className="shrink-0 pb-2.5 text-sm text-[#667374] max-[760px]:hidden">
           <b>{text.length}</b>/ {MAX_LENGTH.toLocaleString()}
         </span>
         <button
           type="submit"
           aria-label="전송"
           disabled={!canSubmit}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#285a5c] text-white disabled:bg-[#ebf0f0] disabled:text-[#8c9899] max-[760px]:size-8 max-[760px]:rounded-full"
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-[#285a5c] text-white disabled:bg-surface-2 disabled:text-placeholder"
         >
           <ArrowUp size={20} aria-hidden="true" />
         </button>

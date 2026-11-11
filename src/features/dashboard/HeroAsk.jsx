@@ -1,4 +1,4 @@
-import { Plus, Sparkles, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import useAiWindow from '@/hooks/useAiWindow';
 import {
@@ -9,18 +9,42 @@ import {
 
 /**
  * [메인 AI 매니저 검색창] (FN-MAN-002)
- * - 질문을 보내면 AI 창을 그 질문으로 연다
+ * - 질문을 보내면 AI 매니저(같은 창 모달)를 그 질문으로 연다. 빈 칸이면 첫 메시지 없이 연다
+ * - 열면 글·사진을 비운다(넘긴 뒤라 남길 필요 없음)
+ * - 검색창 자리(rect)와 복제(ghost)를 넘겨, 검색창이 대화창 입력 자리로 옮겨 가며 대화창으로 바뀌게 한다
  * - 왼쪽 [+]로 사진 1장 첨부: 사진+글(글은 없어도 됨)을 AI 창으로 넘기면 대화창이 종류를 판단한다
  * - 음성 질문 버튼·제안 카드는 뺐다(사람 요청 2026-11-09)
  */
+
+/**
+ * 여는 연출용 검색창 복제: 입력한 글을 그대로 보이고 조작은 막는다
+ * - id·파일 입력은 빼서 화면의 같은 id와 겹치지 않게 한다
+ * - 사진 썸네일은 뺀다(보낸 뒤 미리보기 주소를 해제해 깨져 보이므로)
+ */
+const cloneForMotion = (form, value) => {
+  const ghost = form.cloneNode(true);
+  ghost
+    .querySelectorAll('ul, input[type="file"]')
+    .forEach((element) => element.remove());
+  ghost
+    .querySelectorAll('[id]')
+    .forEach((element) => element.removeAttribute('id'));
+  ghost.removeAttribute('role');
+  ghost.setAttribute('aria-hidden', 'true');
+  ghost.inert = true;
+  const input = ghost.querySelector('input');
+  if (input) input.value = value;
+  return ghost;
+};
+
 export default function HeroAsk({ petNm }) {
   const openAiWindow = useAiWindow();
+  const formRef = useRef(null);
   const fileInputRef = useRef(null);
   const [text, setText] = useState('');
   /** { file, previewUrl } */
   const [picked, setPicked] = useState(null);
   const [fileError, setFileError] = useState('');
-  const [isBlocked, setIsBlocked] = useState(false);
 
   /** 미리보기 주소 해제 */
   useEffect(
@@ -47,18 +71,23 @@ export default function HeroAsk({ petNm }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const message = text.trim();
-    if (!message && !picked) return;
-    const isOpened = openAiWindow(message, picked?.file);
-    setIsBlocked(!isOpened);
-    /** 사진은 AI 창으로 넘겼으니 비운다 */
-    if (isOpened) setPicked(null);
+    const form = formRef.current;
+    openAiWindow(text.trim(), picked?.file, {
+      from: 'input',
+      rect: form.getBoundingClientRect(),
+      ghost: cloneForMotion(form, text),
+    });
+    setText('');
+    setPicked(null);
+    setFileError('');
   };
 
   return (
     <div className="flex w-full min-w-0 flex-col items-center gap-3">
       {/** 사진이 있으면 테두리 안 위쪽에 썸네일, 입력 줄은 그 아래(Claude 입력창처럼) */}
       <form
+        ref={formRef}
+        data-ai-origin-input
         role="search"
         onSubmit={handleSubmit}
         className={`flex w-full max-w-[600px] flex-wrap items-center gap-2 border border-line bg-white px-1.5 focus-within:border-brand-500 focus-within:ring-focus ${
@@ -110,7 +139,6 @@ export default function HeroAsk({ petNm }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           autoComplete="off"
-          required={!picked}
           placeholder={`${petNm}의 건강, 근처 병원, 놀거리까지 무엇이든 물어보세요`}
           className="min-w-0 flex-1 truncate bg-transparent text-sm outline-none placeholder:text-placeholder"
         />
@@ -118,18 +146,12 @@ export default function HeroAsk({ petNm }) {
           type="submit"
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-brand-50 px-4 text-sm font-semibold text-brand-600 hover:bg-brand-100 max-[700px]:px-3"
         >
-          <Sparkles className="size-4" aria-hidden="true" />
           <span className="max-[480px]:sr-only">AI 매니저</span>
         </button>
       </form>
       {fileError && (
         <p role="alert" className="text-sm text-danger">
           {fileError}
-        </p>
-      )}
-      {isBlocked && (
-        <p role="alert" className="text-sm text-danger">
-          팝업이 차단되어 AI 매니저를 열 수 없어요.
         </p>
       )}
     </div>

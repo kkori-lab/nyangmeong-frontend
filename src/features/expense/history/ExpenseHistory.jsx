@@ -1,5 +1,5 @@
-import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
 import MonthNav from '@/components/MonthNav';
@@ -362,7 +362,7 @@ export default function ExpenseHistory({ initialYm }) {
             />
           </MonthNav>
           <p className="flex items-baseline gap-2">
-            <b className="text-page leading-[1.35] font-bold">
+            <b className="text-page leading-[1.35] font-bold tabular-nums">
               {monthTotals ? formatWon(monthTotals.totalExpndAmt) : '-'}
             </b>
             <span className="text-subtle">
@@ -393,21 +393,16 @@ export default function ExpenseHistory({ initialYm }) {
       </ExpenseFilterBar>
       {!isEditing && (
         <div className="-mb-2 flex items-center justify-between px-0.5 min-[761px]:hidden">
-          <label className="relative inline-flex items-center text-sm text-ink-2">
-            <select
-              aria-label="정렬"
-              value={sort}
-              onChange={(event) => handleChangeSort(event.target.value)}
-              className="cursor-pointer appearance-none bg-transparent py-1 pr-5 focus:outline-none"
-            >
-              <option value={SORT.LATEST}>최신순</option>
-              <option value={SORT.AMOUNT}>금액순</option>
-            </select>
-            <ChevronDown
-              className="pointer-events-none absolute right-0 size-4"
-              aria-hidden="true"
-            />
-          </label>
+          <DropdownSelect
+            label="정렬"
+            variant="text"
+            value={sort}
+            options={[
+              { value: SORT.LATEST, label: '최신순' },
+              { value: SORT.AMOUNT, label: '금액순' },
+            ]}
+            onChange={handleChangeSort}
+          />
           <button
             type="button"
             onClick={handleStartEdit}

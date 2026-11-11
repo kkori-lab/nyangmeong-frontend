@@ -15,7 +15,7 @@ function Stat({ icon, label, value, unit, sub, onClick }) {
         {icon}
         {label}
       </span>
-      <span className="text-[30px] leading-[1.1] font-bold tracking-[-0.02em] text-brand-600 max-[760px]:text-lg">
+      <span className="text-[30px] leading-[1.1] font-bold tracking-[-0.02em] text-brand-600 tabular-nums max-[760px]:text-lg">
         {value}
         <small className="ml-0.5 text-base font-semibold text-muted">
           {unit}
@@ -61,7 +61,7 @@ export default function PointSummary({
           </span>
           <div>
             <p className="text-muted">보유 포인트</p>
-            <p className="mt-1 text-[32px] leading-[1.2] font-bold text-brand-600">
+            <p className="mt-1 text-[32px] leading-[1.2] font-bold text-brand-600 tabular-nums">
               {point.hldPnt.toLocaleString()}
               <small className="ml-1 text-base text-brand-500">P</small>
             </p>

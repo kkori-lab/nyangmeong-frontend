@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { getTodayYmd, getYmdOf } from '@/utils/formatDate';
@@ -13,15 +15,14 @@ import {
   useCreateObservationItem,
   useUpdateObservationCycle,
 } from '../queries';
+import {
+  DECIMAL_MESSAGE,
+  hasOverTwoDecimals,
+  toInputText,
+} from '../numberFormat';
 import FieldError from './FieldError';
 import FormModal from './FormModal';
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  SELECT_ARROW_STYLE,
-  SELECT_CLASS,
-  TEXTAREA_CLASS,
-} from './formStyles';
+import { INPUT_CLASS, LABEL_CLASS, TEXTAREA_CLASS } from './formStyles';
 import ObservationPhoto from './ObservationPhoto';
 import { formatPart } from './observationUtils';
 
@@ -68,7 +69,7 @@ export default function ObservationModal({
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [photoError, setPhotoError] = useState('');
-  const [size, setSize] = useState(cycle?.obsrvSz ?? '');
+  const [size, setSize] = useState(toInputText(cycle?.obsrvSz));
   const [chgCd, setChgCd] = useState(cycle?.obsrvChgCd ?? '');
   const [memo, setMemo] = useState(cycle?.memoCn ?? '');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -97,6 +98,8 @@ export default function ObservationModal({
     part: isCreateItem && partCd === '',
     date: obsrvYmd === '' || obsrvYmd > today,
     photo: file === null && !isEdit,
+    /** 폼이 noValidate라 step이 막지 못해 코드로 검사 */
+    size: hasOverTwoDecimals(size),
   };
   const hasError = Object.values(errors).some(Boolean);
   const isInvalid = (field) => isSubmitted && errors[field];
@@ -207,21 +210,17 @@ export default function ObservationModal({
         </span>
         {isCreateItem ? (
           <div className="grid grid-cols-2 gap-x-4">
-            <select
-              aria-labelledby="obsv-part-label"
+            <DropdownSelect
+              label="관찰 부위"
               value={partCd}
-              aria-invalid={isInvalid('part')}
-              className={SELECT_CLASS}
-              style={SELECT_ARROW_STYLE}
-              onChange={(event) => setPartCd(event.target.value)}
-            >
-              <option value="">대분류 선택</option>
-              {OBSERVATION_PARTS.map((part) => (
-                <option key={part.cd} value={part.cd}>
-                  {part.nm}
-                </option>
-              ))}
-            </select>
+              invalid={isInvalid('part')}
+              placeholder="대분류 선택"
+              options={OBSERVATION_PARTS.map((part) => ({
+                value: part.cd,
+                label: part.nm,
+              }))}
+              onChange={setPartCd}
+            />
             <input
               value={partDetail}
               maxLength={MAX_PART_DETAIL_LENGTH}
@@ -246,13 +245,11 @@ export default function ObservationModal({
 
       <label className="flex flex-col gap-1.5">
         <span className={LABEL_CLASS}>관찰일{REQUIRED}</span>
-        <input
-          type="date"
+        <DatePicker
           value={obsrvYmd}
           max={today}
-          aria-invalid={isInvalid('date')}
-          className={`${INPUT_CLASS} tabular-nums`}
-          onChange={(event) => setObsrvYmd(event.target.value)}
+          invalid={isInvalid('date')}
+          onChange={setObsrvYmd}
         />
         {isInvalid('date') && (
           <FieldError>오늘 이후 날짜는 고를 수 없어요</FieldError>
@@ -331,7 +328,7 @@ export default function ObservationModal({
             <input
               type="number"
               min="0"
-              step="0.1"
+              step="0.01"
               inputMode="decimal"
               value={size}
               placeholder="선택 입력"
@@ -342,6 +339,7 @@ export default function ObservationModal({
               mm
             </span>
           </span>
+          {isInvalid('size') && <FieldError>{DECIMAL_MESSAGE}</FieldError>}
         </label>
         <label className="flex flex-col gap-1.5">
           <span className={LABEL_CLASS}>변화{OPTIONAL}</span>
@@ -353,19 +351,17 @@ export default function ObservationModal({
               className={INPUT_CLASS}
             />
           ) : (
-            <select
+            <DropdownSelect
               value={chgCd}
-              className={SELECT_CLASS}
-              style={SELECT_ARROW_STYLE}
-              onChange={(event) => setChgCd(event.target.value)}
-            >
-              <option value="">선택 안 함</option>
-              {OBSERVATION_CHANGES.map((change) => (
-                <option key={change.cd} value={change.cd}>
-                  {change.nm}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: '', label: '선택 안 함' },
+                ...OBSERVATION_CHANGES.map((change) => ({
+                  value: change.cd,
+                  label: change.nm,
+                })),
+              ]}
+              onChange={setChgCd}
+            />
           )}
         </label>
       </div>

@@ -4,6 +4,7 @@ import { showToast } from '@/components/toastStore';
 import { DIRECT } from '../labInput/ItemSelect';
 import LabItemForm from '../labInput/LabItemForm';
 import { getSkippedNames, toInspectionValue } from '../labInput/labRows';
+import { getLabNumberError, getLabRangeError } from '../numberFormat';
 import { useCreateInspections } from '../queries';
 import { SUB_BOX } from './checkupStyles';
 
@@ -16,8 +17,6 @@ const EMPTY_FORM = {
   rangeMax: '',
   memo: '',
 };
-
-const isNumber = (text) => text.trim() !== '' && Number.isFinite(Number(text));
 
 /**
  * [검사 수치 추가 입력 영역]
@@ -41,30 +40,18 @@ export default function BloodResultForm({
   }, []);
 
   const itemName = form.item === DIRECT ? form.directNm.trim() : form.item;
-  const hasOneSideRange =
-    (form.rangeMin.trim() === '') !== (form.rangeMax.trim() === '');
-
   const errors = {};
   if (itemName === '') errors.item = '검사 항목을 선택해 주세요';
   else if (registeredNames.has(itemName)) {
     errors.item = `이미 등록된 항목입니다: ${itemName}`;
   }
   if (form.val.trim() === '') errors.val = '검사 결과값을 입력해 주세요';
-  else if (!isNumber(form.val)) errors.val = '숫자로 입력해 주세요';
-  if (form.unit.trim() === '') errors.unit = '단위를 입력해 주세요';
-  if (hasOneSideRange) {
-    errors.range = '참고범위는 최소·최대를 함께 입력하거나 둘 다 비워 주세요';
-  } else if (
-    form.rangeMin.trim() !== '' &&
-    !(isNumber(form.rangeMin) && isNumber(form.rangeMax))
-  ) {
-    errors.range = '참고범위는 숫자로 입력해 주세요';
-  } else if (
-    form.rangeMin.trim() !== '' &&
-    Number(form.rangeMin) > Number(form.rangeMax)
-  ) {
-    errors.range = '참고범위 최소는 최대보다 클 수 없어요';
+  else if (getLabNumberError(form.val)) {
+    errors.val = getLabNumberError(form.val);
   }
+  if (form.unit.trim() === '') errors.unit = '단위를 입력해 주세요';
+  const rangeError = getLabRangeError(form.rangeMin, form.rangeMax);
+  if (rangeError) errors.range = rangeError;
 
   const changeForm = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));

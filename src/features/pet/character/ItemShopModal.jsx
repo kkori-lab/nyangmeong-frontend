@@ -137,7 +137,7 @@ export default function ItemShopModal({ pet, worn, onClose }) {
             <p className="text-muted">
               선택 {cartItems.length}개 · 총{' '}
               <b className="tabular-nums">{formatPoint(total)}</b> · 보유{' '}
-              {formatPoint(hldPnt)}
+              <span className="tabular-nums">{formatPoint(hldPnt)}</span>
             </p>
             {isShort && (
               <p role="alert" className="text-sm text-danger">

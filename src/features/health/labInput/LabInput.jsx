@@ -11,6 +11,12 @@ import {
 import { getInspectionName } from '../checkup/checkupTypes';
 import AnalysisReview from './AnalysisReview';
 import { findBloodItem } from './bloodItems';
+import {
+  getLabNumberError,
+  getLabRangeError,
+  round2,
+  toInputText,
+} from '../numberFormat';
 import { DIRECT } from './ItemSelect';
 import LabItemForm from './LabItemForm';
 import {
@@ -33,7 +39,18 @@ const EMPTY_FORM = {
 
 const toText = (value) => (value == null ? '' : String(value));
 
-const isNumber = (text) => text.trim() !== '' && Number.isFinite(Number(text));
+/**
+ * 분석이 읽은 참고범위 (※신규 정책: 분석 참고범위 이상값은 비움)
+ * - 소수 둘째 자리로 반올림한 뒤 입력칸과 같은 규칙(0 이상·정수 7자리·한쪽만 안 됨·최소 ≤ 최대)으로 검사
+ * - 검수 표에는 고칠 칸이 없으므로 어긋나면 최소·최대를 둘 다 비워 보낸다
+ */
+const toAnalyzedRange = (item) => {
+  const refLlmtNvl = round2(item.refLlmtNvl ?? null);
+  const refUplmtNvl = round2(item.refUplmtNvl ?? null);
+  return getLabRangeError(toText(refLlmtNvl), toText(refUplmtNvl))
+    ? { refLlmtNvl: null, refUplmtNvl: null }
+    : { refLlmtNvl, refUplmtNvl };
+};
 
 /** 분석 항목 → 검수 행. 결과값은 입력칸이라 글자로 둔다 */
 const toRows = (items) =>
@@ -43,11 +60,10 @@ const toRows = (items) =>
       key: `${name}-${index}`,
       name,
       isBlood: !item.isNonBlood,
-      rsltNvl: toText(item.rsltNvl),
+      rsltNvl: toInputText(item.rsltNvl),
       unitNm: toText(item.unitNm),
       hasUnitInput: !item.unitNm,
-      refLlmtNvl: item.refLlmtNvl ?? null,
-      refUplmtNvl: item.refUplmtNvl ?? null,
+      ...toAnalyzedRange(item),
     };
   });
 
@@ -57,10 +73,10 @@ const toEditForm = (item) => {
   return {
     item: findBloodItem(name) ? name : DIRECT,
     directNm: findBloodItem(name) ? '' : name,
-    val: toText(item.rsltNvl),
+    val: toInputText(item.rsltNvl),
     unit: toText(item.unitNm),
-    rangeMin: toText(item.refLlmtNvl),
-    rangeMax: toText(item.refUplmtNvl),
+    rangeMin: toInputText(item.refLlmtNvl),
+    rangeMax: toInputText(item.refUplmtNvl),
     memo: toText(item.memoCn),
   };
 };
@@ -150,6 +166,17 @@ export default function LabInput({
         .filter((row) => row.unitNm.trim() === '')
         .map((row) => row.name)
     : [];
+  /** 결과값 숫자 오류를 문구별로 묶은 항목 이름: [{ message, names }] */
+  const numberErrorGroups = [];
+  if (isSubmitted) {
+    savableRows.forEach((row) => {
+      const message = getLabNumberError(row.rsltNvl);
+      if (!message) return;
+      const group = numberErrorGroups.find((item) => item.message === message);
+      if (group) group.names.push(row.name);
+      else numberErrorGroups.push({ message, names: [row.name] });
+    });
+  }
 
   /** PDF 분석 중에는 입력칸이 선택 사항: 아무것도 넣지 않았으면 검사 생략 */
   const isFormUsed =
@@ -160,8 +187,6 @@ export default function LabInput({
     );
 
   const itemName = getItemName(form);
-  const hasOneSideRange =
-    (form.rangeMin.trim() === '') !== (form.rangeMax.trim() === '');
   const takenNames = new Set([
     ...registeredNames,
     ...savableRows.map((row) => row.name),
@@ -174,21 +199,12 @@ export default function LabInput({
       errors.item = `이미 등록된 항목입니다: ${itemName}`;
     }
     if (form.val.trim() === '') errors.val = '검사 결과값을 입력해 주세요';
-    else if (!isNumber(form.val)) errors.val = '숫자로 입력해 주세요';
-    if (form.unit.trim() === '') errors.unit = '단위를 입력해 주세요';
-    if (hasOneSideRange) {
-      errors.range = '참고범위는 최소·최대를 함께 입력하거나 둘 다 비워 주세요';
-    } else if (
-      form.rangeMin.trim() !== '' &&
-      !(isNumber(form.rangeMin) && isNumber(form.rangeMax))
-    ) {
-      errors.range = '참고범위는 숫자로 입력해 주세요';
-    } else if (
-      form.rangeMin.trim() !== '' &&
-      Number(form.rangeMin) > Number(form.rangeMax)
-    ) {
-      errors.range = '참고범위 최소는 최대보다 클 수 없어요';
+    else if (getLabNumberError(form.val)) {
+      errors.val = getLabNumberError(form.val);
     }
+    if (form.unit.trim() === '') errors.unit = '단위를 입력해 주세요';
+    const rangeError = getLabRangeError(form.rangeMin, form.rangeMax);
+    if (rangeError) errors.range = rangeError;
     return errors;
   };
 
@@ -215,7 +231,9 @@ export default function LabInput({
     setIsSubmitted(true);
     const hasFormError = Object.keys(formErrors).length > 0;
     const hasRowError = savableRows.some((row) => row.unitNm.trim() === '');
-    const hasRowNumberError = savableRows.some((row) => !isNumber(row.rsltNvl));
+    const hasRowNumberError = savableRows.some((row) =>
+      getLabNumberError(row.rsltNvl),
+    );
     if (hasFormError || hasRowError || hasRowNumberError) return;
 
     const rangeOf = (min, max) => ({
@@ -286,6 +304,7 @@ export default function LabInput({
           rows={rows}
           registeredNames={registeredNames}
           unitErrorNames={unitErrorNames}
+          numberErrorGroups={numberErrorGroups}
           analysisError={analysisError}
           isAnalyzing={analyzeLabPdf.isPending}
           onChangeRow={changeRow}

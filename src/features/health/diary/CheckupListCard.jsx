@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, generatePath } from 'react-router-dom';
+import DropdownSelect from '@/components/DropdownSelect';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import Modal from '@/components/Modal';
@@ -15,7 +16,6 @@ import { formatDate, getTodayYmd, getYear } from '@/utils/formatDate';
 import { useCheckupYears, useCheckups, useDeleteCheckup } from '../queries';
 import CheckupModal from './CheckupModal';
 import EmptyBox from './EmptyBox';
-import { SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
 
 /** 한 페이지에 고정으로 보여 주는 검진기록 수 */
 const PAGE_SIZE = 10;
@@ -104,23 +104,20 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
 
   /** 연도 선택은 제목 바로 옆(Card의 sub 자리), 등록 버튼은 제목줄 오른쪽 끝 */
   const yearSelect = (
-    <select
-      aria-label="조회 연도"
+    <DropdownSelect
+      label="조회 연도"
       value={year}
       disabled={!hasAnyCheckup}
-      className={`${SELECT_CLASS} w-30!`}
-      style={SELECT_ARROW_STYLE}
-      onChange={(event) => {
-        setYear(Number(event.target.value));
+      options={yearOptions.map((option) => ({
+        value: option,
+        label: `${option}년`,
+      }))}
+      className="w-30"
+      onChange={(value) => {
+        setYear(value);
         setPage(1);
       }}
-    >
-      {yearOptions.map((option) => (
-        <option key={option} value={option}>
-          {option}년
-        </option>
-      ))}
-    </select>
+    />
   );
   /** 760px 이하는 제목줄이 좁아 지속 관찰처럼 작은 [+ 등록], 761px 이상은 [검진기록 등록] */
   const registerButton = (
@@ -208,11 +205,7 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
             ))}
           </ul>
           <div className="mt-7">
-            <Pagination
-              page={page}
-              pageCount={pageCount}
-              onChange={setPage}
-            />
+            <Pagination page={page} pageCount={pageCount} onChange={setPage} />
           </div>
         </>
       )}

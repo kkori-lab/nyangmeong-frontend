@@ -2,6 +2,7 @@ import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import FieldError from '../diary/FieldError';
+import { LAB_NUMBER_MAX_LENGTH } from '../numberFormat';
 import { INPUT_CLASS } from '../diary/formStyles';
 import { getExcludeReason } from './labRows';
 
@@ -30,6 +31,7 @@ const DEFAULT_ANALYZE_ERROR =
  * - 인식 실패 항목은 빈 값으로 두고 직접 입력, 단위가 없는 행은 단위도 입력
  * - 이미 등록된 항목·혈액검사가 아닌 항목은 저장 대상에서 제외
  * - unitErrorNames: 값은 있는데 단위가 빈 행의 항목 이름
+ * - numberErrorGroups: 결과값 숫자 오류(0 미만·소수 셋째 자리·정수 8자리 등)를 문구별로 묶은 항목 이름 [{ message, names }] (※신규 정책)
  * - analysisError: 분석 실패(NOT_LAB_RESULT·PDF_ANALYZE_TIMEOUT·PDF_ANALYZE_API_ERROR 등)면 표 대신 안내, 다시 분석·직접 입력은 그대로
  * - AI 주의 문구는 분석 결과 행이 있을 때만
  */
@@ -38,6 +40,7 @@ export default function AnalysisReview({
   rows,
   registeredNames,
   unitErrorNames,
+  numberErrorGroups,
   analysisError,
   isAnalyzing,
   onChangeRow,
@@ -107,6 +110,10 @@ export default function AnalysisReview({
                         value={row.rsltNvl}
                         disabled={isExcluded}
                         inputMode="decimal"
+                        maxLength={LAB_NUMBER_MAX_LENGTH}
+                        aria-invalid={numberErrorGroups.some((group) =>
+                          group.names.includes(row.name),
+                        )}
                         placeholder={
                           row.rsltNvl === '' ? '인식 실패' : undefined
                         }
@@ -154,6 +161,12 @@ export default function AnalysisReview({
           단위를 입력해 주세요: {unitErrorNames.join(', ')}
         </FieldError>
       )}
+
+      {numberErrorGroups.map((group) => (
+        <FieldError key={group.message}>
+          {group.message}: {group.names.join(', ')}
+        </FieldError>
+      ))}
 
       {!analysisError && rows.length > 0 && (
         <p className="flex gap-2.5 rounded-[10px] border border-warn-line bg-warn-soft px-3.5 py-3 text-warn">

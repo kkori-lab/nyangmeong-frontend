@@ -44,7 +44,10 @@ function CharacterPageSkeleton() {
   );
 }
 
-/** 탭은 ?tab=shared, 꾸미기는 ?pixelCharSn= (화면 안 단계는 URL을 늘리지 않음) */
+/**
+ * 탭은 ?tab=shared, 꾸미기는 ?pixelCharSn= (화면 안 단계는 URL을 늘리지 않음)
+ * - 메인 바로가기는 ?petSn=으로 온다: 그 동물 캐릭터를 꾸밀 수 있으면 꾸미기 주소로, 아니면 목록으로 바꾼다
+ */
 export default function CharacterPage() {
   const petsQuery = usePets();
   const charsQuery = usePixelCharacters({ isPolling: true });
@@ -88,6 +91,7 @@ export default function CharacterPage() {
   const sharedPets = pets.filter((pet) => pet.brupRoleCd !== BRUP_ROLE.PRIMARY);
   const creatingPet = pets.find((pet) => pet.petSn === creatingPetSn);
   const decoratingCharSn = Number(searchParams.get('pixelCharSn'));
+  const shortcutPetSn = Number(searchParams.get('petSn'));
 
   if (failedQueries.length > 0) {
     return (
@@ -125,6 +129,22 @@ export default function CharacterPage() {
       <SubPageLayout section="mypage" description={DESCRIPTION}>
         <CharacterPageSkeleton />
       </SubPageLayout>
+    );
+  }
+
+  if (shortcutPetSn && !decoratingCharSn) {
+    const shortcutPet = ownPets.find((pet) => pet.petSn === shortcutPetSn);
+    const canDecorate =
+      shortcutPet?.charStatus === CHRC_STTS.DONE && !shortcutPet.isCharError;
+    return (
+      <Navigate
+        to={
+          canDecorate
+            ? `${PATHS.MYPAGE_CHARACTERS}?${new URLSearchParams({ pixelCharSn: shortcutPet.pixelCharSn })}`
+            : PATHS.MYPAGE_CHARACTERS
+        }
+        replace
+      />
     );
   }
 

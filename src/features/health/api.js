@@ -20,32 +20,17 @@ export const getPixelCharacters = () => api.get('/pixel-characters');
 
 /**
  * 반려동물들의 일정 목록(FN-HLT-003-29·31·40)
- * - 서버가 반려동물 단위 조회라 반려동물 수만큼 요청 후 합침
+ * - GET /care-schedules 한 번으로 여러 반려동물 일정을 받음
  * - size: 반려동물마다의 최대 건수
- * - 볼 수 없는 반려동물(없음·권한 없음)은 빼고 나머지만 합침. 모두 실패하면 첫 오류
+ * - 볼 수 없는 반려동물(없음·권한 없음)은 서버가 빼고 돌려줌
+ * - petSns가 비면 서버가 볼 수 있는 반려동물 전체를 주므로 요청하지 않음
  */
-const SKIPPED_PET_CODES = ['PET_NOT_FOUND', 'PET_ACCESS_DENIED'];
-
 export const getSchedules = async ({ petSns, fromYmd, toYmd, size }) => {
-  const results = await Promise.allSettled(
-    petSns.map((petSn) =>
-      api.get(`/pets/${petSn}/care-schedules`, {
-        params: { fromYmd, toYmd, size },
-      }),
-    ),
-  );
-  const failed = results.filter((result) => result.status === 'rejected');
-  const unexpected = failed.find(
-    (result) => !SKIPPED_PET_CODES.includes(result.reason?.code),
-  );
-  if (unexpected) throw unexpected.reason;
-  if (failed.length > 0 && failed.length === results.length) {
-    throw failed[0].reason;
-  }
-  return results
-    .filter((result) => result.status === 'fulfilled')
-    .flatMap((result) => result.value)
-    .sort(compareSchedules);
+  if (petSns.length === 0) return [];
+  const schedules = await api.get('/care-schedules', {
+    params: { petSns: petSns.join(','), fromYmd, toYmd, size },
+  });
+  return [...schedules].sort(compareSchedules);
 };
 
 export const createSchedule = ({ petSn, body }) =>

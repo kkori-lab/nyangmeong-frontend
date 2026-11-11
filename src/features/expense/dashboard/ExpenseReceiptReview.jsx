@@ -1,5 +1,6 @@
 import { Plus, Receipt, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
+import DatePicker from '@/components/DatePicker';
 import AmountInput from '@/components/AmountInput';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
@@ -170,13 +171,12 @@ export default function ExpenseReceiptReview({
               <label htmlFor="receipt-ymd" className={LABEL}>
                 날짜
               </label>
-              <input
+              <DatePicker
                 id="receipt-ymd"
-                type="date"
                 value={ymd}
                 max={maxYmd}
-                onChange={(event) => setYmd(event.target.value)}
-                className={`${INPUT} mt-2`}
+                onChange={setYmd}
+                className="mt-2"
               />
             </div>
             <div>
@@ -270,12 +270,15 @@ export default function ExpenseReceiptReview({
               )}
               <p className="mt-2 flex flex-wrap justify-between gap-2 text-sm text-subtle">
                 {hasReceiptAmt ? (
-                  <span>영수증 금액 {formatWon(result.expndAmt)}</span>
+                  <span className="tabular-nums">
+                    영수증 금액 {formatWon(result.expndAmt)}
+                  </span>
                 ) : (
                   <span />
                 )}
                 <span>
-                  나눈 합계 <b className="text-ink">{formatWon(totalAmt)}</b>
+                  나눈 합계{' '}
+                  <b className="text-ink tabular-nums">{formatWon(totalAmt)}</b>
                 </span>
               </p>
               {hasReceiptAmt && totalAmt !== result.expndAmt && (

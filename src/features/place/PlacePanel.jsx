@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapPinOff } from 'lucide-react';
+import DropdownSelect from '@/components/DropdownSelect';
 import PlaceListItem from './PlaceListItem';
 import PlaceSearchForm from './PlaceSearchForm';
 import { SORT_OPTIONS } from './placeData';
@@ -89,18 +90,14 @@ export default function PlacePanel({
           <b className="font-semibold text-ink">{regionText}</b> · 결과{' '}
           {totalCount}곳
         </p>
-        <select
-          aria-label="정렬"
+        <DropdownSelect
+          label="정렬"
           value={sort}
-          onChange={(event) => onSortChange(event.target.value)}
-          className="h-9 w-[104px] shrink-0 rounded-md border border-input-line bg-white px-2 text-sm text-ink focus:ring-focus focus:outline-none"
-        >
-          {SORT_OPTIONS.map(({ label, value: optionValue }) => (
-            <option key={optionValue} value={optionValue}>
-              {label}
-            </option>
-          ))}
-        </select>
+          size="sm"
+          options={SORT_OPTIONS}
+          className="w-[104px] shrink-0"
+          onChange={onSortChange}
+        />
       </div>
 
       <div

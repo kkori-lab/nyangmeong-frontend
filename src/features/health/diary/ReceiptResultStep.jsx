@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import ConfirmModal from '@/components/ConfirmModal';
 import Icon from '@/components/Icon';
 import FileImage from '@/components/FileImage';
@@ -20,12 +22,7 @@ import ReceiptAssignList from './ReceiptAssignList';
 import ReceiptInfoBlock from './ReceiptInfoBlock';
 import ReceiptPetLink from './ReceiptPetLink';
 import ReceiptPetTab from './ReceiptPetTab';
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  SELECT_ARROW_STYLE,
-  SELECT_CLASS,
-} from './formStyles';
+import { INPUT_CLASS, LABEL_CLASS } from './formStyles';
 import {
   SKIP,
   applyLineAssignment,
@@ -295,15 +292,18 @@ export default function ReceiptResultStep({
         <div className="grid grid-cols-2 gap-x-4 max-sm:grid-cols-1 max-sm:gap-y-5">
           <label className="flex flex-col gap-1.5">
             <span className={LABEL_CLASS}>검진일{REQUIRED}</span>
-            <input
-              type="date"
+            <DatePicker
               value={ckupYmd}
-              aria-invalid={validation.common.ckupYmd != null}
-              className={`${INPUT_CLASS} tabular-nums ${aiClass(!isCommonEdited.ckupYmd && ckupYmd !== '')}`}
-              onChange={(event) => {
-                setCkupYmd(event.target.value);
+              invalid={validation.common.ckupYmd != null}
+              onChange={(value) => {
+                setCkupYmd(value);
                 setIsCommonEdited((prev) => ({ ...prev, ckupYmd: true }));
               }}
+              className={
+                !isCommonEdited.ckupYmd && ckupYmd !== ''
+                  ? '[&>button]:border-dashed'
+                  : ''
+              }
             />
             {validation.common.ckupYmd && (
               <FieldError>{validation.common.ckupYmd}</FieldError>
@@ -359,24 +359,23 @@ export default function ReceiptResultStep({
               <>
                 <label className="flex flex-col gap-1.5">
                   <span className={LABEL_CLASS}>검진 종류{REQUIRED}</span>
-                  <select
+                  <DropdownSelect
                     value={activeTab.ckupTypeCd}
-                    aria-invalid={activeErrors.type != null}
-                    style={SELECT_ARROW_STYLE}
-                    className={`${SELECT_CLASS} ${aiClass(!activeTab.edited.type && activeTab.ckupTypeCd !== '')}`}
-                    onChange={(event) =>
-                      editTab(activeTab.id, 'type', {
-                        ckupTypeCd: event.target.value,
-                      })
+                    invalid={activeErrors.type != null}
+                    placeholder="선택해 주세요"
+                    options={CHECKUP_TYPES.map((type) => ({
+                      value: type.cd,
+                      label: type.nm,
+                    }))}
+                    className={
+                      !activeTab.edited.type && activeTab.ckupTypeCd !== ''
+                        ? '[&>button]:border-dashed'
+                        : ''
                     }
-                  >
-                    <option value="">선택해 주세요</option>
-                    {CHECKUP_TYPES.map((type) => (
-                      <option key={type.cd} value={type.cd}>
-                        {type.nm}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) =>
+                      editTab(activeTab.id, 'type', { ckupTypeCd: value })
+                    }
+                  />
                   {activeErrors.type && (
                     <FieldError>{activeErrors.type}</FieldError>
                   )}

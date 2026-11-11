@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
 import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
@@ -9,16 +10,26 @@ import {
 } from '@/components/buttonStyles';
 import { formatDate, getHmOf, makeDateTime } from '@/utils/formatDate';
 import {
+  FUTURE_TIME_MESSAGE,
   STOOL,
   STOOL_STATES,
   TODAY_RECORD_ORDER,
   TYPE_ICONS,
   WEIGHT,
+  WEIGHT_MAX,
+  WEIGHT_MAX_MESSAGE,
   findRecordType,
+  getOnceMaxMessage,
+  isAfterNow,
 } from '../diaryTypes';
 import { useDeleteDailyRecord, useUpdateDailyRecord } from '../queries';
+import {
+  DECIMAL_MESSAGE,
+  hasOverTwoDecimals,
+  toInputText,
+} from '../numberFormat';
 import FieldError from './FieldError';
-import { INPUT_CLASS, SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
+import { INPUT_CLASS } from './formStyles';
 import { formatAmount, summarizeType } from './recordUtils';
 
 /** 묶음 머리에 합계를 붙이지 않는 종류 */
@@ -28,7 +39,9 @@ const COUNT_ONLY_TYPES = [WEIGHT, STOOL];
 const toDraft = (record) => ({
   rcdTm: getHmOf(record.rcdDt),
   value:
-    record.dailyRcdIdctCd === STOOL ? record.crsdSttsCd : String(record.rcdNvl),
+    record.dailyRcdIdctCd === STOOL
+      ? record.crsdSttsCd
+      : toInputText(record.rcdNvl),
 });
 
 /** 지운 기록의 줄 상태를 버린다 */
@@ -46,12 +59,18 @@ const withTopicParticle = (text) => {
 
 const isSameDraft = (a, b) => a.rcdTm === b.rcdTm && a.value === b.value;
 
-/** 저장 전 검사: 시각 필수, 배변상태 외에는 0보다 큰 값 */
-const validateDraft = (typeCd, draft) => {
+/** 저장 전 검사: 시각 필수·오늘이면 지금 이후 시각 안 됨(지난 날짜는 제한 없음), 배변상태 외에는 0보다 큰 값·소수 둘째 자리까지, 체중·산책·음수량·식사량은 상한 이하 */
+const validateDraft = (ymd, typeCd, draft, petBdwg) => {
   if (draft.rcdTm === '') return '시각을 입력해주세요';
+  if (isAfterNow(ymd, draft.rcdTm)) return FUTURE_TIME_MESSAGE;
   if (typeCd === STOOL) return draft.value ? null : '상태를 선택해주세요';
   if (draft.value === '' || !(Number(draft.value) > 0))
     return '0보다 큰 값을 입력해주세요';
+  if (typeCd === WEIGHT && Number(draft.value) > WEIGHT_MAX)
+    return WEIGHT_MAX_MESSAGE;
+  const onceMaxMessage = getOnceMaxMessage(typeCd, draft.value, petBdwg);
+  if (onceMaxMessage) return onceMaxMessage;
+  if (hasOverTwoDecimals(draft.value)) return DECIMAL_MESSAGE;
   return null;
 };
 
@@ -73,9 +92,11 @@ const sortRecords = (records) =>
  * - [저장]은 바뀐 줄만 PUT. 일부만 실패하면 모달을 열어 두고 실패한 줄 아래 오류,
  *   성공한 줄은 저장된 값을 기준으로 삼아 다시 [저장]하면 실패한 줄만 보낸다
  * - [삭제]는 확인 후 바로 DELETE. 그날 기록이 모두 없어지면 닫는다
+ * - petBdwg: 선택된 반려동물의 프로필 체중(kg). 음수량·식사량 1회 상한 계산용 (※신규 정책)
  */
 export default function DayRecordEditModal({
   petSn,
+  petBdwg,
   ymd,
   isToday,
   dayRecords,
@@ -119,7 +140,12 @@ export default function DayRecordEditModal({
   const handleSave = async () => {
     const nextErrors = {};
     changedRecords.forEach((record) => {
-      const message = validateDraft(record.dailyRcdIdctCd, draftOf(record));
+      const message = validateDraft(
+        ymd,
+        record.dailyRcdIdctCd,
+        draftOf(record),
+        petBdwg,
+      );
       if (message) nextErrors[record.dailyHlthRcdSn] = message;
     });
     if (Object.keys(nextErrors).length > 0) {
@@ -328,20 +354,16 @@ function RecordRow({
             onChange={(rcdTm) => onChange({ rcdTm })}
           />
           {isStool ? (
-            <select
-              aria-label={type.nm}
+            <DropdownSelect
+              label={type.nm}
               value={draft.value}
               disabled={isDisabled}
-              className={SELECT_CLASS}
-              style={SELECT_ARROW_STYLE}
-              onChange={(event) => onChange({ value: event.target.value })}
-            >
-              {STOOL_STATES.map((state) => (
-                <option key={state.cd} value={state.cd}>
-                  {state.nm}
-                </option>
-              ))}
-            </select>
+              options={STOOL_STATES.map((state) => ({
+                value: state.cd,
+                label: state.nm,
+              }))}
+              onChange={(value) => onChange({ value })}
+            />
           ) : (
             <span className="relative block">
               <input

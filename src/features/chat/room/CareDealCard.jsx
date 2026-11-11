@@ -4,11 +4,9 @@
  * - 되돌릴 수 없는 단계는 카드 안 확인 칸에서 한 번 더 확인. 단계가 바뀌면 key로 새로 그려 접힘
  */
 import { useEffect, useRef, useState } from 'react';
-import { generatePath } from 'react-router-dom';
 import Icon from '@/components/Icon';
-import { PATHS } from '@/routes/paths';
 import { useCareMatch, useDealAction } from '../queries';
-import { ROLE, ROOM_STTS } from '../shared/chatCodes';
+import { ROOM_STTS } from '../shared/chatCodes';
 import DealBadge from './DealBadge';
 import {
   CANCEL_REASONS,
@@ -21,7 +19,7 @@ import {
 } from './dealSteps';
 
 const BUTTON_BASE =
-  'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border font-semibold disabled:cursor-not-allowed';
+  'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border text-sm font-medium disabled:cursor-not-allowed';
 const BUTTON_VARIANT = {
   primary:
     'border-transparent bg-brand-500 text-white hover:enabled:bg-brand-600 disabled:bg-surface-3 disabled:text-line-strong',
@@ -32,7 +30,7 @@ const BUTTON_VARIANT = {
 };
 
 function DealButton({ action, isSmall = false, isPending, onClick }) {
-  const size = isSmall ? 'h-9 px-3.5' : 'h-10 min-w-24 px-4 max-[760px]:h-11';
+  const size = isSmall ? 'h-9 px-3.5' : 'h-10 min-w-24 px-4';
 
   return (
     <button
@@ -291,35 +289,32 @@ export default function CareDealCard({ room }) {
     <section
       ref={rootRef}
       aria-label="돌봄 거래"
-      className="relative z-[15] shrink-0 border-b border-line bg-white"
+      className="@container relative z-[15] shrink-0 border-b border-line bg-white"
     >
       <div
-        className={`flex min-h-16 items-center gap-2.5 py-2.5 pr-1.5 pl-4 transition-colors max-[520px]:pl-3.5 ${
+        className={`flex flex-wrap items-center gap-x-2 gap-y-1.5 py-1.5 pr-1.5 pl-4 transition-colors max-[520px]:pl-3.5 ${
           mainAction ? 'bg-[#f9eaa6]' : ''
         }`}
       >
-        <div className="min-w-0 flex-1">
-          <p className="flex min-w-0 items-center gap-1.5">
-            <DealBadge stage={stage} />
-            <span className="truncate text-sm font-semibold text-ink max-[520px]:hidden">
-              {room.pstTtl}
-            </span>
-          </p>
-          <p
-            className={`mt-0.5 text-sm max-[520px]:line-clamp-2 min-[521px]:truncate ${
+        <p className="order-1 flex min-w-0 flex-1 items-center gap-2">
+          <DealBadge stage={stage} />
+          <span
+            className={`min-w-0 text-sm @max-[559px]:line-clamp-2 @min-[560px]:truncate ${
               mainAction ? 'font-semibold text-ink' : 'text-muted'
             }`}
           >
             {isActiveRoom ? guide.title : '대화가 종료된 채팅방이에요'}
-          </p>
-        </div>
+          </span>
+        </p>
         {mainAction && !isOpen && isActiveRoom && (
-          <DealButton
-            action={mainAction}
-            isSmall
-            isPending={isPending}
-            onClick={handleAction}
-          />
+          <div className="order-3 w-full pr-1.5 pb-1 *:w-full @min-[560px]:order-2 @min-[560px]:w-auto @min-[560px]:pr-0 @min-[560px]:pb-0 @min-[560px]:*:w-auto">
+            <DealButton
+              action={mainAction}
+              isSmall
+              isPending={isPending}
+              onClick={handleAction}
+            />
+          </div>
         )}
         <button
           ref={toggleRef}
@@ -327,7 +322,7 @@ export default function CareDealCard({ room }) {
           aria-expanded={isOpen}
           aria-controls="deal-more"
           aria-label={`거래 정보 ${isOpen ? '접기' : '펼치기'}`}
-          className="grid size-11 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-surface-3"
+          className="order-2 grid size-9 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-surface-3 @min-[560px]:order-3"
           onClick={() => {
             setIsOpen((prev) => !prev);
             setAskKey(null);
@@ -343,25 +338,10 @@ export default function CareDealCard({ room }) {
       {isOpen && (
         <div
           id="deal-more"
-          className="absolute inset-x-0 top-full max-h-[min(70vh,520px)] overflow-y-auto border-b border-line bg-white px-4 pt-1 pb-4 shadow-[0_12px_24px_-12px_rgba(26,50,52,0.25)]"
+          className="absolute inset-x-0 top-full max-h-[min(70vh,520px)] overflow-y-auto border-b border-line bg-white px-4 pt-3 pb-4 shadow-[0_12px_24px_-12px_rgba(26,50,52,0.25)]"
         >
-          <p className="text-sm text-subtle">
-            {myRole === ROLE.GUARDIAN
-              ? '내가 올린 돌봄 글'
-              : '내가 지원한 돌봄 글'}
-          </p>
-          <a
-            className="mt-1 block truncate font-semibold text-ink hover:text-brand-600"
-            href={generatePath(PATHS.COMMUNITY_PETCARE_DETAIL, {
-              petPrtcRcrtSn: room.petPrtcRcrtSn,
-            })}
-            target="_blank"
-            rel="noopener"
-          >
-            {room.pstTtl}
-          </a>
           {careMatch && (
-            <p className="mt-0.5 text-sm text-muted">
+            <p className="text-sm text-muted tabular-nums">
               {formatCondition(careMatch.cnd)}
             </p>
           )}
@@ -371,15 +351,11 @@ export default function CareDealCard({ room }) {
           <div
             className={`mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-card bg-surface-2 py-3 pr-3 pl-3.5 ${ACT_TONE[guide.tone]}`}
           >
-            <Icon name={guide.icon} className="text-[22px] text-subtle" />
-            <p className="min-w-0 flex-1 text-sm leading-normal text-muted">
-              <b className="block text-base font-semibold text-ink">
-                {guide.title}
-              </b>
+            <p className="min-w-0 flex-1 text-sm leading-normal text-muted @max-[559px]:basis-full">
               {guide.description}
             </p>
             {!ask && guide.actions.length > 0 && (
-              <div className="flex shrink-0 flex-wrap gap-1.5 max-[760px]:w-full max-[760px]:*:flex-1">
+              <div className="flex shrink-0 flex-wrap gap-1.5 @max-[559px]:w-full @max-[559px]:*:flex-1">
                 {otherActions.map((action) => (
                   <DealButton
                     key={action.key}

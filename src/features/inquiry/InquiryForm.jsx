@@ -1,4 +1,4 @@
-import { ChevronLeft, CircleAlert, Info } from 'lucide-react';
+import { ChevronLeft, CircleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import AutoTextarea from '@/components/AutoTextarea';
@@ -23,7 +23,7 @@ const toAttachItems = (imgs = []) =>
   }));
 
 const INPUT_CLASS =
-  'block w-full rounded-md border bg-white px-3 text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-2 focus:ring-[#285a5c]/20';
+  'block w-full rounded-md border bg-white px-3 text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-focus';
 
 function FieldError({ message }) {
   if (!message) return null;
@@ -43,6 +43,7 @@ function FieldError({ message }) {
  * - types: 문의 유형 공통코드 [{ comCd, comCdNm }]
  * - errorMessage·fieldErrors: 서버 오류의 message와 입력값 검증 오류 fields([{ field, message }])
  * - characterLinked: 캐릭터 화면에서 넘겨받은 캐릭터가 있음. 유형이 픽셀 캐릭터면 서버가 캐릭터 이미지를 첫 첨부로 붙이므로 사용자 첨부는 1장 적게
+ * - characterImage: 자동 첨부될 캐릭터 이미지 주소(못 받으면 null). characterLinked이고 유형이 픽셀 캐릭터일 때 「이미지 추가」 칸 오른쪽에 삭제 불가 칸으로 보임(못 받으면 자리 표시)
  * - onSubmit({ inqryTypeCd, inqryTtl, inqryCn, images(새 File들), keepAtchFileSns(남길 기존 첨부) })
  */
 export default function InquiryForm({
@@ -54,6 +55,7 @@ export default function InquiryForm({
   errorMessage,
   fieldErrors,
   characterLinked = false,
+  characterImage = null,
   onSubmit,
 }) {
   const navigate = useNavigate();
@@ -71,10 +73,9 @@ export default function InquiryForm({
   const [leaveTo, setLeaveTo] = useState(null);
 
   const isEdit = mode === 'edit';
-  const maxImages =
-    characterLinked && type === INQUIRY_TYPE_PIXEL_CHARACTER
-      ? MAX_IMAGES - 1
-      : MAX_IMAGES;
+  const hasCharacterImage =
+    characterLinked && type === INQUIRY_TYPE_PIXEL_CHARACTER;
+  const maxImages = hasCharacterImage ? MAX_IMAGES - 1 : MAX_IMAGES;
   const isDirty =
     type !== initial.inqryTypeCd ||
     title !== initial.inqryTtl ||
@@ -143,18 +144,15 @@ export default function InquiryForm({
         {isEdit ? '문의 수정' : '새 문의 작성'}
       </h2>
       {!isEdit && (
-        <p className="mb-6 flex items-start gap-2.5 rounded-[10px] border border-[#cfe3d6] bg-[#ebf3ee] px-4 py-3.5 text-sm font-medium text-[#2f6f57]">
-          <Info size={16} aria-hidden="true" className="mt-[3px] shrink-0" />
-          <span>
-            답변이 등록되면 알림으로 알려 드려요. 자주 묻는 내용은{' '}
-            <Link
-              to={PATHS.FAQS}
-              className="font-bold underline underline-offset-[3px]"
-            >
-              자주 묻는 질문
-            </Link>
-            에서 바로 확인할 수 있어요.
-          </span>
+        <p className="mb-6 text-sm font-medium text-[#2f6f57]">
+          답변이 등록되면 알림으로 알려 드려요. 자주 묻는 내용은{' '}
+          <Link
+            to={PATHS.FAQS}
+            className="font-bold underline underline-offset-[3px]"
+          >
+            자주 묻는 질문
+          </Link>
+          에서 바로 확인할 수 있어요.
         </p>
       )}
       <form
@@ -178,6 +176,7 @@ export default function InquiryForm({
             placeholder="선택해 주세요"
             value={type}
             options={typeOptions}
+            listMaxHeight={320}
             onChange={(value) => {
               setType(value);
               clearError('type');
@@ -273,7 +272,16 @@ export default function InquiryForm({
             clearError('images');
           }}
           max={maxImages}
-          hint="화면 캡처를 함께 올려 주시면 확인이 빨라요."
+          fixedImage={
+            hasCharacterImage
+              ? { url: characterImage, name: '캐릭터 이미지' }
+              : null
+          }
+          hint={
+            hasCharacterImage
+              ? '캐릭터 이미지가 자동으로 함께 접수돼요.'
+              : '화면 캡처를 함께 올려 주시면 확인이 빨라요.'
+          }
         />
         <FieldError message={errors.images} />
       </form>

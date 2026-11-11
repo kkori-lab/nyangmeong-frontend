@@ -89,7 +89,7 @@ export default function ExpenseDetailSheet({
             />
             {clsf.name}
           </p>
-          <p className="mt-1 text-[26px] font-bold">
+          <p className="mt-1 text-[26px] font-bold tabular-nums">
             {formatWon(expense.expndAmt)}
           </p>
           <dl className="mt-4 border-t border-line-soft">

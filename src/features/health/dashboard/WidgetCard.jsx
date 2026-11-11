@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
 import BarChart from '@/components/BarChart';
 import CurveChart from '@/components/CurveChart';
 import Icon from '@/components/Icon';
@@ -16,10 +17,10 @@ import { CARE_ZONE } from '../careDue';
 import { DOSING, FILE_EXT_PDF } from '../checkup/checkupTypes';
 import { getAttachmentFile } from '../checkupApi';
 import ObservationPhoto from '../diary/ObservationPhoto';
-import { SELECT_ARROW_STYLE, SELECT_CLASS } from '../diary/formStyles';
 import { formatDiff, formatPart, formatSize } from '../diary/observationUtils';
 import { STOOL_STATES } from '../diaryTypes';
 import AttachmentImage from '../summary/AttachmentImage';
+import { round2 } from '../numberFormat';
 import PhotoModal from '../summary/PhotoModal';
 import {
   getCheckupDetailPath,
@@ -36,7 +37,8 @@ import { MOBILE_HIDDEN_IDS } from './widgetItems';
  * - 문구·배치는 프로토타입 원문, 값은 실제 API
  */
 
-const toNumber = (value) => (value == null ? null : Number(value));
+/** 서버 수치를 숫자로. 소수 둘째 자리 반올림 */
+const toNumber = (value) => (value == null ? null : round2(value));
 
 const joinSeries = (values, labels, unit) =>
   values.map((v, i) => `${labels[i]} ${v}${unit}`).join(', ');
@@ -48,13 +50,10 @@ const DAILY_SUM = {
   walk: { key: 'walk', unit: '분', chartName: '산책 시간' },
 };
 
-/** 소수 첫째 자리 반올림 */
-const round1 = (value) => Math.round(value * 10) / 10;
-
 /** 타일 증감 칩 */
 const deltaChip = (delta, unit) => {
   if (delta == null) return null;
-  const amount = Math.abs(round1(delta));
+  const amount = Math.abs(round2(delta));
   if (amount === 0) return { tone: 'gray', text: '변화 없음' };
   return {
     tone: 'gray',
@@ -70,7 +69,7 @@ const PRESCRIPTION_ROW_COUNT = 3;
 function Delta({ label, delta, unit }) {
   if (delta == null) return null;
   const Arrow = delta > 0 ? ArrowUp : ArrowDown;
-  const amount = Math.abs(Math.round(delta * 10) / 10);
+  const amount = Math.abs(round2(delta));
 
   return (
     <p className="flex items-center gap-2 text-sm">
@@ -213,7 +212,7 @@ const dailySumBody =
         chip: deltaChip(toNumber(indicator.prevDiff), unit),
         sub:
           sums.length > 0
-            ? `최근 5일 평균 ${round1(sums.reduce((a, b) => a + b, 0) / sums.length)}${unit}`
+            ? `최근 5일 평균 ${round2(sums.reduce((a, b) => a + b, 0) / sums.length)}${unit}`
             : '',
       },
       period: '최근 5일',
@@ -274,19 +273,16 @@ function InspectionTrend({ trends, initialInspection }) {
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
         <p className="shrink-0 text-sm text-subtle">최근 {points.length}회</p>
-        <select
-          aria-label="검사 항목 선택"
+        <DropdownSelect
+          label="검사 항목 선택"
           value={trend.inspNm}
-          className={`${SELECT_CLASS} w-auto! min-w-0 max-w-[60%]`}
-          style={SELECT_ARROW_STYLE}
-          onChange={(event) => setSelectedNm(event.target.value)}
-        >
-          {itemNames.map((name) => (
-            <option key={name} value={name}>
-              [{getFunctionTagName(trends[name].fnctTagCd)}] {name}
-            </option>
-          ))}
-        </select>
+          options={itemNames.map((name) => ({
+            value: name,
+            label: `[${getFunctionTagName(trends[name].fnctTagCd)}] ${name}`,
+          }))}
+          className="max-w-[60%]"
+          onChange={setSelectedNm}
+        />
       </div>
       <ValueRow value={latest} unit={unitNm}>
         <Delta label="지난 검사 대비" delta={delta} unit="" />
@@ -553,7 +549,7 @@ const observationChip = (hasCompare, sizeDiff, obsrvChgCdNm) => {
   if (!hasCompare) return null;
   if (sizeDiff == null)
     return obsrvChgCdNm ? { tone: 'gray', text: obsrvChgCdNm } : null;
-  const amount = Math.abs(round1(sizeDiff));
+  const amount = Math.abs(round2(sizeDiff));
   if (!formatDiff(sizeDiff)) return { tone: 'gray', text: '변화 없음' };
   return sizeDiff < 0
     ? { tone: 'green', text: `▼ ${amount}mm 작아짐` }
@@ -578,7 +574,7 @@ const observationBody = ({ summary, petSn }) => {
         ? `${days}일 동안 ${last.obsrvChgCdNm}`
         : ''
       : formatDiff(sizeDiff)
-        ? `${days}일 동안 ${Math.abs(Math.round(sizeDiff * 10) / 10)}mm ${sizeDiff > 0 ? '커짐' : '작아짐'}`
+        ? `${days}일 동안 ${Math.abs(round2(sizeDiff))}mm ${sizeDiff > 0 ? '커짐' : '작아짐'}`
         : `${days}일 동안 변화 없음`;
   return {
     tile: {

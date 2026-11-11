@@ -1,6 +1,8 @@
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
 import FieldError from './FieldError';
-import { INPUT_CLASS, LABEL_CLASS, SELECT_CLASS } from './formStyles';
+import { INPUT_CLASS, LABEL_CLASS } from './formStyles';
 import {
   DRUG_STATUSES,
   formatAmount,
@@ -58,7 +60,7 @@ export default function ReceiptInfoBlock({
             value={
               tab.amt === '' ? '' : Number(tab.amt).toLocaleString('ko-KR')
             }
-            className={`${INPUT_CLASS} pr-11 text-right ${aiClass(!tab.edited.amt && tab.amt !== '')}`}
+            className={`${INPUT_CLASS} pr-11 text-right tabular-nums ${aiClass(!tab.edited.amt && tab.amt !== '')}`}
             onChange={(event) =>
               onAmountChange(
                 event.target.value
@@ -131,14 +133,12 @@ export default function ReceiptInfoBlock({
                   <div className="grid grid-cols-2 items-start gap-2 max-sm:grid-cols-1">
                     <label className="flex min-w-0 flex-col gap-1">
                       <span className={DRUG_LABEL}>시작일</span>
-                      <input
-                        type="date"
+                      <DatePicker
                         value={drug.startYmd}
-                        aria-invalid={drugErrors.startYmd != null}
-                        className={`${CELL_INPUT} min-w-0 ${aiClass(isAi && drug.startYmd !== '')}`}
-                        onChange={(event) =>
-                          change({ startYmd: event.target.value })
-                        }
+                        invalid={drugErrors.startYmd != null}
+                        onChange={(value) => change({ startYmd: value })}
+                        size="sm"
+                        className={`min-w-0 ${isAi && drug.startYmd !== '' ? '[&>button]:border-dashed' : ''}`}
                       />
                       {drugErrors.startYmd && (
                         <FieldError>{drugErrors.startYmd}</FieldError>
@@ -146,14 +146,12 @@ export default function ReceiptInfoBlock({
                     </label>
                     <label className="flex min-w-0 flex-col gap-1">
                       <span className={DRUG_LABEL}>종료일</span>
-                      <input
-                        type="date"
+                      <DatePicker
                         value={drug.endYmd}
-                        aria-invalid={drugErrors.endYmd != null}
-                        className={`${CELL_INPUT} min-w-0 ${aiClass(isAi && drug.endYmd !== '')}`}
-                        onChange={(event) =>
-                          change({ endYmd: event.target.value })
-                        }
+                        invalid={drugErrors.endYmd != null}
+                        onChange={(value) => change({ endYmd: value })}
+                        size="sm"
+                        className={`min-w-0 ${isAi && drug.endYmd !== '' ? '[&>button]:border-dashed' : ''}`}
                       />
                       {drugErrors.endYmd && (
                         <FieldError>{drugErrors.endYmd}</FieldError>
@@ -188,19 +186,16 @@ export default function ReceiptInfoBlock({
                     </label>
                     <label className="flex min-w-0 flex-col gap-1">
                       <span className={DRUG_LABEL}>상태</span>
-                      <select
+                      <DropdownSelect
                         value={drug.statusCd}
-                        className={`${SELECT_CLASS} h-9 px-2 ${aiClass(isAi)}`}
-                        onChange={(event) =>
-                          change({ statusCd: event.target.value })
-                        }
-                      >
-                        {DRUG_STATUSES.map((status) => (
-                          <option key={status.cd} value={status.cd}>
-                            {status.nm}
-                          </option>
-                        ))}
-                      </select>
+                        size="sm"
+                        options={DRUG_STATUSES.map((status) => ({
+                          value: status.cd,
+                          label: status.nm,
+                        }))}
+                        className={isAi ? '[&>button]:border-dashed' : ''}
+                        onChange={(value) => change({ statusCd: value })}
+                      />
                     </label>
                   </div>
                 </li>

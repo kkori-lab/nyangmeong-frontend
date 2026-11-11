@@ -5,11 +5,13 @@
  * - 맨 위로 올리면 이전 30건을 이어 붙이고 보던 자리 유지
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import Avatar from '@/components/Avatar';
 import FileImage from '@/components/FileImage';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
 import Skeleton from '@/components/Skeleton';
 import { BTN_DANGER, BTN_SECONDARY } from '@/components/buttonStyles';
+import { publicFileUrl } from '@/utils/fileUrl';
 import {
   useChatImage,
   useChatMessages,
@@ -20,13 +22,12 @@ import {
 } from '../queries';
 import { MSG_TYPE, ROOM_STTS } from '../shared/chatCodes';
 import CareDealCard from './CareDealCard';
-import ChatAvatar from './ChatAvatar';
 import ChatMessageInput from './ChatMessageInput';
 import ChatRoomHeader from './ChatRoomHeader';
 import { getLeaveText } from './dealSteps';
 
 const BUBBLE_BASE =
-  'whitespace-pre-line break-words border px-3.5 py-2 leading-[1.55]';
+  'whitespace-pre-line break-words border px-3.5 py-[7px] text-sm leading-[1.55]';
 const BUBBLE_PEER = `${BUBBLE_BASE} rounded-[4px_18px_18px_18px] border-line bg-white text-ink`;
 const BUBBLE_MINE = `${BUBBLE_BASE} rounded-[18px_4px_18px_18px] border-brand-500 bg-brand-500 text-white`;
 
@@ -101,7 +102,13 @@ function MessageBody({ message, otoChatRoomSn }) {
   );
 }
 
-function MessageItem({ message, isContinued, ctptMbrNcnm, otoChatRoomSn }) {
+function MessageItem({
+  message,
+  isContinued,
+  ctptMbrNcnm,
+  ctptProfileAtchFileSn,
+  otoChatRoomSn,
+}) {
   if (message.msgTypeCd === MSG_TYPE.SYSTEM) {
     return <SystemNotice message={message} />;
   }
@@ -115,7 +122,10 @@ function MessageItem({ message, isContinued, ctptMbrNcnm, otoChatRoomSn }) {
       {message.mine && <MessageTime message={message} />}
       {!message.mine && (
         <span className={`self-start ${isContinued ? 'invisible' : ''}`}>
-          <ChatAvatar name={ctptMbrNcnm} size="sm" />
+          <Avatar
+            src={publicFileUrl(ctptProfileAtchFileSn)}
+            className="size-8"
+          />
         </span>
       )}
       <div
@@ -291,6 +301,7 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
                   message={message}
                   isContinued={isContinued}
                   ctptMbrNcnm={room?.ctptMbrNcnm}
+                  ctptProfileAtchFileSn={room?.ctptProfileAtchFileSn}
                   otoChatRoomSn={otoChatRoomSn}
                 />
               );

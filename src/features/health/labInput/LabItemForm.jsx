@@ -1,5 +1,6 @@
 import FieldError from '../diary/FieldError';
 import { INPUT_CLASS, LABEL_CLASS } from '../diary/formStyles';
+import { LAB_NUMBER_MAX_LENGTH } from '../numberFormat';
 import ItemSelect, { DIRECT } from './ItemSelect';
 
 const MAX_DIRECT_LENGTH = 40;
@@ -75,6 +76,7 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
           <input
             value={form.val}
             inputMode="decimal"
+            maxLength={LAB_NUMBER_MAX_LENGTH}
             aria-invalid={Boolean(errors.val)}
             className={INPUT_CLASS}
             onChange={(event) => onChange('val', event.target.value)}
@@ -101,6 +103,7 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
             <input
               value={form.rangeMin}
               inputMode="decimal"
+              maxLength={LAB_NUMBER_MAX_LENGTH}
               aria-invalid={Boolean(errors.range)}
               className={INPUT_CLASS}
               onChange={(event) => onChange('rangeMin', event.target.value)}
@@ -111,6 +114,7 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
             <input
               value={form.rangeMax}
               inputMode="decimal"
+              maxLength={LAB_NUMBER_MAX_LENGTH}
               aria-invalid={Boolean(errors.range)}
               className={INPUT_CLASS}
               onChange={(event) => onChange('rangeMax', event.target.value)}

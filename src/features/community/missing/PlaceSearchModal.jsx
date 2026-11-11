@@ -4,7 +4,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import useKakaoMap from '@/hooks/useKakaoMap';
 import MissingMap from './MissingMap';
-import { findRegion, searchPlaces } from './placeSearch';
+import { findRegion, searchPlaces } from '@/utils/placeSearch';
 
 /**
  * 장소 찾기 모달(전북 한정): 실종센터 목격 장소, 펫돌봄 돌봄 장소 공용
@@ -157,7 +157,7 @@ export default function PlaceSearchModal({
                   setKeyword(event.target.value);
                   setPickError('');
                 }}
-                className="block h-10 w-full rounded-md border border-input-line bg-white pr-11 pl-3 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
+                className="block h-10 w-full rounded-md border border-input-line bg-white pr-11 pl-3 text-base focus:border-brand-500 focus:ring-focus focus:outline-none"
               />
               <button
                 type="submit"

@@ -23,7 +23,7 @@ function Summary({ post }) {
   return (
     <>
       <p className="text-sm text-muted">비용</p>
-      <p className="mt-0.5 text-2xl font-bold tracking-[-0.01em]">
+      <p className="mt-0.5 text-2xl font-bold tracking-[-0.01em] tabular-nums">
         {post.cstAmt.toLocaleString()}원
         <small className="ml-1 text-sm font-medium text-muted">
           {unitText(post)}

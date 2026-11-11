@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import AnalyzeProgress from '@/components/AnalyzeProgress';
 import Modal from '@/components/Modal';
-import Select from '@/components/Select';
+import DropdownSelect from '@/components/DropdownSelect';
 import { RECEIPT_ACCEPT, validateReceiptFile } from '@/utils/receiptFile';
 import { useRecognizeCheckupReceipt } from '../queries';
 import {
@@ -21,19 +21,21 @@ const formatSize = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 const getPetLabel = (pet) =>
   pet.vrtyNm ? `${pet.petNm} (${pet.vrtyNm})` : pet.petNm;
 
-/** 고른 이미지 한 줄 */
+/** 고른 이미지: 큰 미리보기(모달 폭, 최대 높이 240px) 아래에 파일 이름·크기 */
 function PickedFile({ picked }) {
   return (
-    <div className="flex items-center gap-3 rounded-box border border-line bg-surface-2 p-2">
+    <div className="flex flex-col gap-2 rounded-box border border-line bg-surface-2 p-2">
       <img
         src={picked.previewUrl}
         alt="첨부한 영수증"
-        className="size-10 shrink-0 rounded-md object-cover"
+        className="max-h-60 w-full rounded-md bg-white object-contain"
       />
-      <span className="min-w-0 flex-1 truncate">{picked.file.name}</span>
-      <span className="shrink-0 text-sm text-muted">
-        {formatSize(picked.file.size)}
-      </span>
+      <div className="flex items-center gap-3 px-1">
+        <span className="min-w-0 flex-1 truncate">{picked.file.name}</span>
+        <span className="shrink-0 text-sm text-muted">
+          {formatSize(picked.file.size)}
+        </span>
+      </div>
     </div>
   );
 }
@@ -253,12 +255,12 @@ export default function ReceiptUploadModal({
       {hasPetSelect && (
         <div className="mb-4">
           <p className="mb-1.5 text-sm font-semibold">대상 반려동물</p>
-          <Select
+          <DropdownSelect
             label="대상 반려동물"
-            value={String(petSn)}
-            onChange={(value) => setPetSn(Number(value))}
+            value={petSn}
+            onChange={setPetSn}
             options={pets.map((item) => ({
-              value: String(item.petSn),
+              value: item.petSn,
               label: getPetLabel(item),
             }))}
           />

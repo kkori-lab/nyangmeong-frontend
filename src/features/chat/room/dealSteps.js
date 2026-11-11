@@ -133,8 +133,8 @@ export const getDealGuide = (stage, role) => {
       return isOwner
         ? {
             icon: 'pets',
-            title: '매칭이 완료됐어요',
-            description: '돌봄이 끝나면 돌보미가 완료를 요청해요',
+            title: '돌봄이 끝나면 돌보미가 완료를 요청해요',
+            description: '요청이 오면 여기서 돌봄 완료를 확인해요',
             actions: [],
             tone: '',
           }
@@ -192,8 +192,8 @@ export const getDealGuide = (stage, role) => {
     case COMPLETE:
       return {
         icon: 'verified',
-        title: '거래가 완료됐어요',
-        description: '함께해 주셔서 고마워요 · 채팅 기록은 보관돼요',
+        title: '함께해 주셔서 고마워요',
+        description: '채팅 기록은 보관돼요',
         actions: [],
         tone: 'done',
       };
@@ -201,9 +201,8 @@ export const getDealGuide = (stage, role) => {
       return isOwner
         ? {
             icon: 'block',
-            title: '매칭 요청이 취소됐어요',
-            description:
-              '조건이 다시 맞으면 현재 모집글 조건으로 다시 요청할 수 있어요',
+            title: '조건이 다시 맞으면 다시 요청할 수 있어요',
+            description: '현재 모집글 조건으로 다시 요청해요',
             actions: [
               { key: 'request', label: '다시 요청하기', variant: 'primary' },
             ],

@@ -2,10 +2,32 @@
 
 ## 지금 하는 것
 
-SCR-MAN-001 메인페이지 · 사진 용도 판단 AI 연결 — 끝(2026-11-10). `features/ai/api.js` 가짜 `judgeImageIntent`를 AI `POST /ai/image-intent`(multipart)로 연결했다. 추가-1~3: 사진 흐름도 글에 이름이 하나 나온 반려동물로 가고(새 대화면 칩도 바꿈), 받침 있는 이름은 `callName`(`utils/josa.js`)으로 "구름이의"처럼 부른다
+없음(2026-11-11 SCR-COM-007·SCR-MAN-001 AI 모달 헤더 줄이기·닫기 [✕] 하나로·사이드바 기본 접힘·로고 삭제, 공통 알림을 `<dialog>` 위로, 앱 전체 금액·포인트 고정폭, 메인 바로가기 왼쪽 정렬·간격 고정·반짝이 삭제, AI 입력 줄을 메인 검색창 모양으로 끝. 검증 4회차 통과(1·3회차 실패 뒤 고침), 사람 확인 2026-11-11)
 
 ## 다음에 할 것
 
+- SCR-COM-007 이번 PR 알림(2026-11-11): 팀 채널에 ① 공통 알림 `components/ToastContainer.jsx`가 popover(top layer)라 `<dialog>` 모달 위에 보임(쓰는 법 그대로) ② 원 금액·포인트 숫자에 `tabular-nums`를 붙임(가계부 SJM, 건강 일지 영수증·케어 캘린더 JAJ, 돌봄·채팅 거래 카드 KSJ, 관리자), 새 금액 표시·입력에도 붙여 달라고 알린다(초안은 2026-11-11 대화에서 만듦)
+- SCR-MAN-001·SCR-COM-007 모바일 입력 줄 다듬기(사람 요청 2026-11-11, 이번 마일스톤 다음): ① 메인 검색창 [AI 매니저] 단추가 480px 이하에서 빈 연두색 알약으로 보인다(글자는 `max-[480px]:sr-only`인데 추가-6으로 반짝이 아이콘을 지워 안에 보이는 것이 없음, `features/dashboard/HeroAsk.jsx`). 좁은 폭에서 보일 모양(아이콘·짧은 글자 등)을 정한다 ② 메인 검색창·AI 대화창 안내 문구(placeholder)가 좁은 폭에서 잘린다(메인은 "…무엇이든 …", AI 대화창은 `"병원 찾아줘"처럼 말하`에서 말줄임 없이 잘림, `features/ai/chat/ChatInput.jsx`). 좁은 폭용 짧은 문구 등으로 정한다
+- SCR-COM-007 `/ai-chat` 새 창 페이지 정리(사람 2026-11-11): PC도 모달로 바뀐 뒤 앱 안에서 여는 곳이 없다(주소 직접 입력만). 없앨지 정하고, 없애면 `routes/paths.js`·`docs/routes.md`·AI 서버 라우팅 매핑을 같이 고친다
+- AI 서버 `POST /ai/conversations` 실패(2026-11-11 검증 보고): 검증 브라우저(5180→프록시 `/ai/`)에서 `net::ERR_FAILED`로 "메시지를 보내지 못했어요"가 나온다(GET은 200, 바꾸지 않은 메인 모달에서도 같음). 아래 `fetch('/ai/...')` 항목과 같은 원인인지 본다
+
+- SCR-MAN-001 AI 매니저 같은 창 모달 알림(2026-11-11): 명세 FN-COM-007-01·FN-MAN-002는 "새 창(탭)"이라 PC도 같은 창 모달로 바뀐 것을 문서 담당에 알린다. 팀에는 `useScrollLock`(공용 훅)이 이제 원래 스크롤바가 있을 때만 `scrollbar-gutter`를 남긴다는 것(스크롤 없는 화면에서 모달 여닫을 때 흔들림 없어짐), 캐릭터 생성 모달(SJM `pet/character/CharacterCreateModal`)에 사진 미리보기를 넣고 영수증 업로드 모달(`ai/receipt/ReceiptUploadModal`) 미리보기를 키운 것을 PR 본문·팀 채널에 알린다
+- SCR-MAN-001 업로드 미리보기(2026-11-11): 검증 브라우저(Chromium)에서는 다섯 곳 모두 JPG·PNG 미리보기가 보였다. 사람이 본 "안 보임"이 특정 브라우저·파일(휴대폰 사진 등)에서만이면 그 조건을 받아 다시 본다
+- SCR-MAN-001 검증 데이터(2026-11-11, tester 계정): AI 대화방 "강아지가 밥을 안 먹어요"·"가계부 화면으로 이동해줘"·"고양이 하루 물 섭취량"·"강아지 산책 몇 분이 좋아?"·"390 질문 테스트"·사진 첨부 대화 등은 AI 매니저 대화 목록에서 지운다. 1회차 검증이 이전 PR 캡처 `.playwright-mcp/pr/LJS-20261111-SCR-HLT-002-after-1440.png`를 영수증 미리보기로 덮어썼다(필요하면 다시 찍음)
+- 검증 브라우저에서 `fetch('/ai/...')`가 net::ERR_FAILED(2026-11-11 검증 보고, 같은 주소 XHR은 200): 이번 변경과 무관해 보임, 원인 안 봄
+
+- SCR-COM-002 셀렉트·날짜 교체 팀 알림(2026-11-11): PR 본문과 팀 채널에 알린다. 남의 담당 파일을 고쳤다(JAJ `health/` 15파일, SJM `expense/`·`pet/list/PetFormModal`, KSJ `community/care/CareFilters·CareForm`·`community/missing/MissingForm`, YAY `place/PlacePanel`). 기본 셀렉트·날짜·시간 입력 대신 `DropdownSelect`·`DatePicker`·`TimeSelect`를 쓰고, `onChange`는 이벤트가 아니라 값을 바로 받는다. `Select.jsx`도 안에서 `DropdownSelect`를 써서 쓰는 27곳 모양이 바뀌었다. 공용 검증 스킬에 "이전 통과 유지"(`.cache/verify/<이름>.md`)가 들어갔다
+- SCR-COM-002 셀렉트 교체 뒷정리 남은 것(2026-11-11): `health/diary/formStyles.js`의 `SELECT_CLASS`·`SELECT_ARROW_STYLE`은 쓰는 곳이 없다(JAJ에게 지울지 묻는다). `TimeSelect`에 `invalid`가 생긴 것도 알린다(건강기록 3곳은 안 넘겨 모양 그대로)
+- 공용 검증 스킬 "이전 통과 유지" 문구(2026-11-11): 기록 첫 줄과 마일스톤 절 제목을 비교할 때 끝의 `— 진행` 같은 상태 표시를 빼고 비교한다고 적을지 정한다(검증 에이전트가 알아서 빼고 봤다). 백엔드 저장소 검증 스킬에도 같은 규칙을 넣을지 정한다
+- SCR-MAN-001 기본 캐릭터 얼굴 알림(2026-11-11): JAJ(`ReceiptPetLink`·`PetSwitcher`·`SummaryBanner`)·SJM(`PetMiniCard`·`InvitationAccept`·`PetSlide`)에게 공용 `components/PetFace.jsx` 기본 대체가 종별 아이콘 → 기본 캐릭터 얼굴로 바뀐 것을 알린다(PR 본문에도). `iconClassName`은 받기만 하고 효과 없음, 아이콘이 필요하면 `fallback`으로 넘김
+- SCR-MAN-001 character-image 404 원인(사람이 정할 것, 2026-11-11 코드로 추정, DB 조회는 안 함): 백엔드 `PixelCharacterService.currentImage()`는 캐릭터가 없으면 서버 기본 이미지(`resources/character/default-*.png`)를 주므로 404가 아니다. 404는 DB에 캐릭터 파일 행이 있는데 이 PC의 `app.file.root-dir`에 실제 파일이 없을 때 `FileStore.read()`가 던진다(공용 DB, 다른 PC에서 만든 캐릭터로 보임. tester 계정 petSn 1·2·14). 없애려면 백엔드에서 파일을 못 읽으면 기본 이미지로 넘기는 작업(백엔드 저장소에서 /start), 또는 서버 기본 이미지를 이번 프론트 이미지와 같은 그림으로 맞출지도 정한다
+- SCR-MAN-001 기본 캐릭터 이미지 품질(판정 밖, 2026-11-11): AI 세션이 만든 얼굴 PNG는 원본이 스크린샷이라 외곽에 밝은 반투명 픽셀이 조금 남고 강아지 털 바깥에 흐린 점이 있다. 깔끔하게 하려면 번지지 않은 원본 도트 파일을 받아 AI 세션에 다시 요청
+- SCR-MAN-001 바로가기 세부 메뉴 알림(2026-11-11): SJM에게 `pages/mypage/PointPage.jsx`·`features/point/mission/CareMission.jsx`(`?petSn=…#care-mission`)·`pages/mypage/CharacterPage.jsx`(`?petSn=` → 꾸미기)·`pages/mypage/PetListPage.jsx`(`?edit=` → 수정 모달) 변경을 알린다(PR 본문에도)
+- SCR-MAN-001 바로가기 세부 메뉴 사람이 볼 것(판정 밖, 2026-11-11): ① 건강기록 변화·캘린더는 부모(건강 일지·케어 캘린더)의 첫 탭이라 같은 곳으로 간다(뺄지 사람이 정함) ② 메인 타일 ⋮ [바로가기 수정] 셀렉트는 하위 이름("캘린더")만 보인다 ③ 디자인 캡처 `html/SCR-MAN-001/shortcut-edit-*.png`가 이 PC에 없어 트리는 기획 문장 기준 ④ 공동양육 반려동물도 `?edit=`로 수정 모달이 열린다(목록 ⋯ 메뉴와 같음)
+- SCR-MAN-001 바로가기 웹 드래그 순서 남은 것(2026-11-11): 순서는 브라우저마다 따로다(사람 결정 "일단 로컬스토리지로"). 기기 사이에 맞추려면 백엔드 정렬 변경(LJS 백엔드, 마일스톤 절 "참고"). 키보드로 순서 바꾸기는 넣지 않음(사람 결정 2026-11-10). 검증 데이터: user0006 서버 바로가기는 검증 전 12개로 되돌림, Playwright 브라우저에 `nyangmeong.main.shortcutOrder.6` 키가 남음(지우면 서버 순서)
+- SCR-MAN-001 바로가기 배치 상한 남은 것(2026-11-10): 모바일(760px 이하)에서 6번째부터 숨긴 바로가기는 메인에서 수정·삭제할 길이 없다(사람 결정 "그대로, 바텀시트에서 빼기는 나중 절"). 검증 데이터 user0006은 검증 시작 때의 12개로 되돌림, 구현 전 상태와 같은지는 모름
+- SCR-MAN-001 바로가기 편집 사람이 볼 것(판정 밖, 2026-11-10): ① 12개 상한에 걸리면 메뉴가 회색으로만 막히고 이유 문구가 없다 ② 공용 DB `PUT /pets/main-shortcuts` 응답이 6초쯤 걸렸다(검증 실측 6095ms) ③ 타일 ⋮[삭제]를 연달아 누를 때 첫 삭제가 빠져 보인 적이 있다(브라우저 캐시였을 수 있음, 원인 못 가림)
+- SCR-MAN-001 바로가기 편집 검증 환경 정리(2026-11-10): 검증 때 8080을 백엔드 `origin/LJS` 별도 worktree(공용 DB, 프로필 없음)로 바꿔 띄웠다. 원래 IDE 서버는 꺼진 채라 다시 띄우고 worktree는 지운다. 검증 데이터는 user0006·관리자 계정 모두 처음 상태로 되돌림(검증 보고)
 - SCR-MAN-001 사진 용도 판단 연결 검증 데이터(2026-11-10, 8081 DB·tester 계정): AI 대화방 393("진료 영수증")·395("탄이 진료 영수증이야")는 AI 창 [삭제]. 영수증 결과는 저장하지 않았다
 - SCR-MAN-001 사진 용도 판단 사람이 볼 것(판정 밖, 2026-11-10): ① 판단 요청의 `petSn`은 글에 나온 반려동물이 아니라 칩 값을 보낸다(AI 서버는 판단에 쓰지 않음) ② 부르는 이름(`callName`)은 대화창 캐릭터·영수증 분석 말풍선에만 넣었다
 - SCR-ADM-080 매핑표 API 연결 정할 것(2026-11-10, 8081 DB): 검증 전부터 있던 sn 47 "확인용 매핑(수정)"(사용 안 함, 순위 1)을 지울지 사람이 정한다. 검증 때 만든 sn 48·49는 지웠다

@@ -98,7 +98,7 @@ export default function ExpenseCalendar({
               </span>
               {hasItems && (
                 <>
-                  <span className="mt-1 max-w-full truncate font-bold max-[760px]:hidden">
+                  <span className="mt-1 max-w-full truncate font-bold tabular-nums max-[760px]:hidden">
                     {cell.totalAmt.toLocaleString('ko-KR')}
                   </span>
                   <span className="max-w-full truncate text-subtle max-[760px]:hidden">

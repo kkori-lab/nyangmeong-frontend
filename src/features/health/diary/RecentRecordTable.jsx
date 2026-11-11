@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import useMediaQuery from '@/hooks/useMediaQuery';
@@ -6,7 +7,6 @@ import { formatDate, getYmdOf } from '@/utils/formatDate';
 import { RECORD_TYPES, STOOL, WEIGHT } from '../diaryTypes';
 import DayRecordEditModal from './DayRecordEditModal';
 import EmptyBox from './EmptyBox';
-import { SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
 import {
   formatAmount,
   formatRecordValue,
@@ -49,7 +49,12 @@ const formatDaySummary = (dayRecords) => {
  * - 행을 누르면 그날 기록 수정 모달(오늘의 기록 카드 [오늘 기록 수정하기]와 같은 모달). 상세 표 모달 대신 (※신규 정책)
  * - 640px 미만: 표 대신 "날짜 줄 + 한 줄 요약" 목록 (※신규 정책)
  */
-export default function RecentRecordTable({ petSn, records, todayYmd }) {
+export default function RecentRecordTable({
+  petSn,
+  petBdwg,
+  records,
+  todayYmd,
+}) {
   const [periodDays, setPeriodDays] = useState(DEFAULT_PERIOD);
   const [detailYmd, setDetailYmd] = useState(null);
   const isPc = useMediaQuery('(min-width: 640px)');
@@ -61,19 +66,16 @@ export default function RecentRecordTable({ petSn, records, todayYmd }) {
       title="최근 건강기록"
       className="min-w-0"
       action={
-        <select
-          aria-label="조회기간"
+        <DropdownSelect
+          label="조회기간"
           value={periodDays}
-          className={`${SELECT_CLASS} w-32!`}
-          style={SELECT_ARROW_STYLE}
-          onChange={(event) => setPeriodDays(Number(event.target.value))}
-        >
-          {PERIOD_OPTIONS.map((days) => (
-            <option key={days} value={days}>
-              최근 {days}일
-            </option>
-          ))}
-        </select>
+          options={PERIOD_OPTIONS.map((days) => ({
+            value: days,
+            label: `최근 ${days}일`,
+          }))}
+          className="w-32"
+          onChange={setPeriodDays}
+        />
       }
     >
       {ymds.length === 0 ? (
@@ -137,6 +139,7 @@ export default function RecentRecordTable({ petSn, records, todayYmd }) {
       {detailYmd !== null && (
         <DayRecordEditModal
           petSn={petSn}
+          petBdwg={petBdwg}
           ymd={detailYmd}
           isToday={detailYmd === todayYmd}
           dayRecords={records.filter(

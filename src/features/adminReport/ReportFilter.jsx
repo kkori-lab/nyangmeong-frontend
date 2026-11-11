@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DatePicker from '@/components/DatePicker';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import Select from '@/components/Select';
 import {
@@ -6,9 +7,6 @@ import {
   REPORT_REASON_OPTIONS,
   TARGET_TYPE_OPTIONS,
 } from './reportLabels';
-
-const INPUT_CLASS =
-  'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
 
 /** 첫 항목 전체를 붙인 셀렉트 항목 */
 const withAll = (options) => [{ value: '', label: '전체' }, ...options];
@@ -65,20 +63,18 @@ export default function ReportFilter({ filter, onSearch }) {
           onChange={(value) => setField('autoBlindYn', value)}
         />
         <div className="flex items-center gap-2 max-[760px]:w-full">
-          <input
-            type="date"
-            aria-label="접수일 시작일"
+          <DatePicker
+            label="접수일 시작일"
             value={draft.bgngYmd}
-            className={`${INPUT_CLASS} tabular-nums min-w-0 flex-1 min-[761px]:w-40`}
-            onChange={(event) => setField('bgngYmd', event.target.value)}
+            onChange={(value) => setField('bgngYmd', value)}
+            className="min-w-0 flex-1 min-[761px]:w-40"
           />
           <span className="text-subtle">~</span>
-          <input
-            type="date"
-            aria-label="접수일 종료일"
+          <DatePicker
+            label="접수일 종료일"
             value={draft.endYmd}
-            className={`${INPUT_CLASS} tabular-nums min-w-0 flex-1 min-[761px]:w-40`}
-            onChange={(event) => setField('endYmd', event.target.value)}
+            onChange={(value) => setField('endYmd', value)}
+            className="min-w-0 flex-1 min-[761px]:w-40"
           />
         </div>
         <button type="submit" className={`${BTN_PRIMARY} max-[760px]:w-full`}>

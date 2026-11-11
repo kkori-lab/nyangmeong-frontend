@@ -1,11 +1,9 @@
 import { RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import DatePicker from '@/components/DatePicker';
 import Select from '@/components/Select';
 import { ALL_REGION, PET_FILTERS, SIZE_FILTERS } from '../careCodes';
 import { useJeonbukRegions, useSubRegions } from '../missingQueries';
-
-const DATE_CLASS =
-  'block h-10 min-w-0 flex-1 rounded-md border border-input-line bg-white px-3 text-base hover:border-line-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none';
 
 /**
  * 한 줄: 라벨 + 입력. 1280px 초과에서는 두 줄이 한 행에 나란히(라벨·입력 열을 가장 긴 라벨에 맞춘다),
@@ -135,24 +133,22 @@ export default function CareFilters({ filters, onChange, onReset }) {
         </Row>
         <Row label="돌봄 날짜" index={1}>
           <div className="flex min-w-0 items-center gap-2">
-            <input
-              type="date"
-              aria-label="시작 날짜"
+            <DatePicker
+              label="시작 날짜"
               value={from}
               max={to || undefined}
-              onChange={(event) => onChange({ from: event.target.value })}
-              className={DATE_CLASS}
+              onChange={(value) => onChange({ from: value })}
+              className="min-w-0 flex-1"
             />
             <span aria-hidden="true" className="shrink-0 text-subtle">
               ~
             </span>
-            <input
-              type="date"
-              aria-label="종료 날짜"
+            <DatePicker
+              label="종료 날짜"
               value={to}
               min={from || undefined}
-              onChange={(event) => onChange({ to: event.target.value })}
-              className={DATE_CLASS}
+              onChange={(value) => onChange({ to: value })}
+              className="min-w-0 flex-1"
             />
           </div>
         </Row>
