@@ -1,5 +1,6 @@
 import { Plus, Receipt, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
+import DatePicker from '@/components/DatePicker';
 import AmountInput from '@/components/AmountInput';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
@@ -170,13 +171,12 @@ export default function ExpenseReceiptReview({
               <label htmlFor="receipt-ymd" className={LABEL}>
                 날짜
               </label>
-              <input
+              <DatePicker
                 id="receipt-ymd"
-                type="date"
                 value={ymd}
                 max={maxYmd}
-                onChange={(event) => setYmd(event.target.value)}
-                className={`${INPUT} mt-2`}
+                onChange={setYmd}
+                className="mt-2"
               />
             </div>
             <div>

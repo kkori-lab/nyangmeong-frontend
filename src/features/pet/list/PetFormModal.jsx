@@ -1,6 +1,8 @@
 import { Check, ChevronDown, CircleAlert, Lock } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import Skeleton from '@/components/Skeleton';
@@ -539,16 +541,13 @@ function PetForm({
               required
               error={errors.petBrdt}
             >
-              <input
+              <DatePicker
                 id="pet-brdt"
-                type="date"
-                name="petBrdt"
                 value={form.petBrdt}
-                onChange={handleChange}
+                onChange={(value) => setField('petBrdt', value)}
                 max={today}
-                aria-invalid={errors.petBrdt ? 'true' : undefined}
-                aria-describedby="pet-brdt-e"
-                className={INPUT}
+                invalid={Boolean(errors.petBrdt)}
+                describedBy="pet-brdt-e"
               />
             </Field>
           </Row>
@@ -587,31 +586,25 @@ function PetForm({
               error={errors.colr}
             >
               <div className="relative">
-                <select
+                <DropdownSelect
                   id="pet-colr"
-                  name="colrCd"
                   value={form.colrCd}
-                  onChange={handleChange}
-                  aria-invalid={errors.colr ? 'true' : undefined}
-                  aria-describedby={
+                  placeholder="털색 선택"
+                  options={[
+                    ...(isOrphanSelected
+                      ? [{ value: orphanColr.code, label: orphanColr.label }]
+                      : []),
+                    ...colrOptions.map((colr) => ({
+                      value: colr.code,
+                      label: colr.name,
+                    })),
+                  ]}
+                  invalid={Boolean(errors.colr)}
+                  describedBy={
                     orphanNotice ? 'pet-colr-h pet-colr-e' : 'pet-colr-e'
                   }
-                  className={`${INPUT} cursor-pointer appearance-none pr-9 invalid:text-placeholder [&>option]:text-ink [&>option:disabled]:text-placeholder`}
-                  required
-                >
-                  <option value="" disabled>
-                    털색 선택
-                  </option>
-                  {isOrphanSelected && (
-                    <option value={orphanColr.code}>{orphanColr.label}</option>
-                  )}
-                  {colrOptions.map((colr) => (
-                    <option key={colr.code} value={colr.code}>
-                      {colr.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute top-1/2 right-2.5 size-5 -translate-y-1/2 text-muted" />
+                  onChange={(value) => setField('colrCd', value)}
+                />
               </div>
               {isColrDrctInpt && (
                 <div className="mt-2 flex flex-col gap-1.5">

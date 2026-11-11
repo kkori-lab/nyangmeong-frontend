@@ -1,5 +1,6 @@
 import { ChevronLeft, Info, MapPin } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import DatePicker from '@/components/DatePicker';
 import AmountInput from '@/components/AmountInput';
 import AutoTextarea from '@/components/AutoTextarea';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
@@ -165,8 +166,7 @@ export default function CareForm({
         ? minWageMessage(minWage)
         : submitError.message
       : '');
-  const errorMessage =
-    !isRegionError && !isWageError && submitError?.message;
+  const errorMessage = !isRegionError && !isWageError && submitError?.message;
   const isDirty = snapshot(values) !== initialSnap;
 
   useEffect(() => {
@@ -426,28 +426,24 @@ export default function CareForm({
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <span className="text-sm font-semibold text-ink-2">기간</span>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      aria-label="시작일"
+                    <DatePicker
+                      label="시작일"
                       value={values.fromDate}
                       max={values.toDate || undefined}
-                      onChange={(event) =>
-                        set({ fromDate: event.target.value }, ['when'])
-                      }
-                      className={`${INPUT_CLASS} min-w-0 flex-1 ${borderOf(errors.when)}`}
+                      onChange={(value) => set({ fromDate: value }, ['when'])}
+                      invalid={Boolean(errors.when)}
+                      className="min-w-0 flex-1"
                     />
                     <span aria-hidden="true" className="shrink-0 text-subtle">
                       ~
                     </span>
-                    <input
-                      type="date"
-                      aria-label="종료일"
+                    <DatePicker
+                      label="종료일"
                       value={values.toDate}
                       min={values.fromDate || undefined}
-                      onChange={(event) =>
-                        set({ toDate: event.target.value }, ['when'])
-                      }
-                      className={`${INPUT_CLASS} min-w-0 flex-1 ${borderOf(errors.when)}`}
+                      onChange={(value) => set({ toDate: value }, ['when'])}
+                      invalid={Boolean(errors.when)}
+                      className="min-w-0 flex-1"
                     />
                   </div>
                 </div>
@@ -537,8 +533,7 @@ export default function CareForm({
               {minWage && (
                 <p className="text-sm text-muted">
                   시급은 {minWage.lowstHrwgAplcnYr}년 최저시급{' '}
-                  {minWage.lowstHrwgAmt.toLocaleString()}원 이상으로 적어
-                  주세요
+                  {minWage.lowstHrwgAmt.toLocaleString()}원 이상으로 적어 주세요
                 </p>
               )}
               <FieldError message={amountError} />

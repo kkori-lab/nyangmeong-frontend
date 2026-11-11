@@ -49,8 +49,11 @@ const clamp = (ymd, min, max) => {
  * 달력을 직접 그리는 날짜 칸 (브라우저 기본 날짜 입력 대신, 모든 기기 같은 모양)
  * - value: 'YYYY-MM-DD' 문자열, 빈 문자열이면 placeholder 표시. onChange에는 'YYYY-MM-DD' 문자열을 넘긴다
  * - min·max: 'YYYY-MM-DD', 밖의 날짜와 달 이동은 막힌다
+ * - size: 'md'(기본, 높이 40px·16px) / 'sm'(높이 36px·14px)
+ * - invalid: 빨간 테두리 + aria-invalid. id·describedBy: 칸 버튼에 붙는다(<label htmlFor>·오류 문구 연결)
  * - ref: 칸 버튼에 붙는다(바깥에서 포커스를 줄 때)
- * - 팝오버 너비: 데스크톱 296px, 모바일(760px 이하)은 칸 너비(최소 280px). 화면 좌우 16px 안으로 당겨 연다
+ * - 팝오버 너비: 데스크톱 296px, 모바일(760px 이하)은 칸 너비(최소 280px). 화면 좌우 16px 안으로 당겨 연다.
+ *   연 채로 스크롤·창 크기를 바꾸면 위·아래 방향과 위치를 다시 잰다
  * - 키보드: ←→ 하루, ↑↓ 한 주 이동, Enter·Space 선택, Esc·Tab 닫기. 아래 공간이 모자라면 위로 열림
  */
 export default function DatePicker({
@@ -61,6 +64,10 @@ export default function DatePicker({
   max,
   label,
   placeholder = '날짜 선택',
+  size = 'md',
+  invalid = false,
+  id,
+  describedBy,
   disabled = false,
   className = '',
 }) {
@@ -78,7 +85,8 @@ export default function DatePicker({
   const today = getTodayYmd();
   const isOutOfRange = (ymd) => (min && ymd < min) || (max && ymd > max);
 
-  const open = () => {
+  /** 칸 위치로 팝오버 방향·너비·좌우 위치를 잰다 */
+  const measure = () => {
     const rect = buttonRef.current.getBoundingClientRect();
     const below = window.innerHeight - rect.bottom;
     setIsUp(below < POPOVER_HEIGHT && rect.top > below);
@@ -92,6 +100,10 @@ export default function DatePicker({
     setOffsetX(
       overflowRight > 0 ? Math.max(-overflowRight, EDGE_GAP - rect.left) : 0,
     );
+  };
+
+  const open = () => {
+    measure();
     setActiveYmd(clamp(value || today, min, max));
     setIsOpen(true);
   };
@@ -113,6 +125,18 @@ export default function DatePicker({
     };
     document.addEventListener('mousedown', handleMouseDown);
     return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, [isOpen]);
+
+  /** 연 채로 스크롤·리사이즈하면 다시 잰다(위로 밀려 화면 밖으로 나가지 않게) */
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleChange = () => measure();
+    window.addEventListener('scroll', handleChange, true);
+    window.addEventListener('resize', handleChange);
+    return () => {
+      window.removeEventListener('scroll', handleChange, true);
+      window.removeEventListener('resize', handleChange);
+    };
   }, [isOpen]);
 
   const moveActive = (days) => {
@@ -157,23 +181,33 @@ export default function DatePicker({
   const moveMonth = (months) =>
     setActiveYmd(clamp(addMonths(activeYmd, months), min, max));
 
+  const borderClass = invalid
+    ? `border-danger ${isOpen ? 'shadow-[0_0_0_3px_rgba(180,71,58,0.18)]' : ''}`
+    : isOpen
+      ? 'border-[#285a5c] shadow-[0_0_0_3px_rgba(182,218,172,0.5)]'
+      : 'border-[#d3dae2] hover:enabled:border-[#b9c4c4]';
+  let labelColor = 'text-[#8c9899]';
+  if (disabled) labelColor = 'text-subtle';
+  else if (value) labelColor = 'text-[#1a3234]';
+
   return (
     <div ref={rootRef} className={`relative min-w-0 ${className}`}>
       <button
         ref={buttonRef}
         type="button"
+        id={id}
         aria-label={label}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-controls={isOpen ? dialogId : undefined}
         disabled={disabled}
         onClick={() => (isOpen ? close() : open())}
         onKeyDown={handleKeyDown}
-        className={`flex h-10 w-full cursor-pointer items-center rounded-md border bg-white pr-9 pl-3 text-left text-base focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-2 max-[760px]:h-11 hover:enabled:border-[#b9c4c4] ${isOpen ? 'border-[#285a5c] shadow-[0_0_0_3px_rgba(182,218,172,0.5)]' : 'border-[#d3dae2]'}`}
+        className={`flex w-full cursor-pointer items-center rounded-md border bg-white pr-9 pl-3 text-left focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-2 ${size === 'sm' ? 'h-9 text-sm' : 'h-10 text-base max-[760px]:h-11'} ${borderClass}`}
       >
-        <span
-          className={`min-w-0 flex-1 truncate ${value && !disabled ? 'text-[#1a3234]' : 'text-[#8c9899]'}`}
-        >
+        <span className={`min-w-0 flex-1 truncate ${labelColor}`}>
           {value ? formatDate(value) : placeholder}
         </span>
         <CalendarDays
@@ -188,6 +222,8 @@ export default function DatePicker({
           role="dialog"
           aria-label={label ? `${label} 달력` : '달력'}
           onMouseDown={(event) => event.preventDefault()}
+          // <label> 안에 둘 때 달력 클릭이 라벨을 거쳐 칸 버튼을 다시 누르지 않게
+          onClick={(event) => event.preventDefault()}
           style={{
             left: offsetX,
             width: popoverWidth,

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
 import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
@@ -26,7 +27,7 @@ import {
   toInputText,
 } from '../numberFormat';
 import FieldError from './FieldError';
-import { INPUT_CLASS, SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
+import { INPUT_CLASS } from './formStyles';
 import { formatAmount, summarizeType } from './recordUtils';
 
 /** 묶음 머리에 합계를 붙이지 않는 종류 */
@@ -349,20 +350,16 @@ function RecordRow({
             onChange={(rcdTm) => onChange({ rcdTm })}
           />
           {isStool ? (
-            <select
-              aria-label={type.nm}
+            <DropdownSelect
+              label={type.nm}
               value={draft.value}
               disabled={isDisabled}
-              className={SELECT_CLASS}
-              style={SELECT_ARROW_STYLE}
-              onChange={(event) => onChange({ value: event.target.value })}
-            >
-              {STOOL_STATES.map((state) => (
-                <option key={state.cd} value={state.cd}>
-                  {state.nm}
-                </option>
-              ))}
-            </select>
+              options={STOOL_STATES.map((state) => ({
+                value: state.cd,
+                label: state.nm,
+              }))}
+              onChange={(value) => onChange({ value })}
+            />
           ) : (
             <span className="relative block">
               <input

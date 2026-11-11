@@ -1,5 +1,5 @@
+import DropdownSelect from '@/components/DropdownSelect';
 import Icon from '@/components/Icon';
-import { SELECT_ARROW_STYLE } from './formStyles';
 import { SKIP } from './receiptUtils';
 
 const chipClass = (isActive) =>
@@ -89,40 +89,35 @@ export default function ReceiptPetTab({
             tabs.filter((other) => other.id !== tab.id).map((o) => o.petSn),
           );
           return (
-            <span key={tab.id} className={chipClass(isActive)}>
+            <span
+              key={tab.id}
+              className={chipClass(isActive)}
+              onFocus={() => onSelect(tab.id)}
+            >
               {tab.sectionNm && (
                 <span>영수증 &apos;{tab.sectionNm}&apos; →</span>
               )}
-              <select
-                aria-label={
+              <DropdownSelect
+                label={
                   tab.sectionNm
                     ? `영수증 '${tab.sectionNm}' 반려동물 선택`
                     : '반려동물 선택'
                 }
+                variant="text"
                 value={tab.petSn ?? ''}
-                style={SELECT_ARROW_STYLE}
-                className="cursor-pointer appearance-none bg-transparent pr-6 outline-none"
-                onFocus={() => onSelect(tab.id)}
-                onChange={(event) => {
-                  const { value } = event.target;
-                  onPetChange(
-                    tab.id,
-                    value === '' ? null : value === SKIP ? SKIP : Number(value),
-                  );
-                }}
-              >
-                <option value="">반려동물 선택</option>
-                {pets.map((pet) => (
-                  <option
-                    key={pet.petSn}
-                    value={pet.petSn}
-                    disabled={usedByOthers.has(pet.petSn)}
-                  >
-                    {pet.petNm}
-                  </option>
-                ))}
-                <option value={SKIP}>저장 안 함</option>
-              </select>
+                options={[
+                  { value: '', label: '반려동물 선택' },
+                  ...pets.map((pet) => ({
+                    value: pet.petSn,
+                    label: pet.petNm,
+                    disabled: usedByOthers.has(pet.petSn),
+                  })),
+                  { value: SKIP, label: '저장 안 함' },
+                ]}
+                onChange={(value) =>
+                  onPetChange(tab.id, value === '' ? null : value)
+                }
+              />
             </span>
           );
         })}
