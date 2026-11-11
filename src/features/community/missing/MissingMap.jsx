@@ -1,7 +1,7 @@
 import { ExternalLink, MapPin } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import useKakaoMap from '@/hooks/useKakaoMap';
-import { findPlaceAt } from './placeSearch';
+import { findPlaceAt } from '@/utils/placeSearch';
 
 const MAP_LEVEL = 4;
 /** 개인정보 보호: 정확한 좌표 대신 반경 약 250m 원으로 표시 */

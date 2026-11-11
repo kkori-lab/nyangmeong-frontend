@@ -18,12 +18,6 @@ export const ROOM_STTS = { ACTIVE: 'CHTC0001', READ_ONLY: 'CHTC0002' };
 /** 이 방에서 내 역할: GUARDIAN 보호자(돌봄 글 작성자), SITTER 돌보미(채팅으로 지원한 사람) */
 export const ROLE = { GUARDIAN: 'GUARDIAN', SITTER: 'SITTER' };
 
-export const ROLE_LABEL = { GUARDIAN: '보호자', SITTER: '돌보미' };
-
-/** 상대 역할 */
-export const getOtherRole = (role) =>
-  role === ROLE.GUARDIAN ? ROLE.SITTER : ROLE.GUARDIAN;
-
 /** 매칭 거래 상태 PCAG05 */
 export const MTCH_STTS = {
   PRE: null,

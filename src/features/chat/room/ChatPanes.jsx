@@ -36,7 +36,7 @@ export default function ChatPanes({
     <div className="flex min-h-0 flex-1">
       <section
         aria-label="채팅 목록"
-        className={`w-[380px] shrink-0 flex-col border-r border-line max-[760px]:w-full max-[760px]:border-r-0 ${
+        className={`w-[356px] shrink-0 flex-col border-r border-line max-[760px]:w-full max-[760px]:border-r-0 ${
           isNarrow && isRoomPane ? 'hidden' : 'flex'
         }`}
       >

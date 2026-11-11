@@ -1,18 +1,13 @@
 /**
  * [채팅방 상단 바]
- * - ‹ 목록으로, 상대 이름·역할, 거래 상태 · 글 구분, [⋮] 돌봄 글 보기·채팅방 나가기 (FN-CMU-005-01·11)
+ * - ‹ 목록으로, 상대 프로필·이름, 돌봄 글 제목, [⋮] 돌봄 글 보기·채팅방 나가기 (FN-CMU-005-01·11)
  */
 import { useEffect, useRef, useState } from 'react';
 import { generatePath } from 'react-router-dom';
+import Avatar from '@/components/Avatar';
 import Icon from '@/components/Icon';
 import { PATHS } from '@/routes/paths';
-import {
-  getDealBadge,
-  ROLE,
-  ROLE_LABEL,
-  getOtherRole,
-} from '../shared/chatCodes';
-import ChatAvatar from './ChatAvatar';
+import { publicFileUrl } from '@/utils/fileUrl';
 
 const menuItem =
   'flex h-11 w-full items-center gap-2.5 px-4 text-left text-ink-2 hover:bg-surface-2';
@@ -58,17 +53,16 @@ export default function ChatRoomHeader({ room, onBack, onLeaveAsk }) {
         </button>
       )}
       <div className="flex min-w-0 flex-1 items-center gap-2.5">
-        <ChatAvatar name={room.ctptMbrNcnm} />
+        <Avatar
+          src={publicFileUrl(room.ctptProfileAtchFileSn)}
+          className="size-9"
+        />
         <div className="min-w-0">
           <p className="truncate leading-[1.3] font-bold text-ink">
             {room.ctptMbrNcnm}
-            <span className="ml-1.5 inline-flex h-[22px] items-center rounded-full bg-surface-2 px-2 pt-px text-xs font-semibold text-muted shadow-[inset_0_0_0_1px_var(--color-line-strong)]">
-              {ROLE_LABEL[getOtherRole(room.myRole)]}
-            </span>
           </p>
           <p className="truncate text-sm leading-[1.3] text-subtle">
-            {getDealBadge(room.mtchDlngSttsCd).label} ·{' '}
-            {room.myRole === ROLE.GUARDIAN ? '내 돌봄 글' : '돌봄 지원'}
+            {room.pstTtl}
           </p>
         </div>
       </div>

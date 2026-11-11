@@ -4,7 +4,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import useKakaoMap from '@/hooks/useKakaoMap';
 import MissingMap from './MissingMap';
-import { findRegion, searchPlaces } from './placeSearch';
+import { findRegion, searchPlaces } from '@/utils/placeSearch';
 
 /**
  * 장소 찾기 모달(전북 한정): 실종센터 목격 장소, 펫돌봄 돌봄 장소 공용
