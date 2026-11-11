@@ -2,10 +2,13 @@
 
 ## 지금 하는 것
 
-없음(2026-11-11 SCR-MAN-001 바로가기 세부 메뉴 서버 코드 연결 끝. 실제 서버에서 세부 메뉴 8종 저장 200·새로고침 뒤 같은 순서·타일 이동 확인. 검증 통과 1회차, 사람 확인 2026-11-11)
+없음(2026-11-11 SCR-MAN-001 바로가기 얼굴 기본 캐릭터 대체 끝. 공용 `PetFace`가 캐릭터 파일을 못 받으면 종별 기본 캐릭터 얼굴(투명 PNG)을 보인다. 검증 통과, 추가-1 투명 얼굴 이미지 교체 포함, 사람 확인 2026-11-11)
 
 ## 다음에 할 것
 
+- SCR-MAN-001 기본 캐릭터 얼굴 알림(2026-11-11): JAJ(`ReceiptPetLink`·`PetSwitcher`·`SummaryBanner`)·SJM(`PetMiniCard`·`InvitationAccept`·`PetSlide`)에게 공용 `components/PetFace.jsx` 기본 대체가 종별 아이콘 → 기본 캐릭터 얼굴로 바뀐 것을 알린다(PR 본문에도). `iconClassName`은 받기만 하고 효과 없음, 아이콘이 필요하면 `fallback`으로 넘김
+- SCR-MAN-001 character-image 404 원인(사람이 정할 것, 2026-11-11 코드로 추정, DB 조회는 안 함): 백엔드 `PixelCharacterService.currentImage()`는 캐릭터가 없으면 서버 기본 이미지(`resources/character/default-*.png`)를 주므로 404가 아니다. 404는 DB에 캐릭터 파일 행이 있는데 이 PC의 `app.file.root-dir`에 실제 파일이 없을 때 `FileStore.read()`가 던진다(공용 DB, 다른 PC에서 만든 캐릭터로 보임. tester 계정 petSn 1·2·14). 없애려면 백엔드에서 파일을 못 읽으면 기본 이미지로 넘기는 작업(백엔드 저장소에서 /start), 또는 서버 기본 이미지를 이번 프론트 이미지와 같은 그림으로 맞출지도 정한다
+- SCR-MAN-001 기본 캐릭터 이미지 품질(판정 밖, 2026-11-11): AI 세션이 만든 얼굴 PNG는 원본이 스크린샷이라 외곽에 밝은 반투명 픽셀이 조금 남고 강아지 털 바깥에 흐린 점이 있다. 깔끔하게 하려면 번지지 않은 원본 도트 파일을 받아 AI 세션에 다시 요청
 - SCR-MAN-001 바로가기 세부 메뉴 알림(2026-11-11): SJM에게 `pages/mypage/PointPage.jsx`·`features/point/mission/CareMission.jsx`(`?petSn=…#care-mission`)·`pages/mypage/CharacterPage.jsx`(`?petSn=` → 꾸미기)·`pages/mypage/PetListPage.jsx`(`?edit=` → 수정 모달) 변경을 알린다(PR 본문에도)
 - SCR-MAN-001 바로가기 세부 메뉴 사람이 볼 것(판정 밖, 2026-11-11): ① 건강기록 변화·캘린더는 부모(건강 일지·케어 캘린더)의 첫 탭이라 같은 곳으로 간다(뺄지 사람이 정함) ② 메인 타일 ⋮ [바로가기 수정] 셀렉트는 하위 이름("캘린더")만 보인다 ③ 디자인 캡처 `html/SCR-MAN-001/shortcut-edit-*.png`가 이 PC에 없어 트리는 기획 문장 기준 ④ 공동양육 반려동물도 `?edit=`로 수정 모달이 열린다(목록 ⋯ 메뉴와 같음)
 - SCR-MAN-001 바로가기 웹 드래그 순서 남은 것(2026-11-11): 순서는 브라우저마다 따로다(사람 결정 "일단 로컬스토리지로"). 기기 사이에 맞추려면 백엔드 정렬 변경(LJS 백엔드, 마일스톤 절 "참고"). 키보드로 순서 바꾸기는 넣지 않음(사람 결정 2026-11-10). 검증 데이터: user0006 서버 바로가기는 검증 전 12개로 되돌림, Playwright 브라우저에 `nyangmeong.main.shortcutOrder.6` 키가 남음(지우면 서버 순서)
