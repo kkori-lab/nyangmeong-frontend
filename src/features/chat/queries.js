@@ -24,7 +24,6 @@ import {
   readChatRoom,
   requestCareCompletion,
   requestCareMatch,
-  searchChatPlaces,
 } from './api';
 import { retainChatRealtime, setViewingChatRoom } from './realtime';
 import { MSG_TYPE } from './shared/chatCodes';
@@ -34,7 +33,6 @@ export const chatKeys = {
   list: (unreadOnly) => ['chat-rooms', 'list', unreadOnly],
   unreadCount: ['chat-rooms', 'unread-count'],
   detail: (otoChatRoomSn) => ['chat-rooms', otoChatRoomSn, 'detail'],
-  places: (keyword) => ['chat-places', keyword],
   messages: (otoChatRoomSn) => ['chat-rooms', otoChatRoomSn, 'messages'],
   image: (otoChatRoomSn, atchFileSn) => [
     'chat-rooms',
@@ -203,13 +201,6 @@ export const useCareMatch = (petPrtcMtchSn) =>
     queryKey: chatKeys.careMatch(petPrtcMtchSn),
     queryFn: () => getCareMatch(petPrtcMtchSn),
     enabled: petPrtcMtchSn !== null && petPrtcMtchSn !== undefined,
-  });
-
-/** 주소 공유 모달의 장소 목록: 키워드가 없으면 돌봄 글 동네 근처 */
-export const useChatPlaces = (keyword) =>
-  useQuery({
-    queryKey: chatKeys.places(keyword),
-    queryFn: () => searchChatPlaces({ keyword }),
   });
 
 /** 거래 버튼이 부르는 API: 눌린 key → 함수. 요청은 방 기준, 나머지는 매칭 기준 */

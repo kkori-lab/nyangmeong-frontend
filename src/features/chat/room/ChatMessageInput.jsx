@@ -21,7 +21,7 @@ const TEXTAREA_MAX_HEIGHT = 88;
 const NOT_MATCHED_NOTICE = '매칭이 완료된 뒤 주소를 공유할 수 있어요';
 
 const iconButton =
-  'grid size-11 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-surface-3 aria-disabled:text-line-strong aria-disabled:hover:bg-transparent';
+  'grid size-10 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-surface-3 aria-disabled:text-line-strong aria-disabled:hover:bg-transparent';
 
 /** 사진 고르기 검사: 문제가 있으면 문구 */
 const checkPhotos = (files, currentCount) => {
@@ -163,7 +163,7 @@ export default function ChatMessageInput({
     <footer className="shrink-0 border-t border-line bg-white px-3 pt-2.5 pb-[calc(10px+env(safe-area-inset-bottom))]">
       {hasPhotos && (
         <ul
-          className="mb-2 flex gap-2 overflow-x-auto pb-1"
+          className="mb-2 flex gap-2 overflow-x-auto pt-2 pr-2 pb-1"
           aria-label="보낼 사진"
         >
           {photos.map((photo) => (
@@ -228,7 +228,7 @@ export default function ChatMessageInput({
           type="button"
           aria-label="주소 공유"
           aria-disabled={!isAddressEnabled}
-          className={iconButton}
+          className={`${iconButton} -ml-2`}
           onClick={handleAddressClick}
         >
           <Icon name="location_on" className="text-2xl" />
