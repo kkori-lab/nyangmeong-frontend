@@ -2,13 +2,19 @@
 
 ## 지금 하는 것
 
-SCR-CMU-001 커뮤니티 · 상세의 「내 글」 배지, 실종센터 상세 「실종 지역:」 글자 삭제, 찾았어요 안내 아이콘 정리, 아바타 테두리 (2026-11-10) — 상태: 끝 (검증 4회차 `확인 못 함 있음`(연결 남음만), `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-10)
+SCR-CSC-001 공지사항 · 목록 번호를 순번으로 (2026-11-11) — 상태: 끝 (검증 5회차 `통과`, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인 2026-11-11)
 
-- 바꾼 것: 펫돌봄·실종센터·펫이야기 상세에 내가 쓴 글이면 「내 글」 배지(목록 카드와 같은 순서, 펫이야기는 게시판 → 인기 → 내 글). 실종센터 상세의 지역 줄에서 「실종 지역:」 삭제. 찾았어요 안내 박스의 아이콘과 자동 댓글·확인 창 미리보기의 🎉 삭제(자동 댓글은 보일 때만 떼고 서버 글자는 그대로, `CommentSection.jsx` `stripLeadingEmoji`), 확인 창 미리보기에 작성자 프로필(`Avatar`)
-- 추가 요청: 추가-1 펫돌봄 목록 썸네일의 점선 테두리 삭제(`CareCard.jsx`), 추가-2 댓글 아바타 원에 연한 회색 테두리(`CommentSection.jsx`·`MissingOwnerModals.jsx`, 흰 배경 사진의 경계가 안 보이던 것), 추가-3 위 테두리를 공용 `components/Avatar.jsx` 자체로 옮겨 커뮤니티의 모든 아바타에 같은 테두리(`border border-line`)
-- 연결 남음: 펫이야기 목록의 「내 글」은 백엔드 `GET /posts`의 `PostSummary.owner`가 있어야 보인다(백엔드 마일스톤 「SCR-CMU-001 펫이야기 · 내 글만 보기」에 `mineYn`과 함께 있음)
+- FN-CSC-001-01: `features/notice/NoticeList.jsx` 번호 = `totalElements − (page − 1) × size − index`(`size`는 응답 값). 고정 공지는 「공지」 배지로 순서 자리만 차지, 일반 공지는 (전체 − 고정 수)부터 1까지. 원인은 번호 칸이 DB 고유번호(`ntcMttrSn`)였던 것. 백엔드 변경 없음, 새 의존성 없음
+- FN-CSC-001-02: 변경 없음(고정 공지 배경색·배지 유지)
 
-SCR-CMU-004 펫돌봄 작성자 패널·배지·쪽 번호는 PR #318, SCR-CMU-003 펫뉴스는 PR #300, SCR-CMU-001 상세 이미지·좋아요는 PR #278로 끝났다.
+### 추가 요청
+| 추가 | 바꿀 파일 | 완료 조건 | 요청 |
+| --- | --- | --- | --- |
+| 추가-1 | `src/features/community/missing/CheckList.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 1행 주석의 「실종 Check 가이드」가 「실종 체크 가이드」(이미 사람이 고친 미커밋 변경을 남긴다) | 요청 2026-11-11 "실종 체크 가이드는 내가 수정했음" |
+| 추가-2 | `src/features/inquiry/InquiryForm.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 화면: 새 문의 작성의 「답변이 등록되면 알림으로…」 안내 문구에서 왼쪽 아이콘과 초록 박스(배경·테두리)를 없애고 글만 보인다 | 요청 2026-11-11 "이 텍스트 왼쪽 아이콘 삭제하고, 그린컬러 박스도 삭제" |
+| 추가-3 | `src/features/inquiry/InquiryForm.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 화면: 추가-2 문구의 글자색을 기존 그린(`#2f6f57`, `font-medium`)으로 되돌린다(아이콘·박스는 없는 채로) | 요청 2026-11-11 "안내 문구의 컬러는 기존 그린 컬러 유지" |
+| 추가-4 | `src/features/inquiry/InquiryForm.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 화면: 문의 작성의 제목·내용 입력칸을 선택했을 때 효과를 셀렉트박스(`DropdownSelect`가 열릴 때: 테두리 `#285a5c` + 연두 `rgba(182,218,172,0.5)` 3px 그림자)와 같게 한다 | 요청 2026-11-11 "텍스트 인풋박스와 셀렉트박스를 선택했을 때 컬러가 다름. 셀렉트박스 효과(연두색)를 인풋필드에 동일하게" |
+| 추가-5 | `features/community/` 입력칸 파일(`care/CareFilters.jsx`·`care/careFormStyles.js`·`missing/BreedCombobox.jsx`·`missing/MissingForm.jsx`·`missing/PlaceSearchModal.jsx`·`PostForm.jsx`·`CommentSection.jsx`), `features/inquiry/InquiryForm.jsx`, `components/ReportModal.jsx`, `components/SearchInput.jsx` | 명령: `yarn -s lint`·`yarn -s build` 0. 화면: 커뮤니티·고객센터의 모든 입력칸(글자 입력·검색·내용)을 선택했을 때 효과가 셀렉트와 같은 `ring-focus`(테두리 `#285a5c` + 연두 3px) | 요청 2026-11-11 "커뮤니티와 고객센터 페이지 모두" (추가-4 범위를 넓힘) |
 
 ## 다음에 할 것
 

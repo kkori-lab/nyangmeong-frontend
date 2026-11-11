@@ -1,4 +1,4 @@
-/** 번호 원 + 제목 + 설명이 이어지는 안내 목록(실종 Check 가이드 등) */
+/** 번호 원 + 제목 + 설명이 이어지는 안내 목록(실종 체크 가이드 등) */
 export default function CheckList({ items }) {
   return (
     <ol>

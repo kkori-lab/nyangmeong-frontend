@@ -21,7 +21,7 @@ const toImageItems = (imgs) =>
   }));
 
 const INPUT_CLASS =
-  'block w-full rounded-md border bg-white px-3 text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-2 focus:ring-[#285a5c]/20';
+  'block w-full rounded-md border bg-white px-3 text-base placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:outline-none focus:ring-focus';
 
 const LABEL_CLASS =
   'flex items-center gap-0.5 text-base leading-[1.4] font-semibold text-[#1a3234]';
