@@ -96,6 +96,7 @@ export default function ChatInput({
     /** 760px 미만: 화면 아래에 붙고 글자 수는 숨김(넘으면 아래 안내가 대신함) */
     <div className="mx-auto w-full max-w-[820px] px-6 pb-4 max-[760px]:px-3 max-[760px]:pb-[calc(8px+env(safe-area-inset-bottom))]">
       <form
+        data-ai-chat-input
         className="flex flex-wrap items-center gap-3 rounded-[14px] border border-[#d3dae2] bg-white py-3 pl-3 pr-4 max-[760px]:items-end max-[760px]:gap-2 max-[760px]:rounded-[22px] max-[760px]:py-1 max-[760px]:pl-2 max-[760px]:pr-2"
         onSubmit={(event) => {
           event.preventDefault();
