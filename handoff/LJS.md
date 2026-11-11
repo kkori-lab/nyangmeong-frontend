@@ -2,11 +2,11 @@
 
 ## 지금 하는 것
 
-없음(2026-11-11 SCR-COM-007 로그아웃·탈퇴의 AI 창 닫기 호출과 쓰지 않는 사진 전달 채널(`/ai-chat?attach=`) 삭제 끝. 검증 1회차 통과, 사람 확인 2026-11-11)
+없음(2026-11-11 SCR-COM-007 로그아웃·탈퇴 때 `closeChatWindow()`가 이 탭에서 연 채팅 창만 닫고 빈 창을 열지 않게 함 끝. 검증 1회차 통과, 사람 확인 2026-11-11. 한계: 채팅 창을 연 뒤 본창을 새로고침하면 그 창은 닫지 않음(사람 결정 추천안대로))
 
 ## 다음에 할 것
 
-- SCR-COM-007 채팅 창 닫기 정리(2026-11-11 검증 보고, 기획 밖이라 안 함): 로그아웃·탈퇴 때 `closeChatWindow()`(`hooks/useChatWindow.js`)도 `window.open('', 'nyangmeong-chat')`로 채팅 창이 없으면 빈 창을 잠깐 열었다 닫는다. 채팅 창을 연 적이 있을 때만 닫도록 바꿀지 정한다
+- SCR-COM-007 AI 매니저 모달 레이아웃(사람 요청 2026-11-11): 지금 사이트 헤더·모달 헤더("AI 매니저"+X)·사이드바 머리(로고+☰)로 헤더가 세 줄이다. ① 모달 헤더 줄(`pages/ai/AiChatModal.jsx` "AI 매니저"·[닫기])을 지운다 ② 사이드바(`features/ai/chat/ConversationSidebar.jsx`) 머리의 냥멍케어 로고를 지우고 그 자리에 뒤로가기 버튼을 둔다 ③ 사이드바 기본값을 닫힘으로(`pages/ai/AiChatScreen.jsx` `isCollapsed` 초깃값). 기획 때 정할 것: 뒤로가기가 하는 일(모달 닫기 = 지금 X 대신인지), 사이드바가 닫혔을 때 뒤로가기 버튼 위치, 모바일 모달·`/ai-chat` 페이지에도 같게 할지
 - AI 서버 `POST /ai/conversations` 실패(2026-11-11 검증 보고): 검증 브라우저(5180→프록시 `/ai/`)에서 `net::ERR_FAILED`로 "메시지를 보내지 못했어요"가 나온다(GET은 200, 바꾸지 않은 메인 모달에서도 같음). 아래 `fetch('/ai/...')` 항목과 같은 원인인지 본다
 
 - SCR-MAN-001 AI 매니저 같은 창 모달 알림(2026-11-11): 명세 FN-COM-007-01·FN-MAN-002는 "새 창(탭)"이라 PC도 같은 창 모달로 바뀐 것을 문서 담당에 알린다. 팀에는 `useScrollLock`(공용 훅)이 이제 원래 스크롤바가 있을 때만 `scrollbar-gutter`를 남긴다는 것(스크롤 없는 화면에서 모달 여닫을 때 흔들림 없어짐), 캐릭터 생성 모달(SJM `pet/character/CharacterCreateModal`)에 사진 미리보기를 넣고 영수증 업로드 모달(`ai/receipt/ReceiptUploadModal`) 미리보기를 키운 것을 PR 본문·팀 채널에 알린다
