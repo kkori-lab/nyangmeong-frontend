@@ -28,7 +28,7 @@ export default function ExpenseDayDetail({
     <section aria-label="날짜별 지출 상세" className="mt-5">
       <div className={`${DAY_HEAD} rounded-md`}>
         <span>{formatDayHeader(expndYmd)}</span>
-        <span>
+        <span className="tabular-nums">
           {formatWon(totalAmt)} · {items.length}건
         </span>
       </div>

@@ -61,7 +61,9 @@ export default function CareCard({ post }) {
           </span>
           <span className="inline-flex items-center gap-1">
             <Wallet size={18} aria-hidden="true" className="text-subtle" />
-            <b className="font-bold text-ink">{getCostLabel(post)}</b>
+            <b className="font-bold text-ink tabular-nums">
+              {getCostLabel(post)}
+            </b>
           </span>
         </span>
       </span>

@@ -87,7 +87,7 @@ function ResultCard({ result, pet, isDismissed, onConfirm, onDismiss }) {
         {buildRows(result.ocr, pet).map(([label, value], index) => (
           <div key={index} className="min-w-0">
             <dt className="text-sm text-[#667374]">{label}</dt>
-            <dd className="break-words text-base font-semibold text-[#1a3234]">
+            <dd className="break-words text-base font-semibold text-[#1a3234] tabular-nums">
               {value}
             </dd>
           </div>
