@@ -7,7 +7,6 @@ import Skeleton from '@/components/Skeleton';
 import { useLogout, useMemberSummary } from '@/features/member/queries';
 import { useAiModal } from '@/context/aiModal';
 import { useChatModal } from '@/context/chatModal';
-import { closeAiWindow } from '@/hooks/useAiWindow';
 import { closeChatWindow } from '@/hooks/useChatWindow';
 import { PATHS } from '@/routes/paths';
 
@@ -76,7 +75,6 @@ export function LogoutConfirm({ onClose }) {
   const handleConfirm = () => {
     logout.mutate(undefined, {
       onSuccess: () => {
-        closeAiWindow();
         closeChatWindow();
         closeChatModal();
         closeAiModal();
