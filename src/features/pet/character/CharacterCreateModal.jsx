@@ -96,6 +96,7 @@ export default function CharacterCreateModal({ pet, onClose }) {
               state={{
                 inquiryType: 'PIXEL_CHARACTER',
                 petSn: pet.petSn,
+                pixelCharSn: pet.pixelCharSn,
                 imageUrl: characterImage,
               }}
               className={BTN_SECONDARY}
