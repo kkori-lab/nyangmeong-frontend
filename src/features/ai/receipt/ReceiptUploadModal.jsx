@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import AnalyzeProgress from '@/components/AnalyzeProgress';
 import Modal from '@/components/Modal';
-import Select from '@/components/Select';
+import DropdownSelect from '@/components/DropdownSelect';
 import { RECEIPT_ACCEPT, validateReceiptFile } from '@/utils/receiptFile';
 import { useRecognizeCheckupReceipt } from '../queries';
 import {
@@ -253,12 +253,12 @@ export default function ReceiptUploadModal({
       {hasPetSelect && (
         <div className="mb-4">
           <p className="mb-1.5 text-sm font-semibold">대상 반려동물</p>
-          <Select
+          <DropdownSelect
             label="대상 반려동물"
-            value={String(petSn)}
-            onChange={(value) => setPetSn(Number(value))}
+            value={petSn}
+            onChange={setPetSn}
             options={pets.map((item) => ({
-              value: String(item.petSn),
+              value: item.petSn,
               label: getPetLabel(item),
             }))}
           />

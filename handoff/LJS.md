@@ -2,12 +2,13 @@
 
 ## 지금 하는 것
 
-없음(2026-11-11 SCR-COM-002 공통 셀렉트·날짜 피커 공용화 끝. 공용 `components/DatePicker.jsx`를 새로 만들고 `DropdownSelect`에 `disabled`·`ref`를 더했다. 미리보기 `/dev/form-controls`. 쓰는 곳은 바꾸지 않았다. 검증 통과, 추가-1 모바일 팝오버 칸 너비 포함, 사람 확인 2026-11-11)
+없음(2026-11-11 SCR-COM-002 공통 셀렉트·날짜 피커 쓰는 곳 교체 끝. 기본 `<select>`·`type="date"`·`type="time"`을 모두 공용 `DropdownSelect`·`DatePicker`·`TimeSelect`로 바꾸고 `Select.jsx`도 안에서 `DropdownSelect`를 쓴다. 추가-1~4 포함, 검증 통과, 사람 확인 2026-11-11)
 
 ## 다음에 할 것
 
-- SCR-COM-002 셀렉트·날짜 쓰는 곳 교체(마일스톤 `대기`, 2026-11-11): 기본 `<select>` 24곳(18파일)을 `DropdownSelect`로, `type="date"` 38곳(24파일)을 `DatePicker`로 바꾼다. 남의 담당 파일(JAJ 15·SJM 5·KSJ 3·YAY 1, 커밋 이니셜 기준)이 들어가 팀에 먼저 알린다. `DatePicker`의 `onChange`는 문자열을 넘기므로 `event.target.value`를 바꾼다. 끝나면 `/dev/form-controls`와 `pages/dev/FormControlsDevPage.jsx`를 지운다
-- SCR-COM-002 셀렉트·날짜 피커 사람이 볼 것(판정 밖, 2026-11-11): ① `DropdownSelect` disabled 글자색 `#8c9899`가 `Select.jsx`의 `text-subtle`(#667374)보다 연하다 ② 날짜 팝오버를 연 채 스크롤하면 위·아래 방향은 열 때 값 그대로라 화면 위로 벗어날 수 있다(열 때 위치는 정상). 교체 마일스톤 전에 맞출지 정한다
+- SCR-COM-002 셀렉트·날짜 교체 팀 알림(2026-11-11): PR 본문과 팀 채널에 알린다. 남의 담당 파일을 고쳤다(JAJ `health/` 15파일, SJM `expense/`·`pet/list/PetFormModal`, KSJ `community/care/CareFilters·CareForm`·`community/missing/MissingForm`, YAY `place/PlacePanel`). 기본 셀렉트·날짜·시간 입력 대신 `DropdownSelect`·`DatePicker`·`TimeSelect`를 쓰고, `onChange`는 이벤트가 아니라 값을 바로 받는다. `Select.jsx`도 안에서 `DropdownSelect`를 써서 쓰는 27곳 모양이 바뀌었다. 공용 검증 스킬에 "이전 통과 유지"(`.cache/verify/<이름>.md`)가 들어갔다
+- SCR-COM-002 셀렉트 교체 뒷정리(판정 밖, 2026-11-11): ① `health/diary/formStyles.js`의 `SELECT_CLASS`·`SELECT_ARROW_STYLE`은 쓰는 곳이 없다(JAJ에게 지울지 묻는다) ② `TimeSelect`에 `invalid` prop이 없어 실종 글쓰기 목격 시간은 클래스로 테두리만 바꿨다(`aria-invalid` 없음) ③ 필수 셀렉트(반려동물·검진 종류 등)는 한 번 고르면 빈 값으로 못 되돌린다 ④ 영수증 결과 반려동물 칩 글자형 셀렉트는 검증에서 화면으로 못 봤다
+- 공용 검증 스킬 "이전 통과 유지" 문구(2026-11-11): 기록 첫 줄과 마일스톤 절 제목을 비교할 때 끝의 `— 진행` 같은 상태 표시를 빼고 비교한다고 적을지 정한다(검증 에이전트가 알아서 빼고 봤다). 백엔드 저장소 검증 스킬에도 같은 규칙을 넣을지 정한다
 - SCR-MAN-001 기본 캐릭터 얼굴 알림(2026-11-11): JAJ(`ReceiptPetLink`·`PetSwitcher`·`SummaryBanner`)·SJM(`PetMiniCard`·`InvitationAccept`·`PetSlide`)에게 공용 `components/PetFace.jsx` 기본 대체가 종별 아이콘 → 기본 캐릭터 얼굴로 바뀐 것을 알린다(PR 본문에도). `iconClassName`은 받기만 하고 효과 없음, 아이콘이 필요하면 `fallback`으로 넘김
 - SCR-MAN-001 character-image 404 원인(사람이 정할 것, 2026-11-11 코드로 추정, DB 조회는 안 함): 백엔드 `PixelCharacterService.currentImage()`는 캐릭터가 없으면 서버 기본 이미지(`resources/character/default-*.png`)를 주므로 404가 아니다. 404는 DB에 캐릭터 파일 행이 있는데 이 PC의 `app.file.root-dir`에 실제 파일이 없을 때 `FileStore.read()`가 던진다(공용 DB, 다른 PC에서 만든 캐릭터로 보임. tester 계정 petSn 1·2·14). 없애려면 백엔드에서 파일을 못 읽으면 기본 이미지로 넘기는 작업(백엔드 저장소에서 /start), 또는 서버 기본 이미지를 이번 프론트 이미지와 같은 그림으로 맞출지도 정한다
 - SCR-MAN-001 기본 캐릭터 이미지 품질(판정 밖, 2026-11-11): AI 세션이 만든 얼굴 PNG는 원본이 스크린샷이라 외곽에 밝은 반투명 픽셀이 조금 남고 강아지 털 바깥에 흐린 점이 있다. 깔끔하게 하려면 번지지 않은 원본 도트 파일을 받아 AI 세션에 다시 요청

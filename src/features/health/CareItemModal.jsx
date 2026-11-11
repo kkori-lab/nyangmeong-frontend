@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
 import { formatYmdWeekday, getTodayYmd } from '@/utils/formatDate';
 import { CARE_CYCLES, CARE_ZONE, CUSTOM_CYCLE, addCycle } from './careDue';
@@ -289,12 +290,10 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
                     <span className={labelClass}>
                       마지막으로 한 날{optional}
                     </span>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={lastCmptnYmd}
                       max={todayYmd}
-                      className={`${inputClass} tabular-nums`}
-                      onChange={(event) => setLastCmptnYmd(event.target.value)}
+                      onChange={setLastCmptnYmd}
                     />
                   </label>
                   <p className={helpClass}>

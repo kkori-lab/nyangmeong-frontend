@@ -1,10 +1,8 @@
 import { useState } from 'react';
+import DatePicker from '@/components/DatePicker';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import Select from '@/components/Select';
 import { API_TYPES } from './apiUsageLabels';
-
-const INPUT_CLASS =
-  'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
 
 const TYPE_OPTIONS = [
   { value: '', label: '전체' },
@@ -42,20 +40,18 @@ export default function ApiUsageFilter({ filter, onSearch }) {
     <form onSubmit={handleSubmit} className="mb-4 space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2 max-[760px]:w-full">
-          <input
-            type="date"
-            aria-label="기간 시작일"
+          <DatePicker
+            label="기간 시작일"
             value={draft.from}
-            className={`${INPUT_CLASS} tabular-nums min-[761px]:w-40`}
-            onChange={(event) => setField('from', event.target.value)}
+            onChange={(value) => setField('from', value)}
+            className="min-[761px]:w-40"
           />
           <span className="text-subtle">~</span>
-          <input
-            type="date"
-            aria-label="기간 종료일"
+          <DatePicker
+            label="기간 종료일"
             value={draft.to}
-            className={`${INPUT_CLASS} tabular-nums min-[761px]:w-40`}
-            onChange={(event) => setField('to', event.target.value)}
+            onChange={(value) => setField('to', value)}
+            className="min-[761px]:w-40"
           />
         </div>
         <Select

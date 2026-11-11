@@ -1,4 +1,4 @@
-import { SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
+import DropdownSelect from '@/components/DropdownSelect';
 import {
   SKIP,
   formatAmount,
@@ -59,26 +59,23 @@ export default function ReceiptAssignList({
                   : getLineAmount(line).toLocaleString('ko-KR')}
               </td>
               <td className="p-1">
-                <select
-                  aria-label={`${getLineName(line)} 반려동물`}
+                <DropdownSelect
+                  label={`${getLineName(line)} 반려동물`}
                   value={
                     targetIds.has(assign[line.lineSn])
                       ? assign[line.lineSn]
                       : ''
                   }
-                  style={SELECT_ARROW_STYLE}
-                  className={`${SELECT_CLASS} h-9 px-2`}
-                  onChange={(event) =>
-                    onAssign(line.lineSn, event.target.value)
-                  }
-                >
-                  <option value="">선택</option>
-                  {targets.map((target) => (
-                    <option key={target.id} value={target.id}>
-                      {target.petNm}
-                    </option>
-                  ))}
-                </select>
+                  size="sm"
+                  options={[
+                    { value: '', label: '선택' },
+                    ...targets.map((target) => ({
+                      value: target.id,
+                      label: target.petNm,
+                    })),
+                  ]}
+                  onChange={(value) => onAssign(line.lineSn, value)}
+                />
               </td>
             </tr>
           ))}

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import TimeSelect from '@/components/TimeSelect';
 import ConfirmModal from '@/components/ConfirmModal';
 import Icon from '@/components/Icon';
@@ -15,14 +17,6 @@ import {
   useDeleteSchedule,
   useUpdateSchedule,
 } from './queries';
-
-// 퍼블리싱 시안 .sel의 오른쪽 화살표
-const SELECT_ARROW_STYLE = {
-  backgroundImage:
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5' fill='none' stroke='%23566465' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 10px center',
-};
 
 const MAX_HOSPITAL_NAME_LENGTH = 50;
 const MAX_SCHEDULE_NAME_LENGTH = 40;
@@ -165,7 +159,6 @@ export default function ScheduleModal({
     'flex items-center gap-0.5 text-base leading-[1.4] font-semibold text-[#1a3234]';
   const inputClass =
     'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)]';
-  const selectClass = `${inputClass} appearance-none pt-px pr-9`;
   const secondaryButtonClass =
     'inline-flex h-10 min-w-24 items-center justify-center rounded-[6px] border border-[#e2e7e7] bg-white px-4 text-base font-semibold whitespace-nowrap text-[#1a3234] hover:border-[#b9c4c4] hover:bg-[#f4f6f6] disabled:opacity-50';
   const required = <span className="ml-0.5 font-bold text-[#b4473a]">*</span>;
@@ -202,26 +195,15 @@ export default function ScheduleModal({
           {onlyPetSn === null && (
             <label className="flex flex-col gap-1.5">
               <span className={labelClass}>반려동물{required}</span>
-              <select
+              <DropdownSelect
                 value={form.petSn ?? ''}
-                className={selectClass}
-                style={SELECT_ARROW_STYLE}
-                onChange={(event) =>
-                  setField(
-                    'petSn',
-                    event.target.value === ''
-                      ? null
-                      : Number(event.target.value),
-                  )
-                }
-              >
-                <option value="">반려동물 선택</option>
-                {pets.map((pet) => (
-                  <option key={pet.petSn} value={pet.petSn}>
-                    {pet.petNm}
-                  </option>
-                ))}
-              </select>
+                placeholder="반려동물 선택"
+                options={pets.map((pet) => ({
+                  value: pet.petSn,
+                  label: pet.petNm,
+                }))}
+                onChange={(value) => setField('petSn', value)}
+              />
               <FieldError message={fieldError('petSn')} />
             </label>
           )}
@@ -257,14 +239,9 @@ export default function ScheduleModal({
           <div className="grid grid-cols-2 gap-x-8 max-sm:grid-cols-1 max-sm:gap-y-5">
             <label className="flex flex-col gap-1.5">
               <span className={labelClass}>날짜{required}</span>
-              <input
-                type="date"
-                required
+              <DatePicker
                 value={form.scheduleDate}
-                className={`${inputClass} tabular-nums`}
-                onChange={(event) =>
-                  setField('scheduleDate', event.target.value)
-                }
+                onChange={(value) => setField('scheduleDate', value)}
               />
               <FieldError message={fieldError('schdlDt')} />
             </label>
@@ -285,21 +262,15 @@ export default function ScheduleModal({
               <div className="grid grid-cols-2 gap-x-8">
                 <label className="flex flex-col gap-1.5">
                   <span className={labelClass}>검진유형{required}</span>
-                  <select
+                  <DropdownSelect
                     value={form.ckupTypeCd}
-                    className={selectClass}
-                    style={SELECT_ARROW_STYLE}
-                    onChange={(event) =>
-                      setField('ckupTypeCd', event.target.value)
-                    }
-                  >
-                    <option value="">선택</option>
-                    {CHECKUP_TYPES.map((type) => (
-                      <option key={type.cd} value={type.cd}>
-                        {type.nm}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="선택"
+                    options={CHECKUP_TYPES.map((type) => ({
+                      value: type.cd,
+                      label: type.nm,
+                    }))}
+                    onChange={(value) => setField('ckupTypeCd', value)}
+                  />
                   <FieldError message={fieldError('ckupTypeCd')} />
                 </label>
                 <label className="flex flex-col gap-1.5">

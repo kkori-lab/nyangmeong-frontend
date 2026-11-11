@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import Modal from '@/components/Modal';
 import Toggle from '@/components/Toggle';
 import {
@@ -7,12 +9,7 @@ import {
   BTN_SECONDARY,
 } from '@/components/buttonStyles';
 import FieldError from '../diary/FieldError';
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  SELECT_ARROW_STYLE,
-  SELECT_CLASS,
-} from '../diary/formStyles';
+import { INPUT_CLASS, LABEL_CLASS } from '../diary/formStyles';
 import {
   useCreatePrescription,
   useDeletePrescription,
@@ -124,12 +121,10 @@ export default function PrescriptionForm({
       <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5">
           <span className={LABEL_CLASS}>복용 시작일{REQUIRED}</span>
-          <input
-            type="date"
+          <DatePicker
             value={dosBgnYmd}
-            aria-invalid={isInvalid('begin')}
-            className={`${INPUT_CLASS} tabular-nums`}
-            onChange={(event) => setDosBgnYmd(event.target.value)}
+            invalid={isInvalid('begin')}
+            onChange={setDosBgnYmd}
           />
           {isInvalid('begin') && (
             <FieldError>복용 시작일을 입력해 주세요</FieldError>
@@ -137,13 +132,11 @@ export default function PrescriptionForm({
         </label>
         <label className="flex flex-col gap-1.5">
           <span className={LABEL_CLASS}>복용 종료일{REQUIRED}</span>
-          <input
-            type="date"
+          <DatePicker
             value={dosEndYmd}
             min={dosBgnYmd || undefined}
-            aria-invalid={isInvalid('end')}
-            className={`${INPUT_CLASS} tabular-nums`}
-            onChange={(event) => setDosEndYmd(event.target.value)}
+            invalid={isInvalid('end')}
+            onChange={setDosEndYmd}
           />
           <p className="text-sm text-muted">
             시작일 이후 날짜만 선택할 수 있어요
@@ -176,18 +169,14 @@ export default function PrescriptionForm({
         </label>
         <label className="flex flex-col gap-1.5">
           <span className={LABEL_CLASS}>복용 상태{REQUIRED}</span>
-          <select
+          <DropdownSelect
             value={dosSttsCd}
-            className={SELECT_CLASS}
-            style={SELECT_ARROW_STYLE}
-            onChange={(event) => setDosSttsCd(event.target.value)}
-          >
-            {DOSE_STATUSES.map((status) => (
-              <option key={status.cd} value={status.cd}>
-                {status.nm}
-              </option>
-            ))}
-          </select>
+            options={DOSE_STATUSES.map((status) => ({
+              value: status.cd,
+              label: status.nm,
+            }))}
+            onChange={setDosSttsCd}
+          />
         </label>
       </div>
 

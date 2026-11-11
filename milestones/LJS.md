@@ -964,11 +964,12 @@
 - 한 것: A1 `components/DatePicker.jsx`(라이브러리 없음, `YYYY-MM-DD` 문자열, `min`·`max`·`disabled`·`ref`, 키보드) · A2 `DropdownSelect`에 `disabled`·`ref` · A3 개발용 미리보기 `/dev/form-controls` · 추가-1 모바일(760px 이하) 팝오버를 칸 너비로(최소 280px)
 - 완료 조건: lint·build 0, `/dev/form-controls` 화면 확인, 기본 select·날짜 입력 grep 63줄 그대로. 검증 통과(2회), 사람 확인 2026-11-11
 
-## SCR-COM-002 공통 셀렉트·날짜 피커 · 쓰는 곳 교체 — 대기
+## SCR-COM-002 공통 셀렉트·날짜 피커 · 쓰는 곳 교체 — 끝
 - 기능: 명세 기능 ID 추가 없음. 기본 `<select>` 24곳(18파일)을 `DropdownSelect`로, `type="date"` 38곳(24파일)을 `DatePicker`로 바꾼다(2026-11-11 grep). 남의 담당 파일이 들어가 팀에 먼저 알린다
-- 기다리는 것: 팀 알림
-- 완료 조건 후보: `src/`에서 `<select`·`type="date"`가 공용 컴포넌트 파일에만 남는다. 끝나면 `/dev/form-controls` 라우트와 페이지를 지운다
-- 정할 것: `DropdownSelect` disabled 글자색을 `text-subtle`로 맞출지, 날짜 팝오버를 연 채 스크롤할 때 위치를 다시 잴지
+- 결정(사람 2026-11-11): 지출 정렬·영수증 칩처럼 테두리 없는 셀렉트는 `variant="text"`(전·후 캡처 보고 고름). disabled 글자색 `text-subtle`, 날짜 팝오버는 열린 채 스크롤하면 다시 잰다
+- 한 것: A1 `DropdownSelect`·`DatePicker`에 `invalid`·`size`·`id`·`describedBy`, `DropdownSelect`에 `variant="text"`·항목별 `disabled`·`placeholderValue`, `<label>` 안 재열림 막기 · A2 관리자 기간 필터 10파일 · A3 건강기록 16파일 · A4 지출·반려동물 4파일 · A5 커뮤니티 3파일 · A6 플레이스 정렬 · A7 `/dev/form-controls` 삭제 · 추가-1 영수증 업로드 [대상 반려동물] · 추가-2 공용 검증 스킬 "이전 통과 유지"(검증 안 함, 사람 지시) · 추가-3 `Select.jsx`가 안에서 `DropdownSelect`를 써서 27곳 교체 · 추가-4 실종 글쓰기 목격 시간을 `TimeSelect`로
+- 완료 조건 결과: `src/`에 기본 `<select>`·`type="date"`·`type="time"` 없음(주석 1줄 제외), lint·build 0. 검증 1회차 실패(A7 미완), 2회차 실패(하네스 기준 변경, 사람이 루프 clear), 재검증 통과(추가-1~4 포함), 사람 확인 2026-11-11
+- 연결 남음: 없음
 
 ## SCR-ADM-001 관리자 공통 · 페이지 틀·조회 오류 컴포넌트 정리 — 대기
 - 기능: 명세 기능 ID 추가 없음. 관리자 페이지(`pages/admin/`) 전체와 관리자 features의 조회 오류 묶음

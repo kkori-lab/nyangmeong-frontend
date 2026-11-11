@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import FieldError from '../diary/FieldError';
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  SELECT_ARROW_STYLE,
-  SELECT_CLASS,
-} from '../diary/formStyles';
+import { INPUT_CLASS, LABEL_CLASS } from '../diary/formStyles';
 import { useCreateAttachment } from '../queries';
 import { SUB_BOX } from './checkupStyles';
 import {
@@ -73,20 +69,16 @@ export default function AttachmentForm({ petSn, ckupRcdSn, onClose }) {
       <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5">
           <span className={LABEL_CLASS}>파일 유형{REQUIRED}</span>
-          <select
+          <DropdownSelect
             value={atchTypeCd}
-            aria-invalid={isInvalid('type')}
-            className={SELECT_CLASS}
-            style={SELECT_ARROW_STYLE}
-            onChange={(event) => setAtchTypeCd(event.target.value)}
-          >
-            <option value="">선택해 주세요</option>
-            {ATTACHMENT_TYPES.map((type) => (
-              <option key={type.cd} value={type.cd}>
-                {type.nm}
-              </option>
-            ))}
-          </select>
+            invalid={isInvalid('type')}
+            placeholder="선택해 주세요"
+            options={ATTACHMENT_TYPES.map((type) => ({
+              value: type.cd,
+              label: type.nm,
+            }))}
+            onChange={setAtchTypeCd}
+          />
           {isInvalid('type') && (
             <FieldError>파일 유형을 선택해 주세요</FieldError>
           )}
@@ -111,40 +103,32 @@ export default function AttachmentForm({ petSn, ckupRcdSn, onClose }) {
         <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5">
             <span className={LABEL_CLASS}>영상 종류{REQUIRED}</span>
-            <select
+            <DropdownSelect
               value={imgKindCd}
-              aria-invalid={isInvalid('kind')}
-              className={SELECT_CLASS}
-              style={SELECT_ARROW_STYLE}
-              onChange={(event) => setImgKindCd(event.target.value)}
-            >
-              <option value="">선택해 주세요</option>
-              {IMAGING_KINDS.map((kind) => (
-                <option key={kind.cd} value={kind.cd}>
-                  {kind.nm}
-                </option>
-              ))}
-            </select>
+              invalid={isInvalid('kind')}
+              placeholder="선택해 주세요"
+              options={IMAGING_KINDS.map((kind) => ({
+                value: kind.cd,
+                label: kind.nm,
+              }))}
+              onChange={setImgKindCd}
+            />
             {isInvalid('kind') && (
               <FieldError>영상 종류를 선택해 주세요</FieldError>
             )}
           </label>
           <label className="flex flex-col gap-1.5">
             <span className={LABEL_CLASS}>촬영 부위{REQUIRED}</span>
-            <select
+            <DropdownSelect
               value={imgPartCd}
-              aria-invalid={isInvalid('part')}
-              className={SELECT_CLASS}
-              style={SELECT_ARROW_STYLE}
-              onChange={(event) => setImgPartCd(event.target.value)}
-            >
-              <option value="">선택해 주세요</option>
-              {IMAGING_PARTS.map((part) => (
-                <option key={part.cd} value={part.cd}>
-                  {part.nm}
-                </option>
-              ))}
-            </select>
+              invalid={isInvalid('part')}
+              placeholder="선택해 주세요"
+              options={IMAGING_PARTS.map((part) => ({
+                value: part.cd,
+                label: part.nm,
+              }))}
+              onChange={setImgPartCd}
+            />
             {isInvalid('part') && (
               <FieldError>촬영 부위를 선택해 주세요</FieldError>
             )}

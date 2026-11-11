@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { getTodayYmd } from '@/utils/formatDate';
 import { CARE_CYCLES, CUSTOM_CYCLE } from '../careDue';
 import FieldError from '../diary/FieldError';
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  SELECT_ARROW_STYLE,
-  SELECT_CLASS,
-} from '../diary/formStyles';
+import { INPUT_CLASS, LABEL_CLASS } from '../diary/formStyles';
 import { useCreatePrevention } from '../queries';
 import { SUB_BOX } from './checkupStyles';
 import { PREVENTION_ITEMS } from './checkupTypes';
@@ -72,33 +69,25 @@ export default function PreventionForm({ petSn, ckupRcdSn, onClose }) {
       <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5">
           <span className={LABEL_CLASS}>예방 항목{REQUIRED}</span>
-          <select
+          <DropdownSelect
             value={prvntItmCd}
-            className={SELECT_CLASS}
-            style={SELECT_ARROW_STYLE}
-            onChange={(event) => setPrvntItmCd(event.target.value)}
-          >
-            {PREVENTION_ITEMS.map((item) => (
-              <option key={item.cd} value={item.cd}>
-                {item.nm}
-              </option>
-            ))}
-          </select>
+            options={PREVENTION_ITEMS.map((item) => ({
+              value: item.cd,
+              label: item.nm,
+            }))}
+            onChange={setPrvntItmCd}
+          />
         </label>
         <label className="flex flex-col gap-1.5">
           <span className={LABEL_CLASS}>반복 주기{REQUIRED}</span>
-          <select
+          <DropdownSelect
             value={rptCycleCd}
-            className={SELECT_CLASS}
-            style={SELECT_ARROW_STYLE}
-            onChange={(event) => setRptCycleCd(event.target.value)}
-          >
-            {CARE_CYCLES.map((cycle) => (
-              <option key={cycle.cd} value={cycle.cd}>
-                {cycle.nm}
-              </option>
-            ))}
-          </select>
+            options={CARE_CYCLES.map((cycle) => ({
+              value: cycle.cd,
+              label: cycle.nm,
+            }))}
+            onChange={setRptCycleCd}
+          />
         </label>
       </div>
 
@@ -127,12 +116,10 @@ export default function PreventionForm({ petSn, ckupRcdSn, onClose }) {
 
       <label className="flex flex-col gap-1.5">
         <span className={LABEL_CLASS}>시작일{REQUIRED}</span>
-        <input
-          type="date"
+        <DatePicker
           value={startYmd}
-          aria-invalid={isInvalid('start')}
-          className={`${INPUT_CLASS} tabular-nums`}
-          onChange={(event) => setStartYmd(event.target.value)}
+          invalid={isInvalid('start')}
+          onChange={setStartYmd}
         />
         <p className="text-sm text-muted">
           입력한 시작일이 토탈 케어리스트의 첫 예정일이 됩니다

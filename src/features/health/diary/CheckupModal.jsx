@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { generatePath, useNavigate } from 'react-router-dom';
+import DropdownSelect from '@/components/DropdownSelect';
+import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
@@ -15,13 +17,7 @@ import { CHECKUP_TYPES } from '../scheduleTypes';
 import FieldError from './FieldError';
 import FormModal from './FormModal';
 import NearScheduleModal from './NearScheduleModal';
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  SELECT_ARROW_STYLE,
-  SELECT_CLASS,
-  TEXTAREA_CLASS,
-} from './formStyles';
+import { INPUT_CLASS, LABEL_CLASS, TEXTAREA_CLASS } from './formStyles';
 
 const MAX_HOSPITAL_NAME_LENGTH = 50;
 const MAX_CONTENT_LENGTH = 500;
@@ -204,26 +200,16 @@ export default function CheckupModal({
             {onlyPetSn === null && (
               <label className="flex flex-col gap-1.5">
                 <span className={LABEL_CLASS}>반려동물{REQUIRED}</span>
-                <select
+                <DropdownSelect
                   value={petSn ?? ''}
-                  aria-invalid={isInvalid('pet')}
-                  className={SELECT_CLASS}
-                  style={SELECT_ARROW_STYLE}
-                  onChange={(event) =>
-                    setPetSn(
-                      event.target.value === ''
-                        ? null
-                        : Number(event.target.value),
-                    )
-                  }
-                >
-                  <option value="">반려동물 선택</option>
-                  {pets.map((pet) => (
-                    <option key={pet.petSn} value={pet.petSn}>
-                      {pet.petNm}
-                    </option>
-                  ))}
-                </select>
+                  invalid={isInvalid('pet')}
+                  placeholder="반려동물 선택"
+                  options={pets.map((pet) => ({
+                    value: pet.petSn,
+                    label: pet.petNm,
+                  }))}
+                  onChange={setPetSn}
+                />
                 {isInvalid('pet') && (
                   <FieldError>반려동물을 선택해 주세요</FieldError>
                 )}
@@ -232,12 +218,10 @@ export default function CheckupModal({
 
             <label className="flex flex-col gap-1.5">
               <span className={LABEL_CLASS}>검진일{REQUIRED}</span>
-              <input
-                type="date"
+              <DatePicker
                 value={ckupYmd}
-                aria-invalid={isInvalid('date')}
-                className={`${INPUT_CLASS} tabular-nums`}
-                onChange={(event) => setCkupYmd(event.target.value)}
+                invalid={isInvalid('date')}
+                onChange={setCkupYmd}
               />
               <p className="text-subtle">
                 예정된 일정은 케어 캘린더에서 등록해 주세요
@@ -263,20 +247,16 @@ export default function CheckupModal({
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className={LABEL_CLASS}>검진 종류{REQUIRED}</span>
-                <select
+                <DropdownSelect
                   value={ckupTypeCd}
-                  aria-invalid={isInvalid('type')}
-                  className={SELECT_CLASS}
-                  style={SELECT_ARROW_STYLE}
-                  onChange={(event) => setCkupTypeCd(event.target.value)}
-                >
-                  <option value="">선택해 주세요</option>
-                  {CHECKUP_TYPES.map((type) => (
-                    <option key={type.cd} value={type.cd}>
-                      {type.nm}
-                    </option>
-                  ))}
-                </select>
+                  invalid={isInvalid('type')}
+                  placeholder="선택해 주세요"
+                  options={CHECKUP_TYPES.map((type) => ({
+                    value: type.cd,
+                    label: type.nm,
+                  }))}
+                  onChange={setCkupTypeCd}
+                />
                 {isInvalid('type') && (
                   <FieldError>검진 종류를 선택해 주세요</FieldError>
                 )}

@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
+import DropdownSelect from '@/components/DropdownSelect';
 import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
@@ -20,12 +21,7 @@ import {
 import { useCreateDailyRecord, useSaveHealthWidgets } from '../queries';
 import { DECIMAL_MESSAGE, hasOverTwoDecimals } from '../numberFormat';
 import FieldError from './FieldError';
-import {
-  INPUT_CLASS,
-  LABEL_CLASS,
-  SELECT_ARROW_STYLE,
-  SELECT_CLASS,
-} from './formStyles';
+import { INPUT_CLASS, LABEL_CLASS } from './formStyles';
 
 /**
  * [오늘 기록하기]
@@ -299,19 +295,15 @@ export default function TodayRecordForm({
               {isStool ? (
                 <label className="flex min-w-40 flex-1 flex-col gap-1.5">
                   <span className={LABEL_CLASS}>{type.valueLabel}</span>
-                  <select
+                  <DropdownSelect
                     ref={stoolRef}
                     value={crsdSttsCd}
-                    className={SELECT_CLASS}
-                    style={SELECT_ARROW_STYLE}
-                    onChange={(event) => setCrsdSttsCd(event.target.value)}
-                  >
-                    {STOOL_STATES.map((state) => (
-                      <option key={state.cd} value={state.cd}>
-                        {state.nm}
-                      </option>
-                    ))}
-                  </select>
+                    options={STOOL_STATES.map((state) => ({
+                      value: state.cd,
+                      label: state.nm,
+                    }))}
+                    onChange={setCrsdSttsCd}
+                  />
                 </label>
               ) : (
                 <label className="relative flex min-w-40 flex-1 flex-col gap-1.5">
