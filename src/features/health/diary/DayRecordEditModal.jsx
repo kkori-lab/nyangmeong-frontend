@@ -19,6 +19,11 @@ import {
   findRecordType,
 } from '../diaryTypes';
 import { useDeleteDailyRecord, useUpdateDailyRecord } from '../queries';
+import {
+  DECIMAL_MESSAGE,
+  hasOverTwoDecimals,
+  toInputText,
+} from '../numberFormat';
 import FieldError from './FieldError';
 import { INPUT_CLASS, SELECT_ARROW_STYLE, SELECT_CLASS } from './formStyles';
 import { formatAmount, summarizeType } from './recordUtils';
@@ -30,7 +35,9 @@ const COUNT_ONLY_TYPES = [WEIGHT, STOOL];
 const toDraft = (record) => ({
   rcdTm: getHmOf(record.rcdDt),
   value:
-    record.dailyRcdIdctCd === STOOL ? record.crsdSttsCd : String(record.rcdNvl),
+    record.dailyRcdIdctCd === STOOL
+      ? record.crsdSttsCd
+      : toInputText(record.rcdNvl),
 });
 
 /** 지운 기록의 줄 상태를 버린다 */
@@ -48,7 +55,7 @@ const withTopicParticle = (text) => {
 
 const isSameDraft = (a, b) => a.rcdTm === b.rcdTm && a.value === b.value;
 
-/** 저장 전 검사: 시각 필수, 배변상태 외에는 0보다 큰 값, 체중은 상한 이하 */
+/** 저장 전 검사: 시각 필수, 배변상태 외에는 0보다 큰 값·소수 둘째 자리까지, 체중은 상한 이하 */
 const validateDraft = (typeCd, draft) => {
   if (draft.rcdTm === '') return '시각을 입력해주세요';
   if (typeCd === STOOL) return draft.value ? null : '상태를 선택해주세요';
@@ -56,6 +63,7 @@ const validateDraft = (typeCd, draft) => {
     return '0보다 큰 값을 입력해주세요';
   if (typeCd === WEIGHT && Number(draft.value) > WEIGHT_MAX)
     return WEIGHT_MAX_MESSAGE;
+  if (hasOverTwoDecimals(draft.value)) return DECIMAL_MESSAGE;
   return null;
 };
 

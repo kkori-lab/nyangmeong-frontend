@@ -74,7 +74,7 @@ export default function CurveChart({
         fill="none"
       />
       {values.map((v, i) => (
-        <g key={labels[i]}>
+        <g key={`${labels[i]}-${i}`}>
           <circle
             cx={points[i].x}
             cy={points[i].y}

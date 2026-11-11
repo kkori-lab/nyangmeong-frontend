@@ -1,5 +1,6 @@
 import { formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
 import { OBSERVATION_ENDED } from '../diaryTypes';
+import { round2 } from '../numberFormat';
 
 /**
  * [지속 관찰 계산]
@@ -10,7 +11,7 @@ import { OBSERVATION_ENDED } from '../diaryTypes';
 /** 사진 줄·크기 변화 그래프에 그릴 최대 회차 수 (PC·모바일 같음, 추가 요청) */
 export const CHART_COUNT = 5;
 
-export const formatSize = (size) => `${Number(size).toFixed(1)}mm`;
+export const formatSize = (size) => `${round2(size)}mm`;
 
 /** 종료한 항목인지 */
 export const isEndedItem = (item) => item.obsrvSttsCd === OBSERVATION_ENDED;
@@ -39,11 +40,11 @@ export const getSizeDiff = (cycles, index) => {
   return { prevIndex, prevSize, diff: cycle.obsrvSz - prevSize };
 };
 
-/** "▲0.3" / "▼0.2", 증감이 없으면 빈 문자열 */
+/** "▲0.3" / "▼0.25", 증감이 없으면 빈 문자열 */
 export const formatDiff = (diff) => {
-  const rounded = Math.round(Math.abs(diff) * 10) / 10;
+  const rounded = round2(Math.abs(diff));
   if (rounded === 0) return '';
-  return `${diff > 0 ? '▲' : '▼'}${rounded.toFixed(1)}`;
+  return `${diff > 0 ? '▲' : '▼'}${rounded}`;
 };
 
 /** 목록 값 줄: 마지막 회차의 크기(+증감), 크기가 없으면 변화, 둘 다 없으면 null. 종료 항목은 관찰 기간 */

@@ -4,6 +4,7 @@ import { showToast } from '@/components/toastStore';
 import { DIRECT } from '../labInput/ItemSelect';
 import LabItemForm from '../labInput/LabItemForm';
 import { getSkippedNames, toInspectionValue } from '../labInput/labRows';
+import { DECIMAL_MESSAGE, hasOverTwoDecimals } from '../numberFormat';
 import { useCreateInspections } from '../queries';
 import { SUB_BOX } from './checkupStyles';
 
@@ -51,6 +52,7 @@ export default function BloodResultForm({
   }
   if (form.val.trim() === '') errors.val = '검사 결과값을 입력해 주세요';
   else if (!isNumber(form.val)) errors.val = '숫자로 입력해 주세요';
+  else if (hasOverTwoDecimals(form.val)) errors.val = DECIMAL_MESSAGE;
   if (form.unit.trim() === '') errors.unit = '단위를 입력해 주세요';
   if (hasOneSideRange) {
     errors.range = '참고범위는 최소·최대를 함께 입력하거나 둘 다 비워 주세요';
@@ -64,6 +66,11 @@ export default function BloodResultForm({
     Number(form.rangeMin) > Number(form.rangeMax)
   ) {
     errors.range = '참고범위 최소는 최대보다 클 수 없어요';
+  } else if (
+    hasOverTwoDecimals(form.rangeMin) ||
+    hasOverTwoDecimals(form.rangeMax)
+  ) {
+    errors.range = `참고범위는 ${DECIMAL_MESSAGE}`;
   }
 
   const changeForm = (field, value) =>

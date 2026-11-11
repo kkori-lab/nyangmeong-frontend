@@ -2,6 +2,7 @@ import Icon from '@/components/Icon';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDate, formatMonthDayDot, getYmdOf } from '@/utils/formatDate';
 import CareItemMenu from '../CareItemMenu';
+import { round2 } from '../numberFormat';
 import LineChart from './LineChart';
 import ObservationPhoto from './ObservationPhoto';
 import {
@@ -148,7 +149,7 @@ export default function ObservationDetail({
               value: target.obsrvSz,
             }))}
             formatValue={formatSize}
-            formatTag={(value) => value.toFixed(1)}
+            formatTag={round2}
             labelFill="var(--color-placeholder)"
             isEdgeToEdge
             ariaLabel={`크기 변화 선그래프 · ${sizedCycles

@@ -9,6 +9,7 @@ import { formatAge, getPetSeName } from '@/utils/petFormat';
 import { DOSING } from '../checkup/checkupTypes';
 import { usePixelCharacters } from '../queries';
 import { getInspectionName } from '../summaryApi';
+import { round2 } from '../numberFormat';
 import { formatRange } from './summaryUtils';
 
 /** 캐릭터 무대 원 크기: 640px 미만 64px(요약 띠 높이, ※신규 정책) · 640~1023px 128px · 1024px 이상(lg) 160px */
@@ -90,7 +91,7 @@ export default function SummaryBanner({ pet, summary }) {
         <Stat
           icon="science"
           label={`검사 수치${firstLabItem ? ` · ${getInspectionName(firstLabItem)}` : ''}`}
-          value={firstLabItem?.rsltNvl ?? null}
+          value={round2(firstLabItem?.rsltNvl ?? null)}
           unit={firstLabItem?.unitNm}
           sub={
             firstLabItem &&
