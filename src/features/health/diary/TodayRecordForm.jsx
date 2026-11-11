@@ -9,9 +9,13 @@ import {
   RECORD_TYPES,
   STOOL,
   STOOL_STATES,
+  WEIGHT,
+  WEIGHT_MAX,
+  WEIGHT_MAX_MESSAGE,
   findRecordType,
 } from '../diaryTypes';
 import { useCreateDailyRecord, useSaveHealthWidgets } from '../queries';
+import FieldError from './FieldError';
 import {
   INPUT_CLASS,
   LABEL_CLASS,
@@ -94,9 +98,12 @@ export default function TodayRecordForm({
   };
   const type = typeCd ? findRecordType(typeCd) : null;
   const isStool = typeCd === STOOL;
+  /** 체중 상한 초과는 입력하는 동안 바로 안내하고 등록을 막음 */
+  const isOverWeight = typeCd === WEIGHT && Number(value) > WEIGHT_MAX;
   const canSubmit =
     type != null &&
     rcdTm !== '' &&
+    !isOverWeight &&
     (isStool || (value !== '' && Number(value) > 0));
 
   const handleTypeChange = (nextTypeCd) => {
@@ -131,7 +138,9 @@ export default function TodayRecordForm({
     <form
       ref={formRef}
       id="hlt002-record-form"
-      className="rounded-[14px] border border-line bg-white px-6 py-5 shadow-[0_1px_2px_rgba(26,50,52,0.04)]"
+      className={`rounded-[14px] border border-line bg-white px-6 pt-5 shadow-[0_1px_2px_rgba(26,50,52,0.04)] ${
+        isOverWeight ? 'pb-12' : 'pb-5'
+      }`}
       onSubmit={handleSubmit}
     >
       <h3 className="text-lg/[1.6] font-semibold text-ink">오늘 기록하기</h3>
@@ -140,7 +149,11 @@ export default function TodayRecordForm({
       </p>
 
       <div className="@container mt-3">
-        <div className="flex flex-col gap-4 @4xl:flex-row @4xl:flex-wrap @4xl:items-end">
+        <div
+          className={`flex flex-col gap-4 @4xl:flex-row @4xl:flex-wrap @4xl:items-end ${
+            isOverWeight ? '@4xl:gap-y-10' : ''
+          }`}
+        >
           <div className="relative flex flex-col gap-1.5 @4xl:shrink-0">
             <span className={LABEL_CLASS}>종류</span>
             <div className="flex flex-wrap items-center gap-2">
@@ -237,7 +250,11 @@ export default function TodayRecordForm({
           )}
 
           {type && (
-            <div className="flex flex-wrap items-end gap-4 @4xl:min-w-0 @4xl:flex-1 @4xl:flex-nowrap">
+            <div
+              className={`flex flex-wrap items-end gap-x-4 @4xl:min-w-0 @4xl:flex-1 @4xl:flex-nowrap ${
+                isOverWeight ? 'gap-y-10' : 'gap-y-4'
+              }`}
+            >
               <div className="flex min-w-40 flex-1 flex-col gap-1.5">
                 <span className={LABEL_CLASS}>시간</span>
                 <TimeSelect ref={timeRef} value={rcdTm} onChange={setRcdTm} />
@@ -260,7 +277,7 @@ export default function TodayRecordForm({
                   </select>
                 </label>
               ) : (
-                <label className="flex min-w-40 flex-1 flex-col gap-1.5">
+                <label className="relative flex min-w-40 flex-1 flex-col gap-1.5">
                   <span className={LABEL_CLASS}>{type.valueLabel}</span>
                   <span className="relative block">
                     <input
@@ -277,6 +294,12 @@ export default function TodayRecordForm({
                       {type.unit}
                     </span>
                   </span>
+                  {/* 안내가 줄 높이를 늘려 라벨·입력칸 높이가 어긋나지 않게 입력칸 아래에 겹쳐 띄우고, 그만큼 아래 간격을 넓힌다 */}
+                  {isOverWeight && (
+                    <div className="absolute top-full left-0 mt-1 whitespace-nowrap">
+                      <FieldError>{WEIGHT_MAX_MESSAGE}</FieldError>
+                    </div>
+                  )}
                 </label>
               )}
               <button

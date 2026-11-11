@@ -2,7 +2,26 @@
 
 ## 지금 하는 것
 
-끝남: SCR-HLT-003 케어 캘린더 · 회원 단위 일정 조회 연결(FN-HLT-003-29·31·40, 화면 변경 없음) (2026-11-11). 프론트 `대기` 마일스톤 없음, 열린 `연결 남음` 없음
+SCR-HLT-002 건강 일지 · 체중 200kg 상한 안내 — 구현 중 (승인 2026-11-11 10:59)
+
+디자인: 없음, 화면설계서 기준(기존 `diary/FieldError.jsx` 안내 방식)
+
+| 기능 ID | 바꿀 파일 | API | 완료 조건 |
+| --- | --- | --- | --- |
+| FN-HLT-002-11 상한 값 | `src/features/health/diaryTypes.js`: `WEIGHT_MAX = 200`과 안내 문구 「체중은 200kg 이하로 입력해 주세요」를 한 번만 둔다 | 없음 | 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0 |
+| FN-HLT-002-11 오늘 기록하기 | `src/features/health/diary/TodayRecordForm.jsx`: 체중이 200 초과면 [등록하기]를 막아 POST를 보내지 않고, 입력하는 동안 입력칸 아래에 `FieldError`로 안내. 빈 값·0 이하 처리는 그대로 | 기존 POST 일상 기록 | 화면: tester 계정 건강 일지에서 체중 999 → 안내 문구, Network에 POST 없음 / 체중 200 → 저장됨(확인 후 삭제) / 식사량 999 → 저장됨(확인 후 삭제) / 콘솔 새 오류 없음 |
+| FN-HLT-002-11 기록 수정 | `src/features/health/diary/DayRecordEditModal.jsx`: `validateDraft`에서 체중 200 초과면 안내 문구를 돌려줘 그 줄은 저장 요청을 보내지 않고 `FieldError`로 띄움. 200은 통과 | 기존 PUT 일상 기록 | 화면: 기존 체중 기록을 999로 바꿔 저장 → 같은 안내, 저장 요청 없음 |
+
+### 추가 요청
+
+| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
+| --- | --- | --- | --- |
+| 추가-1 | `src/features/health/diary/TodayRecordForm.jsx` | 명령: `yarn -s lint`, `yarn -s build` 종료 코드 0 / 화면: 1440px에서 체중 안내가 뜰 때와 안 뜰 때 모두 「종류」「시간」「무게」 라벨과 입력칸 높이가 같은 줄, 390px에서 안내 문구가 다른 요소와 겹치지 않음, 색상·간격은 `src/assets/index.css` 토큰만 | 요청 2026-11-11 11:20 "안내 문구가 줄 높이를 늘리지 않게 입력칸 아래에 겹쳐 띄우고(absolute 등) 문구는 그대로, 1440·390 캡처 다시" |
+
+- 체중 입력 위치 조사: 일상 기록 저장은 `TodayRecordForm`(POST)과 `DayRecordEditModal`(PUT) 두 곳뿐. `RecentRecordTable`은 날짜 행이 수정 모달을 열 뿐 인라인 입력 없음. `ObservationModal` 숫자칸은 관찰 크기라 범위 밖
+- 이번엔 안 함: 마이페이지 반려동물 등록·수정, 식사량·음수량·산책 검사
+- 결정(사람, 2026-11-11): 오늘 기록하기는 저장을 누를 때가 아니라 입력하는 동안 바로 안내
+- 새 의존성: 없음
 
 ## 결정
 
