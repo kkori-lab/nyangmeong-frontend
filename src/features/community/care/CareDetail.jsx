@@ -90,7 +90,7 @@ export default function CareDetail({ post }) {
       <article className={ARTICLE_CLASS} aria-labelledby="care-title">
         <div className="flex flex-wrap gap-1.5">
           {post.owner && (
-            <Badge tone="amber" bordered>
+            <Badge tone="mine" bordered>
               내 글
             </Badge>
           )}
