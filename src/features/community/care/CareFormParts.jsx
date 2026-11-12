@@ -24,7 +24,7 @@ export function FieldError({ message, id }) {
 
 export function Counter({ value, max }) {
   return (
-    <span className="text-sm text-muted">
+    <span className="text-xs text-muted">
       {value.length.toLocaleString()} / {max.toLocaleString()}
     </span>
   );

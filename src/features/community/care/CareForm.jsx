@@ -1,4 +1,4 @@
-import { ChevronLeft, Info, MapPin } from 'lucide-react';
+import { Info, MapPin } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import DatePicker from '@/components/DatePicker';
 import AmountInput from '@/components/AmountInput';
@@ -569,24 +569,25 @@ export default function CareForm({
                 상세 설명
                 <Required />
               </label>
-              <AutoTextarea
-                id="care-body"
-                value={values.body}
-                maxLength={BODY_MAX}
-                placeholder="반려동물의 성격, 주의사항과 부탁할 돌봄 내용을 적어 주세요"
-                aria-required="true"
-                aria-invalid={Boolean(errors.body)}
-                onChange={(event) =>
-                  set({ body: event.target.value }, ['body'])
-                }
-                className={`${TEXTAREA_BASE} max-h-[600px] min-h-[240px] resize-y py-3 leading-[1.7] ${borderOf(errors.body)}`}
-              />
-              <div className="flex items-start justify-between gap-3">
-                <FieldError message={errors.body} />
-                <span className="ml-auto shrink-0">
+              {/** 글자 수는 높이를 차지하지 않고 칸 사이 간격 안 오른쪽에 둔다. 오류 문구만 흐름에 있어 다른 칸과 간격이 같다 */}
+              <div className="relative">
+                <AutoTextarea
+                  id="care-body"
+                  value={values.body}
+                  maxLength={BODY_MAX}
+                  placeholder="반려동물의 성격, 주의사항과 부탁할 돌봄 내용을 적어 주세요"
+                  aria-required="true"
+                  aria-invalid={Boolean(errors.body)}
+                  onChange={(event) =>
+                    set({ body: event.target.value }, ['body'])
+                  }
+                  className={`${TEXTAREA_BASE} max-h-[600px] min-h-[200px] resize-y py-3 leading-[1.7] ${borderOf(errors.body)}`}
+                />
+                <span className="absolute top-full right-0 mt-1.5">
                   <Counter value={values.body} max={BODY_MAX} />
                 </span>
               </div>
+              <FieldError message={errors.body} />
             </div>
 
             <ImageAttach
@@ -642,9 +643,7 @@ export default function CareForm({
               <FieldError message={placeError} />
             </div>
 
-            <div
-              className={`flex flex-col gap-1.5 rounded-lg border px-4 py-3.5 ${errors.agree ? 'border-danger' : 'border-line'} bg-surface-2`}
-            >
+            <div className="flex flex-col gap-1.5">
               <label className="flex min-h-8 cursor-pointer items-start gap-2.5">
                 <input
                   type="checkbox"
@@ -672,14 +671,6 @@ export default function CareForm({
         )}
 
         <div className="mt-2 flex items-center justify-end gap-2 border-t border-line pt-6 max-[760px]:flex-wrap max-[760px]:pt-5">
-          <button
-            type="button"
-            onClick={() => onLeave(PATHS.COMMUNITY_PETCARE)}
-            className="mr-auto inline-flex min-h-9 cursor-pointer items-center gap-1.5 text-base leading-normal font-medium text-muted hover:text-ink max-[760px]:order-3 max-[760px]:mr-0 max-[760px]:w-full max-[760px]:justify-center"
-          >
-            <ChevronLeft size={14} aria-hidden="true" />
-            목록으로
-          </button>
           <button
             type="button"
             onClick={() => onLeave(cancelTo)}

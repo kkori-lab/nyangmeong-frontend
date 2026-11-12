@@ -1,4 +1,6 @@
-import { useSearchParams } from 'react-router-dom';
+import { Pencil } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { BTN_PRIMARY } from '@/components/buttonStyles';
 import PostList, { POST_LIST_GRID } from '@/features/community/PostList';
 import { getBoardCode } from '@/features/community/postCodes';
 import { usePostList } from '@/features/community/queries';
@@ -38,27 +40,26 @@ function PostCardSkeleton({ hasThumbOnMobile }) {
   );
 }
 
-/** 로딩 자리: 탭·정렬·검색 줄 + 카드 한 쪽 개수 + 글쓰기·쪽 번호(실제 목록과 같은 배치) */
+/** 로딩 자리: 왼쪽(필터 2열 + 건수 줄 + 카드 한 쪽 개수 + 쪽 번호)과 오른쪽 레일(실제 목록과 같은 배치) */
 function PostListSkeleton() {
   return (
     <div aria-busy="true" className={POST_LIST_GRID}>
-      <div
-        aria-hidden="true"
-        className="col-span-full mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-[#d3dae2] px-4 pt-6 pb-3 max-[760px]:flex-col max-[760px]:items-stretch"
-      >
-        <div className="flex gap-8 pb-1">
-          {Array.from({ length: 3 }, (_, index) => (
-            <Skeleton key={index} className="h-5 w-20" />
-          ))}
-        </div>
-        <Skeleton className="mb-3 h-[34px] w-24 max-[760px]:mb-2 max-[760px]:w-full" />
-      </div>
       <div className="flex min-w-0 flex-col gap-5 max-[1100px]:col-span-full">
-        <div aria-hidden="true" className="flex items-center gap-2">
-          <Skeleton className="h-[34px] w-28" />
-          <div className="ml-auto flex items-center gap-2 max-[760px]:ml-0 max-[760px]:w-full">
-            <Skeleton className="h-[34px] w-[104px] shrink-0" />
-            <Skeleton className="h-[34px] w-[280px] max-[760px]:w-auto max-[760px]:flex-1" />
+        <div aria-hidden="true" className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <div className="flex gap-1.5">
+              {Array.from({ length: 3 }, (_, index) => (
+                <Skeleton key={index} className="h-[34px] w-16 rounded-full" />
+              ))}
+            </div>
+            <div className="ml-auto flex items-center gap-2 max-[760px]:ml-0 max-[760px]:w-full">
+              <Skeleton className="h-[34px] w-[104px] shrink-0" />
+              <Skeleton className="h-[34px] w-[280px] max-[760px]:w-auto max-[760px]:flex-1" />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-9 w-28" />
+            <Skeleton className="h-5 w-14" />
           </div>
         </div>
         <div className="flex flex-col gap-3 max-[760px]:gap-2.5">
@@ -171,7 +172,17 @@ export default function PostListPage() {
       section="community"
       menu={PATHS.COMMUNITY}
       description={DESCRIPTION}
-      contentClassName="min-[1101px]:pt-0"
+      pixel={false}
+      headAction={
+        <Link
+          to={PATHS.COMMUNITY_POST_NEW}
+          className={`${BTN_PRIMARY} h-[34px]! text-sm`}
+        >
+          <Pencil size={16} aria-hidden="true" />
+          펫이야기 글쓰기
+        </Link>
+      }
+      contentClassName="min-[1101px]:pt-[7px]"
     >
       {body}
     </SubPageLayout>

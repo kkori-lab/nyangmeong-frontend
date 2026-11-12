@@ -1,27 +1,19 @@
-import { Heart, MessageCircle, Pencil, SearchX } from 'lucide-react';
+import { Heart, MessageCircle, SearchX } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
 import BoardPagination from '@/components/BoardPagination';
-import { BTN_PRIMARY } from '@/components/buttonStyles';
-import DropdownSelect from '@/components/DropdownSelect';
 import EmptyResult from '@/components/EmptyResult';
-import SearchInput from '@/components/SearchInput';
 import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
 import PostBadges from './PostBadges';
-import { POST_BOARDS } from './postCodes';
+import PostFilters from './PostFilters';
 import StoryRail from './StoryRail';
 
-/** 탭·정렬·검색 줄은 레일 영역까지 전체 너비, 그 아래 왼쪽 목록과 오른쪽 레일. 로딩 자리도 같은 배치를 쓴다 */
+/** 머리 아래 진한 선 + 왼쪽(필터·목록)과 오른쪽 레일. 로딩 자리도 같은 배치를 쓴다 */
 export const POST_LIST_GRID =
-  'grid grid-cols-[minmax(0,1fr)_300px] items-start gap-x-8 max-[1100px]:grid-cols-2 max-[1100px]:gap-x-5 max-[760px]:grid-cols-1';
-
-const SORT_OPTIONS = [
-  { value: 'new', label: '최신순' },
-  { value: 'hot', label: '인기순' },
-];
+  'grid grid-cols-[minmax(0,1fr)_300px] items-start gap-x-8 gap-y-10 border-t border-line-strong pt-6 max-[1100px]:grid-cols-2 max-[1100px]:gap-x-5 max-[760px]:grid-cols-1';
 
 export default function PostList({
   posts,
@@ -38,76 +30,30 @@ export default function PostList({
 }) {
   const [input, setInput] = useState(keyword);
   const { search } = useLocation();
-  const { content, page, totalPages } = posts;
+  const { content, page, totalPages, totalElements } = posts;
 
-  const tabClass = (selected) =>
-    `h-14 shrink-0 cursor-pointer px-4 text-base leading-none whitespace-nowrap max-[760px]:h-12 ${selected ? 'border-b-2 border-[#285a5c] font-bold text-[#1a3234]' : 'font-medium text-[#566465] hover:text-[#1a3234]'}`;
+  const handleReset = () => {
+    setInput('');
+    onReset();
+  };
 
   return (
     <div className={POST_LIST_GRID}>
-      <div className="col-span-full mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-[#d3dae2] max-[760px]:flex-col max-[760px]:items-stretch">
-        <div role="tablist" aria-label="게시판 구분" className="flex">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!board}
-            onClick={() => onBoardChange('')}
-            className={tabClass(!board)}
-          >
-            전체
-          </button>
-          {POST_BOARDS.map((item) => (
-            <button
-              key={item.code}
-              type="button"
-              role="tab"
-              aria-selected={board === item.name}
-              onClick={() => onBoardChange(item.name)}
-              className={tabClass(board === item.name)}
-            >
-              {item.name}
-            </button>
-          ))}
-        </div>
-        <Link
-          to={PATHS.COMMUNITY_POST_NEW}
-          className={`${BTN_PRIMARY} mb-3 h-[34px]! text-sm max-[760px]:mb-2`}
-        >
-          <Pencil size={16} aria-hidden="true" />
-          글쓰기
-        </Link>
-      </div>
-
       <div className="flex min-w-0 flex-col gap-5 max-[1100px]:col-span-full">
-        <div className="flex items-center gap-2 max-[760px]:flex-wrap">
-          <label className="mr-1 flex min-h-[34px] cursor-pointer items-center gap-2 text-sm font-medium whitespace-nowrap text-[#3d4a4b]">
-            <input
-              type="checkbox"
-              checked={mine}
-              onChange={(event) => onMineChange(event.target.checked)}
-              className="size-4 accent-brand-500"
-            />
-            내 글만 보기
-          </label>
-          <div className="ml-auto flex items-center gap-2 max-[760px]:ml-0 max-[760px]:w-full">
-            <DropdownSelect
-              label="정렬 기준"
-              value={sort}
-              options={SORT_OPTIONS}
-              onChange={onSortChange}
-              size="xs"
-              className="w-[104px] shrink-0"
-            />
-            <SearchInput
-              value={input}
-              onChange={setInput}
-              onSubmit={() => onSearch(input.trim())}
-              placeholder="제목 또는 내용 검색"
-              compact
-              className="w-[280px] max-[760px]:w-auto max-[760px]:min-w-0 max-[760px]:flex-1"
-            />
-          </div>
-        </div>
+        <PostFilters
+          board={board}
+          sort={sort}
+          mine={mine}
+          search={{
+            value: input,
+            onChange: setInput,
+            onSubmit: () => onSearch(input.trim()),
+          }}
+          totalElements={totalElements}
+          onBoardChange={onBoardChange}
+          onSortChange={onSortChange}
+          onMineChange={onMineChange}
+        />
 
         {content.length === 0 ? (
           <EmptyResult
@@ -116,10 +62,7 @@ export default function PostList({
           >
             <button
               type="button"
-              onClick={() => {
-                setInput('');
-                onReset();
-              }}
+              onClick={handleReset}
               className="h-9 cursor-pointer rounded-md border border-[#e2e7e7] bg-white px-3 text-sm font-medium text-[#1a3234] hover:bg-[#f4f6f6]"
             >
               펫이야기 목록으로

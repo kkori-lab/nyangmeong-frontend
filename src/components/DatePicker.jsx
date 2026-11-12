@@ -49,7 +49,7 @@ const clamp = (ymd, min, max) => {
  * 달력을 직접 그리는 날짜 칸 (브라우저 기본 날짜 입력 대신, 모든 기기 같은 모양)
  * - value: 'YYYY-MM-DD' 문자열, 빈 문자열이면 placeholder 표시. onChange에는 'YYYY-MM-DD' 문자열을 넘긴다
  * - min·max: 'YYYY-MM-DD', 밖의 날짜와 달 이동은 막힌다
- * - size: 'md'(기본, 높이 40px·16px) / 'sm'(높이 36px·14px)
+ * - size: 'md'(기본, 높이 40px·16px) / 'sm'(높이 36px·14px) / 'xs'(높이 34px·14px)
  * - invalid: 빨간 테두리 + aria-invalid. id·describedBy: 칸 버튼에 붙는다(<label htmlFor>·오류 문구 연결)
  * - ref: 칸 버튼에 붙는다(바깥에서 포커스를 줄 때)
  * - 팝오버 너비: 데스크톱 296px, 모바일(760px 이하)은 칸 너비(최소 280px). 화면 좌우 16px 안으로 당겨 연다.
@@ -205,7 +205,7 @@ export default function DatePicker({
         disabled={disabled}
         onClick={() => (isOpen ? close() : open())}
         onKeyDown={handleKeyDown}
-        className={`flex w-full cursor-pointer items-center rounded-md border bg-white pr-9 pl-3 text-left focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-2 ${size === 'sm' ? 'h-9 text-sm' : 'h-10 text-base max-[760px]:h-11'} ${borderClass}`}
+        className={`flex w-full cursor-pointer items-center rounded-md border bg-white pr-9 pl-3 text-left focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-2 ${size === 'xs' ? 'h-[34px] text-sm' : size === 'sm' ? 'h-9 text-sm' : 'h-10 text-base max-[760px]:h-11'} ${borderClass}`}
       >
         <span className={`min-w-0 flex-1 truncate ${labelColor}`}>
           {value ? formatDate(value) : placeholder}

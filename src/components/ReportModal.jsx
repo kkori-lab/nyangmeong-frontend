@@ -107,7 +107,7 @@ export default function ReportModal({
           >
             상세 내용
           </label>
-          <span className="text-sm text-[#667374]">
+          <span className="text-xs text-[#667374]">
             {detail.length} / {DETAIL_MAX}
           </span>
         </div>

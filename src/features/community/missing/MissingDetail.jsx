@@ -1,6 +1,5 @@
 import {
   CalendarDays,
-  ChevronLeft,
   Clock,
   Flag,
   LockKeyhole,
@@ -15,6 +14,7 @@ import { useState } from 'react';
 import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
 import Badge from '@/components/Badge';
+import { TEXT_ACTION, TEXT_ACTION_DANGER } from '@/components/buttonStyles';
 import ConfirmModal from '@/components/ConfirmModal';
 import ImageViewer from '@/components/ImageViewer';
 import LikeButton from '@/components/LikeButton';
@@ -156,17 +156,6 @@ function FoundPublicView({ post, listTo }) {
             연락처 · 위치 · 댓글을 공개하지 않아요.
           </span>
         </p>
-        <div className="mt-6 flex border-t border-line pt-4">
-          <Link
-            to={listTo}
-            className="inline-flex min-h-9 items-center gap-2 text-base font-medium text-muted hover:text-ink"
-          >
-            <ChevronLeft size={14} aria-hidden="true" />
-            <span>
-              목록<span className="max-[760px]:hidden">으로</span>
-            </span>
-          </Link>
-        </div>
       </article>
 
       <aside aria-label="최근 실종 소식">
@@ -262,14 +251,14 @@ export default function MissingDetail({ post }) {
             post={post}
             actions={
               isMine && (
-                <p className="flex items-center gap-2 text-sm font-medium text-muted">
+                <p className="flex items-center gap-2">
                   {!expired && !found && (
                     <>
                       <Link
                         to={generatePath(PATHS.COMMUNITY_MISSING_EDIT, {
                           lostTpofSn: post.lostTpofSn,
                         })}
-                        className="hover:text-ink"
+                        className={TEXT_ACTION}
                       >
                         수정
                       </Link>
@@ -279,7 +268,7 @@ export default function MissingDetail({ post }) {
                   <button
                     type="button"
                     onClick={() => setModal('delete')}
-                    className="cursor-pointer hover:text-ink"
+                    className={`${TEXT_ACTION_DANGER} cursor-pointer`}
                   >
                     삭제
                   </button>
@@ -437,16 +426,7 @@ export default function MissingDetail({ post }) {
           </PostBody>
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line pt-4">
-            <Link
-              to={listTo}
-              className="inline-flex min-h-9 items-center gap-2 text-base leading-normal font-medium text-muted transition-colors hover:text-ink"
-            >
-              <ChevronLeft size={14} aria-hidden="true" />
-              <span>
-                목록<span className="max-[760px]:hidden">으로</span>
-              </span>
-            </Link>
-            <div className="ml-auto flex items-center gap-2 max-[760px]:gap-1">
+            <div className="flex items-center gap-2 max-[760px]:gap-1">
               <LikeButton
                 isLiked={isLiked}
                 count={post.rcmdtnCnt}
@@ -460,28 +440,22 @@ export default function MissingDetail({ post }) {
                 aria-hidden="true"
               />
               <SharePanel title={post.pstTtl} />
-              {!isMine && (
-                <>
-                  <i
-                    className="mx-1 h-3.5 w-px bg-line-strong"
-                    aria-hidden="true"
-                  />
-                  <button
-                    type="button"
-                    aria-label="신고"
-                    onClick={() => setModal('report')}
-                    className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-sm font-medium text-subtle hover:text-ink max-[760px]:min-w-9 max-[760px]:justify-center"
-                  >
-                    <Flag
-                      size={20}
-                      aria-hidden="true"
-                      className="min-[761px]:hidden"
-                    />
-                    <span className="max-[760px]:hidden">신고</span>
-                  </button>
-                </>
-              )}
             </div>
+            {!isMine && (
+              <button
+                type="button"
+                aria-label="신고"
+                onClick={() => setModal('report')}
+                className="ml-auto inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-sm font-medium text-subtle hover:text-ink max-[760px]:min-w-9 max-[760px]:justify-center"
+              >
+                <Flag
+                  size={20}
+                  aria-hidden="true"
+                  className="min-[761px]:hidden"
+                />
+                <span className="max-[760px]:hidden">신고</span>
+              </button>
+            )}
           </div>
         </article>
 

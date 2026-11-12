@@ -49,7 +49,7 @@ function CommentInput({
         className="block min-h-20 w-full resize-y rounded-md border border-[#d3dae2] bg-white px-3 py-2.5 text-base leading-[1.6] placeholder:text-[#8c9899] hover:border-[#b9c4c4] focus:border-[#285a5c] focus:ring-focus focus:outline-none"
       />
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm text-[#667374]">
+        <span className="text-xs text-[#667374]">
           {text.length} / {CMNT_MAX}
         </span>
         <span className="flex gap-2">

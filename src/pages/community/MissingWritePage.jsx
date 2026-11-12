@@ -23,13 +23,12 @@ export default function MissingWritePage() {
       },
     });
 
-  /** 「목록으로」는 폼 아래 줄에 있어 머리의 ‹ 목록으로(back)는 끔 */
+  /** 「목록으로」는 본문 박스 위(머리의 ‹ 목록으로, 나가기 확인을 거침) */
   return (
     <SubPageLayout
       section="community"
       menu={PATHS.COMMUNITY_MISSING}
-      title="글쓰기"
-      back={false}
+      title="실종 신고 등록"
       onLeave={onLeave}
     >
       <MissingForm
