@@ -9,7 +9,7 @@ const LIST_MAX_HEIGHT = 256;
  * - options: [{ value, label, disabled? }], 고르지 않았을 때는 placeholder 표시. disabled 항목은 회색이고 고를 수 없다
  * - isPill: 알약형 버튼에 종합 건강기록 히어로와 같은 색(초록 바탕·흰 글자). 목록은 버튼보다 좁아지지 않고 긴 이름만큼 넓어짐
  * - placeholderValue: 이 값을 고른 상태면 닫힌 칸에 placeholder 문구를 보인다(첫 항목 '전체'를 '상태: 전체'로 보일 때)
- * - size: 'md'(기본, 높이 40px·16px) / 'sm'(높이 36px·14px)
+ * - size: 'md'(기본, 높이 40px·16px) / 'sm'(높이 36px·14px) / 'xs'(높이 34px·14px)
  * - variant: 'box'(기본, 테두리 칸) / 'text'(테두리·배경 없이 글자 + 화살표, 목록 머리·칩 안에 둘 때)
  * - invalid: 빨간 테두리 + aria-invalid. id·describedBy: 버튼에 붙는다(<label htmlFor>·오류 문구 연결)
  * - listMaxHeight: 목록 최대 높이(px, 기본 256). 항목이 이보다 많으면 목록 안에서 스크롤. 항목 수가 정해진 짧은 목록은 더 크게 줘 스크롤을 없앤다
@@ -48,7 +48,8 @@ export default function DropdownSelect({
   const selected = options[selectedIndex];
 
   const isText = variant === 'text';
-  const isSmall = size === 'sm' || isText;
+  const isXs = size === 'xs';
+  const isSmall = size === 'sm' || isXs || isText;
 
   let buttonClass;
   if (isText) {
@@ -61,7 +62,7 @@ export default function DropdownSelect({
       : isOpen
         ? 'border-[#285a5c] shadow-[0_0_0_3px_rgba(182,218,172,0.5)]'
         : 'border-[#d3dae2] hover:enabled:border-[#b9c4c4]';
-    buttonClass = `flex w-full items-center rounded-md border bg-white pr-9 pl-3 disabled:bg-surface-2 ${isSmall ? 'h-9 text-sm' : 'h-10 text-base max-[760px]:h-11'} ${borderClass}`;
+    buttonClass = `flex w-full items-center rounded-md border bg-white pr-9 pl-3 disabled:bg-surface-2 ${isXs ? 'h-[34px] text-sm' : isSmall ? 'h-9 text-sm' : 'h-10 text-base max-[760px]:h-11'} ${borderClass}`;
   }
 
   let labelColor = '';
