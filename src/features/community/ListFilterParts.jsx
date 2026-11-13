@@ -26,7 +26,7 @@ export function Chips({ name, label, options, value, onChange }) {
             onChange={() => onChange(option.value)}
             className="peer sr-only"
           />
-          <span className="inline-flex h-[34px] cursor-pointer items-center rounded-full border border-input-line bg-white px-3.5 text-sm font-medium text-ink-2 peer-checked:border-brand-500 peer-checked:bg-brand-500 peer-checked:font-semibold peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500/30 hover:border-line-strong peer-disabled:cursor-not-allowed peer-disabled:opacity-45">
+          <span className="inline-flex h-10 cursor-pointer items-center rounded-full border border-input-line bg-white px-3.5 text-sm font-medium text-ink-2 peer-checked:border-brand-500 peer-checked:bg-brand-500 peer-checked:font-semibold peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500/30 hover:border-line-strong peer-disabled:cursor-not-allowed peer-disabled:opacity-45">
             {option.label}
           </span>
         </label>

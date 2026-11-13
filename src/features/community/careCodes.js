@@ -45,7 +45,7 @@ export const PRTC_SHP_OPTIONS = [
   { code: 'PCAC0008', name: '산책' },
   { code: 'PCAC0009', name: '놀이' },
   { code: 'PCAC0010', name: '훈련' },
-  { code: 'PCAC0011', name: '그 외' },
+  { code: 'PCAC0011', name: '기타' },
 ];
 
 /** 강아지 몸무게 구간(petSizeCd). 고양이는 비움 */

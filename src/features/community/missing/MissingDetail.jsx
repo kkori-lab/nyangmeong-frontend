@@ -540,7 +540,7 @@ export default function MissingDetail({ post }) {
       {modal === 'report' && (
         <ReportModal
           title="게시글 신고하기"
-          targetLabel={`대상: 게시글 · "${post.pstTtl}"`}
+          targetLabel={`"${post.pstTtl}"`}
           isPending={report.isPending}
           errorMessage={report.isError && report.error.message}
           onSubmit={(values) =>
