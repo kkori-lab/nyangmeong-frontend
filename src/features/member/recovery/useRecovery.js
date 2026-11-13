@@ -8,10 +8,11 @@ import {
   useSendMemberRecoveryCode,
   useVerifyRecoveryCode,
 } from '../queries';
+import { isWrongCodeError, resendAtOf, toMs } from '../shared/emailCert';
 import {
   isValidPhone,
   normalizePhone,
-  sanitizePhoneInput,
+  typePhoneInput,
 } from '../shared/validate';
 import { SIGNUP_MESSAGES as SIGNUP } from '../signup/signupMessages';
 import { RECOVERY_MESSAGES as MSG } from './recoveryMessages';
@@ -19,9 +20,6 @@ import { RECOVERY_MESSAGES as MSG } from './recoveryMessages';
 /** 서버 검증 오류의 field를 입력칸 이름으로 */
 const FIELD_KEYS = { certTrgtEml: 'email', certNo: 'code', mblTelno: 'phone' };
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** 서버 시각(LocalDateTime, 시간대 없음)을 ms로 */
-const toMs = (dateTime) => Date.parse(dateTime);
 
 const toFieldErrors = (fields) => {
   const next = {};
@@ -41,8 +39,10 @@ export default function useRecovery(email, { onCancel }) {
   const [isSent, setIsSent] = useState(false);
   const [expiresAt, setExpiresAt] = useState(0);
   const [emlCertSn, setEmlCertSn] = useState(null);
-  // 인증번호를 서버 한도까지 틀리면 재발송 전까지 [인증 확인]을 막는다
+  /** 오답으로 무효가 된 인증번호: 다시 보낼 때까지 인증번호 칸·타이머 숨김 */
   const [isCodeLocked, setIsCodeLocked] = useState(false);
+  /** 재발송 가능 시각(ms, 서버 값) */
+  const [resendAt, setResendAt] = useState(0);
   const [token, setToken] = useState('');
   const [info, setInfo] = useState(null);
   const [remainDays, setRemainDays] = useState(0);
@@ -59,6 +59,7 @@ export default function useRecovery(email, { onCancel }) {
   const recover = useRecoverMember();
   const invalidate = useInvalidateRecoveryCode();
   const countdown = useCountdown(expiresAt);
+  const resendWait = useCountdown(resendAt);
 
   const hasStoredPhone = Boolean(info?.maskedMblTelno);
   const isTermsOk = (info?.missingTrms ?? []).every(
@@ -75,28 +76,27 @@ export default function useRecovery(email, { onCancel }) {
   /* 본인확인 */
   const changeCode = (value) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
-    // 확인이 막힌 동안에는 재발송 안내를 남긴다
-    if (!isCodeLocked) setErrors({});
+    setErrors({});
   };
 
-  // 재전송 제한이면 서버 문구에 남은 시간을 붙인다. 보관 기간이 지났으면 새로 가입하도록 안내한다
+  /** 발송 오류: 재전송 제한이면 남은 시간은 [다시 보내기]에 표시, 보관 기간이 지났으면 새 가입 안내 */
   const handleSendError = (error) => {
     if (error.code === 'INVALID_INPUT_VALUE') {
       setErrors(toFieldErrors(error.fields));
       return;
     }
-    const resendAt = error.data?.resendAvailableDt;
-    const remain = resendAt
-      ? Math.max(0, Math.ceil((toMs(resendAt) - Date.now()) / 1000))
-      : 0;
+    if (error.code === 'EMAIL_CERT_RESEND_NOT_YET') {
+      setResendAt(resendAtOf(error.data));
+    }
     setNotice({
       type: 'error',
-      message: remain ? `${error.message} (${remain}초 남음)` : error.message,
+      message: error.message,
       isExpired: error.code === 'MEMBER_RECOVERY_EXPIRED',
     });
   };
 
   const sendCode = () => {
+    if (resendWait.seconds > 0) return;
     send.mutate(
       { certTrgtEml: email },
       {
@@ -108,6 +108,7 @@ export default function useRecovery(email, { onCancel }) {
           setNotice(null);
           setIsSent(true);
           setIsCodeLocked(false);
+          setResendAt(resendAtOf(result));
         },
         onError: handleSendError,
       },
@@ -171,13 +172,15 @@ export default function useRecovery(email, { onCancel }) {
     );
   };
 
-  // 인증번호 오류(불일치·만료·사용 완료·횟수 초과)는 인증번호 칸 아래에 서버 문구로 보인다
+  /** 인증번호 오류: 오답은 칸을 닫고 공통 알림(AI 말풍선), 만료·사용 완료는 칸 아래 서버 문구 */
   const handleVerifyError = (error) => {
     if (error.code === 'INVALID_INPUT_VALUE') {
       setErrors(toFieldErrors(error.fields));
-    } else if (error.code === 'EMAIL_CERT_FAIL_LIMIT_EXCEEDED') {
+    } else if (isWrongCodeError(error)) {
       setIsCodeLocked(true);
-      setErrors({ code: error.message });
+      setCode('');
+      setErrors({});
+      setNotice({ type: 'error', message: error.message || SIGNUP.codeRetry });
     } else if (error.code.startsWith('EMAIL_CERT_')) {
       setErrors({ code: error.message });
     } else {
@@ -208,7 +211,7 @@ export default function useRecovery(email, { onCancel }) {
     setAgreed((prev) => ({ ...prev, [trmsSn]: !prev[trmsSn] }));
 
   const changePhone = (value) => {
-    setPhone(sanitizePhoneInput(value));
+    setPhone(typePhoneInput(phone, value));
     setCheckedPhone('');
     setErrors({});
   };
@@ -303,6 +306,7 @@ export default function useRecovery(email, { onCancel }) {
     isSending: send.isPending,
     isVerifying: verify.isPending || loadInfo.isPending,
     isCodeLocked,
+    resendSeconds: resendWait.seconds,
     isPhoneChecking: checkPhone.isPending,
     isRecovering: recover.isPending,
     guideTarget,

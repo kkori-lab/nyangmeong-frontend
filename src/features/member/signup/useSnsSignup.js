@@ -5,9 +5,10 @@ import {
   useTermsList,
 } from '../queries';
 import {
+  formatPhoneInput,
   isValidPhone,
   normalizePhone,
-  sanitizePhoneInput,
+  typePhoneInput,
 } from '../shared/validate';
 import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 
@@ -84,7 +85,7 @@ export default function useSnsSignup({ snsSignup }) {
         onSuccess: ({ available, normalizedMblTelno }) => {
           if (checkingPhone.current !== value) return;
           setIsPhoneChecked(available);
-          setPhone(normalizedMblTelno);
+          setPhone(formatPhoneInput(normalizedMblTelno));
           setErrors(available ? {} : { phone: MSG.phoneDuplicate });
         },
         onError: (error) => {
@@ -112,7 +113,7 @@ export default function useSnsSignup({ snsSignup }) {
 
   const changePhone = (value) => {
     if (isPhoneProvided) return;
-    setPhone(sanitizePhoneInput(value));
+    setPhone(typePhoneInput(phone, value));
     setIsPhoneChecked(false);
     checkingPhone.current = '';
     setErrors({});
