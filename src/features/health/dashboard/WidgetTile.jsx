@@ -38,7 +38,7 @@ export default function WidgetTile({ item, content, petSn, petNm }) {
         />
       </span>
       <b className="mt-1 truncate text-xl font-bold text-ink">
-        {tile ? tile.value : '기록 없음'}
+        {tile ? tile.value : '기록이 없어요'}
       </b>
       {tile?.chip && (
         <span

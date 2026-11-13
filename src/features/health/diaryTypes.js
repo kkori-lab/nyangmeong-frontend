@@ -3,7 +3,7 @@ import { round2 } from './numberFormat';
 
 /**
  * [건강 일지 코드값]
- * - 코드값은 백엔드 공통코드(HLTG09 지표·HLTG10 배변상태)
+ * - 코드값은 백엔드 공통코드(HLTG09 지표·HLTG10 배변 상태)
  * - 일상 기록 종류·배변 상태·관찰 부위·관찰 변화
  */
 
@@ -26,7 +26,7 @@ export const RECORD_TYPES = [
   },
   {
     cd: 'HLTC0017',
-    nm: '배변상태',
+    nm: '배변 상태',
     tabNm: '배변 상태',
     unit: '',
     valueLabel: '상태',

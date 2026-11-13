@@ -29,7 +29,7 @@ export default function PreventionTab({ petSn, ckupRcdSn, preventions }) {
     );
 
   return (
-    <Card title="반복 예방 관리" sub="선택 입력">
+    <Card title="반복 예방" sub="선택">
       {preventions.length === 0 ? (
         <EmptyBox
           icon="pest_control"
@@ -59,7 +59,7 @@ export default function PreventionTab({ petSn, ckupRcdSn, preventions }) {
                     ` · 다음 예정 ${formatDate(prevention.nxtmPrnmntYmd)}`}
                 </span>
               </span>
-              <Badge tone="brand">처방약 연동</Badge>
+              <Badge tone="brand">케어리스트 연동</Badge>
               <button
                 type="button"
                 className={TEXT_BTN_DEL}

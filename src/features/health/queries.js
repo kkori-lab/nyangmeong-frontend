@@ -374,7 +374,7 @@ const useCheckupMutation = (mutationFn, onError = showErrorToast) => {
 
 export const useCreateCheckup = () => useCheckupMutation(createCheckup);
 
-/** 오류(409 RECEIPT_ALREADY_SAVED·404 RECEIPT_NOT_FOUND 등)는 검진기록 등록 모달 안에 보인다 */
+/** 오류(409 RECEIPT_ALREADY_SAVED·404 RECEIPT_NOT_FOUND 등)는 검진기록 추가 모달 안에 보인다 */
 export const useCreateReceiptCheckup = () =>
   useCheckupMutation(createReceiptCheckup, null);
 

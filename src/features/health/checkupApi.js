@@ -30,7 +30,7 @@ export const getCheckupAttachments = ({
     })
     .then((page) => page.content);
 
-/** 복용중이 먼저 오는 서버 순서 그대로 */
+/** 복용 중이 먼저 오는 서버 순서 그대로 */
 export const getPrescriptions = ({ petSn, ckupRcdSn }) =>
   api.get(`/pets/${petSn}/prescriptions`, { params: { ckupRcdSn } });
 

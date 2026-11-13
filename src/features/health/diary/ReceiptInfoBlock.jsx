@@ -122,10 +122,10 @@ export default function ReceiptInfoBlock({
                     <button
                       type="button"
                       aria-label="약품 삭제"
-                      className="mt-6 grid size-9 place-items-center rounded-md text-subtle hover:bg-surface-3"
+                      className="mt-6 grid size-9 place-items-center rounded-md text-subtle hover:bg-danger-soft hover:text-danger"
                       onClick={() => onDrugRemove(drug.rowId)}
                     >
-                      <Icon name="remove" />
+                      <Icon name="delete" />
                     </button>
                   </div>
 

@@ -20,7 +20,7 @@ const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
 
 /**
  * [오늘의 기록 카드]
- * - 종류별 한 줄: 종류·횟수 | 합계(체중·배변상태는 최신 값), 아래 줄에 개별 값 (FN-HLT-002-12)
+ * - 종류별 한 줄: 종류·횟수 | 합계(체중·배변 상태는 최신 값), 아래 줄에 개별 값 (FN-HLT-002-12)
  * - 맨 밑 [오늘 기록 수정하기]: 오늘 기록 수정 모달(최근 건강기록 날짜 행과 같은 모달). 오늘 기록이 없으면 숨김 (※신규 정책)
  * - 버튼이 있을 때 종류 줄 위아래·본문 아래 여백을 줄여 카드 높이를 버튼이 없던 때와 같게 둔다.
  *   버튼 줄이 카드 폭 전체를 쓰도록 본문 좌우 여백은 목록(ul)으로 옮기고(Card 본문과 같은 18·22px), 카드 overflow-hidden으로 아래 모서리를 카드 둥글기에 맞춘다
@@ -59,7 +59,7 @@ export default function TodayRecordCard({
           className={`${BTN_PRIMARY} h-8! px-3!`}
           onClick={onToggleForm}
         >
-          오늘 기록추가
+          오늘 기록 추가
         </button>
       }
     >
@@ -110,9 +110,9 @@ function TodayRow({ typeCd, summary, isCompact }) {
   const valueText = () =>
     isLatestOnly ? formatRecordValue(latest) : formatAmount(typeCd, sum);
 
-  /** 태블릿 칸의 보조 줄. 0건이면 배변상태만 "기록 없음" */
+  /** 태블릿 칸의 보조 줄. 0건이면 배변 상태만 "기록이 없어요" */
   const tabletSubText = () => {
-    if (count === 0) return typeCd === STOOL ? '기록 없음' : '';
+    if (count === 0) return typeCd === STOOL ? '기록이 없어요' : '';
     const hm = getHmOf(latest.rcdDt);
     if (isLatestOnly) return `${hm} 측정`;
     return count === 1 ? hm : `마지막 ${hm}`;
@@ -145,7 +145,7 @@ function TodayRow({ typeCd, summary, isCompact }) {
         {count === 0 ? (
           <>
             <span className="text-sm/[1.6] text-muted sm:max-[1100px]:hidden">
-              {typeCd === STOOL ? '기록 없음' : '-'}
+              {typeCd === STOOL ? '기록이 없어요' : '-'}
             </span>
             <b className="hidden text-lg/[1.6] font-semibold text-line-strong sm:max-[1100px]:block">
               -

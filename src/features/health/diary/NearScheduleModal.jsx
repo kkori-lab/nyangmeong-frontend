@@ -87,7 +87,7 @@ export default function NearScheduleModal({
             disabled={isPending}
             onClick={() => onConfirm(moveByKey)}
           >
-            저장하기
+            저장
           </button>
         )
       }

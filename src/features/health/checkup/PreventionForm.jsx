@@ -126,7 +126,7 @@ export default function PreventionForm({ petSn, ckupRcdSn, onClose }) {
           onChange={setStartYmd}
         />
         <p className="text-sm text-muted">
-          입력한 시작일이 토탈 케어리스트의 첫 예정일이 됩니다
+          입력한 시작일이 케어리스트의 첫 예정일이 됩니다
         </p>
         {isInvalid('start') && <FieldError>시작일을 입력해 주세요</FieldError>}
       </label>

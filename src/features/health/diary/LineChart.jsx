@@ -58,11 +58,11 @@ const getCurvePath = (points, slopes) => {
 
 /**
  * [곡선 선그래프]
- * - 시안 nyangmung-chart.js의 nmCurveChart와 같은 모양: 곡선 + 연한 그라데이션, 범위는 점선 + 왼쪽 눈금(상한·하한), 최근 값은 말풍선
+ * - 시안 nyangmung-chart.js의 nmCurveChart와 같은 모양: 곡선 + 연한 그라데이션, 범위는 점선 + 왼쪽 눈금(최대·최소), 최근 값은 말풍선
  * - points: [{ label, value }] 2개 이상, band: [최소, 최대], goal: 목표, formatValue: 말풍선 값, formatTag: 범위 라벨 값
- * - bandLabelSide: 'left'(기본, 오른쪽 라벨 없이 왼쪽 눈금을 상한·하한으로) / 'right'(오른쪽 최대·최소 라벨)
+ * - bandLabelSide: 'left'(기본, 오른쪽 라벨 없이 왼쪽 눈금을 최대·최소로) / 'right'(오른쪽 최대·최소 라벨)
  * - activeIndex: 말풍선을 띄울 점(points의 순번). 없으면 마지막 점, null이면 말풍선 없이 점만
- * - isLeftColumn: 상한·목표·하한을 모두 왼쪽 한 열의 라벨로 두고 오른쪽 라벨은 없앤다(모바일 건강기록 변화). bandLabelSide보다 우선
+ * - isLeftColumn: 최대·목표·최소을 모두 왼쪽 한 열의 라벨로 두고 오른쪽 라벨은 없앤다(모바일 건강기록 변화). bandLabelSide보다 우선
  * - labelFill: 아래 날짜 글자 색. 기본은 subtle(지속 관찰 PC는 placeholder 토큰, 추가 요청)
  * - isEdgeToEdge: 범위·목표 라벨이 없는 그래프에서 좌우 라벨 자리를 비우지 않고 폭 전체를 씀(지속 관찰, 추가 요청)
  */
@@ -282,7 +282,7 @@ function Chart({
               fill={COLORS.subtle}
             >
               {isBandLeft
-                ? `${value === band[1] ? '상한' : '하한'} ${formatTag(value)}`
+                ? `${value === band[1] ? '최대' : '최소'} ${formatTag(value)}`
                 : formatTag(value)}
             </text>
           </g>

@@ -1,6 +1,6 @@
 /**
  * [건강 일지 입력 모달 공통 스타일]
- * - 일정 등록·수정 모달(ScheduleModal)과 같은 입력칸·라벨 모양
+ * - 일정 추가·수정 모달(ScheduleModal)과 같은 입력칸·라벨 모양
  */
 
 export const LABEL_CLASS =

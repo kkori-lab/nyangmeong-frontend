@@ -35,7 +35,7 @@ const sumValues = (records) =>
 export const formatAmount = (typeCd, value) =>
   `${round2(value)}${findRecordType(typeCd).unit}`;
 
-/** 기록 한 건의 표시 값. 배변상태는 상태 이름 */
+/** 기록 한 건의 표시 값. 배변 상태는 상태 이름 */
 export const formatRecordValue = (record) =>
   record.dailyRcdIdctCd === STOOL
     ? findStoolState(record.crsdSttsCd).nm
@@ -52,7 +52,7 @@ export const summarizeType = (dayRecords, typeCd) => {
   };
 };
 
-/** 그래프 점. 체중은 기록마다, 식사량·음수량·산책은 최근 5개 기록이 걸친 날의 하루 합계(첫 날도 그날 기록 전부) */
+/** 그래프 점. 체중은 기록마다, 식사량·음수량·산책은 최근 5건이 걸친 날의 하루 합계(첫 날도 그날 기록 전부) */
 export const getTrendPoints = (records, typeCd) => {
   const all = pickType(records, typeCd);
   const recent = all.slice(-RECENT_RECORD_COUNT);

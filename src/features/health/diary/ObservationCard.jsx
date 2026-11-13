@@ -114,7 +114,7 @@ export default function ObservationCard({
       },
     );
 
-  const registerButton = (className, label = '관찰 항목 등록') => (
+  const registerButton = (className, label = '관찰 항목 추가') => (
     <button
       type="button"
       className={className}
@@ -308,7 +308,7 @@ export default function ObservationCard({
         title="지속 관찰"
         className="min-w-0"
         action={
-          !openItem && registerButton(`${BTN_PRIMARY} h-8! px-3!`, '+ 등록')
+          !openItem && registerButton(`${BTN_PRIMARY} h-8! px-3!`, '+ 추가')
         }
       >
         {items.length === 0 ? (
@@ -322,7 +322,7 @@ export default function ObservationCard({
         ) : (
           <>
             <p className="mb-1 text-sm/[1.6] text-subtle tabular-nums">
-              관찰중 {activeCount}건 · 종료 {items.length - activeCount}건
+              관찰 중 {activeCount}건 · 종료 {items.length - activeCount}건
             </p>
             <ObservationMobileList
               petSn={petSn}
@@ -341,7 +341,7 @@ export default function ObservationCard({
       title="지속 관찰"
       sub={
         <span className="font-normal text-placeholder">
-          관찰중 {activeCount}건 · 종료 {items.length - activeCount}건
+          관찰 중 {activeCount}건 · 종료 {items.length - activeCount}건
         </span>
       }
       className="min-w-0"
