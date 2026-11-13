@@ -54,7 +54,6 @@ export default function MissingFilters({ filters, search, onChange, onReset }) {
           onChange={search.onChange}
           onSubmit={search.onSubmit}
           placeholder="지역, 품종, 특징으로 검색"
-          compact
         />
       </FilterField>
       <FilterToggle
@@ -65,7 +64,6 @@ export default function MissingFilters({ filters, search, onChange, onReset }) {
       />
       <FilterField label="실종일" className={foldClass}>
         <Select
-          size="xs"
           label="실종일"
           placeholder="실종일"
           value={period}
@@ -76,7 +74,6 @@ export default function MissingFilters({ filters, search, onChange, onReset }) {
       <FilterField label="실종 지역" className={foldClass}>
         <div className="flex min-w-0 items-center gap-2">
           <Select
-            size="xs"
             label="시·군·구"
             value={region}
             options={regionOptions}
@@ -89,7 +86,6 @@ export default function MissingFilters({ filters, search, onChange, onReset }) {
             className="m-0 min-w-0 flex-1 border-0 p-0 disabled:opacity-45"
           >
             <Select
-              size="xs"
               label="읍·면·동"
               value={dong}
               options={dongOptions}

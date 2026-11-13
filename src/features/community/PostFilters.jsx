@@ -41,7 +41,6 @@ export default function PostFilters({
         />
         <div className="ml-auto flex items-center gap-2 max-[760px]:ml-0 max-[760px]:w-full">
           <Select
-            size="xs"
             label="정렬 기준"
             value={sort}
             options={SORT_OPTIONS}
@@ -53,7 +52,6 @@ export default function PostFilters({
             onChange={search.onChange}
             onSubmit={search.onSubmit}
             placeholder="제목 또는 내용 검색"
-            compact
             className="w-[280px] max-[760px]:w-auto max-[760px]:min-w-0 max-[760px]:flex-1"
           />
         </div>

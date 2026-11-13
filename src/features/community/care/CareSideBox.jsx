@@ -133,7 +133,9 @@ function VisitorPanel({ post, onChat }) {
         disabled
         className={`${BTN_PRIMARY} mt-[18px] w-full`}
       >
-        모집이 끝났어요
+        {post.rcrtSttsCd === RCRT_STTS.MATCHED
+          ? '매칭이 완료되었어요'
+          : '모집이 끝났어요'}
       </button>
     );
   }

@@ -24,6 +24,9 @@ const GUIDE_ITEMS = [
   ['해질녘 · 새벽에 다시 찾기', '사람이 적은 시간에 움직이는 경우가 많아요'],
 ];
 
+/** 「자세한 대처 요령 보기」가 여는 공지사항 글(/notices/42) */
+const GUIDE_NOTICE_SN = 42;
+
 const H2_CLASS = 'pb-3 text-lg leading-[1.4] font-bold text-ink';
 
 /** 실종센터 목록 오른쪽 레일: 실종 체크 가이드 · 최근 실종 소식 · 최근 찾은 반려동물 */
@@ -38,7 +41,7 @@ export default function MissingRail() {
         </h2>
         <CheckList items={GUIDE_ITEMS} />
         <Link
-          to={PATHS.NOTICES}
+          to={generatePath(PATHS.NOTICE_DETAIL, { ntcMttrSn: GUIDE_NOTICE_SN })}
           className="mt-1 inline-flex min-h-10 items-center gap-0.5 text-sm font-semibold text-brand-600 hover:underline"
         >
           자세한 대처 요령 보기
