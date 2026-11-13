@@ -2,14 +2,13 @@
 
 ## 지금 하는 것
 
-없음(2026-11-13 SCR-COM-002 모달 열 때 헤더 사라짐 끝: `hooks/useScrollLock.js`가 `html`에만 overflow hidden·overscroll none을 걸고 `body`는 건드리지 않아, 내린 채 모달을 열어도 sticky 헤더가 화면 맨 위에 남는다. 검증 통과, 사람 확인 2026-11-13. 공용 훅이라 SJM에게 PR 본문으로 알림)
+없음(2026-11-13 SCR-COM-008 알림 설정 [취소] 버튼 끝: `NotificationSettingsForm.jsx` [저장] 왼쪽에 [취소], 앱 안에서 왔으면 이전 화면, 주소로 바로 들어왔으면 메인으로 replace 이동, 바꾼 값은 확인 없이 버림. 처음엔 SCR-ADM-110으로 잡았다가 사람이 사용자 설정으로 정함, 라벨은 사람 결정. 검증 1회차 통과, 사람 확인 2026-11-13)
 
 ## 다음에 할 것
 
 - SCR-AIM-011 사람 확인 피드백 알림(2026-11-13): JAJ에게 건강기록 마지막 선택 저장이 `features/health/shared/selectedPet.js`에서 `utils/lastPetSn.js`(`readLastPetSn`·`writeLastPetSn`, 키 `nyangmeong.lastPetSn.<mbrSn>`, 예전 키도 읽음)로 옮겨졌고 AI 채팅이 처음 칩으로 읽는다고 알린다(PR 본문에도). 플로팅 버튼으로 연 AI 모달은 이제 최근 방을 연다(사람 결정 2026-11-10 "다시 열면 새 대화"를 플로팅 버튼만 바꿈, 메인 검색창은 새 대화)
 - SCR-AIM-011 사람이 볼 것(판정 밖, 2026-11-13 검증 보고): 메인 검색창에서 보낸 직후 AI 모달이 닫힌 일과 `/ai-chat`이 새로고침된 일이 한 번씩 있었다(다시 해 보니 재현 안 됨, pageerror 없음, 원인·이번 변경 관련 여부 모름). 화면마다 콘솔 오류 1~4건(원인 안 봄)
 - SCR-AIM-011 검증 데이터 정리(2026-11-13, 8081 DB·tester 계정): AI 대화방 467·469·475와 메인 검색으로 만든 방은 AI 창 ⋮ [삭제]. 방 451 "까미 혈액검사 결과 두 회차 비교 확인"에 [검증]·"검증:" 질문과 답변이 남았다(메시지 삭제 API 없음). 방 468 "이 사진 봐줘"는 다른 세션이 만든 것으로 보임
-- SCR-ADM-110 운영 설정 나가기 버튼(사람 요청 2026-11-13, `/start`로 기획): 아무것도 바꾸지 않았을 때도 돌아갈 수 있는 버튼이 필요하다. 지금 `features/setting/admin/SettingForm.jsx`의 [되돌리기]·[저장]은 바뀐 값이 있을 때만 켜져 손대지 않으면 누를 버튼이 없다. 사람이 말한 "설정 페이지"가 알림 설정(`/settings/notifications`, SCR-COM-008)이면 그쪽으로 바꾼다
 - SCR-MAN-001 메인 다음 작업(사람 요청 2026-11-13, `/start`로 기획): ① 반려동물이 없을 때 메인의 '반려동물 등록하기' UI ② 타일 ⋮ [바로가기 수정]을 바로가기 편집으로 연결 ③ 바로가기 메뉴 이름이 길면 말줄임표(…)로 잘린다
 - SCR-AIM-011·012 AI 계약 확정 연결(2026-11-13 AI 세션 알림, AI `LJS` 브랜치에서 구현·사람 확인 끝, AI PR #81(develop 병합 전). 정본 AI `docs/api/chat.md` 20·23·24행, MessageEvent·ActionCard·ImageIntentRequest·ImageIntentResponse 절): ⑥ `POST /ai/image-intent` form에 `aiCnvrsRoomSn`(선택, 없으면 AI가 방 생성), 응답 `{kind, aiCnvrsRoomSn, messages}`로 화면에만 둔 사진 말풍선 대신 저장 메시지를 그리고 `selectedRoomSn` 변경, MEDICAL_RECEIPT 경로 `receipt-result`에 `cnvrsCn` 빼기(지금 `saveReceiptResult`는 방이 있으면 보냄), 400은 저장 안 함·남의 방 404 ⑦ 확인 카드 모달 대신 `done.message` 요약 글 표시, 카드는 다음 메시지 `action`으로 돌려보냄, `done.execute: true`면 [확인]과 같이 `call` 실행 후 `action-result`, 취소 말이면 `done.action` null → 들고 있던 카드 버림, 실행 버튼을 말풍선에 둘지는 프론트가 정함. AI PR 알림 뒤 `/start`
 - SCR-ADM-070 그림 참고 굽기 검증 데이터 정리(2026-11-13, 8081 DB): 아이템 "[검증] 그림 참고 모자"(itemSn 54, 머리, 10P, 판매 중지)를 만들었다. 지우려면 DB에서 지운다. itemSn 45 "검증용 굽기 지시 모자"는 이름은 되돌렸지만 `bakeImgRefYn`이 false→true로 바뀌었다(판매 중지). 사람 확인 때 등록한 아이템도 판매를 끄거나 지운다

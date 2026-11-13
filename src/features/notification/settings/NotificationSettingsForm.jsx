@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   CalendarDays,
@@ -63,6 +63,8 @@ function SettingRow({ title, description, children }) {
 export default function NotificationSettingsForm({ settings }) {
   const [draft, setDraft] = useState(settings);
   const { mutate: save, isPending } = useSaveNotificationSettings();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const isChanged = SAVE_KEYS.some((key) =>
     key === 'leadTimes'
@@ -81,6 +83,15 @@ export default function NotificationSettingsForm({ settings }) {
         ? prev.leadTimes.filter((item) => item !== key)
         : [...prev.leadTimes, key],
     }));
+
+  /** 저장하지 않고 나간다. 앱 안에서 왔으면 이전 화면, 주소로 바로 들어왔으면 메인 */
+  const handleCancel = () => {
+    if (location.key !== 'default') {
+      navigate(-1);
+      return;
+    }
+    navigate(PATHS.MAIN, { replace: true });
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -230,7 +241,15 @@ export default function NotificationSettingsForm({ settings }) {
         ))}
       </SettingsCard>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={handleCancel}
+          className="h-10 rounded-lg border border-[#e2e7e7] bg-white px-8 text-sm font-semibold text-[#1a3234] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          취소
+        </button>
         <button
           type="submit"
           disabled={!isChanged || isPending}
