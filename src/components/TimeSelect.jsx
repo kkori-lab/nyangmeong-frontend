@@ -343,7 +343,7 @@ function TimeDropdown({
               width: rect.width,
               ...(fitHeight != null && { maxHeight: fitHeight }),
             }}
-            className="fixed z-50 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-md border border-line bg-white py-1 tabular-nums shadow-depth-sm [scrollbar-width:thin]"
+            className="fixed z-50 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-md border border-line bg-white py-1 tabular-nums shadow-depth-sm"
           >
             {options.map((option, index) => {
               const isSelected = index === selectedIndex;
