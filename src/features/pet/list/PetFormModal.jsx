@@ -24,6 +24,7 @@ import {
   useUpdatePet,
   useVarieties,
 } from '../queries';
+import { BDWG_INPUT, calcBdwgRange, MAX_BDWG } from '../shared/bdwgRange';
 
 /** 품종 [직접 입력] 선택 상태 */
 const VRTY_DRCT_INPT = 'DRCT_INPT';
@@ -43,12 +44,19 @@ const EMPTY_FORM = {
   goalBdwg: '',
   minBdwg: '',
   maxBdwg: '',
+  bdwgRngDrctInptYn: 'N',
   colrCd: '',
   colrDrctInptNm: '',
   chrcCn: '',
   algyCn: '',
   dssCn: '',
 };
+
+/** 정상범위 입력 방식 선택지 */
+const RANGE_MODE_OPTIONS = [
+  { code: 'N', name: '자동 계산' },
+  { code: 'Y', name: '직접 입력' },
+];
 
 const toText = (value) => (value == null ? '' : String(value));
 
@@ -58,10 +66,13 @@ const toForm = (pet) => ({
   ),
   vrtySn: pet.vrtySn == null ? VRTY_DRCT_INPT : String(pet.vrtySn),
   nutrYn: pet.nutrYn ? 'Y' : 'N',
+  /** 응답에 없으면(옛 데이터) 직접 입력으로 연다 */
+  bdwgRngDrctInptYn: pet.bdwgRngDrctInptYn === 'N' ? 'N' : 'Y',
 });
 
-/** 체중 입력 형식 (DB decimal(8,3) 기준) */
-const DECIMAL_INPUT = /^\d{0,5}(\.\d{0,3})?$/;
+/** 체중 입력은 소수 둘째 자리·200kg 이하 (서버 규칙) */
+const OVER_MAX_MESSAGE = `${MAX_BDWG}kg 이하로 입력해 주세요`;
+const isOverMax = (value) => Number(value) > MAX_BDWG;
 const isPositive = (value) => value !== '' && Number(value) > 0;
 
 /** 쉼표 목록 정리 */
@@ -133,24 +144,42 @@ const validate = ({ form, breedText, isWeightLocked, isColrMismatched }) => {
       errors.push(['petBdwg', '체중을 입력해 주세요', 'pet-bdwg']);
     } else if (!isPositive(form.petBdwg)) {
       errors.push(['petBdwg', '0보다 큰 숫자로 입력해 주세요', 'pet-bdwg']);
+    } else if (isOverMax(form.petBdwg)) {
+      errors.push(['petBdwg', OVER_MAX_MESSAGE, 'pet-bdwg']);
     }
   }
   if (form.goalBdwg !== '' && !isPositive(form.goalBdwg)) {
     errors.push(['goalBdwg', '0보다 큰 숫자로 입력해 주세요', 'pet-goal']);
+  } else if (form.goalBdwg !== '' && isOverMax(form.goalBdwg)) {
+    errors.push(['goalBdwg', OVER_MAX_MESSAGE, 'pet-goal']);
   }
-  if (form.minBdwg === '' || form.maxBdwg === '') {
+  /** 자동 계산('N')이면 서버가 범위를 만들므로 검사하지 않는다 */
+  const isRangeDrct = form.bdwgRngDrctInptYn === 'Y';
+  if (isRangeDrct && (form.minBdwg === '' || form.maxBdwg === '')) {
     errors.push([
       'range',
       '최소·최대 체중을 모두 입력해 주세요',
       form.minBdwg === '' ? 'pet-min' : 'pet-max',
     ]);
-  } else if (!isPositive(form.minBdwg) || !isPositive(form.maxBdwg)) {
+  } else if (
+    isRangeDrct &&
+    (!isPositive(form.minBdwg) || !isPositive(form.maxBdwg))
+  ) {
     errors.push([
       'range',
       '0보다 큰 숫자로 입력해 주세요',
       isPositive(form.minBdwg) ? 'pet-max' : 'pet-min',
     ]);
-  } else if (Number(form.minBdwg) >= Number(form.maxBdwg)) {
+  } else if (
+    isRangeDrct &&
+    (isOverMax(form.minBdwg) || isOverMax(form.maxBdwg))
+  ) {
+    errors.push([
+      'range',
+      OVER_MAX_MESSAGE,
+      isOverMax(form.minBdwg) ? 'pet-min' : 'pet-max',
+    ]);
+  } else if (isRangeDrct && Number(form.minBdwg) >= Number(form.maxBdwg)) {
     errors.push(['range', '최소 체중은 최대 체중보다 작아야 해요', 'pet-min']);
   }
   if (form.colrCd === '') {
@@ -326,7 +355,27 @@ function PetForm({
   const handleChange = (e) => setField(e.target.name, e.target.value);
 
   const handleDecimalChange = (e) => {
-    if (DECIMAL_INPUT.test(e.target.value)) handleChange(e);
+    if (BDWG_INPUT.test(e.target.value)) handleChange(e);
+  };
+
+  /** 정상범위 미리보기 기준 체중: 체중 칸이 잠겼으면 서버가 쓰는 저장된 체중 */
+  const isRangeAuto = form.bdwgRngDrctInptYn === 'N';
+  const autoRange = calcBdwgRange(
+    lastBdwgRcd != null ? pet?.petBdwg : form.petBdwg,
+  );
+
+  const handleRangeModeChange = (code) => {
+    if (form.bdwgRngDrctInptYn === code) return;
+    setForm((prev) => {
+      const next = { ...prev, bdwgRngDrctInptYn: code };
+      /** 직접 입력으로 바꿀 때 빈 칸은 미리보기 값으로 채운다. 이미 있는 값은 지우지 않는다 */
+      if (code === 'Y' && autoRange) {
+        if (prev.minBdwg === '') next.minBdwg = String(autoRange.minBdwg);
+        if (prev.maxBdwg === '') next.maxBdwg = String(autoRange.maxBdwg);
+      }
+      return next;
+    });
+    clearError('range');
   };
 
   const handleChipNoChange = (e) => {
@@ -401,14 +450,18 @@ function PetForm({
       chipNo: form.chipNo || blank,
       petGndrCd: form.petGndrCd,
       nutrYn: form.nutrYn === 'Y',
-      minBdwg: Number(form.minBdwg),
-      maxBdwg: Number(form.maxBdwg),
+      bdwgRngDrctInptYn: form.bdwgRngDrctInptYn,
       colrCd: form.colrCd,
       colrDrctInptNm: isColrDrctInpt ? form.colrDrctInptNm.trim() : blank,
       chrcCn: toTextOrNull(form.chrcCn) ?? blank,
       algyCn: normalizeList(form.algyCn) ?? blank,
       dssCn: normalizeList(form.dssCn) ?? blank,
     };
+    /** 직접 입력('Y')일 때만 범위를 보낸다. 자동 계산('N')은 서버가 체중으로 계산한다 */
+    if (form.bdwgRngDrctInptYn === 'Y') {
+      body.minBdwg = Number(form.minBdwg);
+      body.maxBdwg = Number(form.maxBdwg);
+    }
     /** 목표체중: 수정에서 있던 값을 비우면 goalBdwgReset만 보냄(둘을 같이 보내면 서버가 400) */
     const goalBdwg = toNumberOrNull(form.goalBdwg);
     if (goalBdwg != null || !isEdit) body.goalBdwg = goalBdwg;
@@ -707,25 +760,40 @@ function PetForm({
             <Group
               m="range"
               label="체중 정상범위"
-              required
+              required={!isRangeAuto}
               help={
-                <ResponsiveHelp
-                  pc="동물병원에서 확인한 범위를 입력해 주세요. 언제든 수정할 수 있어요"
-                  m="동물병원에서 확인한 범위"
-                />
+                isRangeAuto ? (
+                  '현재 체중의 ±10%로 자동 계산돼요. 성장기이거나 수의사 권장 범위가 있다면 직접 입력해 주세요.'
+                ) : (
+                  <ResponsiveHelp
+                    pc="동물병원에서 확인한 범위를 입력해 주세요. 언제든 수정할 수 있어요"
+                    m="동물병원에서 확인한 범위"
+                  />
+                )
               }
               helpId="pet-range-h"
               error={errors.range}
               errorId="pet-range-e"
             >
+              <RadioGroup
+                name="bdwgRngDrctInptYn"
+                options={RANGE_MODE_OPTIONS}
+                value={form.bdwgRngDrctInptYn}
+                onChange={handleRangeModeChange}
+              />
               <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
                 <KgInput
                   id="pet-min"
                   name="minBdwg"
-                  value={form.minBdwg}
+                  value={
+                    isRangeAuto
+                      ? String(autoRange?.minBdwg ?? '')
+                      : form.minBdwg
+                  }
                   onChange={handleDecimalChange}
-                  placeholder="최소"
+                  placeholder={isRangeAuto ? '체중 입력 시 자동' : '최소'}
                   label="정상범위 최소"
+                  readOnly={isRangeAuto}
                   invalid={!!errors.range}
                   describedBy="pet-range-h pet-range-e"
                 />
@@ -735,10 +803,15 @@ function PetForm({
                 <KgInput
                   id="pet-max"
                   name="maxBdwg"
-                  value={form.maxBdwg}
+                  value={
+                    isRangeAuto
+                      ? String(autoRange?.maxBdwg ?? '')
+                      : form.maxBdwg
+                  }
                   onChange={handleDecimalChange}
-                  placeholder="최대"
+                  placeholder={isRangeAuto ? '체중 입력 시 자동' : '최대'}
                   label="정상범위 최대"
+                  readOnly={isRangeAuto}
                   invalid={!!errors.range}
                   describedBy="pet-range-h pet-range-e"
                 />
@@ -1022,6 +1095,7 @@ function KgInput({
   onChange,
   placeholder,
   label,
+  readOnly = false,
   invalid,
   describedBy,
 }) {
@@ -1032,12 +1106,13 @@ function KgInput({
         name={name}
         value={value}
         onChange={onChange}
+        readOnly={readOnly}
         inputMode="decimal"
         placeholder={placeholder}
         aria-label={label}
         aria-invalid={invalid ? 'true' : undefined}
         aria-describedby={describedBy}
-        className={`${INPUT} pr-11 tabular-nums`}
+        className={`${INPUT} pr-11 tabular-nums ${readOnly ? 'read-only:bg-surface-2 read-only:text-muted read-only:hover:border-input-line' : ''}`}
       />
       <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-subtle">
         kg
