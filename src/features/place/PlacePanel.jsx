@@ -25,6 +25,7 @@ export default function PlacePanel({
   isCollapsed,
   sheet,
   onSearch,
+  onType,
   onSortChange,
   onToggleFavorite,
 }) {
@@ -79,7 +80,13 @@ export default function PlacePanel({
         <h1 className="text-2xl font-bold leading-[1.3] tracking-[-0.02em] text-ink">
           반려동물 플레이스
         </h1>
-        <PlaceSearchForm id="place-q" q={search.q} onSearch={onSearch} />
+        <PlaceSearchForm
+          id="place-q"
+          q={search.q}
+          category={search.category}
+          onSearch={onSearch}
+          onType={onType}
+        />
       </div>
 
       <div className="flex min-h-12 items-center justify-between gap-3 border-y border-line bg-surface-2 px-5 max-md:border-t-0 max-md:bg-white max-md:px-4 md:min-h-[52px]">
@@ -138,9 +145,11 @@ export default function PlacePanel({
         <section aria-labelledby="place-result-title">
           <h2 id="place-result-title" className={groupTitle}>
             검색 결과 <b className="text-brand-600">{totalCount}</b>
-            <small className="ml-auto text-sm font-normal text-subtle">
-              “{search.q}”
-            </small>
+            {search.keyword && (
+              <small className="ml-auto text-sm font-normal text-subtle">
+                “{search.keyword}”
+              </small>
+            )}
           </h2>
           {query.isPending ? (
             <p className="px-6 py-12 text-center text-muted">
