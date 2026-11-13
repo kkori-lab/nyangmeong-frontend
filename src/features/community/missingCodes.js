@@ -10,18 +10,6 @@ export const LOST_STTS = {
   EXPIRED: 'CMUC0008',
 };
 
-export const STATUS_TABS = [
-  { value: '', label: '전체' },
-  { value: 'lost', label: '실종' },
-  { value: 'found', label: '찾았어요' },
-];
-
-/** URL ?stts= 값 → 서버에 보낼 상태 코드 */
-export const STTS_BY_TAB = {
-  lost: LOST_STTS.LOST,
-  found: LOST_STTS.FOUND,
-};
-
 export const PET_FILTERS = [
   { value: '', label: '전체' },
   { value: 'dog', label: '강아지' },

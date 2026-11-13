@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, Headset, ImageIcon, Lock } from 'lucide-react';
+import { Clock, Headset, ImageIcon, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useNavigate } from 'react-router-dom';
 import Badge from '@/components/Badge';
@@ -132,20 +132,13 @@ export default function InquiryDetail({ inquiry }) {
       </section>
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-[#e2e7e7] pt-4">
-        <Link
-          to={PATHS.INQUIRIES}
-          className="inline-flex min-h-9 items-center gap-1.5 text-base leading-normal font-medium text-[#566465] hover:text-[#1a3234]"
-        >
-          <ChevronLeft size={14} aria-hidden="true" />
-          목록으로
-        </Link>
         {answered ? (
           <p className="ml-auto flex items-center gap-1.5 text-sm text-[#667374] max-[760px]:order-2 max-[760px]:ml-0 max-[760px]:w-full max-[760px]:justify-center">
             <Lock size={16} aria-hidden="true" />
             답변이 등록된 문의는 수정할 수 없어요
           </p>
         ) : (
-          <div className="flex gap-2 max-[760px]:w-full">
+          <div className="ml-auto flex gap-2 max-[760px]:w-full">
             <button
               type="button"
               onClick={() => setIsDeleting(true)}
