@@ -72,6 +72,8 @@ export const SHORTCUT_TYPES = [
   {
     cd: 'MANC0018',
     label: '반려동물 정보 수정',
+    /** 메인 타일에서만 쓰는 줄바꿈 이름(사람 요청 2026-11-13). 없으면 label */
+    tileLabel: '반려동물\n정보 수정',
     path: PATHS.MYPAGE_PETS,
     param: 'edit',
     group: MYPAGE,

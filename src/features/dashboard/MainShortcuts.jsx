@@ -1,10 +1,7 @@
 import { MoreVertical, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
-import Modal from '@/components/Modal';
 import PetFace from '@/components/PetFace';
-import Select from '@/components/Select';
 import Skeleton from '@/components/Skeleton';
 import { useMainShortcuts, useSaveMainShortcuts } from './queries';
 import ShortcutEditModal, { SHORTCUT_MAX } from './ShortcutEditModal';
@@ -37,21 +34,11 @@ const toShortcutMap = (pets, saved) =>
     shrtcCds: saved.find((item) => item.petSn === pet.petSn)?.shrtcCds ?? [],
   }));
 
-/**
- * 고를 수 있는 반려동물·종류: 아직 넣지 않은 종류가 남은 반려동물만
- * - editing({ petSn, cd })이 있으면 그 바로가기 자리는 비어 있는 것으로 본다(수정에서 지금 값을 그대로 둘 수 있게)
- */
-const toChoices = (rows, editing = null) =>
-  rows
-    .map(({ pet, shrtcCds }) => ({
-      pet,
-      types: SHORTCUT_TYPES.filter(
-        (type) =>
-          !shrtcCds.includes(type.cd) ||
-          (pet.petSn === editing?.petSn && type.cd === editing?.cd),
-      ),
-    }))
-    .filter(({ types }) => types.length > 0);
+/** 아직 넣지 않은 종류가 남은 반려동물 */
+const toChoices = (rows) =>
+  rows.filter(({ shrtcCds }) =>
+    SHORTCUT_TYPES.some((type) => !shrtcCds.includes(type.cd)),
+  );
 
 /** 서버에 있는 바로가기 키 전부(저장 본문 모양 [{ petSn, shrtcCds }]도 받는다) */
 const toLiveKeys = (pets, saved) =>
@@ -69,10 +56,11 @@ const toBody = (rows, change) =>
 /**
  * [메인 반려동물 바로가기]
  * - 누르면 그 반려동물로 건강기록 화면을 연다(?petSn=)
- * - [바로가기 편집]으로 여러 반려동물의 종류를 한 번에 골라 더한다(ShortcutEditModal). 목록은 서버에 저장
+ * - [바로가기 편집]에서 메인 바로가기 전체를 빼고 넣어 [저장]한다(ShortcutEditModal). 목록은 서버에 저장
  * - 배치: 웹은 한 줄 6칸·최대 SHORTCUT_MAX개, 12개가 차면 [바로가기 편집] 칸이 없다
  *   모바일은 한 줄 3칸, 앞 MOBILE_VISIBLE개 + [바로가기 편집](항상 보임)
- * - 타일 오른쪽 위 ⋮: [바로가기 수정](반려동물·종류 바꾸기)·[삭제](확인 없이 뺌) (추가-5)
+ * - 타일 오른쪽 위 ⋮: [바로가기 편집](그 반려동물이 골라진 편집 창)·[삭제](확인 없이 뺌) (추가-5)
+ *   편집 창은 지금 바로가기를 담고 열려 빼기·넣기가 된다(사람 요청 2026-11-13, 명세 FN-MAN-010·011과 다름)
  *   마우스가 있는 기기는 올리거나 포커스할 때만 보이고, 터치 기기는 항상 보인다
  * - 웹은 타일을 끌어 놓아 순서를 바꾼다. 순서는 이 브라우저에 회원별로 보관(shortcutOrder.js), 서버 요청 없음
  * - mbrSn: 회원 번호(페이지가 features/member의 useMe로 받아 넘긴다). 아직 모르면 undefined
@@ -80,7 +68,7 @@ const toBody = (rows, change) =>
 export default function MainShortcuts({ pets, mbrSn }) {
   const { data: saved, isError } = useMainShortcuts();
   const save = useSaveMainShortcuts();
-  /** 열린 모달: null | { mode: 'add' } | { mode: 'edit', petSn, cd } */
+  /** 열린 편집 창: null | { petSn } (petSn이 없으면 첫 반려동물로 연다) */
   const [form, setForm] = useState(null);
   /** 이번 화면에서 끌어 놓은 순서: null | { mbrSn, keys }. 없으면 저장소 값 */
   const [movedOrder, setMovedOrder] = useState(null);
@@ -134,32 +122,14 @@ export default function MainShortcuts({ pets, mbrSn }) {
       },
     });
 
-  const handleAdd = (picks) =>
+  /** 편집 창의 목록 전체를 저장한다: 반려동물별로 나눠 목록 순서대로 */
+  const handleSave = (list) =>
     saveShortcuts(
-      toBody(rows, (rowPetSn, shrtcCds) => [
-        ...shrtcCds,
-        ...picks
-          .filter((pick) => pick.petSn === rowPetSn)
-          .map((pick) => pick.cd),
-      ]),
+      toBody(rows, (rowPetSn) =>
+        list.filter((item) => item.petSn === rowPetSn).map((item) => item.cd),
+      ),
       closeForm,
     );
-
-  const handleSubmit = (petSn, cd) => {
-    const editing = form.mode === 'edit' ? form : null;
-    const next = toBody(rows, (rowPetSn, shrtcCds) => {
-      // 같은 반려동물 안에서 종류만 바꾸면 자리를 그대로 둔다
-      if (editing && rowPetSn === editing.petSn && rowPetSn === petSn) {
-        return shrtcCds.map((item) => (item === editing.cd ? cd : item));
-      }
-      const kept =
-        editing && rowPetSn === editing.petSn
-          ? shrtcCds.filter((item) => item !== editing.cd)
-          : shrtcCds;
-      return rowPetSn === petSn ? [...kept, cd] : kept;
-    });
-    saveShortcuts(next, closeForm);
-  };
 
   const endDrag = () => {
     setDraggingKey(null);
@@ -236,13 +206,14 @@ export default function MainShortcuts({ pets, mbrSn }) {
                   className={`${CIRCLE} border-2 border-brand-100 bg-white`}
                 />
                 <b className="w-full truncate text-xs text-ink">{pet.petNm}</b>
-                <span className="w-full truncate text-[11px] text-muted">
-                  {TYPE_BY_CD[cd].label}
+                {/* 종류 이름은 두 줄까지 단어 단위로 줄바꿈(사람 요청 2026-11-13). 반려동물 이름은 한 줄 */}
+                <span className="line-clamp-2 w-full text-xs leading-4 tracking-[-0.01em] break-keep whitespace-pre-line text-muted">
+                  {TYPE_BY_CD[cd].tileLabel ?? TYPE_BY_CD[cd].label}
                 </span>
               </Link>
               <ShortcutMenu
                 label={`${pet.petNm} ${TYPE_BY_CD[cd].label} 바로가기 메뉴`}
-                onEdit={() => setForm({ mode: 'edit', petSn: pet.petSn, cd })}
+                onEdit={() => setForm({ petSn: pet.petSn })}
                 onDelete={() => handleDelete(pet.petSn, cd)}
               />
             </li>
@@ -250,40 +221,18 @@ export default function MainShortcuts({ pets, mbrSn }) {
         })}
         {/* 모바일은 항상, 웹은 더할 수 있을 때만 */}
         <li className={`group ${canAddOnWeb ? '' : 'min-[761px]:hidden'}`}>
-          <button
-            type="button"
-            onClick={() => setForm({ mode: 'add' })}
-            className={TILE}
-          >
-            <span
-              className={`${CIRCLE} grid place-items-center bg-surface-3 text-ink-2`}
-            >
-              <Plus className="size-4" aria-hidden="true" />
-            </span>
-            <span className="text-xs whitespace-nowrap text-ink-2">
-              바로가기 편집
-            </span>
+          <button type="button" onClick={() => setForm({})} className={TILE}>
+            <PlusTileBody label="바로가기 편집" />
           </button>
         </li>
       </ul>
-      {form?.mode === 'add' && (
+      {form && (
         <ShortcutEditModal
-          rows={rows}
-          savedCount={savedCount}
-          isPending={save.isPending}
-          onSubmit={handleAdd}
-          onClose={closeForm}
-        />
-      )}
-      {form?.mode === 'edit' && (
-        <ShortcutFormModal
-          key={`${form.petSn}-${form.cd}`}
-          isEdit
-          choices={toChoices(rows, form)}
+          pets={pets}
+          items={tiles.map(({ pet, cd }) => ({ petSn: pet.petSn, cd }))}
           initialPetSn={form.petSn}
-          initialCd={form.cd}
           isPending={save.isPending}
-          onSubmit={handleSubmit}
+          onSubmit={handleSave}
           onClose={closeForm}
         />
       )}
@@ -350,7 +299,7 @@ function ShortcutMenu({ label, onEdit, onDelete }) {
             onClick={() => choose(onEdit)}
             className="h-9 px-4 text-left whitespace-nowrap hover:bg-surface-2"
           >
-            바로가기 수정
+            바로가기 편집
           </button>
           <button
             type="button"
@@ -366,72 +315,29 @@ function ShortcutMenu({ label, onEdit, onDelete }) {
   );
 }
 
-/**
- * [바로가기 추가·수정] 반려동물·종류 고르기
- * - choices: [{ pet, types }] 고를 수 있는 것만. 수정이면 지금 값이 들어 있다
- */
-function ShortcutFormModal({
-  isEdit,
-  choices,
-  initialPetSn,
-  initialCd,
-  isPending,
-  onSubmit,
-  onClose,
-}) {
-  const [petSn, setPetSn] = useState(
-    String(initialPetSn ?? choices[0].pet.petSn),
-  );
-  const types = choices.find(({ pet }) => String(pet.petSn) === petSn).types;
-  const [cd, setCd] = useState(initialCd ?? types[0].cd);
-  const selectedCd = types.some((type) => type.cd === cd) ? cd : types[0].cd;
-
+/** [바로가기 편집]·[반려동물 등록하기] 칸 안쪽: 회색 원 + 아이콘, 아래 이름 */
+function PlusTileBody({ label }) {
   return (
-    <Modal
-      title={isEdit ? '바로가기 수정' : '바로가기 추가'}
-      isPending={isPending}
-      onClose={onClose}
-      footer={
-        <>
-          <button
-            type="button"
-            className={BTN_SECONDARY}
-            disabled={isPending}
-            onClick={onClose}
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            className={BTN_PRIMARY}
-            disabled={isPending}
-            onClick={() => onSubmit(Number(petSn), selectedCd)}
-          >
-            {isEdit ? '저장' : '추가'}
-          </button>
-        </>
-      }
-    >
-      <div className="flex flex-col gap-3">
-        <Select
-          label="반려동물"
-          value={petSn}
-          onChange={setPetSn}
-          options={choices.map(({ pet }) => ({
-            value: String(pet.petSn),
-            label: pet.petNm,
-          }))}
-        />
-        <Select
-          label="바로가기"
-          value={selectedCd}
-          onChange={setCd}
-          options={types.map((type) => ({
-            value: type.cd,
-            label: type.label,
-          }))}
-        />
-      </div>
-    </Modal>
+    <>
+      <span
+        className={`${CIRCLE} grid place-items-center bg-surface-3 text-ink-2`}
+      >
+        <Plus className="size-4" aria-hidden="true" />
+      </span>
+      <span className="text-xs whitespace-nowrap text-ink-2">{label}</span>
+    </>
+  );
+}
+
+/**
+ * [반려동물 등록하기] 반려동물이 없을 때 메인 바로가기 자리에 둔다
+ * - [바로가기 편집] 칸과 같은 모양(사람 결정 2026-11-13). 누르면 마이페이지 반려동물 관리에서 등록 창이 열린 채로 간다
+ * - to: 갈 주소(페이지가 routes/paths로 만들어 넘긴다)
+ */
+export function PetRegisterTile({ to }) {
+  return (
+    <Link to={to} className={`${TILE} hover:bg-brand-50`}>
+      <PlusTileBody label="반려동물 등록하기" />
+    </Link>
   );
 }
