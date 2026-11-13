@@ -2,29 +2,7 @@
 
 ## 지금 하는 것
 
-SCR-ACC-001 회원가입 (이메일) · 휴대전화 하이픈 표시·인증번호 오답 뒤 재발송 — 진행 중 (승인 2026-11-13 10:28, 검증 3회차 실패로 보관, 사람 확인 2026-11-13). 코드는 다 만들었고 검증 실패는 환경(인증번호를 읽을 수 없음) 때문이다
-
-기준: 로그인·회원가입_기능명세서_v0.8(캐시). 명세는 불일치를 "입력칸과 AI로 안내"(FN-ACC-001-06·42)하고 재전송 간격은 "공통 인증 설정에서 읽고 화면별 숫자를 따로 두지 않는다"고 한다. 이번에 입력칸을 숨기는 것은 사람 요청(백엔드 fail-limit=1로 한 번 틀리면 그 번호는 무효)이라 명세와 다르다 → 팀 알림. 남은 초는 프론트에 60을 두지 않고 서버 시각(`resendAvailableDt`)으로만 센다. 디자인: 없음(Figma 토큰 없음, `html/`에 ACC 파일 없음). 지금 인증 화면의 버튼·칸·AI 말풍선(`AuthField`·`AuthNotice`의 `hasGuide`)을 그대로 쓴다
-
-- 휴대전화 하이픈 표시(FN-ACC-001-29): `features/member/shared/validate.js`에 입력 중 형식 함수 `formatPhoneInput` 추가(숫자만 남겨 최대 11자리, 3-4-4 / 10자리는 3-3-4로 하이픈. `+82`로 시작하면 지금처럼 그대로 둔다). `signup/useSignup.js`·`signup/useSnsSignup.js`·`recovery/useRecovery.js`의 `changePhone`이 이 함수를 쓴다. 서버로는 지금처럼 `normalizePhone` 결과(숫자만). API 변경 없음
-  - 완료 조건: `명령:` `yarn -s lint`, `yarn -s build` / `화면:` 가입 휴대전화 단계·SNS 가입 확인 직접 입력·재가입 복구 휴대전화 칸에 `01012345678`을 치면 `010-1234-5678`로 보이고, 지우기·중간 수정도 자연스럽다. [중복확인] 요청 본문의 번호는 `01012345678`이다
-- 인증번호 오답 뒤 재발송(FN-ACC-001-06, SCR-ACC-011 인증, FN-ACC-001-42): 공통 판단은 `features/member/shared/emailCert.js`(새 파일, 오답 코드 판별·남은 초 계산). 가입 `signup/useSignup.js`·`signup/EmailStep.jsx`, 비밀번호 찾기 `password/usePasswordFind.js`·`password/PasswordFindForm.jsx`, 복구 `recovery/useRecovery.js`·`recovery/RecoveryForm.jsx`, 문구 `signup/signupMessages.js`(필요한 곳만)
-  - 확인 응답이 429 `EMAIL_CERT_FAIL_LIMIT_EXCEEDED` 또는 400 `EMAIL_CERT_MISMATCH`(또는 가입의 `certRslt` 불일치)면 인증번호 칸·타이머를 숨기고 이메일 칸 옆 [다시 보내기]만 남긴다. 안내는 공통 알림을 AI 말풍선으로(서버 문구 "인증번호가 일치하지 않습니다. 인증번호를 다시 받아 주세요.") 보인다
-  - [다시 보내기]가 400 `EMAIL_CERT_RESEND_NOT_YET`이면 `error.data.resendAvailableDt`까지 버튼을 끄고 "다시 보내기 (N초)"로 남은 초를 센다. 0초가 되면 다시 켜진다. 발송 응답에 `resendAvailableDt`가 오면(백엔드 연결 뒤) 발송 직후부터 같은 방식으로 센다
-  - 다시 보내 성공하면 인증번호 칸·타이머가 다시 나오고 이전 오답 안내는 사라진다. 만료(`EMAIL_CERT_EXPIRED`)는 지금처럼 칸 아래 안내 그대로
-  - API: `POST /email-certifications`, `POST /email-certifications/{emlCertSn}/verify`(YAY, 있음). 백엔드 연결: 오답 뒤 재발송 간격 해제 여부, 발송 응답에 `resendAvailableDt` 추가 (백엔드 저장소에서 /start)
-  - 완료 조건: `명령:` `yarn -s lint`, `yarn -s build` / `화면:` 가입 이메일 단계·비밀번호 찾기·재가입 복구에서 틀린 인증번호를 넣고 [확인] → 인증번호 칸과 타이머가 사라지고 AI 말풍선에 다시 받으라는 안내가 뜬다 → 바로 [다시 보내기] → 간격이 남았으면 버튼이 꺼지고 "다시 보내기 (N초)"가 줄어든다 → 0이 되면 눌러 새 번호를 받고 칸·타이머가 다시 나온다 → 새 번호로 인증된다
-
-새 의존성: 없음
-
-질문: 디자인 파일이 없습니다. 지금 인증 화면의 칸·버튼·AI 말풍선을 그대로 쓰고 동작만 바꿀까요? 디자인 HTML 경로가 있으면 알려 주세요. (추천: 지금 모양 그대로 동작만 바꾼다)
-결정: 추천안대로 (디자인: 없음, 지금 인증 화면 모양 기준)
-
-### 추가 요청
-
-| 번호 | 바꿀 파일 | 완료 조건 | 요청 |
-| --- | --- | --- | --- |
-| 추가-1 | `signup/SignupForm.jsx`, `signup/EmailStep.jsx`, `password/PasswordFindForm.jsx`, `recovery/RecoveryForm.jsx` | `명령:` `yarn -s lint`, `yarn -s build` / `화면:` 가입 이메일 단계·비밀번호 찾기·재가입 복구에서 인증번호가 틀리면 AI 말풍선이 폼 맨 위가 아니라 이메일 칸(비밀번호 찾기는 "인증할 이메일" 상자·[이메일 다시 입력]) 바로 아래에 뜬다. 다른 알림(발송 실패 등)은 지금처럼 맨 위 | 요청 2026-11-13 11:03 "인증번호 틀렸을 때 AI 말풍선이 이메일 위가 아니라 아래에 뜨게" |
+SCR-ACC-001 회원가입 (이메일) · 휴대전화 하이픈 표시·인증번호 오답 뒤 재발송 — 끝남 (승인 2026-11-13 10:28, 검증 4회차 확인 못 함 있음(연결 남음만), 사람 확인 2026-11-13). 가입·SNS 가입 확인·재가입 복구 휴대전화 칸을 입력 중 010-1234-5678로 표시(서버에는 숫자만), 인증번호 오답이면 칸·타이머를 숨기고 이메일 칸 아래 AI 말풍선과 [다시 보내기 (N초)]만 남김(가입·비밀번호 찾기·복구). 추가-1 오답 말풍선을 이메일 칸 아래로
 
 문서 정리 · 인증 이동 규칙을 지금 코드에 맞춤 — 진행 중 (승인 2026-10-27 16:29, 검증 통과, 사람 확인 남음, 커밋 3b31971). `docs/convention/api.md`·`docs/convention/pages.md`·`AGENTS.md` 2번. 결정: `skipAuthRedirect`는 원칙으로, AGENTS.md 2번 단서 삭제
 
@@ -32,13 +10,8 @@ SCR-ACC-001 회원가입 (이메일) · 휴대전화 하이픈 표시·인증번
 
 ## 다음에 할 것
 
-- 검증 루프 3회차 실패로 보관 중(SCR-ACC-001 휴대전화 하이픈·인증번호 오답 뒤 재발송). 기획은 고치지 않는다. 루프를 버리려면 `! sh scripts/verify-loop.sh clear`
-  - 1회차: FN-ACC-001-29 `+82` 입력 시 커서 복원으로 깨짐 → 고침(2·3회차 확인)
-  - 2회차: 이메일 가입 휴대전화 단계·복구 휴대전화 칸 확인 못 함(백엔드가 `backend.log`에 인증번호를 남기지 않음) → 3회차(사람 `/verify`)에서 가짜 응답으로 통과
-  - 3회차(추가-1 뒤): "새 번호로 인증됨"과 재가입 복구 화면 확인 못 함(인증번호를 읽을 수 없음, `verify1104b@example.com`은 발송 도메인 확인에 막힘)
-  - 이어 가기: 백엔드를 가짜 메일 발송(`LoggingMailSender`)·`backend.log` 로그로 띄우고, 받을 수 있는 도메인의 탈퇴 보관 계정을 준비한 뒤 `/verify` → 통과하면 `/end`
-  - 주의: 검증 중 로컬 백엔드가 실제 SMTP로 보내 `verify1113a@naver.com`(남의 주소일 수 있음)·`yay315@naver.com`으로 메일이 나갔다
-- 백엔드 연결(SCR-ACC-001 오답 뒤 재발송): 오답 뒤 재발송 간격 해제(지금 로컬 백엔드는 바로 받아 줌, 확정 필요), 발송 응답에 `resendAvailableDt` 추가(백엔드 저장소에서 /start)
+- 연결 남음: FN-ACC-001-04·06, SCR-ACC-011 인증, FN-ACC-001-41 (백엔드 연결 발송 응답에 `resendAvailableDt`, 백엔드 저장소에서 /start. 백엔드 마일스톤에 대기 절 넣음). 오답 뒤 재발송 간격 해제는 백엔드에서 끝
+- 주의: 2026-11-13 검증 중 로컬 백엔드가 실제 SMTP로 보내 `verify1113a@naver.com`(남의 주소일 수 있음)·`yay315@naver.com`으로 인증 메일이 나갔다. 로컬 검증은 `app.mail.client=log`로
 - 팀 알림(SCR-ACC-001): 명세 FN-ACC-001-06·42 "불일치는 입력칸과 AI로 안내" → 오답이면 인증번호 칸·타이머를 숨기고 이메일 칸 아래 AI 말풍선 + [다시 보내기]만 남김(백엔드 fail-limit=1)
 - 코드 후보: 재전송 제한 알림("인증번호를 다시 보낼 수 없습니다…")이 남은 초가 0이 된 뒤에도 남는다. 휴대전화 칸 placeholder가 아직 `01012345678`
 
