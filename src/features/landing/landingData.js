@@ -2,12 +2,12 @@ import banner1 from '@/assets/landing/top/MainBanner1.webp';
 import banner2 from '@/assets/landing/top/MainBanner2.webp';
 import banner3 from '@/assets/landing/top/MainBanner3.webp';
 import banner4 from '@/assets/landing/top/MainBanner4.webp';
-import card1 from '@/assets/landing/service/card1.webp';
-import card2 from '@/assets/landing/service/card2.webp';
-import card3 from '@/assets/landing/service/card3.webp';
-import card4 from '@/assets/landing/service/card4.webp';
-import card5 from '@/assets/landing/service/card5.webp';
-import card6 from '@/assets/landing/service/card6.webp';
+import serviceAi from '@/assets/landing/service/ai.webp';
+import serviceCalendar from '@/assets/landing/service/calendar.webp';
+import serviceDiary from '@/assets/landing/service/diary.webp';
+import serviceExpense from '@/assets/landing/service/expense.webp';
+import serviceMission from '@/assets/landing/service/mission.webp';
+import servicePlace from '@/assets/landing/service/place.webp';
 import step1 from '@/assets/landing/process/step1.gif';
 import step2 from '@/assets/landing/process/step2.gif';
 import step3 from '@/assets/landing/process/step3.gif';
@@ -64,13 +64,16 @@ export const HERO_SLIDES = [
 ];
 
 export const SERVICE_CARDS = [
-  { src: card1, title: 'AI 비서' },
-  { src: card2, title: '반려동물 캐릭터 생성' },
-  { src: card3, title: '건강기록 케어' },
-  { src: card4, title: '데일리 케어 미션' },
-  { src: card5, title: '나만의 가계부' },
-  { src: card6, title: '근처 동물병원 확인' },
-  { src: card1, title: 'AI 비서' },
+  { src: serviceAi, label: '궁금한 건 말로 물어보는', title: 'AI 매니저' },
+  { src: serviceDiary, label: '체중·식사·산책을 한눈에', title: '건강 일지' },
+  {
+    src: serviceCalendar,
+    label: '병원·접종·투약 일정을 한곳에',
+    title: '케어 캘린더',
+  },
+  { src: serviceMission, label: '매일의 케어가 포인트로', title: '데일리 케어미션' },
+  { src: serviceExpense, label: '카테고리별로 보는 지출', title: '나만의 가계부' },
+  { src: servicePlace, label: '근처 병원·미용·호텔 찾기', title: '반려동물 플레이스' },
 ];
 
 export const PROCESS_STEPS = [

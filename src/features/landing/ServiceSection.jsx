@@ -1,8 +1,10 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import useInView from '@/hooks/useInView';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import FadeIn from './FadeIn';
 import { SERVICE_CARDS } from './landingData';
 
+/** 같은 줄을 네 번 이어 붙여 절반 너비마다 처음으로 돌리면 끊김 없이 돈다(넓은 화면에서도 빈칸 없이) */
 const MARQUEE_CARDS = [
   ...SERVICE_CARDS,
   ...SERVICE_CARDS,
@@ -10,84 +12,86 @@ const MARQUEE_CARDS = [
   ...SERVICE_CARDS,
 ];
 
+/** 흐르는 속도(CSS px/초) */
+const SPEED_PX_PER_SEC = 40;
+
 export default function ServiceSection() {
   const sectionRef = useRef(null);
+  const trackRef = useRef(null);
+  const offsetRef = useRef(0);
   const isInView = useInView(sectionRef, { threshold: 0.1 });
+  const isReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+
+  /**
+   * CSS 애니메이션은 소수점 위치로 옮겨 Windows 배율(125% 등)에서 이미지가 떨린다.
+   * 위치를 화면 픽셀 정수로 반올림해 옮긴다
+   */
+  useEffect(() => {
+    if (!isInView || isReducedMotion) return;
+    const track = trackRef.current;
+    let raf = 0;
+    let prev = 0;
+    const step = (now) => {
+      const dpr = window.devicePixelRatio || 1;
+      const half = track.scrollWidth / 2;
+      if (prev) {
+        offsetRef.current =
+          (offsetRef.current + (SPEED_PX_PER_SEC * (now - prev)) / 1000) % half;
+      }
+      prev = now;
+      const x = Math.round(offsetRef.current * dpr) / dpr;
+      track.style.transform = `translate3d(${-x}px, 0, 0)`;
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [isInView, isReducedMotion]);
 
   return (
     <section
       id="service"
       ref={sectionRef}
-      className="relative w-full scroll-mt-20 overflow-hidden bg-white"
+      className="relative w-full scroll-mt-20 overflow-hidden bg-surface-2 py-24 lg:py-32"
     >
-      <div className="flex min-h-[700px] w-full flex-col lg:h-[800px] lg:flex-row">
-        <div className="relative z-30 flex w-full justify-start bg-white pt-24 pb-20 lg:w-[45%] lg:items-center lg:justify-end lg:py-0 xl:w-[42%]">
-          <div className="flex w-full max-w-[540px] flex-col items-start bg-white px-6 text-left lg:px-0 lg:pr-20">
-            <FadeIn delay={100} className="mb-10">
-              <h2 className="text-[28px] leading-tight font-semibold break-keep text-black md:text-[38px] lg:text-[40px] xl:text-[48px]">
-                건강기록과 AI 비서
-                <br />
-                냥멍케어 서비스
-              </h2>
-            </FadeIn>
-
-            <FadeIn delay={500} className="mb-16 space-y-6">
-              <h3 className="text-[20px] leading-tight font-normal break-keep text-black md:text-[26px] lg:text-[28px] xl:text-[32px]">
-                반려동물에 맞춘
-                <br />
-                체계적인 건강기록 서비스
-              </h3>
-              <p className="text-[14px] leading-relaxed font-normal break-keep text-[#555555] md:text-[17px] lg:text-[18px] xl:text-[20px]">
-                체중·식사량·산책·혈액검사 수치를 한눈에 보고,
-                <br />
-                AI 매니저가 분석해 리포트로 알려드려요.
-              </p>
-            </FadeIn>
-
-            <FadeIn delay={900}>
-              <button
-                type="button"
-                onClick={() =>
-                  document
-                    .getElementById('process')
-                    ?.scrollIntoView({ behavior: 'smooth' })
-                }
-                className="rounded-[50px] bg-brand-600 px-10 py-4 text-[14px] font-medium text-white transition-[background-color,transform] duration-300 hover:scale-[0.96] hover:bg-brand-900 active:scale-100 md:px-12 md:py-5 md:text-[20px]"
-              >
-                냥멍케어 자세히 알아보기
-              </button>
-            </FadeIn>
-          </div>
-        </div>
-
-        <div className="relative z-10 flex w-full items-center overflow-visible lg:w-[55%] xl:w-[58%]">
-          <div className="pointer-events-none absolute top-0 left-0 z-20 h-full w-16 bg-linear-to-r from-white to-transparent lg:w-40" />
-          <div className="relative w-full">
-            <ul
-              aria-label="냥멍케어 서비스"
-              className="flex w-max animate-[landing-marquee_65s_linear_infinite] gap-6 pt-10 pb-32 motion-reduce:animate-none lg:gap-8 lg:pt-40"
-              style={{ animationPlayState: isInView ? 'running' : 'paused' }}
-            >
-              {MARQUEE_CARDS.map((item, index) => (
-                <FadeIn
-                  as="li"
-                  key={index}
-                  delay={index < SERVICE_CARDS.length ? index * 150 : 0}
-                  className={`group relative h-[280px] w-[210px] shrink-0 overflow-hidden rounded-3xl shadow-md lg:h-[342px] lg:w-[255px] ${
-                    index % 2 === 1 ? 'mt-12 lg:mt-20' : ''
-                  }`}
-                >
-                  <img
-                    src={item.src}
-                    alt={item.title}
-                    className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </FadeIn>
-              ))}
-            </ul>
-          </div>
-        </div>
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-12">
+        <FadeIn>
+          <h2 className="text-[28px] leading-tight font-semibold break-keep text-ink md:text-[38px] lg:text-[44px]">
+            건강기록과 AI 비서
+            <br />
+            냥멍케어 서비스
+          </h2>
+        </FadeIn>
       </div>
+
+      <ul
+        aria-label="냥멍케어 서비스"
+        ref={trackRef}
+        className="mt-10 flex w-max will-change-transform lg:mt-14"
+      >
+        {MARQUEE_CARDS.map((card, index) => (
+          <li
+            key={index}
+            aria-hidden={index >= SERVICE_CARDS.length || undefined}
+            className="mr-4 w-[260px] shrink-0 rounded-[28px] bg-white p-2.5 md:mr-5 md:w-[300px] lg:mr-6 lg:w-[340px]"
+          >
+            <div className="aspect-square overflow-hidden rounded-[20px] bg-surface-3 px-5 pt-5">
+              <img
+                src={card.src}
+                alt=""
+                className="size-full rounded-t-xl object-cover object-top shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
+              />
+            </div>
+            <div className="px-3 pt-4 pb-3">
+              <p className="text-[13px] text-subtle lg:text-[14px]">
+                {card.label}
+              </p>
+              <h3 className="mt-1 text-[16px] font-bold text-ink lg:text-[18px]">
+                {card.title}
+              </h3>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

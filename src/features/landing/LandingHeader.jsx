@@ -1,5 +1,5 @@
 import { ChevronRight, Menu, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import logo from '@/assets/nm_logo.svg';
 import logoWhite from '@/assets/logo-white.svg';
@@ -7,22 +7,21 @@ import useMediaQuery from '@/hooks/useMediaQuery';
 import { PATHS } from '@/routes/paths';
 import { LANDING_NAV } from './landingData';
 
-const scrollToSection = (id) =>
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-
 export default function LandingHeader({ loginTo }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isHovered, setIsHovered] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  /** 메뉴로 이동하는 스크롤 중에는 헤더를 숨기지 않는다 */
+  const isNavScrollingRef = useRef(false);
 
   useEffect(() => {
     let last = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
       setIsScrolled(y > 50);
-      if (y < 10) {
+      if (y < 10 || isNavScrollingRef.current) {
         setIsHidden(false);
         last = y;
         return;
@@ -34,6 +33,23 @@ export default function LandingHeader({ loginTo }) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const scrollToSection = (id) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    isNavScrollingRef.current = true;
+    setIsHidden(false);
+    let timer = 0;
+    const finish = () => {
+      clearTimeout(timer);
+      window.removeEventListener('scrollend', finish);
+      isNavScrollingRef.current = false;
+    };
+    window.addEventListener('scrollend', finish);
+    // scrollend가 없는 브라우저(Safari 일부)는 시간으로 끝낸다
+    if (!('onscrollend' in window)) timer = setTimeout(finish, 1500);
+    target.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const isLight = isScrolled || (isHovered && isDesktop);
   const closeMenu = () => setIsMenuOpen(false);
