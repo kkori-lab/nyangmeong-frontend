@@ -59,7 +59,7 @@ const toLiveKeys = (pets, saved) =>
     shrtcCds.map((cd) => shortcutKey({ pet, cd })),
   );
 
-/** 저장 본문: 반려동물별 코드 목록. 비어도 보내서 서버 기본값이 다시 살아나지 않게 한다 */
+/** 저장 본문: 반려동물별 코드 목록. 비어도 보내서 그 반려동물 바로가기를 비운다 */
 const toBody = (rows, change) =>
   rows.map(({ pet, shrtcCds }) => ({
     petSn: pet.petSn,
