@@ -20,7 +20,7 @@ import {
   useReadChatRoom,
   useViewingChatRoom,
 } from '../queries';
-import { MSG_TYPE, ROOM_STTS } from '../shared/chatCodes';
+import { MSG_TYPE, ROOM_STTS, isEndedRoom } from '../shared/chatCodes';
 import AddressMessage from './AddressMessage';
 import CareDealCard from './CareDealCard';
 import ChatMessageInput from './ChatMessageInput';
@@ -85,7 +85,9 @@ function MessageBody({ message, otoChatRoomSn, onOpenPhoto }) {
     /** 2장 이상은 폭이 정해진 한 덩어리 격자(2장·4장은 2칸, 그 밖은 3칸)라 오른쪽 끝이 한 장짜리와 맞는다 */
     const isGrid = photos.length > 1;
     const columns =
-      photos.length === 2 || photos.length === 4 ? 'grid-cols-2' : 'grid-cols-3';
+      photos.length === 2 || photos.length === 4
+        ? 'grid-cols-2'
+        : 'grid-cols-3';
     return (
       <span
         className={
@@ -254,7 +256,8 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
   const [leaveTitle, leaveDescription] = room
     ? getLeaveText(room.mtchDlngSttsCd)
     : [];
-  const isClosed = room && room.chatRoomSttsCd !== ROOM_STTS.ACTIVE;
+  /** 끝난 방(상대가 나감·무응답 종료)은 대화를 막는다 */
+  const isClosed = room && isEndedRoom(room);
   /** 사진 보기에서 넘겨 볼 방의 모든 사진(시간 순, 지금까지 불러온 것) */
   const roomPhotos = (messages ?? []).flatMap((message) =>
     message.msgTypeCd === MSG_TYPE.IMAGE ? message.photos : [],
@@ -337,7 +340,10 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
       {isClosed && (
         <p className="flex h-11 shrink-0 items-center justify-center gap-1.5 border-t border-line text-sm text-subtle">
           <Icon name="lock" className="text-lg" />
-          상대방이 나간 채팅방이에요 · 메시지를 보낼 수 없어요
+          {room.chatRoomSttsCd === ROOM_STTS.ACTIVE
+            ? '응답이 없어 종료된 채팅방이에요'
+            : '상대방이 나간 채팅방이에요'}{' '}
+          · 메시지를 보낼 수 없어요
         </p>
       )}
       {room && !isClosed && !isError && (

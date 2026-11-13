@@ -11,7 +11,7 @@ import Skeleton from '@/components/Skeleton';
 import { formatChatListTime } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
 import { useChatRooms } from '../queries';
-import { ROLE } from '../shared/chatCodes';
+import { ROLE, ROOM_STTS, isEndedRoom } from '../shared/chatCodes';
 import DealBadge from './DealBadge';
 
 const TABS = [
@@ -36,40 +36,49 @@ const sortByLastMessage = (rooms) =>
 
 function ChatRoomRow({ room, isSelected, onSelect }) {
   const hasUnread = room.unreadCnt > 0;
+  /** 끝난 방은 내용만 흐리게: 거래 상태 배지는 선명하게 둔다 */
+  const dim = isEndedRoom(room)
+    ? 'opacity-60 transition-opacity group-hover:opacity-100'
+    : '';
 
   return (
     <li className="[&+li>button]:border-t [&+li>button]:border-line">
       <button
         type="button"
         aria-current={isSelected ? 'true' : undefined}
-        className={`grid w-full grid-cols-[44px_minmax(0,1fr)] gap-3 px-5 py-4 text-left transition-colors ${
+        className={`group grid w-full grid-cols-[44px_minmax(0,1fr)] gap-3 px-5 py-4 text-left transition-colors ${
           isSelected ? 'bg-brand-50' : 'hover:bg-surface-2'
         }`}
         onClick={() => onSelect(room.otoChatRoomSn)}
       >
         <Avatar
           src={publicFileUrl(room.ctptProfileAtchFileSn)}
-          className="size-11"
+          className={`size-11 ${dim}`}
           iconSize={20}
         />
         <span className="flex min-w-0 flex-col">
           <span className="flex items-center gap-1.5">
-            <b className="font-bold text-ink">{room.ctptMbrNcnm}</b>
+            <b className={`font-bold text-ink ${dim}`}>{room.ctptMbrNcnm}</b>
             {room.lastMsgDt && (
-              <time className="ml-auto text-sm text-placeholder">
+              <time className={`ml-auto text-sm text-placeholder ${dim}`}>
                 {formatChatListTime(room.lastMsgDt)}
               </time>
             )}
           </span>
-          <span className="truncate text-sm text-subtle">{room.pstTtl}</span>
+          <span className={`truncate text-sm text-subtle ${dim}`}>
+            {room.pstTtl}
+          </span>
           <span className="flex items-center gap-1.5">
             <span
-              className={`min-w-0 flex-1 truncate ${
+              className={`min-w-0 flex-1 truncate ${dim} ${
                 hasUnread ? 'font-semibold text-ink' : 'text-ink-2'
               }`}
             >
               {room.lastMsgCn ?? '아직 메시지가 없어요'}
             </span>
+            {room.chatRoomSttsCd === ROOM_STTS.READ_ONLY && (
+              <DealBadge label="상대방 나감" tone="gray" />
+            )}
             <DealBadge stage={room.mtchDlngSttsCd} />
             <CountBadge count={room.unreadCnt} className="shrink-0" />
           </span>
@@ -216,7 +225,7 @@ export default function ChatRoomList({
         )}
       </div>
 
-      <p className="flex shrink-0 gap-2 border-t border-line px-5 py-3 text-sm text-subtle">
+      <p className="flex shrink-0 gap-2 border-t border-line px-5 py-3 text-xs text-subtle">
         <Icon name="info" className="mt-0.5 text-lg" />
         거래는 채팅방 위 카드에서 단계별로 진행해요. 냥멍케어는 결제를 대신하지
         않아요.

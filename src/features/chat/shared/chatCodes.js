@@ -30,6 +30,11 @@ export const MTCH_STTS = {
   EXPIRED: 'PCAC0018',
 };
 
+/** 끝난 채팅방: 상대가 나가 읽기 전용이거나 무응답으로 종료된 방. 목록에서 흐리게 보인다 */
+export const isEndedRoom = (room) =>
+  room.chatRoomSttsCd !== ROOM_STTS.ACTIVE ||
+  room.mtchDlngSttsCd === MTCH_STTS.EXPIRED;
+
 /** 거래 상태 배지: 글자와 색 */
 export const MTCH_STTS_BADGE = {
   [MTCH_STTS.PRE]: { label: '매칭 전', tone: 'gray' },
@@ -54,6 +59,10 @@ export const isActiveStage = (stage) =>
     MTCH_STTS.DONE_REQ,
     MTCH_STTS.PAYING,
   ].includes(stage);
+
+/** 나갈 수 없음: 매칭 완료 뒤 거래 완료(비용 수령 확인) 전. 수락 전(수락 대기)은 나가면 요청만 취소돼 허용 */
+export const isLeaveBlockedStage = (stage) =>
+  [MTCH_STTS.MATCHED, MTCH_STTS.DONE_REQ, MTCH_STTS.PAYING].includes(stage);
 
 /** 주소 공유는 매칭 완료 ~ 거래 중(매칭 완료·확인 대기·수령 대기)에만 (FN-CMU-005-05) */
 export const canShareAddress = (stage) =>

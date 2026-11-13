@@ -9,9 +9,16 @@ const TONES = {
     'bg-tone-green-bg text-tone-green-fg ring-1 ring-current/10 ring-inset',
 };
 
-/** 거래 상태 배지(매칭 전·수락 대기·거래 완료 등) */
-export default function DealBadge({ stage, className = '' }) {
-  const { label, tone } = getDealBadge(stage);
+/** 거래 상태 배지(매칭 전·수락 대기·거래 완료 등). label·tone을 넘기면 그 글자·색으로(상대방 나감 등) */
+export default function DealBadge({
+  stage,
+  label: customLabel,
+  tone: customTone,
+  className = '',
+}) {
+  const badge = getDealBadge(stage);
+  const label = customLabel ?? badge.label;
+  const tone = customTone ?? badge.tone;
 
   return (
     <span

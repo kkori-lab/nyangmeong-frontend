@@ -7,6 +7,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import ImageAttach from '@/components/ImageAttach';
 import Select from '@/components/Select';
 import { PATHS } from '@/routes/paths';
+import { addDays, getTodayYmd } from '@/utils/formatDate';
 import { PET_SE } from '@/utils/petCodes';
 import {
   CST_UNIT,
@@ -61,7 +62,14 @@ const breedError = (breed) => {
 };
 
 /** 돌봄 기간·시간 검사: 비우려면 「일정은 채팅으로 협의할게요」, 일부만 채우기 불가 */
-const whenError = ({ fromDate, fromTime, toDate, toTime, nego }) => {
+/** 돌봄 기간 기한: 시작일은 오늘부터 90일 이내, 종료일은 시작일부터 30일 이내 */
+const START_LIMIT_DAYS = 90;
+const PERIOD_LIMIT_DAYS = 30;
+
+const whenError = (
+  { fromDate, fromTime, toDate, toTime, nego },
+  initialWhen = {},
+) => {
   const filled = [fromDate, fromTime, toDate, toTime].filter(Boolean).length;
   if (filled === 0) {
     return nego
@@ -71,6 +79,20 @@ const whenError = ({ fromDate, fromTime, toDate, toTime, nego }) => {
   if (filled < 4) return '시작과 종료의 날짜 · 시간을 모두 골라 주세요';
   if (new Date(`${toDate}T${toTime}`) <= new Date(`${fromDate}T${fromTime}`)) {
     return '종료 일시는 시작 일시보다 뒤여야 해요';
+  }
+  /** 수정에서 바꾸지 않은 날짜는 이미 지난 값이어도 그대로 둔다 */
+  const today = getTodayYmd();
+  if (
+    fromDate !== initialWhen.fromDate &&
+    (fromDate < today || fromDate > addDays(today, START_LIMIT_DAYS))
+  ) {
+    return `시작일은 오늘부터 ${START_LIMIT_DAYS}일 이내로 골라 주세요`;
+  }
+  if (
+    toDate !== initialWhen.toDate &&
+    toDate > addDays(fromDate, PERIOD_LIMIT_DAYS)
+  ) {
+    return `돌봄 기간은 ${PERIOD_LIMIT_DAYS}일을 넘을 수 없어요`;
   }
   return '';
 };
@@ -150,6 +172,7 @@ export default function CareForm({
   const formRef = useRef(null);
 
   const isEdit = mode === 'edit';
+  const today = getTodayYmd();
   /** 전북 밖 좌표는 서버 메시지를 장소 칸에, 그 밖의 서버 오류는 폼 아래에 */
   const isRegionError = submitError?.code === REGION_ERROR_CODE;
   const placeError =
@@ -215,7 +238,7 @@ export default function CareForm({
     if (values.shapes.length === 0) {
       next.shapes = '돌봄 형태를 하나 이상 골라 주세요';
     }
-    const when = whenError(values);
+    const when = whenError(values, initial);
     if (when) next.when = when;
     const amount = Number(values.amount);
     if (!amount) next.amount = '비용을 입력해 주세요';
@@ -429,7 +452,8 @@ export default function CareForm({
                     <DatePicker
                       label="시작일"
                       value={values.fromDate}
-                      max={values.toDate || undefined}
+                      min={today}
+                      max={values.toDate || addDays(today, START_LIMIT_DAYS)}
                       onChange={(value) => set({ fromDate: value }, ['when'])}
                       invalid={Boolean(errors.when)}
                       className="min-w-0 flex-1"
@@ -440,7 +464,12 @@ export default function CareForm({
                     <DatePicker
                       label="종료일"
                       value={values.toDate}
-                      min={values.fromDate || undefined}
+                      min={values.fromDate || today}
+                      max={
+                        values.fromDate
+                          ? addDays(values.fromDate, PERIOD_LIMIT_DAYS)
+                          : addDays(today, START_LIMIT_DAYS + PERIOD_LIMIT_DAYS)
+                      }
                       onChange={(value) => set({ toDate: value }, ['when'])}
                       invalid={Boolean(errors.when)}
                       className="min-w-0 flex-1"

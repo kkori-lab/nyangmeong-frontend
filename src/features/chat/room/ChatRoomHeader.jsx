@@ -8,11 +8,13 @@ import Avatar from '@/components/Avatar';
 import Icon from '@/components/Icon';
 import { PATHS } from '@/routes/paths';
 import { publicFileUrl } from '@/utils/fileUrl';
+import { isLeaveBlockedStage } from '../shared/chatCodes';
 
 const menuItem =
   'flex h-11 w-full items-center gap-2.5 px-4 text-left text-ink-2 hover:bg-surface-2';
 
 export default function ChatRoomHeader({ room, onBack, onLeaveAsk }) {
+  const isLeaveBlocked = isLeaveBlockedStage(room.mtchDlngSttsCd);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -100,8 +102,10 @@ export default function ChatRoomHeader({ room, onBack, onLeaveAsk }) {
             <button
               type="button"
               role="menuitem"
-              className={`${menuItem} text-danger`}
+              aria-disabled={isLeaveBlocked}
+              className={`${menuItem} ${isLeaveBlocked ? 'text-line-strong' : 'text-danger'}`}
               onClick={() => {
+                if (isLeaveBlocked) return;
                 setIsMenuOpen(false);
                 onLeaveAsk();
               }}
@@ -109,6 +113,11 @@ export default function ChatRoomHeader({ room, onBack, onLeaveAsk }) {
               <Icon name="logout" />
               채팅방 나가기
             </button>
+            {isLeaveBlocked && (
+              <p className="px-4 pt-1 pb-2 text-xs leading-normal text-subtle">
+                거래가 완료된 뒤에 나갈 수 있어요
+              </p>
+            )}
           </div>
         )}
       </div>

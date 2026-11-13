@@ -19,7 +19,7 @@ import PostBody from '@/components/PostBody';
 import ReportModal from '@/components/ReportModal';
 import SharePanel from '@/components/SharePanel';
 import { showToast } from '@/components/toastStore';
-import useChatWindow from '@/hooks/useChatWindow';
+import { useChatModal } from '@/context/chatModal';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
@@ -63,7 +63,7 @@ const Dot = () => <i className="text-line-strong not-italic">·</i>;
 export default function CareDetail({ post }) {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const openChatWindow = useChatWindow();
+  const { open: openChatModal } = useChatModal();
   const toggleLike = useToggleCareLike(post.petPrtcRcrtSn);
   const remove = useDeleteCare();
   const report = useReportCare();
@@ -74,15 +74,6 @@ export default function CareDetail({ post }) {
   const isLiked = post.liked;
   const badges = [...new Set([...getShapeNames(post), ...getPetBadges(post)])];
   const schedule = formatScheduleDetail(post);
-
-  /** 클릭 핸들러에서 바로 열기: 요청을 기다린 뒤 열면 팝업 차단 */
-  const handleChat = (params) => {
-    if (!openChatWindow(params)) {
-      showToast(
-        '팝업이 차단되어 채팅 창을 열지 못했어요. 팝업을 허용해 주세요',
-      );
-    }
-  };
 
   const closeModal = () => setModal('');
 
@@ -258,8 +249,8 @@ export default function CareDetail({ post }) {
       <div className="flex min-w-0 flex-col gap-8">
         <CareSideBox
           post={post}
-          onChat={() => handleChat({ pstSn: post.pstSn })}
-          onOpenList={() => handleChat({ listPstSn: post.pstSn })}
+          onChat={() => openChatModal({ pstSn: post.pstSn })}
+          onOpenList={() => openChatModal({ listPstSn: post.pstSn })}
         />
         <CareCheckGuide />
       </div>

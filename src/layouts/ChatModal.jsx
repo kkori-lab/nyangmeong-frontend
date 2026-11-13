@@ -1,8 +1,8 @@
 /**
  * [채팅 모달] (SCR-COM-009, SCR-CMU-005)
  * - 본문은 새 창과 같은 ChatPanes. 760px 이하는 헤더 아래 전체 화면
- * - [─] 최소화(보던 방 기억), [새 창으로 띄우기] 새 창(/chat)으로 옮김, [✕]·Esc 닫기
- * - 페이지를 이동하면 펼친 모달만 닫기. 최소화 중이면 보던 방 기억
+ * - [새 창으로 띄우기] 새 창(/chat)으로 옮김, [✕]·Esc 닫기
+ * - 페이지를 이동하면 모달을 닫기
  * - 딤은 헤더(z-40) 아래, AI·TOP 버튼(z-30) 위(z-35): 모달이 떠 있어도 헤더 조작 가능 (FN-COM-009-12)
  * - 모달은 헤더 아래 영역의 가운데에 둔다(위쪽이 헤더에 가리지 않게)
  */
@@ -19,15 +19,8 @@ const headButton =
   'grid size-11 place-items-center rounded-full text-ink-2 hover:bg-surface-3';
 
 function ChatModalPanel() {
-  const {
-    otoChatRoomSn,
-    pstSn,
-    listPstSn,
-    minimize,
-    close,
-    selectRoom,
-    clearPost,
-  } = useChatModal();
+  const { otoChatRoomSn, pstSn, listPstSn, close, selectRoom, clearPost } =
+    useChatModal();
   const openChatWindow = useChatWindow();
   const { mutate: createChatRoom } = useCreateChatRoom();
   const panelRef = useRef(null);
@@ -98,15 +91,6 @@ function ChatModalPanel() {
         <h2 id="chat-modal-title" className="flex-1 text-xl font-bold text-ink">
           채팅
         </h2>
-        <button
-          type="button"
-          aria-label="최소화"
-          title="최소화"
-          className={headButton}
-          onClick={minimize}
-        >
-          <Icon name="remove" className="text-2xl" />
-        </button>
         <button
           type="button"
           aria-label="새 창으로 띄우기"
