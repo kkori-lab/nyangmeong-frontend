@@ -1363,6 +1363,11 @@
 - 기다리는 것: 백엔드 LJS `SCR-MYP-011 아이템 상점 모달 · 구매 멱등키 재사용 막기`(끝, 커밋·develop 병합 뒤 동작)
 - 완료 조건: 구매 응답이 409 `IDEMPOTENCY_KEY_REUSED`이면 `ItemShopModal.jsx`가 새 `idmptDmndId`를 만들고 상점 목록을 다시 읽어, 모달을 닫지 않고 다시 살 수 있다. `PURCHASE_ERRORS`에 이 코드의 문구가 있다. 서버 메시지: "이미 처리한 구매 요청입니다. 상점을 닫았다가 다시 열어 주세요."
 
+## SCR-AIM-011 대화창 · AI 계약 확정 연결(사진 턴 저장·채팅으로 확인) — 진행
+- 기능: (연결 작업, 2026-11-13 AI 세션 알림 ⑥·⑦, 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-013-02·FN-MAN-002·FN-AIM-012-04·09·10·11·16) ⑥ `POST /ai/image-intent`가 사진 턴을 방에 저장하고 `{kind, aiCnvrsRoomSn, messages}`를 준다 → 화면에만 둔 사진 말풍선 대신 저장 메시지, 진료 영수증 `receipt-result`에 `cnvrsCn` 빼기 ⑦ 확인 카드 폼 대신 `done.message` 요약 글로 확인, `done.execute`면 바로 실행, 취소 말이면 카드 버림
+- 기다리는 것: AI PR #81 develop 병합(지금 AI `LJS` 브랜치에만, 검증은 AI `LJS`로)
+- 완료 조건: 기획(핸드오프 "지금 하는 것") I1~I4·A1~A4
+
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)

@@ -108,6 +108,7 @@ export const sendMessage = async ({
     message: done.message,
     shortcut: done.shortcut,
     action: done.action ?? null,
+    execute: done.execute ?? false,
   };
 };
 
@@ -148,36 +149,21 @@ export const analyzeChatReceipt = ({ file, petSn, signal }) =>
 /**
  * 대화창 영수증 결과 이력 저장 (POST /ai/conversations/{aiCnvrsRoomSn}/receipt-result)
  * - result: RECOGNIZED·FAILED·ERROR·CANCELED, 병원명·검진일·금액은 RECOGNIZED일 때만
- * - 방이 없으면 함께 보낸 글(없으면 '영수증 분석')을 첫 메시지로 방 생성(펫 태그 petSn), 글은 재전송 없음
- * - 응답: 저장한 메시지(사용자 메시지(있으면) → AI 요약)
+ * - 방과 사진 메시지는 image-intent가 이미 저장했으므로 함께 보낸 글(cnvrsCn)은 보내지 않는다
+ * - 응답: 저장한 메시지(AI 요약)
  */
-export const saveReceiptResult = async ({
-  aiCnvrsRoomSn,
-  petSn,
-  cnvrsCn,
-  result,
-  ocr,
-}) => {
-  const text = cnvrsCn?.trim() || null;
-  let roomSn = aiCnvrsRoomSn;
-  let body = { result, ...(text && { cnvrsCn: text }) };
-  if (roomSn == null) {
-    roomSn = (
-      await createConversation({ petSn, cnvrsCn: text ?? '영수증 분석' })
-    ).aiCnvrsRoomSn;
-    body = { result };
-  } else {
-    touchConversation(roomSn);
-  }
+export const saveReceiptResult = async ({ aiCnvrsRoomSn, result, ocr }) => {
+  touchConversation(aiCnvrsRoomSn);
+  let body = { result };
   if (result === 'RECOGNIZED') {
     const { hsptlNm, ckupYmd, recptAmt } = ocr;
     body = { ...body, hsptlNm, ckupYmd, recptAmt };
   }
   const messages = await aiApi.post(
-    `/conversations/${roomSn}/receipt-result`,
+    `/conversations/${aiCnvrsRoomSn}/receipt-result`,
     body,
   );
-  return { aiCnvrsRoomSn: roomSn, messages };
+  return { aiCnvrsRoomSn, messages };
 };
 
 /**
@@ -196,13 +182,18 @@ export const IMAGE_KIND = {
 };
 
 /**
- * 첨부 사진+글의 의도 판단 (POST /ai/image-intent, multipart): { kind }
- * - 글은 공백만이면 보내지 않는다, 판단에만 쓰이고 저장되지 않는다
+ * 첨부 사진+글의 의도 판단 (POST /ai/image-intent, multipart): { kind, aiCnvrsRoomSn, messages }
+ * - 판단 뒤 사진 턴(`[사진] <글>` + 용도별 안내)을 방에 저장, 방이 없으면(aiCnvrsRoomSn 없음) 만든다(펫 태그 petSn)
+ * - 글은 공백만이면 보내지 않는다, 형식·크기 400은 저장하지 않는다
  */
-export const judgeImageIntent = ({ file, cnvrsCn, petSn }) => {
+export const judgeImageIntent = ({ file, cnvrsCn, petSn, aiCnvrsRoomSn }) => {
   const form = new FormData();
   form.append('file', file);
   if (cnvrsCn?.trim()) form.append('cnvrsCn', cnvrsCn);
   if (petSn != null) form.append('petSn', petSn);
+  if (aiCnvrsRoomSn != null) {
+    form.append('aiCnvrsRoomSn', aiCnvrsRoomSn);
+    touchConversation(aiCnvrsRoomSn);
+  }
   return aiApi.post('/image-intent', form);
 };

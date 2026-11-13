@@ -154,9 +154,7 @@ export default function ReceiptAnalysisBubble({
           <PetChoiceChips
             pets={pets}
             isDisabled={false}
-            onSelect={(petNm) =>
-              onChoosePet(pets.find((item) => item.petNm === petNm))
-            }
+            onSelect={onChoosePet}
           />
         </>
       )}

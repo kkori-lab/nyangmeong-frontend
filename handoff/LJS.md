@@ -2,9 +2,34 @@
 
 ## 지금 하는 것
 
-없음(2026-11-13 SCR-COM-002 공용 스크롤바 끝: 전역 얇은 둥근 막대·`scrollbar-stable`·바로가기 편집 창 정리, 추가-1 페이지 막대를 직접 그려 겹치기(`components/PageScrollbar.jsx`)로 막대가 생길 때 화면 밀림 없앰. 검증 2회차 통과, 사람 확인 2026-11-13)
+SCR-AIM-011 대화창 · AI 계약 확정 연결(사진 턴 저장·채팅으로 확인), 시작 2026-11-13. 구현 중 (승인 2026-11-13 15:28)
+
+### 기획
+- 고른 까닭: "다음에 할 것"에서 처음 나온 코드 작업. 그 위 여섯 줄은 알림·사람 확인·검증 데이터 정리라 건너뜀
+- 근거: AI `LJS` `docs/api/chat.md`의 `image-intent`·`receipt-result`·`messages` 행, MessageEvent·ActionCard·ImageIntentRequest·ImageIntentResponse 절. 명세 기능 ID 추가 없음
+- 디자인: 새 화면 없음. 기존 대화창의 말풍선·칩·버튼 틀을 씀
+- 부를 API: 모두 LJS(AI `LJS` 브랜치에 구현됨, AI PR #81 develop 병합 전). 가짜 응답 없음. 검증은 AI 서버를 AI `LJS`로 `--reload` 띄워서 함
+- I1 사진 판단 요청: `features/ai/api.js` `judgeImageIntent`에 `aiCnvrsRoomSn`(열린 방일 때만), 새 방 `petSn`은 글 질문과 같은 규칙(`petTagFor`), 응답의 `aiCnvrsRoomSn`으로 `selectedRoomSn`을 바꾸고 대화 목록·대화 캐시를 다시 읽음(`pages/ai/AiChatScreen.jsx`, `features/ai/queries.js` `useJudgeImageIntent` 성공 시 무효화: 사람 승인 2026-11-13). 폼을 없애며 `features/ai/chat/actionForm.js`의 폼 전용 함수도 지움. 완료: `명령:` `yarn -s lint`·`yarn -s build` / `화면:` 새 대화에서 사진+글을 보내면 사이드바에 새 방이 생기고, 새로고침 뒤에도 `[사진] <글>`과 안내 AI 메시지가 남음 / 열린 방에서 보내면 그 방 끝에 이어 붙음 / 메인 검색창에서 사진을 붙여 열어도 같음
+- I2 사진 말풍선: `AiChatScreen.jsx`·`features/ai/chat/ImageIntentBubble.jsx`·`ConversationMessages.jsx`. 판단 중에만 화면용 사진 말풍선(미리보기), 응답 뒤에는 저장 메시지를 그림. `[사진]`으로 시작하는 사용자 메시지는 사진 표시와 글로 그림(이번에 보낸 것은 미리보기 썸네일, 다시 열면 사진 아이콘 표시). 종류 칩(ASK)·캐릭터 반려동물 고르기·[캐릭터 만들기]·가계부 안내 버튼은 저장된 AI 메시지 밑에 둠. 완료: `화면:` 사진 말풍선이 두 번 보이지 않음 / ASK 칩 → 진료 영수증·캐릭터 흐름이 이어짐
+- I3 진료 영수증 경로: `features/ai/api.js` `saveReceiptResult`·`features/ai/chat/useChatReceipt.js`. `image-intent`가 준 방 번호로 `receipt-result`를 부르고 `cnvrsCn`은 보내지 않음, 방을 새로 만드는 분기를 지움(사진 경로 밖에서 부르는 곳 없음). 완료: `화면:` 진료 영수증 사진 뒤 방에 `[사진] <글>` 한 번, `영수증 분석 — …` 한 번만 저장(글이 두 번 저장되지 않음)
+- I4 사진 오류: 400(`FILE_TYPE_NOT_ALLOWED`·`FILE_SIZE_EXCEEDED`·`INVALID_REQUEST`)은 사진 말풍선에 오류 문구, 저장 없음. 404는 열린 방이 사라진 처리(지금 `handleOpenRoomDeleted`). LLM 실패는 서버가 200 `ASK`로 주므로 화면은 그대로 칩. 완료: `화면:` 확장자만 `.png`인 글 파일을 보내면 오류 문구가 보이고 사이드바·방에 변화 없음
+- A1 채팅으로 확인: `features/ai/chat/ActionCard.jsx`·`ConversationMessages.jsx`·`useActionCards.js`·`actionForm.js`. 칸 폼과 [확인]·[취소] 버튼을 그리지 않고(사람 결정 2026-11-13: 말로만 확인·취소), 저장된 `done.message` 요약 말풍선 밑에 `notice`만 둠(가장 최근 대기 카드만). 카드는 상태로 들고 있다가 다음 메시지 `action`으로 보냄(지금 그대로). 처리 결과 줄은 `action-result`가 저장한 메시지로 보임. 완료: `화면:` "까미 체중 4.2kg 기록해 줘" → 요약 글만, 칸 입력·버튼 없음 / "몸무게 4.5로 바꿔 줘" → 새 요약 글
+- A2 말로 실행: `AiChatScreen.jsx` `handleResult`. `done.execute: true`면 받은 카드로 `call`을 실행하고(버튼 없이 이것이 유일한 실행 경로) `action-result` 저장. 완료: `화면:` 요약 뒤 "등록해 줘" → "등록할게요." 다음에 `✔ 건강 일지 기록 — …`가 생기고 본창이 다시 불러옴 / 빈 칸이 남았을 때 "등록해 줘" → 실행 없이 되물음 글
+- A3 취소 말: `action`을 보냈는데 `done.action`이 null이면 들고 있던 카드를 버림(계약대로, 질문 같은 다른 말도 같음). 완료: `화면:` "아니 취소해" → "등록하지 않았어요." 뒤 버튼이 사라지고, 다음 메시지 요청 본문에 `action`이 없음
+- A4 실행 오류·반려동물: Java 400 칸 오류는 요약 말풍선 밑에 "<칸 표시 이름>: <메시지>" 목록(`data` 없으면 카드 전체 오류 한 줄), 말로 고치면 새 카드. 5xx·네트워크는 지금처럼 바로 `FAILED` 저장. `petChoices`가 있으면 이름 칩, 누르면 그 이름을 메시지로 보냄. 완료: `화면:` 반려동물이 둘 이상인 계정에서 이름 없이 "체중 4.2 기록해 줘" → 이름 칩, 누르면 그 반려동물로 새 요약 글
+- 범위 밖: 파일·배열 칸 카드(`draft_expense`)는 지금도 폼에 없어 그대로. 옛 등록 카드(`done.card`·`register-result`) 정리는 AI 쪽 삭제 뒤
+- 결정(사람 2026-11-13): ① [확인]·[취소] 버튼 없이 말로만 ② 칸 폼 없앰 ③ `petChoices` 칩은 누르면 그 이름을 메시지로 보냄
+- 승인: 2026-11-13
+
+### 추가 요청
+| 추가-1 | `features/ai/chat/PetChoiceChips.jsx`·`ActionCard.jsx`·`ConversationMessages.jsx`·`CharacterRequestBubble.jsx`·`ReceiptAnalysisBubble.jsx`·`pages/ai/AiChatScreen.jsx` | `명령:` `yarn -s lint`·`yarn -s build` / `화면:` 확인 카드 이름 칩을 누르면 다음 메시지의 `action.input.petSn`에 고른 반려동물 번호가 실림(같은 이름 반려동물이 둘이어도 고른 칩의 번호). 캐릭터·영수증 칩도 이름이 아니라 고른 칩의 반려동물로 정함. 같은 이름 둘일 때 요약이 그 반려동물로 바뀌는 것은 AI 연결 뒤(AI 저장소 `_pick_pet`이 문장에 이름이 여럿 걸려도 돌려받은 카드의 `petSn`이 그중 하나면 그것을 쓰게, AI 저장소에서 /start) | 요청 2026-11-13 16:40 "버그다 버그"(연탄이 둘인 계정에서 칩 [연탄]을 눌러도 "아직 반려동물이 비어 있어요" 반복) |
+- 새 의존성: 없음
 
 ## 다음에 할 것
+
+- SCR-AIM-012 같은 이름 반려동물 AI 세션 알림(사람 요청 2026-11-13, AI 저장소에서 /start): tester 계정처럼 이름이 같은 반려동물("연탄" 두 마리, petSn 1006·1040)이 있으면 확인 카드가 "아직 반려동물이 비어 있어요"만 되풀이한다. 원인은 `app/chat/service.py` `_pick_pet`이 문장 속 이름으로 고르는데 두 마리가 다 걸려 None, 칩 [연탄]도 둘이 구분되지 않음. 반려동물 결정과 칩 목록은 AI 서버 몫(사람 결정 2026-11-13). AI 할 일: ① 돌려받은 카드 `action.input.petSn`이 양육 반려동물이고 문장에 걸린 이름 중 하나면 이름보다 그 번호를 먼저 씀 ② `petChoices`에 구분 글 칸 추가(이름이 겹치는 아이만 `연탄 · 말티즈`처럼, 품종도 같으면 나이·성별), `docs/api/chat.md` ActionCard 계약 고침 ③ 겹칠 때 요약 글을 "어느 연탄인지 골라 주세요"처럼(필요하면). 프론트 상태: 추가-1(SCR-AIM-011)로 칩을 누르면 이름 대신 고른 `petSn`을 다음 메시지 `action.input.petSn`에 실어 보냄(검증 통과 2026-11-13). AI ② 뒤 프론트 연결: `PetChoiceChips`가 새 구분 글 칸을 보여 주기(프론트에서 따로 구분 정보를 만들지 않음). 같이 알릴 것(검증 보고, 판정 밖): 요약 뒤 "체중을 999로 바꿔 줘"에 AI가 "지금 카드는 체중 3.1kg 그대로예요"라고 답하면서 `done.action`을 null로 줘서 프론트가 계약대로 카드를 버림 → 이어서 "등록해 줘"가 방 태그 반려동물로 새 카드를 만듦. 답 문구와 계약이 어긋남
+
+- SCR-MAN-001 AI 건강분석 리포트 화면 연결(사람 요청 2026-11-13, 지금 SCR-AIM-011 `/end` 뒤): 프론트에는 아직 연결이 없다. `features/health/dashboard/DashboardCard.jsx` `AiReportCard`(JAJ 폴더)는 "준비 중" 고정 화면이고, 메인 제안 카드는 2026-11-09에 뺐다. `src`에 `health-report` 호출이 없다. AI API는 develop에 있다: `GET /ai/pets/{petSn}/health-report`, 새로고침 API, 계약은 AI `docs/api/healthreport.md`(초안, MAN-006, LJS). 정할 것: 어느 화면에 붙일지. 건강기록 대시보드면 JAJ에게 넘기고(카드 자리는 JAJ 화면), 메인이면 내 SCR-MAN-001로 `/start`
 
 - SCR-COM-002 공용 스크롤바 팀 알림(2026-11-13): 팀 채널에 알린다. ① 앱 전체 스크롤 영역 막대가 얇은 둥근 회색 막대로 바뀜(마우스 기기만, `assets/index.css`) ② 페이지(html) 막대는 브라우저 막대를 숨기고 `components/PageScrollbar`가 내용 위에 그림(화면 오른쪽 10px는 막대 칸이라 그 아래가 눌리지 않음, html 너비가 막대 유무와 상관없이 같음) ③ 막대 자리를 비워 둘 스크롤 영역은 `scrollbar-stable` 클래스 ④ 옛 Safari(18.2 전)는 `[&::-webkit-scrollbar]:hidden` 없는 탭 줄에 막대가 보일 수 있음(사람 결정으로 둠)
 - SCR-COM-002 사람이 볼 것(판정 밖, 2026-11-13 검증 보고): 기획 S1①·S4의 "html 막대 칸 10px·채팅 모달 여백 10px"은 추가-1로 0이 맞는 값이 됨. `layouts/ChatModal.jsx`의 `paddingRight` 보정과 `hooks/useScrollLock.js`의 gutter 처리는 이제 마우스 기기에서 0이라 남겨 둠(정리할지 정할 것). 화면마다 콘솔 오류 1~9건(원인 안 봄)
@@ -12,7 +37,6 @@
 - SCR-AIM-011 사람 확인 피드백 알림(2026-11-13): JAJ에게 건강기록 마지막 선택 저장이 `features/health/shared/selectedPet.js`에서 `utils/lastPetSn.js`(`readLastPetSn`·`writeLastPetSn`, 키 `nyangmeong.lastPetSn.<mbrSn>`, 예전 키도 읽음)로 옮겨졌고 AI 채팅이 처음 칩으로 읽는다고 알린다(PR 본문에도). 플로팅 버튼으로 연 AI 모달은 이제 최근 방을 연다(사람 결정 2026-11-10 "다시 열면 새 대화"를 플로팅 버튼만 바꿈, 메인 검색창은 새 대화)
 - SCR-AIM-011 사람이 볼 것(판정 밖, 2026-11-13 검증 보고): 메인 검색창에서 보낸 직후 AI 모달이 닫힌 일과 `/ai-chat`이 새로고침된 일이 한 번씩 있었다(다시 해 보니 재현 안 됨, pageerror 없음, 원인·이번 변경 관련 여부 모름). 화면마다 콘솔 오류 1~4건(원인 안 봄)
 - SCR-AIM-011 검증 데이터 정리(2026-11-13, 8081 DB·tester 계정): AI 대화방 467·469·475와 메인 검색으로 만든 방은 AI 창 ⋮ [삭제]. 방 451 "까미 혈액검사 결과 두 회차 비교 확인"에 [검증]·"검증:" 질문과 답변이 남았다(메시지 삭제 API 없음). 방 468 "이 사진 봐줘"는 다른 세션이 만든 것으로 보임
-- SCR-AIM-011·012 AI 계약 확정 연결(2026-11-13 AI 세션 알림, AI `LJS` 브랜치에서 구현·사람 확인 끝, AI PR #81(develop 병합 전). 정본 AI `docs/api/chat.md` 20·23·24행, MessageEvent·ActionCard·ImageIntentRequest·ImageIntentResponse 절): ⑥ `POST /ai/image-intent` form에 `aiCnvrsRoomSn`(선택, 없으면 AI가 방 생성), 응답 `{kind, aiCnvrsRoomSn, messages}`로 화면에만 둔 사진 말풍선 대신 저장 메시지를 그리고 `selectedRoomSn` 변경, MEDICAL_RECEIPT 경로 `receipt-result`에 `cnvrsCn` 빼기(지금 `saveReceiptResult`는 방이 있으면 보냄), 400은 저장 안 함·남의 방 404 ⑦ 확인 카드 모달 대신 `done.message` 요약 글 표시, 카드는 다음 메시지 `action`으로 돌려보냄, `done.execute: true`면 [확인]과 같이 `call` 실행 후 `action-result`, 취소 말이면 `done.action` null → 들고 있던 카드 버림, 실행 버튼을 말풍선에 둘지는 프론트가 정함. AI PR 알림 뒤 `/start`
 - SCR-ADM-070 그림 참고 굽기 검증 데이터 정리(2026-11-13, 8081 DB): 아이템 "[검증] 그림 참고 모자"(itemSn 54, 머리, 10P, 판매 중지)를 만들었다. 지우려면 DB에서 지운다. itemSn 45 "검증용 굽기 지시 모자"는 이름은 되돌렸지만 `bakeImgRefYn`이 false→true로 바뀌었다(판매 중지). 사람 확인 때 등록한 아이템도 판매를 끄거나 지운다
 - SCR-MAN-001 새 반려동물 기본 바로가기 없애기 연결 남음(2026-11-13, 프론트 몫 끝): 백엔드 연결 `PetShortcutService.search`가 바로가기 행 없는 반려동물에 MANC0008 대신 빈 목록을 준다(백엔드 저장소에서 /start, 백엔드 마일스톤에 `대기` 절 넣음). 끝나면 가짜 응답 없이 8081에서 새로 등록한 반려동물 타일이 메인에 안 생기는 것을 본다(프론트 코드 변경 없음). 이미 기본값을 받던 반려동물(행 없음)의 종합 건강기록도 같이 사라진다(사람 결정 2026-11-12, 데이터 옮기기 없음). 확인 뒤 tester 반려동물 "바로가기검증"(petSn 1038, 지금 GET에 `["MANC0008"]`)을 지운다
 - SCR-ADM-070 검증 데이터 정리(2026-11-11): 공용 DB에 아이템 "검증용 픽셀 모자"(itemSn 43, 머리, 10P, 판매)가 생겼다. 관리자 화면에 삭제가 없으니 판매를 끄거나 DB에서 지운다. 사람 확인 때 등록한 아이템도 같다

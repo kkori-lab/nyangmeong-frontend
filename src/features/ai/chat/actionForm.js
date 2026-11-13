@@ -1,11 +1,7 @@
-import { addDays, addMonths, getTodayYmd } from '@/utils/formatDate';
-
 /**
- * 확인 카드(ACTION) 폼 규칙: 칸 규칙(params)·조건부 필수(rules)로 보일 칸·빈 필수 칸·Java 요청을 정한다
+ * 확인 카드(ACTION) 규칙: 칸 규칙(params)·조건부 필수(rules)로 빈 필수 칸·Java 요청을 정한다(폼 없음, 말로 확인)
  * - 계약: ai 저장소 docs/api/chat.md ActionCard
  */
-
-const NUMBER_TYPES = ['int', 'long', 'decimal'];
 
 /**
  * 카드에 두지 않는 칸: 폼·Java 요청·결과 저장·다음 메시지 어디에도 싣지 않음
@@ -17,37 +13,16 @@ const OMITTED_FIELDS = ['schdlSrcCd', 'rprsIconId'];
 const isCardField = (card, field) =>
   field in card.params && !OMITTED_FIELDS.includes(field);
 
-/** 수정 도구: 바꿀 칸만 input에 온다 */
-export const isUpdateCall = (call) => call.method === 'PATCH';
-
 /** 값 없음: 빈 문자열·null·undefined */
-export const isEmptyValue = (value) =>
+const isEmptyValue = (value) =>
   value === undefined || value === null || value === '';
-
-/**
- * 폼에 보일 칸
- * - 경로 칸·번호 칸(…Sn, petSn은 칩)·만드는 쪽이 채우는 칸·목록 칸은 숨김
- * - 수정 도구는 카드를 받았을 때 input에 온 칸만
- */
-export const visibleFields = (card) =>
-  Object.entries(card.params)
-    .filter(
-      ([field, param]) =>
-        !OMITTED_FIELDS.includes(field) &&
-        param.in !== 'path' &&
-        !field.endsWith('Sn') &&
-        !param.generated &&
-        param.type !== 'array' &&
-        (!isUpdateCall(card.call) || field in card.input),
-    )
-    .map(([field]) => field);
 
 /** 반려동물 칩: 서버가 정하지 못했고 반려동물 칸이 있을 때 */
 export const hasPetChoice = (card) =>
   card.petChoices.length > 0 && 'petSn' in card.params;
 
 /** 지금 값 기준 필수 칸: 필수 + 조건이 맞는 조건부 필수 */
-export const requiredFields = (card, input) => {
+const requiredFields = (card, input) => {
   const fields = Object.entries(card.params)
     .filter(([, param]) => param.required)
     .map(([field]) => field);
@@ -60,24 +35,6 @@ export const requiredFields = (card, input) => {
 /** 빈 필수·조건부 필수 칸: 값이 바뀔 때마다 다시 판정 */
 export const missingFields = (card, input) =>
   requiredFields(card, input).filter((field) => isEmptyValue(input[field]));
-
-/** 입력 칸의 값을 칸 타입대로: 숫자는 숫자, 빈 값은 칸 지움 */
-export const toFieldValue = (param, raw) => {
-  if (isEmptyValue(raw)) return undefined;
-  if (NUMBER_TYPES.includes(param.type)) {
-    const number = Number(raw);
-    return Number.isNaN(number) ? undefined : number;
-  }
-  return raw;
-};
-
-/** 칸 하나 바꾼 input: 빈 값이면 칸을 지운다 */
-export const withField = (input, field, value) => {
-  const next = { ...input };
-  if (value === undefined) delete next[field];
-  else next[field] = value;
-  return next;
-};
 
 /**
  * Java 요청: path의 {칸}은 경로에, query 칸은 쿼리에, 나머지 목록 칸은 본문에
@@ -110,7 +67,7 @@ export const buildActionRequest = (card, input) => {
  *   (예: 반복 유형을 일상관리로 바꾸면 주기 칸이 꺼지고, 주기=직접입력에 달린 주기(일) 칸도 꺼진다)
  * - seen: 서로를 조건으로 거는 규칙이 와도 멈추도록 이미 본 칸
  */
-export const isFieldOff = (card, input, field, seen = new Set()) => {
+const isFieldOff = (card, input, field, seen = new Set()) => {
   const rules = card.rules.filter((rule) => rule.field === field);
   if (rules.length === 0) return false;
   const nextSeen = new Set(seen).add(field);
@@ -120,10 +77,6 @@ export const isFieldOff = (card, input, field, seen = new Set()) => {
       (nextSeen.has(when) || !isFieldOff(card, input, when, nextSeen)),
   );
 };
-
-/** 지금 값 기준 폼에 보일 칸: 꺼진 조건부 칸은 숨김 */
-export const activeFields = (card, input, shownFields) =>
-  shownFields.filter((field) => !isFieldOff(card, input, field));
 
 /** 결과 저장·Java 요청·다음 메시지에 보낼 input: 목록에 있는 칸만, 빈 값과 꺼진 조건부 칸은 뺀다 */
 export const resultInput = (card, input) =>
@@ -141,38 +94,3 @@ export const CARE_ITEM_TOOL = 'draft_care_item';
 
 /** 케어 캘린더로 이어지는 등록 도구 */
 export const CALENDAR_TOOLS = ['draft_schedule', CARE_ITEM_TOOL];
-
-/** 반복 유형 HLTG13: 매일(일상관리) */
-const DAILY_ZONE = 'HLTC0036';
-
-/** 케어주기 HLTG15: 직접입력 */
-const CUSTOM_CYCLE = 'HLTC0042';
-
-/** 케어주기 HLTG15 → 더할 날수·달수, 직접입력은 cycleDrctInptDayCnt일 */
-const CARE_CYCLE_STEPS = {
-  HLTC0038: { days: 7 },
-  HLTC0039: { days: 14 },
-  HLTC0040: { months: 1 },
-  HLTC0041: { months: 12 },
-};
-
-/**
- * 케어 항목 카드의 다음 예정일: 마지막으로 한 날(없으면 오늘) + 주기, 매일은 다음 날
- * - 주기를 아직 못 정했으면 null
- */
-export const nextDueYmd = (input) => {
-  const baseYmd = input.lastCmptnYmd || getTodayYmd();
-  if (input.careZoneCd === DAILY_ZONE) return addDays(baseYmd, 1);
-  const step = CARE_CYCLE_STEPS[input.careCycleCd];
-  if (step?.months) return addMonths(baseYmd, step.months);
-  if (step?.days) return addDays(baseYmd, step.days);
-  const dayCnt = Number(input.cycleDrctInptDayCnt);
-  if (
-    input.careCycleCd === CUSTOM_CYCLE &&
-    Number.isInteger(dayCnt) &&
-    dayCnt > 0
-  ) {
-    return addDays(baseYmd, dayCnt);
-  }
-  return null;
-};

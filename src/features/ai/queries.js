@@ -84,9 +84,20 @@ export const useSaveActionResult = () => useResultMessage(saveActionResult);
 export const useRecognizeCheckupReceipt = () =>
   useMutation({ mutationFn: recognizeCheckupReceipt });
 
-/** 첨부 사진+글의 의도 판단 */
-export const useJudgeImageIntent = () =>
-  useMutation({ mutationFn: judgeImageIntent });
+/** 첨부 사진+글의 의도 판단: 사진 턴이 저장된 대화 목록·상세 갱신 */
+export const useJudgeImageIntent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: judgeImageIntent,
+    onSuccess: ({ aiCnvrsRoomSn }) => {
+      queryClient.invalidateQueries({ queryKey: aiKeys.lists });
+      queryClient.invalidateQueries({
+        queryKey: aiKeys.detail(aiCnvrsRoomSn),
+      });
+    },
+  });
+};
 
 /** 대화창 영수증 분석 */
 export const useAnalyzeChatReceipt = () =>
