@@ -119,6 +119,11 @@
   box-shadow: 0 0 0 3px rgba(180, 71, 58, 0.14);
 }
 
+/** 막대 자리를 늘 비워 둔다: 막대가 생겨도 내용 너비가 그대로(필요한 스크롤 영역에만 붙인다) */
+@utility scrollbar-stable {
+  scrollbar-gutter: stable;
+}
+
 @layer components {
   .icon {
     font-family: 'Material Symbols Rounded';
@@ -161,6 +166,56 @@
   summary,
   select:not(:disabled) {
     cursor: pointer;
+  }
+
+  /*
+   * 공용 스크롤바: 트랙 없이 얇은 둥근 회색 막대(사람 요청 2026-11-13). 페이지(html)를 포함한 모든 스크롤 영역
+   * - 마우스 기기에만 건다. 터치 폰은 기본 오버레이 바 그대로
+   * - Chromium·Safari는 ::-webkit-scrollbar(10px 칸에 투명 테두리 3px를 비워 4px 막대), Firefox는 얇은 기본 바에 같은 색
+   * - Chromium은 scrollbar-width·color가 있으면 ::-webkit-scrollbar를 무시하므로 Firefox에만 준다.
+   *   그래서 탭 줄의 [scrollbar-width:none]은 그대로 숨는다
+   */
+  @media (hover: hover) and (pointer: fine) {
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      border: 3px solid transparent;
+      border-radius: 9999px;
+      background-color: var(--color-input-line);
+      background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-line-strong);
+    }
+
+    /*
+     * 페이지(html) 막대는 숨기고 components/PageScrollbar가 내용 위에 겹쳐 그린다(사람 요청 2026-11-13)
+     * - 막대가 자리를 차지하지 않아 막대가 생기고 없어질 때 화면이 옆으로 밀리지 않는다
+     * - scrollbar-width는 Chromium·Firefox·Safari 18.2+, ::-webkit-scrollbar는 그 전 Safari용
+     */
+    html {
+      scrollbar-width: none;
+    }
+
+    html::-webkit-scrollbar {
+      display: none;
+    }
+
+    @supports (-moz-appearance: none) {
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-input-line) transparent;
+      }
+    }
   }
 }
 

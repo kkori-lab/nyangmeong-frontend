@@ -20,7 +20,7 @@ import PetFace from '@/components/PetFace';
 import SearchInput from '@/components/SearchInput';
 import { SHORTCUT_GROUPS, SHORTCUT_TYPES } from './shortcutTypes';
 
-/** 메인 바로가기 최대 개수(저장된 것 + 새로 고른 것) */
+/** 메인 바로가기 최대 개수 */
 export const SHORTCUT_MAX = 12;
 
 const ICON_BY_CD = {
@@ -62,40 +62,56 @@ const filterTypes = (keyword) => {
 const groupLabelOf = (type) =>
   type.parentCd ? TYPE_BY_CD[type.parentCd].label : type.group;
 
+/**
+ * 웹 두 목록의 막대 자리: 막대 모양은 공용 스크롤바(assets/index.css)를 따른다
+ * - 막대 자리(10px)를 늘 비워 두고 오른쪽 여백을 24px→14px로 줄인다: 막대가 생겨도 목록 너비가 그대로이고
+ *   막대는 오른쪽 여백 위에 보인다(사람 요청 2026-11-13). 웹 폭에서만(모바일 왼쪽 목록은 스크롤하지 않음)
+ */
+const SCROLL_SOFT = 'min-[761px]:pr-3.5 min-[761px]:scrollbar-stable';
+
 const isSamePick = (a, b) => a.petSn === b.petSn && a.cd === b.cd;
 
+/** 두 목록이 같은 바로가기를 같은 순서로 담고 있는지 */
+const isSameList = (a, b) =>
+  a.length === b.length && a.every((item, index) => isSamePick(item, b[index]));
+
 /**
- * [바로가기 편집] 여러 반려동물의 바로가기를 한 번에 고른다
- * - 웹: 왼쪽 반려동물·메뉴 검색·메뉴 트리, 오른쪽 고른 목록(× 빼기). 760px 이하는 바텀시트에 ☆ 고르기
- * - rows: [{ pet, shrtcCds }] 저장된 바로가기. 이미 있는 종류는 [추가됨]으로 막는다
- * - savedCount: 메인에 보이는 바로가기 수. 고른 수와 합쳐 SHORTCUT_MAX까지
- * - onSubmit(picks): [{ petSn, cd }] 새로 고른 것만
+ * [바로가기 편집] 메인 바로가기 전체를 한 창에서 빼고 넣는다(사람 요청 2026-11-13, 명세 FN-MAN-010·011과 다름)
+ * - 웹: 왼쪽 반려동물·메뉴 검색·메뉴 트리, 오른쪽 메인 바로가기 목록(× 빼기). 760px 이하는 바텀시트에 ☆ 넣기·빼기
+ * - pets: 양육 중인 반려동물 목록(위 반려동물 줄)
+ * - items: [{ petSn, cd }] 지금 메인 바로가기(메인 순서). 열 때 목록에 들어 있고, 새로 넣은 것은 뒤에 붙는다
+ * - initialPetSn: 처음 골라 둘 반려동물(타일 ⋮에서 열 때). 없거나 목록에 없으면 첫 반려동물
+ * - onSubmit(list): [{ petSn, cd }] 저장할 목록 전체. 바꾼 것이 없으면 [저장]이 막힌다
  */
 export default function ShortcutEditModal({
-  rows,
-  savedCount,
+  pets,
+  items,
+  initialPetSn,
   isPending,
   onSubmit,
   onClose,
 }) {
-  const [petSn, setPetSn] = useState(rows[0].pet.petSn);
+  const [petSn, setPetSn] = useState(
+    () =>
+      pets.find((pet) => pet.petSn === initialPetSn)?.petSn ?? pets[0].petSn,
+  );
   const [query, setQuery] = useState('');
-  const [picks, setPicks] = useState([]);
+  const [list, setList] = useState(items);
 
-  const petBySn = Object.fromEntries(rows.map(({ pet }) => [pet.petSn, pet]));
-  const savedCds = rows.find(({ pet }) => pet.petSn === petSn).shrtcCds;
-  const total = savedCount + picks.length;
-  const isFull = total >= SHORTCUT_MAX;
+  const petBySn = Object.fromEntries(pets.map((pet) => [pet.petSn, pet]));
+  const isFull = list.length >= SHORTCUT_MAX;
+  const isChanged = !isSameList(list, items);
   const keyword = query.trim();
   const types = filterTypes(keyword);
   const groups = SHORTCUT_GROUPS.map((group) => ({
     group,
     items: types.filter((type) => type.group === group),
-  })).filter(({ items }) => items.length > 0);
+  })).filter((entry) => entry.items.length > 0);
 
+  /** 목록에 있으면 빼고, 없으면 뒤에 넣는다 */
   const handleToggle = (cd) => {
     const pick = { petSn, cd };
-    setPicks((prev) =>
+    setList((prev) =>
       prev.some((item) => isSamePick(item, pick))
         ? prev.filter((item) => !isSamePick(item, pick))
         : [...prev, pick],
@@ -103,22 +119,17 @@ export default function ShortcutEditModal({
   };
 
   const handleRemove = (pick) =>
-    setPicks((prev) => prev.filter((item) => !isSamePick(item, pick)));
+    setList((prev) => prev.filter((item) => !isSamePick(item, pick)));
 
-  /** 이번에 더 넣을 수 있는 수(메인에 있는 것을 뺀 자리)와 고르고 남은 수 */
-  const available = Math.max(SHORTCUT_MAX - savedCount, 0);
-  const left = Math.max(available - picks.length, 0);
-  /** 메인에 몇 개가 있어 몇 개 더 넣을 수 있는지: 가득 차면 빼는 길을 알려 준다 */
-  const guideText =
-    available === 0
-      ? '가득 참 · 메인에서 빼야 추가 가능'
-      : savedCount === 0
-        ? `최대 ${SHORTCUT_MAX}개`
-        : `메인 ${savedCount}개 · ${available}개 더 추가 가능`;
+  const left = SHORTCUT_MAX - list.length;
+  /** 몇 개 더 넣을 수 있는지: 가득 차면 빼는 길을 알려 준다 */
+  const guideText = isFull
+    ? '가득 참 · 빼야 더 추가 가능'
+    : `${left}개 더 추가 가능 · 최대 ${SHORTCUT_MAX}개`;
 
   return (
     <Modal
-      title="바로가기 추가"
+      title="바로가기 편집"
       isLarge
       isSheet
       width={720}
@@ -127,7 +138,7 @@ export default function ShortcutEditModal({
       footer={
         <>
           <span className="text-sm text-muted min-[761px]:hidden">
-            {available === 0 ? (
+            {isFull ? (
               '가득 참'
             ) : (
               <>
@@ -147,13 +158,10 @@ export default function ShortcutEditModal({
             <button
               type="button"
               className={BTN_PRIMARY}
-              disabled={isPending || picks.length === 0}
-              onClick={() => onSubmit(picks)}
+              disabled={isPending || !isChanged}
+              onClick={() => onSubmit(list)}
             >
-              {picks.length > 0 && (
-                <span className="max-[760px]:hidden">{picks.length}개 </span>
-              )}
-              추가
+              저장
             </button>
           </div>
         </>
@@ -165,7 +173,7 @@ export default function ShortcutEditModal({
           aria-label="반려동물"
           className="flex shrink-0 gap-2 overflow-x-auto border-b border-line-soft px-6 pt-5 pb-4 min-[761px]:overflow-visible"
         >
-          {rows.map(({ pet }) => {
+          {pets.map((pet) => {
             const isSelected = pet.petSn === petSn;
             return (
               <li
@@ -202,7 +210,9 @@ export default function ShortcutEditModal({
           })}
         </ul>
         <div className="grid min-h-0 flex-1 min-[761px]:grid-cols-2">
-          <div className="flex min-h-0 min-w-0 flex-col gap-3 px-6 pt-4 pb-5 min-[761px]:overflow-y-auto min-[761px]:border-r min-[761px]:border-line-soft">
+          <div
+            className={`flex min-h-0 min-w-0 flex-col gap-3 px-6 pt-4 pb-5 min-[761px]:overflow-y-auto min-[761px]:border-r min-[761px]:border-line-soft ${SCROLL_SOFT}`}
+          >
             <SearchInput
               value={query}
               onChange={setQuery}
@@ -222,8 +232,7 @@ export default function ShortcutEditModal({
                   <ul className="flex flex-col gap-1">
                     {items.map((type) => {
                       const Icon = ICON_BY_CD[type.cd];
-                      const isSaved = savedCds.includes(type.cd);
-                      const isPicked = picks.some((item) =>
+                      const isPicked = list.some((item) =>
                         isSamePick(item, { petSn, cd: type.cd }),
                       );
                       return (
@@ -234,13 +243,13 @@ export default function ShortcutEditModal({
                           <button
                             type="button"
                             aria-pressed={isPicked}
-                            disabled={isSaved || (isFull && !isPicked)}
+                            disabled={isFull && !isPicked}
                             onClick={() => handleToggle(type.cd)}
                             className={`flex h-10 w-full items-center gap-2 rounded-md px-2 text-left disabled:cursor-not-allowed ${
                               isPicked
                                 ? 'bg-brand-50'
                                 : 'hover:enabled:bg-surface-2'
-                            } ${isSaved ? 'text-ink-2' : 'text-ink'}`}
+                            } text-ink`}
                           >
                             {Icon && (
                               <Icon
@@ -251,20 +260,19 @@ export default function ShortcutEditModal({
                             <span className="flex-1 truncate">
                               {type.label}
                             </span>
-                            {isSaved ? (
-                              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">
+                            {isPicked && (
+                              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted max-[760px]:hidden">
                                 추가됨
                               </span>
-                            ) : (
-                              <Star
-                                aria-hidden="true"
-                                className={`size-4 min-[761px]:hidden ${
-                                  isPicked
-                                    ? 'fill-brand-500 text-brand-500'
-                                    : 'text-ink-2'
-                                }`}
-                              />
                             )}
+                            <Star
+                              aria-hidden="true"
+                              className={`size-4 min-[761px]:hidden ${
+                                isPicked
+                                  ? 'fill-brand-500 text-brand-500'
+                                  : 'text-ink-2'
+                              }`}
+                            />
                           </button>
                         </li>
                       );
@@ -274,23 +282,25 @@ export default function ShortcutEditModal({
               ))
             )}
           </div>
-          <div className="hidden min-h-0 flex-col gap-3 overflow-y-auto px-6 pt-4 pb-5 min-[761px]:flex">
+          <div
+            className={`hidden min-h-0 flex-col gap-3 overflow-y-auto px-6 pt-4 pb-5 min-[761px]:flex ${SCROLL_SOFT}`}
+          >
             <div>
               <div className="flex items-center justify-between">
-                <h3 className="font-bold">추가할 바로가기</h3>
+                <h3 className="font-bold">메인 바로가기</h3>
                 <span className="text-sm text-muted">
-                  <b className="text-ink">{picks.length}</b> / {available}개
+                  <b className="text-ink">{list.length}</b> / {SHORTCUT_MAX}개
                 </span>
               </div>
               <p className="mt-1 text-sm text-muted">{guideText}</p>
             </div>
-            {picks.length === 0 && available > 0 && (
+            {list.length === 0 && (
               <p className="rounded-box border border-dashed border-line px-3 py-6 text-center text-sm text-muted">
                 왼쪽 메뉴에서 바로가기를 골라 주세요
               </p>
             )}
-            <ul aria-label="추가할 바로가기" className="flex flex-col gap-2">
-              {picks.map((pick) => {
+            <ul aria-label="메인 바로가기" className="flex flex-col gap-2">
+              {list.map((pick) => {
                 const pet = petBySn[pick.petSn];
                 const type = TYPE_BY_CD[pick.cd];
                 const label = type.label;

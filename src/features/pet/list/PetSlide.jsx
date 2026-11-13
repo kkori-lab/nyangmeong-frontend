@@ -424,7 +424,7 @@ function MobileInfo({ pet }) {
   const [isOpen, setIsOpen] = useState(false);
   const range =
     pet.minBdwg != null && pet.maxBdwg != null
-      ? `정상 ${pet.minBdwg}~${pet.maxBdwg}kg`
+      ? `정상 ${formatWeight(pet.minBdwg).slice(0, -2)}~${formatWeight(pet.maxBdwg)}`
       : null;
 
   return (
