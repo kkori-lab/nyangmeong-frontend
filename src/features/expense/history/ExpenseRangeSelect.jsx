@@ -56,7 +56,7 @@ export default function ExpenseRangeSelect({
         onClick={onCancel}
         className={`${BTN_SECONDARY} ml-auto`}
       >
-        편집 취소
+        나가기
       </button>
     </div>
   );
