@@ -100,6 +100,17 @@ function CareListSkeleton() {
   );
 }
 
+/** 오른쪽 레일 맨 위 등록 버튼 */
+const writeAction = (
+  <Link
+    to={PATHS.COMMUNITY_PETCARE_NEW}
+    className={`${BTN_PRIMARY} h-10! w-full text-base`}
+  >
+    <Pencil size={16} aria-hidden="true" />
+    돌봄 요청 등록
+  </Link>
+);
+
 export default function CareListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
@@ -174,6 +185,7 @@ export default function CareListPage() {
         onChange={(next) => setQuery({ ...next, page: 1 })}
         onReset={() => setSearchParams({})}
         onPageChange={(nextPage) => setQuery({ page: nextPage })}
+        action={writeAction}
       />
     );
   }
@@ -183,16 +195,6 @@ export default function CareListPage() {
       section="community"
       menu={PATHS.COMMUNITY_PETCARE}
       description={DESCRIPTION}
-      pixel={false}
-      headAction={
-        <Link
-          to={PATHS.COMMUNITY_PETCARE_NEW}
-          className={`${BTN_PRIMARY} h-[34px]! text-sm`}
-        >
-          <Pencil size={16} aria-hidden="true" />
-          돌봄 요청 등록
-        </Link>
-      }
       contentClassName="min-[1101px]:pt-[7px]"
     >
       {body}

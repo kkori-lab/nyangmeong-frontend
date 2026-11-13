@@ -63,7 +63,7 @@ export default function MonthCalendar({
 
   return (
     <Card
-      title="통합 케어 캘린더"
+      title="케어 캘린더"
       action={
         <div className="flex items-center gap-1">
           <button

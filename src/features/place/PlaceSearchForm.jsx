@@ -1,7 +1,15 @@
 import { Search } from 'lucide-react';
 
-// 검색 버튼 없이 Enter로 검색한다. q가 바뀌면 입력칸을 새 값으로 다시 채운다
-export default function PlaceSearchForm({ id, q, onSearch, className = '' }) {
+// 검색 버튼 없이 Enter로 검색한다. q나 category가 바뀌면 입력칸을 새 값으로 다시 채운다.
+// onType은 치는 글자를 알린다('이 지도에서 다시 검색'이 입력칸 글자로 찾는다)
+export default function PlaceSearchForm({
+  id,
+  q,
+  category,
+  onSearch,
+  onType,
+  className = '',
+}) {
   const handleSubmit = (event) => {
     event.preventDefault();
     onSearch(new FormData(event.currentTarget).get('q'));
@@ -9,9 +17,10 @@ export default function PlaceSearchForm({ id, q, onSearch, className = '' }) {
 
   return (
     <form
-      key={q}
+      key={`${category}|${q}`}
       role="search"
       onSubmit={handleSubmit}
+      onChange={(event) => onType(event.target.value)}
       className={`group flex h-12 items-center gap-2.5 rounded-xl border border-brand-500 bg-white px-3.5 focus-within:ring-focus ${className}`}
     >
       <Search className="size-5 shrink-0 text-subtle group-focus-within:text-brand-500" />

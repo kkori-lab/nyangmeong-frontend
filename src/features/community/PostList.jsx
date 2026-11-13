@@ -27,6 +27,7 @@ export default function PostList({
   onSearch,
   onPageChange,
   onReset,
+  action,
 }) {
   const [input, setInput] = useState(keyword);
   const { search } = useLocation();
@@ -146,7 +147,7 @@ export default function PostList({
         </div>
       </div>
 
-      <StoryRail />
+      <StoryRail action={action} />
     </div>
   );
 }

@@ -4,8 +4,12 @@ import { Link, useLocation } from 'react-router-dom';
 import PetFace from '@/components/PetFace';
 import { PATHS } from '@/routes/paths';
 import { BRUP_ROLE, MAX_OWN_PETS } from '@/utils/petCodes';
-import { formatAge, getPetSeName } from '@/utils/petFormat';
+import { formatAge, getVrtyName } from '@/utils/petFormat';
 import { useSelectedPet } from './selectedPet';
+
+/** 이름 아래 나이·품종 줄. 비어 있는 값은 줄을 그리지 않음 */
+const getPetMetaLines = (pet) =>
+  [formatAge(pet.petBrdt), getVrtyName(pet)].filter(Boolean);
 
 const CELL_FACE_CLASS =
   'size-12 shrink-0 overflow-hidden rounded-full border border-line bg-white text-subtle';
@@ -18,28 +22,53 @@ const getRegisterPath = (returnTo) =>
  * 1101px 이상: 바로 앞 사이드 메뉴(sticky)가 스크롤에 붙을 때 이 카드도 메뉴 바로 아래에 같이 붙는다
  * - 붙는 높이 = 메뉴의 계산된 top + 메뉴 높이 + 이 카드의 위 여백. 값은 화면에서 읽어 따로 적지 않는다
  * - 메뉴가 sticky가 아니면(1100px 이하 등 top이 auto) 비워 둔다
+ * - 사이드 열 끝에 닿아 카드가 밀려 올라가면 메뉴도 같은 만큼 올림: 카드가 메뉴를 덮지 않게
  */
+/** 사이드 메뉴(레이아웃 소유) sticky top 조정 */
+const setTop = (node, value) => {
+  node.style.top = value;
+};
+
 const useStickBelowMenu = (ref, isEnabled, layoutKey) => {
   useLayoutEffect(() => {
     const element = ref.current;
     const menu = element?.previousElementSibling;
     if (!isEnabled || !menu) return undefined;
+    /** 메뉴 원래 sticky top, 카드가 붙는 top */
+    let menuTop = NaN;
+    let stickTop = NaN;
+    /** 카드가 사이드 열 끝에 밀린 만큼 메뉴 top 올림 */
+    const follow = () => {
+      if (Number.isNaN(menuTop)) return;
+      const columnBottom = element.parentElement.getBoundingClientRect().bottom;
+      const overlap = stickTop + element.offsetHeight - columnBottom;
+      setTop(menu, overlap > 0 ? `${menuTop - overlap}px` : '');
+    };
     const update = () => {
-      const menuTop = parseFloat(getComputedStyle(menu).top);
+      setTop(menu, '');
+      const isSticky = getComputedStyle(element).position === 'sticky';
+      menuTop = isSticky ? parseFloat(getComputedStyle(menu).top) : NaN;
       if (Number.isNaN(menuTop)) {
         element.style.top = '';
         return;
       }
       const marginTop = parseFloat(getComputedStyle(element).marginTop) || 0;
-      element.style.top = `${menuTop + menu.offsetHeight + marginTop}px`;
+      stickTop = menuTop + menu.offsetHeight + marginTop;
+      element.style.top = `${stickTop}px`;
+      follow();
     };
     update();
     const observer = new ResizeObserver(update);
     observer.observe(menu);
+    observer.observe(element);
+    observer.observe(element.parentElement);
     window.addEventListener('resize', update);
+    window.addEventListener('scroll', follow, { passive: true });
     return () => {
       observer.disconnect();
       window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', follow);
+      setTop(menu, '');
     };
   }, [ref, isEnabled, layoutKey]);
 };
@@ -47,7 +76,7 @@ const useStickBelowMenu = (ref, isEnabled, layoutKey) => {
 /**
  * [건강기록 공통 반려동물 카드] (※신규 정책)
  * - 건강기록 3개 화면(종합 건강기록·건강 일지·케어 캘린더)이 같은 아이를 보게 하는 선택 위치
- * - variant="card": 1101px 이상, 사이드 메뉴 아래. 사진 + 「보고 있는 아이」 + 이름 + 「종 · 나이」 + ⇅. 팝오버는 카드 아래에 왼쪽 끝을 맞춰 열림
+ * - variant="card": 1101px 이상, 사이드 메뉴 아래. 사진 + 「선택한 아이」 + 이름 / 나이 / 품종(줄마다 하나) + ⇅. 팝오버는 카드 아래에 왼쪽 끝을 맞춰 열림
  * - variant="pill": 1100px 이하, 페이지 제목 아래 알약 버튼(사진 + 이름 + ▾). 같은 팝오버가 버튼 아래에 열림
  * - 반려동물 1마리여도 눌러서 팝오버를 열 수 있다(그 아이 1칸 + 「+ 등록」)
  * - 반려동물 0마리면 카드 대신 점선 박스와 [반려동물 등록]
@@ -61,7 +90,7 @@ export default function PetSwitcher({ variant }) {
   const buttonRef = useRef(null);
   const panelId = useId();
   const isCard = variant === 'card';
-  const visibility = isCard ? 'max-[1100px]:hidden' : 'min-[1101px]:hidden';
+  const visibility = isCard ? 'max-[1101px]:hidden' : 'min-[1101px]:hidden';
   const returnTo = `${pathname}${search}${hash}`;
 
   useEffect(() => {
@@ -119,10 +148,6 @@ export default function PetSwitcher({ variant }) {
     setIsOpen(false);
     if (petSn !== pet.petSn) selectPet(petSn);
   };
-  const meta = [getPetSeName(pet), formatAge(pet.petBrdt)]
-    .filter(Boolean)
-    .join(' · ');
-
   return (
     <div
       ref={rootRef}
@@ -150,11 +175,15 @@ export default function PetSwitcher({ variant }) {
             iconClassName="size-3/5"
           />
           <span className="min-w-0 flex-1">
-            <span className="block text-badge text-subtle">보고 있는 아이</span>
+            <span className="block text-badge text-subtle">선택한 아이</span>
             <span className="block truncate font-bold text-ink">
               {pet.petNm}
             </span>
-            <span className="block truncate text-sm text-muted">{meta}</span>
+            {getPetMetaLines(pet).map((line) => (
+              <span key={line} className="block truncate text-sm text-muted">
+                {line}
+              </span>
+            ))}
           </span>
           <ChevronsUpDown
             aria-hidden="true"
@@ -168,7 +197,7 @@ export default function PetSwitcher({ variant }) {
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           aria-controls={isOpen ? panelId : undefined}
-          aria-label={`보고 있는 아이 ${pet.petNm}, 반려동물 바꾸기`}
+          aria-label={`선택한 아이 ${pet.petNm}, 반려동물 바꾸기`}
           onClick={() => setIsOpen((prev) => !prev)}
           className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line bg-white pr-3 pl-1.25 font-semibold text-ink hover:bg-surface-2 max-[760px]:h-11"
         >
@@ -225,6 +254,14 @@ export default function PetSwitcher({ variant }) {
                     <span className="w-full truncate text-center">
                       {item.petNm}
                     </span>
+                    {getPetMetaLines(item).map((line) => (
+                      <span
+                        key={line}
+                        className="-mt-1 w-full truncate text-center text-badge font-medium text-muted"
+                      >
+                        {line}
+                      </span>
+                    ))}
                   </button>
                 );
               })}
@@ -257,7 +294,7 @@ export default function PetSwitcher({ variant }) {
  * [건강기록 상세 화면 반려동물 표시] (※신규 정책) FN-HLT-005-16 · 007-07 — 보기 전용, 공통 선택값 변경 없음
  * - 검진상세·검사 수치 입력에서 주소의 petSn 아이를 보여 준다. 누를 수 없는 정보 칸(div, 포커스 없음)
  * - 배치·크기는 PetSwitcher와 같고, 면 bg-surface-3·테두리 없음, ⇅·▾·팝오버 없음
- * - variant="card": 1101px 이상, 사이드 메뉴 아래. 사진 + 「이 기록의 아이」 + 이름 + 「종 · 나이」
+ * - variant="card": 1101px 이상, 사이드 메뉴 아래. 사진 + 「이 기록의 아이」 + 이름 / 나이 / 품종(줄마다 하나)
  * - variant="pill": 1100px 이하, 페이지 제목 아래. 사진 + 이름
  * - pet이 없으면(목록을 받는 중·실패·목록에 없음) 그리지 않는다
  */
@@ -269,10 +306,6 @@ export function PetBadge({ pet, variant }) {
   useStickBelowMenu(rootRef, isCard && Boolean(pet), 'card');
 
   if (!pet) return null;
-  const meta = [getPetSeName(pet), formatAge(pet.petBrdt)]
-    .filter(Boolean)
-    .join(' · ');
-
   if (!isCard) {
     return (
       <div
@@ -307,7 +340,11 @@ export function PetBadge({ pet, variant }) {
         <div className="min-w-0 flex-1">
           <p className="truncate text-badge text-subtle">이 기록의 아이</p>
           <p className="truncate font-bold text-ink">{pet.petNm}</p>
-          <p className="truncate text-sm text-muted">{meta}</p>
+          {getPetMetaLines(pet).map((line) => (
+            <p key={line} className="truncate text-sm text-muted">
+              {line}
+            </p>
+          ))}
         </div>
       </div>
     </div>

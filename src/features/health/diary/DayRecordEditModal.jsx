@@ -35,7 +35,7 @@ import { formatAmount, summarizeType } from './recordUtils';
 /** 묶음 머리에 합계를 붙이지 않는 종류 */
 const COUNT_ONLY_TYPES = [WEIGHT, STOOL];
 
-/** 기록 1건의 입력값: 시각(HH:mm)과 값(배변상태는 코드, 그 외는 숫자 문자열) */
+/** 기록 1건의 입력값: 시각(HH:mm)과 값(배변 상태는 코드, 그 외는 숫자 문자열) */
 const toDraft = (record) => ({
   rcdTm: getHmOf(record.rcdDt),
   value:
@@ -50,7 +50,7 @@ const omitKey = (map, key) =>
     Object.entries(map).filter(([entryKey]) => entryKey !== String(key)),
   );
 
-/** 마지막 글자 받침에 따라 은/는을 붙인다(식사량은, 배변상태는) */
+/** 마지막 글자 받침에 따라 은/는을 붙인다(식사량은, 배변 상태는) */
 const withTopicParticle = (text) => {
   const code = text.charCodeAt(text.length - 1) - 0xac00;
   const hasBatchim = code >= 0 && code <= 11171 && code % 28 !== 0;
@@ -59,7 +59,7 @@ const withTopicParticle = (text) => {
 
 const isSameDraft = (a, b) => a.rcdTm === b.rcdTm && a.value === b.value;
 
-/** 저장 전 검사: 시각 필수·오늘이면 지금 이후 시각 안 됨(지난 날짜는 제한 없음), 배변상태 외에는 0보다 큰 값·소수 둘째 자리까지, 체중·산책·음수량·식사량은 상한 이하 */
+/** 저장 전 검사: 시각 필수·오늘이면 지금 이후 시각 안 됨(지난 날짜는 제한 없음), 배변 상태 외에는 0보다 큰 값·소수 둘째 자리까지, 체중·산책·음수량·식사량은 상한 이하 */
 const validateDraft = (ymd, typeCd, draft, petBdwg) => {
   if (draft.rcdTm === '') return '시각을 입력해주세요';
   if (isAfterNow(ymd, draft.rcdTm)) return FUTURE_TIME_MESSAGE;
@@ -87,7 +87,7 @@ const sortRecords = (records) =>
  * [하루 기록 수정 모달] (※신규 정책)
  * - 오늘의 기록 카드 [오늘 기록 수정하기]와 최근 건강기록 날짜 행이 같이 연다. 상세 표 모달(FN-HLT-002-13)을 대신한다
  * - 같은 종류는 한 묶음(머리 1줄 + 기록 줄) (※신규 정책)
- *   머리: 종류 · "N회 · 합계 ○○"(체중·배변상태는 "N회"). 합계는 입력 중인 값이 아니라 저장된 기록 기준
+ *   머리: 종류 · "N회 · 합계 ○○"(체중·배변 상태는 "N회"). 합계는 입력 중인 값이 아니라 저장된 기록 기준
  *   기록 줄: 시각 | 값·단위 | [삭제], 시각 오름차순. 묶음 사이에만 구분선
  * - [저장]은 바뀐 줄만 PUT. 일부만 실패하면 모달을 열어 두고 실패한 줄 아래 오류,
  *   성공한 줄은 저장된 값을 기준으로 삼아 다시 [저장]하면 실패한 줄만 보낸다

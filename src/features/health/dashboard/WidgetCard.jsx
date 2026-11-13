@@ -92,11 +92,12 @@ function Delta({ label, delta, unit }) {
 
 function BigValue({ value, unit }) {
   return (
-    <p className="flex items-baseline gap-1">
+    <p className="flex max-w-full min-w-0 items-baseline gap-1">
       <b
         className={`leading-none font-bold tracking-[-0.02em] text-ink ${
-          typeof value === 'number' ? 'text-[34px]' : 'text-[22px]'
+          typeof value === 'number' ? 'text-[34px]' : 'truncate text-[22px]'
         }`}
+        title={typeof value === 'string' ? value : undefined}
       >
         {value}
       </b>
@@ -208,7 +209,7 @@ const dailySumBody =
     const sums = values.filter((value) => value != null);
     return {
       tile: {
-        value: todaySum == null ? '오늘 기록 없음' : `${todaySum}${unit}`,
+        value: todaySum == null ? '기록이 없어요' : `${todaySum}${unit}`,
         chip: deltaChip(toNumber(indicator.prevDiff), unit),
         sub:
           sums.length > 0
@@ -219,7 +220,7 @@ const dailySumBody =
       body: (
         <>
           <ValueRow
-            value={todaySum ?? '오늘 기록 없음'}
+            value={todaySum ?? '오늘 기록이 없어요'}
             unit={todaySum == null ? null : `${unit} / 오늘 합계`}
           >
             <Delta
@@ -420,7 +421,7 @@ const stoolBody = ({ stools }) => {
   const latestTime = `${latestYmd === getTodayYmd() ? '오늘' : formatMonthDayDot(latestYmd)} ${getHmOf(latest.rcdDt)}`;
   return {
     tile: { value: latestName, sub: latestTime },
-    period: `최근 ${stools.length}개 기록`,
+    period: `최근 ${stools.length}건`,
     body: (
       <>
         <BigValue value={latestName} unit={latestTime} />
@@ -482,7 +483,7 @@ const prescriptionBody = ({ summary }) => {
     (a, b) => Number(b.prscSttsCd === DOSING) - Number(a.prscSttsCd === DOSING),
   );
   if (prescriptions.length === 0) return null;
-  /** [더보기]: 맨 위 처방의 검진상세 처방약 탭. 검진기록 번호가 없으면 item.moveTo(건강 일지 검진기록 탭) */
+  /** [더보기]: 맨 위 처방의 검진상세 처방·투약 탭. 검진기록 번호가 없으면 item.moveTo(건강 일지 검진기록 탭) */
   const top = prescriptions[0];
   return {
     tile: { value: top.mdcnNm, sub: `복용 중 ${summary.dosingCount}건` },
@@ -578,13 +579,13 @@ const observationBody = ({ summary, petSn }) => {
         : `${days}일 동안 변화 없음`;
   return {
     tile: {
-      value: `관찰중 ${summary.observations.length}건`,
+      value: `관찰 중 ${summary.observations.length}건`,
       chip: observationChip(hasCompare, sizeDiff, last.obsrvChgCdNm),
       sub: hasCompare
         ? `${item.obsrvArtclNm} · ${days}일 동안`
         : item.obsrvArtclNm,
     },
-    period: `관찰중 ${summary.observations.length}건`,
+    period: `관찰 중 ${summary.observations.length}건`,
     body: (
       <>
         <p className="font-semibold text-ink">
@@ -655,7 +656,7 @@ const preventionBody = ({ summary }) => {
   const tileYmd = latestVaccination?.ckupYmd ?? nextVaccinationYmd;
   return {
     tile: {
-      value: tileYmd ? formatDate(tileYmd) : '접종 기록 없음',
+      value: tileYmd ? formatDate(tileYmd) : '접종 기록이 없어요',
       sub: nextVaccinationYmd
         ? `다음 접종 ${formatMonthDayDot(nextVaccinationYmd)} 예정`
         : '예정 없음',
@@ -700,7 +701,7 @@ const careBody = ({ care }) => {
     (item) => item.careZoneCd === CARE_ZONE.DAILY,
   );
   if (dailyItems.length === 0) return null;
-  /** 케어 캘린더 토탈 케어리스트와 같은 오늘 완료 기준 */
+  /** 케어 캘린더 케어리스트와 같은 오늘 완료 기준 */
   const isDoneToday = (item) =>
     item.prscSn != null
       ? item.todayCmptnCnt >= item.dayMdcnNmtm

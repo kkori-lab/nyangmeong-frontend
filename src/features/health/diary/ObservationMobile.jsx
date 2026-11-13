@@ -157,7 +157,7 @@ export function ObservationMobileDetail({
           {item.obsrvArtclNm}
         </h3>
         <Badge tone={isEnded ? 'gray' : 'ok'}>
-          {isEnded ? '종료' : '관찰중'}
+          {isEnded ? '종료' : '관찰 중'}
         </Badge>
       </div>
 

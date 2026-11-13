@@ -126,7 +126,7 @@ function HealthDiaryContent({ mbrSn }) {
   /** 오늘 기록하기 입력 영역: null이면 닫힘, token으로 같은 영역을 다른 종류로 다시 엶 */
   const [recordForm, setRecordForm] = useState(null);
   /**
-   * 영수증으로 검진기록 등록 흐름: null이면 닫힘
+   * 영수증으로 검진기록 추가 흐름: null이면 닫힘
    * { step: 'upload' } 업로드(LJS) → { step: 'result', result } 인식 결과 확인
    * 인식 실패 뒤 직접 입력은 { step: 'manual', recptSn }
    * features/health는 features/ai를 import 할 수 없어 두 도메인을 이 페이지가 연결

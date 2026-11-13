@@ -66,7 +66,7 @@ export const deleteDailyRecord = ({ petSn, dailyHlthRcdSn }) =>
 /** 관찰일 'YYYY-MM-DD'를 서버 일시로: 시각은 쓰지 않아 0시 */
 const toObservationDt = (ymd) => `${ymd}T00:00:00`;
 
-/** 관찰 항목 목록(관찰중 먼저). 항목마다 첫·마지막 회차 요약과 직전 대비 크기 차이를 준다 */
+/** 관찰 항목 목록(관찰 중 먼저). 항목마다 첫·마지막 회차 요약과 직전 대비 크기 차이를 준다 */
 export const getObservationItems = ({ petSn, obsrvSttsCd }) =>
   api.get(`/pets/${petSn}/observation-items`, { params: { obsrvSttsCd } });
 

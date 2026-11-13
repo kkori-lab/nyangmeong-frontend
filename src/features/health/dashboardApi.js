@@ -3,7 +3,7 @@ import { toShownWidgetIds, toWidgetBody } from './dashboard/widgetItems';
 import { STOOL } from './diaryTypes';
 
 /**
- * [건강기록 대시보드 API]
+ * [건강 대시보드 API]
  * - 지표: GET /pets/{petSn}/health-indicators (JAJ 백엔드, 메인 위젯과 같은 API를 features/health에 따로 둠)
  * - 고른 항목: GET·PUT /members/me/dashboard-widgets (JAJ 백엔드, 건강기록 전용 13개)
  */

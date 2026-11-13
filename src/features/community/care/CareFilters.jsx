@@ -57,7 +57,6 @@ export default function CareFilters({ filters, onChange, onReset }) {
       <FilterField label="돌봄 지역" className={foldClass}>
         <div className="flex min-w-0 items-center gap-2">
           <Select
-            size="xs"
             label="시·군·구"
             value={region}
             options={regionOptions}
@@ -70,7 +69,6 @@ export default function CareFilters({ filters, onChange, onReset }) {
             className="m-0 min-w-0 flex-1 border-0 p-0 disabled:opacity-45"
           >
             <Select
-              size="xs"
               label="읍·면·동"
               value={dong}
               options={dongOptions}
@@ -82,7 +80,6 @@ export default function CareFilters({ filters, onChange, onReset }) {
       <FilterField label="돌봄 날짜" className={foldClass}>
         <div className="flex min-w-0 items-center gap-2">
           <DatePicker
-            size="xs"
             label="시작 날짜"
             placeholder="돌봄 날짜"
             value={from}
@@ -94,7 +91,6 @@ export default function CareFilters({ filters, onChange, onReset }) {
             ~
           </span>
           <DatePicker
-            size="xs"
             label="종료 날짜"
             placeholder="돌봄 날짜"
             value={to}

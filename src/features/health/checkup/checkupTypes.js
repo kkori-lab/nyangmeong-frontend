@@ -8,7 +8,7 @@
 export const DETAIL_TABS = [
   { key: 'result', nm: '검사 결과' },
   { key: 'attachments', nm: '첨부 자료' },
-  { key: 'prescription', nm: '처방약' },
+  { key: 'prescription', nm: '처방·투약' },
   { key: 'prevention', nm: '반복 예방' },
 ];
 
@@ -73,7 +73,7 @@ export const DOSE_ENDED = 'HLTC0011';
 export const FILE_EXT_PDF = 'FILC0005';
 
 export const DOSE_STATUSES = [
-  { cd: DOSING, nm: '복용중' },
+  { cd: DOSING, nm: '복용 중' },
   { cd: DOSE_ENDED, nm: '종료' },
 ];
 

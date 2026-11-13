@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, SquarePen, Trash2, X } from 'lucide-react';
+import { PanelLeftOpen, SquarePen, Trash2, X } from 'lucide-react';
 import DeleteConversationModal from './DeleteConversationModal';
 
 /** 일시 표기 변환 */
@@ -46,7 +46,7 @@ export function DrawerButton({ onClick }) {
       className={mobileIconButton}
       onClick={onClick}
     >
-      <Menu size={20} aria-hidden="true" />
+      <PanelLeftOpen size={20} aria-hidden="true" />
     </button>
   );
 }

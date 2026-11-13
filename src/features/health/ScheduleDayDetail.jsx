@@ -42,12 +42,12 @@ export default function ScheduleDayDetail({
         // 좁은 화면에서는 제목·부제가 잘리지 않게 ＋ 아이콘만 남긴다
         <button
           type="button"
-          aria-label="새 일정 등록"
+          aria-label="새 일정 추가"
           className="inline-flex h-8 shrink-0 items-center justify-center rounded-[6px] bg-brand-500 px-3 text-base font-semibold text-white hover:bg-brand-600 max-[760px]:w-8 max-[760px]:px-0"
           onClick={onCreate}
         >
           <Icon name="add" className="text-xl min-[761px]:hidden" />
-          <span className="max-[760px]:hidden">새 일정 등록</span>
+          <span className="max-[760px]:hidden">새 일정 추가</span>
         </button>
       }
     >
@@ -57,7 +57,7 @@ export default function ScheduleDayDetail({
             <span className="grid size-10 place-items-center rounded-full bg-[#f4f6f6] text-[#667374]">
               <Icon name="calendar_month" />
             </span>
-            <p className="text-sm text-[#566465]">등록된 일정이 없습니다</p>
+            <p className="text-sm text-[#566465]">등록된 일정이 없어요</p>
           </div>
         </div>
       ) : (
@@ -100,7 +100,7 @@ export default function ScheduleDayDetail({
                         >
                           {schedule.ckupRcdCnt > 0
                             ? '검진기록 있음'
-                            : '검진기록 없음'}
+                            : '검진기록이 없어요'}
                         </Badge>
                       </>
                     )}

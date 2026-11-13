@@ -31,7 +31,7 @@ import { pickJosa } from '@/utils/josa';
 /** 공용 페이지 머리·사이드 메뉴 설정 */
 const LAYOUT_PROPS = {
   section: 'health',
-  description: '모든 반려동물의 일정을 한눈에 확인하는 통합 캘린더',
+  description: '모든 반려동물의 일정을 한눈에 확인하는 캘린더',
   contentClassName: 'gap-7 min-[1101px]:pt-6',
 };
 
@@ -274,7 +274,7 @@ function CareCalendarContent() {
 /**
  * 로딩 자리: 탭 막대(48px) + 처음 열릴 탭의 모양. 높이는 불러온 뒤 실측값
  * - 캘린더: 달력(5줄 달, 640px 미만은 점 표시 달력) + 날짜 상세·다가오는 일정. 1101px 이상은 오른쪽 두 장의 합이 달력과 같음
- * - 케어리스트: 토탈 케어리스트 카드 한 장(CareList 로딩 자리와 같은 높이)
+ * - 케어리스트: 케어리스트 카드 한 장(CareList 로딩 자리와 같은 높이)
  */
 function CalendarSkeleton({ sectionId }) {
   return (

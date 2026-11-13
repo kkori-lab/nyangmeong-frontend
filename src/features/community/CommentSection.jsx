@@ -372,7 +372,7 @@ export default function CommentSection({
       {reportTarget && (
         <ReportModal
           title="댓글 신고하기"
-          targetLabel={`대상: 댓글 · "${reportTarget.mbrNcnm}" · "${preview(reportTarget)}"`}
+          targetLabel={`"${reportTarget.mbrNcnm}" · "${preview(reportTarget)}"`}
           isPending={report.isPending}
           errorMessage={report.isError && report.error.message}
           onSubmit={(values) =>

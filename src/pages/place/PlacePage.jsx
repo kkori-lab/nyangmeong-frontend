@@ -68,6 +68,7 @@ export default function PlacePage() {
         isCollapsed={isCollapsed}
         sheet={sheet}
         onSearch={place.submitSearch}
+        onType={place.typeSearch}
         onSortChange={place.setSort}
         onToggleFavorite={place.toggleFavorite}
       />
@@ -93,7 +94,9 @@ export default function PlacePage() {
           <PlaceSearchForm
             id="place-mq"
             q={search.q}
+            category={search.category}
             onSearch={place.submitSearch}
+            onType={place.typeSearch}
             className="pointer-events-auto shadow-depth-md"
           />
           <div

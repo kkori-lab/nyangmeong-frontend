@@ -320,6 +320,7 @@ function AiChatModalPanel({ backdropRef }) {
         key={openKey}
         initialMessage={firstMessage}
         loadAttachment={loadAttachment}
+        openRecent={origin?.from === 'fab' && !firstMessage && !file}
         onOpenMain={handleOpenMain}
         onOpenCareChat={handleOpenCareChat}
         onBack={close}

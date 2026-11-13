@@ -36,13 +36,22 @@ export const formatScheduleShort = (post) => {
   return `${formatMonthDayDot(from)} ~ ${formatMonthDayDot(to)} · ${hm(post.prtcBgngDt)}`;
 };
 
+/** 「2026년 11월 09일」 */
+const formatKoreanDate = (ymd) =>
+  formatDate(ymd, { separator: '-' }).replace(
+    /^(\d+)-(\d+)-(\d+)$/,
+    '$1년 $2월 $3일',
+  );
+
 /** 상세 일정 두 줄: 날짜 범위와 시간 범위 */
 export const formatScheduleDetail = (post) => {
   if (!post.prtcBgngDt) return { date: '채팅으로 협의해요', time: '' };
   const from = post.prtcBgngDt.slice(0, 10);
   const to = post.prtcEndDt.slice(0, 10);
   const date =
-    from === to ? formatDate(from) : `${formatDate(from)} ~ ${formatDate(to)}`;
+    from === to
+      ? formatKoreanDate(from)
+      : `${formatKoreanDate(from)} ~ ${formatKoreanDate(to)}`;
   const time = `${hm(post.prtcBgngDt)} ~ ${hm(post.prtcEndDt)}`;
   return {
     date,

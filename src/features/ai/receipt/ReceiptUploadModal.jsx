@@ -18,8 +18,7 @@ const HELP = 'jpg · jpeg · png · webp · 1건 10MB 이하';
 
 const formatSize = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 
-const getPetLabel = (pet) =>
-  pet.vrtyNm ? `${pet.petNm} (${pet.vrtyNm})` : pet.petNm;
+const getPetLabel = (pet) => pet.petNm;
 
 /** 고른 이미지: 큰 미리보기(모달 폭, 최대 높이 240px) 아래에 파일 이름·크기 */
 function PickedFile({ picked }) {
@@ -201,7 +200,7 @@ export default function ReceiptUploadModal({
   if (isAnalyzing) {
     return (
       <Modal
-        title="영수증으로 등록하기"
+        title="영수증으로 추가하기"
         isPending
         onClose={onClose}
         footer={
@@ -233,7 +232,7 @@ export default function ReceiptUploadModal({
 
   return (
     <Modal
-      title="영수증으로 등록하기"
+      title="영수증으로 추가하기"
       onClose={onClose}
       footer={
         <div className="flex flex-col gap-3">

@@ -37,7 +37,7 @@ const OPTIONAL = (
 );
 
 const getModalTitle = (mode, item, cycles, cycle) => {
-  if (mode === 'A') return '관찰 항목 등록';
+  if (mode === 'A') return '관찰 항목 추가';
   if (mode === 'B')
     return `${item.obsrvArtclNm} · ${cycles.length + 1}회차 추가`;
   return `${item.obsrvArtclNm} · ${cycle.cyclNo}회차 수정`;
