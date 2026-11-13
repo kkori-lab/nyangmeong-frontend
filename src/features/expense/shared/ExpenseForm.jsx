@@ -5,6 +5,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import Select from '@/components/Select';
 import ExpenseCategoryChips from './ExpenseCategoryChips';
+import { MissingNotice, Required } from './ExpenseRequired';
 import { FILTER_SHARED, HOSPITAL_CLSF_CD } from './expenseCodes';
 import { PLACE_MAX_LENGTH, getPlace } from './expenseFormat';
 import {
@@ -60,6 +61,13 @@ export default function ExpenseForm({
     petValue !== '' &&
     expndClsfCd !== null &&
     Number(digits) >= 1;
+  /** [저장]이 막힌 이유: 빠진 항목을 화면 순서대로 */
+  const missing = [
+    ymd === '' && '날짜',
+    petValue === '' && '반려동물',
+    expndClsfCd === null && '카테고리',
+    Number(digits) < 1 && '금액(1원 이상)',
+  ].filter(Boolean);
 
   /** 병원 카테고리 공용 선택 비우기·안내 */
   const handleChangeClsf = (code) => {
@@ -123,6 +131,7 @@ export default function ExpenseForm({
           <div>
             <label htmlFor="expense-ymd" className={LABEL}>
               날짜
+              <Required />
             </label>
             <DatePicker
               id="expense-ymd"
@@ -133,9 +142,12 @@ export default function ExpenseForm({
             />
           </div>
           <div>
-            <span className={LABEL}>반려동물</span>
+            <span className={LABEL}>
+              반려동물
+              <Required />
+            </span>
             <Select
-              label="반려동물"
+              label="반려동물 (필수)"
               value={petValue}
               onChange={handleChangePet}
               options={petOptions}
@@ -149,9 +161,13 @@ export default function ExpenseForm({
           </p>
         )}
         <div>
-          <span className={LABEL}>카테고리</span>
+          <span className={LABEL}>
+            카테고리
+            <Required />
+          </span>
           <div className="mt-2">
             <ExpenseCategoryChips
+              isRequired
               value={expndClsfCd}
               onChange={handleChangeClsf}
             />
@@ -160,8 +176,10 @@ export default function ExpenseForm({
         <div>
           <label htmlFor="expense-amt" className={LABEL}>
             금액
+            <Required />
           </label>
           <AmountInput
+            isRequired
             id="expense-amt"
             value={digits}
             onChange={setDigits}
@@ -193,6 +211,12 @@ export default function ExpenseForm({
             className={`${INPUT} mt-2`}
           />
         </div>
+        {!canSave && (
+          <MissingNotice
+            missing={missing}
+            isFutureYmd={ymd !== '' && ymd > maxYmd}
+          />
+        )}
       </form>
     </Modal>
   );

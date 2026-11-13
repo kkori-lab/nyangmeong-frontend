@@ -148,11 +148,11 @@ export default function ExpenseAddModal({ expndYmd, pets, onSaved, onClose }) {
           }
         >
           <p className="mb-4 text-muted">{formatFullDayHeader(expndYmd)}</p>
-          <div className="flex flex-col gap-2">
+          <div className="grid auto-rows-fr gap-2">
             <ChooseOption
               icon={<PencilLine className="size-6" aria-hidden="true" />}
               title="직접 입력하기"
-              description="인터넷 결제 등 영수증이 없는 지출"
+              description="영수증이 없는 지출"
               onClick={() => setStep(STEP.DIRECT)}
             />
             <ChooseOption

@@ -5,6 +5,7 @@ import AmountInput from '@/components/AmountInput';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import Select from '@/components/Select';
+import { MissingNotice, Required } from '../shared/ExpenseRequired';
 import ExpenseCategoryChips from '../shared/ExpenseCategoryChips';
 import { FILTER_SHARED, HOSPITAL_CLSF_CD } from '../shared/expenseCodes';
 import {
@@ -64,6 +65,13 @@ export default function ExpenseReceiptReview({
     ymd <= maxYmd &&
     expndClsfCd !== null &&
     rows.every((row) => row.petValue !== '' && Number(row.digits) >= 1);
+  /** [저장]이 막힌 이유: 빠진 항목을 화면 순서대로 */
+  const missing = [
+    ymd === '' && '날짜',
+    expndClsfCd === null && '카테고리',
+    rows.some((row) => row.petValue === '') && '반려동물',
+    rows.some((row) => Number(row.digits) < 1) && '금액(1원 이상)',
+  ].filter(Boolean);
   const canAddRow = rows.length < activePets.length;
 
   const updateRow = (key, patch) =>
@@ -170,6 +178,7 @@ export default function ExpenseReceiptReview({
             <div>
               <label htmlFor="receipt-ymd" className={LABEL}>
                 날짜
+                <Required />
               </label>
               <DatePicker
                 id="receipt-ymd"
@@ -180,9 +189,13 @@ export default function ExpenseReceiptReview({
               />
             </div>
             <div>
-              <span className={LABEL}>카테고리</span>
+              <span className={LABEL}>
+                카테고리
+                <Required />
+              </span>
               <div className="mt-2">
                 <ExpenseCategoryChips
+                  isRequired
                   value={expndClsfCd}
                   onChange={handleChangeClsf}
                 />
@@ -213,7 +226,10 @@ export default function ExpenseReceiptReview({
               />
             </div>
             <div>
-              <span className={LABEL}>반려동물별 금액</span>
+              <span className={LABEL}>
+                반려동물별 금액
+                <Required />
+              </span>
               <div className="mt-2 flex flex-col gap-2">
                 {rows.map((row, index) => (
                   <div
@@ -221,7 +237,7 @@ export default function ExpenseReceiptReview({
                     className="grid grid-cols-[minmax(0,1fr)_minmax(0,140px)_auto] items-center gap-2"
                   >
                     <Select
-                      label={`반려동물 ${index + 1}`}
+                      label={`반려동물 ${index + 1} (필수)`}
                       value={row.petValue}
                       onChange={(value) => handleChangePet(row.key, value)}
                       options={getPetOptions({
@@ -234,7 +250,8 @@ export default function ExpenseReceiptReview({
                       })}
                     />
                     <AmountInput
-                      label={`금액 ${index + 1}`}
+                      isRequired
+                      label={`금액 ${index + 1} (필수)`}
                       value={row.digits}
                       onChange={(digits) => updateRow(row.key, { digits })}
                     />
@@ -292,6 +309,12 @@ export default function ExpenseReceiptReview({
               AI가 자동으로 인식한 결과라 실수가 있을 수 있어요. 저장 전에 꼭
               확인해 주세요
             </p>
+            {!canSave && (
+              <MissingNotice
+                missing={missing}
+                isFutureYmd={ymd !== '' && ymd > maxYmd}
+              />
+            )}
           </form>
         </div>
       </Modal>
