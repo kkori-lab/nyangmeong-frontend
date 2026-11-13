@@ -16,7 +16,7 @@ export const MAX_DRUG_NAME_LENGTH = 40;
 export const SKIP = 'SKIP';
 
 export const DRUG_STATUSES = [
-  { cd: 'ING', nm: '복용중' },
+  { cd: 'ING', nm: '복용 중' },
   { cd: 'END', nm: '종료' },
 ];
 

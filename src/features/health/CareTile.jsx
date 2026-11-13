@@ -51,7 +51,7 @@ export default function CareTile({
         }`}
         onClick={() => onCheck(item)}
       >
-        {/* 아이콘 / 첫 줄 이름(넘치면 말줄임), 둘째 줄 회색 처방약 연동 뱃지 + 주기(640px 미만은 예정일까지) */}
+        {/* 아이콘 / 첫 줄 이름(넘치면 말줄임), 둘째 줄 회색 케어리스트 연동 뱃지 + 주기(640px 미만은 예정일까지) */}
         <span
           className={`grid min-w-0 grid-cols-[--spacing(8)_minmax(0,1fr)] items-center gap-x-3 ${
             isRegular ? 'max-sm:col-start-1 max-sm:row-start-1' : 'flex-1'
@@ -74,7 +74,9 @@ export default function CareTile({
             {(isLinked || isRegular) && (
               <span className="flex min-w-0 items-center gap-2 text-sm text-muted tabular-nums">
                 {isLinked && (
-                  <Badge tone={isDone ? 'white' : 'gray'}>처방약 연동</Badge>
+                  <Badge tone={isDone ? 'white' : 'gray'}>
+                    케어리스트 연동
+                  </Badge>
                 )}
                 {isRegular && (
                   <span className="truncate">

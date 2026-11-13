@@ -9,7 +9,7 @@ import { ADD_ROW, ROW_LINE, TEXT_BTN, TEXT_BTN_DEL } from './checkupStyles';
 /**
  * [기타검사 목록]
  * - 검사명·결과(텍스트)·메모, 메모가 없으면 줄 생략. 참고범위·추이 이동 없음 (FN-HLT-005-02)
- * - 행 [수정] → 기타검사 입력 모달(값 채움), [삭제] → 확인 후 삭제, [＋ 기타검사 입력]은 목록 아래 상시
+ * - 행 [수정] → 기타검사 추가 모달(값 채움), [삭제] → 확인 후 삭제, [＋ 기타검사 추가]는 목록 아래 상시
  */
 export default function EtcResultList({ petSn, ckupRcdSn, etcInspections }) {
   /** 입력 모달: null이면 닫힘, { etcInspection }이 null이면 새로 입력 */
@@ -25,7 +25,9 @@ export default function EtcResultList({ petSn, ckupRcdSn, etcInspections }) {
 
   return (
     <div>
-      {etcInspections.length === 0 && <p className="text-muted">결과 없음</p>}
+      {etcInspections.length === 0 && (
+        <p className="text-muted">결과가 없어요</p>
+      )}
       <ul>
         {etcInspections.map((etc) => (
           <li
@@ -66,7 +68,7 @@ export default function EtcResultList({ petSn, ckupRcdSn, etcInspections }) {
         onClick={() => setModal({ etcInspection: null })}
       >
         <Icon name="add" className="text-lg" />
-        기타검사 입력
+        기타검사 추가
       </button>
 
       {modal && (

@@ -10,16 +10,16 @@ import { ADD_ROW, ROW_LINE } from './checkupStyles';
 import { DOSING } from './checkupTypes';
 
 /**
- * [처방약 탭]
+ * [처방·투약 탭]
  * - 목록 행: 약품명(밑줄)·복용 기간·1일 복용 횟수·주기 체크·상태 뱃지, 약품명을 누르면 값이 채워진 수정 영역 (FN-HLT-005-03)
- * - 처방약이 0건이면 빈 상태 안내 + [＋ 처방약 추가]
+ * - 처방약이 0건이면 빈 상태 안내 + [＋ 처방·투약 추가]
  */
 export default function PrescriptionTab({ petSn, ckupRcdSn, prescriptions }) {
   /** 입력 영역: null이면 닫힘, prescription이 null이면 새로 입력. token으로 같은 영역을 다른 행으로 다시 엶 */
   const [form, setForm] = useState(null);
 
   return (
-    <Card title="처방약" sub="선택 입력">
+    <Card title="처방·투약" sub="선택">
       {prescriptions.length === 0 ? (
         <EmptyBox icon="medication" title="이 검진에서 받은 처방약이 없어요" />
       ) : (
@@ -43,12 +43,12 @@ export default function PrescriptionTab({ petSn, ckupRcdSn, prescriptions }) {
                 <span className="block text-subtle tabular-nums">
                   {formatDate(prescription.mdcnBgngYmd)} ~{' '}
                   {formatDate(prescription.mdcnEndYmd)} · 1일{' '}
-                  {prescription.dayMdcnNmtm}회 · 주기 체크{' '}
-                  {prescription.careRfltYn ? 'ON' : 'OFF'}
+                  {prescription.dayMdcnNmtm}회 ·{' '}
+                  {prescription.careRfltYn ? '주기 체크' : '주기 체크 안 함'}
                 </span>
               </span>
               <Badge tone={prescription.prscSttsCd === DOSING ? 'ok' : 'gray'}>
-                {prescription.prscSttsCd === DOSING ? '복용중' : '종료'}
+                {prescription.prscSttsCd === DOSING ? '복용 중' : '종료'}
               </Badge>
             </li>
           ))}
@@ -62,7 +62,7 @@ export default function PrescriptionTab({ petSn, ckupRcdSn, prescriptions }) {
           onClick={() => setForm({ prescription: null, token: Date.now() })}
         >
           <Icon name="add" className="text-lg" />
-          처방약 추가
+          처방·투약 추가
         </button>
       )}
       {form && (

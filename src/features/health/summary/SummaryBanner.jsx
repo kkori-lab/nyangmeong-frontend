@@ -151,7 +151,8 @@ function CharacterSlot() {
  * - 값·단위만 청록, 항목명·아이콘·설명은 회색
  */
 function Stat({ icon, label, value, unit, sub, mobileSub }) {
-  const mobileText = mobileSub ?? sub ?? '등록된 기록 없음';
+  const mobileText = mobileSub ?? sub ?? '기록이 없어요';
+  const pcText = sub ?? '기록이 없어요';
 
   return (
     <div className="flex min-w-0 flex-col gap-0.5 rounded-box bg-white p-2.5 sm:gap-2 sm:rounded-none sm:bg-transparent sm:px-5 sm:py-0 sm:first:pl-0 sm:last:pr-0">
@@ -174,11 +175,11 @@ function Stat({ icon, label, value, unit, sub, mobileSub }) {
             글자 한 줄 설명은 꺾지 않고 넘치면 말줄임 */}
         <span
           className={`min-h-[2lh] text-sm text-subtle max-sm:hidden ${
-            typeof sub === 'string' ? 'truncate' : ''
+            typeof pcText === 'string' ? 'truncate' : ''
           }`}
-          title={typeof sub === 'string' ? sub : undefined}
+          title={typeof pcText === 'string' ? pcText : undefined}
         >
-          {sub ?? '등록된 기록 없음'}
+          {pcText}
         </span>
         <span
           className="truncate text-badge text-subtle sm:hidden"

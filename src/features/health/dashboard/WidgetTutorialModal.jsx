@@ -226,7 +226,7 @@ export default function WidgetTutorialModal({
         <div className="flex flex-col items-center gap-4 py-2 text-center">
           <Icon name="task_alt" className="text-[44px] text-brand-500" />
           <p className="text-muted">
-            고른 기록만 건강기록 대시보드에 카드로 보여요
+            고른 기록만 건강 대시보드에 카드로 보여요
           </p>
           <ul className="flex flex-wrap justify-center gap-2">
             <DoneChip icon="auto_awesome" name="AI 건강분석 리포트" />

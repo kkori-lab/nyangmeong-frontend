@@ -3,7 +3,7 @@ import { MEAL, STOOL, WALK, WATER, WEIGHT } from '../diaryTypes';
 import { DIARY_EXAM_PATH, DIARY_OBS_PATH } from '../summary/summaryUtils';
 
 /**
- * [건강기록 대시보드 기록 항목] (※신규 정책, 흐름도 D1~D11)
+ * [건강 대시보드 기록 항목] (※신규 정책, 흐름도 D1~D11)
  * - 4묶음 13개(첨부 자료 추가-2 포함). AI 건강분석 리포트는 항상 표시라 고르는 대상이 아님(D9)
  * - 화면 안에서는 id(weight…care)를 쓰고, 서버와 주고받을 때만 공통코드 dshbdWdgtCd(HLTC0084~0096)로 바꿈
  * - 이름·설명·빈 상태 문구·링크는 프로토타입 원문
@@ -100,7 +100,7 @@ export const WIDGET_GROUPS = [
         icon: 'medication',
         desc: '처방받은 약과 투약 일정을 남겨요',
         emptyText: '검진상세에서 처방약을 등록하면 여기에 모여요',
-        /** 처방이 있으면 카드 본문이 가장 위 처방의 검진상세 처방약 탭으로 바꿈(WidgetCard) */
+        /** 처방이 있으면 카드 본문이 가장 위 처방의 검진상세 처방·투약 탭으로 바꿈(WidgetCard) */
         moveTo: DIARY_EXAM_PATH,
       },
       /** 첨부 자료 (※신규 정책, 추가-2) */

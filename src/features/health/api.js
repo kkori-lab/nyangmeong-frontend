@@ -4,7 +4,7 @@ import { addDays, diffDays, getYmdOf } from '@/utils/formatDate';
 import { CHRC_STTS, PET_REL, PET_SE } from '@/utils/petCodes';
 import { HOSPITAL, compareSchedules } from './scheduleTypes';
 
-// 케어 캘린더 일정·토탈 케어리스트(JAJ 백엔드)와 반려동물 목록(SJM)은 실제 API
+// 케어 캘린더 일정·케어리스트(JAJ 백엔드)와 반려동물 목록(SJM)은 실제 API
 
 export const getQueryParam = (name) =>
   IS_DEV ? new URLSearchParams(window.location.search).get(name) : null;
@@ -69,7 +69,7 @@ export const findNearHospitalSchedule = async ({ petSn, ckupYmd }) => {
   );
 };
 
-// 토탈 케어리스트(FN-HLT-003-12·13·21~24·38)는 실제 API. 서버가 기본 항목 11개를 처음 조회 때 만든다
+// 케어리스트(FN-HLT-003-12·13·21~24·38)는 실제 API. 서버가 기본 항목 11개를 처음 조회 때 만든다
 
 /** 항목(정기관리 먼저)과 완료 기록(완료일 최신순)을 한 번에. 투약 기록은 하루 횟수를 채운 날만 온다 */
 export const getCareItems = async (petSn) => {

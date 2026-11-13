@@ -19,7 +19,7 @@ const DEFAULT_PERIOD = 3;
 
 const TABLE_COLUMNS = ['날짜', ...RECORD_TYPES.map((type) => type.nm)];
 
-/** 표 칸의 하루 값: 체중·배변상태는 최신 값, 나머지는 합계와 횟수 */
+/** 표 칸의 하루 값: 체중·배변 상태는 최신 값, 나머지는 합계와 횟수 */
 const formatDayCell = (summary, typeCd) => {
   if (summary.count === 0) return '-';
   if (typeCd === WEIGHT || typeCd === STOOL)
@@ -27,7 +27,7 @@ const formatDayCell = (summary, typeCd) => {
   return `${formatAmount(typeCd, summary.sum)} (${summary.count}회)`;
 };
 
-/** 값이 최신 한 건인 종류(체중·배변상태). 나머지는 합계와 횟수 */
+/** 값이 최신 한 건인 종류(체중·배변 상태). 나머지는 합계와 횟수 */
 const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
 
 /** 640px 미만 목록의 한 줄 요약: 기록이 있는 종류만 "체중 3.8kg · 식사량 709g"처럼 연결 (※신규 정책) */
@@ -40,7 +40,7 @@ const formatDaySummary = (dayRecords) => {
       : formatAmount(type.cd, summary.sum);
     return `${type.nm} ${value}`;
   }).filter(Boolean);
-  return parts.length === 0 ? '기록 없음' : parts.join(' · ');
+  return parts.length === 0 ? '기록이 없어요' : parts.join(' · ');
 };
 
 /**
@@ -82,7 +82,7 @@ export default function RecentRecordTable({
         <EmptyBox
           icon="edit_note"
           title={`최근 ${periodDays}일 동안 기록이 없어요`}
-          description="위의 [오늘 기록추가]로 첫 기록을 남겨 보세요"
+          description="위의 [오늘 기록 추가]로 첫 기록을 남겨 보세요"
         />
       ) : !isPc ? (
         <ul className="flex flex-col">

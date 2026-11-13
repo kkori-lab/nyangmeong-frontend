@@ -19,7 +19,7 @@ import {
 // 640px 미만에서 구역마다 처음 보여 주는 칸 수
 const MOBILE_VISIBLE_COUNT = 3;
 
-// 토탈 케어리스트 카드(FN-HLT-003-12·13). 건강기록 공통 반려동물 카드에서 고른 반려동물(petSn) 기준이다. 제목은 「토탈 케어리스트」
+// 케어리스트 카드(FN-HLT-003-12·13). 건강기록 공통 반려동물 카드에서 고른 반려동물(petSn) 기준이다. 제목은 「케어리스트」
 export default function CareList({ petSn }) {
   const { data, isPending, isError, error, refetch } = useCareItems(petSn);
   const [isAdding, setIsAdding] = useState(false);
@@ -168,7 +168,7 @@ export default function CareList({ petSn }) {
   return (
     <>
       <Card
-        title="토탈 케어리스트"
+        title="케어리스트"
         // 760px 이하에서는 완료 개수를 숨기고 [제목] … [＋] 한 줄로 둔다
         sub={
           <span className="max-[760px]:hidden">

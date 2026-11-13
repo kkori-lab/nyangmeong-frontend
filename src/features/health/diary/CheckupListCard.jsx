@@ -25,7 +25,7 @@ const VACCINATION = 'HLTC0002';
 
 /**
  * [검진기록 카드]
- * - 조회 연도 드롭다운·검진 건수 필터 칩 2종·검진기록 리스트·[검진기록 등록] (FN-HLT-002-05·06·14)
+ * - 조회 연도 드롭다운·검진 건수 필터 칩 2종·검진기록 리스트·[검진기록 추가] (FN-HLT-002-05·06·14)
  * - 리스트는 서버 페이지(10건), 칩 건수는 그해 전체·예방접종 건수를 따로 받는다
  * - 병원명을 누르면 검진상세로 이동하고, [삭제]는 확인 후 검진기록만 삭제
  * - 등록 방법 선택에서 영수증을 고르면 이 모달 닫힘, onReceipt로 페이지가 영수증 등록 이어받음
@@ -119,15 +119,15 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
       }}
     />
   );
-  /** 760px 이하는 제목줄이 좁아 지속 관찰처럼 작은 [+ 등록], 761px 이상은 [검진기록 등록] */
+  /** 760px 이하는 제목줄이 좁아 지속 관찰처럼 작은 [+ 추가], 761px 이상은 [검진기록 추가] */
   const registerButton = (
     <button
       type="button"
       className={`${BTN_PRIMARY} h-8! shrink-0 px-3! min-[761px]:h-10! min-[761px]:px-4!`}
       onClick={() => setIsModalOpen(true)}
     >
-      <span className="min-[761px]:hidden">+ 등록</span>
-      <span className="hidden min-[761px]:inline">검진기록 등록</span>
+      <span className="min-[761px]:hidden">+ 추가</span>
+      <span className="hidden min-[761px]:inline">검진기록 추가</span>
     </button>
   );
 
