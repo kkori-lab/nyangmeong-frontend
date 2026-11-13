@@ -35,13 +35,16 @@ export default function CustomerCenterLayout() {
   let title;
   if (isInquiryNew) title = '문의 작성';
   if (isInquiryEdit) title = '문의 수정';
+  /** 공지·1:1 문의 상세와 문의 작성은 본문 박스 위에 ← 목록으로(수정은 없음) */
+  const isNoticeDetail = useMatch(PATHS.NOTICE_DETAIL);
+  const isInquiryDetail = useMatch(PATHS.INQUIRY_DETAIL) && !isInquiryNew;
 
   return (
     <SubPageLayout
       section="support"
       menu={menu}
       title={title}
-      back={false}
+      back={Boolean(isInquiryNew || isNoticeDetail || isInquiryDetail)}
       description={DESCRIPTIONS[menu]}
       onLeave={onLeave}
       contentClassName="min-[1101px]:pt-4"

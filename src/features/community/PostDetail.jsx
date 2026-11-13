@@ -1,7 +1,8 @@
-import { ChevronLeft, ChevronRight, Flag } from 'lucide-react';
+import { Flag } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
+import { TEXT_ACTION, TEXT_ACTION_DANGER } from '@/components/buttonStyles';
 import ConfirmModal from '@/components/ConfirmModal';
 import ImageViewer from '@/components/ImageViewer';
 import LikeButton from '@/components/LikeButton';
@@ -64,20 +65,20 @@ export default function PostDetail({ post }) {
               <span>조회 {post.inqCnt}</span>
             </p>
             {post.owner && (
-              <p className="flex items-center gap-2 text-sm font-medium text-[#566465]">
+              <p className="flex items-center gap-2">
                 <Link
                   to={generatePath(PATHS.COMMUNITY_POST_EDIT, {
                     pstSn: post.pstSn,
                   })}
-                  className="hover:text-[#1a3234]"
+                  className={TEXT_ACTION}
                 >
                   수정
                 </Link>
-                <i className="text-[#d3dae2] not-italic">·</i>
+                <i className="text-input-line not-italic">·</i>
                 <button
                   type="button"
                   onClick={() => setIsDeleting(true)}
-                  className="cursor-pointer hover:text-[#1a3234]"
+                  className={`${TEXT_ACTION_DANGER} cursor-pointer`}
                 >
                   삭제
                 </button>
@@ -108,16 +109,7 @@ export default function PostDetail({ post }) {
           </PostBody>
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-[#e2e7e7] pt-4">
-            <Link
-              to={listTo}
-              className="inline-flex min-h-9 items-center gap-2 text-base leading-normal font-medium text-[#566465] transition-colors hover:text-[#1a3234]"
-            >
-              <ChevronLeft size={14} aria-hidden="true" />
-              <span>
-                목록<span className="max-[760px]:hidden">으로</span>
-              </span>
-            </Link>
-            <div className="ml-auto flex items-center gap-2 max-[760px]:gap-1">
+            <div className="flex items-center gap-2 max-[760px]:gap-1">
               <LikeButton
                 isLiked={isLiked}
                 count={post.rcmdtnCnt}
@@ -128,21 +120,20 @@ export default function PostDetail({ post }) {
               />
               <i className="mx-1 h-3.5 w-px bg-[#b9c4c4]" aria-hidden="true" />
               <SharePanel title={post.pstTtl} />
-              <i className="mx-1 h-3.5 w-px bg-[#b9c4c4]" aria-hidden="true" />
-              <button
-                type="button"
-                aria-label="신고"
-                onClick={() => setIsReporting(true)}
-                className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-sm font-medium text-[#667374] hover:text-[#1a3234] max-[760px]:min-w-9 max-[760px]:justify-center"
-              >
-                <Flag
-                  size={20}
-                  aria-hidden="true"
-                  className="min-[761px]:hidden"
-                />
-                <span className="max-[760px]:hidden">신고</span>
-              </button>
             </div>
+            <button
+              type="button"
+              aria-label="신고"
+              onClick={() => setIsReporting(true)}
+              className="ml-auto inline-flex min-h-9 cursor-pointer items-center gap-1.5 px-1 text-sm font-medium text-[#667374] hover:text-[#1a3234] max-[760px]:min-w-9 max-[760px]:justify-center"
+            >
+              <Flag
+                size={20}
+                aria-hidden="true"
+                className="min-[761px]:hidden"
+              />
+              <span className="max-[760px]:hidden">신고</span>
+            </button>
           </div>
         </article>
 
@@ -155,20 +146,13 @@ export default function PostDetail({ post }) {
 
       <aside aria-label="펫이야기 최신글" className="min-w-0">
         <section aria-labelledby="post-latest-title">
-          <div className="flex items-center justify-between pb-2">
+          <div className="pb-2">
             <h2
               id="post-latest-title"
               className="text-lg leading-[1.4] font-bold text-[#1a3234]"
             >
               펫이야기 최신글
             </h2>
-            <Link
-              to={listTo}
-              aria-label="펫이야기 목록으로"
-              className="text-[#566465] hover:text-[#1a3234]"
-            >
-              <ChevronRight size={20} aria-hidden="true" />
-            </Link>
           </div>
           <ul>
             {latest?.content.map((item) => (

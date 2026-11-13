@@ -5,8 +5,8 @@ const ARROW_CLASS =
   'absolute top-1/2 flex size-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-[rgba(15,23,35,0.62)] text-white hover:bg-[rgba(15,23,35,0.85)] max-[760px]:size-10';
 
 /**
- * 이미지 크게 보기: 제목 줄·판 없이 어두운 배경 위에 이미지만 표시(화면에 맞춘 크기, 작은 원본은 늘리지 않음)
- * - images: [{ key, src, name }] (src가 없으면 불러오지 못한 자리 표시, name은 이미지 위에 표시)
+ * 이미지 크게 보기: 판 없이 어두운 배경 위에 이미지만 표시(화면에 맞춘 크기, 작은 원본은 늘리지 않음)
+ * - images: [{ key, src, name }] (src가 없으면 불러오지 못한 자리 표시, name은 화면 맨 위 ✕와 같은 줄 가운데에 고정)
  * - index: 지금 보는 장(0부터). 「N / 전체」는 이미지 아래(여러 장일 때만)
  * - ←·→ 키와 좌우 화살표로 넘기고 처음·끝에서는 그쪽 화살표 없음. ✕·이미지 밖 클릭·ESC로 닫힘
  * - src가 바뀌어 아직 받는 중이면 자리 표시(공개 주소를 바로 불러 큰 사진이 느릴 때)
@@ -50,9 +50,6 @@ export default function ImageViewer({ images, index, onChange, onClose }) {
       onMouseDown={handleMouseDown}
     >
       <div className="pointer-events-none flex size-full flex-col items-center justify-center gap-3 px-20 max-[760px]:px-12">
-        <p className="pointer-events-auto max-w-full truncate text-base leading-normal text-white">
-          {name}
-        </p>
         {url ? (
           <>
             {isLoading && (
@@ -87,6 +84,9 @@ export default function ImageViewer({ images, index, onChange, onClose }) {
         )}
       </div>
 
+      <p className="pointer-events-auto absolute top-4 left-1/2 flex h-10 w-[calc(100%-8rem)] -translate-x-1/2 items-center justify-center text-base leading-normal text-white max-[760px]:top-2 max-[760px]:w-[calc(100%-6rem)]">
+        <span className="truncate">{name}</span>
+      </p>
       <button
         type="button"
         aria-label="닫기"

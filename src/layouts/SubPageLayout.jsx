@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import SideMenu from './SideMenu';
 import SubPageHead from './SubPageHead';
@@ -13,8 +14,10 @@ export default function SubPageLayout({
   menu,
   title,
   back,
+  backTo,
   description,
   pixel = true,
+  headAction,
   onLeave,
   sideBottom,
   contentClassName = 'min-[1101px]:pt-6',
@@ -34,6 +37,7 @@ export default function SubPageLayout({
         title={title}
         description={description}
         pixel={pixel ? sectionMenu.pixel : null}
+        action={headAction}
         hasSwitch={!title && !hasBack}
         onLeave={onLeave}
       />
@@ -49,7 +53,7 @@ export default function SubPageLayout({
       <div
         className={`flex min-w-0 flex-col min-[1101px]:col-start-2 min-[1101px]:row-start-3 ${contentClassName}`}
       >
-        {hasBack && <BackLink to={activeItem.to} onLeave={onLeave} />}
+        {hasBack && <BackLink to={backTo ?? activeItem.to} onLeave={onLeave} />}
         {children}
       </div>
     </div>
@@ -70,10 +74,7 @@ function BackLink({ to, onLeave }) {
       onClick={handleClick}
       className="-mt-1 mb-4 inline-flex h-6 items-center gap-2 self-start text-base leading-none font-medium text-muted transition-colors hover:text-ink"
     >
-      <span
-        aria-hidden="true"
-        className="ml-[3px] size-2 rotate-45 border-b-2 border-l-2 border-current"
-      />
+      <ArrowLeft size={18} aria-hidden="true" />
       목록으로
     </Link>
   );

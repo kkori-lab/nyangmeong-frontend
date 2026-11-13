@@ -6,6 +6,7 @@ import AuthField from '../shared/AuthField';
 import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
 import { OUTLINE_BTN, PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
+import { resendLabel } from '../shared/emailCert';
 import TermsModal from '../shared/TermsModal';
 import { hasTermsView } from '../shared/validate';
 import SignupSummary from '../signup/SignupSummary';
@@ -37,14 +38,24 @@ function VerifyStep({ form }) {
             <button
               type="button"
               onClick={form.sendCode}
-              disabled={form.isSending}
+              disabled={form.isSending || form.resendSeconds > 0}
               className={SIDE_BTN}
             >
-              {form.isSent ? '다시 보내기' : '인증번호 보내기'}
+              {form.isSent
+                ? resendLabel(form.resendSeconds)
+                : '인증번호 보내기'}
             </button>
           }
         />
-        {form.isSent && (
+        {/** 오답 안내: 이메일 칸 바로 아래 */}
+        {form.isCodeLocked && form.notice && (
+          <AuthNotice
+            type={form.notice.type}
+            message={form.notice.message}
+            hasGuide={target === 'notice'}
+          />
+        )}
+        {form.isSent && !form.isCodeLocked && (
           <AuthField
             id="recovery-code"
             icon={ShieldCheck}
@@ -66,7 +77,7 @@ function VerifyStep({ form }) {
             action={
               <button
                 type="submit"
-                disabled={form.isVerifying || form.isCodeLocked}
+                disabled={form.isVerifying}
                 className={`${SIDE_BTN} ${CONFIRM_BTN}`}
               >
                 인증 확인
@@ -224,7 +235,7 @@ export default function RecoveryForm({
         />
       </StepMotion>
       <StepMotion stepKey={form.step} direction={form.direction}>
-        {form.notice && (
+        {form.notice && !(form.step === 'verify' && form.isCodeLocked) && (
           <>
             <AuthNotice
               type={form.notice.type}

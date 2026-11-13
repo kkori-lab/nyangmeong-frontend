@@ -1,22 +1,15 @@
-import { Pencil, SearchX } from 'lucide-react';
+import { SearchX } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import BoardPagination from '@/components/BoardPagination';
-import { BTN_PRIMARY } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
-import SearchInput from '@/components/SearchInput';
-import { PATHS } from '@/routes/paths';
-import { STATUS_TABS } from '../missingCodes';
 import MissingCard from './MissingCard';
 import MissingFilters from './MissingFilters';
 import MissingRail from './MissingRail';
 
-const tabClass = (selected) =>
-  `h-14 shrink-0 cursor-pointer px-4 text-base leading-none whitespace-nowrap max-[760px]:h-12 ${selected ? 'border-b-2 border-brand-500 font-bold text-ink' : 'font-medium text-muted hover:text-ink'}`;
-
 /**
- * 실종센터 목록: 상태 탭 · 검색 · 빠른 필터 · 건수는 콘텐츠 전체 너비, 그 아래 카드(한 줄 3개) · [실종 등록하기] · 페이지(왼쪽)와 레일(오른쪽)
- * - filters: { stts, region, dong, pet, period, keyword }, onChange(바뀐 값만), onReset, onPageChange
+ * 실종센터 목록: 왼쪽에 필터(검색 · 실종일 · 지역 · 반려동물) · 건수와 내 글만 보기 · 카드(한 줄 3개) · 페이지, 오른쪽에 레일
+ * - [실종 신고 등록]은 페이지 머리 오른쪽(MissingListPage). 실종·찾았어요 글이 탭 없이 한 목록에 섞여 서버 순서로 나옴
+ * - filters: { mine, region, dong, pet, period, keyword }, onChange(바뀐 값만), onReset, onPageChange
  */
 export default function MissingList({
   posts,
@@ -34,44 +27,25 @@ export default function MissingList({
   };
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-4 max-[1100px]:grid-cols-1 max-[1100px]:gap-y-10">
-      <div className="col-span-full flex min-w-0 flex-col gap-4">
-        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-input-line max-[760px]:flex-col max-[760px]:items-stretch">
-          <div role="tablist" aria-label="게시 상태" className="flex">
-            {STATUS_TABS.map((tab) => (
-              <button
-                key={tab.value}
-                type="button"
-                role="tab"
-                aria-selected={filters.stts === tab.value}
-                onClick={() => onChange({ stts: tab.value })}
-                className={tabClass(filters.stts === tab.value)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <SearchInput
-            value={input}
-            onChange={setInput}
-            onSubmit={() => onChange({ keyword: input.trim() })}
-            placeholder="지역, 품종, 특징으로 검색"
-            className="mb-3 w-[300px] max-[760px]:mb-2 max-[760px]:w-full"
-          />
-        </div>
-
+    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 border-t border-line-strong pt-6 max-[1100px]:grid-cols-1">
+      <div className="flex min-w-0 flex-col gap-5">
         <MissingFilters
           filters={filters}
+          search={{
+            value: input,
+            onChange: setInput,
+            onSubmit: () => onChange({ keyword: input.trim() }),
+          }}
           onChange={onChange}
           onReset={handleReset}
         />
 
-        <p aria-live="polite" className="text-sm text-muted">
-          총 <b className="font-bold text-ink">{totalElements}</b>건
-        </p>
-      </div>
+        <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+          <p aria-live="polite" className="text-sm text-muted">
+            총 <b className="font-bold text-ink">{totalElements}</b>건
+          </p>
+        </div>
 
-      <div className="flex min-w-0 flex-col gap-4">
         {content.length === 0 ? (
           <EmptyResult
             icon={<SearchX size={32} aria-hidden="true" />}
@@ -96,20 +70,13 @@ export default function MissingList({
           </ul>
         )}
 
-        <div className="flex justify-end">
-          <Link
-            to={PATHS.COMMUNITY_MISSING_NEW}
-            className={`${BTN_PRIMARY} min-w-[120px]`}
-          >
-            <Pencil size={16} aria-hidden="true" />
-            실종 등록하기
-          </Link>
+        <div className="mt-5">
+          <BoardPagination
+            page={page}
+            totalPages={totalPages}
+            onChange={onPageChange}
+          />
         </div>
-        <BoardPagination
-          page={page}
-          totalPages={totalPages}
-          onChange={onPageChange}
-        />
       </div>
 
       <MissingRail />

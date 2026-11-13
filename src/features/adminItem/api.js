@@ -22,7 +22,7 @@ export const getItemParts = async () => {
 
 /**
  * 아이템 목록: 판매 중지 포함, 뺀 부위 제외
- * [{ itemSn, itemNm, itemRegnCd, itemRegnCdNm, needPnt, ntslYn, sortSeq, atchFileSn, bakeHint, hldMbrCnt }]
+ * [{ itemSn, itemNm, itemRegnCd, itemRegnCdNm, needPnt, ntslYn, sortSeq, atchFileSn, bakeHint, bakeImgRefYn, hldMbrCnt }]
  */
 export const getAdminItems = async ({ itemRegnCd } = {}) => {
   const [items, parts] = await Promise.all([
@@ -42,28 +42,21 @@ const toItemForm = (fields) => {
   return form;
 };
 
-/** 아이템 등록: multipart(itemRegnCd·itemNm·needPnt·ntslYn·bakeHint(선택)·image), 201 { itemSn } */
+/** 아이템 등록: multipart(itemRegnCd·itemNm·needPnt·ntslYn·bakeImgRefYn·image), 201 { itemSn } */
 export const createAdminItem = ({
   itemRegnCd,
   itemNm,
   needPnt,
   ntslYn,
-  bakeHint,
+  bakeImgRefYn,
   image,
 }) =>
   api.post(
     '/admin/items',
-    toItemForm({
-      itemRegnCd,
-      itemNm,
-      needPnt,
-      ntslYn,
-      bakeHint: bakeHint || undefined,
-      image,
-    }),
+    toItemForm({ itemRegnCd, itemNm, needPnt, ntslYn, bakeImgRefYn, image }),
   );
 
-/** 아이템 수정·판매 중지: multipart, 보낸 칸만 바뀜(image는 바꿀 때만, bakeHint 빈 값이면 지움) */
+/** 아이템 수정·판매 중지: multipart, 보낸 칸만 바뀜(image는 바꿀 때만, bakeImgRefYn true면 그림 참고 굽기) */
 export const updateAdminItem = ({ itemSn, ...fields }) =>
   api.patch(`/admin/items/${itemSn}`, toItemForm(fields));
 

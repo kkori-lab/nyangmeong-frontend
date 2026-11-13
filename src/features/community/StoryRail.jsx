@@ -51,7 +51,7 @@ export default function StoryRail() {
             />
             <span
               aria-hidden="true"
-              className="absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 via-black/40 to-transparent"
+              className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/55 via-black/25 to-transparent"
             />
             <h2
               id="post-photo-title"
@@ -59,7 +59,7 @@ export default function StoryRail() {
             >
               인기 포토
             </h2>
-            <span className="absolute inset-x-0 bottom-0 px-4 pb-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+            <span className="absolute inset-x-0 bottom-0 px-4 pb-4 text-white">
               <span className="block truncate text-base font-semibold">
                 {photo.pstTtl}
               </span>

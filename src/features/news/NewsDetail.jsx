@@ -1,4 +1,4 @@
-import { ChevronLeft, ExternalLink, Megaphone, Newspaper } from 'lucide-react';
+import { ExternalLink, Megaphone, Newspaper } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
 import FileImage from '@/components/FileImage';
@@ -19,7 +19,6 @@ export default function NewsDetail({ news }) {
   const { data: latest } = useNewsList({ page: 1, size: LATEST_SIZE });
   const [photoFailed, setPhotoFailed] = useState(false);
   const isAdmin = news.newsSrcCd === NEWS_SRC_ADMIN;
-  const listTo = `${PATHS.COMMUNITY_NEWS}${state?.listSearch ?? ''}`;
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
@@ -95,14 +94,7 @@ export default function NewsDetail({ news }) {
           </>
         )}
 
-        <div className="mt-6 flex items-center justify-between border-t border-[#e2e7e7] pt-6">
-          <Link
-            to={listTo}
-            className="inline-flex items-center gap-1.5 text-base leading-normal font-medium text-[#566465]"
-          >
-            <ChevronLeft size={14} />
-            목록으로
-          </Link>
+        <div className="mt-6 flex items-center justify-start border-t border-[#e2e7e7] pt-6">
           <SharePanel title={news.newsTtl} />
         </div>
       </article>

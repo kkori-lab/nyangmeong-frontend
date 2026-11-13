@@ -5,14 +5,13 @@ import {
   useSendRecoveryCode,
   useVerifyRecoveryCode,
 } from '../queries';
+import { isWrongCodeError, resendAtOf, toMs } from '../shared/emailCert';
 import { isValidEmail } from '../shared/validate';
+import { SIGNUP_MESSAGES as SIGNUP } from '../signup/signupMessages';
 import { PASSWORD_MESSAGES as MSG } from './passwordMessages';
 
 /** 서버 검증 오류의 field를 입력칸 이름으로 */
 const FIELD_KEYS = { certTrgtEml: 'email', certNo: 'code' };
-
-/** 서버 시각(LocalDateTime, 시간대 없음)을 ms로 */
-const toMs = (dateTime) => Date.parse(dateTime);
 
 // 비밀번호 찾기 화면의 단계(email, code, sns)와 입력·오류를 한곳에서 다룬다. 재설정 대상이 인증되면 onVerified({ emlCertSn, pswdInitTkn, initAuthrtExpryDt, certTrgtEml })를 부른다
 export default function usePasswordFind(onVerified) {
@@ -25,12 +24,15 @@ export default function usePasswordFind(onVerified) {
   const [expiresAt, setExpiresAt] = useState(0);
   const [emlCertSn, setEmlCertSn] = useState(null);
   const [snsOffrCds, setSnsOffrCds] = useState([]);
-  // 인증번호를 서버 한도까지 틀리면 재발송 전까지 [인증번호 확인]을 막는다
+  /** 오답으로 무효가 된 인증번호: 다시 보낼 때까지 인증번호 칸·확인 버튼 숨김 */
   const [isCodeLocked, setIsCodeLocked] = useState(false);
+  /** 재발송 가능 시각(ms, 서버 값) */
+  const [resendAt, setResendAt] = useState(0);
   const send = useSendRecoveryCode();
   const verify = useVerifyRecoveryCode();
   const invalidate = useInvalidateRecoveryCode();
   const countdown = useCountdown(expiresAt);
+  const resendWait = useCountdown(resendAt);
 
   const changeEmail = (value) => {
     setEmail(value);
@@ -39,11 +41,10 @@ export default function usePasswordFind(onVerified) {
 
   const changeCode = (value) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
-    // 확인이 막힌 동안에는 재발송 안내를 남긴다
-    if (!isCodeLocked) setErrors({});
+    setErrors({});
   };
 
-  // 재전송 제한이면 서버 문구에 남은 시간을 붙인다
+  /** 발송 오류: 재전송 제한이면 남은 시간은 [다시 보내기]에 표시 */
   const handleSendError = (error) => {
     if (error.code === 'INVALID_INPUT_VALUE') {
       const next = {};
@@ -54,14 +55,10 @@ export default function usePasswordFind(onVerified) {
       setErrors(next);
       return;
     }
-    const resendAt = error.data?.resendAvailableDt;
-    const remain = resendAt
-      ? Math.max(0, Math.ceil((toMs(resendAt) - Date.now()) / 1000))
-      : 0;
-    setNotice({
-      type: 'error',
-      message: remain ? `${error.message} (${remain}초 남음)` : error.message,
-    });
+    if (error.code === 'EMAIL_CERT_RESEND_NOT_YET') {
+      setResendAt(resendAtOf(error.data));
+    }
+    setNotice({ type: 'error', message: error.message });
   };
 
   const sendCode = (certTrgtEml) => {
@@ -77,6 +74,7 @@ export default function usePasswordFind(onVerified) {
           setNotice(null);
           setIsSent(true);
           setIsCodeLocked(false);
+          setResendAt(resendAtOf(result));
           setStep('code');
         },
         onError: handleSendError,
@@ -99,7 +97,10 @@ export default function usePasswordFind(onVerified) {
     sendCode(trimmed);
   };
 
-  const resend = () => sendCode(email);
+  const resend = () => {
+    if (resendWait.seconds > 0) return;
+    sendCode(email);
+  };
 
   // 이메일을 다시 입력하면 이전 인증번호는 서버에서도 무효화한다
   const editEmail = () => {
@@ -140,7 +141,7 @@ export default function usePasswordFind(onVerified) {
     }
   };
 
-  // 인증번호 오류(불일치·만료·사용 완료·횟수 초과)는 인증번호 칸 아래에 서버 문구로 보인다
+  /** 인증번호 오류: 오답은 칸을 닫고 공통 알림(AI 말풍선), 만료·사용 완료는 칸 아래 서버 문구 */
   const handleVerifyError = (error) => {
     if (error.code === 'INVALID_INPUT_VALUE') {
       const next = {};
@@ -149,9 +150,11 @@ export default function usePasswordFind(onVerified) {
         if (key && !next[key]) next[key] = message;
       });
       setErrors(next);
-    } else if (error.code === 'EMAIL_CERT_FAIL_LIMIT_EXCEEDED') {
+    } else if (isWrongCodeError(error)) {
       setIsCodeLocked(true);
-      setErrors({ code: error.message });
+      setCode('');
+      setErrors({});
+      setNotice({ type: 'error', message: error.message || SIGNUP.codeRetry });
     } else if (error.code.startsWith('EMAIL_CERT_')) {
       setErrors({ code: error.message });
     } else {
@@ -196,6 +199,7 @@ export default function usePasswordFind(onVerified) {
     countdown,
     isPending: send.isPending || verify.isPending,
     isCodeLocked,
+    resendSeconds: resendWait.seconds,
     guideTarget,
     changeEmail,
     changeCode,

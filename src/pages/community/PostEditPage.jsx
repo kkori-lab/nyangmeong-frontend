@@ -90,12 +90,12 @@ export default function PostEditPage() {
     );
   }
 
-  /** 글쓰기·글수정은 둘 다 title="글쓰기"(사람 결정) */
+  /** 수정 화면은 「목록으로」 없음 */
   return (
     <SubPageLayout
       section="community"
       menu={PATHS.COMMUNITY}
-      title="글쓰기"
+      title="펫이야기 글 수정"
       back={false}
       onLeave={onLeave}
     >
