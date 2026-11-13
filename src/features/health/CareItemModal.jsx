@@ -167,7 +167,7 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
     <FormModal
       icon="playlist_add"
       title={isEdit ? '관리 항목 수정' : '관리 항목 추가'}
-      submitLabel={isEdit ? '수정하기' : '추가하기'}
+      submitLabel={isEdit ? '수정하기' : '저장'}
       widthClassName="w-[min(440px,calc(100%-32px))]"
       isSubmitDisabled={!canSubmit}
       isPending={saveItem.isPending}
@@ -226,8 +226,8 @@ export default function CareItemModal({ petSn, item = null, onClose }) {
         <legend className={`${labelClass} mb-1.5`}>반복 유형{required}</legend>
         {renderSegment(
           [
-            { cd: CARE_ZONE.DAILY, nm: '매일' },
-            { cd: CARE_ZONE.REGULAR, nm: '주기' },
+            { cd: CARE_ZONE.DAILY, nm: '일상관리' },
+            { cd: CARE_ZONE.REGULAR, nm: '정기관리' },
           ],
           careZoneCd,
           setCareZoneCd,

@@ -80,7 +80,7 @@ export default function WidgetPicker({
           </li>
         </ul>
         <p className="text-xs/[1.5] text-subtle">
-          고른 기록은 건강기록 대시보드에 이 모양으로 놓여요 · 나중에 [기록 항목
+          고른 기록은 건강 대시보드에 이 모양으로 놓여요 · 나중에 [기록 항목
           편집]에서 바꿀 수 있어요
         </p>
       </div>

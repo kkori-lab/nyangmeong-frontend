@@ -271,7 +271,7 @@ export default function TodayRecordForm({
                 </button>
               </div>
               <p className="text-sm text-muted">
-                켠 항목은 여기와 종합 건강기록 대시보드에 함께 보여요
+                켠 항목은 여기와 건강 대시보드에 함께 보여요
               </p>
             </div>
           )}

@@ -248,7 +248,7 @@ export default function ReceiptResultStep({
       <FormModal
         icon="receipt_long"
         title="인식 결과 확인"
-        submitLabel="저장하기"
+        submitLabel="저장"
         cancelLabel="다시 촬영하기"
         hasRequiredNote={false}
         widthClassName={WIDTH}

@@ -15,7 +15,7 @@ const OPTIONAL = (
 );
 
 /**
- * [기타검사 입력 모달]
+ * [기타검사 추가 모달]
  * - 검사명·검사 결과(텍스트 500자)·메모(200자), 단위·참고범위 없음 (FN-HLT-005-11~14)
  * - etcInspection이 있으면 입력값이 채워진 수정 상태
  */
@@ -60,7 +60,7 @@ export default function EtcInspectionModal({
   return (
     <FormModal
       icon="assignment"
-      title="기타검사 입력"
+      title="기타검사 추가"
       widthClassName="w-[min(560px,calc(100%-32px))]"
       isPending={isPending}
       onSubmit={handleSubmit}

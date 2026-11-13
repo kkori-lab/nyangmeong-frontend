@@ -7,7 +7,7 @@ import { NORMAL_STOOL } from '../diaryTypes';
 export default function CountBars({ counts, total }) {
   return (
     <ul
-      aria-label={`배변 상태별 횟수 · 최근 ${total}개 기록`}
+      aria-label={`배변 상태별 횟수 · 최근 ${total}건`}
       className="flex flex-col gap-3 py-4"
     >
       {counts.map((state) => (

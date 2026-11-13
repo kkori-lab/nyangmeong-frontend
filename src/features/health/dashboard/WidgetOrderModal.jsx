@@ -10,7 +10,7 @@ const ARROW_BUTTON =
   'grid size-8 place-items-center rounded-full text-subtle hover:enabled:bg-surface-3 hover:enabled:text-ink disabled:cursor-not-allowed disabled:text-line-strong';
 
 /**
- * [위젯 순서 변경 모달] 대시보드 카드 순서를 바꿈 (※신규 정책)
+ * [기록 항목 순서 변경 모달] 대시보드 기록 항목 순서를 바꿈 (※신규 정책)
  * - 끌어서 놓기(브라우저 기본 드래그)와 카드마다 [위로]·[아래로] 버튼(키보드·터치용). 맨 위 [위로]·맨 아래 [아래로]는 막힘
  * - AI 건강분석 리포트는 맨 앞 고정이라 옮기는 대상이 아님
  * - [저장]은 순서 저장, [취소]·×·Esc·배경은 저장 없이 닫음
@@ -68,7 +68,7 @@ export default function WidgetOrderModal({ mbrSn, savedIds, onClose }) {
       { mbrSn, widgetIds: orderedIds },
       {
         onSuccess: () => {
-          showToast('카드 순서를 저장했어요');
+          showToast('기록 항목 순서를 저장했어요');
           onClose();
         },
       },
@@ -97,7 +97,7 @@ export default function WidgetOrderModal({ mbrSn, savedIds, onClose }) {
 
   return (
     <Modal
-      title="위젯 순서 변경"
+      title="기록 항목 순서 변경"
       footer={footer}
       width={560}
       isPending={saveWidgets.isPending}
@@ -105,7 +105,7 @@ export default function WidgetOrderModal({ mbrSn, savedIds, onClose }) {
     >
       <div className="flex flex-col gap-4">
         <p className="text-muted">
-          끌어서 놓거나 [위로]·[아래로]로 카드 순서를 바꿔요
+          끌어서 놓거나 [위로]·[아래로]로 기록 항목 순서를 바꿔요
         </p>
         <ol className="flex flex-col gap-2">
           <li className="flex h-10 items-center gap-2 rounded-box border border-line bg-surface-2 px-3">

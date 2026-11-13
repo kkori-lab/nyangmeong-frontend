@@ -27,7 +27,7 @@ function PetOption({ pet }) {
  *   (receiptUtils buildSaveEntries, ※신규 정책 2026-11-09). 그 줄 아래에 합침 안내
  * - 목록 맨 아래 「기록 안 함」은 여러 줄에서 고를 수 있고, 그 줄을 저장하지 않음
  * - 고른 칸은 청록 테두리 + 아이 캐릭터 원, 안 고른 칸은 회색 「반려동물 선택」
- * - isErrorShown: [저장하기]를 눌렀는데 안 고른 줄이 있으면 그 칸을 오류 색으로
+ * - isErrorShown: [저장]를 눌렀는데 안 고른 줄이 있으면 그 칸을 오류 색으로
  * - rowRefs: 안 고른 첫 줄로 옮겨 가려고 화면이 줄 요소를 tab.id로 받음
  */
 export default function ReceiptPetLink({

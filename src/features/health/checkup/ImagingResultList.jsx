@@ -23,7 +23,7 @@ export default function ImagingResultList({
 
   return (
     <div>
-      {attachments.length === 0 && <p className="text-muted">결과 없음</p>}
+      {attachments.length === 0 && <p className="text-muted">결과가 없어요</p>}
       <ul>
         {attachments.map((attachment) => (
           <li
@@ -60,7 +60,7 @@ export default function ImagingResultList({
         className={`${TEXT_BTN} mt-4`}
         onClick={onGoAttachments}
       >
-        첨부 자료 탭에서 등록하기
+        첨부 자료 탭에서 추가하기
         <Icon name="chevron_right" className="text-lg" />
       </button>
 

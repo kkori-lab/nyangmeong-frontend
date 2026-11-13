@@ -2,7 +2,7 @@ import { DETAIL_TABS, getPanelId, getTabId } from './checkupTypes';
 
 /**
  * [검진상세 탭]
- * - 검사 결과 · 첨부 자료 · 처방약 · 반복 예방 (FN-HLT-005-15)
+ * - 검사 결과 · 첨부 자료 · 처방·투약 · 반복 예방 (FN-HLT-005-15)
  * - 탭 이름 뒤에 건수를 회색 괄호로 표시하고 0건인 탭도 숨기지 않음
  */
 export default function DetailTabs({ selectedKey, counts, onSelect }) {

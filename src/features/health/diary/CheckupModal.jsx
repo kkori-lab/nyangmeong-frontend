@@ -30,8 +30,8 @@ const OPTIONAL = (
 );
 
 /**
- * [검진기록 등록 모달]
- * - 1단계 방법 선택 → 직접 입력 (FN-HLT-002-33·26~31). [영수증으로 등록하기]는 onReceipt로 부모가 이어받음
+ * [검진기록 추가 모달]
+ * - 1단계 방법 선택 → 직접 입력 (FN-HLT-002-33·26~31). [영수증으로 추가하기]는 onReceipt로 부모가 이어받음
  * - initialStep="form": 영수증 인식에 실패해 [직접 입력]으로 연 경우. recptSn이 있으면 그 영수증에 연결해 저장(저장완료, 가계부 기록 없음),
  *   업로드 전 [직접 입력하기]처럼 recptSn이 없으면 영수증 연결 없이 저장
  * - 저장하면 서버가 같은 날 병원 일정에 연결하고, 없고 앞뒤 7일 안에 예정 일정이 있으면 옮겨 연결할지 먼저 확인
@@ -164,7 +164,7 @@ export default function CheckupModal({
     <>
       <FormModal
         icon="local_hospital"
-        title={checkup ? '검진기록 수정' : '검진기록 등록'}
+        title={checkup ? '검진기록 수정' : '검진기록 추가'}
         hasFooter={step === 'form'}
         widthClassName="w-[min(560px,calc(100%-32px))]"
         isPending={isPending}
@@ -191,7 +191,7 @@ export default function CheckupModal({
               onClick={onReceipt}
             >
               <span className="text-lg/[1.6] font-semibold text-ink">
-                영수증으로 등록하기
+                영수증으로 추가하기
               </span>
               <span className="text-subtle">사진에서 자동 인식</span>
             </button>

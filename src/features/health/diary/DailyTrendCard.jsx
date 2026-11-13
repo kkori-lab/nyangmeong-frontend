@@ -27,9 +27,9 @@ import {
 
 /**
  * [건강기록 변화 카드]
- * - 지표 탭 5종 단일 선택, 최근 5개 기록 기준 그래프 (FN-HLT-002-09·10)
+ * - 지표 탭 5종 단일 선택, 최근 5건 기준 그래프 (FN-HLT-002-09·10)
  * - 0건·1건은 그래프 대신 안내
- * - 760px 이하: 지표 탭이 한 줄 가로 밀기이고 줄 끝에 걸쳐 잘린 탭은 반투명, 체중 그래프의 상한·목표·하한은 왼쪽 한 열
+ * - 760px 이하: 지표 탭이 한 줄 가로 밀기이고 줄 끝에 걸쳐 잘린 탭은 반투명, 체중 그래프의 최대·목표·최소은 왼쪽 한 열
  * - initialTypeCd: 처음 고를 지표(대시보드 카드 [더보기], ※신규 정책). 5종이 아니거나 없으면 체중
  */
 export default function DailyTrendCard({ pet, onAddRecord, initialTypeCd }) {
@@ -74,7 +74,7 @@ export default function DailyTrendCard({ pet, onAddRecord, initialTypeCd }) {
   return (
     <Card
       title="건강기록 변화"
-      sub={<span className="text-sm">최근 {RECENT_RECORD_COUNT}개 기록</span>}
+      sub={<span className="text-sm">최근 {RECENT_RECORD_COUNT}건</span>}
       className="min-w-0"
     >
       <div
@@ -130,7 +130,7 @@ function TrendBody({ pet, goalBdwg, trend, type, isPc, onAddRecord }) {
           className={`${BTN_SECONDARY} mt-2 h-8! px-3!`}
           onClick={() => onAddRecord(type.cd)}
         >
-          오늘 기록추가
+          오늘 기록 추가
         </button>
       }
     />
