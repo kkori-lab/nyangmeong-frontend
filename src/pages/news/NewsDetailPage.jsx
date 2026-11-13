@@ -1,5 +1,5 @@
 import { FileX } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import EmptyResult from '@/components/EmptyResult';
 import NewsDetail from '@/features/news/NewsDetail';
 import { useNews } from '@/features/news/queries';
@@ -24,6 +24,7 @@ function NewsDetailSkeleton() {
 
 export default function NewsDetailPage() {
   const newsSn = Number(useParams().newsSn);
+  const { state } = useLocation();
   const { data: news, isPending, isError } = useNews(newsSn);
 
   let body;
@@ -50,12 +51,13 @@ export default function NewsDetailPage() {
     body = <NewsDetail key={news.newsSn} news={news} />;
   }
 
-  /** 상세 제목은 '상세보기'가 아니라 메뉴 이름이라 title을 넘기지 않는다. 「목록으로」는 본문 하단 */
+  /** 상세 제목은 '상세보기'가 아니라 메뉴 이름이라 title을 넘기지 않는다. 「목록으로」는 본문 박스 위(보던 목록 쿼리로 돌아감) */
   return (
     <SubPageLayout
       section="community"
       menu={PATHS.COMMUNITY_NEWS}
-      back={false}
+      back
+      backTo={`${PATHS.COMMUNITY_NEWS}${state?.listSearch ?? ''}`}
       description={DESCRIPTION}
     >
       {body}

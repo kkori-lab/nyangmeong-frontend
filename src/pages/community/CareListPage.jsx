@@ -1,4 +1,6 @@
-import { useSearchParams } from 'react-router-dom';
+import { Pencil } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { BTN_PRIMARY } from '@/components/buttonStyles';
 import {
   PET_FILTERS,
   PET_SE_BY_FILTER,
@@ -57,38 +59,33 @@ function CareCardSkeleton({ hasThumbOnMobile }) {
   );
 }
 
-/** 로딩 자리: 탭 줄 + 필터(회색 박스) + 카드 한 쪽 개수 + 오른쪽 안내(실제 목록과 같은 배치) */
+/** 로딩 자리: 왼쪽(필터 2열 + 건수 줄 + 카드 한 쪽 개수 + 쪽 번호)과 오른쪽 안내(실제 목록과 같은 배치) */
 function CareListSkeleton() {
   return (
     <div
       aria-busy="true"
-      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-4 max-[1101px]:grid-cols-1"
+      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 border-t border-line pt-6 max-[1101px]:grid-cols-1"
     >
-      <div
-        aria-hidden="true"
-        className="col-span-full flex min-w-0 flex-col gap-4"
-      >
-        <div className="flex flex-wrap items-end justify-between gap-x-4 border-b border-input-line px-4 pt-6 pb-3">
-          <div className="flex gap-8 pb-1">
-            {Array.from({ length: 3 }, (_, index) => (
-              <Skeleton key={index} className="h-5 w-20" />
-            ))}
-          </div>
-          <Skeleton className="h-5 w-12" />
+      <div className="flex min-w-0 flex-col gap-5">
+        <div
+          aria-hidden="true"
+          className="grid grid-cols-2 gap-x-9 gap-y-5 max-[760px]:grid-cols-1 max-[760px]:gap-y-4"
+        >
+          <Skeleton className="hidden h-10 max-[760px]:block" />
+          <Skeleton className="h-16 max-[760px]:hidden" />
+          <Skeleton className="h-16 max-[760px]:hidden" />
+          <Skeleton className="h-16 max-[760px]:hidden" />
+          <Skeleton className="h-16 max-[760px]:hidden" />
         </div>
-        <Skeleton className="h-[202px] rounded-[14px] max-[760px]:hidden" />
-        <Skeleton className="hidden h-10 max-[760px]:block" />
-      </div>
-      <div className="flex min-w-0 flex-col gap-4">
+        <div className="border-t border-line pt-4">
+          <Skeleton className="h-9 w-full" />
+        </div>
         <div className="flex flex-col gap-3">
           {Array.from({ length: PAGE_SIZE }, (_, index) => (
             <CareCardSkeleton key={index} hasThumbOnMobile={index % 2 === 0} />
           ))}
         </div>
-        <div aria-hidden="true" className="flex flex-col gap-4">
-          <Skeleton className="ml-auto h-10 w-28" />
-          <Skeleton className="mx-auto h-9 w-64" />
-        </div>
+        <Skeleton aria-hidden="true" className="mx-auto h-9 w-64" />
       </div>
       <div
         aria-hidden="true"
@@ -186,6 +183,16 @@ export default function CareListPage() {
       section="community"
       menu={PATHS.COMMUNITY_PETCARE}
       description={DESCRIPTION}
+      pixel={false}
+      headAction={
+        <Link
+          to={PATHS.COMMUNITY_PETCARE_NEW}
+          className={`${BTN_PRIMARY} h-[34px]! text-sm`}
+        >
+          <Pencil size={16} aria-hidden="true" />
+          돌봄 요청 등록
+        </Link>
+      }
       contentClassName="min-[1101px]:pt-[7px]"
     >
       {body}

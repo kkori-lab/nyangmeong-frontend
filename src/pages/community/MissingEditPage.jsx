@@ -104,12 +104,12 @@ export default function MissingEditPage() {
     );
   }
 
-  /** 글쓰기·글수정은 둘 다 title="글쓰기" */
+  /** 수정 화면은 「목록으로」 없음 */
   return (
     <SubPageLayout
       section="community"
       menu={PATHS.COMMUNITY_MISSING}
-      title="글쓰기"
+      title="실종 신고 수정"
       back={false}
       onLeave={onLeave}
     >

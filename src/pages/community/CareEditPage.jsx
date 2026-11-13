@@ -97,12 +97,12 @@ export default function CareEditPage() {
     );
   }
 
-  /** 글쓰기·글수정은 둘 다 title="글쓰기" */
+  /** 수정 화면은 「목록으로」 없음 */
   return (
     <SubPageLayout
       section="community"
       menu={PATHS.COMMUNITY_PETCARE}
-      title="글쓰기"
+      title="돌봄 요청 수정"
       back={false}
       onLeave={onLeave}
     >

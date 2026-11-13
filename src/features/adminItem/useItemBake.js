@@ -4,13 +4,14 @@ import { bakeAdminItem } from './api';
 /** 서버 오류 코드별 문구: 없으면 서버 message */
 const BAKE_ERROR_MESSAGES = {
   BAKE_DISABLED: '굽기가 꺼져 있어요',
-  INVALID_REQUEST: '굽기 지시가 없거나 판매 중지된 아이템이에요',
+  INVALID_REQUEST: '굽기 대상이 아니거나 판매 중지된 아이템이에요',
   EXTERNAL_API_ERROR: '굽기에 실패했어요. 잠시 후 다시 시도해 주세요',
   CHARACTER_API_ERROR: '굽기에 실패했어요. 잠시 후 다시 시도해 주세요',
 };
 
-/** 전체 굽기 대상: 판매 중이고 굽기 지시가 있음(AI 서버 굽기 대상과 같음) */
-export const canBakeItem = (item) => item.ntslYn && Boolean(item.bakeHint);
+/** 전체 굽기 대상: 판매 중이고 굽기 지시가 있거나 그림 참고(서버 굽기 대상과 같음) */
+export const canBakeItem = (item) =>
+  item.ntslYn && (Boolean(item.bakeHint) || Boolean(item.bakeImgRefYn));
 
 /**
  * [아이템 전체 굽기]

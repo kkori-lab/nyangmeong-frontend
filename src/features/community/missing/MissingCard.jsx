@@ -45,12 +45,12 @@ export default function MissingCard({ post }) {
           <PawPrint size={48} aria-hidden="true" />
         )}
         <span className="absolute top-3 left-3 flex gap-1.5 [&>*]:shadow-[0_1px_2px_rgba(15,23,35,0.12)]">
-          <MissingStatusBadge post={post} />
           {post.owner && (
-            <Badge tone="amber" bordered>
+            <Badge tone="mine" bordered>
               내 글
             </Badge>
           )}
+          <MissingStatusBadge post={post} />
         </span>
       </span>
       <span className="flex flex-col gap-1.5 px-[18px] pt-4 pb-[18px]">
