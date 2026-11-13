@@ -15,19 +15,11 @@ import {
 const INPUT_CLASS =
   'block h-10 w-full rounded-[6px] border border-[#d3dae2] bg-white px-3 text-base leading-[1.4] text-[#1a3234] outline-none hover:border-[#b9c4c4] focus:border-[#285a5c] focus:shadow-[0_0_0_3px_rgba(40,90,92,0.18)] aria-invalid:border-danger';
 
-const TEXTAREA_CLASS = INPUT_CLASS.replace(
-  'h-10',
-  'min-h-[88px] resize-y py-2',
-).replace('leading-[1.4]', 'leading-6');
-
-/** 굽기 지시 최대 글자 수(서버와 같음) */
-const BAKE_HINT_MAX = 300;
-
 /** 필요 포인트: 0 이상 정수 */
 const NEED_PNT_PATTERN = /^\d+$/;
 
 /** 폼 칸(서버 fields 이름) */
-const FORM_FIELDS = ['itemRegnCd', 'itemNm', 'image', 'bakeHint', 'needPnt'];
+const FORM_FIELDS = ['itemRegnCd', 'itemNm', 'image', 'needPnt'];
 
 /** 칸 아래 안내 */
 function FieldError({ id, message }) {
@@ -70,7 +62,6 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
   const [itemNm, setItemNm] = useState(item?.itemNm ?? '');
   const [needPnt, setNeedPnt] = useState(item ? String(item.needPnt) : '');
   const [ntslYn, setNtslYn] = useState(item?.ntslYn ?? true);
-  const [bakeHint, setBakeHint] = useState(item?.bakeHint ?? '');
   /** 고른 픽셀 그림: { file, url } */
   const [image, setImage] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -127,8 +118,8 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
       itemNm: itemNm.trim(),
       needPnt: Number(needPnt.trim()),
       ntslYn,
-      /** 수정에서 비우면 빈 값을 보내 지움 */
-      bakeHint: bakeHint.trim(),
+      /** 굽기는 늘 픽셀 그림 기준(굽기 지시는 보내지 않아 기존 값 유지) */
+      bakeImgRefYn: true,
       ...(image ? { image: image.file } : {}),
     };
     if (isEdit) {
@@ -221,38 +212,6 @@ export default function ItemFormModal({ item, parts, onClose, onCreated }) {
           onImageChange={setImage}
           onRequireInputs={handleRequirePixelInputs}
         />
-        <div>
-          <label
-            htmlFor={`${formId}-bakeHint`}
-            className="mb-1.5 block text-sm font-semibold text-ink-2"
-          >
-            굽기 지시 <span className="font-normal text-subtle">(선택)</span>
-          </label>
-          <textarea
-            id={`${formId}-bakeHint`}
-            value={bakeHint}
-            maxLength={BAKE_HINT_MAX}
-            rows={3}
-            placeholder="예: Place the hat on top of the head."
-            aria-invalid={Boolean(errors.bakeHint)}
-            aria-describedby={`${formId}-bakeHint-help ${formId}-bakeHint-error`}
-            className={TEXTAREA_CLASS}
-            onChange={(event) => setBakeHint(event.target.value)}
-          />
-          <p
-            id={`${formId}-bakeHint-help`}
-            className="mt-1.5 flex justify-between gap-3 text-sm text-subtle"
-          >
-            <span>AI가 이미지를 캐릭터에 입힐 때 쓰는 영어 한 문장</span>
-            <span aria-hidden="true">
-              {bakeHint.length}/{BAKE_HINT_MAX}
-            </span>
-          </p>
-          <FieldError
-            id={`${formId}-bakeHint-error`}
-            message={errors.bakeHint}
-          />
-        </div>
         <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
           <div className="w-[160px]">
             <label
