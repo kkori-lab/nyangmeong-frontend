@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { showToast } from '@/components/toastStore';
 import { CATEGORIES, DEFAULT_SORT } from './placeData';
 import {
@@ -16,13 +16,21 @@ const BOOKMARK_STALE_CODES = [
 
 const categoryOf = (key) => CATEGORIES.find((item) => item.key === key);
 
+// 입력칸 글자를 검색 상태로 바꾼다. 비었거나 카테고리 이름이면 카테고리 전체(검색어 없이)로 찾는다
+const searchTextOf = (category, text) => {
+  const q = text.trim();
+  return { q, keyword: q === categoryOf(category).name ? '' : q };
+};
+
 // 새 검색(카테고리 변경·검색어 실행)마다 달라지는 값. 지도가 결과에 맞춰 화면을 맞추는 때를 알린다
 let searchSeq = 0;
 
-// 카테고리를 처음 열었을 때의 검색 상태. 검색어 입력칸에는 카테고리 이름을 보이고 서버에는 검색어 없이 보낸다.
+// 카테고리를 처음 열었을 때의 검색 상태. 검색어 입력칸은 비우고 서버에도 검색어 없이 보낸다.
+// category는 입력칸을 다시 그릴 때와 검색어가 없을 때 결과 머리에 쓴다
 // homeArea는 처음 검색할 영역(내 위치 둘레, 못 받으면 전주시 대표 영역)
 const initialSearch = (category, homeArea) => ({
-  q: categoryOf(category).name,
+  category,
+  q: '',
   keyword: '',
   area: homeArea, // 마지막으로 검색한 지도 영역과 거리 기준 중앙
   scope: 'first', // first: 처음 영역(내 주변·전주시 전체), new: 지도 영역으로 다시 검색한 결과
@@ -46,6 +54,8 @@ export default function usePlaceSearch(category, onCategoryChange) {
   const [syncedCategory, setSyncedCategory] = useState(category);
   const [isHomeApplied, setIsHomeApplied] = useState(!home.isLocating);
   const [sort, setSort] = useState(DEFAULT_SORT);
+  // 입력칸에 쳤지만 아직 검색하지 않은 글자. 그 글자를 친 검색(fitKey)에서만 쓴다
+  const draftRef = useRef(null);
 
   // 주소창이나 GNB로 카테고리가 바뀌면 검색 상태를 처음으로 되돌린다
   if (syncedCategory !== category) {
@@ -100,9 +110,14 @@ export default function usePlaceSearch(category, onCategoryChange) {
     changeCategory(next, initialSearch(next, home.area));
 
   const submitSearch = (text) => {
-    const q = text.trim();
-    if (!q) return;
-    setSearch({ ...initialSearch(category, home.area), q, keyword: q });
+    setSearch({
+      ...initialSearch(category, home.area),
+      ...searchTextOf(category, text),
+    });
+  };
+
+  const typeSearch = (text) => {
+    draftRef.current = { fitKey: search.fitKey, text };
   };
 
   const selectPlace = (plcSn, by) =>
@@ -118,16 +133,22 @@ export default function usePlaceSearch(category, onCategoryChange) {
   const markMoved = () =>
     setSearch((prev) => (prev.isMoved ? prev : { ...prev, isMoved: true }));
 
-  // 지도를 옮긴 뒤 그 순간의 영역으로 검색어·카테고리·정렬은 그대로 다시 검색한다
-  const researchHere = (area) =>
+  // 지도를 옮긴 뒤 그 순간의 영역으로 다시 검색한다. 검색어는 지금 입력칸에 보이는 글자를 따르고 카테고리·정렬은 그대로 둔다
+  const researchHere = (area) => {
+    const draft = draftRef.current;
     setSearch((prev) => ({
       ...prev,
+      ...searchTextOf(
+        category,
+        draft?.fitKey === prev.fitKey ? draft.text : prev.q,
+      ),
       area,
       scope: 'new',
       isMoved: false,
       selected: null,
       selectedBy: '',
     }));
+  };
 
   const toggleFavorite = (place) => {
     if (toggle.isPending) return;
@@ -168,6 +189,7 @@ export default function usePlaceSearch(category, onCategoryChange) {
     homeArea: home.area,
     selectCategory,
     submitSearch,
+    typeSearch,
     selectPlace,
     closePlace,
     markMoved,
