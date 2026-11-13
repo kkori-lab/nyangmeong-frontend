@@ -32,7 +32,8 @@ export const isColrMismatch = (pet) =>
   pet.colrCd !== COLR_DRCT_INPT &&
   !COLR_OPTIONS[pet.petSeCd]?.some((colr) => colr.code === pet.colrCd);
 
-export const formatWeight = (kg) => `${kg}kg`;
+/** 소수 셋째 자리에서 반올림해 둘째 자리까지, 끝 0은 생략 (4.20 → 4.2kg, 5.00 → 5kg) */
+export const formatWeight = (kg) => `${Number(Number(kg).toFixed(2))}kg`;
 
 /** 쉼표 문자열 -> 배열 */
 export const splitList = (value) => (value ? value.split(',') : []);
