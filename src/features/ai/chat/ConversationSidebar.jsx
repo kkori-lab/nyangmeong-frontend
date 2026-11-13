@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Menu, Plus, User, X } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, Plus, User, X } from 'lucide-react';
 import KebabMenu from '@/components/KebabMenu';
 import Skeleton from '@/components/Skeleton';
 import DeleteConversationModal from './DeleteConversationModal';
@@ -68,7 +68,7 @@ export default function ConversationSidebar({
           }`}
           onClick={handleRailClick}
         >
-          <Menu size={20} aria-hidden="true" />
+          <PanelLeftOpen size={20} aria-hidden="true" />
         </button>
 
         <div
@@ -137,7 +137,7 @@ function SidebarPanel({
   onRoomDeleted,
 }) {
   const { data: conversations, isPending, isError } = conversationsQuery;
-  const HeaderIcon = headerButton.icon ?? Menu;
+  const HeaderIcon = headerButton.icon ?? PanelLeftClose;
   const [deletingRoomSn, setDeletingRoomSn] = useState(null);
 
   const handleRoomDeleted = (aiCnvrsRoomSn) => {
