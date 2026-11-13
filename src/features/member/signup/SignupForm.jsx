@@ -100,7 +100,7 @@ export default function SignupForm({ onBackToLogin, onGoLogin, onRecover }) {
       </StepMotion>
       <SignupStepper current={no} />
       <StepMotion stepKey={form.step} direction={form.direction}>
-        {form.notice && (
+        {form.notice && !(form.step === 'email' && form.isCodeLocked) && (
           <AuthNotice
             type={form.notice.type}
             message={form.notice.message}

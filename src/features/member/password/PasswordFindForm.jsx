@@ -4,6 +4,7 @@ import AuthField from '../shared/AuthField';
 import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
 import { OUTLINE_BTN, PRIMARY_BTN, TEXT_LINK } from '../shared/authStyles';
+import { resendLabel } from '../shared/emailCert';
 import { SNS_NAME } from '../shared/snsCodes';
 import { PASSWORD_MESSAGES as MSG } from './passwordMessages';
 import usePasswordFind from './usePasswordFind';
@@ -63,7 +64,7 @@ export default function PasswordFindForm({
           title="비밀번호 찾기"
           subtitle="본인확인을 하면 가입한 로그인 방법을 알려 드립니다."
         />
-        {notice}
+        {!form.isCodeLocked && notice}
         <div className={`${SUMMARY} flex justify-between gap-3`}>
           <span className="text-muted">인증할 이메일</span>
           <strong className="min-w-0 truncate font-semibold text-ink">
@@ -75,30 +76,34 @@ export default function PasswordFindForm({
             이메일 다시 입력
           </button>
         </div>
+        {/** 오답 안내: 이메일 상자 바로 아래 */}
+        {form.isCodeLocked && notice}
         <form
           noValidate
           onSubmit={form.submitCode}
           className="mt-5 flex flex-col gap-8"
         >
-          <AuthField
-            id="find-code"
-            icon={ShieldCheck}
-            label="인증번호"
-            value={form.code}
-            onChange={form.changeCode}
-            placeholder="숫자 6자리 입력"
-            autoComplete="one-time-code"
-            inputMode="numeric"
-            maxLength={6}
-            error={form.errors.code}
-            help={form.isSent ? MSG.sent : ''}
-            hasGuide={target === 'code'}
-            endAdornment={
-              <span className="font-semibold text-danger tabular-nums">
-                {form.countdown.text}
-              </span>
-            }
-          />
+          {!form.isCodeLocked && (
+            <AuthField
+              id="find-code"
+              icon={ShieldCheck}
+              label="인증번호"
+              value={form.code}
+              onChange={form.changeCode}
+              placeholder="숫자 6자리 입력"
+              autoComplete="one-time-code"
+              inputMode="numeric"
+              maxLength={6}
+              error={form.errors.code}
+              help={form.isSent ? MSG.sent : ''}
+              hasGuide={target === 'code'}
+              endAdornment={
+                <span className="font-semibold text-danger tabular-nums">
+                  {form.countdown.text}
+                </span>
+              }
+            />
+          )}
           {form.notice?.isWithdrawn && (
             <button
               type="button"
@@ -112,18 +117,24 @@ export default function PasswordFindForm({
             <button
               type="button"
               onClick={form.resend}
-              disabled={form.isPending}
-              className={`${OUTLINE_BTN} basis-[120px]`}
+              disabled={form.isPending || form.resendSeconds > 0}
+              className={
+                form.isCodeLocked
+                  ? `${PRIMARY_BTN} flex-1`
+                  : `${OUTLINE_BTN} basis-[120px]`
+              }
             >
-              다시 보내기
+              {resendLabel(form.resendSeconds)}
             </button>
-            <button
-              type="submit"
-              disabled={form.isPending || form.isCodeLocked}
-              className={`${PRIMARY_BTN} flex-1`}
-            >
-              인증번호 확인
-            </button>
+            {!form.isCodeLocked && (
+              <button
+                type="submit"
+                disabled={form.isPending}
+                className={`${PRIMARY_BTN} flex-1`}
+              >
+                인증번호 확인
+              </button>
+            )}
           </div>
         </form>
         <div className="mt-6 flex justify-center">

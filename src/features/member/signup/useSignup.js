@@ -7,17 +7,16 @@ import {
   useTermsList,
   useVerifySignupCode,
 } from '../queries';
+import { isWrongCodeError, resendAtOf, toMs } from '../shared/emailCert';
 import {
+  formatPhoneInput,
   isValidEmail,
   isValidPassword,
   isValidPhone,
   normalizePhone,
-  sanitizePhoneInput,
+  typePhoneInput,
 } from '../shared/validate';
 import { SIGNUP_MESSAGES as MSG } from './signupMessages';
-
-/** 서버 시각(LocalDateTime, 시간대 없음)을 ms로 */
-const toMs = (dateTime) => Date.parse(dateTime);
 
 // 가입 요청의 서버 검증 오류 field를 가입 화면 칸 이름으로
 const JOIN_FIELD_KEYS = { mblTelno: 'phone', certNo: 'code' };
@@ -31,15 +30,6 @@ const JOIN_FAILED_CODES = [
 
 const PREV_STEP = { email: 'terms', phone: 'email', password: 'phone' };
 const ORDER = ['terms', 'email', 'phone', 'password', 'complete'];
-
-// 인증번호 발송 오류: 재전송 제한이면 서버 문구에 남은 시간을 붙인다
-const resendMessage = (error) => {
-  const resendAt = error.data?.resendAvailableDt;
-  const remain = resendAt
-    ? Math.max(0, Math.ceil((toMs(resendAt) - Date.now()) / 1000))
-    : 0;
-  return remain ? `${error.message} (${remain}초 남음)` : error.message;
-};
 
 // 이메일 가입 4단계(terms, email, phone, password)와 가입 뒤 완료 화면(complete)의 입력·확인 결과를 한곳에서 다룬다.
 // 단계를 오가도 약관·이메일·번호와 확인 결과는 남기고, 비밀번호는 단계를 벗어나면 비운다
@@ -58,8 +48,10 @@ export default function useSignup({ onBackToLogin, onRecover }) {
   const [isSent, setIsSent] = useState(false);
   const [expiresAt, setExpiresAt] = useState(0);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
-  // 인증번호를 서버 한도까지 틀리면 그 번호로는 더 확인할 수 없어 재발송 전까지 [인증 확인]을 막는다
+  /** 오답으로 무효가 된 인증번호: 다시 보낼 때까지 인증번호 칸·타이머 숨김 */
   const [isCodeLocked, setIsCodeLocked] = useState(false);
+  /** 재발송 가능 시각(ms, 서버 값) */
+  const [resendAt, setResendAt] = useState(0);
   const [phone, setPhone] = useState('');
   const [isPhoneChecked, setIsPhoneChecked] = useState(false);
   const [password, setPassword] = useState('');
@@ -75,6 +67,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
   const join = useJoinMember();
   const termsQuery = useTermsList();
   const countdown = useCountdown(expiresAt);
+  const resendWait = useCountdown(resendAt);
 
   const termsList = [...(termsQuery.data ?? [])].sort(
     (a, b) => a.sortSeq - b.sortSeq,
@@ -128,14 +121,22 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     setVerifiedCode('');
     setIsEmailVerified(false);
     setIsCodeLocked(false);
+    setResendAt(0);
     setErrors({});
     setNotice(null);
   };
 
   const changeCode = (value) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
-    // 확인이 막힌 동안에는 재발송 안내를 남긴다
-    if (!isCodeLocked) setErrors({});
+    setErrors({});
+  };
+
+  /** 오답 처리: 인증번호 칸을 닫고 공통 알림(AI 말풍선)으로 재발송 안내 */
+  const lockCode = (message) => {
+    setIsCodeLocked(true);
+    setCode('');
+    setErrors({});
+    setNotice({ type: 'error', message });
   };
 
   const submitSend = () => {
@@ -148,6 +149,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
       setErrors({ email: MSG.emailFormat });
       return;
     }
+    if (resendWait.seconds > 0) return;
     setNotice(null);
     sendCode.mutate(
       { certTrgtEml: trimmed },
@@ -159,6 +161,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
           setCode('');
           setIsSent(true);
           setIsCodeLocked(false);
+          setResendAt(resendAtOf(result));
           setErrors({});
         },
         onError: (error) => {
@@ -171,7 +174,8 @@ export default function useSignup({ onBackToLogin, onRecover }) {
             // 메일을 받을 수 없는 도메인은 주소를 고쳐야 하므로 이메일 칸 아래에 서버 문구를 보인다
             setErrors({ email: error.message || MSG.sendFailed });
           } else if (error.code === 'EMAIL_CERT_RESEND_NOT_YET') {
-            setNotice({ type: 'error', message: resendMessage(error) });
+            setResendAt(resendAtOf(error.data));
+            setNotice({ type: 'error', message: error.message });
           } else if (error.code === 'MAIL_SEND_FAILED') {
             // 메일 발송 실패는 서버 문구를 그대로 보이고 재전송 대기는 시작하지 않는다
             setNotice({
@@ -209,13 +213,12 @@ export default function useSignup({ onBackToLogin, onRecover }) {
             setVerifiedCode(code);
             setErrors({});
           } else {
-            setErrors({ code: MSG.codeMismatch });
+            lockCode(MSG.codeRetry);
           }
         },
         onError: (error) => {
-          if (error.code === 'EMAIL_CERT_FAIL_LIMIT_EXCEEDED') {
-            setIsCodeLocked(true);
-            setErrors({ code: error.message });
+          if (isWrongCodeError(error)) {
+            lockCode(error.message || MSG.codeRetry);
           } else if (error.code.startsWith('EMAIL_CERT_')) {
             setErrors({ code: error.message });
           } else {
@@ -228,7 +231,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
 
   /* 휴대전화번호 */
   const changePhone = (value) => {
-    setPhone(sanitizePhoneInput(value));
+    setPhone(typePhoneInput(phone, value));
     setIsPhoneChecked(false);
     setErrors({});
   };
@@ -247,7 +250,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
       {
         onSuccess: ({ available, normalizedMblTelno }) => {
           setIsPhoneChecked(available);
-          setPhone(normalizedMblTelno);
+          setPhone(formatPhoneInput(normalizedMblTelno));
           setErrors(available ? {} : { phone: MSG.phoneDuplicate });
         },
         onError: (error) =>
@@ -395,6 +398,7 @@ export default function useSignup({ onBackToLogin, onRecover }) {
     isSending: sendCode.isPending,
     isVerifying: verifyCode.isPending,
     isCodeLocked,
+    resendSeconds: resendWait.seconds,
     isPhoneChecking: checkPhone.isPending,
     isJoining: join.isPending,
     guideTarget,

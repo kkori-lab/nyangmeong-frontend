@@ -1,6 +1,8 @@
 import { Mail, ShieldCheck } from 'lucide-react';
 import { OUTLINE_BTN, PRIMARY_BTN, SIDE_BTN } from '../shared/authStyles';
 import AuthField from '../shared/AuthField';
+import AuthNotice from '../shared/AuthNotice';
+import { resendLabel } from '../shared/emailCert';
 import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 
 export default function EmailStep({ form }) {
@@ -23,10 +25,12 @@ export default function EmailStep({ form }) {
             <button
               type="button"
               onClick={form.submitSend}
-              disabled={!form.email.trim() || form.isSending}
+              disabled={
+                !form.email.trim() || form.isSending || form.resendSeconds > 0
+              }
               className={SIDE_BTN}
             >
-              {form.isSent ? '다시 보내기' : '인증번호 발송'}
+              {form.isSent ? resendLabel(form.resendSeconds) : '인증번호 발송'}
             </button>
           }
         />
@@ -39,7 +43,15 @@ export default function EmailStep({ form }) {
             기존 가입 방법으로 로그인
           </button>
         )}
-        {form.isSent && (
+        {/** 오답 안내: 이메일 칸 바로 아래 */}
+        {form.isCodeLocked && form.notice && (
+          <AuthNotice
+            type={form.notice.type}
+            message={form.notice.message}
+            hasGuide={target === 'notice'}
+          />
+        )}
+        {form.isSent && !form.isCodeLocked && (
           <AuthField
             id="signup-code"
             icon={ShieldCheck}
@@ -75,8 +87,7 @@ export default function EmailStep({ form }) {
                 disabled={
                   !form.code ||
                   form.isVerifying ||
-                  form.isEmailVerified ||
-                  form.isCodeLocked
+                  form.isEmailVerified
                 }
                 className={`${SIDE_BTN} !border-transparent !bg-brand-50 !text-brand-600 hover:enabled:!bg-brand-100 disabled:!bg-surface-3 disabled:!text-line-strong`}
               >

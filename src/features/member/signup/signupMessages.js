@@ -10,6 +10,7 @@ export const SIGNUP_MESSAGES = {
   codeEmpty: '인증번호를 입력해 주세요.',
   codeFormat: '인증번호는 숫자 6자리로 입력해 주세요.',
   codeMismatch: '인증번호가 일치하지 않습니다.',
+  codeRetry: '인증번호가 일치하지 않습니다. 인증번호를 다시 받아 주세요.',
   codeExpired: '인증 시간이 만료되었습니다. 다시 보내기를 눌러 주세요.',
   phoneEmpty: '휴대전화번호를 입력해 주세요.',
   phoneFormat: '휴대전화번호 형식을 확인해 주세요.',
