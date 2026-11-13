@@ -4,15 +4,18 @@ import { useEffect } from 'react';
 let lockCount = 0;
 let savedStyles = null;
 
+/**
+ * html에만 잠금을 건다
+ * - body에도 overflow hidden을 걸면 body가 따로 스크롤되는 상자가 되어, 내린 채 열 때 sticky 헤더가 화면 위로 밀려난다(2026-11-13)
+ */
 const lock = () => {
   lockCount += 1;
   if (lockCount > 1) return;
-  const { documentElement: html, body } = document;
+  const html = document.documentElement;
   savedStyles = {
-    htmlOverflow: html.style.overflow,
-    htmlGutter: html.style.scrollbarGutter,
-    bodyOverflow: body.style.overflow,
-    bodyOverscroll: body.style.overscrollBehavior,
+    overflow: html.style.overflow,
+    gutter: html.style.scrollbarGutter,
+    overscroll: html.style.overscrollBehavior,
   };
   /**
    * 스크롤바가 사라지며 화면이 밀리지 않게 자리를 남긴다
@@ -21,18 +24,16 @@ const lock = () => {
   const hasScrollbar = window.innerWidth > html.clientWidth;
   if (hasScrollbar) html.style.scrollbarGutter = 'stable';
   html.style.overflow = 'hidden';
-  body.style.overflow = 'hidden';
-  body.style.overscrollBehavior = 'none';
+  html.style.overscrollBehavior = 'none';
 };
 
 const unlock = () => {
   lockCount = Math.max(0, lockCount - 1);
   if (lockCount > 0 || !savedStyles) return;
-  const { documentElement: html, body } = document;
-  html.style.overflow = savedStyles.htmlOverflow;
-  html.style.scrollbarGutter = savedStyles.htmlGutter;
-  body.style.overflow = savedStyles.bodyOverflow;
-  body.style.overscrollBehavior = savedStyles.bodyOverscroll;
+  const html = document.documentElement;
+  html.style.overflow = savedStyles.overflow;
+  html.style.scrollbarGutter = savedStyles.gutter;
+  html.style.overscrollBehavior = savedStyles.overscroll;
   savedStyles = null;
 };
 

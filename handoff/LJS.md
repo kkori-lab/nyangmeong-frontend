@@ -2,11 +2,10 @@
 
 ## 지금 하는 것
 
-없음(2026-11-13 SCR-AIM-011 AI 대화창 사람 확인 피드백 끝: F1 자동 스크롤·F2 사진 오류 문구 다음 전송 때 지우기·F3 플로팅 버튼 진입 시 최근 방·F4 마지막으로 고른 반려동물 유지(`utils/lastPetSn.js`)·F5 사이드바 패널 아이콘, 추가-1 보낼 때 부드러운 스크롤. 검증 통과, 사람 확인 2026-11-13)
+없음(2026-11-13 SCR-COM-002 모달 열 때 헤더 사라짐 끝: `hooks/useScrollLock.js`가 `html`에만 overflow hidden·overscroll none을 걸고 `body`는 건드리지 않아, 내린 채 모달을 열어도 sticky 헤더가 화면 맨 위에 남는다. 검증 통과, 사람 확인 2026-11-13. 공용 훅이라 SJM에게 PR 본문으로 알림)
 
 ## 다음에 할 것
 
-- 공통 헤더가 AI 모달을 열면 사라지는 버그(사람 제보 2026-11-13, 원인 확인함, `/start`로 기획): 페이지를 내려 둔 채(scrollY>0) 모달을 열면 `hooks/useScrollLock.js`가 `html`과 `body`에 모두 `overflow: hidden`을 걸어 `body`가 스크롤 컨테이너가 되고, `sticky top-0` 헤더(`layouts/UserHeader.jsx`)가 `body` 기준으로 붙어 화면 위로 밀려난다(5180 `/community` 800px 내린 뒤 [AI] → 헤더 top -800, `body` overflow만 풀면 0). 빠른 페이지 이동과는 상관없이 내린 상태면 난다. 고칠 곳: `useScrollLock`에서 `body.style.overflow`를 건드리지 않는다(`html` overflow hidden만으로 창 스크롤이 잠긴다). 쓰는 곳 5개(공용 훅) 모두 확인
 - SCR-AIM-011 사람 확인 피드백 알림(2026-11-13): JAJ에게 건강기록 마지막 선택 저장이 `features/health/shared/selectedPet.js`에서 `utils/lastPetSn.js`(`readLastPetSn`·`writeLastPetSn`, 키 `nyangmeong.lastPetSn.<mbrSn>`, 예전 키도 읽음)로 옮겨졌고 AI 채팅이 처음 칩으로 읽는다고 알린다(PR 본문에도). 플로팅 버튼으로 연 AI 모달은 이제 최근 방을 연다(사람 결정 2026-11-10 "다시 열면 새 대화"를 플로팅 버튼만 바꿈, 메인 검색창은 새 대화)
 - SCR-AIM-011 사람이 볼 것(판정 밖, 2026-11-13 검증 보고): 메인 검색창에서 보낸 직후 AI 모달이 닫힌 일과 `/ai-chat`이 새로고침된 일이 한 번씩 있었다(다시 해 보니 재현 안 됨, pageerror 없음, 원인·이번 변경 관련 여부 모름). 화면마다 콘솔 오류 1~4건(원인 안 봄)
 - SCR-AIM-011 검증 데이터 정리(2026-11-13, 8081 DB·tester 계정): AI 대화방 467·469·475와 메인 검색으로 만든 방은 AI 창 ⋮ [삭제]. 방 451 "까미 혈액검사 결과 두 회차 비교 확인"에 [검증]·"검증:" 질문과 답변이 남았다(메시지 삭제 API 없음). 방 468 "이 사진 봐줘"는 다른 세션이 만든 것으로 보임
