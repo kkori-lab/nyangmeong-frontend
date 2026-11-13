@@ -57,9 +57,9 @@ export const PET_SIZE_OPTIONS = [
 
 export const SIZE_FILTERS = [
   { value: '', label: '전체' },
-  { value: 's', label: '소형' },
-  { value: 'm', label: '중형' },
-  { value: 'l', label: '대형' },
+  { value: 's', label: '소형견' },
+  { value: 'm', label: '중형견' },
+  { value: 'l', label: '대형견' },
 ];
 
 export const SIZE_BY_FILTER = Object.fromEntries(

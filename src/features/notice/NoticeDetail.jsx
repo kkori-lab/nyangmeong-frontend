@@ -1,4 +1,4 @@
-import { ChevronLeft, Megaphone } from 'lucide-react';
+import { Megaphone } from 'lucide-react';
 import { generatePath, Link } from 'react-router-dom';
 import PostBody from '@/components/PostBody';
 import { PATHS } from '@/routes/paths';
@@ -34,16 +34,6 @@ export default function NoticeDetail({ notice }) {
         </div>
 
         <PostBody content={notice.ntcMttrCn} fileImages />
-
-        <div className="border-t border-[#e2e7e7] pt-[21px]">
-          <Link
-            to={PATHS.NOTICES}
-            className="inline-flex items-center gap-1.5 text-base leading-normal font-medium text-[#566465]"
-          >
-            <ChevronLeft size={14} />
-            목록으로
-          </Link>
-        </div>
       </article>
 
       <section className="rounded-[14px] border border-[#e2e7e7] bg-white px-9 py-8 max-[760px]:px-5 max-[760px]:py-6">

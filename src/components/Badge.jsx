@@ -2,6 +2,7 @@ const TONES = {
   brand: 'bg-[#e9f2f2] text-[#1e4a4c]',
   gray: 'bg-[#eef1f4] text-[#59636e]',
   amber: 'bg-[#fcf1df] text-[#9a5c0c]',
+  mine: 'bg-[#f9eaa6] text-[#1a3234]',
   white: 'bg-white text-[#1e4a4c]',
   ok: 'bg-[#e6f4ec] text-[#22744a] before:size-1.5 before:rounded-full before:bg-current before:content-[""]',
   outline: 'bg-white text-[#3d4a4b] shadow-[inset_0_0_0_1px_#e2e7e7]',

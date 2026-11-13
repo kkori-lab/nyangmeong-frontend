@@ -1,4 +1,4 @@
-import { ChevronLeft, CircleAlert } from 'lucide-react';
+import { CircleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import AutoTextarea from '@/components/AutoTextarea';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
@@ -159,7 +159,7 @@ export default function PostForm({
                 제목
                 <Required />
               </label>
-              <span className="text-sm text-[#667374]">
+              <span className="text-xs text-[#667374]">
                 {title.length} / {TITLE_MAX}
               </span>
             </div>
@@ -202,11 +202,11 @@ export default function PostForm({
                 setBody(event.target.value);
                 clearError('body');
               }}
-              className={`${INPUT_CLASS} max-h-[600px] min-h-[300px] resize-y py-3 leading-[1.7] max-[760px]:min-h-[240px] ${errors.body ? 'border-[#b4473a]' : 'border-[#d3dae2]'}`}
+              className={`${INPUT_CLASS} max-h-[600px] min-h-[200px] resize-y py-3 leading-[1.7] ${errors.body ? 'border-[#b4473a]' : 'border-[#d3dae2]'}`}
             />
             <div className="flex items-start justify-between gap-3">
               <FieldError message={errors.body} />
-              <span className="ml-auto shrink-0 text-sm text-[#667374]">
+              <span className="ml-auto shrink-0 text-xs text-[#667374]">
                 {body.length.toLocaleString()} / {BODY_MAX.toLocaleString()}
               </span>
             </div>
@@ -220,14 +220,6 @@ export default function PostForm({
         )}
 
         <div className="mt-8 flex items-center justify-end gap-2 border-t border-[#e2e7e7] pt-6 max-[760px]:mt-6 max-[760px]:flex-wrap max-[760px]:pt-5">
-          <button
-            type="button"
-            onClick={() => onLeave(PATHS.COMMUNITY)}
-            className="mr-auto inline-flex min-h-9 cursor-pointer items-center gap-1.5 text-base leading-normal font-medium text-[#566465] hover:text-[#1a3234] max-[760px]:order-3 max-[760px]:mr-0 max-[760px]:w-full max-[760px]:justify-center"
-          >
-            <ChevronLeft size={14} aria-hidden="true" />
-            목록으로
-          </button>
           <button
             type="button"
             onClick={() => onLeave(cancelTo)}

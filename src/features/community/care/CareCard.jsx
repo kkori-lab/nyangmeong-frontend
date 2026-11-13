@@ -29,7 +29,7 @@ export default function CareCard({ post }) {
       <span className="col-start-1 row-start-1 min-w-0 max-[760px]:order-2 max-[760px]:row-start-auto">
         <span className="mb-2.5 flex flex-wrap gap-1.5">
           {post.owner && (
-            <Badge tone="amber" bordered>
+            <Badge tone="mine" bordered>
               내 글
             </Badge>
           )}

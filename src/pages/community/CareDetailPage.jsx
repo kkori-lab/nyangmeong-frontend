@@ -1,5 +1,5 @@
 import { FileX } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import EmptyResult from '@/components/EmptyResult';
 import CareDetail from '@/features/community/care/CareDetail';
 import { useCare } from '@/features/community/careQueries';
@@ -24,6 +24,7 @@ function CareDetailSkeleton() {
 
 export default function CareDetailPage() {
   const petPrtcRcrtSn = Number(useParams().petPrtcRcrtSn);
+  const { state } = useLocation();
   const { data: post, isPending, isError } = useCare(petPrtcRcrtSn);
 
   let body;
@@ -50,12 +51,13 @@ export default function CareDetailPage() {
     body = <CareDetail post={post} />;
   }
 
-  /** 상세 제목은 메뉴 이름이라 title을 넘기지 않는다. 「목록으로」는 본문 하단 */
+  /** 상세 제목은 메뉴 이름이라 title을 넘기지 않는다. 「목록으로」는 본문 박스 위(보던 목록 쿼리로 돌아감) */
   return (
     <SubPageLayout
       section="community"
       menu={PATHS.COMMUNITY_PETCARE}
-      back={false}
+      back
+      backTo={`${PATHS.COMMUNITY_PETCARE}${state?.listSearch ?? ''}`}
       description={DESCRIPTION}
     >
       {body}

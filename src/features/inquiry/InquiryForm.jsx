@@ -1,4 +1,4 @@
-import { ChevronLeft, CircleAlert } from 'lucide-react';
+import { CircleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import AutoTextarea from '@/components/AutoTextarea';
@@ -202,7 +202,7 @@ export default function InquiryForm({
                 *
               </span>
             </label>
-            <span className="text-sm text-[#667374]">
+            <span className="text-xs text-[#667374]">
               {title.length} / {TITLE_MAX}
             </span>
           </div>
@@ -240,25 +240,26 @@ export default function InquiryForm({
               *
             </span>
           </label>
-          <AutoTextarea
-            id="inquiry-body"
-            value={body}
-            maxLength={BODY_MAX}
-            placeholder="언제, 어떤 화면에서, 어떤 일이 있었는지 자세히 적어 주시면 더 빠르게 답변드릴 수 있어요"
-            aria-required="true"
-            aria-invalid={Boolean(errors.body)}
-            onChange={(event) => {
-              setBody(event.target.value);
-              clearError('body');
-            }}
-            className={`${INPUT_CLASS} max-h-[600px] min-h-[300px] resize-y py-3 leading-[1.7] max-[760px]:min-h-[240px] ${errors.body ? 'border-[#b4473a]' : 'border-[#d3dae2]'}`}
-          />
-          <div className="flex items-start justify-between gap-3">
-            <FieldError message={errors.body || serverFieldError('inqryCn')} />
-            <span className="ml-auto shrink-0 text-sm text-[#667374]">
+          {/** 글자 수는 높이를 차지하지 않고 칸 사이 간격 안 오른쪽에 둔다. 오류 문구만 흐름에 있어 다른 칸과 간격이 같다 */}
+          <div className="relative">
+            <AutoTextarea
+              id="inquiry-body"
+              value={body}
+              maxLength={BODY_MAX}
+              placeholder="언제, 어떤 화면에서, 어떤 일이 있었는지 자세히 적어 주시면 더 빠르게 답변드릴 수 있어요"
+              aria-required="true"
+              aria-invalid={Boolean(errors.body)}
+              onChange={(event) => {
+                setBody(event.target.value);
+                clearError('body');
+              }}
+              className={`${INPUT_CLASS} max-h-[600px] min-h-[200px] resize-y py-3 leading-[1.7] ${errors.body ? 'border-[#b4473a]' : 'border-[#d3dae2]'}`}
+            />
+            <span className="absolute top-full right-0 mt-1.5 text-xs text-[#667374]">
               {body.length.toLocaleString()} / {BODY_MAX.toLocaleString()}
             </span>
           </div>
+          <FieldError message={errors.body || serverFieldError('inqryCn')} />
         </div>
 
         <ImageAttach
@@ -293,14 +294,6 @@ export default function InquiryForm({
       )}
 
       <div className="mt-8 flex items-center justify-end gap-2 border-t border-[#e2e7e7] pt-6 max-[760px]:mt-6 max-[760px]:flex-wrap max-[760px]:pt-5">
-        <button
-          type="button"
-          onClick={() => handleLeave(PATHS.INQUIRIES)}
-          className="mr-auto inline-flex min-h-9 cursor-pointer items-center gap-1.5 text-base leading-normal font-medium text-[#566465] hover:text-[#1a3234] max-[760px]:order-3 max-[760px]:mr-0 max-[760px]:w-full max-[760px]:justify-center"
-        >
-          <ChevronLeft size={14} aria-hidden="true" />
-          목록으로
-        </button>
         <button
           type="button"
           onClick={() => handleLeave(cancelTo)}

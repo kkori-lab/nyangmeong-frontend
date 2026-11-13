@@ -1,5 +1,4 @@
 import {
-  ChevronLeft,
   CircleAlert,
   Info,
   MapPin,
@@ -59,7 +58,7 @@ function FieldError({ message, id }) {
 
 function Counter({ value, max }) {
   return (
-    <span className="text-sm text-muted">
+    <span className="text-xs text-muted">
       {value.length.toLocaleString()} / {max.toLocaleString()}
     </span>
   );
@@ -463,7 +462,7 @@ export default function MissingForm({
                 onChange={(event) =>
                   set({ body: event.target.value }, ['body'])
                 }
-                className={`${TEXTAREA_BASE} max-h-[600px] min-h-[240px] resize-y py-3 leading-[1.7] ${borderOf(errors.body)}`}
+                className={`${TEXTAREA_BASE} max-h-[600px] min-h-[200px] resize-y py-3 leading-[1.7] ${borderOf(errors.body)}`}
               />
               <div className="flex items-start justify-between gap-3">
                 <FieldError message={errors.body} />
@@ -505,7 +504,7 @@ export default function MissingForm({
             />
 
             <div
-              className={`flex flex-col gap-1.5 rounded-lg border px-4 py-3.5 ${errors.agree ? 'border-danger' : 'border-line'} bg-surface-2`}
+              className="flex flex-col gap-1.5"
             >
               <label className="flex min-h-8 cursor-pointer items-start gap-2.5">
                 <input
@@ -534,14 +533,6 @@ export default function MissingForm({
         )}
 
         <div className="mt-2 flex items-center justify-end gap-2 border-t border-line pt-6 max-[760px]:flex-wrap max-[760px]:pt-5">
-          <button
-            type="button"
-            onClick={() => onLeave(PATHS.COMMUNITY_MISSING)}
-            className="mr-auto inline-flex min-h-9 cursor-pointer items-center gap-1.5 text-base leading-normal font-medium text-muted hover:text-ink max-[760px]:order-3 max-[760px]:mr-0 max-[760px]:w-full max-[760px]:justify-center"
-          >
-            <ChevronLeft size={14} aria-hidden="true" />
-            목록으로
-          </button>
           <button
             type="button"
             onClick={() => onLeave(cancelTo)}

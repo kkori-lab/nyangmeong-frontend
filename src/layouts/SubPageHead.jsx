@@ -16,6 +16,7 @@ export default function SubPageHead({
   title,
   description,
   pixel,
+  action,
   hasSwitch,
   onLeave,
 }) {
@@ -49,19 +50,25 @@ export default function SubPageHead({
         </span>
       </nav>
       <header className="relative mb-6 max-[1101px]:mb-5 min-[1101px]:col-start-2 min-[1101px]:row-start-2">
-        <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[28px] leading-[1.3] tracking-[-0.02em] max-[761px]:text-2xl">
-          <h1 className="font-bold text-ink">{heading}</h1>
-          {hasSwitch && (
-            <MenuSwitch section={section} activeItem={activeItem} />
-          )}
+        <div className="flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[28px] leading-[1.3] tracking-[-0.02em] max-[761px]:text-2xl">
+              <h1 className="font-bold text-ink">{heading}</h1>
+              {hasSwitch && (
+                <MenuSwitch section={section} activeItem={activeItem} />
+              )}
+            </div>
+            {/** 설명이 없어도 한 줄 높이를 비워 콘텐츠 시작 위치를 맞춤 */}
+            <p
+              aria-hidden={description ? undefined : 'true'}
+              className={`mt-2 text-muted max-[761px]:mt-1.5 max-[761px]:text-sm ${description ? '' : 'invisible'}`}
+            >
+              {description || ' '}
+            </p>
+          </div>
+          {/** 머리 오른쪽 작업 버튼(예: 글 등록): 제목이 아니라 설명 줄 아래에 맞춘다. 쓰는 쪽에서 픽셀 그림은 끈다 */}
+          {action && <div className="shrink-0">{action}</div>}
         </div>
-        {/** 설명이 없어도 한 줄 높이를 비워 콘텐츠 시작 위치를 맞춤 */}
-        <p
-          aria-hidden={description ? undefined : 'true'}
-          className={`mt-2 text-muted max-[761px]:mt-1.5 max-[761px]:text-sm ${description ? '' : 'invisible'}`}
-        >
-          {description || ' '}
-        </p>
         {pixel && (
           <img
             src={pixel}
