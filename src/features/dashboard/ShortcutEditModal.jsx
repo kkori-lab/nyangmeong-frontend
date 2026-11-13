@@ -63,14 +63,11 @@ const groupLabelOf = (type) =>
   type.parentCd ? TYPE_BY_CD[type.parentCd].label : type.group;
 
 /**
- * 웹 두 목록의 얇은 스크롤바: 트랙 없이 둥근 회색 막대(사람 요청 2026-11-13)
- * - Chromium·Safari는 ::-webkit-scrollbar(10px 칸에 테두리 3px를 비워 4px 막대), Firefox는 얇은 기본 바
- * - Chromium은 scrollbar-width·color를 주면 ::-webkit-scrollbar를 무시하므로 Firefox에만 준다
+ * 웹 두 목록의 막대 자리: 막대 모양은 공용 스크롤바(assets/index.css)를 따른다
  * - 막대 자리(10px)를 늘 비워 두고 오른쪽 여백을 24px→14px로 줄인다: 막대가 생겨도 목록 너비가 그대로이고
  *   막대는 오른쪽 여백 위에 보인다(사람 요청 2026-11-13). 웹 폭에서만(모바일 왼쪽 목록은 스크롤하지 않음)
  */
-const SCROLL_SOFT =
-  'min-[761px]:pr-3.5 min-[761px]:[scrollbar-gutter:stable] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-[3px] [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-[var(--color-input-line)] [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb:hover]:bg-[var(--color-line-strong)] supports-[-moz-appearance:none]:[scrollbar-width:thin] supports-[-moz-appearance:none]:[scrollbar-color:var(--color-input-line)_transparent]';
+const SCROLL_SOFT = 'min-[761px]:pr-3.5 min-[761px]:scrollbar-stable';
 
 const isSamePick = (a, b) => a.petSn === b.petSn && a.cd === b.cd;
 
