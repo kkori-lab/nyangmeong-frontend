@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import Skeleton from '@/components/Skeleton';
 import { pickGreeting } from '@/features/dashboard/greeting';
 import HeroAsk from '@/features/dashboard/HeroAsk';
-import MainShortcuts from '@/features/dashboard/MainShortcuts';
+import MainShortcuts, {
+  PetRegisterTile,
+} from '@/features/dashboard/MainShortcuts';
 import { useMyPets } from '@/features/health/queries';
 import { useMe } from '@/features/member/queries';
 import { PATHS } from '@/routes/paths';
@@ -42,20 +43,15 @@ export default function MainPage() {
           <HeroAsk petNm={representativePet?.petNm ?? '우리 아이'} />
           {pets?.length > 0 ? (
             <MainShortcuts pets={pets} mbrSn={me?.mbrSn} />
+          ) : isError ? (
+            <p className="text-muted">반려동물 정보를 불러오지 못했어요.</p>
           ) : (
-            <p className="text-muted">
-              {isError
-                ? '반려동물 정보를 불러오지 못했어요.'
-                : '등록된 반려동물이 없어요.'}{' '}
-              {!isError && (
-                <Link
-                  to={`${PATHS.MYPAGE_PETS}?register=1`}
-                  className="font-semibold text-brand-600 underline"
-                >
-                  반려동물 등록하기
-                </Link>
-              )}
-            </p>
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-sm leading-[22px] tracking-[-0.03em] text-muted">
+                등록된 반려동물이 없어요.
+              </p>
+              <PetRegisterTile to={`${PATHS.MYPAGE_PETS}?register=1`} />
+            </div>
           )}
         </>
       )}
