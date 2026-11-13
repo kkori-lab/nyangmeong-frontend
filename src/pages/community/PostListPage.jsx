@@ -71,10 +71,21 @@ function PostListSkeleton() {
           <Skeleton className="mx-auto h-9 w-64" />
         </div>
       </div>
-      <StoryRail />
+      <StoryRail action={writeAction} />
     </div>
   );
 }
+
+/** 오른쪽 레일 맨 위 글쓰기 버튼 */
+const writeAction = (
+  <Link
+    to={PATHS.COMMUNITY_POST_NEW}
+    className={`${BTN_PRIMARY} h-10! w-full text-base`}
+  >
+    <Pencil size={16} aria-hidden="true" />
+    펫이야기 글쓰기
+  </Link>
+);
 
 export default function PostListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -145,7 +156,7 @@ export default function PostListPage() {
         >
           게시글을 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
         </p>
-        <StoryRail />
+        <StoryRail action={writeAction} />
       </div>
     );
   } else {
@@ -163,6 +174,7 @@ export default function PostListPage() {
         onSearch={handleSearch}
         onPageChange={handlePageChange}
         onReset={() => setSearchParams({})}
+        action={writeAction}
       />
     );
   }
@@ -172,16 +184,6 @@ export default function PostListPage() {
       section="community"
       menu={PATHS.COMMUNITY}
       description={DESCRIPTION}
-      pixel={false}
-      headAction={
-        <Link
-          to={PATHS.COMMUNITY_POST_NEW}
-          className={`${BTN_PRIMARY} h-[34px]! text-sm`}
-        >
-          <Pencil size={16} aria-hidden="true" />
-          펫이야기 글쓰기
-        </Link>
-      }
       contentClassName="min-[1101px]:pt-[7px]"
     >
       {body}

@@ -7,7 +7,7 @@ import CareGuideRail from './CareGuideRail';
 
 /**
  * 펫돌봄 목록: 왼쪽에 필터 · 건수와 모집중만 보기·내 글만 보기 · 카드 · 페이지, 오른쪽에 안내 레일
- * - [돌봄 요청 등록]은 페이지 머리 오른쪽(CareListPage). 탭은 없고 모집중만 보기는 체크(?stts=open)
+ * - [돌봄 요청 등록]은 오른쪽 레일 맨 위(action, CareListPage가 넘긴다). 탭은 없고 모집중만 보기는 체크(?stts=open)
  * - filters: { stts, mine, region, dong, from, to, pet, size }, onChange(바뀐 값만), onReset, onPageChange
  */
 export default function CareList({
@@ -16,6 +16,7 @@ export default function CareList({
   onChange,
   onReset,
   onPageChange,
+  action,
 }) {
   const { content, page, totalPages, totalElements } = posts;
 
@@ -63,7 +64,10 @@ export default function CareList({
         </div>
       </div>
 
-      <CareGuideRail />
+      <div className="flex min-w-0 flex-col gap-8 max-[1101px]:contents">
+        <div className="max-[1101px]:order-first">{action}</div>
+        <CareGuideRail />
+      </div>
     </div>
   );
 }

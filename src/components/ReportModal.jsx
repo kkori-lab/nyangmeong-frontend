@@ -39,6 +39,7 @@ export default function ReportModal({
     }
     if (reason === ETC && !detail.trim()) {
       setError('기타를 고르셨다면 상세 내용을 적어 주세요');
+      document.getElementById('report-detail')?.focus();
       return;
     }
     onSubmit({ reason, detail: detail.trim() });
@@ -72,7 +73,7 @@ export default function ReportModal({
         </>
       }
     >
-      <p className="mb-4 rounded-md bg-[#f4f6f6] px-3 py-2.5 text-sm leading-normal break-all text-[#3d4a4b]">
+      <p className="mb-4 rounded-md bg-[#f4f6f6] px-3 py-2.5 text-sm leading-normal font-medium break-all text-[#3d4a4b]">
         {targetLabel}
       </p>
       <fieldset className="flex flex-col gap-2">
@@ -106,6 +107,11 @@ export default function ReportModal({
             className="text-base font-semibold text-[#1a3234]"
           >
             상세 내용
+            {reason === ETC && (
+              <span className="ml-1 text-[#b4473a]" aria-hidden="true">
+                (필수)
+              </span>
+            )}
           </label>
           <span className="text-xs text-[#667374]">
             {detail.length} / {DETAIL_MAX}
@@ -116,7 +122,9 @@ export default function ReportModal({
           value={detail}
           maxLength={DETAIL_MAX}
           rows={3}
-          placeholder="신고 사유를 자세히 적어 주세요 (선택)"
+          required={reason === ETC}
+          aria-required={reason === ETC}
+          placeholder="신고 사유를 입력해 주세요."
           onChange={(event) => {
             setDetail(event.target.value);
             setError('');

@@ -8,7 +8,7 @@ import MissingRail from './MissingRail';
 
 /**
  * 실종센터 목록: 왼쪽에 필터(검색 · 실종일 · 지역 · 반려동물) · 건수와 내 글만 보기 · 카드(한 줄 3개) · 페이지, 오른쪽에 레일
- * - [실종 신고 등록]은 페이지 머리 오른쪽(MissingListPage). 실종·찾았어요 글이 탭 없이 한 목록에 섞여 서버 순서로 나옴
+ * - [실종 신고 등록]은 오른쪽 레일 맨 위(action, MissingListPage가 넘긴다). 실종·찾았어요 글이 탭 없이 한 목록에 섞여 서버 순서로 나옴
  * - filters: { mine, region, dong, pet, period, keyword }, onChange(바뀐 값만), onReset, onPageChange
  */
 export default function MissingList({
@@ -17,6 +17,7 @@ export default function MissingList({
   onChange,
   onReset,
   onPageChange,
+  action,
 }) {
   const [input, setInput] = useState(filters.keyword);
   const { content, page, totalPages, totalElements } = posts;
@@ -79,7 +80,10 @@ export default function MissingList({
         </div>
       </div>
 
-      <MissingRail />
+      <div className="flex min-w-0 flex-col gap-10 max-[1100px]:contents">
+        <div className="max-[1100px]:order-first">{action}</div>
+        <MissingRail />
+      </div>
     </div>
   );
 }

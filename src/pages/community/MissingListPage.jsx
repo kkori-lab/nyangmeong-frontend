@@ -82,6 +82,17 @@ function MissingListSkeleton() {
   );
 }
 
+/** 오른쪽 레일 맨 위 등록 버튼 */
+const writeAction = (
+  <Link
+    to={PATHS.COMMUNITY_MISSING_NEW}
+    className={`${BTN_PRIMARY} h-10! w-full text-base`}
+  >
+    <Pencil size={16} aria-hidden="true" />
+    실종 신고 등록
+  </Link>
+);
+
 export default function MissingListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
@@ -149,6 +160,7 @@ export default function MissingListPage() {
         onChange={(next) => setQuery({ ...next, page: 1 })}
         onReset={() => setSearchParams({})}
         onPageChange={(nextPage) => setQuery({ page: nextPage })}
+        action={writeAction}
       />
     );
   }
@@ -158,16 +170,6 @@ export default function MissingListPage() {
       section="community"
       menu={PATHS.COMMUNITY_MISSING}
       description={DESCRIPTION}
-      pixel={false}
-      headAction={
-        <Link
-          to={PATHS.COMMUNITY_MISSING_NEW}
-          className={`${BTN_PRIMARY} h-[34px]! text-sm`}
-        >
-          <Pencil size={16} aria-hidden="true" />
-          실종 신고 등록
-        </Link>
-      }
       contentClassName="min-[1101px]:pt-[7px]"
     >
       {body}
