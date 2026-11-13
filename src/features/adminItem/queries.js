@@ -7,6 +7,7 @@ import {
 import { useFileImage } from '@/hooks/useFileImage';
 import {
   createAdminItem,
+  createItemPixelImage,
   getAdminItems,
   getItemParts,
   saveAdminItemOrder,
@@ -59,6 +60,10 @@ export const useUpdateAdminItem = () => {
   const invalidate = useInvalidateItems();
   return useMutation({ mutationFn: updateAdminItem, onSuccess: invalidate });
 };
+
+/** 픽셀 아이템 그림 만들기: 저장하지 않는 요청이라 무효화 없음 */
+export const useCreateItemPixelImage = () =>
+  useMutation({ mutationFn: createItemPixelImage });
 
 export const useSaveAdminItemOrder = () => {
   const invalidate = useInvalidateItems();

@@ -7,6 +7,8 @@ import {
 } from '@tanstack/react-query';
 import { showToast } from '@/components/toastStore';
 import { useFileImage } from '@/hooks/useFileImage';
+import useKakaoMap from '@/hooks/useKakaoMap';
+import { searchPlaces } from '@/utils/placeSearch';
 import {
   acceptCareMatch,
   cancelCareMatch,
@@ -147,12 +149,36 @@ export const useViewingChatRoom = (otoChatRoomSn) => {
   }, [otoChatRoomSn]);
 };
 
-/** 채팅 사진(참여자만, 쿠키 인증) */
+/** 채팅 사진(참여자만, 쿠키 인증). atchFileSn이 null이면 받지 않는다 */
 export const useChatImage = (otoChatRoomSn, atchFileSn) =>
   useFileImage({
     queryKey: chatKeys.image(otoChatRoomSn, atchFileSn),
     url: chatImageUrl(otoChatRoomSn, atchFileSn),
+    enabled: atchFileSn != null,
   });
+
+/** 「이름 (주소)」로 보낸 장소는 괄호 안 주소로, 그 밖에는 글자 전체로 위치를 찾는다 */
+const toAddressSearchText = (shrnAddr) =>
+  (/\(([^()]+)\)\s*$/.exec(shrnAddr)?.[1] ?? shrnAddr).trim();
+
+/**
+ * 주소 공유 글자의 좌표(서버는 글자만 저장): 카카오 주소·장소 검색(전북)의 첫 결과. 못 찾으면 null
+ * 같은 글자는 한 번만 찾는다
+ */
+export const useAddressPoint = (shrnAddr) => {
+  const { kakao } = useKakaoMap();
+  return useQuery({
+    queryKey: ['chat-address-point', shrnAddr],
+    queryFn: async () => {
+      const [first] = await searchPlaces(kakao, toAddressSearchText(shrnAddr));
+      return first
+        ? { lat: first.wtnsPlcLat, lng: first.wtnsPlcLot }
+        : null;
+    },
+    enabled: Boolean(kakao && shrnAddr),
+    staleTime: Infinity,
+  });
+};
 
 export const useCreateChatRoom = () => {
   const queryClient = useQueryClient();

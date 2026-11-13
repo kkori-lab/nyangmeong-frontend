@@ -13,13 +13,14 @@ import { REPORT_REASON_CODES } from './postCodes';
 /** 화면의 정렬 값(new·hot)을 서버 값으로 */
 const SORT_PARAMS = { new: 'latest', hot: 'popular' };
 
-/** 목록: 게시판(bbsCd)·정렬(sort: 'new' | 'hot')·키워드. 서버 정렬은 제목 일치 우선, 그다음 최신순 */
+/** 목록: 게시판(bbsCd)·정렬(sort: 'new' | 'hot')·키워드·내 글만 보기(mineYn). 서버 정렬은 제목 일치 우선, 그다음 최신순 */
 export const getPostList = ({
   page = 1,
   size = 10,
   bbsCd = '',
   sort = 'new',
   keyword = '',
+  mineYn = false,
 } = {}) =>
   api.get('/posts', {
     params: {
@@ -27,6 +28,7 @@ export const getPostList = ({
       size,
       bbsCd: bbsCd || undefined,
       keyword: keyword || undefined,
+      mineYn: mineYn || undefined,
       sort: SORT_PARAMS[sort],
     },
   });

@@ -82,12 +82,12 @@ function PostHead({ post, children, actions }) {
   return (
     <>
       <div className="flex flex-wrap gap-1.5">
-        <MissingStatusBadge post={post} />
         {post.owner && (
-          <Badge tone="amber" bordered>
+          <Badge tone="mine" bordered>
             내 글
           </Badge>
         )}
+        <MissingStatusBadge post={post} />
         {post.petSeCd && (
           <Badge tone="outline">{getPetName(post.petSeCd)}</Badge>
         )}

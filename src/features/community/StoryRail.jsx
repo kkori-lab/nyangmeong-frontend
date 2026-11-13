@@ -39,31 +39,37 @@ export default function StoryRail() {
       )}
 
       {photo?.imgs.length > 0 && (
-        <section aria-labelledby="post-photo-title" className={CARD_CLASS}>
-          <div className="flex items-baseline justify-between">
-            <h2
-              id="post-photo-title"
-              className="text-lg font-bold text-[#1a3234]"
-            >
-              인기 포토
-            </h2>
-            <span className="text-sm text-[#667374]">이번 주</span>
-          </div>
-          <Link to={detailPath(photo.pstSn)} className="group mt-3 block">
+        <section
+          aria-labelledby="post-photo-title"
+          className="relative overflow-hidden rounded-[14px] bg-[#f4f6f6] shadow-[0_1px_2px_rgba(26,50,52,0.06)] max-[1100px]:mt-10 max-[760px]:[&+section]:mt-4"
+        >
+          <Link to={detailPath(photo.pstSn)} className="group block">
             <img
               src={publicFileUrl(photo.imgs[0].atchFileSn)}
               alt=""
-              className="aspect-[4/3] w-full rounded-[10px] bg-[#f4f6f6] object-cover"
+              className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />
-            <span className="mt-2.5 block truncate text-base font-semibold text-[#1a3234] group-hover:text-[#285a5c]">
-              {photo.pstTtl}
-            </span>
-            <span className="mt-1 flex items-center justify-between text-sm text-[#667374]">
-              <span>{photo.mbrNcnm}</span>
-              <span className="inline-flex items-center gap-1">
-                <Heart size={14} aria-hidden="true" />
-                <span className="sr-only">좋아요</span>
-                {photo.rcmdtnCnt}
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 via-black/40 to-transparent"
+            />
+            <h2
+              id="post-photo-title"
+              className="absolute top-3 left-3 inline-flex h-6 items-center rounded-full bg-black/40 px-2.5 pt-[1.5px] text-[13px] leading-none font-semibold text-white backdrop-blur-sm"
+            >
+              인기 포토
+            </h2>
+            <span className="absolute inset-x-0 bottom-0 px-4 pb-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+              <span className="block truncate text-base font-semibold">
+                {photo.pstTtl}
+              </span>
+              <span className="mt-1 flex items-center justify-between text-sm text-white">
+                <span className="truncate">{photo.mbrNcnm}</span>
+                <span className="inline-flex shrink-0 items-center gap-1">
+                  <Heart size={14} aria-hidden="true" />
+                  <span className="sr-only">좋아요</span>
+                  {photo.rcmdtnCnt}
+                </span>
               </span>
             </span>
           </Link>
