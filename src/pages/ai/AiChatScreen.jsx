@@ -23,7 +23,12 @@ import {
 import { toRoute } from '@/features/ai/shared/screenPaths';
 import { AiHostContext } from '@/features/ai/chat/aiHost';
 import { petTagFor } from '@/features/ai/chat/petTag';
-import { useConversation, useJudgeImageIntent } from '@/features/ai/queries';
+import {
+  useConversation,
+  useConversations,
+  useJudgeImageIntent,
+} from '@/features/ai/queries';
+import { readLastPetSn } from '@/utils/lastPetSn';
 import { useActionCards } from '@/features/ai/chat/useActionCards';
 import useAnswerStream from '@/features/ai/chat/useAnswerStream';
 import useChatReceipt from '@/features/ai/chat/useChatReceipt';
@@ -39,6 +44,11 @@ const lastServerSn = (messages) =>
 
 /** 이 창에서 받은 확인 카드의 화면 키 */
 let nextCardKey = 1;
+
+/** 맨 아래로 따라갈 거리(px): 이보다 위로 올려 읽는 중이면 끌어내리지 않음 */
+const FOLLOW_GAP = 80;
+/** 부드러운 스크롤이 끝났다는 신호(scrollend)가 없을 때 끝으로 볼 시간 */
+const SMOOTH_LIMIT_MS = 1000;
 
 /** 서버 저장 전 내 메시지 자리(서버 번호는 양수, 가짜는 음수) */
 const PENDING_MSG_SN = 0;
@@ -95,6 +105,7 @@ const ATTACH_FAILED =
  * - 본창 이동·펫돌봄 채팅 열기: 놓인 곳이 넘기는 onOpenMain·onOpenCareChat
  * - loadAttachment: 본창에서 넘긴 사진 받기 -> File, 못 받으면 null
  * - onBack: 있으면(모달) 대화 제목 줄 오른쪽 끝 [✕]로 닫기
+ * - openRecent: 플로팅 버튼으로 열었을 때 고른 칩 기준 가장 최근 대화를 한 번 연다(없으면 새 대화)
  */
 export default function AiChatScreen({
   initialMessage = null,
@@ -102,6 +113,7 @@ export default function AiChatScreen({
   onOpenMain,
   onOpenCareChat,
   onBack = null,
+  openRecent = false,
   className = 'h-dvh',
 }) {
   /** 사이드바 기본 접힘(사람 요청 2026-11-11) */
@@ -112,14 +124,23 @@ export default function AiChatScreen({
   const petsQuery = usePets();
   /** 반려동물 목록: 받기 전 undefined, 못 받으면 빈 목록([전체]만) */
   const pets = petsQuery.data ?? (petsQuery.isError ? [] : undefined);
-  const isPetsReady = pets !== undefined;
+  const { data: member, isPending: isMemberPending } = useMemberSummary();
+  /** 칩을 정할 준비: 반려동물 목록과 회원 정보(마지막 선택을 회원 번호로 읽음)를 받은 뒤 */
+  const isPetsReady = pets !== undefined && !isMemberPending;
   /** 고른 칩: undefined면 아직 안 고름 */
   const [pickedPetSn, setPickedPetSn] = useState(undefined);
-  /** 선택한 칩: 고르기 전에는 대표 반려동물, 없으면 [전체](null), 목록 받기 전 undefined */
-  const selectedPetSn =
-    pickedPetSn !== undefined
-      ? pickedPetSn
-      : pets && (pets.find((pet) => pet.rprsPetYn)?.petSn ?? null);
+  /** 건강기록에서 마지막으로 고른 반려동물(읽기만, AI 칩 변경은 저장하지 않음) */
+  const lastPetSn = readLastPetSn(member?.mbrSn);
+  /**
+   * 선택한 칩: 고르기 전에는 마지막으로 고른 반려동물(목록에 있을 때) → 대표 반려동물 → [전체](null)
+   * - 준비 전 undefined(저장값을 읽기 전에 대표로 정했다가 칩이 바뀌지 않게)
+   */
+  const defaultPetSn = isPetsReady
+    ? (pets.find((pet) => pet.petSn === lastPetSn)?.petSn ??
+      pets.find((pet) => pet.rprsPetYn)?.petSn ??
+      null)
+    : undefined;
+  const selectedPetSn = pickedPetSn !== undefined ? pickedPetSn : defaultPetSn;
   /** 선택된 대화 번호 */
   const [selectedRoomSn, setSelectedRoomSn] = useState(null);
   /** 첫 메시지 */
@@ -128,7 +149,6 @@ export default function AiChatScreen({
   const [loadFile] = useState(() => loadAttachment);
   const [isAttachFailed, setIsAttachFailed] = useState(false);
 
-  const { data: member } = useMemberSummary();
   const { data: conversation, isError } = useConversation(selectedRoomSn);
   /** 확인 카드(2단계 쓰기) */
   const actions = useActionCards();
@@ -145,6 +165,35 @@ export default function AiChatScreen({
   const createCharacter = useCreateCharacter();
   /** 지금 사진 말풍선의 번호: 지난 판단 응답이 새 말풍선을 고치지 않게 */
   const imageIdRef = useRef(0);
+  /** 본문 스크롤: 맨 아래를 따라갈지(보낼 때·방을 열 때 켬, 위로 올려 읽으면 끔) */
+  const scrollRef = useRef(null);
+  const followRef = useRef(true);
+  /** 부드럽게 내려가는 중: 도중의 위치로 따라가기를 끄지 않고, 늘어난 내용도 부드럽게 이어 감 */
+  const isSmoothRef = useRef(false);
+  const smoothTimerRef = useRef(null);
+  /**
+   * 맨 아래로: 보낼 때는 부드럽게(smooth), 방을 열 때·동작 줄이기 설정이면 바로
+   * - 부드럽게는 끝(scrollend·맨 아래 도착)·사용자 조작·1초 뒤 중 먼저 오는 때 끝남
+   */
+  const followBottom = ({ smooth = false } = {}) => {
+    followRef.current = true;
+    const el = scrollRef.current;
+    if (!el) return;
+    const isReduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    if (!smooth || isReduced) {
+      isSmoothRef.current = false;
+      el.scrollTop = el.scrollHeight;
+      return;
+    }
+    isSmoothRef.current = true;
+    clearTimeout(smoothTimerRef.current);
+    smoothTimerRef.current = setTimeout(() => {
+      isSmoothRef.current = false;
+    }, SMOOTH_LIMIT_MS);
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  };
   /**
    * 첨부 사진 흐름(진료 영수증은 receipt가 이어 받음)
    * - { id, file, text, previewUrl, status, pet, characterStatus, errorMessage, isRetryable }
@@ -233,6 +282,7 @@ export default function AiChatScreen({
 
   /** 메시지 전송: 처리 전 가장 최근 확인 카드를 함께 전송 */
   const handleSend = async (cnvrsCn) => {
+    followBottom({ smooth: true });
     setFirstMessage(null);
     setIsAttachFailed(false);
     setRoute(null);
@@ -265,6 +315,7 @@ export default function AiChatScreen({
 
   /** [다시 시도]·[다시 생성]: 방의 마지막 사용자 메시지에 재답변 */
   const handleAnswerAgain = async (replaceMsgSn) => {
+    followBottom({ smooth: true });
     setRoute(null);
     setNotice(null);
     /** 카드가 오면 마지막 사용자 메시지 뒤에 추가 */
@@ -316,6 +367,7 @@ export default function AiChatScreen({
 
   /** 사진 첨부 전송: 사진+글로 종류를 판단한 뒤 그 흐름으로, 판단 실패면 종류 칩 */
   const handleSendImage = (file, text) => {
+    followBottom({ smooth: true });
     setFirstMessage(null);
     setIsAttachFailed(false);
     answer.reset();
@@ -443,6 +495,77 @@ export default function AiChatScreen({
     setIsDrawerOpen(false);
   };
 
+  /** 플로팅 버튼 진입: 고른 칩 기준 목록(사이드바와 같은 캐시)이 오면 맨 위 방을 한 번만 연다 */
+  const conversationsQuery = useConversations(selectedPetSn);
+  const isRecentPendingRef = useRef(openRecent);
+  useEffect(() => {
+    if (!isRecentPendingRef.current) return;
+    if (conversationsQuery.isError) {
+      isRecentPendingRef.current = false;
+      return;
+    }
+    const rooms = conversationsQuery.data;
+    if (!rooms) return;
+    isRecentPendingRef.current = false;
+    /** 목록이 오기 전에 이미 보냈거나 방을 골랐으면 그대로 */
+    if (rooms.length === 0 || selectedRoomSn !== null || answer.pendingText) {
+      return;
+    }
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- 서버 목록이 처음 온 시점에 한 번 방을 고름 */
+    handleSelectRoom(rooms[0].aiCnvrsRoomSn);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps -- 목록이 처음 올 때 한 번만 */
+  }, [conversationsQuery.data, conversationsQuery.isError]);
+
+  /** 내용이 바뀔 때(답변 글자·카드·말풍선) 따라가는 중이면 맨 아래로 */
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const gap = () => el.scrollHeight - el.scrollTop - el.clientHeight;
+    const endSmooth = () => {
+      isSmoothRef.current = false;
+      clearTimeout(smoothTimerRef.current);
+    };
+    const handleScroll = () => {
+      if (isSmoothRef.current) {
+        if (gap() <= 1) endSmooth();
+        return;
+      }
+      followRef.current = gap() <= FOLLOW_GAP;
+    };
+    const observer = new MutationObserver(() => {
+      if (!followRef.current) return;
+      if (isSmoothRef.current) {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      } else {
+        el.scrollTop = el.scrollHeight;
+      }
+    });
+    observer.observe(el, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    el.addEventListener('scrollend', endSmooth);
+    /** 사용자가 직접 굴리면 부드럽게를 멈추고 위치로 다시 판단 */
+    const userEvents = ['wheel', 'touchstart', 'keydown'];
+    userEvents.forEach((name) =>
+      el.addEventListener(name, endSmooth, { passive: true }),
+    );
+    return () => {
+      observer.disconnect();
+      endSmooth();
+      el.removeEventListener('scroll', handleScroll);
+      el.removeEventListener('scrollend', endSmooth);
+      userEvents.forEach((name) => el.removeEventListener(name, endSmooth));
+    };
+  }, []);
+  /** 방을 열거나 옮기면 맨 아래부터(보낸 뒤 새 방이 생긴 때는 이어지는 부드러운 스크롤 유지) */
+  useEffect(() => {
+    if (isSmoothRef.current) followRef.current = true;
+    else followBottom();
+  }, [selectedRoomSn]);
+
   /**
    * 칩은 대화 목록 필터: 열린 방이 고른 칩 목록에 남으면([전체]이거나 방 태그와 같음) 그대로,
    * 빠지면 그 반려동물의 새 대화로(상세를 받기 전이면 새 대화로). drawer는 열린 채 유지
@@ -508,7 +631,10 @@ export default function AiChatScreen({
               onDeleted={handleOpenRoomDeleted}
             />
           )}
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-8 max-[760px]:px-4 max-[760px]:py-5">
+          <div
+            ref={scrollRef}
+            className="min-h-0 flex-1 overflow-y-auto px-6 py-8 max-[760px]:px-4 max-[760px]:py-5"
+          >
             {isError && (
               <p role="alert" className="text-center text-[#667374]">
                 대화를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요

@@ -76,6 +76,8 @@ export default function ChatInput({
     }
     setText('');
     setIsTrimmed(false);
+    /** 사진 형식·크기 오류 문구는 다음 전송 때 지움 */
+    setFileError('');
   };
 
   const handleKeyDown = (event) => {
