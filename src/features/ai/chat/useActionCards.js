@@ -2,12 +2,7 @@ import { useState } from 'react';
 import { notifyAiWrite } from '@/utils/aiWriteChannel';
 import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import { useExecuteAction, useSaveActionResult } from '../queries';
-import {
-  buildActionRequest,
-  missingFields,
-  resultInput,
-  visibleFields,
-} from './actionForm';
+import { buildActionRequest, missingFields, resultInput } from './actionForm';
 
 /** 결과 저장 status(ActionResultRequest) */
 export const ACTION_STATUS = {
@@ -32,7 +27,9 @@ const STATUS_BY_RESULT = {
 
 /**
  * 확인 카드(ACTION) 목록: 서버에 저장되지 않아 새로고침하면 사라진다(등록 카드와 같다)
- * - 항목: { key, card, input, shownFields, afterSn, anchorSn, status, isBusy, fieldErrors, formError, unsaved, resultText, resultMsgSn }
+ * - 카드 내용은 저장된 요약 글로 보이고, 확인·취소는 말로 한다(done.execute로 실행, 취소 말이면 카드 버림)
+ * - 항목: { key, card, input, afterSn, anchorSn, status, isBusy, fieldErrors, formError, unsaved, resultText, resultMsgSn }
+ * - status: 'pending' | 'done' | 'cancelled' | 'failed' | 'dropped'(취소 말·다른 말로 버림)
  * - key는 등록 카드와 같은 번호를 써서 "가장 최근 카드"를 함께 따진다
  * - unsaved: 결과 저장에 실패한 { status, input }, [다시 시도]로 저장만 다시
  */
@@ -50,34 +47,27 @@ export function useActionCards() {
       ),
     );
 
-  /** 새 카드 */
-  const add = ({ key, card, afterSn, anchorSn = null }) =>
-    setActionCards((prev) => [
-      ...prev,
-      {
-        key,
-        card,
-        input: { ...card.input },
-        shownFields: visibleFields(card),
-        afterSn,
-        anchorSn,
-        status: 'pending',
-        isBusy: false,
-        fieldErrors: {},
-        formError: null,
-        unsaved: null,
-        resultText: null,
-        resultMsgSn: null,
-      },
-    ]);
+  /** 새 카드 항목 */
+  const toItem = ({ key, card, afterSn, anchorSn = null }) => ({
+    key,
+    card,
+    input: { ...card.input },
+    afterSn,
+    anchorSn,
+    status: 'pending',
+    isBusy: false,
+    fieldErrors: {},
+    formError: null,
+    unsaved: null,
+    resultText: null,
+    resultMsgSn: null,
+  });
 
-  /** 카드에서 값 고침: 고친 칸의 서버 오류는 지운다 */
-  const changeInput = (key, field, nextInput) =>
-    patchCard(key, (item) => {
-      const fieldErrors = { ...item.fieldErrors };
-      delete fieldErrors[field];
-      return { input: nextInput, fieldErrors };
-    });
+  /** 새 카드 */
+  const add = (params) => setActionCards((prev) => [...prev, toItem(params)]);
+
+  /** 카드 버림: 보낸 카드에 대해 서버가 카드 없이 답함(취소 말 등), 다음 메시지에 싣지 않는다 */
+  const drop = (key) => patchCard(key, { status: 'dropped' });
 
   /** 결과 저장: 성공하면 요약 메시지 자리로, 실패하면 [다시 시도] */
   const saveResult = async (aiCnvrsRoomSn, item, status, input) => {
@@ -100,10 +90,10 @@ export function useActionCards() {
     }
   };
 
-  /** [확인]: Java 실행 → 결과 저장, 회원이 고칠 수 있는 오류면 카드를 살려 둔다 */
-  const confirm = async (aiCnvrsRoomSn, key) => {
-    const item = actionCards.find((target) => target.key === key);
-    if (!item || missingFields(item.card, item.input).length > 0) return;
+  /** 실행: Java 실행 → 결과 저장, 회원이 고칠 수 있는 오류면 카드를 살려 두고 말로 고치게 한다 */
+  const run = async (aiCnvrsRoomSn, item) => {
+    const key = item.key;
+    if (missingFields(item.card, item.input).length > 0) return;
     const input = resultInput(item.card, item.input);
     patchCard(key, { isBusy: true, fieldErrors: {}, formError: null });
     try {
@@ -113,10 +103,11 @@ export function useActionCards() {
         await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.FAILED, input);
         return;
       }
+      const fieldErrors = toFieldErrors(error);
       patchCard(key, {
         isBusy: false,
-        fieldErrors: toFieldErrors(error),
-        formError: toFormError(error, item.shownFields),
+        fieldErrors,
+        formError: toFormError(error, Object.keys(fieldErrors)),
       });
       return;
     }
@@ -124,17 +115,11 @@ export function useActionCards() {
     await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.DONE, input);
   };
 
-  /** [취소]: 저장하지 않고 취소 결과만 남긴다 */
-  const cancel = (aiCnvrsRoomSn, key) => {
-    const item = actionCards.find((target) => target.key === key);
-    if (!item) return;
-    /** 저장하지 않으니 서버가 검증한 원래 값: 고친 값이 규칙 밖이면 결과 저장이 400으로 막힌다 */
-    saveResult(
-      aiCnvrsRoomSn,
-      item,
-      ACTION_STATUS.CANCELED,
-      resultInput(item.card, item.card.input),
-    );
+  /** 새 카드를 받자마자 실행(done.execute): 확인 말에 서버가 다시 검증한 카드 */
+  const execute = (aiCnvrsRoomSn, params) => {
+    const item = toItem(params);
+    setActionCards((prev) => [...prev, item]);
+    return run(aiCnvrsRoomSn, item);
   };
 
   /** 결과 저장 [다시 시도] */
@@ -166,9 +151,8 @@ export function useActionCards() {
   return {
     actionCards,
     add,
-    changeInput,
-    confirm,
-    cancel,
+    execute,
+    drop,
     retrySave,
     pendingAction,
     reset,

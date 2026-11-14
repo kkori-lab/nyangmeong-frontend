@@ -38,13 +38,7 @@ export default function CharacterRequestBubble({
     return (
       <>
         <p className={bubbleClass}>어느 아이의 캐릭터를 만들까요?</p>
-        <PetChoiceChips
-          pets={pets}
-          isDisabled={false}
-          onSelect={(petNm) =>
-            onChoosePet(pets.find((item) => item.petNm === petNm))
-          }
-        />
+        <PetChoiceChips pets={pets} isDisabled={false} onSelect={onChoosePet} />
       </>
     );
   }

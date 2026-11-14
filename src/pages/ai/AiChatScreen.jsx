@@ -53,11 +53,23 @@ const SMOOTH_LIMIT_MS = 1000;
 /** 서버 저장 전 내 메시지 자리(서버 번호는 양수, 가짜는 음수) */
 const PENDING_MSG_SN = 0;
 
-/** 영수증 말풍선이 떠 있는 동안 숨길 메시지: 이번 분석으로 저장된 내 글·요약(말풍선이 같은 내용 표시) */
+/**
+ * 영수증 말풍선이 떠 있는 동안 숨길 메시지: 이번 사진 턴과 분석 요약(말풍선이 사진·글·결과를 같이 표시)
+ * - 요약 저장 전에는 afterMsgSn 뒤 전부(사진 턴), 저장 뒤에는 요약까지
+ */
 const isReceiptSaved = (receipt, message) =>
-  receipt?.savedUntilSn != null &&
+  receipt != null &&
   message.aiCnvrsMsgSn > receipt.afterMsgSn &&
-  message.aiCnvrsMsgSn <= receipt.savedUntilSn;
+  (receipt.savedUntilSn == null ||
+    message.aiCnvrsMsgSn <= receipt.savedUntilSn);
+
+/** 사진 판단 실패 문구: 형식·크기·입력 오류는 서버 문구, 그 밖은 공통 */
+const IMAGE_SEND_FAILED = '사진을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요';
+const IMAGE_ERROR_CODES = [
+  'FILE_TYPE_NOT_ALLOWED',
+  'FILE_SIZE_EXCEEDED',
+  'INVALID_REQUEST',
+];
 
 /** 본창 건강 일지 결과 확인 모달: 파라미터 이름은 건강기록(JAJ)과 협의 전 제안값 */
 const receiptResultPath = ({ recptSn, petSn }) =>
@@ -196,9 +208,14 @@ export default function AiChatScreen({
   };
   /**
    * 첨부 사진 흐름(진료 영수증은 receipt가 이어 받음)
-   * - { id, file, text, previewUrl, status, pet, characterStatus, errorMessage, isRetryable }
+   * - { id, file, text, previewUrl, status, pet, characterStatus, errorMessage, isRetryable, aiCnvrsRoomSn, beforeSn }
+   * - aiCnvrsRoomSn: image-intent가 사진 턴을 저장한 방(저장 전 null), beforeSn: 보내기 전 마지막 서버 메시지 번호
    */
   const [image, setImage] = useState(null);
+  /** 이번에 보낸 사진 미리보기: 저장된 사진 메시지 번호 → 주소 */
+  const [photoPreviews, setPhotoPreviews] = useState({});
+  /** 만든 미리보기 주소: 저장 메시지가 계속 쓰므로 화면을 떠날 때 한꺼번에 해제 */
+  const previewUrlsRef = useRef([]);
   /** 이동 안내 상태 */
   const [route, setRoute] = useState(null);
   /** 저장하지 않는 안내: 변환표에 없는 화면(fallback)·영수증 판정(receipt) */
@@ -232,13 +249,10 @@ export default function AiChatScreen({
   };
 
   /** 미리보기 주소 해제 */
-  const imagePreviewUrl = image?.previewUrl;
-  useEffect(
-    () => () => {
-      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-    },
-    [imagePreviewUrl],
-  );
+  useEffect(() => {
+    const urls = previewUrlsRef.current;
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
 
   /** 대화를 옮기거나 지울 때 카드·영수증·사진 상태 초기화 */
   const resetCards = () => {
@@ -251,19 +265,36 @@ export default function AiChatScreen({
   /** 분석·생성할 반려동물: 고른 칩, 1마리면 그 아이, 아니면 되묻기(null) */
   const autoPet = selectedPet ?? (pets?.length === 1 ? pets[0] : null);
 
-  /** 서버 판정별 화면 처리: 검색 답변은 말풍선 담당 */
-  const handleResult = (result, afterSn) => {
+  /** 연 대화가 지워졌을 때: 새 대화 화면으로 */
+  const handleOpenRoomDeleted = () => {
+    answer.reset();
+    setRoute(null);
+    setNotice(null);
+    resetCards();
+    setSelectedRoomSn(null);
+    setFallbackCount(0);
+  };
+
+  /**
+   * 서버 판정별 화면 처리: 검색 답변은 말풍선 담당
+   * - sentCardKey: 이번 요청에 실은 확인 카드, 카드 없이 답하면(취소 말 등) 그 카드를 버림
+   */
+  const handleResult = (result, afterSn, sentCardKey) => {
     if (!result) return;
     const { aiCnvrsRoomSn, intent } = result;
-    /** 확인 카드: ACTION 판정, 또는 검색 답변 끝(답변 메시지 뒤 자리) */
+    if (sentCardKey != null && !result.action) actions.drop(sentCardKey);
+    /** 확인 카드: ACTION 판정, 또는 검색 답변 끝(요약 글 메시지 뒤 자리) */
     if (result.action) {
       setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
-      actions.add({
+      const params = {
         key: nextCardKey++,
         card: result.action,
         afterSn,
         anchorSn: result.message?.aiCnvrsMsgSn ?? null,
-      });
+      };
+      /** 확인 말("등록해 줘"): 서버가 다시 검증한 카드를 바로 실행 */
+      if (result.execute) actions.execute(aiCnvrsRoomSn, params);
+      else actions.add(params);
     }
     if (intent.kind === 'ROUTE') {
       const nextRoute = toRoute(intent);
@@ -280,8 +311,11 @@ export default function AiChatScreen({
     if (intent.kind === 'RECEIPT') setNotice('receipt');
   };
 
-  /** 메시지 전송: 처리 전 가장 최근 확인 카드를 함께 전송 */
-  const handleSend = async (cnvrsCn) => {
+  /**
+   * 메시지 전송: 처리 전 가장 최근 확인 카드를 함께 전송
+   * - choicePetSn: 카드의 반려동물 이름 칩으로 고른 아이, 실을 카드의 petSn으로(같은 이름이 둘이어도 고른 아이)
+   */
+  const handleSend = async (cnvrsCn, choicePetSn = null) => {
     followBottom({ smooth: true });
     setFirstMessage(null);
     setIsAttachFailed(false);
@@ -302,15 +336,20 @@ export default function AiChatScreen({
     ) {
       setPickedPetSn(newRoomPetSn);
     }
+    const pending = actions.pendingAction(latestCardKey);
+    const action =
+      pending && choicePetSn != null
+        ? { ...pending, input: { ...pending.input, petSn: choicePetSn } }
+        : pending;
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
       /** 펫 태그는 새 방을 만들 때만: 열린 방은 늘 방 태그 기준 */
       ...(newRoomPetSn !== undefined && { petSn: newRoomPetSn }),
       cnvrsCn,
-      action: actions.pendingAction(latestCardKey),
+      action,
       onRoom: setSelectedRoomSn,
     });
-    handleResult(result, afterSn);
+    handleResult(result, afterSn, action ? latestCardKey : null);
   };
 
   /** [다시 시도]·[다시 생성]: 방의 마지막 사용자 메시지에 재답변 */
@@ -323,12 +362,13 @@ export default function AiChatScreen({
       conversation?.messages.findLast(
         (message) => message.roleCd === AI_ROLE.USER,
       )?.aiCnvrsMsgSn ?? 0;
+    const action = actions.pendingAction(latestCardKey);
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
-      action: actions.pendingAction(latestCardKey),
+      action,
       replaceMsgSn,
     });
-    handleResult(result, lastUserSn - 1);
+    handleResult(result, lastUserSn - 1, action ? latestCardKey : null);
   };
 
   /**
@@ -338,16 +378,14 @@ export default function AiChatScreen({
   const goImageKind = (target, kind) => {
     const namedPetSn = petTagFor(target.text, pets, null);
     const namedPet = pets?.find((pet) => pet.petSn === namedPetSn);
-    /** 새 방이면 칩도 그 반려동물로(글 질문의 새 방 태그와 같은 규칙) */
-    if (namedPet && selectedRoomSn === null) setPickedPetSn(namedPet.petSn);
     if (kind === IMAGE_KIND.MEDICAL_RECEIPT) {
       setImage(null);
+      /** 사진 턴은 image-intent가 저장한 방에 이어서 요약만 저장 */
       receipt.start({
         file: target.file,
         text: target.text,
-        aiCnvrsRoomSn: selectedRoomSn,
-        afterMsgSn: lastServerSn(conversation?.messages ?? []),
-        petSn: namedPet?.petSn ?? selectedPetSn ?? null,
+        aiCnvrsRoomSn: target.aiCnvrsRoomSn,
+        afterMsgSn: target.beforeSn,
         pet: namedPet ?? autoPet,
       });
       return;
@@ -362,6 +400,8 @@ export default function AiChatScreen({
     }
     updateImage(target.id, {
       status: kind === IMAGE_KIND.EXPENSE_RECEIPT ? 'expense' : 'asking',
+      /** 칩으로 고른 종류는 서버 안내 글이 없어 말풍선이 안내 */
+      isChosen: target.isChosen ?? false,
     });
   };
 
@@ -375,25 +415,72 @@ export default function AiChatScreen({
     setNotice(null);
     receipt.reset();
     imageIdRef.current += 1;
+    const previewUrl = URL.createObjectURL(file);
+    previewUrlsRef.current.push(previewUrl);
+    /** 새 방의 태그: 글 질문과 같은 규칙(글에 이름이 나온 반려동물), 칩도 함께 변경 */
+    const newRoomPetSn =
+      selectedRoomSn === null
+        ? petTagFor(text, pets, selectedPetSn)
+        : undefined;
+    if (
+      newRoomPetSn !== undefined &&
+      newRoomPetSn !== (selectedPetSn ?? null)
+    ) {
+      setPickedPetSn(newRoomPetSn);
+    }
     const target = {
       id: imageIdRef.current,
       file,
       text,
-      previewUrl: URL.createObjectURL(file),
+      previewUrl,
       status: 'judging',
       pet: null,
       characterStatus: null,
       errorMessage: null,
       isRetryable: false,
+      aiCnvrsRoomSn: null,
+      beforeSn: lastServerSn(conversation?.messages ?? []),
     };
     setImage(target);
     judgeImage.mutate(
-      { file, cnvrsCn: text, petSn: selectedPetSn ?? null },
       {
-        onSuccess: ({ kind }) => {
-          if (target.id === imageIdRef.current) goImageKind(target, kind);
+        file,
+        cnvrsCn: text,
+        petSn: newRoomPetSn ?? null,
+        aiCnvrsRoomSn: selectedRoomSn,
+      },
+      {
+        onSuccess: ({ kind, aiCnvrsRoomSn, messages }) => {
+          if (target.id !== imageIdRef.current) return;
+          /** 화면에만 둔 사진 대신 저장 메시지를 그림: 사진 메시지에 미리보기를 붙임 */
+          const photoMsg = messages.find(
+            (message) => message.roleCd === AI_ROLE.USER,
+          );
+          if (photoMsg) {
+            setPhotoPreviews((prev) => ({
+              ...prev,
+              [photoMsg.aiCnvrsMsgSn]: previewUrl,
+            }));
+          }
+          setFirstMessage(null);
+          setSelectedRoomSn(aiCnvrsRoomSn);
+          updateImage(target.id, { aiCnvrsRoomSn });
+          goImageKind({ ...target, aiCnvrsRoomSn }, kind);
         },
-        onError: () => updateImage(target.id, { status: 'asking' }),
+        onError: (error) => {
+          if (target.id !== imageIdRef.current) return;
+          /** 열린 방이 사라짐(남의 방·없는 번호) */
+          if (error?.code === 'NOT_FOUND') {
+            handleOpenRoomDeleted();
+            return;
+          }
+          updateImage(target.id, {
+            status: 'failed',
+            errorMessage: IMAGE_ERROR_CODES.includes(error?.code)
+              ? error.message
+              : IMAGE_SEND_FAILED,
+          });
+        },
       },
     );
   };
@@ -452,16 +539,6 @@ export default function AiChatScreen({
     return () => clearTimeout(timer);
     /* eslint-disable-next-line react-hooks/exhaustive-deps -- 창을 열고 반려동물 목록을 받은 뒤 한 번만 전송 */
   }, [isPetsReady]);
-
-  /** 연 대화가 지워졌을 때: 새 대화 화면으로 */
-  const handleOpenRoomDeleted = () => {
-    answer.reset();
-    setRoute(null);
-    setNotice(null);
-    resetCards();
-    setSelectedRoomSn(null);
-    setFallbackCount(0);
-  };
 
   /** 사이드바에서 지운 방이 지금 연 방일 때만 화면을 비움 */
   const handleRoomDeleted = (aiCnvrsRoomSn) => {
@@ -664,9 +741,9 @@ export default function AiChatScreen({
                 onRegenerate={(message) =>
                   handleAnswerAgain(message.aiCnvrsMsgSn)
                 }
-                onChangeAction={actions.changeInput}
-                onConfirmAction={(key) => actions.confirm(selectedRoomSn, key)}
-                onCancelAction={(key) => actions.cancel(selectedRoomSn, key)}
+                photoPreviews={photoPreviews}
+                isChoiceDisabled={isAnswering}
+                onChoosePet={(pet) => handleSend(pet.petNm, pet.petSn)}
                 onRetryAction={(key) => actions.retrySave(selectedRoomSn, key)}
               >
                 {hasAnswerBubble && (
@@ -694,7 +771,9 @@ export default function AiChatScreen({
                   <ImageIntentBubble
                     image={image}
                     pets={pets ?? []}
-                    onChooseKind={(kind) => goImageKind(image, kind)}
+                    onChooseKind={(kind) =>
+                      goImageKind({ ...image, isChosen: true }, kind)
+                    }
                     onChoosePet={(pet) => updateImage(image.id, { pet })}
                     onCreateCharacter={handleCreateCharacter}
                     onCancelCharacter={resetImage}

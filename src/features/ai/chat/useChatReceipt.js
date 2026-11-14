@@ -16,8 +16,9 @@ const RESULT_BY_FAILURE = {
 /**
  * [대화창 영수증 분석 흐름]
  * - 반려동물 되묻기 → 분석(/ai/receipts) → 결과 카드·실패·취소 (SCR-AIM-013)
- * - 분석이 끝나면 receipt-result로 함께 보낸 글과 요약 한 줄을 이력에 저장, 결과 카드 [취소]는 저장 안 함
- * - 저장된 메시지(afterMsgSn 초과 ~ savedUntilSn)는 이 말풍선이 떠 있는 동안 화면에서 숨김
+ * - 사진 메시지는 image-intent가 그 방(aiCnvrsRoomSn)에 이미 저장, 분석이 끝나면 receipt-result로 요약 한 줄만 저장
+ * - 결과 카드 [취소]는 저장 안 함
+ * - 이 말풍선이 사진·글을 같이 보여 주므로, 떠 있는 동안 afterMsgSn 뒤 저장 메시지(사진 턴 ~ 요약)는 화면에서 숨김
  */
 export default function useChatReceipt({ onSaved }) {
   const analyze = useAnalyzeChatReceipt();
@@ -27,7 +28,7 @@ export default function useChatReceipt({ onSaved }) {
   const isTimedOutRef = useRef(false);
   /** 지금 말풍선의 번호: 지난 분석의 응답이 새 말풍선을 고치지 않게 */
   const idRef = useRef(0);
-  /** { id, file, text, previewUrl, aiCnvrsRoomSn, petSn, afterMsgSn, pet, status, result, failure, savedUntilSn } */
+  /** { id, file, text, previewUrl, aiCnvrsRoomSn, afterMsgSn, pet, status, result, failure, savedUntilSn } */
   const [receipt, setReceipt] = useState(null);
   /** 'choosing' | 'analyzing' | 'result' | 'failed' | 'cancelled' | 'dismissed' */
   const status = receipt?.status ?? null;
@@ -56,13 +57,7 @@ export default function useChatReceipt({ onSaved }) {
   /** 분석 결과를 대화 이력에 저장 */
   const save = (target, result, ocr) =>
     saveResult.mutate(
-      {
-        aiCnvrsRoomSn: target.aiCnvrsRoomSn,
-        petSn: target.petSn,
-        cnvrsCn: target.text,
-        result,
-        ocr,
-      },
+      { aiCnvrsRoomSn: target.aiCnvrsRoomSn, result, ocr },
       {
         onSuccess: ({ aiCnvrsRoomSn, messages }) => {
           update(target.id, {
@@ -122,9 +117,9 @@ export default function useChatReceipt({ onSaved }) {
   /**
    * 첨부 전송: 반려동물이 정해지면 바로 분석, 아니면 되묻기
    * afterMsgSn: 보내기 전 대화의 마지막 메시지 번호(없으면 0)
-   * petSn: 새 방의 펫 태그(선택한 반려동물 칩), pet: 분석할 반려동물
+   * aiCnvrsRoomSn: image-intent가 사진 턴을 저장한 방, pet: 분석할 반려동물
    */
-  const start = ({ file, text, aiCnvrsRoomSn, petSn, afterMsgSn, pet }) => {
+  const start = ({ file, text, aiCnvrsRoomSn, afterMsgSn, pet }) => {
     if (analyze.isPending) return;
     idRef.current += 1;
     const next = {
@@ -133,7 +128,6 @@ export default function useChatReceipt({ onSaved }) {
       text,
       previewUrl: URL.createObjectURL(file),
       aiCnvrsRoomSn,
-      petSn,
       afterMsgSn,
       pet,
       status: pet ? 'analyzing' : 'choosing',

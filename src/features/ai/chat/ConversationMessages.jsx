@@ -1,9 +1,41 @@
+import { Image as ImageIcon } from 'lucide-react';
 import ActionCard from './ActionCard';
 import AnswerBubble from './AnswerBubble';
 import FallbackBubble from './FallbackBubble';
 import { CALENDAR_TOOLS } from './actionForm';
 import { AI_ROLE } from '../shared/aiCodes';
 import { FALLBACK_MESSAGE, FAQ_FAIL_COUNT } from '../shared/fallbackCount';
+
+/** 사진 턴 사용자 메시지 머리(image-intent가 `[사진] <글>`로 저장) */
+const PHOTO_PREFIX = '[사진]';
+
+/** 사진 턴 내 메시지: 이번에 보낸 사진이면 미리보기, 다시 연 방이면 사진 표시 + 함께 보낸 글 */
+function PhotoMessage({ text, previewUrl }) {
+  const caption = text.slice(PHOTO_PREFIX.length).trim();
+  return (
+    <div className="flex flex-col items-end gap-2">
+      {previewUrl ? (
+        <img
+          src={previewUrl}
+          alt="보낸 사진"
+          width="160"
+          height="120"
+          className="h-[120px] w-40 rounded-[10px] border border-[#e2e7e7] object-cover"
+        />
+      ) : (
+        <p className="flex h-8 items-center gap-1 rounded-full border border-[#e2e7e7] bg-white px-3 text-sm leading-[1.25] tracking-[-0.03em] text-[#667374]">
+          <ImageIcon aria-hidden="true" className="size-4" />
+          사진
+        </p>
+      )}
+      {caption && (
+        <p className="max-w-[592px] whitespace-pre-wrap rounded-[18px_4px_18px_18px] border border-[#e8d27e] bg-[#f9eaa6] px-4 py-3 text-[15px] leading-relaxed text-[#1a3234]">
+          {caption}
+        </p>
+      )}
+    </div>
+  );
+}
 
 /**
  * 확인 카드 자리: 서버에 저장되지 않아 번호 없음
@@ -47,10 +79,10 @@ export default function ConversationMessages({
   fallbackCount,
   actionCards = [],
   latestCardKey,
+  photoPreviews = {},
+  isChoiceDisabled = false,
   onRegenerate,
-  onChangeAction,
-  onConfirmAction,
-  onCancelAction,
+  onChoosePet,
   onRetryAction,
   children,
 }) {
@@ -62,7 +94,7 @@ export default function ConversationMessages({
 
   /** 케어 캘린더 바로가기: 등록 도구 결과가 방금 저장된 마지막 메시지일 때만(FN-AIM-012-15) */
   const renderCard = (item) => (
-    <li key={`card-${item.key}`}>
+    <li key={`card-${item.key}`} className="empty:hidden">
       <ActionCard
         item={item}
         isActive={item.key === latestCardKey}
@@ -71,9 +103,8 @@ export default function ConversationMessages({
           item.resultMsgSn != null &&
           item.resultMsgSn === lastSn
         }
-        onChange={(field, input) => onChangeAction(item.key, field, input)}
-        onConfirm={() => onConfirmAction(item.key)}
-        onCancel={() => onCancelAction(item.key)}
+        isChoiceDisabled={isChoiceDisabled}
+        onChoosePet={onChoosePet}
         onRetrySave={() => onRetryAction(item.key)}
       />
     </li>
@@ -106,6 +137,16 @@ export default function ConversationMessages({
                 ? () => onRegenerate(message)
                 : undefined
             }
+          />
+        </li>
+      );
+    }
+    if (message.cnvrsCn.startsWith(PHOTO_PREFIX)) {
+      return (
+        <li key={message.aiCnvrsMsgSn}>
+          <PhotoMessage
+            text={message.cnvrsCn}
+            previewUrl={photoPreviews[message.aiCnvrsMsgSn]}
           />
         </li>
       );
