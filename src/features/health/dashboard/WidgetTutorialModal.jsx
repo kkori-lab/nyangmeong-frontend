@@ -36,7 +36,7 @@ export default function WidgetTutorialModal({
   const saveWidgets = useSaveHealthWidgets();
 
   /** 시작 항목: [나중에 할래요] 저장값과 2단계 처음 미리 체크가 같음 */
-  const startIds = RECOMMENDED_IDS;
+  const startIds = orderWidgetIds(RECOMMENDED_IDS);
   const draftIds = pickedIds ?? startIds;
   const isEmpty = draftIds.length === 0;
 
@@ -44,13 +44,8 @@ export default function WidgetTutorialModal({
   const save = (widgetIds, message, isClosedOnError = false) => {
     if (saveWidgets.isPending) return;
     saveWidgets.mutate(
-      /** 편집은 저장 순서 + 새 항목 맨 뒤, 튜토리얼 첫 저장은 4묶음 순서 */
-      {
-        mbrSn,
-        widgetIds: isEdit
-          ? keepWidgetOrder(widgetIds)
-          : orderWidgetIds(widgetIds),
-      },
+      /** 미리보기 순서(고른 순서 + 새 항목 맨 뒤, 끌어서 바꾼 순서) 그대로 저장. 튜토리얼 시작 항목은 4묶음 순서 */
+      { mbrSn, widgetIds: keepWidgetOrder(widgetIds) },
       {
         onSuccess: () => {
           showToast(message);
@@ -96,6 +91,8 @@ export default function WidgetTutorialModal({
     );
     setLastPickedId(isOn ? null : id);
   };
+
+  const handleReorder = (ids) => setPickedIds(ids);
 
   const handleRecommend = (ids) => {
     setPickedIds(ids);
@@ -219,6 +216,7 @@ export default function WidgetTutorialModal({
           lastPickedId={lastPickedId}
           onToggle={handleToggle}
           onRecommend={handleRecommend}
+          onReorder={handleReorder}
         />
       )}
 
@@ -230,7 +228,7 @@ export default function WidgetTutorialModal({
           </p>
           <ul className="flex flex-wrap justify-center gap-2">
             <DoneChip icon="auto_awesome" name="AI 건강분석 리포트" />
-            {orderWidgetIds(draftIds).map((id) => {
+            {keepWidgetOrder(draftIds).map((id) => {
               const item = findWidgetItem(id);
               return <DoneChip key={id} icon={item.icon} name={item.nm} />;
             })}

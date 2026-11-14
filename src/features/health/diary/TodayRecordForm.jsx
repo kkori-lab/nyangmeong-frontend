@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import DropdownSelect from '@/components/DropdownSelect';
+import Modal from '@/components/Modal';
 import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
@@ -24,18 +25,16 @@ import FieldError from './FieldError';
 import { INPUT_CLASS, LABEL_CLASS } from './formStyles';
 
 /**
- * [오늘 기록하기]
+ * [오늘 기록하기 모달] (※신규 정책, 2026-11-14 페이지 영역 → 모달)
  * - 기록 종류를 고르고 시간·값을 입력해 오늘 기록으로 등록 (FN-HLT-002-11)
- * - 열릴 때 이 영역으로 스크롤하고 첫 입력칸에 포커스
- * - 카드(컨테이너) 폭이 넓으면 종류·시간·값·등록하기를 한 줄에, 좁으면 종류 / 나머지 두 줄로 배치
- *   더 좁으면(모바일) 종류 버튼이 줄 전체를 나눠 채우고, 둘째 줄은 칸이 모자라면 줄바꿈
- * - [신규 정책] 마지막 입력칸에서 Enter를 누르면 등록하기와 같이 등록하고, 등록이 끝나면 값을 비우고
- *   시간을 현재 시각으로 다시 채우고 마지막 입력칸에 커서를 둔다 (화면설계서에 없는 동작)
+ * - 공통 Modal(✕, isWide 688px). 배치: 설명 / 종류 탭 + [항목 편집] 한 줄 / 시간·양 한 줄 / [등록하기] 오른쪽 아래(푸터)
+ *   좁은 화면에서는 종류 탭이 줄 전체를 나눠 채우고 [항목 편집]은 다음 줄
+ * - 열릴 때 첫 입력칸에 포커스. 등록하면(마지막 입력칸 Enter 포함) 모달을 닫음
  * - 지금(분 단위) 이후 시각은 시간 칸 아래 안내하고 등록을 막음. [등록하기] 순간에도 현재 시각으로 다시 봄 (※신규 정책)
  * - petBdwg: 선택된 반려동물의 프로필 체중(kg). 음수량·식사량 1회 상한 계산용 (※신규 정책)
  * - 대시보드에서 고른 매일 기록만 종류로 보임 (※신규 정책, D11). widgetIds가 null(고른 적 없음)이면 5종 모두, [항목 편집] 없음
  * - [항목 편집]: 종류 줄 아래에 매일 기록 5개 칩을 펼침. 칩을 누를 때마다 켜고 끄며 바로 저장(대시보드 기록 항목과 같은 저장소).
- *   마지막으로 켜 둔 하나는 끌 수 없음. [완료]로 접음 (※신규 정책, 2026-11-08)
+ *   마지막으로 켜 둔 하나는 끌 수 없음. [완료](칩 줄 끝 세로 구분선 뒤 청록 네모 버튼)로 접음 (※신규 정책, 2026-11-08)
  */
 export default function TodayRecordForm({
   petSn,
@@ -43,11 +42,9 @@ export default function TodayRecordForm({
   initialTypeCd,
   mbrSn,
   widgetIds,
+  onClose,
 }) {
-  const formRef = useRef(null);
   const timeRef = useRef(null);
-  const valueRef = useRef(null);
-  const stoolRef = useRef(null);
   const [pickedTypeCd, setTypeCd] = useState(initialTypeCd);
   const [rcdTm, setRcdTm] = useState(getNowHm);
   const [value, setValue] = useState('');
@@ -72,7 +69,6 @@ export default function TodayRecordForm({
     : (recordTypes[0]?.cd ?? null);
 
   useEffect(() => {
-    formRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     timeRef.current?.focus({ preventScroll: true });
   }, []);
 
@@ -149,199 +145,186 @@ export default function TodayRecordForm({
           ...(isStool ? { crsdSttsCd } : { rcdNvl: Number(value) }),
         },
       },
-      {
-        onSuccess: () => {
-          // [신규 정책] 연속 입력: 값 비우기·시간 현재 시각·마지막 입력칸 포커스
-          setValue('');
-          setRcdTm(getNowHm());
-          (isStool ? stoolRef : valueRef).current?.focus();
-        },
-      },
+      { onSuccess: onClose },
     );
   };
 
-  return (
-    <form
-      ref={formRef}
-      id="hlt002-record-form"
-      className={`rounded-[14px] border border-line bg-white px-6 pt-5 shadow-[0_1px_2px_rgba(26,50,52,0.04)] ${
-        hasError ? 'pb-12' : 'pb-5'
-      }`}
-      onSubmit={handleSubmit}
+  const footer = (
+    <button
+      type="submit"
+      form="hlt002-record-form"
+      disabled={!canSubmit || createRecord.isPending}
+      className={`${BTN_PRIMARY} min-w-24`}
     >
-      <h3 className="text-lg/[1.6] font-semibold text-ink">오늘 기록하기</h3>
-      <p className="mt-1 text-subtle">
-        기록 종류를 선택하고 내용을 입력해주세요
-      </p>
+      등록하기
+    </button>
+  );
 
-      <div className="@container mt-3">
-        <div
-          className="flex flex-col gap-4 @4xl:flex-row @4xl:flex-wrap @4xl:items-end"
-        >
-          <div className="relative flex flex-col gap-1.5 @4xl:shrink-0">
-            <span className={LABEL_CLASS}>종류</span>
-            <div className="flex flex-wrap items-center gap-2">
-              {recordTypes.length > 0 && (
-                <div
-                  role="radiogroup"
-                  aria-label="기록 종류"
-                  className="flex h-10 w-full rounded-[6px] border border-[#e6eaeb] bg-[#f1f3f4] p-[3px] @lg:w-auto @lg:self-start"
-                >
-                  {recordTypes.map((item) => {
-                    const isSelected = item.cd === typeCd;
-                    return (
-                      <button
-                        key={item.cd}
-                        type="button"
-                        role="radio"
-                        aria-checked={isSelected}
-                        className={`flex flex-1 items-center justify-center rounded-[4px] whitespace-nowrap @lg:flex-none @lg:px-3 ${
-                          isSelected
-                            ? 'bg-white font-semibold text-brand-600 shadow-[0_1px_2px_rgba(26,50,52,0.08),0_0_0_1px_rgba(40,90,92,0.18)]'
-                            : 'font-medium text-muted hover:text-ink'
-                        }`}
-                        onClick={() => handleTypeChange(item.cd)}
-                      >
-                        {item.nm}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {isFiltered && (
-                <button
-                  type="button"
-                  aria-expanded={isEditOpen}
-                  aria-controls="hlt002-record-edit"
-                  className={`inline-flex h-10 items-center gap-1 rounded-full border px-3.5 whitespace-nowrap ${
-                    isEditOpen
-                      ? 'border-brand-500 bg-brand-500 font-semibold text-white'
-                      : 'border-line-strong bg-white text-ink-2 hover:border-brand-500 hover:text-brand-600'
-                  }`}
-                  onClick={() => setIsEditOpen((isOpen) => !isOpen)}
-                >
-                  <Icon name="tune" className="text-lg" />
-                  항목 편집
-                </button>
-              )}
-            </div>
-          </div>
+  return (
+    <Modal
+      title="오늘 기록하기"
+      footer={footer}
+      isWide
+      isPending={createRecord.isPending}
+      onClose={onClose}
+    >
+      <form
+        id="hlt002-record-form"
+        className={`flex flex-col gap-4 ${hasError ? 'pb-6' : ''}`}
+        onSubmit={handleSubmit}
+      >
+        <p className="text-subtle">기록 종류를 선택하고 내용을 입력해주세요</p>
 
-          {/** 종류 줄 바로 아래 줄. 넓은 칸(한 줄 배치)에서는 맨 뒤로 보내 종류·입력 줄 아래 전체 폭.
-           *  그때 입력칸 아래 겹쳐 뜬 안내와 부딪히지 않게 안내가 있으면 위를 띄운다(줄 사이 간격을 넓히면 두 줄 배치의 종류·입력 줄 사이도 벌어진다) */}
-          {isFiltered && isEditOpen && (
-            <div
-              id="hlt002-record-edit"
-              className={`flex flex-col gap-2 border-l-2 border-brand-100 pl-3 @4xl:order-last @4xl:basis-full ${
-                hasError ? '@4xl:mt-6' : ''
-              }`}
-            >
+        <div className="flex flex-col gap-1.5">
+          <span className={LABEL_CLASS}>종류</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {recordTypes.length > 0 && (
               <div
-                role="group"
-                aria-label="오늘 기록하기 항목"
-                className="flex flex-wrap items-center gap-2"
+                role="radiogroup"
+                aria-label="기록 종류"
+                className="flex h-10 w-full rounded-[6px] border border-[#e6eaeb] bg-[#f1f3f4] p-[3px] sm:w-auto"
               >
-                {DAILY_ITEMS.map((item) => {
-                  const isOn = widgetIds.includes(item.id);
-                  const isLastOn = isOn && onCount <= 1;
+                {recordTypes.map((item) => {
+                  const isSelected = item.cd === typeCd;
                   return (
                     <button
-                      key={item.id}
+                      key={item.cd}
                       type="button"
-                      aria-pressed={isOn}
-                      disabled={saveWidgets.isPending || isLastOn}
-                      className={`inline-flex h-9 items-center gap-1 rounded-full border px-3.5 whitespace-nowrap disabled:cursor-not-allowed ${
-                        isOn
-                          ? 'border-brand-500 bg-brand-500 font-semibold text-white'
-                          : 'border-line bg-white text-subtle hover:border-line-strong hover:text-ink'
+                      role="radio"
+                      aria-checked={isSelected}
+                      className={`flex flex-1 items-center justify-center rounded-[4px] whitespace-nowrap sm:flex-none sm:px-3 ${
+                        isSelected
+                          ? 'bg-white font-semibold text-brand-600 shadow-[0_1px_2px_rgba(26,50,52,0.08),0_0_0_1px_rgba(40,90,92,0.18)]'
+                          : 'font-medium text-muted hover:text-ink'
                       }`}
-                      onClick={() => handleToggle(item)}
+                      onClick={() => handleTypeChange(item.cd)}
                     >
-                      <Icon name={isOn ? 'check' : 'add'} className="text-lg" />
                       {item.nm}
                     </button>
                   );
                 })}
+              </div>
+            )}
+            {isFiltered && (
+              <button
+                type="button"
+                aria-expanded={isEditOpen}
+                aria-controls="hlt002-record-edit"
+                className={`inline-flex h-10 items-center gap-1 rounded-full border px-3.5 whitespace-nowrap ${
+                  isEditOpen
+                    ? 'border-brand-500 bg-brand-500 font-semibold text-white'
+                    : 'border-line-strong bg-white text-ink-2 hover:border-brand-500 hover:text-brand-600'
+                }`}
+                onClick={() => setIsEditOpen((isOpen) => !isOpen)}
+              >
+                <Icon name="tune" className="text-lg" />
+                항목 편집
+              </button>
+            )}
+          </div>
+        </div>
+
+        {isFiltered && isEditOpen && (
+          <div
+            id="hlt002-record-edit"
+            className="flex flex-col gap-2 border-l-2 border-brand-100 pl-3"
+          >
+            <div
+              role="group"
+              aria-label="오늘 기록하기 항목"
+              className="flex flex-wrap items-center gap-2"
+            >
+              {DAILY_ITEMS.map((item) => {
+                const isOn = widgetIds.includes(item.id);
+                const isLastOn = isOn && onCount <= 1;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    aria-pressed={isOn}
+                    disabled={saveWidgets.isPending || isLastOn}
+                    className={`inline-flex h-9 items-center gap-1 rounded-full border px-3.5 whitespace-nowrap disabled:cursor-not-allowed ${
+                      isOn
+                        ? 'border-brand-500 bg-brand-500 font-semibold text-white'
+                        : 'border-line bg-white text-subtle hover:border-line-strong hover:text-ink'
+                    }`}
+                    onClick={() => handleToggle(item)}
+                  >
+                    <Icon name={isOn ? 'check' : 'add'} className="text-lg" />
+                    {item.nm}
+                  </button>
+                );
+              })}
+              {/* 칩과 구별: 줄 오른쪽 끝에 세로 구분선 + 청록 네모 버튼. 줄이 모자라면 둘이 같이 다음 줄로 */}
+              <span className="ml-auto flex items-center gap-2">
+                <span aria-hidden="true" className="h-6 w-px bg-line" />
                 <button
                   type="button"
-                  className="inline-flex h-9 items-center rounded-full px-3.5 font-semibold whitespace-nowrap text-brand-600 hover:underline hover:underline-offset-4"
+                  className={`${BTN_PRIMARY} h-9! px-3.5!`}
                   onClick={() => setIsEditOpen(false)}
                 >
                   완료
                 </button>
-              </div>
-              <p className="text-sm text-muted">
-                켠 항목은 여기와 건강 대시보드에 함께 보여요
-              </p>
+              </span>
             </div>
-          )}
+            <p className="text-sm text-muted">
+              켠 항목은 여기와 건강 대시보드에 함께 보여요
+            </p>
+          </div>
+        )}
 
-          {type && (
-            <div
-              className={`flex flex-wrap items-end gap-x-4 @4xl:flex-1 @4xl:flex-nowrap ${
-                hasError ? 'gap-y-10' : 'gap-y-4'
-              }`}
-            >
-              <div className="relative flex min-w-fit flex-1 flex-col gap-1.5">
-                <span className={LABEL_CLASS}>시간</span>
-                <TimeSelect ref={timeRef} value={rcdTm} onChange={setRcdTm} />
-                {/* 값 칸 안내와 같이 입력칸 아래에 겹쳐 띄운다 */}
-                {timeError && (
+        {type && (
+          <div className="flex flex-wrap items-end gap-x-4 gap-y-10">
+            <div className="relative flex min-w-40 flex-1 flex-col gap-1.5">
+              <span className={LABEL_CLASS}>시간</span>
+              <TimeSelect ref={timeRef} value={rcdTm} onChange={setRcdTm} />
+              {/* 값 칸 안내와 같이 입력칸 아래에 겹쳐 띄운다 */}
+              {timeError && (
+                <div className="absolute top-full left-0 mt-1 whitespace-nowrap">
+                  <FieldError>{timeError}</FieldError>
+                </div>
+              )}
+            </div>
+            {isStool ? (
+              <label className="flex min-w-40 flex-1 flex-col gap-1.5">
+                <span className={LABEL_CLASS}>{type.valueLabel}</span>
+                <DropdownSelect
+                  value={crsdSttsCd}
+                  options={STOOL_STATES.map((state) => ({
+                    value: state.cd,
+                    label: state.nm,
+                  }))}
+                  onChange={setCrsdSttsCd}
+                />
+              </label>
+            ) : (
+              <label className="relative flex min-w-40 flex-1 flex-col gap-1.5">
+                <span className={LABEL_CLASS}>{type.valueLabel}</span>
+                <span className="relative block">
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    inputMode="decimal"
+                    value={value}
+                    className={`${INPUT_CLASS} pr-12 text-right tabular-nums`}
+                    onChange={(event) => setValue(event.target.value)}
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted">
+                    {type.unit}
+                  </span>
+                </span>
+                {/* 안내가 줄 높이를 늘려 라벨·입력칸이 어긋나지 않게 입력칸 아래에 겹쳐 띄우고, 폼 아래 간격을 넓힌다 */}
+                {valueError && (
                   <div className="absolute top-full left-0 mt-1 whitespace-nowrap">
-                    <FieldError>{timeError}</FieldError>
+                    <FieldError>{valueError}</FieldError>
                   </div>
                 )}
-              </div>
-              {isStool ? (
-                <label className="flex min-w-40 flex-1 flex-col gap-1.5">
-                  <span className={LABEL_CLASS}>{type.valueLabel}</span>
-                  <DropdownSelect
-                    ref={stoolRef}
-                    value={crsdSttsCd}
-                    options={STOOL_STATES.map((state) => ({
-                      value: state.cd,
-                      label: state.nm,
-                    }))}
-                    onChange={setCrsdSttsCd}
-                  />
-                </label>
-              ) : (
-                <label className="relative flex min-w-40 flex-1 flex-col gap-1.5">
-                  <span className={LABEL_CLASS}>{type.valueLabel}</span>
-                  <span className="relative block">
-                    <input
-                      ref={valueRef}
-                      type="number"
-                      min="0"
-                      step="any"
-                      inputMode="decimal"
-                      value={value}
-                      className={`${INPUT_CLASS} pr-12 text-right tabular-nums`}
-                      onChange={(event) => setValue(event.target.value)}
-                    />
-                    <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted">
-                      {type.unit}
-                    </span>
-                  </span>
-                  {/* 안내가 줄 높이를 늘려 라벨·입력칸 높이가 어긋나지 않게 입력칸 아래에 겹쳐 띄우고, 그만큼 아래 간격을 넓힌다 */}
-                  {valueError && (
-                    <div className="absolute top-full left-0 mt-1 whitespace-nowrap">
-                      <FieldError>{valueError}</FieldError>
-                    </div>
-                  )}
-                </label>
-              )}
-              <button
-                type="submit"
-                disabled={!canSubmit || createRecord.isPending}
-                className={`${BTN_PRIMARY} ml-auto min-w-24 @4xl:ml-0 @4xl:shrink-0`}
-              >
-                등록하기
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </form>
+              </label>
+            )}
+          </div>
+        )}
+      </form>
+    </Modal>
   );
 }
