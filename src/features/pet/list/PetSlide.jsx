@@ -514,21 +514,26 @@ function Badge({ className, children }) {
 
 /** 한 줄 행. 위 두 칸은 위 선, 마지막 두 칸은 아래 선이 없다 */
 const ROW =
-  'flex h-14 min-w-0 items-center gap-6 border-b border-line-soft [&:nth-child(-n+2)]:border-t [&:nth-child(-n+2)]:border-t-line-strong [&:nth-last-child(-n+2)]:border-b-0';
-const DT = 'w-20 shrink-0 text-subtle';
+  'flex h-14 min-w-0 items-center gap-6 min-[761px]:max-[1032px]:gap-3 min-[1101px]:max-[1108px]:gap-3 border-b border-line-soft [&:nth-child(-n+2)]:border-t [&:nth-child(-n+2)]:border-t-line-strong [&:nth-last-child(-n+2)]:border-b-0';
+const DT = 'w-20 shrink-0 text-subtle min-[761px]:max-[1032px]:w-16 min-[1101px]:max-[1108px]:w-16';
 const DD = 'relative m-0 flex min-w-0 flex-1 items-center gap-2 font-semibold';
 
 /** 인식 번호: 띄어쓰기 없이 이어 쓴다. 15자리는 국가번호(앞 3자리) 뒤에서만 줄이 바뀔 수 있다 */
 function ChipNo({ value }) {
   if (!value) return null;
   const digits = value.replace(/\s/g, '');
-  if (digits.length !== 15) return digits;
   return (
-    <>
-      {digits.slice(0, 3)}
-      <wbr />
-      {digits.slice(3)}
-    </>
+    <span className="min-w-0 min-[761px]:max-[1032px]:text-[14px] min-[1101px]:max-[1108px]:text-[14px]">
+      {digits.length === 15 ? (
+        <>
+          {digits.slice(0, 3)}
+          <wbr />
+          {digits.slice(3)}
+        </>
+      ) : (
+        digits
+      )}
+    </span>
   );
 }
 

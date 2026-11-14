@@ -254,14 +254,6 @@ export default function PetSwitcher({ variant }) {
                     <span className="w-full truncate text-center">
                       {item.petNm}
                     </span>
-                    {getPetMetaLines(item).map((line) => (
-                      <span
-                        key={line}
-                        className="-mt-1 w-full truncate text-center text-badge font-medium text-muted"
-                      >
-                        {line}
-                      </span>
-                    ))}
                   </button>
                 );
               })}
