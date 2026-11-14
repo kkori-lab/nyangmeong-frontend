@@ -74,8 +74,10 @@ import {
 } from './receiptApi';
 import {
   getHealthIndicators,
+  getHealthReport,
   getHealthWidgets,
   getRecentStools,
+  refreshHealthReport,
   removeOldHealthWidgets,
   saveHealthWidgets,
 } from './dashboardApi';
@@ -125,6 +127,7 @@ export const healthKeys = {
   /** 일상 기록을 바꾸면 같이 다시 읽도록 daily-records 아래 */
   indicators: (petSn) => ['health', 'daily-records', petSn, 'indicators'],
   recentStools: (petSn) => ['health', 'daily-records', petSn, 'stools'],
+  healthReport: (petSn) => ['health', 'health-report', petSn],
 };
 
 const showErrorToast = (error) => showToast(error.message);
@@ -535,6 +538,29 @@ export const useHealthIndicators = (petSn) =>
     queryFn: () => getHealthIndicators(petSn),
     enabled: petSn != null,
   });
+
+/**
+ * AI 건강분석 리포트. 실패는 카드 안에서 [다시 시도]
+ * - 저절로 다시 부르지 않음: 시간 초과(504)는 LLM을 다시 부르는 비용이 든다
+ */
+export const useHealthReport = (petSn) =>
+  useQuery({
+    queryKey: healthKeys.healthReport(petSn),
+    queryFn: () => getHealthReport(petSn),
+    enabled: petSn != null,
+    retry: false,
+  });
+
+/** AI 건강분석 리포트 새로고침. 성공하면 받은 리포트로 바꾸고, 실패 안내는 카드 안에서 */
+export const useRefreshHealthReport = (petSn) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => refreshHealthReport(petSn),
+    onSuccess: (report) =>
+      queryClient.setQueryData(healthKeys.healthReport(petSn), report),
+  });
+};
 
 /** 배변 상태 카드용 최근 기록 */
 export const useRecentStools = (petSn, isEnabled) =>

@@ -147,7 +147,7 @@ export default function HealthDashboard({
         </p>
       ) : (
         <div className={GRID_CLASS}>
-          <AiReportCard />
+          <AiReportCard key={pet.petSn} pet={pet} />
           {shownIds.map((id) =>
             isItemPending(id) ? (
               <SkeletonCard

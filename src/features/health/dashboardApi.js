@@ -1,4 +1,4 @@
-import { api } from '@/api/axios';
+import { aiApi, api } from '@/api/axios';
 import { toShownWidgetIds, toWidgetBody } from './dashboard/widgetItems';
 import { STOOL } from './diaryTypes';
 
@@ -14,6 +14,18 @@ export const STOOL_RECENT_COUNT = 14;
 /** 체중·식사량·음수량·산책·크레아티닌 지표 { weight, meal, water, walk, creatinine } */
 export const getHealthIndicators = (petSn) =>
   api.get(`/pets/${petSn}/health-indicators`);
+
+/**
+ * AI 건강분석 리포트 GET /ai/pets/{petSn}/health-report (LJS AI 서버, 계약 ai docs/api/healthreport.md)
+ * - { petSn, baseYmd, rptTtl, tips, notice, dataLackYn, staleYn, rfrshPsblYn, crtDt }
+ * - 새로 만들 때는 LLM을 불러 최대 20초 걸린다
+ */
+export const getHealthReport = (petSn) =>
+  aiApi.get(`/pets/${petSn}/health-report`);
+
+/** AI 건강분석 리포트 새로고침(하루 1회). 이미 했으면 409 HEALTH_REPORT_REFRESH_LIMIT */
+export const refreshHealthReport = (petSn) =>
+  aiApi.post(`/pets/${petSn}/health-report/refresh`);
 
 /** 배변 상태 최근 기록(기록일시 오름차순) */
 export const getRecentStools = (petSn) =>

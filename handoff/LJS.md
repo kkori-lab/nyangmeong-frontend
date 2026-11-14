@@ -2,14 +2,15 @@
 
 ## 지금 하는 것
 
-없음(2026-11-14 SCR-AIM-011 AI 계약 확정 develop 재확인 끝: AI PR #81 병합 뒤 develop 코드 AI 서버로 사진 턴 저장(I1~I4)·말로 확인·실행·취소(A1~A4)·칩 `petSn`(추가-1)을 다시 봄, 프론트 코드 변경 없음. 검증 통과 2026-11-14, 사람 확인 2026-11-14)
+없음(2026-11-14 SCR-HLT-011 종합 건강기록 AI 건강분석 리포트 연결 끝: 준비 중 카드를 AI `GET·POST /ai/pets/{petSn}/health-report(/refresh)`로 바꿈. 검증 통과 2026-11-14 1회차, 사람 확인 2026-11-14)
 
 ## 다음에 할 것
 
+- SCR-HLT-011 AI 건강분석 리포트 팀 알림(2026-11-14, 사람 결정 "추천안대로"): ① JAJ에게 PR 본문·팀 채널로 `features/health/` 4파일(`dashboardApi.js` 리포트 조회·새로고침, `queries.js` `healthKeys.healthReport`·`useHealthReport`·`useRefreshHealthReport`, `dashboard/DashboardCard.jsx` `AiReportCard`·`AiReportBand`, `dashboard/HealthDashboard.jsx` `<AiReportCard key pet>`)을 고쳤다고 알린다 ② 문서 담당에게 건강기록 명세 v1.4 FN-HLT-011-12 "리포트 내용·산출 기준은 미정·준비 중 안내만"을 AI 계약(ai `docs/api/healthreport.md`)대로 채워 달라고 알린다: 제목 줄 "{이름}은/는 지금 {rptTtl}", 팁 1~3개, 고정 안내, 만든 시각, 최근 기록 미반영 안내, 데이터 부족이면 팁 안내만, [새로고침] 하루 1회, 640px 미만 띠는 제목 줄 한 줄
+- SCR-HLT-011 검증 참고(2026-11-14, 판정 밖): 검증 브라우저 콘솔 오류는 `/api/pets/*/character-image` 404·500이 대부분(이번 변경과 무관). 로컬 반려동물 누리(petSn 20)에서 [새로고침]을 누르면 그날 새로고침 1회를 쓴다
 - SCR-AIM-011 develop 재확인 검증 데이터 정리(2026-11-14, 8080 백엔드·반려동물 여러 마리 회원 계정): AI 대화방 522·523·524·525·526은 AI 창 ⋮ [삭제], 코코(petSn 14) 건강 일지 체중 2026-11-14 14:53 4.2kg는 건강 일지에서 지운다. 참고: Java 400 칸 오류는 실제 값으로 못 일으켜(AI가 거절·반올림) 응답을 가로채 확인했다
 - SCR-AIM-012 같은 이름 반려동물 AI 세션 알림(사람 요청 2026-11-13, AI 저장소에서 /start): tester 계정처럼 이름이 같은 반려동물("연탄" 두 마리, petSn 1006·1040)이 있으면 확인 카드가 "아직 반려동물이 비어 있어요"만 되풀이한다. 원인은 `app/chat/service.py` `_pick_pet`이 문장 속 이름으로 고르는데 두 마리가 다 걸려 None, 칩 [연탄]도 둘이 구분되지 않음. 반려동물 결정과 칩 목록은 AI 서버 몫(사람 결정 2026-11-13). AI 할 일: ① 돌려받은 카드 `action.input.petSn`이 양육 반려동물이고 문장에 걸린 이름 중 하나면 이름보다 그 번호를 먼저 씀 ② `petChoices`에 구분 글 칸 추가(이름이 겹치는 아이만 `연탄 · 말티즈`처럼, 품종도 같으면 나이·성별), `docs/api/chat.md` ActionCard 계약 고침 ③ 겹칠 때 요약 글을 "어느 연탄인지 골라 주세요"처럼(필요하면). 프론트 상태: 추가-1(SCR-AIM-011)로 칩을 누르면 이름 대신 고른 `petSn`을 다음 메시지 `action.input.petSn`에 실어 보냄(검증 통과 2026-11-13). AI ② 뒤 프론트 연결: `PetChoiceChips`가 새 구분 글 칸을 보여 주기(프론트에서 따로 구분 정보를 만들지 않음). 같이 알릴 것(검증 보고, 판정 밖): 요약 뒤 "체중을 999로 바꿔 줘"에 AI가 "지금 카드는 체중 3.1kg 그대로예요"라고 답하면서 `done.action`을 null로 줘서 프론트가 계약대로 카드를 버림 → 이어서 "등록해 줘"가 방 태그 반려동물로 새 카드를 만듦. 답 문구와 계약이 어긋남
 
-- SCR-MAN-001 AI 건강분석 리포트 화면 연결(사람 요청 2026-11-13, 지금 SCR-AIM-011 `/end` 뒤): 프론트에는 아직 연결이 없다. `features/health/dashboard/DashboardCard.jsx` `AiReportCard`(JAJ 폴더)는 "준비 중" 고정 화면이고, 메인 제안 카드는 2026-11-09에 뺐다. `src`에 `health-report` 호출이 없다. AI API는 develop에 있다: `GET /ai/pets/{petSn}/health-report`, 새로고침 API, 계약은 AI `docs/api/healthreport.md`(초안, MAN-006, LJS). 정할 것: 어느 화면에 붙일지. 건강기록 대시보드면 JAJ에게 넘기고(카드 자리는 JAJ 화면), 메인이면 내 SCR-MAN-001로 `/start`
 
 - SCR-COM-002 공용 스크롤바 팀 알림(2026-11-13): 팀 채널에 알린다. ① 앱 전체 스크롤 영역 막대가 얇은 둥근 회색 막대로 바뀜(마우스 기기만, `assets/index.css`) ② 페이지(html) 막대는 브라우저 막대를 숨기고 `components/PageScrollbar`가 내용 위에 그림(화면 오른쪽 10px는 막대 칸이라 그 아래가 눌리지 않음, html 너비가 막대 유무와 상관없이 같음) ③ 막대 자리를 비워 둘 스크롤 영역은 `scrollbar-stable` 클래스 ④ 옛 Safari(18.2 전)는 `[&::-webkit-scrollbar]:hidden` 없는 탭 줄에 막대가 보일 수 있음(사람 결정으로 둠)
 - SCR-COM-002 사람이 볼 것(판정 밖, 2026-11-13 검증 보고): 기획 S1①·S4의 "html 막대 칸 10px·채팅 모달 여백 10px"은 추가-1로 0이 맞는 값이 됨. `layouts/ChatModal.jsx`의 `paddingRight` 보정과 `hooks/useScrollLock.js`의 gutter 처리는 이제 마우스 기기에서 0이라 남겨 둠(정리할지 정할 것). 화면마다 콘솔 오류 1~9건(원인 안 봄)
