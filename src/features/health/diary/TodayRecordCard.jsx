@@ -10,6 +10,7 @@ import {
   WEIGHT,
   findRecordType,
 } from '../diaryTypes';
+import { DAILY_ITEMS, keepWidgetOrder } from '../dashboard/widgetItems';
 import DayRecordEditModal from './DayRecordEditModal';
 import { formatAmount, formatRecordValue, summarizeType } from './recordUtils';
 
@@ -26,20 +27,30 @@ const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
  *   버튼 줄이 카드 폭 전체를 쓰도록 본문 좌우 여백은 목록(ul)으로 옮기고(Card 본문과 같은 18·22px), 카드 overflow-hidden으로 아래 모서리를 카드 둥글기에 맞춘다
  * - 태블릿(640~1100px)은 가로 5칸 (※신규 정책): 칸마다 종류·횟수 / 큰 값 / 보조 줄(측정 시각·마지막 시각).
  *   1100px은 HealthDiaryPage가 두 카드를 위아래로 쌓는 기준이라 이 폭에서 카드가 넓어진다
+ * - 기록 항목 편집에서 켠 매일 기록만, 대시보드 카드 순서로 보임. widgetIds가 null(고른 적 없음)이면 5개 모두 (※신규 정책, 2026-11-14)
+ *   꺼 둔 항목이 있으면 목록 아래 남는 공간 가운데에 [항목 편집] 안내. 카드 높이는 그리드가 왼쪽 건강기록 변화 카드에 맞춤
+ * - [오늘 기록 추가]: 오늘 기록하기 모달을 엶(onAddRecord)
  */
 export default function TodayRecordCard({
   petSn,
   petBdwg,
   records,
   todayYmd,
-  isFormOpen,
-  onToggleForm,
+  widgetIds,
+  onAddRecord,
 }) {
   const todayRecords = records.filter(
     (record) => getYmdOf(record.rcdDt) === todayYmd,
   );
   const [isEditOpen, setIsEditOpen] = useState(false);
   const hasRecords = todayRecords.length > 0;
+  const shownTypeCds =
+    widgetIds == null
+      ? TODAY_RECORD_ORDER
+      : keepWidgetOrder(widgetIds)
+          .map((id) => DAILY_ITEMS.find((item) => item.id === id)?.typeCd)
+          .filter((typeCd) => typeCd != null);
+  const hasHiddenTypes = shownTypeCds.length < TODAY_RECORD_ORDER.length;
 
   return (
     <Card
@@ -50,14 +61,13 @@ export default function TodayRecordCard({
         </span>
       }
       className={hasRecords ? 'min-w-0 overflow-hidden' : 'min-w-0'}
-      bodyClassName={hasRecords ? 'pt-2! px-0! pb-0!' : 'pt-2!'}
+      bodyClassName={`flex flex-col ${hasRecords ? 'pt-2! px-0! pb-0!' : 'pt-2!'}`}
       action={
         <button
           type="button"
-          aria-expanded={isFormOpen}
-          aria-controls="hlt002-record-form"
+          aria-haspopup="dialog"
           className={`${BTN_PRIMARY} h-8! px-3!`}
-          onClick={onToggleForm}
+          onClick={() => onAddRecord(shownTypeCds[0])}
         >
           오늘 기록 추가
         </button>
@@ -66,7 +76,7 @@ export default function TodayRecordCard({
       <ul
         className={`flex flex-col sm:max-[1100px]:grid sm:max-[1100px]:grid-cols-5 ${hasRecords ? 'px-4.5 sm:px-5.5' : ''}`}
       >
-        {TODAY_RECORD_ORDER.map((typeCd) => (
+        {shownTypeCds.map((typeCd) => (
           <TodayRow
             key={typeCd}
             typeCd={typeCd}
@@ -75,6 +85,12 @@ export default function TodayRecordCard({
           />
         ))}
       </ul>
+
+      {hasHiddenTypes && (
+        <p className="flex flex-1 items-center justify-center px-4.5 py-4 text-center text-sm text-subtle sm:px-5.5">
+          꺼 둔 항목은 [항목 편집]에서 켤 수 있어요
+        </p>
+      )}
 
       {hasRecords && (
         <button

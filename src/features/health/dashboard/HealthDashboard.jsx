@@ -13,7 +13,6 @@ import {
 } from '../queries';
 import { AiReportCard } from './DashboardCard';
 import WidgetCard from './WidgetCard';
-import WidgetOrderModal from './WidgetOrderModal';
 import WidgetTutorialModal from './WidgetTutorialModal';
 import {
   findWidgetItem,
@@ -34,7 +33,7 @@ const GRID_CLASS =
  * [건강 대시보드] 종합 건강기록 히어로 아래 (※신규 정책, 흐름도 D1~D10)
  * - 고른 항목은 회원 단위(반려동물을 새로 등록해도 같은 선택). 저장한 적이 없으면 튜토리얼을 연다(D1·D2)
  * - 고른 항목을 불러오는 중이거나 실패하면 튜토리얼을 열지 않음. 저장 여부는 서버(savedYn)라 브라우저가 달라도 같음
- * - 카드 순서는 저장한 순서 그대로(⋮ 메뉴 「기록 항목 순서 변경」으로 바꿈, D8 4묶음 고정은 버림), AI 건강분석 리포트는 항상 맨 앞(D9)
+ * - 카드 순서는 저장한 순서 그대로(⋮ 메뉴 「기록 항목 편집」 미리보기에서 끌어 바꿈, D8 4묶음 고정은 버림), AI 건강분석 리포트는 항상 맨 앞(D9)
  * - initialInspection: 검사 수치 카드 처음 항목(?inspection=, 검진상세 [추이 보기])
  * - 640px 미만: AI 띠 + 요약 타일 2열, 기준일은 요약 띠에만 (※신규 정책)
  */
@@ -45,7 +44,7 @@ export default function HealthDashboard({
   initialInspection,
 }) {
   const widgets = useHealthWidgets(mbrSn);
-  /** null: 닫힘 / 'tutorial' / 'edit' / 'order' */
+  /** null: 닫힘 / 'tutorial' / 'edit' */
   const [modalMode, setModalMode] = useState(null);
   /** 이 화면에서 튜토리얼을 한 번 닫았으면 저장 실패여도 다시 열지 않음 */
   const [isTutorialDone, setIsTutorialDone] = useState(false);
@@ -132,10 +131,6 @@ export default function HealthDashboard({
             label="대시보드 메뉴"
             leadingItems={[
               { label: '기록 항목 편집', onSelect: () => setModalMode('edit') },
-              {
-                label: '기록 항목 순서 변경',
-                onSelect: () => setModalMode('order'),
-              },
             ]}
           />
         )}
@@ -165,13 +160,6 @@ export default function HealthDashboard({
         </div>
       )}
 
-      {openMode === 'order' && (
-        <WidgetOrderModal
-          mbrSn={mbrSn}
-          savedIds={shownIds}
-          onClose={() => setModalMode(null)}
-        />
-      )}
       {(openMode === 'tutorial' || openMode === 'edit') && (
         <WidgetTutorialModal
           mode={openMode}

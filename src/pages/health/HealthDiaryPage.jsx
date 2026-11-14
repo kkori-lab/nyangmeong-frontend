@@ -22,7 +22,6 @@ import ReceiptResultStep from '@/features/health/diary/ReceiptResultStep';
 import RecentRecordTable from '@/features/health/diary/RecentRecordTable';
 import TodayRecordCard from '@/features/health/diary/TodayRecordCard';
 import TodayRecordForm from '@/features/health/diary/TodayRecordForm';
-import { MEAL } from '@/features/health/diaryTypes';
 import {
   useDailyRecords,
   useHealthWidgets,
@@ -123,7 +122,7 @@ function HealthDiaryContent({ mbrSn }) {
   const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
   /** 대시보드 매일 기록 카드 [더보기]로 오면 그 지표를 고른 채로 그래프를 연다 (※신규 정책) */
   const initialTrendTypeCd = location.state?.typeCd;
-  /** 오늘 기록하기 입력 영역: null이면 닫힘, token으로 같은 영역을 다른 종류로 다시 엶 */
+  /** 오늘 기록하기 모달: null이면 닫힘, token으로 열 때마다 새로 시작 */
   const [recordForm, setRecordForm] = useState(null);
   /**
    * 영수증으로 검진기록 추가 흐름: null이면 닫힘
@@ -284,6 +283,7 @@ function HealthDiaryContent({ mbrSn }) {
           <div className="grid items-stretch gap-5 min-[1101px]:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
             <DailyTrendCard
               pet={selectedPet}
+              widgetIds={widgetIds}
               onAddRecord={openRecordForm}
               initialTypeCd={initialTrendTypeCd}
             />
@@ -292,10 +292,8 @@ function HealthDiaryContent({ mbrSn }) {
               petBdwg={selectedPet.petBdwg}
               records={records}
               todayYmd={todayYmd}
-              isFormOpen={recordForm !== null}
-              onToggleForm={() =>
-                recordForm ? setRecordForm(null) : openRecordForm(MEAL)
-              }
+              widgetIds={widgetIds}
+              onAddRecord={openRecordForm}
             />
           </div>
 
@@ -307,6 +305,7 @@ function HealthDiaryContent({ mbrSn }) {
               initialTypeCd={recordForm.typeCd}
               mbrSn={mbrSn}
               widgetIds={widgetIds}
+              onClose={() => setRecordForm(null)}
             />
           )}
 
