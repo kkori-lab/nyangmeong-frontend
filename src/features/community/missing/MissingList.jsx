@@ -1,5 +1,6 @@
 import { SearchX } from 'lucide-react';
 import EmptyResult from '@/components/EmptyResult';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import useSearchDraft from '@/hooks/useSearchDraft';
 import LoadMore from '@/components/LoadMore';
 
@@ -32,7 +33,9 @@ export default function MissingList({
   };
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1`}
+    >
       <div className="flex min-w-0 flex-col gap-5">
         <MissingFilters
           filters={filters}

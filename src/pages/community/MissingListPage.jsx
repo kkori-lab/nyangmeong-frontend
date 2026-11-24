@@ -2,6 +2,7 @@ import { Pencil } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import LoadError from '@/components/LoadError';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import {
   PET_SE_BY_FILTER,
   PET_FILTERS,
@@ -48,7 +49,7 @@ function MissingListSkeleton() {
   return (
     <div
       aria-busy="true"
-      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1"
+      className={`grid ${LIST_RAIL_COLS} items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1`}
     >
       <div className="flex min-w-0 flex-col gap-5">
         <div

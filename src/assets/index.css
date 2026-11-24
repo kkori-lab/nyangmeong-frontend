@@ -35,6 +35,23 @@
     }
   }
 
+  /** 분석 중 표시(AnalyzingStatus): 별 아이콘이 천천히 돌고, 문구 위로 빛이 왼쪽에서 오른쪽으로 지나간다 */
+  --animate-sparkle-spin: sparkle-spin 3s linear infinite;
+  @keyframes sparkle-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  --animate-text-shimmer: text-shimmer 5s linear infinite;
+  @keyframes text-shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: 0% 0;
+    }
+  }
+
   /** 공통 토스트(ToastContainer): 아래에서 올라오며 나타나고, 흐려지며 사라진다 */
   --animate-toast-in: toast-in 200ms ease-out;
   --animate-toast-out: toast-out 150ms ease-in forwards;

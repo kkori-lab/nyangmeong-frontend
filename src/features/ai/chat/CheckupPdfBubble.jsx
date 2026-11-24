@@ -2,6 +2,7 @@ import { FileText } from 'lucide-react';
 import { callName } from '@/utils/josa';
 import PetChoiceChips from './PetChoiceChips';
 import AiAvatar from './AiAvatar';
+import AnalyzingStatus from '@/components/AnalyzingStatus';
 
 const bubbleClass =
   'max-w-[592px] rounded-[4px_18px_18px_18px] border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink';
@@ -73,7 +74,9 @@ export default function CheckupPdfBubble({
       {(status === 'analyzing' || status === 'saving') && (
         <AiRow avatarPet={avatarPet}>
           <p role="status" className={bubbleClass}>
-            {callName(pet.petNm)}의 검사결과지를 분석하고 있어요…
+            <AnalyzingStatus>
+              {callName(pet.petNm)}의 검사결과지를 분석하고 있어요
+            </AnalyzingStatus>
           </p>
           {status === 'analyzing' && (
             <button type="button" className={secondaryClass} onClick={onCancel}>
