@@ -23,6 +23,7 @@ import { useChatModal } from '@/context/chatModal';
 import { PATHS } from '@/routes/paths';
 import { formatDate, getTodayYmd } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import { getCostLabel, getPetBadges, isOpen, RCRT_STTS } from '../careCodes';
 import {
   useDeleteCare,
@@ -83,7 +84,9 @@ export default function CareDetail({ post }) {
   const closeModal = () => setModal('');
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10`}
+    >
       <article className={ARTICLE_CLASS} aria-labelledby="care-title">
         <div className="flex flex-wrap gap-2">
           {post.owner && (

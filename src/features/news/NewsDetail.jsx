@@ -8,6 +8,7 @@ import SharePanel from '@/components/SharePanel';
 import { PATHS } from '@/routes/paths';
 import { publicFileUrl } from '@/utils/fileUrl';
 import { formatDate, formatMonthDayDot } from '@/utils/formatDate';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import NewsCategoryBadge from './NewsCategoryBadge';
 import NewsThumb from './NewsThumb';
 import { getPressName, hasSummary, NEWS_SRC_ADMIN } from './newsCodes';
@@ -22,7 +23,9 @@ export default function NewsDetail({ news }) {
   const isAdmin = news.newsSrcCd === NEWS_SRC_ADMIN;
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10`}
+    >
       <article className="rounded-[14px] border border-line bg-white px-9 pt-8 pb-7 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-5">
         <NewsCategoryBadge news={news} />
         <h2 className="mt-3 text-2xl leading-[1.35] font-bold tracking-[-0.01em] text-ink max-[760px]:text-lg">
