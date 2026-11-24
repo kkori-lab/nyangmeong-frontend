@@ -2,10 +2,16 @@
 
 ## 지금 하는 것
 
-끝남: SCR-COM-002 플로팅 버튼 말풍선·반려동물 등록·TOP 디자인 (2026-11-24, 검증 2회차 통과, 사람 확인). 'AI 매니저' 말풍선을 AI 답변 말풍선 모양(PC 캐릭터 위·모바일 왼쪽)으로, [등록]·[TOP]을 흰 발바닥 + 연청록 패드 + 가운데 글자(PC 56·모바일 48)로. 추가-1 모바일 접었다 펼칠 때 캐릭터 로딩 칸 없앰(접어도 지우지 않고 숨김), 추가-2 모바일 AI·[등록] 묶음 끌어서 접기
+끝남: SCR-AIM-013 대화창 · PDF 검사결과지 분석 카드 연결 (2026-11-24, 검증 5회차 통과, 사람 확인). 대화창·메인 검색창 [＋]에서 PDF 첨부 → image-intent CHECKUP_PDF → lab-results 분석 → checkup-card 요약·검사 수치 확인 카드 → "등록해 줘" 저장. 추가-1~3 검진기록이 없으면 요약 말풍선 아래 [검진기록 등록하기]·[나중에] → 대화창 안 검진기록 추가 모달(건강 일지와 같은 칸·예정 일정 연결) → 같은 분석 결과로 카드 다시, 추가-4 메인 검색창 PDF
 
 ## 다음에 할 것
 
+- SCR-AIM-013 PDF 남은 것: ① 검진기록 없음 판단을 요약 글("검진기록이 없어요") 대신 ai 계약 `CheckupCardResult.noCardReason` `NO_CHECKUP`으로 바꾸기(`pages/ai/AiChatScreen.jsx` `needsCheckup`, ai 계약에 이미 생김) ② 결과 줄의 검진상세 바로가기(이번엔 안 함) ③ PR을 만들면 backend 세션에 PR 번호 알림(백엔드 handoff "SCR-AIM-013 검사 수치 카드 연결 남음" 줄 지우기)
+- SCR-AIM-013 ai 저장소 몫(ai-23에 요청함, 그 저장소에서 /start): 검진기록 0건 저장 글을 "검진기록이 없어요. 검진기록을 먼저 등록할까요? …"로(지금 "본창 건강 일지에서…"), 도구 없음 글의 "본창" 빼기, 실행 카드 values에 inspArtclCd와 직접입력명이 같이 붙음(프론트 `actionForm.js` `cleanInput`이 보내기 전에 이름을 뺌), 검진기록 여럿에서 "10월 20일 ○○병원"이라고 답해도 ckupRcdSn이 안 채워지고 참고 범위 칸이 빠진 적 있음, "BUN 카드도 띄울게요" 뒤 카드 안 나옴, 요약 글 마지막 항목 줄 뒤 문단이 목록에 붙어 보임(빈 줄 없음)
+- SCR-AIM-013 팀 알림(PR 본문 + 팀 채널, JAJ): AI 대화창이 검진기록 만들기에 `POST /api/pets/{petSn}/checkups`와 가까운 예정 병원 일정 찾기(`GET /pets/{petSn}/care-schedules`, 앞뒤 7일·FN-HLT-002-46 규칙)를 `features/ai/api.js`에 따로 둠(다른 도메인 함수 import 금지). 건강 일지 검진기록 추가 규칙·칸 길이(80·500·200)를 바꾸면 알려 달라. 모두: 새 공용 `utils/chatAttachment.js`(사진 + PDF 첨부 검사)
+- SCR-AIM-013 사람이 고치는 문서: AI매니저 기능명세서 FN-AIM-013-01·화면설계서 SCR-AIM-013 ① "PDF 불가" → 검사결과지 PDF 허용과 흐름(분석·요약·카드·검진기록 없을 때 대화창 안 등록), 메인페이지 FN-MAN-002 검색창 첨부에 PDF
+- SCR-AIM-013 검증 데이터 정리(8081 공용 DB, tester 계정): 탄이(petSn 2) 검진기록 1049 검사 수치 2건, 알약(1074) 검진기록 1050 "[검증]병원", 반려동물 1038 검진기록 1051 "[검증] 동물병원"과 수치, AI 대화방 "PDF 대화"·"탄이 검사결과지 [검증]" 등(대화창 ⋮ 삭제)
+- 피부 병변 분석(ai-23 요청·정정 2026-11-24, 백엔드 사람 결정, 담당 LJS 프론트): `POST /ai/skin-analyses`는 file만(jpg·jpeg·png·webp 10MB), 응답 `rslt`(ANALYZED 등급 OBSERVE·VISIT·URGENT + findings / NOT_PET_SKIN / UNCLEAR)·`guide[]`·`notice`(항상 표시), 저장 번호 없음. 오류 400·504 `SKIN_ANALYZE_TIMEOUT`(20초)·502. 피부 분석 전용 저장 API·테이블은 없음(앞서 알린 petSn·skinAnlsSn 추가는 취소). 저장은 건강기록 지속 관찰(확인 카드 `draft_observation_item` = Java `POST /api/pets/{petSn}/observation-items` multipart, 같은 부위면 `draft_observation_cycle`, 부위 `obsrvRegnCd`는 카드에서 회원이 고름, 분석 결과는 `memoCn` 글). 대화창 흐름: image-intent kind `SKIN`(안내 "피부 분석으로 이어 갈게요.", ASK 칩에 피부 분석 추가) → skin-analyses → checkup-card 같은 새 API로 요약 + 확인 카드 → 기존 확인 카드 흐름. ai 마일스톤이 병합되면 ai-23이 docs/api/chat.md 계약과 함께 다시 알림. 그 뒤 /start
 - SCR-COM-002 플로팅 버튼 사람이 고치는 문서: 공통레이아웃 화면설계서 SCR-COM-002 ⑦에 말풍선 위치(PC 캐릭터 위·760 미만 왼쪽, 꼬리 없는 흰 말풍선)·[등록]·[TOP] 발바닥 모양·모바일 AI+[등록] 묶음 접기, 기능명세서 FN-COM-002-19(접기 범위)·FN-COM-002-27 플로팅 반려동물 등록 버튼
 - SCR-COM-002 플로팅 버튼 참고(검증 보고, 판정 밖): 1440 `/health`에서 말풍선이 'AI 건강분석 리포트' 카드 [새로고침] 글자 위에 겹침(플로팅이라 원래 겹침). 플로팅 [등록]으로 연 반려동물 등록 모달이 Esc로 안 닫힘(닫기 버튼은 됨, 전부터인지 안 봄, `PetFormModal` SJM). 등록 한도가 찬 계정은 [등록]이 숨음(사람 결정 "이대로 유지"). 말풍선 흔들림(`animate-sway`)은 그대로
 - SCR-AIM-011 참고(검증 보고, 판정 밖): 오류 확인 중(`bscCharSbstYn`) 흑백 얼굴은 검증 계정에 그런 방이 없어 화면으로 못 봄(PetFace 공용 규칙). 검증이 8081 공용 DB 취두부 방에 "[검증] 고마워" 메시지·답변 하나를 남김(메시지 삭제 기능 없음)

@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react';
 import { ArrowUp, Plus, X } from 'lucide-react';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import {
-  RECEIPT_ACCEPT,
-  RECEIPT_HELP,
-  validateReceiptFile,
-} from '@/utils/receiptFile';
+  CHAT_ATTACH_ACCEPT,
+  CHAT_ATTACH_HELP,
+  isPdfFile,
+  validateChatAttachment,
+} from '@/utils/chatAttachment';
+import { PdfFileChip } from './CheckupPdfBubble';
 
 const MAX_LENGTH = 1000;
 
 /**
  * [대화 입력창]
- * - 글 입력 규칙과 영수증 이미지 1장 첨부(SCR-AIM-013)
+ * - 글 입력 규칙과 사진 1장 또는 검사결과지 PDF 1개 첨부(SCR-AIM-013)
  * - 함께 보낸 글은 말풍선 표시만: 분석 반영 여부 미정
  */
 export default function ChatInput({
@@ -43,7 +45,7 @@ export default function ChatInput({
     const file = event.target.files[0];
     event.target.value = '';
     if (!file) return;
-    const reason = await validateReceiptFile(file);
+    const reason = await validateChatAttachment(file);
     setFileError(reason ?? '');
     if (reason) return;
     setPicked({ file, previewUrl: URL.createObjectURL(file) });
@@ -111,12 +113,22 @@ export default function ChatInput({
       >
         {picked && (
           <ul aria-label="첨부한 파일" className="flex basis-full px-2">
-            <li className="relative size-24">
-              <img
-                src={picked.previewUrl}
-                alt={picked.file.name}
-                className="size-full rounded-xl border border-line object-cover"
-              />
+            <li
+              className={
+                isPdfFile(picked.file)
+                  ? 'relative max-w-full'
+                  : 'relative size-24'
+              }
+            >
+              {isPdfFile(picked.file) ? (
+                <PdfFileChip name={picked.file.name} />
+              ) : (
+                <img
+                  src={picked.previewUrl}
+                  alt={picked.file.name}
+                  className="size-full rounded-xl border border-line object-cover"
+                />
+              )}
               <button
                 type="button"
                 aria-label={`${picked.file.name} 첨부 삭제`}
@@ -131,7 +143,7 @@ export default function ChatInput({
         <button
           type="button"
           aria-label="파일 첨부"
-          title={`파일 첨부 (${RECEIPT_HELP})`}
+          title={`파일 첨부 (${CHAT_ATTACH_HELP})`}
           disabled={isDisabled}
           className="grid size-10 shrink-0 place-items-center rounded-full text-ink-2 enabled:hover:bg-surface-2 disabled:text-placeholder"
           onClick={() => fileInputRef.current.click()}
@@ -141,7 +153,7 @@ export default function ChatInput({
         <input
           ref={fileInputRef}
           type="file"
-          accept={RECEIPT_ACCEPT}
+          accept={CHAT_ATTACH_ACCEPT}
           tabIndex={-1}
           aria-hidden="true"
           className="hidden"

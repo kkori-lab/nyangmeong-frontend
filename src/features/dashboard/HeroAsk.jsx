@@ -1,19 +1,20 @@
-import { ArrowUp, Plus, X } from 'lucide-react';
+import { ArrowUp, FileText, Plus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import useAiWindow from '@/hooks/useAiWindow';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import {
-  RECEIPT_ACCEPT,
-  RECEIPT_HELP,
-  validateReceiptFile,
-} from '@/utils/receiptFile';
+  CHAT_ATTACH_ACCEPT,
+  CHAT_ATTACH_HELP,
+  isPdfFile,
+  validateChatAttachment,
+} from '@/utils/chatAttachment';
 
 /**
  * [메인 AI 매니저 검색창] (FN-MAN-002)
  * - 질문을 보내면 AI 매니저(같은 창 모달)를 그 질문으로 연다. 빈 칸이면 첫 메시지 없이 연다
  * - 열면 글·사진을 비운다(넘긴 뒤라 남길 필요 없음)
  * - 검색창 자리(rect)와 복제(ghost)를 넘겨, 검색창이 대화창 입력 자리로 옮겨 가며 대화창으로 바뀌게 한다
- * - 왼쪽 [+]로 사진 1장 첨부: 사진+글(글은 없어도 됨)을 AI 창으로 넘기면 대화창이 종류를 판단한다
+ * - 왼쪽 [+]로 사진 1장 또는 검사결과지 PDF 1개 첨부: 파일+글(글은 없어도 됨)을 AI 창으로 넘기면 대화창이 종류를 판단한다(PDF는 검사결과지 분석)
  * - 음성 질문 버튼·제안 카드는 뺐다(사람 요청 2026-11-09)
  */
 
@@ -61,7 +62,7 @@ export default function HeroAsk({ petNm }) {
     const file = e.target.files[0];
     e.target.value = '';
     if (!file) return;
-    const reason = await validateReceiptFile(file);
+    const reason = await validateChatAttachment(file);
     setFileError(reason ?? '');
     if (reason) return;
     setPicked({ file, previewUrl: URL.createObjectURL(file) });
@@ -98,13 +99,29 @@ export default function HeroAsk({ petNm }) {
         }`}
       >
         {picked && (
-          <ul aria-label="첨부한 사진" className="flex basis-full px-2">
-            <li className="relative size-24">
-              <img
-                src={picked.previewUrl}
-                alt={picked.file.name}
-                className="size-full rounded-xl border border-line object-cover"
-              />
+          <ul aria-label="첨부한 파일" className="flex basis-full px-2">
+            <li
+              className={
+                isPdfFile(picked.file)
+                  ? 'relative max-w-full'
+                  : 'relative size-24'
+              }
+            >
+              {isPdfFile(picked.file) ? (
+                <p className="flex h-10 max-w-[280px] items-center gap-2 rounded-[10px] border border-line bg-white px-3 text-sm leading-[1.25] tracking-[-0.03em] text-ink">
+                  <FileText
+                    aria-hidden="true"
+                    className="size-5 shrink-0 text-brand-500"
+                  />
+                  <span className="truncate">{picked.file.name}</span>
+                </p>
+              ) : (
+                <img
+                  src={picked.previewUrl}
+                  alt={picked.file.name}
+                  className="size-full rounded-xl border border-line object-cover"
+                />
+              )}
               <button
                 type="button"
                 aria-label={`${picked.file.name} 첨부 삭제`}
@@ -118,8 +135,8 @@ export default function HeroAsk({ petNm }) {
         )}
         <button
           type="button"
-          aria-label="사진 첨부"
-          title={`사진 첨부 (${RECEIPT_HELP})`}
+          aria-label="파일 첨부"
+          title={`파일 첨부 (${CHAT_ATTACH_HELP})`}
           onClick={() => fileInputRef.current.click()}
           className="grid size-10 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-surface-2"
         >
@@ -128,7 +145,7 @@ export default function HeroAsk({ petNm }) {
         <input
           ref={fileInputRef}
           type="file"
-          accept={RECEIPT_ACCEPT}
+          accept={CHAT_ATTACH_ACCEPT}
           tabIndex={-1}
           aria-hidden="true"
           className="hidden"
