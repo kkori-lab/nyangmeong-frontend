@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { DEMO_ACCOUNTS } from '@/api/env';
 import PageLoading from '@/components/PageLoading';
 import StepMotion from '@/components/StepMotion';
 import EmailLoginForm from '@/features/member/login/EmailLoginForm';
@@ -94,6 +95,7 @@ export default function LoginPage() {
       >
         {isEmail ? (
           <EmailLoginForm
+            initialValues={DEMO_ACCOUNTS[location.state?.demo]}
             onBack={backToChoice}
             onSuccess={(result) => finishLogin(result)}
             onSignup={() => navigate(PATHS.SIGNUP)}

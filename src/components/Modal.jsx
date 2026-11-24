@@ -36,6 +36,8 @@ const SHEET_MOTION =
  * width: 가로 폭(px) 560·688·720·1040, 없으면 440(isLarge는 760). isWide(688)보다 우선. 화면보다 좁으면 양옆 1rem을 남긴다
  * headerLead: 제목 줄 왼쪽에 제목 대신 둘 요소(예: 「‹ 다시 검색」). isTitleHidden와 함께 쓴다
  * isHeaderBorderHidden: 제목 줄 아래 구분선을 없앤다
+ * isHeaderHidden: 제목 줄(제목·✕)을 화면에서 통째로 숨긴다(화면 읽기용 제목은 유지). 본문이 모달 위 끝부터 꽉 차게 그릴 때(사진 배너 등) 쓰고,
+ *                 닫기 버튼은 본문에서 직접 둔다. 760px 미만 시트의 손잡이 막대는 그대로 있다
  * isTitleHidden: 제목 글자를 화면에서 숨긴다(화면 읽기용 이름은 유지, ✕는 오른쪽에 그대로)
  * isTitleSmall: 제목을 18px(확인 창 제목과 같은 크기)로 줄인다. 기본은 22px
  * isDismissDisabled: 배경 클릭·ESC로 닫지 않는다(입력 유실 방지). ✕·푸터 버튼으로만 닫힌다
@@ -60,6 +62,7 @@ export default function Modal({
   isTitleSmall = false,
   headerLead = null,
   isHeaderBorderHidden = false,
+  isHeaderHidden = false,
   isDismissDisabled = false,
   isPending = false,
   onClose,
@@ -221,7 +224,11 @@ export default function Modal({
           </span>
           <header
             {...dragProps}
-            className={`flex shrink-0 items-center justify-between gap-3 px-6 ${isHeaderBorderHidden ? '' : 'border-b border-line-soft'} py-3 max-[760px]:touch-none`}
+            className={
+              isHeaderHidden
+                ? 'sr-only'
+                : `flex shrink-0 items-center justify-between gap-3 px-6 ${isHeaderBorderHidden ? '' : 'border-b border-line-soft'} py-3 max-[760px]:touch-none`
+            }
           >
             {headerLead}
             <h2

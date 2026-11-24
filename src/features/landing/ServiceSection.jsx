@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
+import useInView from '@/hooks/useInView';
 import SectionTitle from './SectionTitle';
 import { SERVICE_CARDS } from './landingData';
 
 const COUNT = SERVICE_CARDS.length;
-// 카드 한 장을 넘기는 데 쓰는 스크롤 길이(화면 높이 비율)
-const STEP_VH = 70;
+const HALF = Math.floor(COUNT / 2);
+// 화면에 보이는 동안 카드가 저절로 넘어가는 간격
+const AUTO_MS = 3000;
+// 직접 넘긴 뒤 자동 넘김을 다시 켜기까지
+const RESUME_MS = 10000;
+// 이만큼(px) 넘게 옆으로 밀면 스와이프로 본다
+const SWIPE_PX = 40;
+
+// 고른 카드 기준으로 원형으로 떨어진 칸 수(-HALF ~ HALF). 끝에서 처음으로 넘어갈 때 카드가 거꾸로 훑고 지나가지 않는다
+const offsetOf = (index, active) =>
+  ((index - active + COUNT + HALF) % COUNT) - HALF;
 
 // 가운데에서 떨어진 칸 수(d)에 따른 카드 모양. 양옆은 작아지고 안쪽으로 기울며 흑백이 된다
 function cardStyle(d) {
@@ -19,54 +29,54 @@ function cardStyle(d) {
 
 export default function ServiceSection() {
   const sectionRef = useRef(null);
+  const resumeTimer = useRef(0);
+  const swipeStartX = useRef(null);
+  const isInView = useInView(sectionRef, { threshold: 0.3 });
   const [active, setActive] = useState(0);
+  const [isAuto, setIsAuto] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
 
-  // 섹션 안에서 내려간 비율로 가운데 카드를 정한다. 섹션 높이를 카드 수만큼 늘리고 안쪽을 화면에 고정한다
+  // 스크롤을 붙잡지 않는다(예전에는 섹션을 카드 수만큼 늘려 스크롤로 넘겨서 페이지가 여기서 멈춘 것처럼 보였다).
+  // 화면에 보이는 동안 저절로 넘기고, 마우스를 올려 두거나 동작 줄이기 설정이면 멈춘다
   useEffect(() => {
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const section = sectionRef.current;
-      if (!section) return;
-      const rect = section.getBoundingClientRect();
-      const total = rect.height - window.innerHeight;
-      const progress =
-        total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
-      setActive(Math.min(COUNT - 1, Math.floor(progress * COUNT)));
-    };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, []);
+    if (!isInView || !isAuto || isHovered) return undefined;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+      return undefined;
+    const timer = setInterval(
+      () => setActive((cur) => (cur + 1) % COUNT),
+      AUTO_MS,
+    );
+    return () => clearInterval(timer);
+  }, [isInView, isAuto, isHovered]);
 
-  // 점이나 옆 카드를 누르면 그 카드가 가운데 오는 스크롤 위치로 간다
+  useEffect(() => () => clearTimeout(resumeTimer.current), []);
+
+  // 점·옆 카드·스와이프로 직접 넘기면 잠시 자동 넘김을 멈춘다
   const goToCard = (index) => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const top = section.getBoundingClientRect().top + window.scrollY;
-    const total = section.offsetHeight - window.innerHeight;
-    window.scrollTo({
-      top: top + ((index + 0.5) / COUNT) * total,
-      behavior: 'smooth',
-    });
+    setActive((index + COUNT) % COUNT);
+    setIsAuto(false);
+    clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setIsAuto(true), RESUME_MS);
+  };
+
+  const handleTouchStart = (event) => {
+    swipeStartX.current = event.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (event) => {
+    if (swipeStartX.current === null) return;
+    const dx = event.changedTouches[0].clientX - swipeStartX.current;
+    swipeStartX.current = null;
+    if (Math.abs(dx) > SWIPE_PX) goToCard(active + (dx < 0 ? 1 : -1));
   };
 
   return (
     <section
       id="service"
       ref={sectionRef}
-      className="relative w-full bg-white"
-      style={{ height: `calc(100dvh + ${(COUNT - 1) * STEP_VH}vh)` }}
+      className="relative flex min-h-[calc(100dvh-5rem)] w-full scroll-mt-20 flex-col items-center justify-center overflow-hidden bg-white py-24"
     >
-      <div className="sticky top-0 flex h-dvh w-full flex-col items-center justify-center overflow-x-clip px-6 pt-28 pb-20 md:pt-36 md:pb-28">
+      <div className="flex w-full flex-col items-center px-6">
         <SectionTitle
           label="All-in-one Pet Care"
           title={
@@ -86,10 +96,14 @@ export default function ServiceSection() {
 
         <ul
           aria-label="pawever 서비스"
-          className="relative mt-14 h-[342px] w-full [--gap:150px] [perspective:1200px] md:mt-20 md:[--gap:250px] lg:h-[402px] lg:[--gap:300px]"
+          className="relative mt-14 h-[342px] w-full touch-pan-y [--gap:150px] [perspective:1200px] md:mt-20 md:[--gap:250px] lg:h-[402px] lg:[--gap:300px]"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           {SERVICE_CARDS.map((card, index) => {
-            const d = index - active;
+            const d = offsetOf(index, active);
             return (
               <li
                 key={card.title}
