@@ -12,9 +12,15 @@ import AuthNotice from '../shared/AuthNotice';
 import { LOGIN_MESSAGES as MSG } from './loginMessages';
 import useEmailLogin from './useEmailLogin';
 
-export default function EmailLoginForm({ onBack, onSuccess, onSignup }) {
+/** initialValues: 처음 채워 둘 { email, password }(랜딩 팝업의 데모 계정). 없으면 빈 칸 */
+export default function EmailLoginForm({
+  onBack,
+  onSuccess,
+  onSignup,
+  initialValues,
+}) {
   const navigate = useNavigate();
-  const form = useEmailLogin(onSuccess);
+  const form = useEmailLogin(onSuccess, initialValues);
 
   return (
     <AuthCard onBack={onBack}>

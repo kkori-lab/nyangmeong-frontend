@@ -1,5 +1,11 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { useEffect, useId, useImperativeHandle, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  getFixedOrigin,
+  getPortalTarget,
+  useLockOutsideScroll,
+} from '@/hooks/useFloatingLayer';
 
 const ITEM_HEIGHT = 36;
 const LIST_MAX_HEIGHT = 256;
@@ -15,6 +21,7 @@ const LIST_MAX_HEIGHT = 256;
  * - listMaxHeight: 목록 최대 높이(px, 기본 256). 항목이 이보다 많으면 목록 안에서 스크롤. 항목 수가 정해진 짧은 목록은 더 크게 줘 스크롤을 없앤다
  * - disabled: 열리지 않고 회색. ref: 버튼에 붙는다(바깥에서 포커스를 줄 때)
  * - 키보드: ↑↓ 이동, Enter·Space 선택, Esc·Tab 닫기. 아래 공간이 모자라면 위로 열림
+ * - 목록은 포털(모달 안이면 그 dialog, 아니면 body)에 fixed로 띄워 모달 본문 끝에 잘리지 않는다. 열린 동안 바깥 스크롤은 막고 목록 안 스크롤만 된다
  */
 export default function DropdownSelect({
   ref,
@@ -41,6 +48,8 @@ export default function DropdownSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [isUp, setIsUp] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [anchorRect, setAnchorRect] = useState(null);
+  const [portalTarget, setPortalTarget] = useState(null);
 
   useImperativeHandle(ref, () => buttonRef.current, []);
 
@@ -73,6 +82,8 @@ export default function DropdownSelect({
 
   const open = () => {
     const rect = buttonRef.current.getBoundingClientRect();
+    setAnchorRect(rect);
+    setPortalTarget(getPortalTarget(buttonRef.current));
     const below = window.innerHeight - rect.bottom;
     const need =
       Math.min(options.length * ITEM_HEIGHT + 10, listMaxHeight) + 12;
@@ -94,11 +105,26 @@ export default function DropdownSelect({
   useEffect(() => {
     if (!isOpen) return undefined;
     const handleMouseDown = (event) => {
-      if (!rootRef.current.contains(event.target)) setIsOpen(false);
+      if (
+        !rootRef.current.contains(event.target) &&
+        !listRef.current?.contains(event.target)
+      )
+        setIsOpen(false);
     };
     document.addEventListener('mousedown', handleMouseDown);
     return () => document.removeEventListener('mousedown', handleMouseDown);
   }, [isOpen]);
+
+  /** 창 크기가 바뀌면 칸 위치를 다시 잰다(스크롤은 열린 동안 막혀 있음) */
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleResize = () =>
+      setAnchorRect(buttonRef.current.getBoundingClientRect());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen]);
+
+  useLockOutsideScroll(isOpen, listRef);
 
   /** 키보드로 옮긴 항목이 목록 밖이면 보이게 스크롤 */
   useEffect(() => {
@@ -167,43 +193,60 @@ export default function DropdownSelect({
           className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${isPill ? 'right-4 text-white' : isText ? 'right-0' : 'right-2.5 text-muted'}`}
         />
       </button>
-      {isOpen && (
-        <ul
-          ref={listRef}
-          id={listId}
-          role="listbox"
-          aria-label={label}
-          // <label> 안에 둘 때 목록 클릭이 라벨을 거쳐 버튼을 다시 누르지 않게(목록이 다시 열림)
-          onClick={(event) => event.preventDefault()}
-          style={{ maxHeight: listMaxHeight }}
-          className={`absolute left-0 z-30 ${isText ? 'w-max min-w-28' : 'right-0'} ${isPill ? 'min-w-max' : ''} overflow-y-auto rounded-lg border border-line bg-white p-1 shadow-[0_12px_32px_-8px_rgba(15,23,35,0.18),0_2px_6px_rgba(15,23,35,0.06)] ${isUp ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'}`}
-        >
-          {options.map((option, index) => {
-            const isSelected = index === selectedIndex;
-            return (
-              <li
-                key={option.value}
-                id={`${listId}-${index}`}
-                role="option"
-                aria-selected={isSelected}
-                aria-disabled={option.disabled || undefined}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => pick(index)}
-                className={`flex h-9 cursor-pointer items-center justify-between gap-2 rounded px-2.5 pt-px ${isSmall ? 'text-sm' : 'text-base'} ${isSelected ? 'bg-brand-50 font-semibold text-brand-600' : option.disabled ? 'cursor-not-allowed text-placeholder' : 'text-ink'} ${index === activeIndex && !isSelected ? 'bg-surface-2' : ''} ${isSelected || option.disabled ? '' : 'hover:bg-surface-2'}`}
-              >
-                {option.label}
-                {isSelected && (
-                  <Check
-                    size={18}
-                    aria-hidden="true"
-                    className="shrink-0 text-brand-500"
-                  />
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {isOpen &&
+        anchorRect &&
+        portalTarget &&
+        createPortal(
+          <ul
+            ref={listRef}
+            id={listId}
+            role="listbox"
+            aria-label={label}
+            // <label> 안에 둘 때 목록 클릭이 라벨을 거쳐 버튼을 다시 누르지 않게(목록이 다시 열림)
+            onClick={(event) => event.preventDefault()}
+            // 칸 아래(위로 열 때는 칸 위) 6px, 폭은 칸과 같게(글자형은 내용만큼). fixed 기준점이 화면이 아니면 그만큼 뺀다
+            style={{
+              maxHeight: listMaxHeight,
+              left: anchorRect.left - getFixedOrigin(portalTarget).x,
+              top:
+                (isUp ? anchorRect.top - 6 : anchorRect.bottom + 6) -
+                getFixedOrigin(portalTarget).y,
+              transform: isUp ? 'translateY(-100%)' : undefined,
+              ...(isText
+                ? {}
+                : isPill
+                  ? { minWidth: anchorRect.width }
+                  : { width: anchorRect.width }),
+            }}
+            className={`fixed z-30 ${isText ? 'w-max min-w-28' : ''} ${isPill ? 'min-w-max' : ''} overflow-y-auto overscroll-contain rounded-lg border border-line bg-white p-1 text-left shadow-[0_12px_32px_-8px_rgba(15,23,35,0.18),0_2px_6px_rgba(15,23,35,0.06)]`}
+          >
+            {options.map((option, index) => {
+              const isSelected = index === selectedIndex;
+              return (
+                <li
+                  key={option.value}
+                  id={`${listId}-${index}`}
+                  role="option"
+                  aria-selected={isSelected}
+                  aria-disabled={option.disabled || undefined}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => pick(index)}
+                  className={`flex h-9 cursor-pointer items-center justify-between gap-2 rounded px-2.5 pt-px ${isSmall ? 'text-sm' : 'text-base'} ${isSelected ? 'bg-brand-50 font-semibold text-brand-600' : option.disabled ? 'cursor-not-allowed text-placeholder' : 'text-ink'} ${index === activeIndex && !isSelected ? 'bg-surface-2' : ''} ${isSelected || option.disabled ? '' : 'hover:bg-surface-2'}`}
+                >
+                  {option.label}
+                  {isSelected && (
+                    <Check
+                      size={18}
+                      aria-hidden="true"
+                      className="shrink-0 text-brand-500"
+                    />
+                  )}
+                </li>
+              );
+            })}
+          </ul>,
+          portalTarget,
+        )}
     </div>
   );
 }

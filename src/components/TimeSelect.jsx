@@ -1,6 +1,10 @@
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import {
+  getPortalTarget,
+  useLockOutsideScroll,
+} from '@/hooks/useFloatingLayer';
 
 /** 빈 값일 때 칸 상태. 오전/오후는 빈 칸 없이 오전부터 시작한다 */
 const EMPTY = { period: 'AM', hour: '', minute: '' };
@@ -124,7 +128,8 @@ export default function TimeSelect({
 /** 칸 모양(공용 Select와 같음). 숫자 칸(input)과 목록 칸(button)이 같이 쓴다 */
 const FIELD_CLASS =
   'block h-10 w-full rounded-md border bg-white pr-9 pl-3 text-left whitespace-nowrap focus:ring-focus focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-subtle';
-const FIELD_VALID = 'border-input-line hover:border-line-strong focus:border-brand-500';
+const FIELD_VALID =
+  'border-input-line hover:border-line-strong focus:border-brand-500';
 const FIELD_INVALID = 'border-danger';
 
 /** 목록 안에서 option이 보이게 목록만 스크롤한다(페이지·모달은 움직이지 않게 scrollIntoView를 쓰지 않음) */
@@ -241,7 +246,7 @@ function TimeDropdown({
     if (disabled) return;
     setActiveIndex(selectedIndex);
     setRect(buttonRef.current.getBoundingClientRect());
-    setPortalTarget(buttonRef.current.closest('dialog') ?? document.body);
+    setPortalTarget(getPortalTarget(buttonRef.current));
     setFitHeight(null);
     setIsOpen(true);
   };
@@ -321,6 +326,9 @@ function TimeDropdown({
     };
   }, [isOpen]);
 
+  /** 열린 동안 바깥 휠·터치 스크롤을 막는다(목록 안 스크롤만 됨, 사람 요청 2026-11-23) */
+  useLockOutsideScroll(isOpen, listRef);
+
   const moveActive = (nextIndex) => {
     const index = Math.min(options.length - 1, Math.max(0, nextIndex));
     setActiveIndex(index);
@@ -392,7 +400,9 @@ function TimeDropdown({
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-controls={isOpen ? listId : undefined}
-          aria-activedescendant={isOpen ? `${listId}-${activeIndex}` : undefined}
+          aria-activedescendant={
+            isOpen ? `${listId}-${activeIndex}` : undefined
+          }
           aria-invalid={invalid || undefined}
           disabled={disabled}
           placeholder="--"
@@ -415,7 +425,9 @@ function TimeDropdown({
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-controls={isOpen ? listId : undefined}
-          aria-activedescendant={isOpen ? `${listId}-${activeIndex}` : undefined}
+          aria-activedescendant={
+            isOpen ? `${listId}-${activeIndex}` : undefined
+          }
           aria-invalid={invalid || undefined}
           disabled={disabled}
           className={`${FIELD_CLASS} cursor-pointer ${invalid ? FIELD_INVALID : FIELD_VALID}`}

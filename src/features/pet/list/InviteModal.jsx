@@ -146,7 +146,6 @@ export default function InviteModal({ pets, initialPetSn, onClose }) {
 
   return (
     <Modal
-      isSheet
       width={560}
       isPending={createInvitation.isPending}
       title="가족 초대하기"

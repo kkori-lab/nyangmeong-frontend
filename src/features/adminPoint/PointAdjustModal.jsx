@@ -1,3 +1,4 @@
+import FieldFoot from '@/components/FieldFoot';
 import { useId, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
@@ -329,11 +330,13 @@ export default function PointAdjustModal({ initialMember, onClose }) {
             className={`${INPUT_CLASS} h-auto resize-none py-2 leading-[24px]`}
             onChange={(event) => setMemoCn(event.target.value)}
           />
-          <div className="flex justify-between gap-2">
-            <FieldError id={`${formId}-memo-error`} message={errors.memoCn} />
-            <p className="mt-1.5 ml-auto text-sm text-subtle tabular-nums">
-              {memoCn.length}/{MEMO_CN_MAX}
-            </p>
+          <div className="mt-1.5">
+            <FieldFoot
+              value={memoCn}
+              max={MEMO_CN_MAX}
+              error={errors.memoCn}
+              errorId={`${formId}-memo-error`}
+            />
           </div>
         </div>
         {renderBalance()}

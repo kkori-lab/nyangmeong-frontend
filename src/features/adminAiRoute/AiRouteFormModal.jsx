@@ -1,3 +1,4 @@
+import FieldFoot from '@/components/FieldFoot';
 import { useId, useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -109,15 +110,6 @@ function DuplicateWarning({ duplicates }) {
       )}
       <p>같은 지시어는 순서 숫자가 작은 행이 먼저 걸려요</p>
     </div>
-  );
-}
-
-/** 글자 수 */
-function CharCount({ value, max }) {
-  return (
-    <p className="mt-1.5 ml-auto shrink-0 text-sm text-subtle tabular-nums">
-      {value.length}/{max}
-    </p>
   );
 }
 
@@ -369,13 +361,12 @@ export default function AiRouteFormModal({ route, onClose }) {
               className={TEXTAREA_CLASS}
               onChange={(event) => setInstKwrdCn(event.target.value)}
             />
-            <div className="flex justify-between gap-2">
-              <FieldError
-                id={`${formId}-keywords-error`}
-                message={errors.instKwrdCn}
-              />
-              <CharCount value={instKwrdCn} max={INST_KWRD_CN_MAX} />
-            </div>
+            <FieldFoot
+              value={instKwrdCn}
+              max={INST_KWRD_CN_MAX}
+              error={errors.instKwrdCn}
+              errorId={`${formId}-keywords-error`}
+            />
             <DuplicateWarning duplicates={duplicates} />
           </div>
 

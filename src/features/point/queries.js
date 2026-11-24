@@ -1,11 +1,17 @@
 import { keepPreviousData, useQueries, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { getCareMissions, getPointBalance, getPointHistory } from './api';
+import {
+  getCareMissions,
+  getPointBalance,
+  getPointHistory,
+  getPointMonths,
+} from './api';
 
 export const pointKeys = {
   all: ['points'],
   balance: () => ['points', 'balance'],
   history: (ym) => ['points', 'history', ym],
+  months: () => ['points', 'months'],
   missions: (petSn, ymd) => ['points', 'missions', petSn, ymd],
 };
 
@@ -20,6 +26,10 @@ export const usePointHistory = (ym) =>
     queryFn: () => getPointHistory(ym),
     placeholderData: keepPreviousData,
   });
+
+/** 내역이 있는 연월 목록 */
+export const usePointMonths = () =>
+  useQuery({ queryKey: pointKeys.months(), queryFn: getPointMonths });
 
 const isSameData = (shown, pets, refs) =>
   shown.refs.length === refs.length &&

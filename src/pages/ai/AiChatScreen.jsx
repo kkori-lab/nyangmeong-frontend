@@ -12,6 +12,10 @@ import FallbackBubble from '@/features/ai/chat/FallbackBubble';
 import ConversationSidebar from '@/features/ai/chat/ConversationSidebar';
 import ReceiptAnalysisBubble from '@/features/ai/chat/ReceiptAnalysisBubble';
 import ImageIntentBubble from '@/features/ai/chat/ImageIntentBubble';
+import CheckupPdfBubble from '@/features/ai/chat/CheckupPdfBubble';
+import LesionAnalysisBubble from '@/features/ai/chat/LesionAnalysisBubble';
+import CheckupCreateCard from '@/features/ai/chat/CheckupCreateCard';
+import { CHECKUP_TYPES } from '@/features/health/scheduleTypes';
 import { IMAGE_KIND } from '@/features/ai/api';
 import { AI_ROLE } from '@/features/ai/shared/aiCodes';
 import {
@@ -32,6 +36,9 @@ import { readLastPetSn } from '@/utils/lastPetSn';
 import { useActionCards } from '@/features/ai/chat/useActionCards';
 import useAnswerStream from '@/features/ai/chat/useAnswerStream';
 import useChatReceipt from '@/features/ai/chat/useChatReceipt';
+import useChatCheckupPdf from '@/features/ai/chat/useChatCheckupPdf';
+import useChatLesion, { LESION_KIND } from '@/features/ai/chat/useChatLesion';
+import { attachFile } from '@/features/ai/chat/actionForm';
 import RouteGuideBubble from '@/features/ai/chat/RouteGuideBubble';
 import WelcomeMessage from '@/features/ai/chat/WelcomeMessage';
 import { useMemberSummary } from '@/features/member/queries';
@@ -62,6 +69,16 @@ const isReceiptSaved = (receipt, message) =>
   message.aiCnvrsMsgSn > receipt.afterMsgSn &&
   (receipt.savedUntilSn == null ||
     message.aiCnvrsMsgSn <= receipt.savedUntilSn);
+
+/** 검사결과지 말풍선이 떠 있는 동안 숨길 메시지: 이번 PDF 턴(말풍선이 파일·글을 같이 표시) */
+const isCheckupPdfShown = (pdf, message) =>
+  pdf != null && message.aiCnvrsMsgSn > pdf.afterMsgSn;
+
+/** checkup-card가 카드를 주지 않은 이유: 검진기록 0건(ai 저장소 docs/api/chat.md CheckupCardResult) */
+const NO_CHECKUP = 'NO_CHECKUP';
+
+/** 검진기록이 없어 카드가 오지 않은 분석 결과: 대화 안에서 검진기록을 만들게 */
+const needsCheckup = ({ noCardReason }) => noCardReason === NO_CHECKUP;
 
 /** 사진 판단 실패 문구: 형식·크기·입력 오류는 서버 문구, 그 밖은 공통 */
 const IMAGE_SEND_FAILED = '사진을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요';
@@ -173,6 +190,50 @@ export default function AiChatScreen({
       setSelectedRoomSn(aiCnvrsRoomSn);
     },
   });
+  /** 검사결과지 PDF 분석: 저장되면 요약 메시지 뒤에 확인 카드(있으면) */
+  const checkupPdf = useChatCheckupPdf({
+    onSaved: (saved) => {
+      setFirstMessage(null);
+      setSelectedRoomSn(saved.aiCnvrsRoomSn);
+      if (needsCheckup(saved)) {
+        setCheckupDraft({
+          aiCnvrsRoomSn: saved.aiCnvrsRoomSn,
+          pet: saved.pet,
+          request: saved.request,
+          afterMsgSn: saved.afterMsgSn,
+        });
+        return;
+      }
+      addCheckupCard(saved);
+    },
+  });
+  /** 피부·눈 사진 분석: 저장되면 요약 메시지 뒤에 지속 관찰 확인 카드(있으면, 분석한 사진을 붙임) */
+  const lesion = useChatLesion({
+    onSaved: ({ aiCnvrsRoomSn, messages, action, afterMsgSn, file }) => {
+      setFirstMessage(null);
+      setSelectedRoomSn(aiCnvrsRoomSn);
+      if (!action) return;
+      actions.add({
+        key: nextCardKey++,
+        card: action,
+        afterSn: afterMsgSn,
+        anchorSn: messages.at(-1)?.aiCnvrsMsgSn ?? null,
+        files: attachFile(action, file),
+      });
+    },
+  });
+  /** 검진기록 없음 뒤 대화 안 검진기록 만들기: { aiCnvrsRoomSn, pet, request, afterMsgSn }, 버튼은 요약 메시지 바로 아래 */
+  const [checkupDraft, setCheckupDraft] = useState(null);
+  /** checkup-card가 준 확인 카드를 요약 메시지 뒤에 */
+  const addCheckupCard = ({ messages, action, afterMsgSn }) => {
+    if (!action) return;
+    actions.add({
+      key: nextCardKey++,
+      card: action,
+      afterSn: afterMsgSn,
+      anchorSn: messages.at(-1)?.aiCnvrsMsgSn ?? null,
+    });
+  };
   const judgeImage = useJudgeImageIntent();
   const createCharacter = useCreateCharacter();
   /** 지금 사진 말풍선의 번호: 지난 판단 응답이 새 말풍선을 고치지 않게 */
@@ -258,10 +319,17 @@ export default function AiChatScreen({
   const resetCards = () => {
     actions.reset();
     receipt.reset();
+    checkupPdf.reset();
+    lesion.reset();
+    setCheckupDraft(null);
     resetImage();
   };
 
   const selectedPet = pets?.find((pet) => pet.petSn === selectedPetSn);
+  /** AI 말풍선 얼굴: 열린 방이면 그 방 펫 태그, 새 대화면 고른 칩의 반려동물(없으면 기본 강아지 얼굴) */
+  const avatarPetSn =
+    selectedRoomSn !== null ? conversation?.petSn : selectedPetSn;
+  const avatarPet = pets?.find((pet) => pet.petSn === avatarPetSn) ?? null;
   /** 분석·생성할 반려동물: 고른 칩, 1마리면 그 아이, 아니면 되묻기(null) */
   const autoPet = selectedPet ?? (pets?.length === 1 ? pets[0] : null);
 
@@ -286,11 +354,19 @@ export default function AiChatScreen({
     /** 확인 카드: ACTION 판정, 또는 검색 답변 끝(요약 글 메시지 뒤 자리) */
     if (result.action) {
       setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
+      /** 보낸 카드와 같은 도구면 붙인 파일(분석한 사진)을 이어 붙임 */
+      const sentCard = actions.actionCards.find(
+        (item) => item.key === sentCardKey,
+      );
       const params = {
         key: nextCardKey++,
         card: result.action,
         afterSn,
         anchorSn: result.message?.aiCnvrsMsgSn ?? null,
+        files:
+          sentCard?.card.tool === result.action.tool
+            ? actions.filesOf(sentCardKey)
+            : {},
       };
       /** 확인 말("등록해 줘"): 서버가 다시 검증한 카드를 바로 실행 */
       if (result.execute) actions.execute(aiCnvrsRoomSn, params);
@@ -322,6 +398,8 @@ export default function AiChatScreen({
     setRoute(null);
     setNotice(null);
     receipt.reset();
+    checkupPdf.reset();
+    lesion.reset();
     resetImage();
     const afterSn = lastServerSn(conversation?.messages ?? []);
     setPendingAfterSn(afterSn);
@@ -390,6 +468,30 @@ export default function AiChatScreen({
       });
       return;
     }
+    if (kind === IMAGE_KIND.CHECKUP_PDF) {
+      setImage(null);
+      /** PDF 턴은 image-intent가 저장한 방에 이어서 checkup-card로 요약·카드 저장 */
+      checkupPdf.start({
+        file: target.file,
+        text: target.text,
+        aiCnvrsRoomSn: target.aiCnvrsRoomSn,
+        afterMsgSn: target.beforeSn,
+        pet: namedPet ?? autoPet,
+      });
+      return;
+    }
+    if (kind === IMAGE_KIND.SKIN || kind === IMAGE_KIND.EYE) {
+      setImage(null);
+      /** 사진 턴은 image-intent가 저장한 방에 이어서 lesion-card로 요약·카드 저장 */
+      lesion.start({
+        kind: kind === IMAGE_KIND.EYE ? LESION_KIND.EYE : LESION_KIND.SKIN,
+        file: target.file,
+        aiCnvrsRoomSn: target.aiCnvrsRoomSn,
+        afterMsgSn: target.beforeSn,
+        pet: namedPet ?? autoPet,
+      });
+      return;
+    }
     if (kind === IMAGE_KIND.CHARACTER) {
       updateImage(target.id, {
         status: 'character',
@@ -414,6 +516,8 @@ export default function AiChatScreen({
     setRoute(null);
     setNotice(null);
     receipt.reset();
+    checkupPdf.reset();
+    lesion.reset();
     imageIdRef.current += 1;
     const previewUrl = URL.createObjectURL(file);
     previewUrlsRef.current.push(previewUrl);
@@ -717,13 +821,19 @@ export default function AiChatScreen({
                 대화를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요
               </p>
             )}
-            {(conversation || receipt.receipt || image || isPendingShown) && (
+            {(conversation ||
+              receipt.receipt ||
+              checkupPdf.pdf ||
+              lesion.lesion ||
+              image ||
+              isPendingShown) && (
               <ConversationMessages
                 messages={[
                   ...(conversation?.messages ?? []).filter(
                     (message) =>
                       !answer.hiddenMsgSns.includes(message.aiCnvrsMsgSn) &&
-                      !isReceiptSaved(receipt.receipt, message),
+                      !isReceiptSaved(receipt.receipt, message) &&
+                      !isCheckupPdfShown(checkupPdf.pdf, message),
                   ),
                   ...(isPendingShown
                     ? [
@@ -744,7 +854,11 @@ export default function AiChatScreen({
                 photoPreviews={photoPreviews}
                 isChoiceDisabled={isAnswering}
                 onChoosePet={(pet) => handleSend(pet.petNm, pet.petSn)}
+                onConfirmAction={(key) => actions.confirm(selectedRoomSn, key)}
+                onCancelAction={(key) => actions.cancel(selectedRoomSn, key)}
+                onChangeAction={actions.changeInput}
                 onRetryAction={(key) => actions.retrySave(selectedRoomSn, key)}
+                avatarPet={avatarPet}
               >
                 {hasAnswerBubble && (
                   <AnswerBubble
@@ -752,6 +866,7 @@ export default function AiChatScreen({
                     text={answer.text}
                     shortcuts={answer.shortcuts}
                     onRetry={() => handleAnswerAgain()}
+                    avatarPet={avatarPet}
                     onRegenerate={() =>
                       handleAnswerAgain(answer.hiddenMsgSns.at(-1))
                     }
@@ -762,10 +877,15 @@ export default function AiChatScreen({
                     text={FALLBACK_MESSAGE}
                     hasActions
                     hasFaqGuide={false}
+                    avatarPet={avatarPet}
                   />
                 )}
                 {notice === 'receipt' && (
-                  <AnswerBubble status="done" text={RECEIPT_GUIDE} />
+                  <AnswerBubble
+                    status="done"
+                    text={RECEIPT_GUIDE}
+                    avatarPet={avatarPet}
+                  />
                 )}
                 {image && (
                   <ImageIntentBubble
@@ -779,6 +899,7 @@ export default function AiChatScreen({
                     onCancelCharacter={resetImage}
                     onOpenCharacters={() => onOpenMain(PATHS.MYPAGE_CHARACTERS)}
                     onOpenExpenses={() => onOpenMain(PATHS.MYPAGE_EXPENSES)}
+                    avatarPet={avatarPet}
                   />
                 )}
                 {receipt.receipt && (
@@ -791,12 +912,48 @@ export default function AiChatScreen({
                       onOpenMain(receiptResultPath(receipt.receipt.result))
                     }
                     onDismiss={receipt.dismiss}
+                    avatarPet={avatarPet}
                     onRetry={handleRetryReceipt}
                     onManualInput={() =>
                       onOpenMain(
                         manualCheckupPath(receipt.receipt.result?.recptSn),
                       )
                     }
+                  />
+                )}
+                {checkupPdf.pdf && (
+                  <CheckupPdfBubble
+                    pdf={checkupPdf.pdf}
+                    pets={pets ?? []}
+                    onChoosePet={checkupPdf.choosePet}
+                    onCancel={checkupPdf.cancel}
+                    onRetrySave={checkupPdf.retrySave}
+                    avatarPet={avatarPet}
+                  />
+                )}
+                {lesion.lesion && (
+                  <LesionAnalysisBubble
+                    lesion={lesion.lesion}
+                    pets={pets ?? []}
+                    onChoosePet={lesion.choosePet}
+                    onCancel={lesion.cancel}
+                    onRetrySave={lesion.retrySave}
+                    avatarPet={avatarPet}
+                  />
+                )}
+                {checkupDraft && (
+                  <CheckupCreateCard
+                    key={checkupDraft.afterMsgSn}
+                    draft={checkupDraft}
+                    checkupTypes={CHECKUP_TYPES}
+                    onDone={(saved) => {
+                      addCheckupCard({
+                        ...saved,
+                        afterMsgSn: checkupDraft.afterMsgSn,
+                      });
+                      setCheckupDraft(null);
+                    }}
+                    onCancel={() => setCheckupDraft(null)}
                   />
                 )}
                 {route && (
@@ -806,12 +963,15 @@ export default function AiChatScreen({
                     status={route.status}
                     onCancel={() => setRoute({ ...route, status: 'cancelled' })}
                     onElapsed={handleRouteElapsed}
+                    avatarPet={avatarPet}
                   />
                 )}
               </ConversationMessages>
             )}
             {selectedRoomSn === null &&
               !receipt.receipt &&
+              !checkupPdf.pdf &&
+              !lesion.lesion &&
               !image &&
               !answer.pendingText && (
                 <div className="flex min-h-full items-center justify-center">
@@ -837,6 +997,8 @@ export default function AiChatScreen({
             isDisabled={
               isAnswering ||
               receipt.isBusy ||
+              checkupPdf.isBusy ||
+              lesion.isBusy ||
               judgeImage.isPending ||
               image?.characterStatus === 'creating'
             }

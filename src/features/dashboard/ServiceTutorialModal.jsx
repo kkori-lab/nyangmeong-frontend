@@ -18,6 +18,10 @@ const EASE_IN = 'cubic-bezier(0.4, 0, 1, 1)';
 const SHRUNK = { transform: 'scale(0.1)', opacity: 0 };
 const FULL = { transform: 'scale(1)', opacity: 1 };
 
+/** 760px 미만은 공용 Modal 아래 시트: 올라오는 연출은 Modal이 하고, 닫을 때만 아래로 내린다 */
+const isSheetWidth = () => window.matchMedia('(width < 760px)').matches;
+const SHEET_MOTION_MS = 200;
+
 const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -90,7 +94,7 @@ const FEATURES = [
  * - 760px 미만: 목차 대신 맨 위 「n / 5」와 진행 점
  * - 항목 내용: 제목 → 설명 → TIP 상자(있을 때) → 그림(남은 높이를 모두 차지, [크게 보기]). 마지막 항목은 footer 왼쪽 회색 안내 + [시작해 볼게요]
  * - 본문은 왼쪽 정렬로 고정한다(여는 화면의 text-center 등을 물려받지 않게)
- * - 열고 닫을 때 왼쪽 아래 기준 스케일 연출(AI 매니저 플로팅 버튼 대화창과 같음, 동작 줄이기면 없음)
+ * - 760px 이상: 열고 닫을 때 왼쪽 아래 기준 스케일 연출(AI 매니저 플로팅 버튼 대화창과 같음). 760px 미만: 다른 시트처럼 아래에서 올라오고 아래로 내려가며 닫힘. 동작 줄이기면 없음
  * - ×·Esc·배경·[시작해 볼게요] 모두 봤음을 저장하고 연출 뒤 닫는다. 저장 실패는 알리지 않는다(다음 접속 때 다시 열림)
  * - 사진 확대 화면이 열린 동안은 Esc·배경이 이 모달을 닫지 않고 확대 화면만 닫는다. 항목을 옮기면 확대 화면도 닫힌다
  */
@@ -119,7 +123,8 @@ export default function ServiceTutorialModal({ onClose }) {
   /** 열 때: 왼쪽 아래를 기준으로 작게 시작해 커진다 */
   useLayoutEffect(() => {
     const dialog = bodyRef.current?.closest('dialog');
-    if (!dialog?.animate || prefersReducedMotion()) return undefined;
+    if (!dialog?.animate || prefersReducedMotion() || isSheetWidth())
+      return undefined;
     dialog.style.transformOrigin = 'bottom left';
     const animation = playMotion(
       dialog,
@@ -142,6 +147,20 @@ export default function ServiceTutorialModal({ onClose }) {
     const dialog = bodyRef.current?.closest('dialog');
     if (!dialog?.animate || prefersReducedMotion()) {
       finish();
+      return;
+    }
+    if (isSheetWidth()) {
+      /** 제목 줄을 끌어 닫았으면 Modal이 이미 아래로 내렸다 */
+      if (dialog.style.transform === 'translateY(100%)') {
+        finish();
+        return;
+      }
+      playMotion(
+        dialog,
+        [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }],
+        [{ opacity: 1 }, { opacity: 0 }],
+        { duration: SHEET_MOTION_MS, easing: EASE_IN, fill: 'forwards' },
+      ).finished.then(finish, finish);
       return;
     }
     playMotion(dialog, [FULL, SHRUNK], [{ opacity: 1 }, { opacity: 0 }], {

@@ -32,7 +32,7 @@ const TUTORIAL_PARAM = 'tutorial';
  * - 히어로 + 고른 기록 대시보드만(묶음 탭 4개는 없앰, ※신규 정책). 처음이면 튜토리얼 모달
  * - 0마리면 대시보드 자리에 등록 안내 + [반려동물 등록]. 등록하고 돌아오면(?tutorial=1) 튜토리얼 모달을 엶 (※신규 정책)
  * - 사이드 아이 말풍선 「건강기록 둘러보기」 3장 「대시보드 편집 바로 열기 ›」는 대시보드 편집 모달을 엶 (※신규 정책)
- * - ?inspection=<검사 항목>이면 대시보드 검사 수치 카드를 그 항목으로 시작(검진상세 [추이 보기]에서 들어옴)
+ * - ?inspection= (검진상세 [추이 보기])은 취소해 읽지 않음 (※신규 정책 취소, 2026-11-23)
  * - 반려동물은 건강기록 공통 반려동물 카드(shared/PetSwitcher)의 선택을 따른다. ?petSn=<반려동물 번호>로 들어오면 그 아이로 시작하고 주소에서 지운다 (※신규 정책)
  */
 export default function HealthSummaryPage() {
@@ -146,7 +146,6 @@ function HealthSummaryContent({ mbrSn }) {
         mbrSn={mbrSn}
         pet={selectedPet}
         summary={summaryWithPet}
-        initialInspection={searchParams.get('inspection')}
         isTutorialRequested={isTutorialRequested}
         onTutorialClose={() => setIsTutorialRequested(false)}
         isEditRequested={isEditRequested}

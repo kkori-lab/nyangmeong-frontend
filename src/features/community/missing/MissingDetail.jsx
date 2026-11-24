@@ -30,6 +30,7 @@ import {
   getYmdOf,
 } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import AttachedImages from '../AttachedImages';
 import CommentSection from '../CommentSection';
 import {
@@ -123,7 +124,9 @@ const Dot = () => <i className="text-line-strong not-italic">·</i>;
 function FoundPublicView({ post, listTo }) {
   const { data: rail } = useMissingRail();
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10`}
+    >
       <article className={ARTICLE_CLASS} aria-labelledby="missing-title">
         <PostHead post={post}>
           <span>{formatDate(post.dscvSwtcDt)} 찾음</span>
@@ -244,7 +247,9 @@ export default function MissingDetail({ post }) {
     });
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10`}
+    >
       <div className="flex min-w-0 flex-col gap-4">
         <article className={ARTICLE_CLASS} aria-labelledby="missing-title">
           <PostHead
@@ -448,6 +453,7 @@ export default function MissingDetail({ post }) {
           title="제보 · 댓글"
           placeholder="목격한 장소와 시간을 자세히 알려 주시면 큰 도움이 돼요"
           inputId={MISSING_COMMENT_INPUT_ID}
+          canWrite={!found}
         />
       </div>
 

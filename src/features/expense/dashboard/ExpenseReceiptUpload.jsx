@@ -1,4 +1,4 @@
-import { Camera, Receipt, Upload } from 'lucide-react';
+import { Camera, ImagePlus, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import AnalyzeProgress from '@/components/AnalyzeProgress';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
@@ -107,7 +107,6 @@ export default function ExpenseReceiptUpload({
     return (
       <Modal
         title="영수증으로 등록"
-        isSheet
         onClose={onClose}
         footer={
           <>
@@ -142,7 +141,6 @@ export default function ExpenseReceiptUpload({
     return (
       <Modal
         title="영수증으로 등록"
-        isSheet
         isPending
         onClose={onClose}
         footer={
@@ -169,7 +167,6 @@ export default function ExpenseReceiptUpload({
   return (
     <Modal
       title="영수증으로 등록"
-      isSheet
       onClose={onClose}
       footer={
         <>
@@ -196,7 +193,7 @@ export default function ExpenseReceiptUpload({
           />
         ) : (
           <>
-            <Receipt className="size-8" aria-hidden="true" />
+            <ImagePlus className="size-8" aria-hidden="true" />
             <span>영수증 이미지</span>
           </>
         )}
@@ -204,7 +201,7 @@ export default function ExpenseReceiptUpload({
           <button
             type="button"
             onClick={() => cameraRef.current.click()}
-            className={BTN_SECONDARY}
+            className={`${BTN_SECONDARY} not-pointer-coarse:hidden`}
           >
             <Camera className="size-4" aria-hidden="true" />
             촬영하기

@@ -239,15 +239,12 @@ const DEFAULT_INSPECTION = 'CREA';
 /**
  * [검사 수치 카드 본문] (※신규 정책, 추가-4)
  * - 맨 위 한 줄: 왼쪽 "최근 n회", 오른쪽 항목 선택창([기능 태그] 항목명)
- * - 처음 항목: ?inspection= 값이 등록된 항목이면 그 항목 → CREA → 첫 항목
+ * - 처음 항목: CREA → 첫 항목 (?inspection= 처음 항목은 검진상세 [추이 보기]와 함께 취소, 2026-11-23)
  */
-function InspectionTrend({ trends, initialInspection }) {
+function InspectionTrend({ trends }) {
   const itemNames = Object.keys(trends);
-  const [selectedNm, setSelectedNm] = useState(
-    () =>
-      [initialInspection, DEFAULT_INSPECTION].find((nm) =>
-        itemNames.includes(nm),
-      ) ?? itemNames[0],
+  const [selectedNm, setSelectedNm] = useState(() =>
+    itemNames.includes(DEFAULT_INSPECTION) ? DEFAULT_INSPECTION : itemNames[0],
   );
   const trend = trends[selectedNm] ?? trends[itemNames[0]];
   const { points, unitNm = '' } = trend;
@@ -290,16 +287,9 @@ function InspectionTrend({ trends, initialInspection }) {
   );
 }
 
-const inspectionBody = ({ summary, initialInspection }) => {
+const inspectionBody = ({ summary }) => {
   if (Object.keys(summary.trends).length === 0) return null;
-  return {
-    body: (
-      <InspectionTrend
-        trends={summary.trends}
-        initialInspection={initialInspection}
-      />
-    ),
-  };
+  return { body: <InspectionTrend trends={summary.trends} /> };
 };
 
 /** 첨부 자료 한 줄 수 */

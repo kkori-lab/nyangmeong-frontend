@@ -36,7 +36,8 @@ function hasSeenBubble(key) {
 }
 
 /**
- * 모바일에서 AI 버튼을 우측 가장자리로 접고 펴는 상태 + 회원별 첫 말풍선
+ * 모바일에서 플로팅 묶음(AI 버튼·반려동물 등록)을 우측 가장자리로 접고 펴는 상태 + 회원별 첫 말풍선
+ * - dragHandlers는 묶음을 감싼 요소에 붙인다. 안의 어느 버튼을 끌어도 묶음이 같이 밀린다
  * - mbrSn: 로그인한 회원 번호. 없으면(비로그인) 말풍선 없음, 기록 안 함
  * - shown: 버튼이 실제로 그려지는지. 메인처럼 안 그려지는 동안은 본 것으로 치지 않음
  */
@@ -91,15 +92,16 @@ export default function useAiDock({ mbrSn = null, shown = true } = {}) {
   const onPointerDown = (event) => {
     if (!isMobile) return;
     drag.current = { startX: event.clientX, moved: false, active: true };
-    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const onPointerMove = (event) => {
     if (!drag.current.active) return;
     const dx = event.clientX - drag.current.startX;
-    if (Math.abs(dx) > DRAG_THRESHOLD) {
+    if (!drag.current.moved && Math.abs(dx) > DRAG_THRESHOLD) {
       drag.current.moved = true;
       setDragging(true);
+      /** 끌기 시작한 뒤에만 포인터를 잡는다. 누르자마자 잡으면 묶음 안 버튼(AI·등록)의 click이 묶음으로 가서 열리지 않는다 */
+      event.currentTarget.setPointerCapture(event.pointerId);
     }
     /** 우측으로만 끌기 */
     setOffset(Math.max(0, dx));

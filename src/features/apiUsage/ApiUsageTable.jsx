@@ -1,7 +1,7 @@
 import {
   formatFailRate,
   formatResponseTime,
-  getApiTypeName,
+  getApiName,
 } from './apiUsageLabels';
 import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
@@ -40,13 +40,13 @@ export default function ApiUsageTable({ usages, selectedCd, onSelect }) {
               }}
             >
               <td className="px-4 py-3 whitespace-nowrap">
-                {getApiTypeName(usage.extlApiSeCd)}
+                {getApiName(usage)}
               </td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
                 {usage.callCnt.toLocaleString()}
               </td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
-                {formatFailRate(usage.failRt)}
+                {formatFailRate(usage.failRate)}
               </td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
                 {formatResponseTime(usage.avgRspnsMs)}

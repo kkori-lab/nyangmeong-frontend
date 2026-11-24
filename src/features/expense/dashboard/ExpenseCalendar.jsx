@@ -6,12 +6,12 @@ import { getTodayYmd } from '../shared/expenseInput';
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 /** 앱: 칸 테두리 없이 주 사이 얇은 선만, 날짜는 가운데 */
 const CELL =
-  'flex min-h-20 min-w-0 flex-col items-start border-r border-b border-line bg-white p-2 text-left text-sm max-[760px]:min-h-0 max-[760px]:items-center max-[760px]:gap-1 max-[760px]:border-r-0 max-[760px]:border-line-soft max-[760px]:bg-transparent max-[760px]:px-0 max-[760px]:pt-1.5 max-[760px]:pb-2';
+  'flex min-h-20 min-[1100px]:min-h-[88px] min-w-0 flex-col items-start border-r border-b border-line bg-white p-2 text-left text-sm max-[760px]:min-h-0 max-[760px]:items-center max-[760px]:gap-1 max-[760px]:border-r-0 max-[760px]:border-line-soft max-[760px]:bg-transparent max-[760px]:px-0 max-[760px]:pt-1.5 max-[760px]:pb-2';
 
 const DAY_BASE =
   'max-[760px]:grid max-[760px]:size-8 max-[760px]:place-items-center max-[760px]:rounded-full max-[760px]:text-[15px]';
 
-/** 날짜 칸 클릭 -> 등록 또는 상세 */
+/** 날짜 칸 클릭 -> 등록 또는 상세. 칸은 늘 6주(42칸). 1100px 이상은 남는 높이를 주마다 똑같이 나눈다 */
 export default function ExpenseCalendar({
   ym,
   cells,
@@ -22,14 +22,13 @@ export default function ExpenseCalendar({
   const monthLabel = formatYm(ym);
   const todayYmd = getTodayYmd();
   const lastDayIndex = cells.findLastIndex((cell) => cell.day !== null);
-
   return (
-    <div>
+    <div className="min-[1100px]:flex min-[1100px]:min-h-0 min-[1100px]:flex-1 min-[1100px]:flex-col">
       <p className="mb-3 text-sm text-subtle">날짜를 눌러 지출을 등록하세요</p>
       <div
         role="group"
         aria-label={`${monthLabel} 달력`}
-        className="grid grid-cols-7 overflow-hidden rounded-box border-t border-l border-line max-[760px]:overflow-visible max-[760px]:rounded-none max-[760px]:border-0"
+        className={`grid grid-cols-7 min-[1100px]:flex-1 min-[1100px]:grid-rows-[auto_repeat(6,minmax(88px,1fr))] overflow-hidden rounded-box border-t border-l border-line max-[760px]:overflow-visible max-[760px]:rounded-none max-[760px]:border-0`}
       >
         {DAY_NAMES.map((name) => (
           <div

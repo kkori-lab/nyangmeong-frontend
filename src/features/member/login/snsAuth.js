@@ -1,10 +1,5 @@
 import { generatePath } from 'react-router-dom';
-import {
-  GOOGLE_CLIENT_ID,
-  IS_DEV,
-  KAKAO_REST_KEY,
-  NAVER_CLIENT_ID,
-} from '@/api/env';
+import { GOOGLE_CLIENT_ID, IS_DEV, KAKAO_REST_KEY } from '@/api/env';
 import { PATHS } from '@/routes/paths';
 
 /** 인가 창에 넘긴 state·제공자·로그인 뒤 갈 곳·연동 모드. 콜백에서 한 번 읽고 지운다 */
@@ -12,11 +7,6 @@ const STORAGE_KEY = 'snsLoginRequest';
 
 /** 제공자 코드(snsOffrCd, 서버 공통코드 USRG03) -> 인가 창, 콜백 경로의 provider */
 const AUTHORIZE = {
-  USRC0007: {
-    provider: 'naver',
-    url: 'https://nid.naver.com/oauth2.0/authorize',
-    clientId: NAVER_CLIENT_ID,
-  },
   USRC0008: {
     provider: 'kakao',
     url: 'https://kauth.kakao.com/oauth/authorize',

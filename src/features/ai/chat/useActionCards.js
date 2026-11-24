@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { notifyAiWrite } from '@/utils/aiWriteChannel';
 import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import { useExecuteAction, useSaveActionResult } from '../queries';
-import { buildActionRequest, missingFields, resultInput } from './actionForm';
+import {
+  buildActionRequest,
+  fileFields,
+  jsonInput,
+  missingFields,
+  resultInput,
+} from './actionForm';
 
 /** 결과 저장 status(ActionResultRequest) */
 export const ACTION_STATUS = {
@@ -27,11 +33,12 @@ const STATUS_BY_RESULT = {
 
 /**
  * 확인 카드(ACTION) 목록: 서버에 저장되지 않아 새로고침하면 사라진다(등록 카드와 같다)
- * - 카드 내용은 저장된 요약 글로 보이고, 확인·취소는 말로 한다(done.execute로 실행, 취소 말이면 카드 버림)
+ * - 카드는 칸 이름·값으로 보이고 [확인]·[취소] 버튼이 있다(사람 결정 2026-11-24). 말로 하는 확인(done.execute)·취소(카드 버림)도 그대로
  * - 항목: { key, card, input, afterSn, anchorSn, status, isBusy, fieldErrors, formError, unsaved, resultText, resultMsgSn }
  * - status: 'pending' | 'done' | 'cancelled' | 'failed' | 'dropped'(취소 말·다른 말로 버림)
  * - key는 등록 카드와 같은 번호를 써서 "가장 최근 카드"를 함께 따진다
  * - unsaved: 결과 저장에 실패한 { status, input }, [다시 시도]로 저장만 다시
+ * - files: 파일 칸에 붙일 { 칸: File }(분석한 사진). input에 넣어 Java 실행에만 쓰고 결과 저장·다음 메시지에는 싣지 않는다
  */
 export function useActionCards() {
   const [actionCards, setActionCards] = useState([]);
@@ -48,10 +55,10 @@ export function useActionCards() {
     );
 
   /** 새 카드 항목 */
-  const toItem = ({ key, card, afterSn, anchorSn = null }) => ({
+  const toItem = ({ key, card, afterSn, anchorSn = null, files = {} }) => ({
     key,
     card,
-    input: { ...card.input },
+    input: { ...card.input, ...files },
     afterSn,
     anchorSn,
     status: 'pending',
@@ -95,12 +102,13 @@ export function useActionCards() {
     const key = item.key;
     if (missingFields(item.card, item.input).length > 0) return;
     const input = resultInput(item.card, item.input);
+    const savedInput = jsonInput(item.card, item.input);
     patchCard(key, { isBusy: true, fieldErrors: {}, formError: null });
     try {
       await executeAction.mutateAsync(buildActionRequest(item.card, input));
     } catch (error) {
       if (SERVER_FAILURE_CODES.includes(error?.code)) {
-        await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.FAILED, input);
+        await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.FAILED, savedInput);
         return;
       }
       const fieldErrors = toFieldErrors(error);
@@ -112,7 +120,7 @@ export function useActionCards() {
       return;
     }
     notifyAiWrite({ domain: item.card.domain, petSn: input.petSn ?? null });
-    await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.DONE, input);
+    await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.DONE, savedInput);
   };
 
   /** 새 카드를 받자마자 실행(done.execute): 확인 말에 서버가 다시 검증한 카드 */
@@ -121,6 +129,37 @@ export function useActionCards() {
     setActionCards((prev) => [...prev, item]);
     return run(aiCnvrsRoomSn, item);
   };
+
+  /** 카드 [확인]: 확인 말("등록해 줘")과 같은 실행 */
+  const confirm = (aiCnvrsRoomSn, key) => {
+    const item = actionCards.find((target) => target.key === key);
+    if (!item || item.status !== 'pending' || item.isBusy || item.unsaved) {
+      return;
+    }
+    run(aiCnvrsRoomSn, item);
+  };
+
+  /** 카드 [취소]: Java 없이 취소 결과만 저장 */
+  const cancel = (aiCnvrsRoomSn, key) => {
+    const item = actionCards.find((target) => target.key === key);
+    if (!item || item.status !== 'pending' || item.isBusy || item.unsaved) {
+      return;
+    }
+    saveResult(
+      aiCnvrsRoomSn,
+      item,
+      ACTION_STATUS.CANCELED,
+      jsonInput(item.card, item.input),
+    );
+  };
+
+  /** 카드 안에서 고른 값(검사 수치의 검진기록): 그 칸의 서버 오류는 지운다 */
+  const changeInput = (key, patch) =>
+    patchCard(key, (item) => {
+      const fieldErrors = { ...item.fieldErrors };
+      Object.keys(patch).forEach((field) => delete fieldErrors[field]);
+      return { input: { ...item.input, ...patch }, fieldErrors };
+    });
 
   /** 결과 저장 [다시 시도] */
   const retrySave = (aiCnvrsRoomSn, key) => {
@@ -142,8 +181,19 @@ export function useActionCards() {
     }
     return {
       tool: latest.card.tool,
-      input: resultInput(latest.card, latest.input),
+      input: jsonInput(latest.card, latest.input),
     };
+  };
+
+  /** 카드에 붙인 파일: 말로 확인해 서버가 새로 준 같은 도구 카드에 이어 붙인다 */
+  const filesOf = (key) => {
+    const item = actionCards.find((target) => target.key === key);
+    if (!item) return {};
+    return Object.fromEntries(
+      fileFields(item.card)
+        .filter((field) => item.input[field] instanceof Blob)
+        .map((field) => [field, item.input[field]]),
+    );
   };
 
   const reset = () => setActionCards([]);
@@ -152,9 +202,13 @@ export function useActionCards() {
     actionCards,
     add,
     execute,
+    confirm,
+    cancel,
+    changeInput,
     drop,
     retrySave,
     pendingAction,
+    filesOf,
     reset,
   };
 }

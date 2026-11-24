@@ -214,7 +214,6 @@ export default function DayRecordEditModal({
       <Modal
         title={`${isToday ? `오늘 ${dateText}` : dateText} 기록 수정`}
         width={560}
-        isSheet
         isDismissDisabled
         isPending={isSaving}
         onClose={onClose}

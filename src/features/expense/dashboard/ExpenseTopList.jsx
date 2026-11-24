@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react';
 import ExpenseCategoryBadge from '../shared/ExpenseCategoryBadge';
 import { EXPND_CLSF } from '../shared/expenseCodes';
 import {
@@ -12,13 +13,26 @@ import {
   CARD_TITLE,
 } from '../shared/expenseStyles';
 
-export default function ExpenseTopList({ expenses }) {
+/** isGrow: 1100px 이상에서 남는 높이만큼 늘어난다(달력과 아래 끝 맞춤)
+ * onViewAll(): 1100px 이상에서만 제목 옆 링크로 보인다(미만은 대시보드의 전체 내역 카드) */
+export default function ExpenseTopList({ expenses, onViewAll, isGrow }) {
   return (
-    <section aria-labelledby="expense-top-title" className={CARD}>
+    <section
+      aria-labelledby="expense-top-title"
+      className={`${CARD} ${isGrow ? 'min-[1100px]:flex-1' : ''}`}
+    >
       <div className={CARD_HEAD}>
         <h2 id="expense-top-title" className={CARD_TITLE}>
           이번달 주요 지출
         </h2>
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="hidden items-center gap-0.5 font-semibold text-muted hover:text-brand-600 min-[1100px]:inline-flex"
+        >
+          전체 내역 보기
+          <ChevronRight className="size-4" aria-hidden="true" />
+        </button>
       </div>
       <div className={CARD_BODY}>
         {expenses.length === 0 ? (

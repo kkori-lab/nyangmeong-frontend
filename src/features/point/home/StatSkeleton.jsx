@@ -5,7 +5,7 @@ export default function StatSkeleton() {
   return (
     <div
       aria-busy="true"
-      className="flex h-[72px] min-w-0 flex-col justify-center gap-3 px-5 min-[760px]:h-[135px] min-[760px]:p-6"
+      className="flex h-[72px] min-w-0 flex-col justify-center gap-3 px-5 min-[1100px]:h-[135px] min-[1100px]:p-6"
     >
       <Skeleton className="h-4 w-20" />
       <Skeleton className="h-7 w-28" />

@@ -6,6 +6,7 @@ import { SIDE_BTN, AUTH_BTN_PRIMARY } from '../shared/authStyles';
 import AuthField from '../shared/AuthField';
 import { NICKNAME_MAX, isValidNickname } from '../shared/validate';
 import { SIGNUP_MESSAGES as MSG } from './signupMessages';
+import FieldFoot from '@/components/FieldFoot';
 
 export default function NicknameModal({ savedNickname, onSaved, onClose }) {
   const [value, setValue] = useState(savedNickname);
@@ -100,11 +101,6 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
           error={error}
           success={status === 'available' ? MSG.nickAvailable : ''}
           help={help}
-          endAdornment={
-            <span className="text-sm text-subtle tabular-nums">
-              {value.length} / {NICKNAME_MAX}
-            </span>
-          }
           action={
             <button
               type="button"
@@ -116,6 +112,10 @@ export default function NicknameModal({ savedNickname, onSaved, onClose }) {
             </button>
           }
         />
+        {/** 글자 수는 칸 아래 오른쪽(공용 FieldFoot, 사람 피드백 2026-11-23) */}
+        <div className="mt-1.5">
+          <FieldFoot value={value} max={NICKNAME_MAX} />
+        </div>
         <p className="mt-2 text-sm leading-5 text-muted">
           최대 10글자 · 한글·영문·숫자만 가능
           <br />

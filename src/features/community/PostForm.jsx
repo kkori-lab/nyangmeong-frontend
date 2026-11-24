@@ -8,6 +8,7 @@ import { INPUT, LABEL } from '@/components/formStyles';
 import ImageAttach from '@/components/ImageAttach';
 import { PATHS } from '@/routes/paths';
 import { publicFileUrl } from '@/utils/fileUrl';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import PostWriteGuide from './PostWriteGuide';
 import { POST_BOARDS } from './postCodes';
 
@@ -104,7 +105,9 @@ export default function PostForm({
   };
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-6">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-6`}
+    >
       <section
         aria-labelledby="post-form-title"
         className="rounded-[14px] border border-line bg-white px-9 pt-8 pb-7 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-5"

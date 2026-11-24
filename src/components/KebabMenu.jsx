@@ -112,7 +112,7 @@ export default function KebabMenu({
       {isOpen && (
         <div
           role="menu"
-          className={`absolute right-0 z-10 flex flex-col rounded-box border border-line bg-white py-1 shadow-depth-md ${style.menu} ${
+          className={`absolute right-0 z-30 flex flex-col rounded-box border border-line bg-white py-1 shadow-depth-md ${style.menu} ${
             isUpward ? 'bottom-full mb-1' : 'top-full mt-1'
           }`}
         >

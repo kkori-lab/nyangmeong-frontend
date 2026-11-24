@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DropdownSelect from '@/components/DropdownSelect';
+import Badge from '@/components/Badge';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import useMediaQuery from '@/hooks/useMediaQuery';
@@ -115,11 +116,6 @@ export default function RecentRecordTable({
                     {column}
                   </th>
                 ))}
-                <th
-                  scope="col"
-                  aria-label="상세"
-                  className="h-10 w-12 border-b border-line-strong bg-surface-3"
-                />
               </tr>
             </thead>
             <tbody>
@@ -155,7 +151,20 @@ export default function RecentRecordTable({
   );
 }
 
-/** 760px 미만 목록의 하루: 날짜 줄 + 한 줄 요약 (※신규 정책) */
+/**
+ * 오늘이면 「[오늘] 날짜」. 오늘 줄은 바탕·글자색을 다른 줄과 같게 두고 배지로만 표시 (※신규 정책, 2026-11-23)
+ */
+function DayDate({ dateText, isToday }) {
+  if (!isToday) return dateText;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Badge tone="brand">오늘</Badge>
+      {dateText}
+    </span>
+  );
+}
+
+/** 760px 미만 목록의 하루: 날짜 줄 + 한 줄 요약 (※신규 정책). 오른쪽 › 아이콘은 뺌 (※신규 정책, 2026-11-23) */
 function DayListRow({ ymd, isToday, dayRecords, onOpen }) {
   const dateText = formatDate(ymd, { hasYear: false, weekday: true });
 
@@ -168,46 +177,51 @@ function DayListRow({ ymd, isToday, dayRecords, onOpen }) {
         onClick={onOpen}
       >
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span
-            className={`font-semibold tabular-nums ${isToday ? 'text-brand-600' : 'text-ink'}`}
-          >
-            {isToday ? `오늘 ${dateText}` : dateText}
+          <span className="font-semibold text-ink tabular-nums">
+            <DayDate dateText={dateText} isToday={isToday} />
           </span>
           <span className="truncate text-sm/[1.6] text-subtle tabular-nums">
             {formatDaySummary(dayRecords)}
           </span>
         </span>
-        <Icon name="chevron_right" className="shrink-0 text-subtle" />
       </button>
     </li>
   );
 }
 
+/**
+ * PC 표의 하루 한 줄: 줄 아무 곳이나 누르면 그날 기록 수정 모달
+ * - 맨 오른쪽 › 칸은 뺌. 키보드는 첫 칸 날짜 버튼으로 엶(검진상세 항목명 버튼과 같은 방식) (※신규 정책, 2026-11-23)
+ */
 function DayRows({ ymd, isToday, dayRecords, onOpen }) {
   const dateText = formatDate(ymd, { hasYear: false, weekday: true });
-  const cellClass = `h-12 px-3 tabular-nums ${isToday ? 'bg-brand-50 text-brand-600' : 'text-ink'}`;
+  const cellClass = 'h-12 px-3 text-ink tabular-nums';
 
   return (
-    <tr
-      className={`cursor-pointer ${isToday ? '' : 'hover:[&>td]:bg-surface-2'}`}
-      onClick={onOpen}
-    >
-      <td className={cellClass}>{isToday ? `오늘 ${dateText}` : dateText}</td>
+    <tr className="cursor-pointer hover:[&>td]:bg-surface-2" onClick={onOpen}>
+      <td className={cellClass}>
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          className="text-left hover:text-brand-600"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpen();
+          }}
+        >
+          <DayDate
+            dateText={
+              <span className="underline underline-offset-4">{dateText}</span>
+            }
+            isToday={isToday}
+          />
+        </button>
+      </td>
       {RECORD_TYPES.map((type) => (
         <td key={type.cd} className={cellClass}>
           {formatDayCell(summarizeType(dayRecords, type.cd), type.cd)}
         </td>
       ))}
-      <td className={`${cellClass} text-center`}>
-        <button
-          type="button"
-          aria-haspopup="dialog"
-          aria-label={`${dateText} 기록 수정`}
-          className="grid size-9 place-items-center rounded-md text-subtle hover:bg-surface-3"
-        >
-          <Icon name="chevron_right" />
-        </button>
-      </td>
     </tr>
   );
 }

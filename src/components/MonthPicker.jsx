@@ -5,8 +5,14 @@ import { formatYm } from '@/utils/yearMonth';
 const YEAR_BUTTON =
   'grid size-10 place-items-center rounded-full border border-line bg-white text-ink-2 hover:enabled:border-line-strong disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-line-strong';
 
-/** enabledYms: 선택 가능한 연월, maxYm 초과는 선택 불가 */
-export default function MonthPicker({ ym, maxYm, enabledYms, onSelect }) {
+/** enabledYms: 선택 가능한 연월, maxYm 초과는 선택 불가, emptyNotice: 선택 창 아래 안내 */
+export default function MonthPicker({
+  ym,
+  maxYm,
+  enabledYms,
+  onSelect,
+  emptyNotice = '지출이 없는 달은 선택할 수 없어요',
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [viewYear, setViewYear] = useState(Number(ym.slice(0, 4)));
   const rootRef = useRef(null);
@@ -63,7 +69,7 @@ export default function MonthPicker({ ym, maxYm, enabledYms, onSelect }) {
         <div
           role="dialog"
           aria-label="월 선택"
-          className="absolute top-[calc(100%+0.5rem)] left-1/2 z-20 w-80 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-card border border-line bg-white p-4 shadow-depth-md"
+          className="absolute top-[calc(100%+0.5rem)] left-1/2 z-30 w-80 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-card border border-line bg-white p-4 shadow-depth-md"
         >
           <div className="mb-3 flex items-center justify-center gap-4 font-bold">
             <button
@@ -113,7 +119,7 @@ export default function MonthPicker({ ym, maxYm, enabledYms, onSelect }) {
             )}
           </div>
           <p className="mt-3 text-center text-sm text-subtle">
-            지출이 없는 달은 선택할 수 없어요
+            {emptyNotice}
           </p>
         </div>
       )}

@@ -70,16 +70,9 @@ export const snsLogin = ({ snsOffrCd, code, state }) =>
     { skipAuthRedirect: true },
   );
 
-/** 제공자 코드(snsOffrCd) 중 네이버. 서버가 state를 요구하는 제공자 */
-const NAVER = 'USRC0007';
-
-/** SNS 계정 연동(로그인 필요). 요청 { snsOffrCd, code, state }, state는 네이버만 필수. 응답·오류 형식은 서버(YAY) 확정 전 */
-export const linkSns = ({ snsOffrCd, code, state }) =>
-  api.post('/members/me/sns-links', {
-    snsOffrCd,
-    code,
-    ...(snsOffrCd === NAVER && { state }),
-  });
+/** SNS 계정 연동(로그인 필요). 요청 { snsOffrCd, code }(state는 네이버만 필요해 보내지 않는다). 응답·오류 형식은 서버(YAY) 확정 전 */
+export const linkSns = ({ snsOffrCd, code }) =>
+  api.post('/members/me/sns-links', { snsOffrCd, code });
 
 /** 이메일 인증번호 목적 코드(공통코드 USRG04): 비밀번호 찾기 */
 const PASSWORD_RESET_PURPOSE = 'USRC0011';

@@ -131,13 +131,12 @@ export default function ShortcutEditModal({
     <Modal
       title="바로가기 편집"
       isLarge
-      isSheet
       width={720}
       isPending={isPending}
       onClose={onClose}
       footer={
         <>
-          <span className="text-sm text-muted min-[760px]:hidden">
+          <span className="w-16 shrink-0 text-sm text-muted tabular-nums min-[760px]:hidden">
             {isFull ? (
               '가득 참'
             ) : (

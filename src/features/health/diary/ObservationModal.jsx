@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ImageOff } from 'lucide-react';
 import DropdownSelect from '@/components/DropdownSelect';
 import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
@@ -25,11 +26,13 @@ import FormModal from './FormModal';
 import { INPUT, LABEL, TEXTAREA } from '@/components/formStyles';
 import ObservationPhoto from './ObservationPhoto';
 import { formatPart } from './observationUtils';
-import CharCount from '../shared/CharCount';
+import FieldFoot from '@/components/FieldFoot';
 
 const MAX_ITEM_NAME_LENGTH = 40;
 const MAX_PART_DETAIL_LENGTH = 40;
 const MAX_MEMO_LENGTH = 200;
+/** 사진 칸 안 사진: 칸 높이에 맞추고 폭은 사진 비율대로 (※신규 정책, 2026-11-23) */
+const PHOTO_IMG = 'h-full w-auto max-w-full object-contain';
 
 const REQUIRED = <Required />;
 const OPTIONAL = (
@@ -190,20 +193,22 @@ export default function ObservationModal({
       onSubmit={handleSubmit}
       onClose={onClose}
     >
+      {/* 회차 추가·수정의 관찰 항목·부위는 고칠 수 없어 disabled 회색 칸(변화 「1회차는 비교 없음」과 같은 모양). 저장 때 보내지 않음 (※신규 정책, 2026-11-23) */}
       <label className="flex flex-col gap-1.5">
         <span className={LABEL}>관찰 항목{REQUIRED}</span>
         <input
           value={name}
-          readOnly={!isCreateItem}
+          disabled={!isCreateItem}
           maxLength={MAX_ITEM_NAME_LENGTH}
           aria-invalid={isInvalid('name')}
           className={INPUT}
           onChange={(event) => setName(event.target.value)}
         />
-        {isCreateItem && <CharCount value={name} max={MAX_ITEM_NAME_LENGTH} />}
-        {isInvalid('name') && (
-          <FieldError>관찰 항목을 입력해 주세요</FieldError>
-        )}
+        <FieldFoot
+          value={name}
+          max={isCreateItem ? MAX_ITEM_NAME_LENGTH : undefined}
+          error={isInvalid('name') && '관찰 항목을 입력해 주세요'}
+        />
       </label>
 
       <div className="flex flex-col gap-1.5">
@@ -232,12 +237,12 @@ export default function ObservationModal({
                 className={INPUT}
                 onChange={(event) => setPartDetail(event.target.value)}
               />
-              <CharCount value={partDetail} max={MAX_PART_DETAIL_LENGTH} />
+              <FieldFoot value={partDetail} max={MAX_PART_DETAIL_LENGTH} />
             </div>
           </div>
         ) : (
           <input
-            readOnly
+            disabled
             aria-labelledby="obsv-part-label"
             value={formatPart(item)}
             className={INPUT}
@@ -263,43 +268,52 @@ export default function ObservationModal({
 
       <div className="rounded-xl bg-surface-2 p-4">
         <span className={LABEL}>사진{REQUIRED}</span>
-        <div className="mt-2 grid h-40 place-items-center overflow-hidden rounded-[10px] border border-dashed border-line-strong bg-white text-subtle">
-          {previewUrl ? (
-            <img
-              src={previewUrl}
-              alt="선택한 사진"
-              className="size-full object-contain"
-            />
-          ) : isEdit ? (
-            <ObservationPhoto
-              petSn={petSn}
-              obsrvCyclSn={cycle.obsrvCyclSn}
-              className="size-full object-contain"
-            />
+        {/* 사진 칸 높이 고정(760px 이상 h-40, 미만 h-36)·폭은 사진 비율, 버튼은 사진 오른쪽에 세로로 (※신규 정책, 2026-11-23) */}
+        <div className="mt-2 flex flex-wrap items-end gap-3">
+          {previewUrl || isEdit ? (
+            <div className="inline-flex h-36 max-w-full overflow-hidden min-[760px]:h-40 rounded-[10px] border border-line bg-surface-2">
+              {previewUrl ? (
+                <img src={previewUrl} alt="선택한 사진" className={PHOTO_IMG} />
+              ) : (
+                <ObservationPhoto
+                  petSn={petSn}
+                  obsrvCyclSn={cycle.obsrvCyclSn}
+                  className={`${PHOTO_IMG} min-w-10`}
+                  fallback={
+                    <span className="grid aspect-square h-full place-items-center text-placeholder">
+                      <ImageOff className="size-6" aria-hidden="true" />
+                    </span>
+                  }
+                />
+              )}
+            </div>
           ) : (
-            <span className="flex flex-col items-center gap-1">
-              <Icon name="image" className="text-[28px]" />
-              사진 미리보기
-            </span>
+            <div className="grid size-36 place-items-center rounded-[10px] border border-dashed border-line-strong bg-white text-subtle min-[760px]:size-40">
+              <span className="flex flex-col items-center gap-1">
+                <Icon name="image" className="text-[28px]" />
+                사진 미리보기
+              </span>
+            </div>
           )}
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={`${BTN_SECONDARY}`}
-            onClick={() => cameraRef.current.click()}
-          >
-            <Icon name="photo_camera" />
-            촬영하기
-          </button>
-          <button
-            type="button"
-            className={`${BTN_SECONDARY}`}
-            onClick={() => albumRef.current.click()}
-          >
-            <Icon name="photo_library" />
-            앨범에서 선택
-          </button>
+          <div className="flex flex-col gap-2">
+            {/* [촬영하기]는 1100px 미만(휴대폰·태블릿)에서만 (※신규 정책, 2026-11-23) */}
+            <button
+              type="button"
+              className={`${BTN_SECONDARY} min-[1100px]:hidden`}
+              onClick={() => cameraRef.current.click()}
+            >
+              <Icon name="photo_camera" />
+              촬영하기
+            </button>
+            <button
+              type="button"
+              className={`${BTN_SECONDARY}`}
+              onClick={() => albumRef.current.click()}
+            >
+              <Icon name="photo_library" />
+              앨범에서 선택
+            </button>
+          </div>
         </div>
         {isEdit && (
           <p className="mt-2 text-[13px] font-medium text-subtle">
@@ -380,7 +394,7 @@ export default function ObservationModal({
           className={TEXTAREA}
           onChange={(event) => setMemo(event.target.value)}
         />
-        <CharCount value={memo} max={MAX_MEMO_LENGTH} />
+        <FieldFoot value={memo} max={MAX_MEMO_LENGTH} />
       </label>
     </FormModal>
   );

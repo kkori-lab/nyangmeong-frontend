@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -11,6 +12,7 @@ import {
   reportComment,
   reportPost,
 } from './api';
+import { INFINITE_OPTIONS } from '@/utils/infiniteList';
 import { useOptimisticLike } from './optimisticLike';
 import {
   createMissing,
@@ -41,6 +43,15 @@ export const useMissingList = (params) =>
     queryKey: missingKeys.list(params),
     queryFn: () => getMissingList(params),
     /** 필터를 바꾸는 동안 이전 목록 유지로 필터 영역 보존 */
+    placeholderData: keepPreviousData,
+  });
+
+/** 무한 스크롤 목록: params에 page는 넣지 않는다 */
+export const useMissingInfiniteList = (params) =>
+  useInfiniteQuery({
+    ...INFINITE_OPTIONS,
+    queryKey: [...missingKeys.list(params), 'infinite'],
+    queryFn: ({ pageParam }) => getMissingList({ ...params, page: pageParam }),
     placeholderData: keepPreviousData,
   });
 

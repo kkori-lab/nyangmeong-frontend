@@ -1,17 +1,15 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import NoticeBox from '@/components/NoticeBox';
 import Badge from '@/components/Badge';
 import Checkbox from '@/components/Checkbox';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
 import { BTN_DANGER, BTN_SECONDARY } from '@/components/buttonStyles';
-import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { round2 } from '../numberFormat';
 import { useDeleteInspections } from '../queries';
 import BloodResultModal from './BloodResultModal';
-import { ADD_ROW, ROW_LINE, TEXT_BTN } from './checkupStyles';
+import { ADD_ROW, ROW_LINE } from './checkupStyles';
 import { findBloodItem } from '../labInput/bloodItems';
 import { FUNCTION_TAGS, findName, getInspectionName } from './checkupTypes';
 
@@ -30,10 +28,15 @@ const getOutDirection = ({ rsltNvl, refLlmtNvl, refUplmtNvl }) => {
   return null;
 };
 
+/** 참고범위 밖 측정값 색: 초과 빨강, 미만 파랑 (※신규 정책, 2026-11-23) */
+const DIRECTION_COLOR = { high: 'text-danger', low: 'text-tone-blue-fg' };
+
 /**
  * [혈액검사 결과 목록]
  * - 기능 태그·태그별 건수, 항목·측정값·참고범위 한 줄, 참고범위 밖은 색 + ▲▼ (FN-HLT-005-02)
- * - 행의 어디를 눌러도(체크박스·추이 보기 제외) 검사 수치 수정 모달, [＋ 검사 수치 추가] → 검사 수치 추가 모달
+ * - 행의 어디를 눌러도(체크박스 제외) 검사 수치 수정 모달, [＋ 검사 수치 추가] → 검사 수치 추가 모달
+ * - 측정값 앞 ▲(초과, 빨강)·▼(미만, 파랑) (※신규 정책, 2026-11-23)
+ * - 줄마다 있던 「추이 보기 ›」(종합 건강기록 검사 수치 카드로 이동)는 취소. 목록 아래 안내로 대신함 (※신규 정책 취소, 2026-11-23)
  * - 체크박스로 고른 항목을 확인 뒤 삭제
  */
 export default function BloodResultList({ checkup, items }) {
@@ -166,15 +169,10 @@ export default function BloodResultList({ checkup, items }) {
                     )}
                   </span>
                   <span
-                    className={`text-right text-lg font-semibold whitespace-nowrap tabular-nums ${direction ? 'text-danger' : ''}`}
+                    className={`text-right text-lg font-semibold whitespace-nowrap tabular-nums ${DIRECTION_COLOR[direction] ?? ''}`}
                   >
-                    {round2(item.rsltNvl)}{' '}
-                    <span className="text-sm font-normal text-subtle">
-                      {item.unitNm}
-                    </span>
                     {direction && (
                       <>
-                        {' '}
                         <span
                           aria-label={
                             direction === 'high'
@@ -183,21 +181,14 @@ export default function BloodResultList({ checkup, items }) {
                           }
                         >
                           {direction === 'high' ? '▲' : '▼'}
-                        </span>
+                        </span>{' '}
                       </>
                     )}
+                    {round2(item.rsltNvl)}{' '}
+                    <span className="text-sm font-normal text-subtle">
+                      {item.unitNm}
+                    </span>
                   </span>
-                  {/** 종합 건강기록 검사 수치 카드를 이 항목으로 (※신규 정책). 행 클릭(수정 화면)은 막음 */}
-                  <Link
-                    to={{
-                      pathname: PATHS.HEALTH,
-                      search: `?${new URLSearchParams({ petSn: String(petSn), inspection: getInspectionName(item) })}`,
-                    }}
-                    className={`${TEXT_BTN} shrink-0 whitespace-nowrap`}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    추이 보기 ›
-                  </Link>
                 </li>
               );
             })}
@@ -222,9 +213,15 @@ export default function BloodResultList({ checkup, items }) {
           onClose={() => setModal(null)}
         />
       )}
+      {/* 수치 변화 안내 줄 (※신규 정책, 2026-11-23) */}
       <NoticeBox className="mt-3 flex gap-2.5">
         <Icon name="info" className="text-lg text-subtle" />
-        <span>PDF로 받은 결과지는 첨부 자료 탭에서 [PDF 분석]</span>
+        <ul>
+          <li>
+            · 항목별 수치 변화는 종합 건강기록 [검사 수치] 카드에서 볼 수 있어요
+          </li>
+          <li>· PDF로 받은 결과지는 첨부 자료 탭에서 [PDF 분석]</li>
+        </ul>
       </NoticeBox>
 
       {isConfirmOpen && (

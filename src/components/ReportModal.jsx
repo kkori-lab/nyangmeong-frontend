@@ -2,6 +2,7 @@ import { CircleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { BTN_PRIMARY, BTN_SECONDARY } from './buttonStyles';
 import Modal from './Modal';
+import FieldFoot from './FieldFoot';
 
 const DETAIL_MAX = 500;
 const ETC = '기타';
@@ -101,7 +102,7 @@ export default function ReportModal({
         ))}
       </fieldset>
       <div className="mt-4 flex flex-col gap-1.5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <label
             htmlFor="report-detail"
             className="text-base font-semibold text-ink"
@@ -113,9 +114,6 @@ export default function ReportModal({
               </span>
             )}
           </label>
-          <span className="text-xs text-subtle">
-            {detail.length} / {DETAIL_MAX}
-          </span>
         </div>
         <textarea
           id="report-detail"
@@ -131,6 +129,7 @@ export default function ReportModal({
           }}
           className="block w-full resize-none rounded-md border border-input-line bg-white px-3 py-2 text-base placeholder:text-placeholder focus:border-brand-500 focus:ring-focus focus:outline-none"
         />
+        <FieldFoot value={detail} max={DETAIL_MAX} />
       </div>
       {shownError && (
         <p

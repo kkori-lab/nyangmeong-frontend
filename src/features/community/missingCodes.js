@@ -21,6 +21,19 @@ export const PET_SE_BY_FILTER = {
   cat: PET_SE.CAT,
 };
 
+/** 상태 필터: 실종·찾았어요(만료 글은 칩 없이 「전체」에서만) */
+export const STATUS_FILTERS = [
+  { value: '', label: '전체' },
+  { value: 'lost', label: '실종' },
+  { value: 'found', label: '찾았어요' },
+];
+
+/** URL ?stts= 값 → 서버 상태 코드(lostTpofSttsCd) */
+export const STTS_BY_FILTER = {
+  lost: LOST_STTS.LOST,
+  found: LOST_STTS.FOUND,
+};
+
 /** 실종 기간: 마지막 목격 날짜 기준. 31은 1개월 이상 */
 export const PERIOD_FILTERS = [
   { value: '', label: '전체' },
@@ -112,6 +125,6 @@ export const isExpired = (post) => post.lostTpofSttsCd === LOST_STTS.EXPIRED;
 export const EXTEND_BEFORE_DAYS = 7;
 export const EXTEND_DAYS = 30;
 
-/** 찾았어요 처리 때 서버가 자동으로 다는 댓글 문구(확인 모달 미리보기용). 사용자가 수정 불가 */
-export const foundCommentText = (petNm) =>
-  `여러분의 제보와 관심 덕분에 ${petNm}가 무사히 가족의 품으로 돌아갔어요.`;
+/** 서버가 만든 자동 댓글(찾았어요 안내)은 글자 맨 앞에 🎉가 붙어 오므로 보일 때만 떼고 보인다(저장 글자는 그대로) */
+export const stripLeadingEmoji = (text) =>
+  text.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '');

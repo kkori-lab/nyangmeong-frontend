@@ -7,6 +7,12 @@ export const getPointBalance = () => api.get('/members/me/points');
 export const getPointHistory = (ym) =>
   api.get('/point-ledgers', { params: { yearMonth: ym } });
 
+/** 내역이 있는 연월 (GET /point-ledgers/months) → ['2026-11', ...] 최신순 */
+export const getPointMonths = async () => {
+  const months = await api.get('/point-ledgers/months');
+  return months.map((month) => month.yearMonth);
+};
+
 /** 주양육 동물 한 마리의 그날 미션(출제 순서). ymd = 'YYYY-MM-DD' */
 export const getCareMissions = (petSn, ymd) =>
   api.get(`/pets/${petSn}/daily-missions`, { params: { msnCrtrYmd: ymd } });

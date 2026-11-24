@@ -2,18 +2,13 @@ import { useSearchParams } from 'react-router-dom';
 import { showToast } from '@/components/toastStore';
 import { LOGIN_MESSAGES as MSG } from './loginMessages';
 import { canStartSnsLogin, startSnsLogin } from './snsAuth';
-import { GoogleLogo, KakaoLogo, NaverLogo } from './SnsLogos';
+import { GoogleLogo, KakaoLogo } from './SnsLogos';
 
 const BASE =
   'relative flex h-12 w-full items-center justify-center rounded-xl px-12 font-semibold hover:brightness-[.97]';
 
+// 네이버는 사업자 번호가 있어야 검수를 받을 수 있어 뺐다(2026-11-23)
 const PROVIDERS = [
-  {
-    snsOffrCd: 'USRC0007',
-    name: '네이버',
-    Logo: NaverLogo,
-    style: 'bg-[#03A94D] text-white',
-  },
   {
     snsOffrCd: 'USRC0008',
     name: '카카오',

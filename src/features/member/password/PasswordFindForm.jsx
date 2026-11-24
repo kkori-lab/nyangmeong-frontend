@@ -7,6 +7,7 @@ import AuthHeading from '../shared/AuthHeading';
 import AuthNotice from '../shared/AuthNotice';
 import {
   TEXT_LINK,
+  SIDE_BTN,
   AUTH_BTN_PRIMARY,
   AUTH_BTN_SECONDARY,
 } from '../shared/authStyles';
@@ -30,7 +31,7 @@ export default function PasswordFindForm({
 
   if (form.step === 'sns') {
     return (
-      <AuthCard>
+      <AuthCard onBack={form.editEmail}>
         <AuthHeading
           title="비밀번호 찾기"
           subtitle="SNS 계정은 가입한 서비스에서 로그인해 주세요."
@@ -64,7 +65,7 @@ export default function PasswordFindForm({
 
   if (form.step === 'code') {
     return (
-      <AuthCard spacing="sparse">
+      <AuthCard spacing="sparse" onBack={form.editEmail}>
         <AuthHeading
           title="비밀번호 찾기"
           subtitle="본인확인을 하면 가입한 로그인 방법을 알려 드립니다."
@@ -76,22 +77,26 @@ export default function PasswordFindForm({
         >
           <AuthBody className="max-[760px]:pt-8">
             {!form.isCodeLocked && notice}
-            <div className={`${SUMMARY} flex justify-between gap-3`}>
-              <span className="text-muted">인증할 이메일</span>
-              <strong className="min-w-0 truncate font-semibold text-ink">
-                {form.email}
-              </strong>
-            </div>
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={form.editEmail}
-                className={TEXT_LINK}
-              >
-                이메일 다시 입력
-              </button>
-            </div>
-            {/** 오답 안내: 이메일 상자 바로 아래 */}
+            {/* 인증할 이메일은 읽기 전용 칸으로 보이고, 바꾸려면 [이메일 변경] */}
+            <AuthField
+              id="find-email-fixed"
+              icon={Mail}
+              label="아이디(이메일)"
+              value={form.email}
+              onChange={() => {}}
+              readOnly
+              autoComplete="username"
+              action={
+                <button
+                  type="button"
+                  onClick={form.editEmail}
+                  className={SIDE_BTN}
+                >
+                  이메일 변경
+                </button>
+              }
+            />
+            {/** 오답 안내: 이메일 칸 바로 아래 */}
             {form.isCodeLocked && notice}
             <div className="mt-5 flex flex-col gap-8">
               {!form.isCodeLocked && (
@@ -133,7 +138,7 @@ export default function PasswordFindForm({
               className={
                 form.isCodeLocked
                   ? `${AUTH_BTN_PRIMARY} w-full flex-1`
-                  : `${AUTH_BTN_SECONDARY} w-full basis-[120px]`
+                  : `${AUTH_BTN_SECONDARY} w-full flex-1`
               }
             >
               {resendLabel(form.resendSeconds)}
@@ -159,7 +164,7 @@ export default function PasswordFindForm({
   }
 
   return (
-    <AuthCard spacing="sparse">
+    <AuthCard spacing="sparse" onBack={onBackToLogin}>
       <AuthHeading
         title="비밀번호 찾기"
         subtitle="이메일로 본인확인을 한 뒤 새 비밀번호를 설정합니다."
@@ -174,7 +179,7 @@ export default function PasswordFindForm({
           <AuthField
             id="find-email"
             icon={Mail}
-            label="이메일 아이디"
+            label="아이디(이메일)"
             value={form.email}
             onChange={form.changeEmail}
             placeholder="예: care@example.com"

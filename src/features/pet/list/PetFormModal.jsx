@@ -5,6 +5,7 @@ import DropdownSelect from '@/components/DropdownSelect';
 import DatePicker from '@/components/DatePicker';
 import Checkbox from '@/components/Checkbox';
 import FieldError, { Required } from '@/components/FieldError';
+import FieldFoot from '@/components/FieldFoot';
 import LoadError from '@/components/LoadError';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { HELP, INPUT, LABEL } from '@/components/formStyles';
@@ -226,7 +227,6 @@ export default function PetFormModal({ petSn = null, onClose, onCreated }) {
       title={isEdit ? '반려동물 수정' : '반려동물 등록'}
       isLarge
       isAutoHeight
-      isSheet
       width={720}
       isDismissDisabled
       isPending={isPending}
@@ -607,6 +607,7 @@ function PetForm({
                 value={form.petBrdt}
                 onChange={(value) => setField('petBrdt', value)}
                 max={today}
+                monthSelect
                 invalid={Boolean(errors.petBrdt)}
                 describedBy="pet-brdt-e"
               />
@@ -994,25 +995,28 @@ function Field({
 }) {
   return (
     <div className={`flex min-w-0 flex-col gap-1.5 ${MOBILE[m]}`}>
-      <div className="flex items-end justify-between gap-2">
-        <label htmlFor={id} className={LABEL}>
-          {label}
-          {required && <Required />}
-          {optional && <Optional />}
-        </label>
-        {count && (
-          <span className="text-sm text-subtle">
-            {count.length} / {count.max.toLocaleString()}
-          </span>
-        )}
-      </div>
+      <label htmlFor={id} className={LABEL}>
+        {label}
+        {required && <Required />}
+        {optional && <Optional />}
+      </label>
       {children}
       {help && (
         <p id={helpId} className={HELP}>
           {help}
         </p>
       )}
-      <FieldError id={`${id}-e`}>{error}</FieldError>
+      {/** 오류 문구 왼쪽, 글자 수 오른쪽 한 줄 */}
+      {count ? (
+        <FieldFoot
+          value={{ length: count.length }}
+          max={count.max.toLocaleString()}
+          error={error}
+          errorId={`${id}-e`}
+        />
+      ) : (
+        <FieldError id={`${id}-e`}>{error}</FieldError>
+      )}
     </div>
   );
 }

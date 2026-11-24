@@ -23,7 +23,7 @@ const TYPE_BY_CD = Object.fromEntries(
 const TILE =
   'flex w-24 flex-col items-center gap-1.5 rounded-box p-3 text-center group-hover:bg-brand-50';
 const CIRCLE = 'size-[52px] rounded-full';
-/** 모바일(760px 미만, Modal isSheet와 같은 경계)에서 보이는 바로가기 수. 마지막 칸은 [바로가기 편집] */
+/** 모바일(760px 미만, Modal 아래 시트와 같은 경계)에서 보이는 바로가기 수. 마지막 칸은 [바로가기 편집] */
 const MOBILE_VISIBLE = 5;
 /** 끌어 놓기는 웹만(760px 이상). 모바일 폭에서는 끌기를 시작하지 않는다 */
 const MOBILE_QUERY = '(width < 760px)';

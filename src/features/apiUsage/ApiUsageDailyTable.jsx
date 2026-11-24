@@ -34,7 +34,7 @@ export default function ApiUsageDailyTable({ days }) {
                 {day.callCnt.toLocaleString()}
               </td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
-                {formatFailRate(day.failRt)}
+                {formatFailRate(day.failRate)}
               </td>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums">
                 {formatResponseTime(day.avgRspnsMs)}

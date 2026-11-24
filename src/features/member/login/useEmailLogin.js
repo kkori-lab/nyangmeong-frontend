@@ -14,9 +14,10 @@ const cleanCaptcha = (value) =>
 const FIELD_KEYS = { acntEml: 'email', pswd: 'password', scrtyCd: 'captcha' };
 
 // 이메일 로그인 폼의 값·오류·보안코드 상태를 한곳에서 다룬다. 로그인에 성공하면 onSuccess(로그인 응답)를 부른다
-export default function useEmailLogin(onSuccess) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+// initial: 처음 채워 둘 값 { email, password }(랜딩 팝업의 데모 계정)
+export default function useEmailLogin(onSuccess, initial) {
+  const [email, setEmail] = useState(initial?.email ?? '');
+  const [password, setPassword] = useState(initial?.password ?? '');
   const [captchaInput, setCaptchaInput] = useState('');
   const [errors, setErrors] = useState({});
   const [notice, setNotice] = useState(null);
@@ -118,7 +119,7 @@ export default function useEmailLogin(onSuccess) {
     setCaptchaInput('');
     switch (error.code) {
       case 'LOGIN_FAILED':
-        setNotice({ type: 'error', message: error.message });
+        setNotice({ type: 'error', message: MSG.loginFailed });
         if (isCaptchaOn) issueCaptcha(acntEml);
         return;
       case 'LOGIN_CAPTCHA_REQUIRED':

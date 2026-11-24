@@ -11,6 +11,7 @@ import PasswordStep from './PasswordStep';
 import PhoneStep from './PhoneStep';
 import SignupStepper from './SignupStepper';
 import TermsStep from './TermsStep';
+import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 import useSignup from './useSignup';
 
 const STEPS = {
@@ -120,16 +121,19 @@ export default function SignupForm({ onBackToLogin, onGoLogin, onRecover }) {
         )}
         <Body form={form} />
       </StepMotion>
-      <div className="mt-4 flex justify-center gap-2 text-muted">
-        이미 회원이신가요?
-        <button
-          type="button"
-          onClick={onBackToLogin}
-          className={`font-semibold text-brand-600 ${TEXT_LINK}`}
-        >
-          로그인
-        </button>
-      </div>
+      {/* 이미 가입된 이메일이면 아래 버튼이 [기존 가입 방법으로 로그인]이 되므로 이 줄은 숨긴다 */}
+      {form.errors.email !== MSG.emailDuplicate && (
+        <div className="mt-4 flex justify-center gap-2 text-muted">
+          이미 회원이신가요?
+          <button
+            type="button"
+            onClick={onBackToLogin}
+            className={`font-semibold text-brand-600 ${TEXT_LINK}`}
+          >
+            로그인
+          </button>
+        </div>
+      )}
       {form.termsView && (
         <TermsModal trmsSn={form.termsView} onClose={form.closeTerms} />
       )}

@@ -10,6 +10,7 @@ import CareProgressBox from './CareProgressBox';
 import CareRecordList from './CareRecordList';
 import CareTile from './CareTile';
 import { CARE_ZONE, MIN_CARE_COUNT } from './careDue';
+import { readTodayKept, writeTodayKept } from './careTodayKept';
 import UnderlineTabs from '@/components/UnderlineTabs';
 import {
   useCancelCareRecord,
@@ -34,6 +35,9 @@ const EMPTY_TEXTS = {
 /**
  * [케어리스트 탭] (FN-HLT-003-12, ※신규 정책)
  * - 「케어리스트」 카드(진행 상자 + 오늘 할 케어·다가오는 정기관리) 아래 「최근 케어 기록」 카드
+ * - 구역(※신규 정책): 오늘 할 케어 = 일상관리 전부 + 예정일이 오늘인 정기관리. 체크해도 자리는 그대로(맨 아래로 내리지 않음)
+ *   체크한 오늘 예정 정기관리는 서버가 다음 예정일로 바꾸므로 careTodayKept에 기억해 오늘 하루 「오늘 할 케어」에 체크된 채 둠
+ *   다가오는 정기관리 = 그 밖의 정기관리(예정일이 지났거나 아직 안 온 것, 미리 한 것). 다음 날부터는 다음 예정일 자리에 보임
  * - 케어리스트에는 고른 항목(indctYn)만. 5개 미만이면 「케어 항목 관리」 모달이 자동으로 열림
  * - mission: 오늘 케어미션 요약(페이지가 조립). undefined는 불러오는 중, null은 없음
  */
@@ -43,6 +47,13 @@ export default function CareList({ petSn, petNm, mission }) {
   const [zoneId, setZoneId] = useState(ZONE_TABS[0].id);
   /** 760px 미만에서 펼친 구역: 반려동물별 키라 반려동물을 바꾸면 다시 접힘 */
   const [expandedZones, setExpandedZones] = useState([]);
+  /** 체크해도 오늘 할 케어에 남길 정기관리 항목: 반려동물을 바꾸면 그 반려동물 것을 다시 읽음 */
+  const [kept, setKept] = useState(() => ({
+    petSn,
+    list: readTodayKept(petSn, getTodayYmd()),
+  }));
+  if (kept.petSn !== petSn)
+    setKept({ petSn, list: readTodayKept(petSn, getTodayYmd()) });
   const checkCareItem = useCheckCareItem();
   const cancelLastDose = useCancelLastDose();
   const cancelCareRecord = useCancelCareRecord();
@@ -81,31 +92,18 @@ export default function CareList({ petSn, petNm, mission }) {
       : findTodayRecord(item) != null;
   const doneCount = shownItems.filter(isDoneToday).length;
 
-  /** 오늘 할 케어: 일상관리 전부 + 예정일이 오늘인 정기관리. 완료한 항목은 맨 아래 */
+  /** 오늘 할 케어: 일상관리 전부 + 예정일이 오늘인 정기관리 + 오늘 체크해 기억해 둔 정기관리 */
   const isTodayItem = (item) =>
     item.careZoneCd !== CARE_ZONE.REGULAR ||
-    (item.nxtmPrnmntYmd === todayYmd && !isDoneToday(item));
-  /**
-   * 구역 안 묶음 (※신규 정책)
-   * - 위: 오늘의 미션 항목(todayMsnYn), 아래: 나머지
-   * - 오늘 할 케어(isDoneLast): 체크한 항목은 자기 묶음 안에서 맨 아래(묶음을 넘어가지 않음). 풀면 묶음 안 원래 자리
-   * - 다가오는 정기관리: 묶음 안 전체가 예정일 순. 오늘 완료한 항목도 새 다음 예정일 자리에 그대로
-   */
-  const toGroups = (items, isDoneLast) => {
-    const sinkDone = (list) =>
-      isDoneLast
-        ? [
-            ...list.filter((item) => !isDoneToday(item)),
-            ...list.filter(isDoneToday),
-          ]
-        : list;
-    return {
-      missionItems: sinkDone(items.filter((item) => item.todayMsnYn)),
-      restItems: sinkDone(items.filter((item) => !item.todayMsnYn)),
-    };
-  };
+    (item.nxtmPrnmntYmd === todayYmd && !isDoneToday(item)) ||
+    (kept.list.includes(item.careArtclSn) && isDoneToday(item));
+  /** 구역 안 묶음: 위는 오늘의 미션 항목(todayMsnYn), 아래는 나머지. 체크해도 자리는 그대로 */
+  const toGroups = (items) => ({
+    missionItems: items.filter((item) => item.todayMsnYn),
+    restItems: items.filter((item) => !item.todayMsnYn),
+  });
   const zones = {
-    'hlt003-care-today': toGroups(shownItems.filter(isTodayItem), true),
+    'hlt003-care-today': toGroups(shownItems.filter(isTodayItem)),
     /** 다가오는 정기관리: 예정일이 지났거나 아직 안 온 것 + 오늘 완료한 것(다음 예정일 기준), 예정일 빠른 순 */
     'hlt003-care-upcoming': toGroups(
       shownItems
@@ -113,24 +111,43 @@ export default function CareList({ petSn, petNm, mission }) {
         .sort((a, b) =>
           (a.nxtmPrnmntYmd ?? '9').localeCompare(b.nxtmPrnmntYmd ?? '9'),
         ),
-      false,
     ),
+  };
+
+  const updateKept = (list) => {
+    writeTodayKept(petSn, todayYmd, list);
+    setKept({ petSn, list });
+  };
+  /** 체크(완료) 요청 직전: 지금 오늘 할 케어에 있는 정기관리면 기억 (예정일 전·지난 항목은 기억하지 않음) */
+  const rememberIfToday = (item) => {
+    if (
+      item.careZoneCd === CARE_ZONE.REGULAR &&
+      isTodayItem(item) &&
+      !kept.list.includes(item.careArtclSn)
+    )
+      updateKept([...kept.list, item.careArtclSn]);
   };
 
   /** 줄 클릭: 완료 전이면 체크, 완료한 항목은 오늘 기록 취소. 투약은 횟수를 채운 뒤에는 동작 없음 */
   const handleCheck = (item) => {
     if (item.prscSn != null) {
-      if (!isDoneToday(item))
+      if (!isDoneToday(item)) {
+        rememberIfToday(item);
         checkCareItem.mutate({ petSn, careArtclSn: item.careArtclSn });
+      }
       return;
     }
     const todayRecord = findTodayRecord(item);
-    if (todayRecord)
+    if (todayRecord) {
+      updateKept(kept.list.filter((sn) => sn !== item.careArtclSn));
       cancelCareRecord.mutate({
         petSn,
         careCmptnHstrySn: todayRecord.careCmptnHstrySn,
       });
-    else checkCareItem.mutate({ petSn, careArtclSn: item.careArtclSn });
+    } else {
+      rememberIfToday(item);
+      checkCareItem.mutate({ petSn, careArtclSn: item.careArtclSn });
+    }
   };
 
   const closeManage = () => {

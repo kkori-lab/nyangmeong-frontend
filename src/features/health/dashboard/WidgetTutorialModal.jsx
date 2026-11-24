@@ -24,8 +24,8 @@ import {
   orderWidgetIds,
 } from './widgetItems';
 
-/** 단계 이름: ② 「기록 고르기」 → 「대시보드 항목」 (※신규 정책, 2026-11-20) */
-const STEPS = ['시작', '대시보드 항목', '케어 고르기', '완료'];
+/** 단계 이름: ② 「기록 고르기」 → 「대시보드 항목」 (※신규 정책, 2026-11-20), ③도 같은 규칙으로 「케어리스트 항목」 (※신규 정책, 2026-11-23) */
+const STEPS = ['시작', '대시보드 항목', '케어리스트 항목', '완료'];
 const LAST_STEP = STEPS.length;
 /** 760px 미만 대시보드 편집 단계 (※신규 정책: ① 「항목 고르기」) */
 const NARROW_EDIT_STEPS = ['항목 고르기', '순서 바꾸기'];
@@ -33,8 +33,8 @@ const NARROW_EDIT_STEPS = ['항목 고르기', '순서 바꾸기'];
 /**
  * [튜토리얼 · 대시보드 편집 모달] (※신규 정책, 흐름도 D1~D7·D10)
  * - 2단계(대시보드 항목 고르기)와 편집은 1040px 두 칸, 1·3·4단계는 720px. 단계를 넘기면 너비가 바로 바뀜 (※신규 정책)
- * - mode 'tutorial': 1 시작 → 2 대시보드 항목 → 3 케어 고르기 → 4 완료. 1~3단계의 [나중에 할래요]·×·Esc·배경은 추천 3개 저장(D3)이고 케어는 저장하지 않음, 4단계 ×는 [건강기록 보러 가기]와 같음
- * - 3단계 케어 고르기: 5개 이상, 처방·반복 예방 연동 항목은 항상 표시. 4단계에서 기록 항목과 함께 저장(케어 먼저: 기록 항목이 저장되면 튜토리얼이 닫힘)
+ * - mode 'tutorial': 1 시작 → 2 대시보드 항목 → 3 케어리스트 항목 → 4 완료. 1~3단계의 [나중에 할래요]·×·Esc·배경은 추천 3개 저장(D3)이고 케어는 저장하지 않음, 4단계 ×는 [건강기록 보러 가기]와 같음
+ * - 3단계 케어리스트 항목: 5개 이상, 처방·반복 예방 연동 항목은 항상 표시. 4단계에서 기록 항목과 함께 저장(케어 먼저: 기록 항목이 저장되면 튜토리얼이 닫힘)
  * - isReplay(이미 고른 항목이 있는 회원이 튜토리얼을 다시 엶): 2단계 처음 체크는 savedIds, 1~3단계의 [나중에 할래요]·×·Esc·배경은 저장 없이 닫음. 4단계 저장은 같음 (※신규 정책)
  * - mode 'edit': 2단계만. [저장]은 고른 항목 저장, [취소]·×·Esc·배경은 저장 없이 닫음(D7)
  *   760px 미만은 1 항목 고르기 → 2 순서 바꾸기 (※신규 정책). 1단계는 [취소]·[다음 ›]만, 저장은 2단계 [저장하기]. [‹ 이전]은 고른 내용을 두고 1단계로
@@ -61,7 +61,7 @@ export default function WidgetTutorialModal({
   );
   const [lastPickedId, setLastPickedId] = useState(null);
   const saveWidgets = useSaveHealthWidgets();
-  /** 케어 고르기: 사람이 칩을 누르기 전에는 null -> 서버의 indctYn 그대로 */
+  /** 케어리스트 항목: 사람이 칩을 누르기 전에는 null -> 서버의 indctYn 그대로 */
   const care = useCareItems(isEdit ? null : petSn);
   const [pickedCareSns, setPickedCareSns] = useState(null);
   const saveIndications = useSaveCareIndications();
@@ -170,7 +170,7 @@ export default function WidgetTutorialModal({
       : step === 2
         ? '대시보드 항목 고르기'
         : step === 3
-          ? '케어 고르기'
+          ? '케어리스트 항목 고르기'
           : `${petNm}의 건강기록이 준비됐어요`;
 
   const footer =
@@ -425,6 +425,10 @@ export default function WidgetTutorialModal({
 }
 
 /** 단계 표시: steps는 단계 이름 목록 */
+/**
+ * [단계 막대]
+ * - 760px 미만은 지금 단계만 이름(나머지는 번호만, 이름은 sr-only), 연결선 12px (※신규 정책, 2026-11-23)
+ */
 function StepBar({ steps, current }) {
   return (
     <ol className="mb-5 flex items-center gap-2 overflow-x-auto">
@@ -438,7 +442,7 @@ function StepBar({ steps, current }) {
             aria-current={isCurrent ? 'step' : undefined}
             className={`flex items-center gap-2 whitespace-nowrap max-[760px]:text-sm ${
               isCurrent ? 'font-bold text-ink' : 'font-medium text-subtle'
-            } ${index > 0 ? "before:h-px before:w-6 before:bg-line before:content-['']" : ''}`}
+            } ${index > 0 ? "before:h-px before:w-6 before:bg-line before:content-[''] max-[760px]:before:w-3" : ''}`}
           >
             <b
               className={`grid size-7 place-items-center rounded-full text-sm ${
@@ -451,7 +455,9 @@ function StepBar({ steps, current }) {
             >
               {no}
             </b>
-            {label}
+            <span className={isCurrent ? '' : 'max-[760px]:sr-only'}>
+              {label}
+            </span>
           </li>
         );
       })}

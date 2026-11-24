@@ -13,6 +13,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import useKakaoMap from '@/hooks/useKakaoMap';
 import { searchPlaces } from '@/utils/placeSearch';
 import PlaceMapPreview from './PlaceMapPreview';
+import FieldFoot from '@/components/FieldFoot';
 
 export const DETAIL_ADDR_MAX_LENGTH = 30;
 const SEARCH_DELAY = 300;
@@ -146,16 +147,13 @@ export default function AddressShareModal({
           </p>
 
           <div className="mt-4">
-            <div className="flex items-baseline justify-between">
+            <div className="flex items-baseline">
               <label
                 htmlFor={`${inputId}-detail`}
                 className="text-sm font-semibold text-ink"
               >
                 상세 주소 (선택)
               </label>
-              <span className="text-xs text-placeholder">
-                {detail.length} / {DETAIL_ADDR_MAX_LENGTH}
-              </span>
             </div>
             <input
               id={`${inputId}-detail`}
@@ -165,6 +163,9 @@ export default function AddressShareModal({
               value={detail}
               onChange={(event) => setDetail(event.target.value)}
             />
+            <div className="mt-1.5">
+              <FieldFoot value={detail} max={DETAIL_ADDR_MAX_LENGTH} />
+            </div>
           </div>
 
           <p className="mt-3 flex items-center gap-1.5 text-sm text-subtle">

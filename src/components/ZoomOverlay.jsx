@@ -28,7 +28,7 @@ export default function ZoomOverlay({ zoom, onClose }) {
     <div
       role="dialog"
       aria-label={`${zoom.label} 사진 크게 보기`}
-      className="absolute inset-0 z-10 flex flex-col gap-3 rounded-modal bg-brand-900/80 p-6 max-[760px]:rounded-none max-[760px]:p-4"
+      className="absolute inset-0 z-10 flex flex-col gap-3 rounded-modal bg-brand-900/80 p-6 max-[760px]:rounded-b-none max-[760px]:p-4"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}

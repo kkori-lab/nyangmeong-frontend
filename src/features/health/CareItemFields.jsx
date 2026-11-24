@@ -14,7 +14,7 @@ import {
 import SegmentSwitch from './SegmentSwitch';
 import FieldError, { Required } from '@/components/FieldError';
 import { HELP, INPUT, LABEL } from '@/components/formStyles';
-import CharCount from './shared/CharCount';
+import FieldFoot from '@/components/FieldFoot';
 
 /** 아이콘 목록과 이름: 퍼블리싱 html/hlt-calendar.html의 관리 항목 추가 모달과 같음. "기타"는 기본 아이콘 */
 const ICONS = [
@@ -115,18 +115,9 @@ export default function CareItemFields({
         <>
           <div className={`${PAIR_ROW} max-[760px]:grid-cols-1`}>
             <label className="flex min-w-0 flex-col gap-1.5">
-              {/** 글자 수는 라벨 줄 오른쪽: 660 높이 안에 들어가게 (※신규 정책, 2026-11-20) */}
               <span className={LABEL}>
                 항목명
                 <Required />
-                {!isBasic && (
-                  <span className="ml-auto flex font-normal">
-                    <CharCount
-                      value={fields.careArtclNm}
-                      max={MAX_NAME_LENGTH}
-                    />
-                  </span>
-                )}
               </span>
               <input
                 ref={nameRef}
@@ -139,6 +130,10 @@ export default function CareItemFields({
                   onChange({ careArtclNm: event.target.value })
                 }
               />
+              {/** 글자 수는 칸 아래 오른쪽(공용 FieldFoot, 사람 피드백 2026-11-23) */}
+              {!isBasic && (
+                <FieldFoot value={fields.careArtclNm} max={MAX_NAME_LENGTH} />
+              )}
             </label>
 
             <fieldset className="flex min-w-0 flex-col gap-1.5">

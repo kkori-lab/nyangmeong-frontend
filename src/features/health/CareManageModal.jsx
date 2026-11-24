@@ -366,7 +366,7 @@ export default function CareManageModal({
         isForm && (
           <button
             type="button"
-            aria-label="케어 고르기로 돌아가기"
+            aria-label="케어 항목 관리로 돌아가기"
             className="-ml-2 grid size-8 shrink-0 place-items-center rounded-md text-subtle hover:bg-surface-2"
             onClick={handleCancelPanel}
           >

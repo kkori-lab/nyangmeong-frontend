@@ -1,8 +1,9 @@
 import { ArrowRight } from 'lucide-react';
-import aiCharacter from '@/assets/ai-character.png';
 import MarkdownText from '@/components/MarkdownText';
 import { useOpenMain } from './aiHost';
 import { shortcutChips } from './shortcutChips';
+import AiAvatar from './AiAvatar';
+import useTypewriter from './useTypewriter';
 
 const NOTE_MARK = '\n\n※';
 
@@ -43,26 +44,29 @@ function TypingDots() {
   );
 }
 
-/** AI 답변 말풍선 */
+/**
+ * AI 답변 말풍선
+ * - isTyping: 글을 앞에서부터 펼친다(이번에 받은 답변). 지난 메시지는 false로 바로 전체
+ * - 펼치는 동안에는 아래 버튼(바로가기·다시 생성)을 숨긴다
+ * - memoKey: 저장 메시지 키. 이 창에서 한 번 펼친(또는 답변 말풍선으로 본) 메시지는 방을 다시 열어도 바로 전체
+ */
 export default function AnswerBubble({
   status,
   text = '',
   shortcuts = [],
   onRetry,
   onRegenerate,
+  avatarPet,
+  isTyping = true,
+  memoKey = null,
 }) {
   const openMain = useOpenMain();
-  const { body, note } = splitNote(text);
+  const typed = useTypewriter(text, isTyping, memoKey);
+  const { body, note } = splitNote(typed.text);
 
   return (
     <div className="flex min-w-0 items-start gap-3">
-      <img
-        src={aiCharacter}
-        alt=""
-        width="36"
-        height="36"
-        className="size-9 shrink-0 rounded-full border border-line bg-brand-50 object-contain p-1"
-      />
+      <AiAvatar pet={avatarPet} />
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
         <div className="max-w-[min(592px,100%)] rounded-[4px_18px_18px_18px] border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink">
           {status === 'waiting' && <TypingDots />}
@@ -97,7 +101,7 @@ export default function AnswerBubble({
           </>
         )}
 
-        {status === 'incomplete' && (
+        {status === 'incomplete' && !typed.isRevealing && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-subtle">
               답변이 완료되지 않았어요
@@ -114,7 +118,7 @@ export default function AnswerBubble({
           </div>
         )}
 
-        {status === 'done' && shortcuts.length > 0 && (
+        {status === 'done' && shortcuts.length > 0 && !typed.isRevealing && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-subtle">관련 기능 바로가기</span>
             {shortcuts.map((shortcut) => (

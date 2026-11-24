@@ -141,7 +141,6 @@ export default function ExpenseAddModal({ expndYmd, pets, onSaved, onClose }) {
       {step === STEP.CHOOSE && (
         <Modal
           title="지출 등록"
-          isSheet
           onClose={onClose}
           footer={
             <button type="button" onClick={onClose} className={BTN_SECONDARY}>

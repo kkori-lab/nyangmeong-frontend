@@ -7,6 +7,7 @@
  * - 매칭 POST /care-matches, GET /care-matches/{petPrtcMtchSn}, POST .../accept·cancel·completion-requests·confirm-completion·confirm-receipt
  */
 import { api } from '@/api/axios';
+import { REPORT_REASON_CODES } from '@/constants/reportReasons';
 
 export const getChatRooms = ({ unreadOnly }) =>
   api.get('/chat-rooms', {
@@ -96,3 +97,11 @@ export const rejectDealCancel = ({ petPrtcMtchSn }) =>
 
 export const withdrawDealCancel = ({ petPrtcMtchSn }) =>
   api.post(`/care-matches/${petPrtcMtchSn}/cancel-request/withdraw`);
+
+/** 채팅방 신고(채팅 상대): 커뮤니티 신고와 같은 POST /reports에 방 번호를 보낸다. 나간 방·읽기 전용 방도 가능 */
+export const reportChatRoom = ({ otoChatRoomSn, reason, detail }) =>
+  api.post('/reports', {
+    otoChatRoomSn,
+    dclrRsnCd: REPORT_REASON_CODES[reason],
+    dclrDtlCn: detail || undefined,
+  });

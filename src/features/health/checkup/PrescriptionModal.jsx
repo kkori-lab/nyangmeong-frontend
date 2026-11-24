@@ -11,7 +11,7 @@ import { INPUT, LABEL } from '@/components/formStyles';
 import { formatDate } from '@/utils/formatDate';
 import CareShortageNotice from '../CareShortageNotice';
 import FormModal from '../diary/FormModal';
-import CharCount from '../shared/CharCount';
+import FieldFoot from '@/components/FieldFoot';
 import { useBulkSavePrescriptions, useDeletePrescription } from '../queries';
 import { DOSE_STATUSES, DOSING } from './checkupTypes';
 
@@ -426,8 +426,11 @@ function MedicineFields({ medicine, errors, onChange }) {
           className={INPUT}
           onChange={(event) => onChange('mdcnNm', event.target.value)}
         />
-        <CharCount value={medicine.mdcnNm} max={MAX_MEDICINE_NAME_LENGTH} />
-        {errors.name && <FieldError>{errors.name}</FieldError>}
+        <FieldFoot
+          value={medicine.mdcnNm}
+          max={MAX_MEDICINE_NAME_LENGTH}
+          error={errors.name}
+        />
       </label>
 
       <div className="grid gap-x-8 gap-y-5 min-[760px]:grid-cols-2">

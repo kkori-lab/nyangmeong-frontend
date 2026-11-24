@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { healthKeys } from '@/features/health/queries';
 import {
+  analyzeChatLabPdf,
+  analyzeEye,
+  analyzeSkin,
+  createChatCheckup,
+  findChatNearSchedule,
+  getChatCheckups,
   analyzeChatReceipt,
   deleteConversation,
   executeAction,
@@ -9,6 +16,8 @@ import {
   judgeImageIntent,
   recognizeCheckupReceipt,
   saveActionResult,
+  saveCheckupCard,
+  saveLesionCard,
   saveReceiptResult,
 } from './api';
 
@@ -17,7 +26,17 @@ export const aiKeys = {
   list: (petSn) => ['ai', 'conversations', 'list', petSn],
   detail: (aiCnvrsRoomSn) => ['ai', 'conversations', 'detail', aiCnvrsRoomSn],
   receipt: (recptSn, petSn) => ['ai', 'receipts', recptSn, petSn],
+  checkups: ['ai', 'checkups'],
+  checkupList: (petSn) => ['ai', 'checkups', petSn],
 };
+
+/** 검사 수치 확인 카드의 검진기록 목록 */
+export const useChatCheckups = (petSn) =>
+  useQuery({
+    queryKey: aiKeys.checkupList(petSn),
+    queryFn: () => getChatCheckups(petSn),
+    enabled: petSn != null,
+  });
 
 /** 대화창에서 분석한 영수증의 인식 결과: 본창 결과 확인 모달용 */
 export const useChatReceiptResult = ({ recptSn, petSn }) =>
@@ -102,6 +121,65 @@ export const useJudgeImageIntent = () => {
 /** 대화창 영수증 분석 */
 export const useAnalyzeChatReceipt = () =>
   useMutation({ mutationFn: analyzeChatReceipt });
+
+/** 대화창 검사결과지 PDF 분석 */
+export const useAnalyzeChatLabPdf = () =>
+  useMutation({ mutationFn: analyzeChatLabPdf });
+
+/** 대화창 피부 사진 분석 */
+export const useAnalyzeSkin = () => useMutation({ mutationFn: analyzeSkin });
+
+/** 대화창 눈 사진 분석 */
+export const useAnalyzeEye = () => useMutation({ mutationFn: analyzeEye });
+
+/** 대화창 피부·눈 분석 결과 저장: 대화를 다시 받은 뒤 끝냄(말풍선을 걷을 때 요약이 바로 보이게) */
+export const useSaveLesionCard = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: saveLesionCard,
+    onSuccess: ({ aiCnvrsRoomSn }) => {
+      queryClient.invalidateQueries({ queryKey: aiKeys.lists });
+      return queryClient.invalidateQueries({
+        queryKey: aiKeys.detail(aiCnvrsRoomSn),
+      });
+    },
+  });
+};
+
+/** 대화창 검진기록 만들기: 가까운 예정 병원 일정 */
+export const useFindChatNearSchedule = () =>
+  useMutation({ mutationFn: findChatNearSchedule });
+
+/** 대화창 검진기록 만들기: 건강기록 검진·일정·케어리스트 캐시 갱신 */
+export const useCreateChatCheckup = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createChatCheckup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
+      queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
+      queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
+      queryClient.invalidateQueries({ queryKey: aiKeys.checkups });
+    },
+  });
+};
+
+/** 대화창 검사결과지 결과 저장: 대화를 다시 받은 뒤 끝냄(말풍선을 걷을 때 요약이 바로 보이게) */
+export const useSaveCheckupCard = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: saveCheckupCard,
+    onSuccess: ({ aiCnvrsRoomSn }) => {
+      queryClient.invalidateQueries({ queryKey: aiKeys.lists });
+      return queryClient.invalidateQueries({
+        queryKey: aiKeys.detail(aiCnvrsRoomSn),
+      });
+    },
+  });
+};
 
 /** 대화창 영수증 결과 이력 저장: 메시지가 저장된 대화 갱신 */
 export const useSaveReceiptResult = () => {

@@ -4,8 +4,6 @@ import NoticeBox from '@/components/NoticeBox';
 import DropdownSelect from '@/components/DropdownSelect';
 import DatePicker from '@/components/DatePicker';
 import Icon from '@/components/Icon';
-import Modal from '@/components/Modal';
-import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { PATHS } from '@/routes/paths';
 import { getTodayYmd } from '@/utils/formatDate';
 import {
@@ -18,7 +16,7 @@ import { CHECKUP_TYPES } from '../scheduleTypes';
 import FieldError, { Required } from '@/components/FieldError';
 import FormModal from './FormModal';
 import NearScheduleModal from './NearScheduleModal';
-import CharCount from '../shared/CharCount';
+import FieldFoot from '@/components/FieldFoot';
 import { INPUT, LABEL, TEXTAREA } from '@/components/formStyles';
 
 const MAX_HOSPITAL_NAME_LENGTH = 80;
@@ -34,8 +32,9 @@ const REQUIRED = <Required />;
  *   업로드 전 [직접 입력하기]처럼 recptSn이 없으면 영수증 연결 없이 저장
  * - 저장하면 서버가 같은 날 병원 일정에 연결하고, 없고 앞뒤 7일 안에 예정 일정이 있으면 옮겨 연결할지 먼저 확인
  * - 저장 뒤 새 검진기록의 검진상세로 이동
- * - checkup: 검진상세 [검진기록 수정]으로 연 수정 상태. 기존 값이 채워지고 방법 선택·예정 일정 확인 없이 저장하며,
- *   반려동물을 바꾸면 연동 케어 항목도 옮겨진다는 확인 뒤 저장하고 바뀐 반려동물의 검진상세 주소로 바꿈. 수정 저장 뒤 onSaved
+ * - checkup: 검진상세 ⋮ 메뉴 [수정]으로 연 수정 상태. 기존 값이 채워지고 방법 선택·예정 일정 확인 없이 저장 (※신규 정책)
+ *   반려동물·검진일은 잠겨(disabled) 바꿀 수 없고, 저장 요청에도 넣지 않음. 병원명·검진 종류는 저장하면 캘린더 일정에도 반영
+ *   연결된 일정이 삭제됐으면(schdlDelYn) 안내 상자가 그 사실을 알림. 반려동물·검진일을 바꾸려면 기록을 지우고 다시 등록
  */
 export default function CheckupModal({
   pets,
@@ -43,7 +42,6 @@ export default function CheckupModal({
   initialStep = 'select',
   recptSn,
   checkup,
-  onSaved,
   onReceipt,
   onClose,
 }) {
@@ -60,7 +58,6 @@ export default function CheckupModal({
   const [ckupMemoCn, setCkupMemoCn] = useState(checkup?.ckupMemoCn ?? '');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [nearSchedule, setNearSchedule] = useState(null);
-  const [isMoveConfirmOpen, setIsMoveConfirmOpen] = useState(false);
   const findNearSchedule = useFindNearSchedule();
   const createCheckup = useCreateCheckup();
   const createReceiptCheckup = useCreateReceiptCheckup();
@@ -79,6 +76,8 @@ export default function CheckupModal({
     hosp: hsptlNm.trim() === '',
     type: ckupTypeCd === '',
   };
+  /** 백엔드가 상세 응답에 새로 추가하는 필드. 아직 없으면 false라 첫 문구가 나옴 */
+  const isScheduleDeleted = checkup?.schdlDelYn === true;
   const isInvalid = (field) => isSubmitted && errors[field];
 
   const toDetailPath = (saved) =>
@@ -113,15 +112,13 @@ export default function CheckupModal({
     createCheckup.mutate({ petSn, body }, options);
   };
 
-  /** 수정 저장: 검진일을 바꾸면 이 검진기록만 바뀐 날짜의 병원 일정으로 옮겨짐 */
+  /** 수정 저장: 반려동물·검진일은 보내지 않는다(서버는 보낸 필드만 바꿈) */
   const saveEdit = () =>
     updateCheckup.mutate(
       {
         petSn: checkup.petSn,
         ckupRcdSn: checkup.ckupRcdSn,
         body: {
-          petSn,
-          ckupYmd,
           hsptlNm: hsptlNm.trim(),
           ckupTypeCd,
           ckupCn: ckupCn.trim(),
@@ -129,13 +126,7 @@ export default function CheckupModal({
         },
       },
       {
-        onSuccess: (saved) => {
-          onSaved?.();
-          onClose();
-          if (saved.petSn !== checkup.petSn) {
-            navigate(toDetailPath(saved), { replace: true });
-          }
-        },
+        onSuccess: onClose,
       },
     );
 
@@ -143,8 +134,7 @@ export default function CheckupModal({
     setIsSubmitted(true);
     if (Object.values(errors).some(Boolean)) return;
     if (checkup) {
-      if (petSn === checkup.petSn) saveEdit();
-      else setIsMoveConfirmOpen(true);
+      saveEdit();
       return;
     }
     findNearSchedule.mutate(
@@ -201,6 +191,7 @@ export default function CheckupModal({
                 <span className={LABEL}>반려동물{REQUIRED}</span>
                 <DropdownSelect
                   value={petSn ?? ''}
+                  disabled={Boolean(checkup)}
                   invalid={isInvalid('pet')}
                   placeholder="반려동물 선택"
                   options={pets.map((pet) => ({
@@ -219,12 +210,15 @@ export default function CheckupModal({
               <span className={LABEL}>검진일{REQUIRED}</span>
               <DatePicker
                 value={ckupYmd}
+                disabled={Boolean(checkup)}
                 invalid={isInvalid('date')}
                 onChange={setCkupYmd}
               />
-              <p className="text-subtle">
-                예정된 일정은 케어 캘린더에서 등록해 주세요
-              </p>
+              {!checkup && (
+                <p className="text-subtle">
+                  예정된 일정은 케어 캘린더에서 등록해 주세요
+                </p>
+              )}
               {isInvalid('date') && (
                 <FieldError>검진일을 입력해 주세요</FieldError>
               )}
@@ -240,10 +234,11 @@ export default function CheckupModal({
                   className={INPUT}
                   onChange={(event) => setHsptlNm(event.target.value)}
                 />
-                <CharCount value={hsptlNm} max={MAX_HOSPITAL_NAME_LENGTH} />
-                {isInvalid('hosp') && (
-                  <FieldError>병원명을 입력해 주세요</FieldError>
-                )}
+                <FieldFoot
+                  value={hsptlNm}
+                  max={MAX_HOSPITAL_NAME_LENGTH}
+                  error={isInvalid('hosp') && '병원명을 입력해 주세요'}
+                />
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className={LABEL}>검진 종류{REQUIRED}</span>
@@ -272,7 +267,7 @@ export default function CheckupModal({
                 className={TEXTAREA}
                 onChange={(event) => setCkupCn(event.target.value)}
               />
-              <CharCount value={ckupCn} max={MAX_CONTENT_LENGTH} />
+              <FieldFoot value={ckupCn} max={MAX_CONTENT_LENGTH} />
             </label>
 
             <label className="flex flex-col gap-1.5">
@@ -284,13 +279,19 @@ export default function CheckupModal({
                 className={INPUT}
                 onChange={(event) => setCkupMemoCn(event.target.value)}
               />
-              <CharCount value={ckupMemoCn} max={MAX_MEMO_LENGTH} />
+              <FieldFoot value={ckupMemoCn} max={MAX_MEMO_LENGTH} />
             </label>
 
             <NoticeBox className="flex gap-2">
-              <Icon name="event" className="shrink-0 text-lg" />
-              저장하면 케어 캘린더에도 표시됩니다. 같은 날짜에 등록한 병원
-              일정이 있으면 그 일정과 자동으로 연결됩니다
+              <Icon
+                name={isScheduleDeleted ? 'event_busy' : 'event'}
+                className="shrink-0 text-lg"
+              />
+              {checkup
+                ? isScheduleDeleted
+                  ? '연결된 케어 캘린더 일정이 삭제되어 반려동물과 검진일은 바꿀 수 없어요. 바꾸려면 이 검진기록을 삭제한 뒤 다시 등록해 주세요'
+                  : '반려동물과 검진일은 케어 캘린더에서 이 병원 일정을 수정하면 함께 바뀌어요. 동물병원명과 검진 종류는 저장하면 캘린더 일정에도 반영돼요'
+                : '저장하면 케어 캘린더에도 표시됩니다. 같은 날짜에 등록한 병원 일정이 있으면 그 일정과 자동으로 연결됩니다'}
             </NoticeBox>
 
             {createReceiptCheckup.isError && (
@@ -301,38 +302,6 @@ export default function CheckupModal({
           </>
         )}
       </FormModal>
-
-      {isMoveConfirmOpen && (
-        <Modal
-          isConfirm
-          title="반려동물을 바꿀까요?"
-          description={`이 검진기록과 연동된 케어 항목도 ${
-            pets.find((pet) => pet.petSn === petSn)?.petNm
-          }(으)로 옮겨집니다.`}
-          isPending={isPending}
-          onClose={() => setIsMoveConfirmOpen(false)}
-          footer={
-            <>
-              <button
-                type="button"
-                className={BTN_SECONDARY}
-                disabled={isPending}
-                onClick={() => setIsMoveConfirmOpen(false)}
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                className={BTN_PRIMARY}
-                disabled={isPending}
-                onClick={saveEdit}
-              >
-                옮기기
-              </button>
-            </>
-          }
-        />
-      )}
 
       {nearSchedule && (
         <NearScheduleModal

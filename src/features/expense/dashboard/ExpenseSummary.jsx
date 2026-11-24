@@ -1,16 +1,18 @@
 import { Info } from 'lucide-react';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import MonthNav from '@/components/MonthNav';
-import { formatYm } from '@/utils/yearMonth';
+import MonthPicker from '@/components/MonthPicker';
 import { formatWon } from '../shared/expenseFormat';
 import { getRatio } from '../shared/expenseStats';
 import { CARD, CARD_BODY, CARD_HEAD } from '../shared/expenseStyles';
 
-/** prevTotalAmt null: 증감 배지 숨김 */
+/** prevTotalAmt null: 증감 배지 숨김, enabledYms: 월 선택 창에서 고를 수 있는 연월 */
 export default function ExpenseSummary({
   ym,
-  isNextDisabled,
+  maxYm,
+  enabledYms,
   onChangeMonth,
+  onSelectMonth,
   totalAmt,
   count,
   prevTotalAmt,
@@ -23,28 +25,34 @@ export default function ExpenseSummary({
     prevTotalAmt == null ? 0 : getRatio(totalAmt - prevTotalAmt, prevTotalAmt);
 
   return (
-    <section aria-label="이번달 총 지출" className={CARD}>
-      <div className={`${CARD_HEAD} max-[390px]:gap-2 max-[390px]:px-3.5`}>
+    <section aria-label="이번달 총 지출" className={`${CARD} flex flex-col`}>
+      <div className={`${CARD_HEAD} max-[400px]:relative max-[400px]:gap-2 max-[400px]:px-3.5`}>
         <MonthNav
           onPrev={() => onChangeMonth(-1)}
           onNext={() => onChangeMonth(1)}
-          isNextDisabled={isNextDisabled}
+          isNextDisabled={ym >= maxYm}
         >
-          <b className="min-w-28 text-center text-lg max-[390px]:min-w-0 max-[390px]:px-1">
-            {formatYm(ym)}
-          </b>
+          {/* 좁은 폭: 선택 창을 연월 버튼이 아니라 헤더 가운데 기준으로 열어 화면 밖으로 나가지 않게 한다 */}
+          <div className="contents max-[400px]:[&>div]:static">
+            <MonthPicker
+              ym={ym}
+              maxYm={maxYm}
+              enabledYms={enabledYms}
+              onSelect={onSelectMonth}
+            />
+          </div>
         </MonthNav>
         {hasLimit && (
           <button
             type="button"
             onClick={onOpenLimit}
-            className={`${BTN_SECONDARY} shrink-0 whitespace-nowrap max-[390px]:px-3`}
+            className={`${BTN_SECONDARY} shrink-0 whitespace-nowrap max-[400px]:px-3`}
           >
             한도 설정
           </button>
         )}
       </div>
-      <div className={CARD_BODY}>
+      <div className={`${CARD_BODY} flex flex-1 flex-col`}>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-muted">이번달 총 지출</p>
@@ -67,7 +75,7 @@ export default function ExpenseSummary({
           )}
         </div>
         {hasLimit ? (
-          <>
+          <div className="mt-auto">
             <div
               role="progressbar"
               aria-label="한도 사용률"
@@ -85,9 +93,9 @@ export default function ExpenseSummary({
               <span>한도의 {usageRatio}% 사용</span>
               <span>총 {count}건</span>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="flex flex-wrap items-center gap-3 rounded-box bg-surface-2 px-4 py-3">
+          <div className="mt-auto flex flex-wrap items-center gap-3 rounded-box bg-surface-2 px-4 py-3">
             <Info className="size-4 shrink-0 text-subtle" aria-hidden="true" />
             <span className="min-w-0 flex-1 text-muted">
               한도를 설정하면 지출을 관리할 수 있어요

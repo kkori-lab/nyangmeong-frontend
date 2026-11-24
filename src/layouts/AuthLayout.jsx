@@ -19,8 +19,11 @@ export default function AuthLayout() {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const isSignup = pathname === PATHS.SIGNUP;
+  // 입력칸이 있는 화면은 넓은 칸으로 맞춘다(이메일 로그인과 비밀번호 찾기·재설정의 입력칸 너비가 같게)
   const isWide =
     isSignup ||
+    pathname === PATHS.PASSWORD_FIND ||
+    pathname === PATHS.PASSWORD_RESET ||
     (pathname === PATHS.LOGIN && searchParams.get('method') === 'email');
   const isSlider = isSignup || pathname === PATHS.LOGIN;
   const copy = isSignup ? PANEL_COPY.signup : PANEL_COPY.login;

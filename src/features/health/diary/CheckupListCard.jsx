@@ -3,20 +3,16 @@ import { Link, generatePath } from 'react-router-dom';
 import DropdownSelect from '@/components/DropdownSelect';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
-import Modal from '@/components/Modal';
 import Pagination from '@/components/Pagination';
 import SkeletonCard from '@/components/SkeletonCard';
 import {
-  BTN_DANGER,
   BTN_PRIMARY,
-  BTN_SECONDARY,
   FILTER_CHIP,
   FILTER_CHIP_ON,
 } from '@/components/buttonStyles';
 import { PATHS } from '@/routes/paths';
 import { formatDate, getTodayYmd, getYear } from '@/utils/formatDate';
-import { useCheckupYears, useCheckups, useDeleteCheckup } from '../queries';
-import CareShortageNotice from '../CareShortageNotice';
+import { useCheckupYears, useCheckups } from '../queries';
 import CheckupModal from './CheckupModal';
 import EmptyResult from '@/components/EmptyResult';
 import Icon from '@/components/Icon';
@@ -31,7 +27,7 @@ const VACCINATION = 'HLTC0002';
  * [검진기록 카드]
  * - 조회 연도 드롭다운·검진 건수 필터 칩 2종·검진기록 리스트·[검진기록 추가] (FN-HLT-002-05·06·14)
  * - 리스트는 서버 페이지(10건), 칩 건수는 그해 전체·예방접종 건수를 따로 받는다
- * - 병원명을 누르면 검진상세로 이동하고, [삭제]는 확인 후 검진기록만 삭제
+ * - 줄을 누르면 검진상세로 이동. 검진기록 삭제는 검진상세에서만 (※신규 정책)
  * - 등록 방법 선택에서 영수증을 고르면 이 모달 닫힘, onReceipt로 페이지가 영수증 등록 이어받음
  */
 export default function CheckupListCard({ pet, pets, onReceipt }) {
@@ -41,7 +37,6 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
   const [chipFilter, setChipFilter] = useState('ALL');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteSn, setDeleteSn] = useState(null);
   const { petSn } = pet;
   const list = useCheckups({
     petSn,
@@ -58,7 +53,6 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
     size: 1,
   });
   const years = useCheckupYears(petSn);
-  const deleteCheckup = useDeleteCheckup();
 
   if (
     list.isPending ||
@@ -86,18 +80,6 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
     setChipFilter((prev) => (prev === filter ? null : filter));
     setPage(1);
   };
-
-  // 페이지의 마지막 1건을 지우면 앞 페이지로
-  const handleDelete = () =>
-    deleteCheckup.mutate(
-      { petSn, ckupRcdSn: deleteSn },
-      {
-        onSuccess: () => {
-          setDeleteSn(null);
-          if (pageCheckups.length === 1 && page > 1) setPage(page - 1);
-        },
-      },
-    );
 
   const chipClass = (isActive) => (isActive ? FILTER_CHIP_ON : FILTER_CHIP);
 
@@ -200,13 +182,6 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
                     )}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="relative z-10 min-h-9 shrink-0 px-1 font-semibold text-muted hover:underline"
-                  onClick={() => setDeleteSn(checkup.ckupRcdSn)}
-                >
-                  삭제
-                </button>
               </li>
             ))}
           </ul>
@@ -226,42 +201,6 @@ export default function CheckupListCard({ pet, pets, onReceipt }) {
           }}
           onClose={() => setIsModalOpen(false)}
         />
-      )}
-
-      {deleteSn !== null && (
-        <Modal
-          isConfirm
-          title="검진기록을 삭제할까요?"
-          description="이 검진의 투약·반복 예방 항목도 케어리스트에서 삭제됩니다(완료 기록은 유지)"
-          isPending={deleteCheckup.isPending}
-          onClose={() => setDeleteSn(null)}
-          footer={
-            <>
-              <button
-                type="button"
-                className={BTN_SECONDARY}
-                disabled={deleteCheckup.isPending}
-                onClick={() => setDeleteSn(null)}
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                className={BTN_DANGER}
-                disabled={deleteCheckup.isPending}
-                onClick={handleDelete}
-              >
-                삭제하기
-              </button>
-            </>
-          }
-        >
-          {/** 지우면 케어리스트가 5개 미만이 될 때만 안내 (※신규 정책) */}
-          <CareShortageNotice
-            petSn={pet.petSn}
-            isTarget={(item) => item.ckupRcdSn === deleteSn}
-          />
-        </Modal>
       )}
     </Card>
   );

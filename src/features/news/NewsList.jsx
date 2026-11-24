@@ -1,14 +1,16 @@
 import { Megaphone, Newspaper, SearchX } from 'lucide-react';
 import { useState } from 'react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
-import BoardPagination from '@/components/BoardPagination';
 import {
   BTN_SECONDARY,
   FILTER_CHIP,
   FILTER_CHIP_ON,
 } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
+import LoadMore from '@/components/LoadMore';
+import { THUMB_COLS } from '@/constants/listLayout';
 import SearchInput from '@/components/SearchInput';
+import useSearchDraft from '@/hooks/useSearchDraft';
 import { PATHS } from '@/routes/paths';
 import { formatDate } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
@@ -33,13 +35,13 @@ function NewsCard({ item, search }) {
   const thumbSrc = isAdmin ? publicFileUrl(item.atchFileSn) : item.thmbUrlPath;
   const hasThumb = Boolean(thumbSrc) && !thumbFailed;
   return (
-    <li>
+    <li className="@container">
       <Link
         to={generatePath(PATHS.COMMUNITY_NEWS_DETAIL, {
           newsSn: item.newsSn,
         })}
         state={{ listSearch: search }}
-        className={`group grid gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 ${hasThumb ? 'grid-cols-[minmax(0,1fr)_200px]' : 'grid-cols-1'}`}
+        className={`group grid gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden ${hasThumb ? THUMB_COLS : 'grid-cols-1'}`}
       >
         <div className="min-w-0 max-[760px]:order-2">
           <NewsCategoryBadge news={item} />
@@ -52,11 +54,11 @@ function NewsCard({ item, search }) {
         </div>
         {hasThumb && (
           /** 이미지는 칸 안에 absolute로 채워 사진 크기가 카드 높이를 키우지 않고, 칸이 카드 안쪽 높이를 채워 위·아래 여백이 글과 같다 */
-          <div className="relative col-start-2 row-span-2 row-start-1 min-h-[150px] w-full max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0">
+          <div className="relative col-start-2 row-span-2 row-start-1 min-h-[150px] w-full max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line max-[760px]:w-auto max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0">
             <NewsThumb
               src={thumbSrc}
               onError={() => setThumbFailed(true)}
-              className="absolute inset-0 h-full w-full"
+              className="absolute inset-0 h-full w-full max-[760px]:rounded-none"
             />
           </div>
         )}
@@ -79,12 +81,14 @@ export default function NewsList({
   keyword,
   onCategoryChange,
   onSearch,
-  onPageChange,
+  hasNext,
+  isFetchingNext,
+  onLoadMore,
   onReset,
 }) {
-  const [input, setInput] = useState(keyword);
+  const { input, setInput, commit } = useSearchDraft(keyword);
   const { search } = useLocation();
-  const { content, page, totalPages } = news;
+  const { content } = news;
 
   const tabClass = (selected) =>
     `${selected ? FILTER_CHIP_ON : FILTER_CHIP} cursor-pointer`;
@@ -101,7 +105,7 @@ export default function NewsList({
             type="button"
             role="tab"
             aria-selected={!category}
-            onClick={() => onCategoryChange('')}
+            onClick={() => onCategoryChange('', commit())}
             className={tabClass(!category)}
           >
             전체
@@ -113,7 +117,10 @@ export default function NewsList({
               role="tab"
               aria-selected={category === item.name}
               onClick={() =>
-                onCategoryChange(category === item.name ? '' : item.name)
+                onCategoryChange(
+                  category === item.name ? '' : item.name,
+                  commit(),
+                )
               }
               className={tabClass(category === item.name)}
             >
@@ -124,7 +131,11 @@ export default function NewsList({
         <SearchInput
           value={input}
           onChange={setInput}
-          onSubmit={() => onSearch(input.trim())}
+          onSubmit={() => {
+            const next = commit();
+            if (next !== keyword) onSearch(next);
+          }}
+          liveDelay={150}
           placeholder="제목 또는 내용 검색"
           className="w-[300px] max-[760px]:w-full"
         />
@@ -156,13 +167,11 @@ export default function NewsList({
           </ul>
         )}
 
-        <div className="mt-12 max-[760px]:mt-8">
-          <BoardPagination
-            page={page}
-            totalPages={totalPages}
-            onChange={onPageChange}
-          />
-        </div>
+        <LoadMore
+          hasNext={hasNext}
+          isFetching={isFetchingNext}
+          onLoad={onLoadMore}
+        />
       </div>
     </div>
   );

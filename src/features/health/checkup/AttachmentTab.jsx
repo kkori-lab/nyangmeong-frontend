@@ -232,7 +232,8 @@ export default function AttachmentTab({ petSn, ckupRcdSn, attachments }) {
                       replaceInputRef.current.click();
                     }}
                   >
-                    교체
+                    {/* 「교체」 → 「파일 교체」 (※신규 정책, 2026-11-23) */}
+                    파일 교체
                   </button>
                   <button
                     type="button"

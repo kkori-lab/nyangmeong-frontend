@@ -3,9 +3,10 @@ import { useState } from 'react';
 import EmptyResult from '@/components/EmptyResult';
 import LoadError from '@/components/LoadError';
 import MonthNav from '@/components/MonthNav';
+import MonthPicker from '@/components/MonthPicker';
 import SkeletonCard from '@/components/SkeletonCard';
 import { formatYm, getCurrentYm, shiftYm } from '@/utils/yearMonth';
-import { usePointHistory } from '../queries';
+import { usePointHistory, usePointMonths } from '../queries';
 import { PNT_DLNG_TYPE } from '../shared/pointCodes';
 import { formatSignedPoint } from '../shared/pointFormat';
 import { CARD, CARD_HEAD, CARD_TITLE } from '../shared/pointStyles';
@@ -30,8 +31,10 @@ export default function PointHistory() {
   const [isOpen, setIsOpen] = useState(false);
   const { data, isPending, isError, refetch } = usePointHistory(ym);
 
-  const moveYm = (step) => {
-    setYm(shiftYm(ym, step));
+  const { data: months } = usePointMonths();
+
+  const changeYm = (nextYm) => {
+    setYm(nextYm);
     setIsOpen(false);
   };
 
@@ -66,13 +69,22 @@ export default function PointHistory() {
           <Receipt className="size-5 text-brand-500" aria-hidden="true" />
           포인트 내역
         </h2>
-        <MonthNav
-          onPrev={() => moveYm(-1)}
-          onNext={() => moveYm(1)}
-          isNextDisabled={ym >= maxYm}
-        >
-          <b className="min-w-28 text-center">{formatYm(ym)}</b>
-        </MonthNav>
+        {/* 모바일은 헤더가 세로로 쌓이므로 가운데에 둬서 선택 창이 화면 밖으로 안 나가게 한다 */}
+        <div className="flex max-[760px]:w-full max-[760px]:justify-center">
+          <MonthNav
+            onPrev={() => changeYm(shiftYm(ym, -1))}
+            onNext={() => changeYm(shiftYm(ym, 1))}
+            isNextDisabled={ym >= maxYm}
+          >
+            <MonthPicker
+              ym={ym}
+              maxYm={maxYm}
+              enabledYms={months ?? []}
+              emptyNotice="포인트 내역이 없는 달은 선택할 수 없어요"
+              onSelect={changeYm}
+            />
+          </MonthNav>
+        </div>
       </div>
       <div className="grid grid-cols-2 border-b border-line-soft text-muted">
         <div className="flex items-center justify-between px-6 py-3">

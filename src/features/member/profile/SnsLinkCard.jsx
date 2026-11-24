@@ -4,8 +4,8 @@ import SnsLogoChip from '../shared/SnsLogoChip';
 import { SNS_NAME } from '../shared/snsCodes';
 import AccountRow from './AccountRow';
 
-/** 표시 순서. 로고는 SnsLogoChip */
-const PROVIDERS = ['USRC0007', 'USRC0008', 'USRC0009'];
+/** 표시 순서. 로고는 SnsLogoChip. 네이버(USRC0007)는 사업자 번호가 있어야 검수를 받을 수 있어 뺐다 */
+const PROVIDERS = ['USRC0008', 'USRC0009'];
 
 /**
  * 제공자별 연동 상태. 가입할 때 쓴 제공자는 "가입 계정", 이미 연동한 제공자는 "연동됨", 나머지는 [연동하기].

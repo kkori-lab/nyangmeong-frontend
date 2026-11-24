@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import Select from '@/components/Select';
 import SearchInput from '@/components/SearchInput';
-import { ALL_REGION, PERIOD_FILTERS, PET_FILTERS } from '../missingCodes';
+import {
+  ALL_REGION,
+  PERIOD_FILTERS,
+  PET_FILTERS,
+  STATUS_FILTERS,
+} from '../missingCodes';
 import { useJeonbukRegions, useSubRegions } from '../missingQueries';
 import {
   CheckOption,
@@ -11,8 +16,9 @@ import {
   FilterToggle,
 } from '../ListFilterParts';
 
-const countActive = ({ mine, region, pet, period, keyword }) =>
+const countActive = ({ mine, region, pet, period, status, keyword }) =>
   Number(mine) +
+  Number(status !== '') +
   Number(region !== ALL_REGION) +
   Number(pet !== '') +
   Number(period !== '') +
@@ -20,14 +26,14 @@ const countActive = ({ mine, region, pet, period, keyword }) =>
 
 /**
  * 필터: 검색 · 실종일 · 실종 지역(시·군·구 → 읍·면·동) · 반려동물. 바꾸면 바로 적용(AND). 배경 없이 위 라벨 + 아래 입력
- * - 760px 이상은 2열(왼쪽 검색·지역, 오른쪽 실종일·반려동물), 760px 미만은 1열. 검색은 항상 보이고 나머지는 [상세 필터]로 열고 닫음
- * - filters: { region, dong, pet, period, keyword }, onChange(바뀐 값만), onReset
+ * - 760px 이상은 검색창 전체 너비, 그 아래 2열(왼쪽 지역·반려동물, 오른쪽 실종일·상태), 760px 미만은 1열. 검색은 항상 보이고 나머지는 [상세 필터]로 열고 닫음
+ * - filters: { region, dong, pet, period, status, keyword }, onChange(바뀐 값만), onReset
  * - search: { value, onChange, onSubmit } 검색창 입력값은 부모가 보관
  * - 지역은 서버 지역 목록. region·dong은 지역 번호(rgnSn) 문자열
  */
 export default function MissingFilters({ filters, search, onChange, onReset }) {
   const [isOpen, setIsOpen] = useState(false);
-  const { region, dong, pet, period } = filters;
+  const { region, dong, pet, period, status } = filters;
   const { data: sggs = [] } = useJeonbukRegions();
   const { data: dongs = [] } = useSubRegions(region);
   const regionOptions = [
@@ -48,12 +54,13 @@ export default function MissingFilters({ filters, search, onChange, onReset }) {
       aria-label="필터"
       className="rounded-card border border-line bg-white p-5 grid grid-cols-2 gap-x-9 gap-y-5 max-[760px]:grid-cols-1 max-[760px]:gap-y-4"
     >
-      <FilterField label="검색">
+      <FilterField label="검색" className="col-span-full">
         <SearchInput
           value={search.value}
           onChange={search.onChange}
           onSubmit={search.onSubmit}
-          placeholder="지역, 품종, 특징으로 검색"
+          liveDelay={150}
+          placeholder="제목, 지역, 품종, 특징으로 검색"
         />
       </FilterField>
       <FilterToggle
@@ -62,15 +69,6 @@ export default function MissingFilters({ filters, search, onChange, onReset }) {
         onToggle={() => setIsOpen((prev) => !prev)}
         activeCount={countActive(filters)}
       />
-      <FilterField label="실종일" className={foldClass}>
-        <Select
-          label="실종일"
-          placeholder="실종일"
-          value={period}
-          options={PERIOD_FILTERS}
-          onChange={(next) => onChange({ period: next })}
-        />
-      </FilterField>
       <FilterField label="실종 지역" className={foldClass}>
         <div className="flex min-w-0 items-center gap-2">
           <Select
@@ -94,6 +92,15 @@ export default function MissingFilters({ filters, search, onChange, onReset }) {
           </fieldset>
         </div>
       </FilterField>
+      <FilterField label="실종일" className={foldClass}>
+        <Select
+          label="실종일"
+          placeholder="실종일"
+          value={period}
+          options={PERIOD_FILTERS}
+          onChange={(next) => onChange({ period: next })}
+        />
+      </FilterField>
       <FilterField label="반려동물" className={foldClass}>
         <Chips
           label="반려동물"
@@ -101,6 +108,15 @@ export default function MissingFilters({ filters, search, onChange, onReset }) {
           options={PET_FILTERS}
           value={pet}
           onChange={(next) => onChange({ pet: next })}
+        />
+      </FilterField>
+      <FilterField label="상태" className={foldClass}>
+        <Chips
+          label="상태"
+          name="status"
+          options={STATUS_FILTERS}
+          value={status}
+          onChange={(next) => onChange({ status: next })}
         />
       </FilterField>
       <FilterActions onReset={onReset} className={foldClass}>

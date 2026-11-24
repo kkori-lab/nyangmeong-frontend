@@ -1,5 +1,6 @@
 import { aiApi, aiStream, api } from '@/api/axios';
 import { IS_DEV } from '@/api/env';
+import { addDays, diffDays, getYmdOf } from '@/utils/formatDate';
 
 /**
  * 대화 생성·목록·상세·삭제와 메시지 전송(판정·답변 SSE)은 Python AI 서버(/ai/conversations, ai 저장소 docs/api/chat.md)
@@ -167,11 +168,152 @@ export const saveReceiptResult = async ({ aiCnvrsRoomSn, result, ocr }) => {
 };
 
 /**
+ * 대화창 검사결과지 PDF 분석 (POST /ai/checkups/lab-results, multipart, ai 저장소 docs/api/checkup.md)
+ * - 응답 { items, excludedArtclNms }, 오류 NOT_LAB_RESULT(422)·PDF_ANALYZE_TIMEOUT(504)·PDF_ANALYZE_API_ERROR(502)
+ */
+export const analyzeChatLabPdf = ({ file, signal }) => {
+  const form = new FormData();
+  form.append('file', file);
+  return aiApi.post('/checkups/lab-results', form, { signal });
+};
+
+/**
+ * 대화창 검사결과지 분석 결과 저장 (POST /ai/conversations/{aiCnvrsRoomSn}/checkup-card)
+ * - result: RECOGNIZED·NOT_LAB_RESULT·ERROR·CANCELED, items·excludedArtclNms는 RECOGNIZED일 때만
+ * - 응답 { messages: [AI 요약], action: 검사 수치 저장 확인 카드 | null, noCardReason: 'NO_CHECKUP'(검진기록 0건) | null }
+ */
+export const saveCheckupCard = async ({
+  aiCnvrsRoomSn,
+  result,
+  petSn,
+  items,
+  excludedArtclNms,
+}) => {
+  touchConversation(aiCnvrsRoomSn);
+  const body =
+    result === 'RECOGNIZED'
+      ? { result, petSn, items, excludedArtclNms }
+      : { result, petSn };
+  const { messages, action, noCardReason } = await aiApi.post(
+    `/conversations/${aiCnvrsRoomSn}/checkup-card`,
+    body,
+  );
+  return {
+    aiCnvrsRoomSn,
+    messages,
+    action: action ?? null,
+    noCardReason: noCardReason ?? null,
+  };
+};
+
+/** 건강기록 병원 일정 종류(HLTG, 케어 캘린더) */
+const HOSPITAL_SCHEDULE = 'HLTC0057';
+const NEAR_SCHEDULE_DAYS = 7;
+
+/**
+ * 대화창 검진기록 만들기: 가까운 예정 병원 일정 1건 (GET /api/pets/{petSn}/care-schedules, JAJ)
+ * - 건강 일지 검진기록 추가(FN-HLT-002-46)와 같은 규칙: 같은 날 병원 일정이 있으면 서버가 연결하므로 null,
+ *   없으면 앞뒤 7일 안의 검진기록 없는 병원 일정 중 가장 가까운 것(거리가 같으면 먼저 등록된 일정)
+ */
+export const findChatNearSchedule = async ({ petSn, ckupYmd }) => {
+  const schedules = await api.get(`/pets/${petSn}/care-schedules`, {
+    params: {
+      fromYmd: addDays(ckupYmd, -NEAR_SCHEDULE_DAYS),
+      toYmd: addDays(ckupYmd, NEAR_SCHEDULE_DAYS),
+      schdlKndCd: HOSPITAL_SCHEDULE,
+    },
+  });
+  const distance = (schedule) =>
+    Math.abs(diffDays(ckupYmd, getYmdOf(schedule.schdlDt)));
+  if (schedules.some((schedule) => distance(schedule) === 0)) return null;
+  return (
+    schedules
+      .filter((schedule) => schedule.ckupRcdCnt === 0)
+      .sort((a, b) => distance(a) - distance(b) || a.schdlSn - b.schdlSn)[0] ??
+    null
+  );
+};
+
+/**
+ * 검사 수치 확인 카드의 검진기록 목록 (GET /api/pets/{petSn}/checkups, JAJ, 최신 순 PageResponse)
+ * - 다른 도메인 함수는 import 하지 않아 따로 둔다. 카드에서 고를 만큼만 받는다
+ */
+const CHAT_CHECKUP_SIZE = 50;
+export const getChatCheckups = async (petSn) => {
+  const page = await api.get(`/pets/${petSn}/checkups`, {
+    params: { size: CHAT_CHECKUP_SIZE },
+  });
+  return page.content;
+};
+
+/**
+ * 대화창 검진기록 만들기 (POST /api/pets/{petSn}/checkups, JAJ)
+ * - body: ckupYmd·hsptlNm·ckupTypeCd·ckupCn·ckupMemoCn, schdlSn이 있으면 그 일정을 검진일로 옮겨 연결
+ * - 응답: 저장한 검진기록({ petSn, ckupRcdSn, … })
+ */
+export const createChatCheckup = ({ petSn, body }) =>
+  api.post(`/pets/${petSn}/checkups`, body);
+
+/**
  * 대화창에서 분석한 영수증 인식 결과 (GET /api/receipts/{recptSn}?petSn=, Spring)
  * 본창 건강 일지 결과 확인 모달용 { recptSn, petSn, ocrPrcsSttsCd, failRsn, ocr }
  */
 export const getChatReceiptResult = ({ recptSn, petSn }) =>
   api.get(`/receipts/${recptSn}`, { params: { petSn } });
+
+/**
+ * 피부 사진 분석 (POST /ai/skin-analyses, multipart, ai 저장소 docs/api/skinlesion.md)
+ * - 응답 { rslt, grade, findings[{ lesionCd, lesionNm, cnfdnc }], guide[], notice, ruleVersion }, 결과는 saveLesionCard로 대화에 저장
+ * - 오류 FILE_TYPE_NOT_ALLOWED·FILE_SIZE_EXCEEDED(400)·SKIN_ANALYZE_TIMEOUT(504)·SKIN_ANALYZE_API_ERROR(502)
+ */
+export const analyzeSkin = ({ file, signal }) => {
+  const form = new FormData();
+  form.append('file', file);
+  return aiApi.post('/skin-analyses', form, { signal });
+};
+
+/**
+ * 눈 사진 분석 (POST /ai/eye-analyses, multipart, ai 저장소 docs/api/eyelesion.md)
+ * - 응답은 피부와 같은 모양(rslt는 ANALYZED·NOT_PET_EYE·UNCLEAR)
+ * - 오류 FILE_TYPE_NOT_ALLOWED·FILE_SIZE_EXCEEDED(400)·EYE_ANALYZE_TIMEOUT(504)·EYE_ANALYZE_API_ERROR(502)
+ */
+export const analyzeEye = ({ file, signal }) => {
+  const form = new FormData();
+  form.append('file', file);
+  return aiApi.post('/eye-analyses', form, { signal });
+};
+
+/**
+ * 대화창 피부·눈 분석 결과 저장 (POST /ai/conversations/{aiCnvrsRoomSn}/lesion-card, ai 저장소 docs/api/chat.md)
+ * - kind: SKIN·EYE, rslt: 분석 응답 그대로 또는 ERROR·CANCELED, 그 밖의 칸은 분석 응답 그대로
+ * - 응답 { messages: [AI 요약], action: 지속 관찰 항목 확인 카드 | null }
+ */
+export const saveLesionCard = async ({
+  aiCnvrsRoomSn,
+  kind,
+  petSn,
+  rslt,
+  analysis,
+}) => {
+  touchConversation(aiCnvrsRoomSn);
+  const body = analysis
+    ? {
+        kind,
+        petSn,
+        rslt,
+        grade: analysis.grade ?? null,
+        findings: analysis.findings ?? [],
+        guide: analysis.guide ?? [],
+        notice: analysis.notice ?? null,
+        ruleVersion: analysis.ruleVersion ?? null,
+      }
+    : { kind, petSn, rslt };
+  const { messages, action } = await aiApi.post(
+    `/conversations/${aiCnvrsRoomSn}/lesion-card`,
+    body,
+  );
+  return { aiCnvrsRoomSn, messages, action: action ?? null };
+};
 
 /** 대화창에 첨부한 사진의 종류 */
 export const IMAGE_KIND = {
@@ -179,6 +321,12 @@ export const IMAGE_KIND = {
   MEDICAL_RECEIPT: 'MEDICAL_RECEIPT',
   EXPENSE_RECEIPT: 'EXPENSE_RECEIPT',
   ASK: 'ASK',
+  /** PDF 첨부: 판단 LLM 없이 검사결과지 분석으로(2026-11-23) */
+  CHECKUP_PDF: 'CHECKUP_PDF',
+  /** 반려동물 피부·털 문제 사진: 피부 분석으로(2026-11-24) */
+  SKIN: 'SKIN',
+  /** 반려동물 눈 문제 사진: 눈 분석으로(2026-11-24) */
+  EYE: 'EYE',
 };
 
 /**

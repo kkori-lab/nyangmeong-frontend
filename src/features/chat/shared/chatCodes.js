@@ -32,7 +32,6 @@ export const MTCH_STTS = {
 
 /** 서버가 닫힌 방에 보낸 메시지를 거절할 때 주는 오류 코드(409) */
 export const CHAT_ROOM_CLOSED = 'CHAT_ROOM_CLOSED';
-
 /** 끝난 채팅방: 상대가 나가 읽기 전용이거나 무응답으로 종료된 방. 목록에서 흐리게 보인다 */
 export const isEndedRoom = (room) =>
   room.chatRoomSttsCd !== ROOM_STTS.ACTIVE ||

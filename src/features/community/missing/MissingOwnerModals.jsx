@@ -5,7 +5,7 @@ import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import Modal from '@/components/Modal';
 import { publicFileUrl } from '@/utils/fileUrl';
 import { addDays, formatDate, getYmdOf } from '@/utils/formatDate';
-import { EXTEND_DAYS, foundCommentText } from '../missingCodes';
+import { EXTEND_DAYS, stripLeadingEmoji } from '../missingCodes';
 
 /** 「찾았어요」 확인: 자동으로 등록될 댓글을 미리 보여 준다(입력칸 없음) */
 export function FoundConfirmModal({
@@ -41,19 +41,30 @@ export function FoundConfirmModal({
         </>
       }
     >
-      <p className="mb-3 text-sm text-muted">아래 댓글이 자동으로 등록돼요</p>
-      <div className="rounded-lg border border-warn-line bg-warn-soft px-4 py-4">
-        <p className="flex items-center gap-2 text-sm">
-          <Avatar src={publicFileUrl(post.mbrAtchFileSn)} className="size-8" />
-          <b className="text-base font-semibold text-ink">{post.mbrNcnm}</b>
-          <Badge tone="ok" bordered>
-            찾았어요
-          </Badge>
-        </p>
-        <p className="mt-2 text-base leading-[1.6] text-ink">
-          {foundCommentText(post.petNm)}
-        </p>
-      </div>
+      {post.dscvAutoCmntCn && (
+        <>
+          <p className="mb-3 text-sm text-muted">
+            아래 댓글이 자동으로 등록돼요
+          </p>
+          <div className="rounded-lg border border-warn-line bg-warn-soft px-4 py-4">
+            <p className="flex items-center gap-2 text-sm">
+              <Avatar
+                src={publicFileUrl(post.mbrAtchFileSn)}
+                className="size-8"
+              />
+              <b className="text-base font-semibold text-ink">
+                {post.mbrNcnm}
+              </b>
+              <Badge tone="ok" bordered>
+                찾았어요
+              </Badge>
+            </p>
+            <p className="mt-2 text-base leading-[1.6] text-ink">
+              {stripLeadingEmoji(post.dscvAutoCmntCn)}
+            </p>
+          </div>
+        </>
+      )}
       <p className="mt-3 flex items-start gap-2 text-sm leading-[1.6] text-muted">
         <Lock size={16} aria-hidden="true" className="mt-1 shrink-0" />
         <span>

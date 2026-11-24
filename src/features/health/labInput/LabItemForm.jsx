@@ -1,7 +1,7 @@
 import FieldError, { Required } from '@/components/FieldError';
 import { INPUT, LABEL } from '@/components/formStyles';
 import { LAB_NUMBER_MAX_LENGTH } from '../numberFormat';
-import CharCount from '../shared/CharCount';
+import FieldFoot from '@/components/FieldFoot';
 import ItemSelect, { DIRECT } from './ItemSelect';
 
 const MAX_DIRECT_LENGTH = 40;
@@ -61,7 +61,7 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
           />
         )}
         {isDirect && !isEdit && (
-          <CharCount value={form.directNm} max={MAX_DIRECT_LENGTH} />
+          <FieldFoot value={form.directNm} max={MAX_DIRECT_LENGTH} />
         )}
         <p className="text-sm/[1.5] text-muted">
           {isEdit
@@ -93,8 +93,11 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
             className={INPUT}
             onChange={(event) => onChange('unit', event.target.value)}
           />
-          <CharCount value={form.unit} max={MAX_UNIT_LENGTH} />
-          {errors.unit && <FieldError>{errors.unit}</FieldError>}
+          <FieldFoot
+            value={form.unit}
+            max={MAX_UNIT_LENGTH}
+            error={errors.unit}
+          />
         </label>
       </div>
 
@@ -134,7 +137,7 @@ export default function LabItemForm({ form, errors, isEdit, onChange }) {
           className={INPUT}
           onChange={(event) => onChange('memo', event.target.value)}
         />
-        <CharCount value={form.memo} max={MAX_MEMO_LENGTH} />
+        <FieldFoot value={form.memo} max={MAX_MEMO_LENGTH} />
       </label>
     </div>
   );

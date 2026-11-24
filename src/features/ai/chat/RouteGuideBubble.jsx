@@ -1,5 +1,5 @@
-import aiCharacter from '@/assets/ai-character.png';
 import useRouteCountdown, { ROUTE_GRACE_SECONDS } from './useRouteCountdown';
+import AiAvatar from './AiAvatar';
 
 /** 이동 안내 말풍선 */
 export default function RouteGuideBubble({
@@ -7,19 +7,14 @@ export default function RouteGuideBubble({
   status,
   onCancel,
   onElapsed,
+  avatarPet,
 }) {
   const isWaiting = status === 'waiting';
   const secondsLeft = useRouteCountdown({ isActive: isWaiting, onElapsed });
 
   return (
     <div className="flex min-w-0 items-start gap-3">
-      <img
-        src={aiCharacter}
-        alt=""
-        width="36"
-        height="36"
-        className="size-9 shrink-0 rounded-full border border-line bg-brand-50 object-contain p-1"
-      />
+      <AiAvatar pet={avatarPet} />
       <div className="max-w-[592px] rounded-[4px_18px_18px_18px] border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink">
         <p>
           <b>{label}</b> 화면으로 이동할게요.

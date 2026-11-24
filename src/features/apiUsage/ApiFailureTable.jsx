@@ -1,12 +1,12 @@
 import { formatDate, getHmOf } from '@/utils/formatDate';
-import { CALL_RSLT, getApiTypeName } from './apiUsageLabels';
+import { CALL_RSLT, EMPTY_TEXT, getApiName } from './apiUsageLabels';
 import { ADMIN_TABLE_BOX } from '@/components/adminTableStyles';
 
 const COLUMNS = ['시각', '종류', '사유'];
 
-/** 사유 칸 글자 */
+/** 사유 칸 글자: 시간초과는 '타임아웃', 사유가 없으면 '-' */
 const formatReason = ({ callRsltCd, failRsn }) =>
-  callRsltCd === CALL_RSLT.TIMEOUT ? '타임아웃' : failRsn;
+  callRsltCd === CALL_RSLT.TIMEOUT ? '타임아웃' : failRsn || EMPTY_TEXT;
 
 /**
  * [실패 호출 표]
@@ -36,7 +36,7 @@ export default function ApiFailureTable({ failures }) {
                 {getHmOf(failure.callDt)}
               </td>
               <td className="px-4 py-3 whitespace-nowrap">
-                {getApiTypeName(failure.extlApiSeCd)}
+                {getApiName(failure)}
               </td>
               <td className="px-4 py-3">{formatReason(failure)}</td>
             </tr>

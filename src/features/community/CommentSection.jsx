@@ -11,6 +11,7 @@ import { fitHeight } from '@/utils/fitHeight';
 import { publicFileUrl } from '@/utils/fileUrl';
 import { PROFANITY_MESSAGE, isProfanityError } from '@/utils/profanity';
 import { formatRelativeTime } from '@/utils/formatDate';
+import { stripLeadingEmoji } from './missingCodes';
 const CMNT_MAX = 500;
 const PREVIEW_MAX = 30;
 
@@ -246,13 +247,15 @@ function CommentRow({
             <p
               className={`mt-1 -ml-2 flex items-center ${isFoundNotice ? 'hidden' : ''}`}
             >
-              <button
-                type="button"
-                onClick={() => onReply(comment)}
-                className={ACT_CLASS}
-              >
-                답글쓰기
-              </button>
+              {onReply && (
+                <button
+                  type="button"
+                  onClick={() => onReply(comment)}
+                  className={ACT_CLASS}
+                >
+                  답글쓰기
+                </button>
+              )}
               {isMine && (
                 <button
                   type="button"
@@ -278,16 +281,13 @@ function CommentRow({
 const REPLY_ITEM_CLASS =
   "relative before:absolute before:top-0 before:-left-[29px] before:h-[21px] before:w-[23px] before:rounded-bl-[14px] before:border-b-2 before:border-l-2 before:border-line before:content-[''] [&:not(:last-child)]:after:absolute [&:not(:last-child)]:after:top-0 [&:not(:last-child)]:after:bottom-0 [&:not(:last-child)]:after:-left-[29px] [&:not(:last-child)]:after:border-l-2 [&:not(:last-child)]:after:border-line [&:not(:last-child)]:after:content-[''] max-[760px]:before:-left-[25px] max-[760px]:before:w-[21px] max-[760px]:[&:not(:last-child)]:after:-left-[25px]";
 
-/** 서버가 만든 자동 댓글(찾았어요 안내)은 글자 맨 앞에 🎉가 붙어 오므로 보일 때만 떼고 보인다(저장 글자는 그대로) */
-const stripLeadingEmoji = (text) =>
-  text.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '');
-
 /**
  * 댓글 영역: 댓글 + 대댓글 1단계
  * - targetSn: 글 번호, authorSn: 글쓴이 회원번호(그 댓글에 「작성자」 배지), hooks: 게시판별 댓글 훅 묶음(useComments·useCreateComment·useDeleteComment·useReportComment)
  * - title·placeholder: 제목과 입력창 문구(실종센터는 「제보 · 댓글」), inputId: 맨 위 입력창 id(밖에서 포커스를 줄 때)
  * - sysAutoCrtYn이 true인 댓글(찾았어요 안내)은 강조 표시, 답글·신고 불가
  * - 답글에 단 답글은 원 댓글 스레드에 이어서 붙는다(보낼 때는 누른 댓글 번호, 서버가 원 댓글로 바꿔 저장하고 rplyTrgtMbrNcnm으로 「@닉네임」 응답)
+ * - canWrite가 false면 새 댓글 입력칸과 [답글쓰기]를 숨긴다(찾았어요 처리된 실종 글)
  * - 삭제: 답글이 없는 댓글과 삭제된 답글은 줄이 사라지고 토스트, 답글이 남은 원 댓글은 「삭제된 댓글입니다」로 남는다(마지막 답글이 지워지면 그 줄도 사라짐). 댓글 수는 삭제된 댓글 제외
  */
 export default function CommentSection({
@@ -297,6 +297,7 @@ export default function CommentSection({
   title = '댓글',
   placeholder = '댓글을 입력하세요',
   inputId,
+  canWrite = true,
 }) {
   const { useComments, useCreateComment, useDeleteComment, useReportComment } =
     hooks;
@@ -354,7 +355,7 @@ export default function CommentSection({
     );
 
   const rowProps = {
-    onReply: (comment) => setReplyTo(comment.cmntSn),
+    onReply: canWrite ? (comment) => setReplyTo(comment.cmntSn) : undefined,
     onDelete: setDeleteTarget,
     onReport: setReportTarget,
   };
@@ -405,15 +406,17 @@ export default function CommentSection({
         ))}
       </ul>
 
-      <div className="mt-6">
-        <CommentInput
-          inputId={inputId}
-          placeholder={placeholder}
-          submitLabel="등록하기"
-          isPending={create.isPending}
-          onSubmit={handleCreate(null)}
-        />
-      </div>
+      {canWrite && (
+        <div className="mt-6">
+          <CommentInput
+            inputId={inputId}
+            placeholder={placeholder}
+            submitLabel="등록하기"
+            isPending={create.isPending}
+            onSubmit={handleCreate(null)}
+          />
+        </div>
+      )}
 
       {deleteTarget && (
         <ConfirmModal

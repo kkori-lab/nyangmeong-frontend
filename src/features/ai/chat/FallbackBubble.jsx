@@ -1,24 +1,23 @@
 import { Headset, ArrowRight } from 'lucide-react';
-import aiCharacter from '@/assets/ai-character.png';
 import { PATHS } from '@/routes/paths';
 import { useOpenMain } from './aiHost';
 import { shortcutChips } from './shortcutChips';
+import AiAvatar from './AiAvatar';
 
 /**
  * [매칭 실패 안내 말풍선]
  * - 안내 문구는 저장된 AI 메시지, 칩·고객센터 안내는 최신 실패 메시지에만 표시
  */
-export default function FallbackBubble({ text, hasActions, hasFaqGuide }) {
+export default function FallbackBubble({
+  text,
+  hasActions,
+  hasFaqGuide,
+  avatarPet,
+}) {
   const openMain = useOpenMain();
   return (
     <div className="flex min-w-0 items-start gap-3">
-      <img
-        src={aiCharacter}
-        alt=""
-        width="36"
-        height="36"
-        className="size-9 shrink-0 rounded-full border border-line bg-brand-50 object-contain p-1"
-      />
+      <AiAvatar pet={avatarPet} />
       <div className="flex min-w-0 flex-col gap-2">
         <p className="max-w-[592px] rounded-[4px_18px_18px_18px] border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink">
           {text}

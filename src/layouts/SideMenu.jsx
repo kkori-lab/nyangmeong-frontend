@@ -38,7 +38,7 @@ export default function SideMenu({ section, active, showTitle, onLeave }) {
                     event.preventDefault();
                     onLeave(item.to);
                   }}
-                  className={`-mx-3 flex min-h-10 items-center gap-3 rounded-lg px-3 text-base/[1.6] transition-colors ${
+                  className={`-mx-3 flex min-h-10 items-center justify-between gap-3 rounded-lg px-3 text-base/[1.6] transition-colors ${
                     isActive
                       ? 'font-bold text-ok'
                       : 'font-medium text-ink-2 hover:bg-surface-3 hover:text-ink'

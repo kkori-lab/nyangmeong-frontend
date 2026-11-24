@@ -13,7 +13,7 @@ export default function MyPageHomePage() {
       <div className="flex flex-col gap-12">
         <section
           aria-label="한눈에 보기"
-          className="grid divide-y divide-line-soft overflow-hidden rounded-card border border-line bg-white shadow-[0_1px_2px_rgba(26,50,52,0.04)] min-[760px]:grid-cols-3 min-[760px]:divide-x min-[760px]:divide-y-0"
+          className="grid divide-y divide-line-soft overflow-hidden rounded-card border border-line bg-white shadow-[0_1px_2px_rgba(26,50,52,0.04)] min-[1100px]:grid-cols-3 min-[1100px]:divide-x min-[1100px]:divide-y-0"
         >
           <PointSummaryCard />
           <ExpenseSummaryCard />

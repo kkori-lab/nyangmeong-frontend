@@ -231,7 +231,7 @@ export const useCancelCareRecord = () => useCareMutation(cancelCareRecord);
 
 export const useCreateCareItem = () => useCareMutation(createCareItem);
 
-/** 튜토리얼의 케어 고르기 저장 (※신규 정책) */
+/** 튜토리얼의 케어리스트 항목 저장 (※신규 정책) */
 export const useSaveCareIndications = () =>
   useCareMutation(saveCareIndications);
 
@@ -455,7 +455,29 @@ export const useCreateCheckup = () => useCheckupMutation(createCheckup);
 export const useCreateReceiptCheckup = () =>
   useCheckupMutation(createReceiptCheckup, null);
 
-export const useDeleteCheckup = () => useCheckupMutation(deleteCheckup);
+/**
+ * 검진기록 삭제: 지운 기록의 상세 캐시는 무효화하지 않고 지운다.
+ * 무효화하면 화면을 떠나기 전에 지운 상세를 다시 불러 404·오류 화면이 잠깐 보인다
+ */
+export const useDeleteCheckup = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteCheckup,
+    onSuccess: (_data, { ckupRcdSn }) => {
+      const detailKey = healthKeys.checkupDetail(ckupRcdSn);
+      queryClient.removeQueries({ queryKey: detailKey });
+      queryClient.invalidateQueries({
+        queryKey: healthKeys.checkups,
+        predicate: (query) =>
+          !(query.queryKey[2] === 'detail' && query.queryKey[3] === ckupRcdSn),
+      });
+      queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
+      queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
+    },
+    onError: showErrorToast,
+  });
+};
 
 export const useUpdateCheckup = () => useCheckupMutation(updateCheckup);
 

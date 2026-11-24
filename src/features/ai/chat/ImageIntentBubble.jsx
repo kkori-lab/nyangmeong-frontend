@@ -1,6 +1,9 @@
-import aiCharacter from '@/assets/ai-character.png';
 import CharacterRequestBubble from './CharacterRequestBubble';
+import { PdfFileChip } from './CheckupPdfBubble';
+import { isPdfFile } from '@/utils/chatAttachment';
 import ImageKindChips from './ImageKindChips';
+import AiAvatar from './AiAvatar';
+import AnalyzingStatus from '@/components/AnalyzingStatus';
 
 const bubbleClass =
   'max-w-[592px] rounded-[4px_18px_18px_18px] border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink';
@@ -8,16 +11,10 @@ const primaryClass =
   'h-8 rounded-md bg-brand-500 px-3 text-base font-semibold text-white hover:bg-brand-600';
 
 /** AI 아바타 + 내용 */
-function AiRow({ children }) {
+function AiRow({ avatarPet, children }) {
   return (
     <div className="flex min-w-0 items-start gap-3">
-      <img
-        src={aiCharacter}
-        alt=""
-        width="36"
-        height="36"
-        className="size-9 shrink-0 rounded-full border border-line bg-brand-50 object-contain p-1"
-      />
+      <AiAvatar pet={avatarPet} />
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
         {children}
       </div>
@@ -29,7 +26,7 @@ function AiRow({ children }) {
  * [대화창 첨부 사진 말풍선]
  * - 판단 중·보내기 실패: 보낸 사진·글을 이 말풍선이 보여 준다(서버 저장 전)
  * - 판단 뒤: 사진 턴과 안내 글은 저장 메시지로 보이고, 여기는 종류 칩·캐릭터 만들기·가계부 버튼만
- * - 진료 영수증은 영수증 분석 말풍선(ReceiptAnalysisBubble)이 이어 받는다
+ * - 진료 영수증은 영수증 분석 말풍선(ReceiptAnalysisBubble), PDF는 검사결과지 말풍선(CheckupPdfBubble)이 이어 받는다
  * - image.status: 'judging' | 'failed' | 'asking' | 'character' | 'expense'
  */
 export default function ImageIntentBubble({
@@ -41,19 +38,25 @@ export default function ImageIntentBubble({
   onCancelCharacter,
   onOpenCharacters,
   onOpenExpenses,
+  avatarPet,
 }) {
   const isSaved = image.aiCnvrsRoomSn != null;
+  const isPdf = isPdfFile(image.file);
   return (
     <div className="flex flex-col gap-4">
       {!isSaved && (
         <div className="flex flex-col items-end gap-2">
-          <img
-            src={image.previewUrl}
-            alt={image.file.name}
-            width="160"
-            height="120"
-            className="h-[120px] w-40 rounded-[10px] border border-line object-cover"
-          />
+          {isPdf ? (
+            <PdfFileChip name={image.file.name} />
+          ) : (
+            <img
+              src={image.previewUrl}
+              alt={image.file.name}
+              width="160"
+              height="120"
+              className="h-[120px] w-40 rounded-[10px] border border-line object-cover"
+            />
+          )}
           {image.text && (
             <p className="max-w-[592px] whitespace-pre-wrap rounded-[18px_4px_18px_18px] border border-fab-line bg-accent-300 px-4 py-3 text-[15px] leading-relaxed text-ink">
               {image.text}
@@ -63,9 +66,11 @@ export default function ImageIntentBubble({
       )}
 
       {image.status === 'judging' && (
-        <AiRow>
+        <AiRow avatarPet={avatarPet}>
           <p role="status" className={bubbleClass}>
-            사진을 살펴보고 있어요…
+            <AnalyzingStatus>
+              {isPdf ? '파일을 살펴보고 있어요' : '사진을 살펴보고 있어요'}
+            </AnalyzingStatus>
           </p>
         </AiRow>
       )}
@@ -81,7 +86,7 @@ export default function ImageIntentBubble({
       )}
 
       {image.status === 'character' && (
-        <AiRow>
+        <AiRow avatarPet={avatarPet}>
           <CharacterRequestBubble
             pet={image.pet}
             pets={pets}
@@ -97,7 +102,7 @@ export default function ImageIntentBubble({
       )}
 
       {image.status === 'expense' && (
-        <AiRow>
+        <AiRow avatarPet={avatarPet}>
           {image.isChosen && (
             <p className={bubbleClass}>
               가계부 영수증은 가계부 화면에서 올릴 수 있어요.

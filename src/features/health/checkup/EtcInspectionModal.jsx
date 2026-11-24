@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import FieldError, { Required } from '@/components/FieldError';
+import { Required } from '@/components/FieldError';
 import FormModal from '../diary/FormModal';
 import { INPUT, LABEL, TEXTAREA } from '@/components/formStyles';
 import { useCreateEtcInspection, useUpdateEtcInspection } from '../queries';
-import CharCount from '../shared/CharCount';
+import FieldFoot from '@/components/FieldFoot';
 
 const MAX_NAME_LENGTH = 100;
 const MAX_RESULT_LENGTH = 500;
@@ -72,8 +72,11 @@ export default function EtcInspectionModal({
           className={INPUT}
           onChange={(event) => setInspNm(event.target.value)}
         />
-        <CharCount value={inspNm} max={MAX_NAME_LENGTH} />
-        {isInvalid('name') && <FieldError>검사명을 입력해 주세요</FieldError>}
+        <FieldFoot
+          value={inspNm}
+          max={MAX_NAME_LENGTH}
+          error={isInvalid('name') && '검사명을 입력해 주세요'}
+        />
       </label>
 
       <label className="flex flex-col gap-1.5">
@@ -85,10 +88,11 @@ export default function EtcInspectionModal({
           className={TEXTAREA}
           onChange={(event) => setRsltCn(event.target.value)}
         />
-        <CharCount value={rsltCn} max={MAX_RESULT_LENGTH} />
-        {isInvalid('result') && (
-          <FieldError>검사 결과를 입력해 주세요</FieldError>
-        )}
+        <FieldFoot
+          value={rsltCn}
+          max={MAX_RESULT_LENGTH}
+          error={isInvalid('result') && '검사 결과를 입력해 주세요'}
+        />
       </label>
 
       <label className="flex flex-col gap-1.5">
@@ -99,7 +103,7 @@ export default function EtcInspectionModal({
           className={TEXTAREA}
           onChange={(event) => setMemoCn(event.target.value)}
         />
-        <CharCount value={memoCn} max={MAX_MEMO_LENGTH} />
+        <FieldFoot value={memoCn} max={MAX_MEMO_LENGTH} />
       </label>
     </FormModal>
   );

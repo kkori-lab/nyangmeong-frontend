@@ -8,7 +8,7 @@ import ApiTokenChart from '@/features/apiUsage/ApiTokenChart';
 import ApiUsageDailyTable from '@/features/apiUsage/ApiUsageDailyTable';
 import ApiUsageFilter from '@/features/apiUsage/ApiUsageFilter';
 import ApiUsageTable from '@/features/apiUsage/ApiUsageTable';
-import { getApiTypeName } from '@/features/apiUsage/apiUsageLabels';
+import { getApiName } from '@/features/apiUsage/apiUsageLabels';
 import {
   useApiFailures,
   useApiTokens,
@@ -187,7 +187,7 @@ export default function AdminExternalApiUsagePage() {
         {selectedUsage && (
           <section className="mt-8">
             <h2 className="mb-3 text-lg font-bold text-ink">
-              {getApiTypeName(selectedUsage.extlApiSeCd)} 일별
+              {getApiName(selectedUsage)} 일별
             </h2>
             {renderDaily()}
           </section>

@@ -121,7 +121,6 @@ export default function ExpenseReceiptReview({
     <>
       <Modal
         title="인식 결과 확인"
-        isSheet
         isPending={isPending}
         onClose={onClose}
         footer={

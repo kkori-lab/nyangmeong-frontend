@@ -12,6 +12,7 @@ export default function PointSummaryCard() {
     <StatLink
       to={PATHS.MYPAGE_POINTS}
       label="포인트"
+      iconDesktopOnly
       icon={
         <b className="text-2xl leading-none" aria-hidden="true">
           P

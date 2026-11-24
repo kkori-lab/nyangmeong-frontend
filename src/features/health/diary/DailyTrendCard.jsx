@@ -166,9 +166,9 @@ function TrendBody({ pet, goalBdwg, trend, type, isPc, onAddRecord }) {
 
   if (trend.isPending) {
     return (
-      <div aria-busy="true">
-        {/* 산책 막대·꺾은선 그래프 높이(폭 600 이상 260, 미만 230)에 맞춤 */}
-        <Skeleton className="h-[260px] max-[600px]:h-[230px]" />
+      <div aria-busy="true" className="@container">
+        {/* 산책 막대·꺾은선 그래프 높이(그래프 칸 폭 600 이상 260, 미만 230)에 맞춤. 화면 폭이 아니라 칸 폭 기준 */}
+        <Skeleton className="h-[260px] @max-[600px]:h-[230px]" />
       </div>
     );
   }

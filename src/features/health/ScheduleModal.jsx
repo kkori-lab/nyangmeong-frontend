@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { generatePath, useNavigate } from 'react-router-dom';
 import DropdownSelect from '@/components/DropdownSelect';
 import DatePicker from '@/components/DatePicker';
 import TimeSelect from '@/components/TimeSelect';
@@ -8,6 +9,8 @@ import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
 import { HELP, INPUT, LABEL } from '@/components/formStyles';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
+import { PATHS } from '@/routes/paths';
+import NoticeBox from '@/components/NoticeBox';
 import { getHmOf, getYmdOf, makeDateTime } from '@/utils/formatDate';
 import {
   BADGE_COLORS,
@@ -21,8 +24,9 @@ import {
   useDeleteSchedule,
   useUpdateSchedule,
 } from './queries';
+import { TEXT_BTN } from './checkup/checkupStyles';
 import SegmentSwitch from './SegmentSwitch';
-import CharCount from './shared/CharCount';
+import FieldFoot from '@/components/FieldFoot';
 
 const MAX_HOSPITAL_NAME_LENGTH = 80;
 const MAX_SCHEDULE_NAME_LENGTH = 40;
@@ -40,7 +44,11 @@ const toForm = (schedule, defaultPetSn, defaultYmd) => ({
   cldrBadgeColrCd: schedule?.cldrBadgeColrCd ?? '',
 });
 
-// 일정 추가·수정 모달(FN-HLT-003-32~37). schedule이 있으면 수정, 없으면 등록이다
+/**
+ * 일정 추가·수정 모달(FN-HLT-003-32~37). schedule이 있으면 수정, 없으면 등록이다
+ * - 조건 A(수정 + 병원 일정 + 연결된 검진기록 있음)(※신규 정책): 폼 맨 아래 안내 상자, 삭제 확인창에 안내와 「검진기록 보기 ›」
+ *   「검진기록 보기」는 일정을 지우지 않고 닫은 뒤 이동. 연결 1건(schedule.ckupRcdSn)은 검진상세, 아니면 그 반려동물의 건강 일지 검진기록 탭
+ */
 export default function ScheduleModal({
   pets,
   schedule,
@@ -49,6 +57,7 @@ export default function ScheduleModal({
   onClose,
   onCreateNew,
 }) {
+  const navigate = useNavigate();
   const formId = useId();
   const petSelectId = useId();
   const isEdit = schedule != null;
@@ -82,6 +91,8 @@ export default function ScheduleModal({
     }));
 
   const isHospitalForm = form.schdlKndCd === HOSPITAL;
+  const hasLinkedCheckup =
+    isEdit && schedule.schdlKndCd === HOSPITAL && schedule.ckupRcdCnt > 0;
   const canSubmit =
     form.petSn != null &&
     form.schdlKndCd !== null &&
@@ -122,10 +133,7 @@ export default function ScheduleModal({
     if (!canSubmit) return;
     // 검진기록이 연결된 병원 일정의 반려동물을 바꾸면 연동 데이터도 옮겨지므로 먼저 확인받는다(FN-HLT-003-37)
     const movesLinkedRecords =
-      isEdit &&
-      schedule.schdlKndCd === HOSPITAL &&
-      schedule.ckupRcdCnt > 0 &&
-      form.petSn !== schedule.petSn;
+      hasLinkedCheckup && form.petSn !== schedule.petSn;
     if (movesLinkedRecords) {
       setConfirm('move');
       return;
@@ -138,6 +146,19 @@ export default function ScheduleModal({
       { petSn: schedule.petSn, schdlSn: schedule.schdlSn },
       { onSuccess: onClose },
     );
+
+  /** 일정은 지우지 않고 확인창과 모달을 닫은 뒤 검진기록으로 이동 */
+  const goToCheckup = () => {
+    const path = schedule.ckupRcdSn
+      ? generatePath(PATHS.HEALTH_CHECKUP_DETAIL, {
+          petSn: schedule.petSn,
+          ckupRcdSn: schedule.ckupRcdSn,
+        })
+      : `${PATHS.HEALTH_DIARY}?petSn=${schedule.petSn}#hlt002-exam`;
+    setConfirm(null);
+    onClose();
+    navigate(path);
+  };
 
   const targetPetNm = pets.find((pet) => pet.petSn === form.petSn)?.petNm;
 
@@ -295,11 +316,11 @@ export default function ScheduleModal({
                         setField('hsptlNm', event.target.value)
                       }
                     />
-                    <CharCount
+                    <FieldFoot
                       value={form.hsptlNm}
                       max={MAX_HOSPITAL_NAME_LENGTH}
+                      error={fieldError('hsptlNm')}
                     />
-                    <FieldError>{fieldError('hsptlNm')}</FieldError>
                   </label>
                 </div>
               </div>
@@ -314,11 +335,11 @@ export default function ScheduleModal({
                   className={INPUT}
                   onChange={(event) => setField('schdlNm', event.target.value)}
                 />
-                <CharCount
+                <FieldFoot
                   value={form.schdlNm}
                   max={MAX_SCHEDULE_NAME_LENGTH}
+                  error={fieldError('schdlNm')}
                 />
-                <FieldError>{fieldError('schdlNm')}</FieldError>
               </label>
             )}
 
@@ -330,8 +351,11 @@ export default function ScheduleModal({
                 className={INPUT}
                 onChange={(event) => setField('memoCn', event.target.value)}
               />
-              <CharCount value={form.memoCn} max={MAX_MEMO_LENGTH} />
-              <FieldError>{fieldError('memoCn')}</FieldError>
+              <FieldFoot
+                value={form.memoCn}
+                max={MAX_MEMO_LENGTH}
+                error={fieldError('memoCn')}
+              />
             </label>
 
             <div className="flex flex-col gap-1.5">
@@ -373,6 +397,14 @@ export default function ScheduleModal({
               </p>
               <FieldError>{fieldError('cldrBadgeColrCd')}</FieldError>
             </div>
+
+            {hasLinkedCheckup && (
+              <NoticeBox className="flex gap-2">
+                <Icon name="event" className="shrink-0 text-lg" />이 일정에
+                연결된 검진기록이 있어요. 날짜·반려동물·검진유형·병원명을 바꾸면
+                검진기록에도 함께 반영돼요
+              </NoticeBox>
+            )}
           </div>
         </form>
       </Modal>
@@ -393,13 +425,28 @@ export default function ScheduleModal({
       {confirm === 'delete' && (
         <ConfirmModal
           title="이 일정을 삭제할까요?"
-          description="연결된 검진기록은 그대로 남아요."
+          description={
+            hasLinkedCheckup
+              ? '연결된 검진기록은 그대로 남지만, 검진일과 반려동물은 더 이상 바꿀 수 없어요. 검진기록도 지우려면 검진기록에서 삭제해 주세요.'
+              : undefined
+          }
           confirmLabel="삭제하기"
           isDanger
           isPending={isPending}
           onConfirm={handleDelete}
           onCancel={() => setConfirm(null)}
-        />
+        >
+          {hasLinkedCheckup && (
+            <button
+              type="button"
+              className={`${TEXT_BTN} mt-2`}
+              onClick={goToCheckup}
+            >
+              검진기록 보기
+              <Icon name="chevron_right" className="text-lg" />
+            </button>
+          )}
+        </ConfirmModal>
       )}
     </>
   );

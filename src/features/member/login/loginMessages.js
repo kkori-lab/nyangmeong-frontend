@@ -2,6 +2,8 @@ export const LOGIN_MESSAGES = {
   emailEmpty: '아이디를 입력해 주세요.',
   emailFormat: '이메일 주소 형식을 확인해 주세요.',
   passwordEmpty: '비밀번호를 입력해 주세요.',
+  // LOGIN_FAILED는 서버 문구("일치하는 회원정보를 찾을 수 없습니다") 대신 이 문구를 보인다
+  loginFailed: '이메일 또는 비밀번호를 확인해 주세요.',
   captchaEmpty: '보안코드를 입력해 주세요.',
   captchaFormat: '영문·숫자 6글자를 입력해 주세요.',
   notReady: '준비 중입니다.',

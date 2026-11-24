@@ -1,9 +1,5 @@
 import { Mail, ShieldCheck } from 'lucide-react';
-import {
-  SIDE_BTN,
-  AUTH_BTN_PRIMARY,
-  AUTH_BTN_SECONDARY,
-} from '../shared/authStyles';
+import { SIDE_BTN, AUTH_BTN_PRIMARY } from '../shared/authStyles';
 import AuthActions from '../shared/AuthActions';
 import AuthBody from '../shared/AuthBody';
 import AuthField from '../shared/AuthField';
@@ -11,7 +7,9 @@ import AuthNotice from '../shared/AuthNotice';
 import { resendLabel } from '../shared/emailCert';
 import { SIGNUP_MESSAGES as MSG } from './signupMessages';
 
+// 이미 가입된 이메일이면 칸 아래 오류·새 버튼을 띄우지 않고, 안내 문구와 [다음] 자리의 내용을 바꾼다
 export default function EmailStep({ form }) {
+  const isDuplicate = form.errors.email === MSG.emailDuplicate;
   return (
     <>
       <AuthBody className="max-[760px]:pt-8">
@@ -19,13 +17,13 @@ export default function EmailStep({ form }) {
           <AuthField
             id="signup-email"
             icon={Mail}
-            label="이메일 (로그인 아이디)"
+            label="아이디(이메일)"
             value={form.email}
             onChange={form.changeEmail}
             placeholder="이메일 주소 입력"
             autoComplete="username"
             inputMode="email"
-            error={form.errors.email}
+            error={isDuplicate ? '' : form.errors.email}
             action={
               <button
                 type="button"
@@ -41,15 +39,6 @@ export default function EmailStep({ form }) {
               </button>
             }
           />
-          {form.errors.email === MSG.emailDuplicate && (
-            <button
-              type="button"
-              onClick={form.goLoginMethods}
-              className={`${AUTH_BTN_SECONDARY} w-full`}
-            >
-              기존 가입 방법으로 로그인
-            </button>
-          )}
           {/** 오답 안내: 이메일 칸 바로 아래 */}
           {form.isCodeLocked && form.notice && (
             <AuthNotice type={form.notice.type} message={form.notice.message} />
@@ -97,21 +86,37 @@ export default function EmailStep({ form }) {
             />
           )}
         </div>
-        <p className="mt-3 text-sm leading-5 text-muted">
-          {form.isEmailVerified
-            ? '다음을 눌러 휴대전화번호를 입력해 주세요.'
-            : '이메일 인증이 완료되면 다음으로 넘어갈 수 있습니다.'}
-        </p>
+        {isDuplicate ? (
+          <p role="alert" className="mt-3 text-sm leading-5 break-keep text-danger">
+            {MSG.emailDuplicate}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm leading-5 text-muted">
+            {form.isEmailVerified
+              ? '다음을 눌러 휴대전화번호를 입력해 주세요.'
+              : '이메일 인증이 완료되면 다음으로 넘어갈 수 있습니다.'}
+          </p>
+        )}
       </AuthBody>
       <AuthActions>
-        <button
-          type="button"
-          disabled={!form.isEmailVerified}
-          onClick={() => form.goStep('phone')}
-          className={`${AUTH_BTN_PRIMARY} w-full`}
-        >
-          다음
-        </button>
+        {isDuplicate ? (
+          <button
+            type="button"
+            onClick={form.goLoginMethods}
+            className={`${AUTH_BTN_PRIMARY} w-full`}
+          >
+            기존 가입 방법으로 로그인
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={!form.isEmailVerified}
+            onClick={() => form.goStep('phone')}
+            className={`${AUTH_BTN_PRIMARY} w-full`}
+          >
+            다음
+          </button>
+        )}
       </AuthActions>
     </>
   );

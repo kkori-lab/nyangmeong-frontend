@@ -3,7 +3,6 @@ import { isProfanityError, profanityFieldsOf } from '@/utils/profanity';
 import { Info, MapPin } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import DatePicker from '@/components/DatePicker';
 import AmountInput from '@/components/AmountInput';
 import AutoTextarea from '@/components/AutoTextarea';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
@@ -11,10 +10,10 @@ import Checkbox from '@/components/Checkbox';
 import FieldError, { Required } from '@/components/FieldError';
 import { INPUT, LABEL } from '@/components/formStyles';
 import ImageAttach from '@/components/ImageAttach';
-import Select from '@/components/Select';
 import { PATHS } from '@/routes/paths';
 import { addDays, getTodayYmd } from '@/utils/formatDate';
 import { PET_SE } from '@/utils/petCodes';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import {
   CST_UNIT,
   CST_UNIT_OPTIONS,
@@ -29,33 +28,17 @@ import BreedCombobox from '../missing/BreedCombobox';
 import PlaceSearchModal from '../missing/PlaceSearchModal';
 import CareAreaMap from './CareAreaMap';
 import { Counter, Section } from './CareFormParts';
+import CareSchedule from './CareSchedule';
 import CareWriteGuide from './CareWriteGuide';
-import { CARE_TIMES } from './careUtils';
+import { plusTwoHours } from './careUtils';
 
 const TITLE_MAX = 50;
 const BODY_MAX = 2000;
 const BREED_MESSAGE =
   '목록에서 품종을 골라 주세요. 없으면 [직접 입력]을 골라 주세요';
-const TIME_OPTIONS = (placeholder) => [
-  { value: '', label: placeholder },
-  ...CARE_TIMES.map((time) => ({ value: time, label: time })),
-];
-
 /** 종료가 시작과 같은 날이거나 날짜가 덜 골라졌으면, 종료 시간은 시작 시간 뒤만 고를 수 있다 */
 const isSameDayOrOpen = ({ fromDate, toDate }) =>
   !fromDate || !toDate || fromDate === toDate;
-
-const toTimeOptions = (values) => {
-  const limit = isSameDayOrOpen(values) ? values.fromTime : '';
-  return [
-    { value: '', label: '종료' },
-    ...CARE_TIMES.map((time) => ({
-      value: time,
-      label: time,
-      disabled: Boolean(limit) && time <= limit,
-    })),
-  ];
-};
 
 const REGION_ERROR_CODE = 'CARE_REGION_NOT_ALLOWED';
 
@@ -242,6 +225,13 @@ export default function CareForm({
       ) {
         next.toTime = '';
       }
+      /** 시작을 고르면 종료를 같은 날 +2시간(자정을 넘으면 다음 날)으로 미리 채운다. 이미 고른 종료 값은 건드리지 않는다 */
+      if (next.fromDate && !next.toDate) next.toDate = next.fromDate;
+      if (next.fromDate && next.fromTime && !next.toTime) {
+        const end = plusTwoHours(next.fromDate, next.fromTime);
+        next.toTime = end.time;
+        if (next.toDate === next.fromDate) next.toDate = end.date;
+      }
       return next;
     });
     setErrors((prev) => {
@@ -355,7 +345,9 @@ export default function CareForm({
     : '아직 고르지 않았어요';
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-6">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-6`}
+    >
       <section
         aria-labelledby="care-form-title"
         className="rounded-[14px] border border-line bg-white px-9 pt-8 pb-7 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-5"
@@ -482,72 +474,37 @@ export default function CareForm({
                 돌봄 기간 · 시간
                 <Required />
               </legend>
-              <div className="grid grid-cols-2 gap-8 max-[760px]:grid-cols-1">
-                <div className="flex min-w-0 flex-col gap-2">
-                  <span className="text-sm font-semibold text-ink-2">기간</span>
-                  <div className="flex items-center gap-2">
-                    <DatePicker
-                      label="시작일"
-                      value={values.fromDate}
-                      min={today}
-                      max={values.toDate || addDays(today, START_LIMIT_DAYS)}
-                      onChange={(value) => set({ fromDate: value }, ['when'])}
-                      invalid={Boolean(errors.when)}
-                      className="min-w-0 flex-1"
-                    />
-                    <span aria-hidden="true" className="shrink-0 text-subtle">
-                      ~
-                    </span>
-                    <DatePicker
-                      label="종료일"
-                      value={values.toDate}
-                      min={values.fromDate || today}
-                      max={
-                        values.fromDate
-                          ? addDays(values.fromDate, PERIOD_LIMIT_DAYS)
-                          : addDays(today, START_LIMIT_DAYS + PERIOD_LIMIT_DAYS)
-                      }
-                      onChange={(value) => set({ toDate: value }, ['when'])}
-                      invalid={Boolean(errors.when)}
-                      className="min-w-0 flex-1"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm font-semibold text-ink-2">
-                    시간{' '}
-                    <span className="font-medium text-muted">30분 단위</span>
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      label="시작 시간"
-                      value={values.fromTime}
-                      options={TIME_OPTIONS('시작')}
-                      onChange={(fromTime) => set({ fromTime }, ['when'])}
-                      className="min-w-0 flex-1"
-                    />
-                    <span aria-hidden="true" className="shrink-0 text-subtle">
-                      ~
-                    </span>
-                    <Select
-                      label="종료 시간"
-                      value={values.toTime}
-                      options={toTimeOptions(values)}
-                      onChange={(toTime) => set({ toTime }, ['when'])}
-                      className="min-w-0 flex-1"
-                    />
-                  </div>
-                </div>
-              </div>
+              <CareSchedule
+                values={values}
+                today={today}
+                startLimitDays={START_LIMIT_DAYS}
+                periodLimitDays={PERIOD_LIMIT_DAYS}
+                invalid={Boolean(errors.when)}
+                disabled={values.nego}
+                onChange={(patch) => set(patch, ['when'])}
+              />
               <div className="flex flex-wrap items-center gap-x-4">
                 <CheckOption
                   checked={values.nego}
-                  onChange={(nego) => set({ nego }, ['when'])}
+                  onChange={(nego) =>
+                    set(
+                      nego
+                        ? {
+                            nego,
+                            fromDate: '',
+                            fromTime: '',
+                            toDate: '',
+                            toTime: '',
+                          }
+                        : { nego },
+                      ['when'],
+                    )
+                  }
                 >
                   일정은 채팅으로 협의할게요
                 </CheckOption>
                 <p className="text-sm text-muted">
-                  체크하면 기간 · 시간을 비워 두고 등록할 수 있어요
+                  체크하면 기간 · 시간 없이 등록되고, 채팅에서 정해요
                 </p>
               </div>
               <FieldError>{errors.when}</FieldError>
