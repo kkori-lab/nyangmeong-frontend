@@ -27,7 +27,7 @@ import {
   leaveChatRoom,
   readChatRoom,
   rejectDealCancel,
-  reportRoomPost,
+  reportChatRoom,
   requestCareCompletion,
   requestCareMatch,
   requestDealCancel,
@@ -323,6 +323,6 @@ export const useLeaveChatRoom = (otoChatRoomSn) => {
   });
 };
 
-/** 채팅방 메뉴 [신고하기]: 방의 돌봄 글을 신고 */
-export const useReportRoomPost = () =>
-  useMutation({ mutationFn: reportRoomPost });
+/** 채팅방 메뉴 [신고하기]: 채팅 상대를 방 번호로 신고 */
+export const useReportChatRoom = () =>
+  useMutation({ mutationFn: reportChatRoom });

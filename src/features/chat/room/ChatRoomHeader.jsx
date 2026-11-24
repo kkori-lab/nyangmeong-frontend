@@ -1,6 +1,6 @@
 /**
  * [채팅방 상단 바]
- * - ‹ 목록으로, 상대 프로필·이름, 돌봄 글 제목, [⋮] 돌봄 글 보기·신고하기(돌봄 글 신고, 돌봄 요청자가 아닌 쪽)·거래 취소 요청·채팅방 나가기 (FN-CMU-005-01·11)
+ * - ‹ 목록으로, 상대 프로필·이름, 돌봄 글 제목, [⋮] 돌봄 글 보기·신고하기(채팅방 신고, 보호자·지원자 모두)·거래 취소 요청·채팅방 나가기 (FN-CMU-005-01·11)
  */
 import { useEffect, useRef, useState } from 'react';
 import { generatePath } from 'react-router-dom';
@@ -12,7 +12,6 @@ import {
   canRequestDealCancel,
   getDealCancelState,
   isLeaveBlockedStage,
-  ROLE,
 } from '../shared/chatCodes';
 
 const menuItem =
@@ -117,20 +116,18 @@ export default function ChatRoomHeader({
               <Icon name="article" />
               돌봄 글 보기
             </a>
-            {room.myRole !== ROLE.GUARDIAN && (
-              <button
-                type="button"
-                role="menuitem"
-                className={menuItem}
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  onReportAsk();
-                }}
-              >
-                <Icon name="flag" />
-                신고하기
-              </button>
-            )}
+            <button
+              type="button"
+              role="menuitem"
+              className={menuItem}
+              onClick={() => {
+                setIsMenuOpen(false);
+                onReportAsk();
+              }}
+            >
+              <Icon name="flag" />
+              신고하기
+            </button>
             <hr className="my-1 border-line" />
             {canCancelDeal && (
               <>

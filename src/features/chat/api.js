@@ -98,10 +98,10 @@ export const rejectDealCancel = ({ petPrtcMtchSn }) =>
 export const withdrawDealCancel = ({ petPrtcMtchSn }) =>
   api.post(`/care-matches/${petPrtcMtchSn}/cancel-request/withdraw`);
 
-/** 채팅방의 돌봄 글 신고: 커뮤니티 신고와 같은 POST /reports(게시글 번호). 채팅 메시지·상대 회원 단위 신고 API는 아직 없다 */
-export const reportRoomPost = ({ pstSn, reason, detail }) =>
+/** 채팅방 신고(채팅 상대): 커뮤니티 신고와 같은 POST /reports에 방 번호를 보낸다. 나간 방·읽기 전용 방도 가능 */
+export const reportChatRoom = ({ otoChatRoomSn, reason, detail }) =>
   api.post('/reports', {
-    pstSn,
+    otoChatRoomSn,
     dclrRsnCd: REPORT_REASON_CODES[reason],
     dclrDtlCn: detail || undefined,
   });
