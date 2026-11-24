@@ -13,7 +13,7 @@ import ConversationSidebar from '@/features/ai/chat/ConversationSidebar';
 import ReceiptAnalysisBubble from '@/features/ai/chat/ReceiptAnalysisBubble';
 import ImageIntentBubble from '@/features/ai/chat/ImageIntentBubble';
 import CheckupPdfBubble from '@/features/ai/chat/CheckupPdfBubble';
-import SkinAnalysisBubble from '@/features/ai/chat/SkinAnalysisBubble';
+import LesionAnalysisBubble from '@/features/ai/chat/LesionAnalysisBubble';
 import CheckupCreateCard from '@/features/ai/chat/CheckupCreateCard';
 import { CHECKUP_TYPES } from '@/features/health/scheduleTypes';
 import { IMAGE_KIND } from '@/features/ai/api';
@@ -37,7 +37,8 @@ import { useActionCards } from '@/features/ai/chat/useActionCards';
 import useAnswerStream from '@/features/ai/chat/useAnswerStream';
 import useChatReceipt from '@/features/ai/chat/useChatReceipt';
 import useChatCheckupPdf from '@/features/ai/chat/useChatCheckupPdf';
-import useChatSkin from '@/features/ai/chat/useChatSkin';
+import useChatLesion, { LESION_KIND } from '@/features/ai/chat/useChatLesion';
+import { attachFile } from '@/features/ai/chat/actionForm';
 import RouteGuideBubble from '@/features/ai/chat/RouteGuideBubble';
 import WelcomeMessage from '@/features/ai/chat/WelcomeMessage';
 import { useMemberSummary } from '@/features/member/queries';
@@ -206,8 +207,21 @@ export default function AiChatScreen({
       addCheckupCard(saved);
     },
   });
-  /** 피부 사진 분석: 결과는 화면에만(저장 없음) */
-  const skin = useChatSkin();
+  /** 피부·눈 사진 분석: 저장되면 요약 메시지 뒤에 지속 관찰 확인 카드(있으면, 분석한 사진을 붙임) */
+  const lesion = useChatLesion({
+    onSaved: ({ aiCnvrsRoomSn, messages, action, afterMsgSn, file }) => {
+      setFirstMessage(null);
+      setSelectedRoomSn(aiCnvrsRoomSn);
+      if (!action) return;
+      actions.add({
+        key: nextCardKey++,
+        card: action,
+        afterSn: afterMsgSn,
+        anchorSn: messages.at(-1)?.aiCnvrsMsgSn ?? null,
+        files: attachFile(action, file),
+      });
+    },
+  });
   /** 검진기록 없음 뒤 대화 안 검진기록 만들기: { aiCnvrsRoomSn, pet, request, afterMsgSn }, 버튼은 요약 메시지 바로 아래 */
   const [checkupDraft, setCheckupDraft] = useState(null);
   /** checkup-card가 준 확인 카드를 요약 메시지 뒤에 */
@@ -306,7 +320,7 @@ export default function AiChatScreen({
     actions.reset();
     receipt.reset();
     checkupPdf.reset();
-    skin.reset();
+    lesion.reset();
     setCheckupDraft(null);
     resetImage();
   };
@@ -340,11 +354,19 @@ export default function AiChatScreen({
     /** 확인 카드: ACTION 판정, 또는 검색 답변 끝(요약 글 메시지 뒤 자리) */
     if (result.action) {
       setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
+      /** 보낸 카드와 같은 도구면 붙인 파일(분석한 사진)을 이어 붙임 */
+      const sentCard = actions.actionCards.find(
+        (item) => item.key === sentCardKey,
+      );
       const params = {
         key: nextCardKey++,
         card: result.action,
         afterSn,
         anchorSn: result.message?.aiCnvrsMsgSn ?? null,
+        files:
+          sentCard?.card.tool === result.action.tool
+            ? actions.filesOf(sentCardKey)
+            : {},
       };
       /** 확인 말("등록해 줘"): 서버가 다시 검증한 카드를 바로 실행 */
       if (result.execute) actions.execute(aiCnvrsRoomSn, params);
@@ -377,7 +399,7 @@ export default function AiChatScreen({
     setNotice(null);
     receipt.reset();
     checkupPdf.reset();
-    skin.reset();
+    lesion.reset();
     resetImage();
     const afterSn = lastServerSn(conversation?.messages ?? []);
     setPendingAfterSn(afterSn);
@@ -458,10 +480,16 @@ export default function AiChatScreen({
       });
       return;
     }
-    if (kind === IMAGE_KIND.SKIN) {
+    if (kind === IMAGE_KIND.SKIN || kind === IMAGE_KIND.EYE) {
       setImage(null);
-      /** 사진 턴은 image-intent가 저장, 분석 결과는 화면에만 */
-      skin.start({ file: target.file });
+      /** 사진 턴은 image-intent가 저장한 방에 이어서 lesion-card로 요약·카드 저장 */
+      lesion.start({
+        kind: kind === IMAGE_KIND.EYE ? LESION_KIND.EYE : LESION_KIND.SKIN,
+        file: target.file,
+        aiCnvrsRoomSn: target.aiCnvrsRoomSn,
+        afterMsgSn: target.beforeSn,
+        pet: namedPet ?? autoPet,
+      });
       return;
     }
     if (kind === IMAGE_KIND.CHARACTER) {
@@ -489,7 +517,7 @@ export default function AiChatScreen({
     setNotice(null);
     receipt.reset();
     checkupPdf.reset();
-    skin.reset();
+    lesion.reset();
     imageIdRef.current += 1;
     const previewUrl = URL.createObjectURL(file);
     previewUrlsRef.current.push(previewUrl);
@@ -796,7 +824,7 @@ export default function AiChatScreen({
             {(conversation ||
               receipt.receipt ||
               checkupPdf.pdf ||
-              skin.skin ||
+              lesion.lesion ||
               image ||
               isPendingShown) && (
               <ConversationMessages
@@ -903,10 +931,13 @@ export default function AiChatScreen({
                     avatarPet={avatarPet}
                   />
                 )}
-                {skin.skin && (
-                  <SkinAnalysisBubble
-                    skin={skin.skin}
-                    onRetry={skin.retry}
+                {lesion.lesion && (
+                  <LesionAnalysisBubble
+                    lesion={lesion.lesion}
+                    pets={pets ?? []}
+                    onChoosePet={lesion.choosePet}
+                    onCancel={lesion.cancel}
+                    onRetrySave={lesion.retrySave}
                     avatarPet={avatarPet}
                   />
                 )}
@@ -940,7 +971,7 @@ export default function AiChatScreen({
             {selectedRoomSn === null &&
               !receipt.receipt &&
               !checkupPdf.pdf &&
-              !skin.skin &&
+              !lesion.lesion &&
               !image &&
               !answer.pendingText && (
                 <div className="flex min-h-full items-center justify-center">
@@ -967,7 +998,7 @@ export default function AiChatScreen({
               isAnswering ||
               receipt.isBusy ||
               checkupPdf.isBusy ||
-              skin.isBusy ||
+              lesion.isBusy ||
               judgeImage.isPending ||
               image?.characterStatus === 'creating'
             }

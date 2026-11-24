@@ -1,7 +1,10 @@
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useLockOutsideScroll } from '@/hooks/useFloatingLayer';
+import {
+  getPortalTarget,
+  useLockOutsideScroll,
+} from '@/hooks/useFloatingLayer';
 
 /** 빈 값일 때 칸 상태. 오전/오후는 빈 칸 없이 오전부터 시작한다 */
 const EMPTY = { period: 'AM', hour: '', minute: '' };
@@ -243,7 +246,7 @@ function TimeDropdown({
     if (disabled) return;
     setActiveIndex(selectedIndex);
     setRect(buttonRef.current.getBoundingClientRect());
-    setPortalTarget(buttonRef.current.closest('dialog') ?? document.body);
+    setPortalTarget(getPortalTarget(buttonRef.current));
     setFitHeight(null);
     setIsOpen(true);
   };
