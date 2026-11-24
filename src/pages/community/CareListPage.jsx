@@ -13,6 +13,7 @@ import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 import LoadError from '@/components/LoadError';
 import Skeleton from '@/components/Skeleton';
+import { LIST_RAIL_COLS, THUMB_COLS } from '@/constants/listLayout';
 
 const PAGE_SIZE = 10;
 const DESCRIPTION = '가까운 이웃과 산책 · 돌봄을 부탁하고 도와줘요';
@@ -27,32 +28,34 @@ const pickDate = (value) => (YMD_PATTERN.test(value ?? '') ? value : '');
 /** 로딩 자리: 카드 안쪽도 실제 카드 모양(왼쪽 글 · 정보 줄 · 오른쪽 썸네일)으로 그린다. 모바일은 사진 있는 카드와 없는 카드를 섞는다 */
 function CareCardSkeleton({ hasThumbOnMobile }) {
   return (
-    <div
-      aria-hidden="true"
-      className="grid h-[255px] grid-cols-[minmax(0,1fr)_240px] gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 max-[760px]:h-auto max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden"
-    >
-      <div className="min-w-0 max-[760px]:order-2">
-        <div className="flex gap-2">
-          <Skeleton className="h-6 w-14 rounded-full" />
-          <Skeleton className="h-6 w-14 rounded-full" />
-          <Skeleton className="h-6 w-[72px] rounded-full" />
+    <div className="@container">
+      <div
+        aria-hidden="true"
+        className={`grid h-[255px] ${THUMB_COLS} gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 max-[760px]:h-auto max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden`}
+      >
+        <div className="min-w-0 max-[760px]:order-2">
+          <div className="flex gap-2">
+            <Skeleton className="h-6 w-14 rounded-full" />
+            <Skeleton className="h-6 w-14 rounded-full" />
+            <Skeleton className="h-6 w-[72px] rounded-full" />
+          </div>
+          <Skeleton className="mt-3 h-[22px] w-2/3" />
+          <Skeleton className="mt-4 h-3.5 w-full" />
+          <Skeleton className="mt-2 h-3.5 w-1/2" />
+          <div className="mt-4 flex gap-4">
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-3.5 w-28" />
+            <Skeleton className="h-3.5 w-20" />
+          </div>
         </div>
-        <Skeleton className="mt-3 h-[22px] w-2/3" />
-        <Skeleton className="mt-4 h-3.5 w-full" />
-        <Skeleton className="mt-2 h-3.5 w-1/2" />
-        <div className="mt-4 flex gap-4">
-          <Skeleton className="h-3.5 w-24" />
-          <Skeleton className="h-3.5 w-28" />
+        <Skeleton
+          className={`col-start-2 row-span-2 row-start-1 min-h-[132px] self-stretch rounded-[10px] max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line ${hasThumbOnMobile ? '' : 'max-[760px]:hidden'} max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0`}
+        />
+        <div className="flex items-center gap-2 border-t border-line pt-4 max-[760px]:order-3">
+          <Skeleton className="size-6 rounded-full" />
           <Skeleton className="h-3.5 w-20" />
+          <Skeleton className="h-3.5 w-28" />
         </div>
-      </div>
-      <Skeleton
-        className={`col-start-2 row-span-2 row-start-1 min-h-[132px] self-stretch rounded-[10px] max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line ${hasThumbOnMobile ? '' : 'max-[760px]:hidden'} max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0`}
-      />
-      <div className="flex items-center gap-2 border-t border-line pt-4 max-[760px]:order-3">
-        <Skeleton className="size-6 rounded-full" />
-        <Skeleton className="h-3.5 w-20" />
-        <Skeleton className="h-3.5 w-28" />
       </div>
     </div>
   );
@@ -63,7 +66,7 @@ function CareListSkeleton() {
   return (
     <div
       aria-busy="true"
-      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1"
+      className={`grid ${LIST_RAIL_COLS} items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1`}
     >
       <div className="flex min-w-0 flex-col gap-5">
         <div

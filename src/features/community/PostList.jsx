@@ -12,11 +12,15 @@ import { publicFileUrl } from '@/utils/fileUrl';
 import ImagePlaceholder from './ImagePlaceholder';
 import PostBadges from './PostBadges';
 import PostFilters from './PostFilters';
+import {
+  FOOTER_WRAP_NARROW,
+  LIST_RAIL_COLS,
+  THUMB_COLS,
+} from '@/constants/listLayout';
 import StoryRail from './StoryRail';
 
 /** 왼쪽(필터·목록)과 오른쪽 레일. 로딩 자리도 같은 배치를 쓴다 */
-export const POST_LIST_GRID =
-  'grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-2 max-[1100px]:gap-x-5 max-[760px]:grid-cols-1';
+export const POST_LIST_GRID = `grid ${LIST_RAIL_COLS} items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-2 max-[1100px]:gap-x-5 max-[760px]:grid-cols-1`;
 
 export default function PostList({
   posts,
@@ -83,13 +87,13 @@ export default function PostList({
         ) : (
           <ul className="flex flex-col gap-3 max-[760px]:gap-2">
             {content.map((item) => (
-              <li key={item.pstSn}>
+              <li key={item.pstSn} className="@container">
                 <Link
                   to={generatePath(PATHS.COMMUNITY_POST_DETAIL, {
                     pstSn: item.pstSn,
                   })}
                   state={{ listSearch: search }}
-                  className={`group grid gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden ${item.thumbAtchFileSn ? 'grid-cols-[minmax(0,1fr)_240px]' : 'grid-cols-1'}`}
+                  className={`group grid gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden ${item.thumbAtchFileSn ? THUMB_COLS : 'grid-cols-1'}`}
                 >
                   <div className="min-w-0 max-[760px]:order-2">
                     <PostBadges post={item} showPopular={sort !== 'hot'} />
@@ -116,7 +120,9 @@ export default function PostList({
                       />
                     </span>
                   )}
-                  <div className="col-start-1 flex items-center justify-between gap-3 text-sm text-subtle max-[760px]:order-3">
+                  <div
+                    className={`col-start-1 flex items-center justify-between gap-x-3 gap-y-2 text-sm text-subtle max-[760px]:order-3 ${FOOTER_WRAP_NARROW}`}
+                  >
                     <span className="inline-flex min-w-0 items-center gap-2">
                       <Avatar
                         src={publicFileUrl(item.mbrAtchFileSn)}

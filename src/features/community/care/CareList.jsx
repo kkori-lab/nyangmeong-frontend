@@ -1,7 +1,7 @@
 import { SearchX } from 'lucide-react';
 import EmptyResult from '@/components/EmptyResult';
 import LoadMore from '@/components/LoadMore';
-
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import CareCard from './CareCard';
 import CareFilters from './CareFilters';
 import CareGuideRail from './CareGuideRail';
@@ -24,7 +24,9 @@ export default function CareList({
   const { content, totalElements } = posts;
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1`}
+    >
       <div className="flex min-w-0 flex-col gap-5">
         <CareFilters filters={filters} onChange={onChange} onReset={onReset} />
 
@@ -51,7 +53,7 @@ export default function CareList({
         ) : (
           <ul className="flex flex-col gap-3">
             {content.map((item) => (
-              <li key={item.petPrtcRcrtSn}>
+              <li key={item.petPrtcRcrtSn} className="@container">
                 <CareCard post={item} />
               </li>
             ))}

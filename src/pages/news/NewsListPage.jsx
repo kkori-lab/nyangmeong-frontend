@@ -7,6 +7,7 @@ import { PATHS } from '@/routes/paths';
 import LoadError from '@/components/LoadError';
 import PageSkeleton from '@/components/PageSkeleton';
 import Skeleton from '@/components/Skeleton';
+import { THUMB_COLS } from '@/constants/listLayout';
 
 const PAGE_SIZE = 10;
 const DESCRIPTION = '반려생활에 도움이 되는 소식을 언론사에서 모아 전해 드려요';
@@ -14,21 +15,23 @@ const DESCRIPTION = '반려생활에 도움이 되는 소식을 언론사에서 
 /** 로딩 자리: 카드 안쪽도 실제 카드 모양(왼쪽 글 · 오른쪽 썸네일)으로 그린다 */
 function NewsCardSkeleton() {
   return (
-    <div
-      aria-hidden="true"
-      className="grid h-[208px] grid-cols-[minmax(0,1fr)_240px] gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 max-[760px]:h-auto max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden"
-    >
-      <div className="min-w-0 max-[760px]:order-2">
-        <Skeleton className="h-[22px] w-14 rounded-full" />
-        <Skeleton className="mt-3 h-[22px] w-3/4" />
-        <Skeleton className="mt-4 h-3.5 w-full" />
-        <Skeleton className="mt-2 h-3.5 w-3/5" />
-      </div>
-      <Skeleton className="col-start-2 row-span-2 row-start-1 h-[150px] w-full self-start rounded-[10px] max-[760px]:w-auto max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:h-auto" />
-      <div className="flex items-center gap-2 max-[760px]:order-3">
-        <Skeleton className="h-4 w-4" />
-        <Skeleton className="h-3.5 w-16" />
-        <Skeleton className="h-3.5 w-24" />
+    <div className="@container">
+      <div
+        aria-hidden="true"
+        className={`grid h-[208px] ${THUMB_COLS} gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 max-[760px]:h-auto max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden`}
+      >
+        <div className="min-w-0 max-[760px]:order-2">
+          <Skeleton className="h-[22px] w-14 rounded-full" />
+          <Skeleton className="mt-3 h-[22px] w-3/4" />
+          <Skeleton className="mt-4 h-3.5 w-full" />
+          <Skeleton className="mt-2 h-3.5 w-3/5" />
+        </div>
+        <Skeleton className="col-start-2 row-span-2 row-start-1 h-[150px] w-full self-start rounded-[10px] max-[760px]:w-auto max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:h-auto" />
+        <div className="flex items-center gap-2 max-[760px]:order-3">
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-3.5 w-16" />
+          <Skeleton className="h-3.5 w-24" />
+        </div>
       </div>
     </div>
   );
