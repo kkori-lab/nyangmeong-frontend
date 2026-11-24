@@ -2,10 +2,13 @@
 
 ## 지금 하는 것
 
-끝남: SCR-AIM-013 대화창 · 눈 사진 분석 + 피부·눈 결과 저장(lesion-card) (2026-11-24, 검증 통과·사람 확인). E1~E5, 추가-1 AI 매니저 플로팅 창 펼침 목록, 추가-2 새 AI 메시지 글자 펼치기
+끝남: SCR-MAN-002 랜딩 · 팝업 데모 계정 바로 로그인 (핫픽스 `hotfix/landing-demo-login`, 2026-11-24, 검증 통과·사람 확인). H1 바로 로그인·H2 카드 잠금·H3 실패 때 로그인 화면
 
 ## 다음에 할 것
 
+- 핫픽스 `hotfix/landing-demo-login`: main PR 병합 뒤 같은 브랜치를 develop에도 PR(한쪽만 병합하면 다음 배포에서 사라짐), 병합 뒤 브랜치 지우기(`docs/convention/git.md`)
+- 핫픽스 배포 확인(사람): 배포 빌드에 `VITE_DEMO_MEMBER_*`·`VITE_DEMO_ADMIN_*` 값이 들어가 있는지. 없으면 운영에서는 바로 로그인 대신 로그인 화면으로 감(H3)
+- 핫픽스 팀 알림(PR 본문 + 팀 채널, YAY): 랜딩 팝업(`features/landing/PortfolioModal`) 로그인 카드가 링크에서 버튼(`onDemoLogin`·`pendingKey`)으로 바뀌고, `pages/landing/LandingPage`가 데모 계정으로 바로 로그인(`useLogin`·`useFetchMe`, 실패하면 전처럼 `/login?method=email` + `state.demo`). 팝업 안내 문구 변경
 - SCR-AIM-013 ai 저장소 몫(ai-23 받음 2026-11-24, ai 마일스톤 "lesion-card 확인 말 사진 칸·메모 규칙 버전·빈 칸 Java 이름" 진행): ① 지속 관찰 카드가 떠 있을 때 "등록해 줘"가 `missing ["file"]`·`execute: false`라 실행 안 됨(말로 확인은 이번 마일스톤에서 뺌, 프론트는 보낸 카드 사진을 새 카드에 이어 붙이는 코드가 이미 있음) ② 카드 `memoCn`·결과 글에 "규칙 2026-11-24-draft"가 회원 메모로 남음 ③ 빈 칸 되물음에 Java 칸 이름. ai가 고쳤다고 알리면 프론트에서 말로 확인·결과 글만 다시 본다
 - SCR-AIM-013 피부·눈 팀 알림(PR 본문 + 팀 채널): 모두: 공용 `hooks/useFloatingLayer` `getPortalTarget`가 `<dialog>`뿐 아니라 `role="dialog"`인 고정 창(AI 매니저 창·채팅 모달·모바일 메뉴 서랍·장소 팝업·반려동물 바꾸기 등)도 포털 대상으로 잡음 → 그 창 안의 `DropdownSelect`·`DatePicker`·`TimeSelect` 펼침 창이 body 대신 그 창에 붙음(`TimeSelect`도 같은 함수). JAJ: AI 대화창이 지속 관찰 항목 등록 `POST /api/pets/{petSn}/observation-items`(multipart, 분석한 사진 `file`)를 확인 카드로 실행함. 요청 칸이 바뀌면 알려 달라
 - SCR-AIM-013 피부·눈 참고(검증 보고, 판정 밖): `role="dialog"` 다른 창들의 펼침 목록은 검증이 보지 않음(사람 확인 때 봄). 카드 [취소]·[확인] 직후 결과 줄이 "이렇게 할까요?" 요약 위에 보임(방을 다시 열면 맞음, `ConversationMessages` `placeCards` 자리 규칙, SCR-AIM-012부터). 분석 요약이 펼쳐지는 동안 그 아래 카드는 바로 보임
