@@ -7,7 +7,7 @@ import {
   SIZE_BY_FILTER,
   SIZE_FILTERS,
 } from '@/features/community/careCodes';
-import { useCareList } from '@/features/community/careQueries';
+import { useCareInfiniteList } from '@/features/community/careQueries';
 import CareList from '@/features/community/care/CareList';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
@@ -29,7 +29,7 @@ function CareCardSkeleton({ hasThumbOnMobile }) {
   return (
     <div
       aria-hidden="true"
-      className="grid h-[255px] grid-cols-[minmax(0,1fr)_200px] gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 max-[760px]:h-auto max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5"
+      className="grid h-[255px] grid-cols-[minmax(0,1fr)_240px] gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 max-[760px]:h-auto max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden"
     >
       <div className="min-w-0 max-[760px]:order-2">
         <div className="flex gap-2">
@@ -47,7 +47,7 @@ function CareCardSkeleton({ hasThumbOnMobile }) {
         </div>
       </div>
       <Skeleton
-        className={`col-start-2 row-span-2 row-start-1 min-h-[132px] self-stretch rounded-[10px] ${hasThumbOnMobile ? '' : 'max-[760px]:hidden'} max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0`}
+        className={`col-start-2 row-span-2 row-start-1 min-h-[132px] self-stretch rounded-[10px] max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line ${hasThumbOnMobile ? '' : 'max-[760px]:hidden'} max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0`}
       />
       <div className="flex items-center gap-2 border-t border-line pt-4 max-[760px]:order-3">
         <Skeleton className="size-6 rounded-full" />
@@ -84,7 +84,6 @@ function CareListSkeleton() {
             <CareCardSkeleton key={index} hasThumbOnMobile={index % 2 === 0} />
           ))}
         </div>
-        <Skeleton aria-hidden="true" className="mx-auto h-9 w-64" />
       </div>
       <div
         aria-hidden="true"
@@ -112,7 +111,6 @@ const writeAction = (
 
 export default function CareListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const page = Number(searchParams.get('page')) || 1;
   const mine = searchParams.get('mine') === '1';
   /** 지역은 지역 번호(rgnSn). 숫자가 아니면 전체 */
   const region = /^\d+$/.test(searchParams.get('rgn') ?? '')
@@ -135,8 +133,10 @@ export default function CareListPage() {
     isPending,
     isError,
     refetch,
-  } = useCareList({
-    page,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useCareInfiniteList({
     size: PAGE_SIZE,
     mineYn: mine,
     rgnSn: dong || region,
@@ -146,7 +146,7 @@ export default function CareListPage() {
     petSizeCd: SIZE_BY_FILTER[size] ?? '',
   });
 
-  /** 빈 값은 URL에 남기지 않는다. 조건이 바뀌면 첫 쪽부터 */
+  /** 빈 값은 URL에 남기지 않는다. 조건이 바뀌면 목록을 처음부터 다시 받는다 */
   const setQuery = (next) => {
     const merged = { ...filters, ...next };
     setSearchParams(
@@ -159,7 +159,6 @@ export default function CareListPage() {
           to: merged.to,
           pet: merged.pet,
           size: merged.size,
-          page: merged.page > 1 ? merged.page : '',
         }).filter(([, value]) => value),
       ),
     );
@@ -180,9 +179,11 @@ export default function CareListPage() {
       <CareList
         posts={posts}
         filters={filters}
-        onChange={(next) => setQuery({ ...next, page: 1 })}
+        onChange={setQuery}
         onReset={() => setSearchParams({})}
-        onPageChange={(nextPage) => setQuery({ page: nextPage })}
+        hasNext={Boolean(hasNextPage)}
+        isFetchingNext={isFetchingNextPage}
+        onLoadMore={fetchNextPage}
         action={writeAction}
       />
     );

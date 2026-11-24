@@ -22,6 +22,19 @@
     }
   }
 
+  /** 무한 스크롤 로딩 원 3개(LoadMore): 왼쪽부터 차례로 0%에서 100%까지 진해졌다가 같은 순서로 옅어진다. 원마다 animation-delay로 차례를 만든다 */
+  --animate-dot-fade: dot-fade 1.4s ease-in-out infinite;
+  @keyframes dot-fade {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    35%,
+    65% {
+      opacity: 1;
+    }
+  }
+
   /** 공통 토스트(ToastContainer): 아래에서 올라오며 나타나고, 흐려지며 사라진다 */
   --animate-toast-in: toast-in 200ms ease-out;
   --animate-toast-out: toast-out 150ms ease-in forwards;

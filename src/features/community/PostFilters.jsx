@@ -15,22 +15,21 @@ const BOARD_OPTIONS = [
 ];
 
 /**
- * 펫이야기 필터: 첫 줄 왼쪽 게시판 칩(전체·펫정보·펫일상), 오른쪽 정렬 · 검색. 둘째 줄 왼쪽 「내 글만 보기」, 오른쪽 「전체 N 건」
+ * 펫이야기 필터(흰 배경 박스, 다른 목록 필터와 같은 모양): 첫 줄 왼쪽 게시판 칩(전체·펫정보·펫일상), 오른쪽 정렬 · 검색. 둘째 줄 왼쪽 「내 글만 보기」(전체 N 건은 박스 아래 왼쪽에 PostList가 그린다)
  * - 초기화 버튼과 구분선은 없다. 760px 이하는 정렬·검색이 칩 아래 줄 전체 너비로 내려감
- * - search: { value, onChange, onSubmit } 검색창 입력값은 부모가 보관. totalElements가 숫자가 아니면 건수는 숨김
+ * - search: { value, onChange, onSubmit } 검색창 입력값은 부모가 보관
  */
 export default function PostFilters({
   board,
   sort,
   mine,
   search,
-  totalElements,
   onBoardChange,
   onSortChange,
   onMineChange,
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 rounded-card border border-line bg-white p-5">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Chips
           name="post-board"
@@ -51,21 +50,15 @@ export default function PostFilters({
             value={search.value}
             onChange={search.onChange}
             onSubmit={search.onSubmit}
+            liveDelay={150}
             placeholder="제목 또는 내용 검색"
-            className="w-[280px] max-[760px]:w-auto max-[760px]:min-w-0 max-[760px]:flex-1"
+            className="w-[280px] max-[760px]:w-auto max-[760px]:min-w-0 max-[760px]:flex-1 max-[760px]:[&_input]:h-11"
           />
         </div>
       </div>
-      <div className="flex items-center justify-between gap-3">
-        <CheckOption checked={mine} onChange={onMineChange}>
-          내 글만 보기
-        </CheckOption>
-        {typeof totalElements === 'number' && (
-          <p aria-live="polite" className="text-sm text-muted">
-            전체 <b className="font-bold text-ink">{totalElements}</b> 건
-          </p>
-        )}
-      </div>
+      <CheckOption checked={mine} onChange={onMineChange}>
+        내 글만 보기
+      </CheckOption>
     </div>
   );
 }

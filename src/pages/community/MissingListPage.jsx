@@ -6,10 +6,13 @@ import {
   PET_SE_BY_FILTER,
   PET_FILTERS,
   PERIOD_FILTERS,
+  STATUS_FILTERS,
+  STTS_BY_FILTER,
   WTNS_PRD_BY_PERIOD,
 } from '@/features/community/missingCodes';
-import { useMissingList } from '@/features/community/missingQueries';
+import { useMissingInfiniteList } from '@/features/community/missingQueries';
 import MissingList from '@/features/community/missing/MissingList';
+import MissingGuideButton from '@/features/community/missing/MissingGuideButton';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 import Skeleton from '@/components/Skeleton';
@@ -68,7 +71,6 @@ function MissingListSkeleton() {
             </li>
           ))}
         </ul>
-        <Skeleton aria-hidden="true" className="mx-auto h-9 w-64" />
       </div>
       <div
         aria-hidden="true"
@@ -96,7 +98,6 @@ const writeAction = (
 
 export default function MissingListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const page = Number(searchParams.get('page')) || 1;
   /** 지역은 지역 번호(rgnSn). 숫자가 아니면 전체 */
   const region = /^\d+$/.test(searchParams.get('rgn') ?? '')
     ? searchParams.get('rgn')
@@ -107,27 +108,33 @@ export default function MissingListPage() {
       : '';
   const pet = pick(searchParams.get('pet'), PET_FILTERS);
   const period = pick(searchParams.get('period'), PERIOD_FILTERS);
+  const status = pick(searchParams.get('stts'), STATUS_FILTERS);
   const keyword = searchParams.get('q') ?? '';
   const mine = searchParams.get('mine') === '1';
-  const filters = { mine, region, dong, pet, period, keyword };
+  const filters = { mine, region, dong, pet, period, status, keyword };
 
   const {
     data: posts,
     isPending,
     isError,
     refetch,
-  } = useMissingList({
-    page,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useMissingInfiniteList({
     size: PAGE_SIZE,
     rgnSn: dong || region,
+    lostTpofSttsCd: STTS_BY_FILTER[status] ?? '',
     petSeCd: PET_SE_BY_FILTER[pet] ?? '',
     wtnsPrd: WTNS_PRD_BY_PERIOD[period] ?? '',
     keyword,
     mineYn: mine,
   });
 
-  /** 빈 값은 URL에 남기지 않는다. 조건이 바뀌면 첫 쪽부터 */
+  /** 빈 값은 URL에 남기지 않는다. 조건이 바뀌면 목록을 처음부터 다시 받는다 */
   const setQuery = (next) => {
+    /** 검색어만 바뀌면(입력 중 자동 검색) 뒤로 가기 기록을 쌓지 않고 바꿔 끼운다 */
+    const keywordOnly = Object.keys(next).join() === 'keyword';
     const merged = { ...filters, ...next };
     setSearchParams(
       Object.fromEntries(
@@ -137,10 +144,11 @@ export default function MissingListPage() {
           dong: merged.dong,
           pet: merged.pet,
           period: merged.period,
+          stts: merged.status,
           q: merged.keyword,
-          page: merged.page > 1 ? merged.page : '',
         }).filter(([, value]) => value),
       ),
+      { replace: keywordOnly },
     );
   };
 
@@ -157,12 +165,13 @@ export default function MissingListPage() {
   } else {
     body = (
       <MissingList
-        key={keyword}
         posts={posts}
         filters={filters}
-        onChange={(next) => setQuery({ ...next, page: 1 })}
+        onChange={setQuery}
         onReset={() => setSearchParams({})}
-        onPageChange={(nextPage) => setQuery({ page: nextPage })}
+        hasNext={Boolean(hasNextPage)}
+        isFetchingNext={isFetchingNextPage}
+        onLoadMore={fetchNextPage}
         action={writeAction}
       />
     );
@@ -173,6 +182,7 @@ export default function MissingListPage() {
       section="community"
       menu={PATHS.COMMUNITY_MISSING}
       description={DESCRIPTION}
+      sideBottom={<MissingGuideButton />}
     >
       {body}
     </SubPageLayout>

@@ -448,6 +448,7 @@ export default function MissingDetail({ post }) {
           title="제보 · 댓글"
           placeholder="목격한 장소와 시간을 자세히 알려 주시면 큰 도움이 돼요"
           inputId={MISSING_COMMENT_INPUT_ID}
+          canWrite={!found}
         />
       </div>
 

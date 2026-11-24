@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import EmptyResult from '@/components/EmptyResult';
 import MissingDetail from '@/features/community/missing/MissingDetail';
 import { useMissing } from '@/features/community/missingQueries';
+import MissingGuideButton from '@/features/community/missing/MissingGuideButton';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 import SkeletonCard from '@/components/SkeletonCard';
@@ -63,6 +64,7 @@ export default function MissingDetailPage() {
       back
       backTo={`${PATHS.COMMUNITY_MISSING}${state?.listSearch ?? ''}`}
       description={DESCRIPTION}
+      sideBottom={<MissingGuideButton />}
     >
       {body}
     </SubPageLayout>
