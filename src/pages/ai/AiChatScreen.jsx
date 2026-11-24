@@ -826,6 +826,9 @@ export default function AiChatScreen({
                 photoPreviews={photoPreviews}
                 isChoiceDisabled={isAnswering}
                 onChoosePet={(pet) => handleSend(pet.petNm, pet.petSn)}
+                onConfirmAction={(key) => actions.confirm(selectedRoomSn, key)}
+                onCancelAction={(key) => actions.cancel(selectedRoomSn, key)}
+                onChangeAction={actions.changeInput}
                 onRetryAction={(key) => actions.retrySave(selectedRoomSn, key)}
                 avatarPet={avatarPet}
               >

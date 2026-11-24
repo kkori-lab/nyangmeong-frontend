@@ -27,7 +27,7 @@ const STATUS_BY_RESULT = {
 
 /**
  * 확인 카드(ACTION) 목록: 서버에 저장되지 않아 새로고침하면 사라진다(등록 카드와 같다)
- * - 카드 내용은 저장된 요약 글로 보이고, 확인·취소는 말로 한다(done.execute로 실행, 취소 말이면 카드 버림)
+ * - 카드는 칸 이름·값으로 보이고 [확인]·[취소] 버튼이 있다(사람 결정 2026-11-24). 말로 하는 확인(done.execute)·취소(카드 버림)도 그대로
  * - 항목: { key, card, input, afterSn, anchorSn, status, isBusy, fieldErrors, formError, unsaved, resultText, resultMsgSn }
  * - status: 'pending' | 'done' | 'cancelled' | 'failed' | 'dropped'(취소 말·다른 말로 버림)
  * - key는 등록 카드와 같은 번호를 써서 "가장 최근 카드"를 함께 따진다
@@ -122,6 +122,37 @@ export function useActionCards() {
     return run(aiCnvrsRoomSn, item);
   };
 
+  /** 카드 [확인]: 확인 말("등록해 줘")과 같은 실행 */
+  const confirm = (aiCnvrsRoomSn, key) => {
+    const item = actionCards.find((target) => target.key === key);
+    if (!item || item.status !== 'pending' || item.isBusy || item.unsaved) {
+      return;
+    }
+    run(aiCnvrsRoomSn, item);
+  };
+
+  /** 카드 [취소]: Java 없이 취소 결과만 저장 */
+  const cancel = (aiCnvrsRoomSn, key) => {
+    const item = actionCards.find((target) => target.key === key);
+    if (!item || item.status !== 'pending' || item.isBusy || item.unsaved) {
+      return;
+    }
+    saveResult(
+      aiCnvrsRoomSn,
+      item,
+      ACTION_STATUS.CANCELED,
+      resultInput(item.card, item.input),
+    );
+  };
+
+  /** 카드 안에서 고른 값(검사 수치의 검진기록): 그 칸의 서버 오류는 지운다 */
+  const changeInput = (key, patch) =>
+    patchCard(key, (item) => {
+      const fieldErrors = { ...item.fieldErrors };
+      Object.keys(patch).forEach((field) => delete fieldErrors[field]);
+      return { input: { ...item.input, ...patch }, fieldErrors };
+    });
+
   /** 결과 저장 [다시 시도] */
   const retrySave = (aiCnvrsRoomSn, key) => {
     const item = actionCards.find((target) => target.key === key);
@@ -152,6 +183,9 @@ export function useActionCards() {
     actionCards,
     add,
     execute,
+    confirm,
+    cancel,
+    changeInput,
     drop,
     retrySave,
     pendingAction,

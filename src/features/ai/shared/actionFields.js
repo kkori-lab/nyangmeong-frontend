@@ -52,6 +52,15 @@ export const ACTION_FIELD_NAMES = {
   algyCn: '알레르기',
   dssCn: '질환',
   goalBdwgReset: '목표 몸무게 초기화',
+  /** 검사 수치 */
+  ckupRcdSn: '검진기록',
+  values: '검사 수치',
+  inspArtclCd: '항목',
+  inspArtclDrctInptNm: '항목(직접 입력)',
+  rsltNvl: '수치',
+  unitNm: '단위',
+  refLlmtNvl: '참고 하한',
+  refUplmtNvl: '참고 상한',
 };
 
 /** 칸 표시 이름 */
