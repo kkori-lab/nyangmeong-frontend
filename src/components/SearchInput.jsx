@@ -1,10 +1,14 @@
 import { Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+/** 한글 조합 중에 입력이 이만큼(ms) 멈추면 자동 검색한다 */
+const COMPOSING_DELAY = 500;
+
 /**
  * 검색창: 입력값은 부모 보관, 제출할 때 onSubmit 호출. compact: 높이 34px·글자 14px
  * - liveDelay(ms): 주면 입력을 멈추고 그만큼 지나면 자동으로 onSubmit을 부른다(Enter·돋보기는 그대로 바로 검색).
- *   한글 조합 중에는 기다리고, 조합이 끝난 뒤에 센다. 안 주면 제출할 때만(다른 화면 기본 동작)
+ *   한글 조합 중에는 마지막 글자가 늘 조합 중이라 확정을 기다리면 띄어쓰기 전에는 검색되지 않으므로,
+ *   조합 중이어도 입력이 COMPOSING_DELAY(0.5초) 멈추면 검색한다. 안 주면 제출할 때만(다른 화면 기본 동작)
  */
 export default function SearchInput({
   value,
@@ -23,8 +27,11 @@ export default function SearchInput({
   });
 
   useEffect(() => {
-    if (!liveDelay || isComposing) return undefined;
-    const timer = setTimeout(() => submitRef.current(), liveDelay);
+    if (!liveDelay) return undefined;
+    const delay = isComposing
+      ? Math.max(liveDelay, COMPOSING_DELAY)
+      : liveDelay;
+    const timer = setTimeout(() => submitRef.current(), delay);
     return () => clearTimeout(timer);
   }, [value, liveDelay, isComposing]);
 
