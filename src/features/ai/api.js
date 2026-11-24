@@ -235,6 +235,18 @@ export const findChatNearSchedule = async ({ petSn, ckupYmd }) => {
 };
 
 /**
+ * 검사 수치 확인 카드의 검진기록 목록 (GET /api/pets/{petSn}/checkups, JAJ, 최신 순 PageResponse)
+ * - 다른 도메인 함수는 import 하지 않아 따로 둔다. 카드에서 고를 만큼만 받는다
+ */
+const CHAT_CHECKUP_SIZE = 50;
+export const getChatCheckups = async (petSn) => {
+  const page = await api.get(`/pets/${petSn}/checkups`, {
+    params: { size: CHAT_CHECKUP_SIZE },
+  });
+  return page.content;
+};
+
+/**
  * 대화창 검진기록 만들기 (POST /api/pets/{petSn}/checkups, JAJ)
  * - body: ckupYmd·hsptlNm·ckupTypeCd·ckupCn·ckupMemoCn, schdlSn이 있으면 그 일정을 검진일로 옮겨 연결
  * - 응답: 저장한 검진기록({ petSn, ckupRcdSn, … })
