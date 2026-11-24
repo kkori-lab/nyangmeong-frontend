@@ -7,6 +7,7 @@ import MissingGuideButton from '@/features/community/missing/MissingGuideButton'
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 import SkeletonCard from '@/components/SkeletonCard';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 
 const DESCRIPTION =
   '잃어버린 반려동물을 함께 찾아요. 비슷한 아이를 보셨다면 댓글로 알려 주세요';
@@ -16,7 +17,7 @@ function MissingDetailSkeleton() {
   return (
     <div
       aria-busy="true"
-      className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10"
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10`}
     >
       <div className="flex min-w-0 flex-col gap-4">
         <SkeletonCard className="h-[1440px] max-[760px]:h-[1965px]" />
