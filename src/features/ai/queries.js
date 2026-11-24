@@ -5,6 +5,7 @@ import {
   analyzeSkin,
   createChatCheckup,
   findChatNearSchedule,
+  getChatCheckups,
   analyzeChatReceipt,
   deleteConversation,
   executeAction,
@@ -23,7 +24,17 @@ export const aiKeys = {
   list: (petSn) => ['ai', 'conversations', 'list', petSn],
   detail: (aiCnvrsRoomSn) => ['ai', 'conversations', 'detail', aiCnvrsRoomSn],
   receipt: (recptSn, petSn) => ['ai', 'receipts', recptSn, petSn],
+  checkups: ['ai', 'checkups'],
+  checkupList: (petSn) => ['ai', 'checkups', petSn],
 };
+
+/** 검사 수치 확인 카드의 검진기록 목록 */
+export const useChatCheckups = (petSn) =>
+  useQuery({
+    queryKey: aiKeys.checkupList(petSn),
+    queryFn: () => getChatCheckups(petSn),
+    enabled: petSn != null,
+  });
 
 /** 대화창에서 분석한 영수증의 인식 결과: 본창 결과 확인 모달용 */
 export const useChatReceiptResult = ({ recptSn, petSn }) =>
@@ -130,6 +141,7 @@ export const useCreateChatCheckup = () => {
       queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
       queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
       queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
+      queryClient.invalidateQueries({ queryKey: aiKeys.checkups });
     },
   });
 };

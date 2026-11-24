@@ -1,9 +1,16 @@
-import { ArrowRight, CircleCheck, CircleX, Info } from 'lucide-react';
+import {
+  ArrowRight,
+  CircleCheck,
+  CircleX,
+  ClipboardCheck,
+  Info,
+} from 'lucide-react';
+import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { PATHS } from '@/routes/paths';
 import { actionFieldName } from '../shared/actionFields';
 import { useOpenMain } from './aiHost';
-import { CARE_ITEM_TOOL, hasPetChoice } from './actionForm';
-import PetChoiceChips from './PetChoiceChips';
+import { CARE_ITEM_TOOL, errorFieldsShown, missingFields } from './actionForm';
+import ActionCardFields from './ActionCardFields';
 import AiAvatar from './AiAvatar';
 
 /**
@@ -49,8 +56,9 @@ function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
 }
 
 /**
- * [확인 카드(2단계 쓰기)]: 카드 내용은 저장된 요약 글(done.message)로 보이고, 확인·취소는 말로 한다(사람 결정 2026-11-13)
- * - 처리 전 가장 최근 카드: 요약 글 아래 안내 문구·반려동물 이름 칩·실행 오류만
+ * [확인 카드(2단계 쓰기)]: 칸 이름·값 카드와 [확인]·[취소](사람 결정 2026-11-24, 11-13 "요약 글·말로 확인"을 바꿈)
+ * - 처리 전 가장 최근 카드: 제목·안내·칸·버튼. 말로 하는 확인("등록해 줘")·취소·고치기도 그대로
+ * - [확인]은 빈 필수 칸·처리 중·답변 중이면 비활성, 가장 최근 카드가 아니면 버튼 없음
  * - 처리한 카드: 결과 요약 메시지 자리에 결과 줄(케어 캘린더 바로가기 포함)
  * - 지난 카드·버린 카드는 그리지 않는다
  */
@@ -60,15 +68,14 @@ export default function ActionCard({
   hasCalendarLink,
   isChoiceDisabled,
   onChoosePet,
+  onConfirm,
+  onCancel,
+  onChangeInput,
   onRetrySave,
   avatarPet,
 }) {
   const { card, input, status, isBusy, fieldErrors } = item;
   const isCareItem = card.tool === CARE_ITEM_TOOL;
-  const errorLines = Object.entries(fieldErrors).map(
-    ([field, message]) => `${actionFieldName(field)}: ${message}`,
-  );
-  if (item.formError) errorLines.push(item.formError);
 
   if (item.resultText) {
     return (
@@ -88,61 +95,99 @@ export default function ActionCard({
   }
 
   const isShown = status === 'pending' && (isActive || item.unsaved || isBusy);
-  const hasPetChips = isActive && hasPetChoice(card) && input.petSn == null;
-  const hasContent =
-    card.notice ||
-    isBusy ||
-    errorLines.length > 0 ||
-    item.unsaved ||
-    hasPetChips;
-  if (!isShown || !hasContent) return null;
+  if (!isShown) return null;
+
+  const shownFields = errorFieldsShown(card, input);
+  const errorLines = Object.entries(fieldErrors)
+    .filter(([field]) => !shownFields.includes(field))
+    .map(([field, message]) => `${actionFieldName(field)}: ${message}`);
+  if (item.formError) errorLines.push(item.formError);
+  const isLocked = isBusy || Boolean(item.unsaved) || isChoiceDisabled;
+  const isConfirmDisabled = isLocked || missingFields(card, input).length > 0;
+  const hasButtons = isActive && !item.unsaved;
 
   return (
-    <div className="flex flex-col gap-2 tracking-[-0.03em]">
-      {card.notice && (
-        <p className="ml-12 flex max-w-[592px] items-start gap-2 rounded-[10px] bg-tone-amber-bg px-3 py-2 text-sm leading-[22px] text-tone-amber-fg">
-          <Info aria-hidden="true" className="mt-0.5 size-[18px] shrink-0" />
-          {card.notice}
-        </p>
-      )}
-      {isBusy && (
-        <p role="status" className="ml-12 text-sm leading-[22px] text-subtle">
-          {card.label ?? '요청'}을(를) 처리하고 있어요…
-        </p>
-      )}
-      {errorLines.length > 0 && (
-        <ul
-          role="alert"
-          className="ml-12 flex flex-col gap-1 text-sm leading-[22px] text-danger"
-        >
-          {errorLines.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-      )}
-      {item.unsaved && (
-        <p
-          role="alert"
-          className="ml-12 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm leading-[22px] text-danger"
-        >
-          결과를 저장하지 못했어요.
-          <button
-            type="button"
-            disabled={isBusy}
-            className="font-semibold text-brand-600 underline disabled:opacity-60"
-            onClick={onRetrySave}
-          >
-            다시 시도
-          </button>
-        </p>
-      )}
-      {hasPetChips && (
-        <PetChoiceChips
-          pets={card.petChoices}
-          isDisabled={isChoiceDisabled || isBusy}
-          onSelect={onChoosePet}
+    <div className="flex min-w-0 items-start gap-3 tracking-[-0.03em]">
+      <AiAvatar pet={avatarPet} />
+      <section
+        aria-label={`${card.label ?? '요청'} 확인 카드`}
+        aria-busy={isBusy}
+        className="flex min-w-0 max-w-[592px] flex-1 flex-col gap-3 rounded-[4px_18px_18px_18px] border border-line bg-white px-4 py-3"
+      >
+        <h3 className="flex items-center gap-2 text-base font-semibold leading-[1.3] text-ink">
+          <ClipboardCheck
+            aria-hidden="true"
+            className="size-[18px] shrink-0 text-brand-600"
+          />
+          {card.label ?? '요청'}
+        </h3>
+        {card.notice && (
+          <p className="flex items-start gap-2 rounded-[10px] bg-tone-amber-bg px-3 py-2 text-sm leading-[22px] text-tone-amber-fg">
+            <Info aria-hidden="true" className="mt-0.5 size-[18px] shrink-0" />
+            {card.notice}
+          </p>
+        )}
+        <ActionCardFields
+          card={card}
+          input={input}
+          fieldErrors={fieldErrors}
+          isActive={isActive}
+          isDisabled={isLocked}
+          onChoosePet={onChoosePet}
+          onChangeInput={onChangeInput}
         />
-      )}
+        {isBusy && (
+          <p role="status" className="text-sm leading-[22px] text-subtle">
+            {card.label ?? '요청'}을(를) 처리하고 있어요…
+          </p>
+        )}
+        {errorLines.length > 0 && (
+          <ul
+            role="alert"
+            className="flex flex-col gap-1 text-sm leading-[22px] text-danger"
+          >
+            {errorLines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
+        {item.unsaved && (
+          <p
+            role="alert"
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm leading-[22px] text-danger"
+          >
+            결과를 저장하지 못했어요.
+            <button
+              type="button"
+              disabled={isBusy}
+              className="font-semibold text-brand-600 underline disabled:opacity-60"
+              onClick={onRetrySave}
+            >
+              다시 시도
+            </button>
+          </p>
+        )}
+        {hasButtons && (
+          <div className="flex justify-end gap-2 border-t border-line pt-3 max-[760px]:[&>button]:flex-1">
+            <button
+              type="button"
+              className={BTN_SECONDARY}
+              disabled={isLocked}
+              onClick={onCancel}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              className={BTN_PRIMARY}
+              disabled={isConfirmDisabled}
+              onClick={onConfirm}
+            >
+              확인
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

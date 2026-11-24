@@ -81,7 +81,7 @@ export default function ImageAttach({
 
       <ul className="grid grid-cols-[repeat(6,minmax(0,148px))] items-start gap-x-3 gap-y-4 max-[760px]:grid-cols-3 max-[760px]:gap-2">
         {/** 10장이 차면 추가 칸은 사라지지 않고 비활성으로 남고, 한 장을 지우면 다시 활성 */}
-        <li>
+        <li className="@container">
           <label
             htmlFor={inputId}
             aria-disabled={isFull}
@@ -113,7 +113,8 @@ export default function ImageAttach({
               className="absolute size-px opacity-0"
             />
             <ImagePlus size={28} aria-hidden="true" />
-            <b className="font-semibold">이미지 추가</b>
+            {/** 칸이 좁으면(약 110px 미만) 글자 없이 아이콘만 보이고, 글자는 화면 낭독용으로 남는다 */}
+            <b className="font-semibold @max-[110px]:sr-only">이미지 추가</b>
           </label>
         </li>
         {fixedImage && (
