@@ -52,7 +52,7 @@ export default function PostFilters({
             onSubmit={search.onSubmit}
             liveDelay={150}
             placeholder="제목 또는 내용 검색"
-            className="w-[280px] max-[760px]:w-auto max-[760px]:min-w-0 max-[760px]:flex-1"
+            className="w-[280px] max-[760px]:w-auto max-[760px]:min-w-0 max-[760px]:flex-1 max-[760px]:[&_input]:h-11"
           />
         </div>
       </div>
