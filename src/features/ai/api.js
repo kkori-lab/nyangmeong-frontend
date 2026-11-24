@@ -180,7 +180,7 @@ export const analyzeChatLabPdf = ({ file, signal }) => {
 /**
  * 대화창 검사결과지 분석 결과 저장 (POST /ai/conversations/{aiCnvrsRoomSn}/checkup-card)
  * - result: RECOGNIZED·NOT_LAB_RESULT·ERROR·CANCELED, items·excludedArtclNms는 RECOGNIZED일 때만
- * - 응답 { messages: [AI 요약], action: 검사 수치 저장 확인 카드 | null }
+ * - 응답 { messages: [AI 요약], action: 검사 수치 저장 확인 카드 | null, noCardReason: 'NO_CHECKUP'(검진기록 0건) | null }
  */
 export const saveCheckupCard = async ({
   aiCnvrsRoomSn,
@@ -194,11 +194,16 @@ export const saveCheckupCard = async ({
     result === 'RECOGNIZED'
       ? { result, petSn, items, excludedArtclNms }
       : { result, petSn };
-  const { messages, action } = await aiApi.post(
+  const { messages, action, noCardReason } = await aiApi.post(
     `/conversations/${aiCnvrsRoomSn}/checkup-card`,
     body,
   );
-  return { aiCnvrsRoomSn, messages, action: action ?? null };
+  return {
+    aiCnvrsRoomSn,
+    messages,
+    action: action ?? null,
+    noCardReason: noCardReason ?? null,
+  };
 };
 
 /** 건강기록 병원 일정 종류(HLTG, 케어 캘린더) */

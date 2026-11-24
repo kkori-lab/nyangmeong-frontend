@@ -71,15 +71,11 @@ const isReceiptSaved = (receipt, message) =>
 const isCheckupPdfShown = (pdf, message) =>
   pdf != null && message.aiCnvrsMsgSn > pdf.afterMsgSn;
 
-/** checkup-card 요약 글의 검진기록 없음 안내(ai 저장소 docs/api/chat.md): 응답에 이유 칸이 생기면 그 값으로 바꾼다 */
-const NO_CHECKUP_TEXT = '검진기록이 없어요';
+/** checkup-card가 카드를 주지 않은 이유: 검진기록 0건(ai 저장소 docs/api/chat.md CheckupCardResult) */
+const NO_CHECKUP = 'NO_CHECKUP';
 
 /** 검진기록이 없어 카드가 오지 않은 분석 결과: 대화 안에서 검진기록을 만들게 */
-const needsCheckup = ({ request, action, messages }) =>
-  request.result === 'RECOGNIZED' &&
-  request.items.length > 0 &&
-  !action &&
-  Boolean(messages.at(-1)?.cnvrsCn.includes(NO_CHECKUP_TEXT));
+const needsCheckup = ({ noCardReason }) => noCardReason === NO_CHECKUP;
 
 /** 사진 판단 실패 문구: 형식·크기·입력 오류는 서버 문구, 그 밖은 공통 */
 const IMAGE_SEND_FAILED = '사진을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요';
