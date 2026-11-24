@@ -1,26 +1,31 @@
 import { SearchX } from 'lucide-react';
-import { useState } from 'react';
-import BoardPagination from '@/components/BoardPagination';
 import EmptyResult from '@/components/EmptyResult';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
+import useSearchDraft from '@/hooks/useSearchDraft';
+import LoadMore from '@/components/LoadMore';
+
 import MissingCard from './MissingCard';
 import MissingFilters from './MissingFilters';
+import MissingGuideButton from './MissingGuideButton';
 import MissingRail from './MissingRail';
 
 /**
- * 실종센터 목록: 왼쪽에 필터(검색 · 실종일 · 지역 · 반려동물) · 건수와 내 글만 보기 · 카드(한 줄 3개) · 페이지, 오른쪽에 레일
+ * 실종센터 목록: 왼쪽에 필터(검색 · 실종일 · 지역 · 반려동물) · 건수 · 카드(한 줄 3개) · 무한 스크롤, 오른쪽에 레일
  * - [실종 신고 등록]은 오른쪽 레일 맨 위(action, MissingListPage가 넘긴다). 실종·찾았어요 글이 탭 없이 한 목록에 섞여 서버 순서로 나옴
- * - filters: { mine, region, dong, pet, period, keyword }, onChange(바뀐 값만), onReset, onPageChange
+ * - filters: { mine, region, dong, pet, period, keyword }, onChange(바뀐 값만), onReset, hasNext·isFetchingNext·onLoadMore(무한 스크롤)
  */
 export default function MissingList({
   posts,
   filters,
   onChange,
   onReset,
-  onPageChange,
+  hasNext,
+  isFetchingNext,
+  onLoadMore,
   action,
 }) {
-  const [input, setInput] = useState(filters.keyword);
-  const { content, page, totalPages, totalElements } = posts;
+  const { input, setInput, commit } = useSearchDraft(filters.keyword);
+  const { content, totalElements } = posts;
 
   const handleReset = () => {
     setInput('');
@@ -28,16 +33,21 @@ export default function MissingList({
   };
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1`}
+    >
       <div className="flex min-w-0 flex-col gap-5">
         <MissingFilters
           filters={filters}
           search={{
             value: input,
             onChange: setInput,
-            onSubmit: () => onChange({ keyword: input.trim() }),
+            onSubmit: () => {
+              const next = commit();
+              if (next !== filters.keyword) onChange({ keyword: next });
+            },
           }}
-          onChange={onChange}
+          onChange={(next) => onChange({ ...next, keyword: commit() })}
           onReset={handleReset}
         />
 
@@ -71,18 +81,22 @@ export default function MissingList({
           </ul>
         )}
 
-        <div className="mt-7 max-[760px]:mt-3">
-          <BoardPagination
-            page={page}
-            totalPages={totalPages}
-            onChange={onPageChange}
-          />
-        </div>
+        <LoadMore
+          hasNext={hasNext}
+          isFetching={isFetchingNext}
+          onLoad={onLoadMore}
+        />
       </div>
 
       <div className="flex min-w-0 flex-col gap-10 max-[1100px]:contents">
-        <div className="max-[1100px]:order-first">{action}</div>
-        <MissingRail />
+        <div className="max-[1100px]:order-first">
+          {action}
+          <MissingGuideButton variant="inline" />
+        </div>
+        {/* 760px 이하에서는 목록 아래에 쌓이는 안내를 숨긴다 */}
+        <div className="min-w-0 max-[760px]:hidden">
+          <MissingRail />
+        </div>
       </div>
     </div>
   );

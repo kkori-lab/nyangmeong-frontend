@@ -9,8 +9,10 @@ import Avatar from '@/components/Avatar';
 import FileImage from '@/components/FileImage';
 import Icon from '@/components/Icon';
 import Modal from '@/components/Modal';
+import ReportModal from '@/components/ReportModal';
 import Skeleton from '@/components/Skeleton';
 import { BTN_DANGER, BTN_SECONDARY } from '@/components/buttonStyles';
+import { showToast } from '@/components/toastStore';
 import { publicFileUrl } from '@/utils/fileUrl';
 import {
   useChatImage,
@@ -18,6 +20,7 @@ import {
   useChatRoom,
   useLeaveChatRoom,
   useReadChatRoom,
+  useReportChatRoom,
   useViewingChatRoom,
 } from '../queries';
 import {
@@ -172,6 +175,8 @@ function MessageItem({
 export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const report = useReportChatRoom();
   /** 사진 보기에서 처음 보여 줄 사진(없으면 닫힘) */
   const [viewerPhotoSn, setViewerPhotoSn] = useState(null);
   const {
@@ -279,6 +284,7 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
             onBack={onBack}
             onLeaveAsk={() => setIsLeaveOpen(true)}
             onCancelAsk={() => setIsCancelOpen(true)}
+            onReportAsk={() => setIsReportOpen(true)}
           />
           <CareDealCard
             key={`${room.mtchDlngSttsCd}-${getDealCancelState(room)}`}
@@ -371,6 +377,30 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
 
       {isCancelOpen && room && (
         <DealCancelModal room={room} onClose={() => setIsCancelOpen(false)} />
+      )}
+
+      {isReportOpen && room && (
+        <ReportModal
+          title="채팅방 신고하기"
+          targetLabel={`${room.ctptMbrNcnm} 님과의 채팅`}
+          isPending={report.isPending}
+          errorMessage={report.isError && report.error.message}
+          onSubmit={(values) =>
+            report.mutate(
+              { otoChatRoomSn, ...values },
+              {
+                onSuccess: () => {
+                  showToast('신고가 접수되었어요', { type: 'success' });
+                  setIsReportOpen(false);
+                },
+              },
+            )
+          }
+          onClose={() => {
+            report.reset();
+            setIsReportOpen(false);
+          }}
+        />
       )}
 
       {isLeaveOpen && (

@@ -17,6 +17,17 @@ import missingCenter from '@/assets/landing/banner/missingCenter.png';
 import petStory from '@/assets/landing/banner/petStory.png';
 import place from '@/assets/landing/banner/place.png';
 
+/** 랜딩 진입 팝업(PortfolioModal)의 팀 저장소 */
+export const GITHUB_REPOS = [
+  { name: 'Frontend', url: 'https://github.com/kkori-lab/nyangmeong-frontend' },
+  { name: 'Backend', url: 'https://github.com/kkori-lab/nyangmeong-backend' },
+  { name: 'AI', url: 'https://github.com/kkori-lab/nyangmeong-ai' },
+  {
+    name: 'Character',
+    url: 'https://github.com/kkori-lab/nyangmeong-character',
+  },
+];
+
 export const LANDING_NAV = [
   { name: '서비스 소개', id: 'service' },
   { name: '서비스 과정', id: 'process' },

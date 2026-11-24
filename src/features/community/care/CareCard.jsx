@@ -14,6 +14,7 @@ import { formatRelativeTime } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
 import { getCostLabel, getPetBadges, isOpen } from '../careCodes';
 import ImagePlaceholder from '../ImagePlaceholder';
+import { THUMB_COLS } from '@/constants/listLayout';
 import CareStatusBadge from './CareStatusBadge';
 import { formatArea, formatScheduleShort, getShapeNames } from './careUtils';
 
@@ -34,7 +35,7 @@ export default function CareCard({ post }) {
         petPrtcRcrtSn: post.petPrtcRcrtSn,
       })}
       state={{ listSearch: search }}
-      className={`group grid ${hasThumb ? 'grid-cols-[minmax(0,1fr)_200px]' : 'grid-cols-1'} gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5`}
+      className={`group grid ${hasThumb ? THUMB_COLS : 'grid-cols-1'} gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden`}
     >
       <span className="col-start-1 row-start-1 min-w-0 max-[760px]:order-2 max-[760px]:row-start-auto">
         <span className="mb-2 flex flex-wrap gap-2">
@@ -84,7 +85,7 @@ export default function CareCard({ post }) {
       {hasThumb && (
         <span
           aria-hidden="true"
-          className={`relative col-start-2 row-span-2 row-start-1 grid min-h-[150px] place-items-center self-stretch overflow-hidden rounded-[10px] bg-surface-2 ${dim} max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0`}
+          className={`relative col-start-2 row-span-2 row-start-1 grid min-h-[150px] place-items-center self-stretch overflow-hidden rounded-[10px] bg-surface-2 ${dim} max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0`}
         >
           <FileImage
             src={publicFileUrl(post.thumbnailAtchFileSn)}

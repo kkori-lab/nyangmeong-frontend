@@ -1,27 +1,32 @@
 import { SearchX } from 'lucide-react';
-import BoardPagination from '@/components/BoardPagination';
 import EmptyResult from '@/components/EmptyResult';
+import LoadMore from '@/components/LoadMore';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import CareCard from './CareCard';
 import CareFilters from './CareFilters';
 import CareGuideRail from './CareGuideRail';
 
 /**
- * 펫돌봄 목록: 왼쪽에 필터 · 건수와 내 글만 보기 · 카드 · 페이지, 오른쪽에 안내 레일
+ * 펫돌봄 목록: 왼쪽에 필터 · 건수와 내 글만 보기 · 카드 · 무한 스크롤, 오른쪽에 안내 레일
  * - [돌봄 요청 등록]은 오른쪽 레일 맨 위(action, CareListPage가 넘긴다). 탭과 모집중만 보기는 없다(모집중이 먼저 오도록 서버가 정렬)
- * - filters: { mine, region, dong, from, to, pet, size }, onChange(바뀐 값만), onReset, onPageChange
+ * - filters: { mine, region, dong, from, to, pet, size }, onChange(바뀐 값만), onReset, hasNext·isFetchingNext·onLoadMore(무한 스크롤)
  */
 export default function CareList({
   posts,
   filters,
   onChange,
   onReset,
-  onPageChange,
+  hasNext,
+  isFetchingNext,
+  onLoadMore,
   action,
 }) {
-  const { content, page, totalPages, totalElements } = posts;
+  const { content, totalElements } = posts;
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-x-8 gap-y-10 max-[1100px]:grid-cols-1`}
+    >
       <div className="flex min-w-0 flex-col gap-5">
         <CareFilters filters={filters} onChange={onChange} onReset={onReset} />
 
@@ -48,25 +53,26 @@ export default function CareList({
         ) : (
           <ul className="flex flex-col gap-3">
             {content.map((item) => (
-              <li key={item.petPrtcRcrtSn}>
+              <li key={item.petPrtcRcrtSn} className="@container">
                 <CareCard post={item} />
               </li>
             ))}
           </ul>
         )}
 
-        <div className="mt-7 max-[760px]:mt-3">
-          <BoardPagination
-            page={page}
-            totalPages={totalPages}
-            onChange={onPageChange}
-          />
-        </div>
+        <LoadMore
+          hasNext={hasNext}
+          isFetching={isFetchingNext}
+          onLoad={onLoadMore}
+        />
       </div>
 
       <div className="flex min-w-0 flex-col gap-10 max-[1100px]:contents">
         <div className="max-[1100px]:order-first">{action}</div>
-        <CareGuideRail />
+        {/* 760px 이하에서는 목록 아래에 쌓이는 안내를 숨긴다 */}
+        <div className="min-w-0 max-[760px]:hidden">
+          <CareGuideRail />
+        </div>
       </div>
     </div>
   );

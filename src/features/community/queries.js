@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -19,6 +20,7 @@ import {
   reportPost,
   updatePost,
 } from './api';
+import { INFINITE_OPTIONS } from '@/utils/infiniteList';
 import { useOptimisticLike } from './optimisticLike';
 
 export const postKeys = {
@@ -34,6 +36,15 @@ export const usePostList = (params) =>
     queryKey: postKeys.list(params),
     queryFn: () => getPostList(params),
     /** 탭·정렬·검색·쪽을 바꾸는 동안 이전 목록 유지로 화면이 스켈레톤으로 바뀌지 않게 한다 */
+    placeholderData: keepPreviousData,
+  });
+
+/** 무한 스크롤 목록: params에 page는 넣지 않는다(쪽은 쿼리가 1부터 이어서 받음). 글을 쓰거나 지우면 ['posts','list']로 함께 새로 받는다 */
+export const usePostInfiniteList = (params) =>
+  useInfiniteQuery({
+    ...INFINITE_OPTIONS,
+    queryKey: [...postKeys.list(params), 'infinite'],
+    queryFn: ({ pageParam }) => getPostList({ ...params, page: pageParam }),
     placeholderData: keepPreviousData,
   });
 

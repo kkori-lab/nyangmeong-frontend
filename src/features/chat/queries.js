@@ -8,6 +8,7 @@ import {
 import { showToast } from '@/components/toastStore';
 import { useFileImage } from '@/hooks/useFileImage';
 import useKakaoMap from '@/hooks/useKakaoMap';
+import { careKeys } from '@/features/community/careQueries';
 import { searchPlaces } from '@/utils/placeSearch';
 import {
   acceptCareMatch,
@@ -26,6 +27,7 @@ import {
   leaveChatRoom,
   readChatRoom,
   rejectDealCancel,
+  reportChatRoom,
   requestCareCompletion,
   requestCareMatch,
   requestDealCancel,
@@ -90,6 +92,8 @@ const useChatRealtime = (enabled = true) => {
         }
       }
       invalidateSummaries(queryClient);
+      /** 열려 있는 펫돌봄 글·목록의 채팅 인원수·모집 상태 칩(매칭완료 등)도 새로 고침 없이 맞춘다 */
+      queryClient.invalidateQueries({ queryKey: careKeys.all });
     });
   }, [enabled, queryClient]);
 };
@@ -271,6 +275,8 @@ export const useDealAction = (room) => {
       });
       queryClient.invalidateQueries({ queryKey: ['care-matches'] });
       queryClient.invalidateQueries({ queryKey: chatKeys.lists });
+      /** 펫돌봄 글·목록의 모집 상태 칩(매칭완료 등)과 채팅 인원수도 함께 맞춘다 */
+      queryClient.invalidateQueries({ queryKey: careKeys.all });
     },
     onError: (error) => showToast(error.message, { type: 'error' }),
   });
@@ -316,3 +322,7 @@ export const useLeaveChatRoom = (otoChatRoomSn) => {
     },
   });
 };
+
+/** 채팅방 메뉴 [신고하기]: 채팅 상대를 방 번호로 신고 */
+export const useReportChatRoom = () =>
+  useMutation({ mutationFn: reportChatRoom });

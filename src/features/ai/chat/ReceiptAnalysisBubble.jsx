@@ -4,6 +4,7 @@ import { callName } from '@/utils/josa';
 import { FAILURE } from '../receipt/receiptFailure';
 import PetChoiceChips from './PetChoiceChips';
 import AiAvatar from './AiAvatar';
+import AnalyzingStatus from '@/components/AnalyzingStatus';
 
 const EMPTY_MARK = '—';
 const AI_NOTICE =
@@ -157,7 +158,11 @@ export default function ReceiptAnalysisBubble({
       {(status === 'analyzing' || status === 'cancelled') && (
         <AiRow avatarPet={avatarPet}>
           <div role="status" className={bubbleClass}>
-            <p>{callName(pet.petNm)}의 영수증을 분석하고 있어요…</p>
+            <p>
+              <AnalyzingStatus>
+                {callName(pet.petNm)}의 영수증을 분석하고 있어요
+              </AnalyzingStatus>
+            </p>
             {status === 'cancelled' && <p className={noteClass}>취소됨</p>}
           </div>
           {status === 'analyzing' && (

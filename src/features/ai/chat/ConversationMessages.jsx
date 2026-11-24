@@ -1,6 +1,7 @@
 import { Image as ImageIcon } from 'lucide-react';
 import ActionCard from './ActionCard';
 import AnswerBubble from './AnswerBubble';
+import { messageTypingKey } from './useTypewriter';
 import FallbackBubble from './FallbackBubble';
 import { CALENDAR_TOOLS } from './actionForm';
 import { AI_ROLE } from '../shared/aiCodes';
@@ -74,6 +75,19 @@ const placeCards = (messages, cards) => {
 };
 
 /**
+ * 글자 펼치기 대상: 방금(30초 안) 저장된 마지막 AI 메시지. 지난 방을 다시 열면 바로 전체
+ * - 말풍선이 처음 그려질 때 한 번만 정한다(useTypewriter가 첫 값만 씀)
+ * - 마지막 메시지만: 답변 말풍선이 보여 준 뒤 다음 전송 때 목록에 다시 나타나는 지난 답변은 펼치지 않는다
+ * - 이 창에서 이미 펼친 메시지는 방을 다시 열어도 바로 전체(memoKey, 사람 요청 2026-11-24 "처음 보여질 때만")
+ */
+const TYPING_RECENT_MS = 30 * 1000;
+
+const isRecent = (regDt) => {
+  const time = new Date(regDt).getTime();
+  return Number.isFinite(time) && Date.now() - time < TYPING_RECENT_MS;
+};
+
+/**
  * 저장된 메시지 목록
  * - avatarPet: AI 말풍선 얼굴로 쓸 방 태그 반려동물(없으면 기본 강아지 얼굴)
  */
@@ -86,6 +100,9 @@ export default function ConversationMessages({
   isChoiceDisabled = false,
   onRegenerate,
   onChoosePet,
+  onConfirmAction,
+  onCancelAction,
+  onChangeAction,
   onRetryAction,
   avatarPet,
   children,
@@ -109,6 +126,9 @@ export default function ConversationMessages({
         }
         isChoiceDisabled={isChoiceDisabled}
         onChoosePet={onChoosePet}
+        onConfirm={() => onConfirmAction(item.key)}
+        onCancel={() => onCancelAction(item.key)}
+        onChangeInput={(patch) => onChangeAction(item.key, patch)}
         onRetrySave={() => onRetryAction(item.key)}
         avatarPet={avatarPet}
       />
@@ -138,6 +158,10 @@ export default function ConversationMessages({
           <AnswerBubble
             status={isIncomplete ? 'incomplete' : 'done'}
             text={message.cnvrsCn}
+            isTyping={
+              message.aiCnvrsMsgSn === lastSn && isRecent(message.regDt)
+            }
+            memoKey={messageTypingKey(message.aiCnvrsMsgSn)}
             onRegenerate={
               isIncomplete && message.aiCnvrsMsgSn === lastSn
                 ? () => onRegenerate(message)

@@ -1,6 +1,6 @@
 /**
  * [채팅방 상단 바]
- * - ‹ 목록으로, 상대 프로필·이름, 돌봄 글 제목, [⋮] 돌봄 글 보기·거래 취소 요청·채팅방 나가기 (FN-CMU-005-01·11)
+ * - ‹ 목록으로, 상대 프로필·이름, 돌봄 글 제목, [⋮] 돌봄 글 보기·신고하기(채팅방 신고, 보호자·지원자 모두)·거래 취소 요청·채팅방 나가기 (FN-CMU-005-01·11)
  */
 import { useEffect, useRef, useState } from 'react';
 import { generatePath } from 'react-router-dom';
@@ -17,7 +17,13 @@ import {
 const menuItem =
   'flex h-11 w-full items-center gap-2.5 px-4 text-left text-ink-2 hover:bg-surface-2';
 
-export default function ChatRoomHeader({ room, onBack, onLeaveAsk, onCancelAsk }) {
+export default function ChatRoomHeader({
+  room,
+  onBack,
+  onLeaveAsk,
+  onCancelAsk,
+  onReportAsk,
+}) {
   const isLeaveBlocked = isLeaveBlockedStage(room.mtchDlngSttsCd);
   const cancelState = getDealCancelState(room);
   const canCancelDeal = canRequestDealCancel(room);
@@ -110,6 +116,18 @@ export default function ChatRoomHeader({ room, onBack, onLeaveAsk, onCancelAsk }
               <Icon name="article" />
               돌봄 글 보기
             </a>
+            <button
+              type="button"
+              role="menuitem"
+              className={menuItem}
+              onClick={() => {
+                setIsMenuOpen(false);
+                onReportAsk();
+              }}
+            >
+              <Icon name="flag" />
+              신고하기
+            </button>
             <hr className="my-1 border-line" />
             {canCancelDeal && (
               <>

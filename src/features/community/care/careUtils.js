@@ -1,4 +1,5 @@
 import {
+  addDays,
   formatDate,
   formatMonthDayDot,
   getWeekdayIndex,
@@ -79,6 +80,68 @@ export const CARE_TIMES = Array.from({ length: 48 }, (_, index) => {
   const hour = String(Math.floor(index / 2)).padStart(2, '0');
   return `${hour}:${index % 2 === 0 ? '00' : '30'}`;
 });
+
+/** 일정 칸에 쓰는 12시간 표기 목록: 12:00, 12:30, 1:00 … 11:30 (오전·오후는 따로 고른다) */
+export const TIME_12 = Array.from({ length: 24 }, (_, index) => {
+  const hour = Math.floor(index / 2) === 0 ? 12 : Math.floor(index / 2);
+  return `${hour}:${index % 2 === 0 ? '00' : '30'}`;
+});
+
+/** "HH:mm"(24시간) → 'AM'|'PM'. 빈 값이면 '' */
+export const periodOf = (time) =>
+  time ? (Number(time.slice(0, 2)) < 12 ? 'AM' : 'PM') : '';
+
+/** "14:00" → "2:00", "00:30" → "12:30". 빈 값이면 '' */
+export const to12Label = (time) => {
+  if (!time) return '';
+  const hour = Number(time.slice(0, 2)) % 12;
+  return `${hour === 0 ? 12 : hour}:${time.slice(3, 5)}`;
+};
+
+/** 오전·오후 + "2:00" → "HH:mm"(24시간) */
+export const to24Time = (period, label) => {
+  const [hour, minute] = label.split(':').map(Number);
+  const hour24 = (hour % 12) + (period === 'PM' ? 12 : 0);
+  return `${String(hour24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+};
+
+/** 시작 일시에 2시간을 더한 종료 기본값. 자정을 넘으면 다음 날 */
+export const plusTwoHours = (date, time) => {
+  const total = Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5)) + 120;
+  const nextDay = total >= 24 * 60;
+  const minutes = total % (24 * 60);
+  return {
+    date: nextDay ? addDays(date, 1) : date,
+    time: `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`,
+  };
+};
+
+/** 「11/24(월) 오후 2:00」 */
+const shortWhen = (date, time) =>
+  `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}(${WEEKDAYS[getWeekdayIndex(date)]}) ${periodOf(time) === 'AM' ? '오전' : '오후'} ${to12Label(time)}`;
+
+/**
+ * 일정 요약 한 줄: 「11/24(월) 오후 2:00 ~ 11/26(수) 오전 10:00 · 2일 20시간」
+ * 시작·종료가 모두 골라지고 종료가 시작보다 뒤일 때만 문자열, 아니면 ''
+ */
+export const scheduleSummary = ({ fromDate, fromTime, toDate, toTime }) => {
+  if (!fromDate || !fromTime || !toDate || !toTime) return '';
+  const diffMinutes =
+    (new Date(`${toDate}T${toTime}`) - new Date(`${fromDate}T${fromTime}`)) /
+    60000;
+  if (!(diffMinutes > 0)) return '';
+  const days = Math.floor(diffMinutes / 1440);
+  const hours = Math.floor((diffMinutes % 1440) / 60);
+  const minutes = diffMinutes % 60;
+  const length = [
+    days && `${days}일`,
+    hours && `${hours}시간`,
+    minutes && `${minutes}분`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return `${shortWhen(fromDate, fromTime)} ~ ${shortWhen(toDate, toTime)} · ${length}`;
+};
 
 const emptyBreed = () => ({ vrtyNm: null, vrtyDrctInptNm: null, typed: '' });
 
