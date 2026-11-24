@@ -7,12 +7,20 @@ import { toRoute } from '../shared/screenPaths';
 /** 서버가 멈췄을 때만 쓰는 안전 중단: 첫 글자 10초·전체 60초는 서버가 판정 */
 const SAFETY_TIMEOUT_MS = 70_000;
 
-/** 검색 답변이 아닌 판정(이동·폴백·등록·영수증) */
+/** 검색 답변 판정: 말풍선에 답변을 흘린다 */
 const SEARCH = 'SEARCH';
+/**
+ * 확인 카드 판정: 검색 답변처럼 말풍선(대기 → 요약 글)을 두고 카드를 그 뒤에 붙인다(추가-2)
+ * - silent로 두면 판정부터 끝까지 캐릭터·말풍선이 사라지고, 요약 글 메시지를 다시 불러오기 전에 카드가 먼저 그려진다
+ */
+const ACTION = 'ACTION';
+
+/** 말풍선을 두는 판정 */
+const hasBubble = (kind) => kind === SEARCH || kind === ACTION;
 
 /**
  * 상태: idle | waiting | streaming | done | error | incomplete | silent | failed
- * - silent: 검색이 아닌 판정을 받고 끝을 기다리는 중(말풍선 없음, 전송 차단)
+ * - silent: 검색·확인 카드가 아닌 판정(이동·폴백·영수증)을 받고 끝을 기다리는 중(말풍선 없음, 전송 차단)
  * - failed: 스트림 전 오류(400·404·502·연결 실패)
  */
 const idleState = {
@@ -100,7 +108,7 @@ export default function useAnswerStream() {
             queryClient.invalidateQueries({
               queryKey: aiKeys.detail(roomSn),
             });
-            if (kind !== SEARCH) {
+            if (!hasBubble(kind)) {
               setState((prev) => ({ ...prev, status: 'silent' }));
             }
           },
@@ -114,7 +122,9 @@ export default function useAnswerStream() {
         clearTimeout(timerRef.current);
         refresh();
 
-        if (result.intent?.kind !== SEARCH) {
+        /** 확인 카드인데 저장된 요약 글이 없으면 말풍선 없이(이동·폴백과 같이) */
+        const kind = result.intent?.kind;
+        if (!hasBubble(kind) || (kind === ACTION && !result.message)) {
           /** 내 메시지는 다시 불러온 상세에 들어올 때까지 임시 말풍선으로 유지 */
           setState((prev) => ({ ...idleState, pendingText: prev.pendingText }));
           return result;

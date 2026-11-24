@@ -1,3 +1,5 @@
+/** 가장 먼저: 보안 연결이 아닐 때(휴대폰 → http://PC-IP) 없는 crypto.randomUUID를 채운다 */
+import '@/utils/randomUUIDPolyfill';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

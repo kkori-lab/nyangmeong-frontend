@@ -86,6 +86,9 @@ export default function ConversationMessages({
   isChoiceDisabled = false,
   onRegenerate,
   onChoosePet,
+  onConfirmAction,
+  onCancelAction,
+  onChangeAction,
   onRetryAction,
   avatarPet,
   children,
@@ -109,6 +112,9 @@ export default function ConversationMessages({
         }
         isChoiceDisabled={isChoiceDisabled}
         onChoosePet={onChoosePet}
+        onConfirm={() => onConfirmAction(item.key)}
+        onCancel={() => onCancelAction(item.key)}
+        onChangeInput={(patch) => onChangeAction(item.key, patch)}
         onRetrySave={() => onRetryAction(item.key)}
         avatarPet={avatarPet}
       />

@@ -1,3 +1,5 @@
+import { addDays, addMonths, getTodayYmd } from '@/utils/formatDate';
+
 /**
  * 확인 카드(ACTION) 규칙: 칸 규칙(params)·조건부 필수(rules)로 빈 필수 칸·Java 요청을 정한다(폼 없음, 말로 확인)
  * - 계약: ai 저장소 docs/api/chat.md ActionCard
@@ -10,7 +12,7 @@
 const OMITTED_FIELDS = ['schdlSrcCd', 'rprsIconId'];
 
 /** 검사 수치 저장 도구와 직접 입력 항목 코드(HLTG12 직접입력) */
-const INSPECTION_TOOL = 'draft_inspection_values';
+export const INSPECTION_TOOL = 'draft_inspection_values';
 const DIRECT_INPUT_ARTICLE = 'HLTC0035';
 
 /**
@@ -47,7 +49,7 @@ export const hasPetChoice = (card) =>
   card.petChoices.length > 0 && 'petSn' in card.params;
 
 /** 지금 값 기준 필수 칸: 필수 + 조건이 맞는 조건부 필수 */
-const requiredFields = (card, input) => {
+export const requiredFields = (card, input) => {
   const fields = Object.entries(card.params)
     .filter(([, param]) => param.required)
     .map(([field]) => field);
@@ -122,3 +124,113 @@ export const CARE_ITEM_TOOL = 'draft_care_item';
 
 /** 케어 캘린더로 이어지는 등록 도구 */
 export const CALENDAR_TOOLS = ['draft_schedule', CARE_ITEM_TOOL];
+
+/**
+ * 카드에 보일 칸: 칸 규칙 순서대로, 경로 칸·카드에 두지 않는 칸·꺼진 조건부 칸·번호 칸(…Sn)·서버가 만드는 칸·파일 칸은 뺀다
+ * - 빈 칸은 필수(조건부 필수 포함)일 때만 보이고 isMissing
+ * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검사 수치의 검진기록(ckupRcdSn)도 카드가 따로 보인다
+ */
+export const cardRows = (card, input) => {
+  const missing = missingFields(card, input);
+  const editable = editableFields(card, input);
+  /** 일시를 카드에서 받으면 시간 입력(hrInptYn)은 시간을 넣었는지로 정해 따로 보이지 않는다 */
+  const isHourDerived = isHourInputDerived(card, input);
+  return Object.entries(card.params)
+    .filter(
+      ([field, param]) =>
+        param.in !== 'path' &&
+        isCardField(card, field) &&
+        !/Sn$/.test(field) &&
+        !param.generated &&
+        param.type !== 'file' &&
+        !isFieldOff(card, input, field) &&
+        !(isHourDerived && field === HOUR_INPUT_FIELD),
+    )
+    .map(([field, param]) => ({
+      field,
+      param,
+      value: input[field],
+      isMissing: missing.includes(field),
+      isEditable: editable.includes(field),
+    }))
+    .filter((row) => row.isMissing || !isEmptyValue(row.value));
+};
+
+/** 시간 입력 칸: 일시 칸과 짝 */
+export const HOUR_INPUT_FIELD = 'hrInptYn';
+
+/** 카드에서 바로 채우는 칸 종류: 목록·파일 칸은 말로 */
+const EDITABLE_TYPES = [
+  'string',
+  'code',
+  'boolean',
+  'date',
+  'datetime',
+  'int',
+  'long',
+  'decimal',
+];
+
+/**
+ * 카드에서 바로 채우는 칸(추가-1): 카드를 받을 때 비어 있던 필수·조건부 필수 칸
+ * - 받을 때 값으로 정하므로 채운 뒤에도 고칠 수 있다. 경로 칸·번호 칸·카드에 두지 않는 칸은 빼고, 반려동물은 이름 칩
+ */
+export const editableFields = (card, input) =>
+  requiredFields(card, input).filter((field) => {
+    const param = card.params[field];
+    return (
+      param &&
+      param.in !== 'path' &&
+      isCardField(card, field) &&
+      !/Sn$/.test(field) &&
+      !param.generated &&
+      EDITABLE_TYPES.includes(param.type) &&
+      isEmptyValue(card.input[field])
+    );
+  });
+
+/** 일시 칸을 카드에서 받고 시간 입력 칸이 있으면: 시간을 넣었는지로 시간 입력을 정한다 */
+export const isHourInputDerived = (card, input) =>
+  HOUR_INPUT_FIELD in card.params &&
+  editableFields(card, input).some(
+    (field) => card.params[field].type === 'datetime',
+  );
+
+/** 칸 아래에 서버 오류를 보이는 칸: 반려동물·검사 수치 검진기록·보이는 칸(검사 수치 표 제외) */
+export const errorFieldsShown = (card, input) => [
+  ...('petSn' in card.params ? ['petSn'] : []),
+  ...(card.tool === INSPECTION_TOOL ? ['ckupRcdSn'] : []),
+  ...cardRows(card, input)
+    .filter(
+      ({ field }) => !(card.tool === INSPECTION_TOOL && field === 'values'),
+    )
+    .map(({ field }) => field),
+];
+
+/** 케어 구역(HLTG13)·직접입력 주기(HLTG15) */
+const DAILY_ZONE = 'HLTC0036';
+const REGULAR_ZONE = 'HLTC0037';
+const CUSTOM_CYCLE = 'HLTC0042';
+
+/** 주기별 다음 날짜: 한달·1년은 같은 날짜, 그 달에 없으면 말일 */
+const CYCLE_STEPS = {
+  HLTC0038: (ymd) => addDays(ymd, 7),
+  HLTC0039: (ymd) => addDays(ymd, 14),
+  HLTC0040: (ymd) => addMonths(ymd, 1),
+  HLTC0041: (ymd) => addMonths(ymd, 12),
+};
+
+/**
+ * 케어 항목 카드의 다음 예정일(FN-AIM-012-07): 마지막으로 한 날(없으면 오늘) + 주기
+ * - 일상관리는 다음 날, 주기를 아직 정하지 못했으면 null("—")
+ */
+export const nextDueYmd = (input) => {
+  const base = input.lastCmptnYmd || getTodayYmd();
+  if (input.careZoneCd === DAILY_ZONE) return addDays(base, 1);
+  if (input.careZoneCd !== REGULAR_ZONE) return null;
+  if (input.careCycleCd === CUSTOM_CYCLE) {
+    const days = Number(input.cycleDrctInptDayCnt);
+    return Number.isInteger(days) && days > 0 ? addDays(base, days) : null;
+  }
+  return CYCLE_STEPS[input.careCycleCd]?.(base) ?? null;
+};
