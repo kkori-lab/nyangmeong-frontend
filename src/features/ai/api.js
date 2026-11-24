@@ -263,13 +263,56 @@ export const getChatReceiptResult = ({ recptSn, petSn }) =>
 
 /**
  * 피부 사진 분석 (POST /ai/skin-analyses, multipart, ai 저장소 docs/api/skinlesion.md)
- * - 응답 { rslt, grade, findings[{ lesionCd, lesionNm, cnfdnc }], guide[], notice, ruleVersion }, 결과는 저장하지 않는다
+ * - 응답 { rslt, grade, findings[{ lesionCd, lesionNm, cnfdnc }], guide[], notice, ruleVersion }, 결과는 saveLesionCard로 대화에 저장
  * - 오류 FILE_TYPE_NOT_ALLOWED·FILE_SIZE_EXCEEDED(400)·SKIN_ANALYZE_TIMEOUT(504)·SKIN_ANALYZE_API_ERROR(502)
  */
 export const analyzeSkin = ({ file, signal }) => {
   const form = new FormData();
   form.append('file', file);
   return aiApi.post('/skin-analyses', form, { signal });
+};
+
+/**
+ * 눈 사진 분석 (POST /ai/eye-analyses, multipart, ai 저장소 docs/api/eyelesion.md)
+ * - 응답은 피부와 같은 모양(rslt는 ANALYZED·NOT_PET_EYE·UNCLEAR)
+ * - 오류 FILE_TYPE_NOT_ALLOWED·FILE_SIZE_EXCEEDED(400)·EYE_ANALYZE_TIMEOUT(504)·EYE_ANALYZE_API_ERROR(502)
+ */
+export const analyzeEye = ({ file, signal }) => {
+  const form = new FormData();
+  form.append('file', file);
+  return aiApi.post('/eye-analyses', form, { signal });
+};
+
+/**
+ * 대화창 피부·눈 분석 결과 저장 (POST /ai/conversations/{aiCnvrsRoomSn}/lesion-card, ai 저장소 docs/api/chat.md)
+ * - kind: SKIN·EYE, rslt: 분석 응답 그대로 또는 ERROR·CANCELED, 그 밖의 칸은 분석 응답 그대로
+ * - 응답 { messages: [AI 요약], action: 지속 관찰 항목 확인 카드 | null }
+ */
+export const saveLesionCard = async ({
+  aiCnvrsRoomSn,
+  kind,
+  petSn,
+  rslt,
+  analysis,
+}) => {
+  touchConversation(aiCnvrsRoomSn);
+  const body = analysis
+    ? {
+        kind,
+        petSn,
+        rslt,
+        grade: analysis.grade ?? null,
+        findings: analysis.findings ?? [],
+        guide: analysis.guide ?? [],
+        notice: analysis.notice ?? null,
+        ruleVersion: analysis.ruleVersion ?? null,
+      }
+    : { kind, petSn, rslt };
+  const { messages, action } = await aiApi.post(
+    `/conversations/${aiCnvrsRoomSn}/lesion-card`,
+    body,
+  );
+  return { aiCnvrsRoomSn, messages, action: action ?? null };
 };
 
 /** 대화창에 첨부한 사진의 종류 */
@@ -282,6 +325,8 @@ export const IMAGE_KIND = {
   CHECKUP_PDF: 'CHECKUP_PDF',
   /** 반려동물 피부·털 문제 사진: 피부 분석으로(2026-11-24) */
   SKIN: 'SKIN',
+  /** 반려동물 눈 문제 사진: 눈 분석으로(2026-11-24) */
+  EYE: 'EYE',
 };
 
 /**

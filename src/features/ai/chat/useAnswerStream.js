@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { sendMessage } from '../api';
 import { aiKeys } from '../queries';
 import { toRoute } from '../shared/screenPaths';
+import { markRevealed, messageTypingKey } from './useTypewriter';
 
 /** 서버가 멈췄을 때만 쓰는 안전 중단: 첫 글자 10초·전체 60초는 서버가 판정 */
 const SAFETY_TIMEOUT_MS = 70_000;
@@ -131,6 +132,8 @@ export default function useAnswerStream() {
         }
 
         const { message, shortcut } = result;
+        /** 답변 말풍선이 펼쳐 보인 글: 방을 다시 열어 저장 메시지로 그려도 다시 펼치지 않음 */
+        if (message) markRevealed(messageTypingKey(message.aiCnvrsMsgSn));
         const isComplete = message?.cmptnYn !== false;
         const route = shortcut && toRoute(shortcut);
         setState((prev) => ({

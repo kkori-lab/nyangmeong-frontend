@@ -2,6 +2,16 @@
 
 기준: 공통레이아웃_기능명세서_v0.4_20261001, AI매니저_기능명세서_v0.7_20261009 (DMS, 2026-10-17), 커뮤니티_기능명세서_v0.7_20261019 (CMU-005만, KSJ 마일스톤에서 옮김, 2026-10-21), AI매니저_기능명세서_v0.9_20261026 (SCR-AIM-013만, DMS 업로드 전 로컬 사본, 2026-10-26), 관리자_기능명세서_v0.2_20261030 (DMS, 2026-10-30. 화면설계서 `관리자_화면설계서_v0.1_20261030`, 순서는 백엔드 `docs/admin/implementation-plan.md` 3절 단계)
 
+## SCR-AIM-013 대화창 · 눈 사진 분석 + 피부·눈 결과 저장(lesion-card) — 끝
+- 기능: 명세 기능 ID 없음(피부·안구 FN 행 작성 전, 사람 요청 2026-11-24 "눈 병변 분석 연결부터", lesion-card "같이 붙이자"). image-intent `EYE`·ASK 칩 → `POST /ai/eye-analyses`, 피부·눈 결과 → `lesion-card` 요약 + 지속 관찰 확인 카드(사진 첨부)
+- 기다리는 것: 없음(ai #108·#110·#111 develop 병합)
+- 완료 조건: E1 API · E2 피부·눈 흐름(되묻기·분석 중 [취소]·lesion-card 저장) · E3 EYE 분기·[눈 분석] 칩 · E4 카드 사진 첨부 multipart 실행 · E5 오류·경우(ERROR·CANCELED·형식 오류)
+- 결정(사람 2026-11-24): lesion-card 같이 붙임 / E4 말로 확인("등록해 줘")은 뺌(ai `/messages`가 파일 칸을 빈 칸으로 셈, ai 저장소 몫)
+- 추가 요청: 추가-1 AI 매니저 플로팅 창(`role="dialog"`) 안 펼침 목록이 창 뒤에 깔리던 것(공용 `getPortalTarget`) · 추가-2 새로 받은 AI 메시지 글자 펼치기(처음 볼 때만, 다시 열면 전체, `useTypewriter`)
+- 완료 조건 결과: 검증 `통과`(2026-11-24. 1회차 칸 이름·말로 확인 실패 → 칸 이름 고치고 말로 확인 뺌(루프 clear), 추가-2 결과 줄 2회 실패 뒤 루프 clear·파일 목록 고침, 이후 통과), 사람 확인 2026-11-24
+- 이번엔 안 함: E4 말로 확인(ai 저장소 "lesion-card 확인 말 사진 칸·메모 규칙 버전·빈 칸 Java 이름" 진행, 핸드오프 "다음에 할 것"), 같은 부위 관찰 중일 때 `draft_observation_cycle`
+- 연결 남음: 없음
+
 ## SCR-AIM-013 대화창 · PDF 검사결과지 분석 카드 연결 — 끝
 - 기능: 명세 기능 ID 추가 없음(계약 2026-11-23 사람 결정, 명세 FN-AIM-013-01 "PDF 불가"와 다름), 걸치는 기능 FN-AIM-013-01·02·03·04·09·10, HLT-005-04
 - 기다리는 것: 없음(ai #104·#105, 백엔드 #293 develop 병합됨)
@@ -37,7 +47,7 @@
 - 기능: 명세 기능 ID 추가 없음(backend-6d 요청 2026-11-24, KSJ 채팅방 「신고하기」를 채팅 상대 회원 신고로 변경, 사람 결정: 검사결과지 PDF·피부 병변 뒤에 진행)
 - 기다리는 것: KSJ 백엔드 회원 신고(POST /reports otoChatRoomSn, ReportMapper 글·댓글·회원 3분기, AdminReportService, MemberSuspensionService.suspendBySystem, DCLR v0.15) 병합. 병합 전에는 targetType=MEMBER·otoChatRoomSn 응답을 가짜로
 - 완료 조건 후보: 목록 대상 종류 「회원」 필터·표시(targetType=MEMBER) · 회원 신고 상세에서 [블라인드] 숨김(백엔드 400, 자동 블라인드 목록·복구에서도 회원 신고 제외, 복구 409) · 상세에 대상 회원·채팅방 표시(AdminReportSummary·AdminReportDetailResponse otoChatRoomSn, 목록 대상 내용은 그 방의 돌봄 글 제목, 채팅 원문은 보이지 않음). 회원 신고를 정지로 처리하면 신고된 상대 회원이 정지됨
-- 확인 필요: 대상 회원 정보가 응답의 어느 필드로 오는지(KSJ)
+- 확인 필요: 대상 회원 정보가 응답의 어느 필드로 오는지(KSJ) → 확인(2026-11-24 /start): KSJ 백엔드 #296 develop 병합됨. 목록·상세 `trgtMbrSn`·`otoChatRoomSn`, 상세 `trgtMbrNcnm`, 목록 `trgtCn`은 돌봄 글 제목, 필터 `targetType=MEMBER`, 회원 신고 조치는 유지·정지만(블라인드 400), 자동 블라인드 목록·복구에서 빠짐(409). 기능명세서 FN-ADM-030-08 "대상은 게시글·댓글만"과 다름(문서 담당)
 
 ## SCR-COM-002 기본 레이아웃 · 플로팅 버튼 말풍선·반려동물 등록·TOP 디자인 — 끝
 - 기능: 명세 기능 ID 추가 없음(사람 피드백 2026-11-23·24), 걸치는 기능 FN-COM-002-19·20·27

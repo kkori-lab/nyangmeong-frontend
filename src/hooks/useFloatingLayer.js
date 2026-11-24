@@ -5,9 +5,13 @@ import { useEffect } from 'react';
  * (사람 요청 2026-11-23, Radix·MUI Select처럼 포털 + 스크롤 잠금)
  */
 
-/** 포털을 붙일 곳: 모달(<dialog>은 맨 위층이라 body에 붙이면 가려짐) 안이면 그 dialog, 아니면 body */
+/**
+ * 포털을 붙일 곳: 모달 안이면 그 모달, 아니면 body
+ * - <dialog>은 맨 위층이라 body에 붙이면 가려짐
+ * - role="dialog"인 고정 창(AI 매니저 창 z-35 등)도 body의 펼침 창(z-30)보다 위라 그 창에 붙인다
+ */
 export const getPortalTarget = (anchor) =>
-  anchor?.closest('dialog') ?? document.body;
+  anchor?.closest('dialog, [role="dialog"]') ?? document.body;
 
 /**
  * position: fixed 기준점. 포털 대상에 transform·translate가 있으면 fixed가 화면이 아니라 그 요소 기준이 되므로
