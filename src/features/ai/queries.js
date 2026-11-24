@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { healthKeys } from '@/features/health/queries';
 import {
   analyzeChatLabPdf,
+  analyzeSkin,
   createChatCheckup,
   findChatNearSchedule,
   analyzeChatReceipt,
@@ -111,6 +112,9 @@ export const useAnalyzeChatReceipt = () =>
 /** 대화창 검사결과지 PDF 분석 */
 export const useAnalyzeChatLabPdf = () =>
   useMutation({ mutationFn: analyzeChatLabPdf });
+
+/** 대화창 피부 사진 분석 */
+export const useAnalyzeSkin = () => useMutation({ mutationFn: analyzeSkin });
 
 /** 대화창 검진기록 만들기: 가까운 예정 병원 일정 */
 export const useFindChatNearSchedule = () =>

@@ -4,6 +4,7 @@ const KINDS = [
   [IMAGE_KIND.CHARACTER, '캐릭터'],
   [IMAGE_KIND.MEDICAL_RECEIPT, '진료 영수증'],
   [IMAGE_KIND.EXPENSE_RECEIPT, '가계부'],
+  [IMAGE_KIND.SKIN, '피부 분석'],
 ];
 
 /**

@@ -13,6 +13,7 @@ import ConversationSidebar from '@/features/ai/chat/ConversationSidebar';
 import ReceiptAnalysisBubble from '@/features/ai/chat/ReceiptAnalysisBubble';
 import ImageIntentBubble from '@/features/ai/chat/ImageIntentBubble';
 import CheckupPdfBubble from '@/features/ai/chat/CheckupPdfBubble';
+import SkinAnalysisBubble from '@/features/ai/chat/SkinAnalysisBubble';
 import CheckupCreateCard from '@/features/ai/chat/CheckupCreateCard';
 import { CHECKUP_TYPES } from '@/features/health/scheduleTypes';
 import { IMAGE_KIND } from '@/features/ai/api';
@@ -36,6 +37,7 @@ import { useActionCards } from '@/features/ai/chat/useActionCards';
 import useAnswerStream from '@/features/ai/chat/useAnswerStream';
 import useChatReceipt from '@/features/ai/chat/useChatReceipt';
 import useChatCheckupPdf from '@/features/ai/chat/useChatCheckupPdf';
+import useChatSkin from '@/features/ai/chat/useChatSkin';
 import RouteGuideBubble from '@/features/ai/chat/RouteGuideBubble';
 import WelcomeMessage from '@/features/ai/chat/WelcomeMessage';
 import { useMemberSummary } from '@/features/member/queries';
@@ -204,6 +206,8 @@ export default function AiChatScreen({
       addCheckupCard(saved);
     },
   });
+  /** 피부 사진 분석: 결과는 화면에만(저장 없음) */
+  const skin = useChatSkin();
   /** 검진기록 없음 뒤 대화 안 검진기록 만들기: { aiCnvrsRoomSn, pet, request, afterMsgSn }, 버튼은 요약 메시지 바로 아래 */
   const [checkupDraft, setCheckupDraft] = useState(null);
   /** checkup-card가 준 확인 카드를 요약 메시지 뒤에 */
@@ -302,6 +306,7 @@ export default function AiChatScreen({
     actions.reset();
     receipt.reset();
     checkupPdf.reset();
+    skin.reset();
     setCheckupDraft(null);
     resetImage();
   };
@@ -372,6 +377,7 @@ export default function AiChatScreen({
     setNotice(null);
     receipt.reset();
     checkupPdf.reset();
+    skin.reset();
     resetImage();
     const afterSn = lastServerSn(conversation?.messages ?? []);
     setPendingAfterSn(afterSn);
@@ -452,6 +458,12 @@ export default function AiChatScreen({
       });
       return;
     }
+    if (kind === IMAGE_KIND.SKIN) {
+      setImage(null);
+      /** 사진 턴은 image-intent가 저장, 분석 결과는 화면에만 */
+      skin.start({ file: target.file });
+      return;
+    }
     if (kind === IMAGE_KIND.CHARACTER) {
       updateImage(target.id, {
         status: 'character',
@@ -477,6 +489,7 @@ export default function AiChatScreen({
     setNotice(null);
     receipt.reset();
     checkupPdf.reset();
+    skin.reset();
     imageIdRef.current += 1;
     const previewUrl = URL.createObjectURL(file);
     previewUrlsRef.current.push(previewUrl);
@@ -783,6 +796,7 @@ export default function AiChatScreen({
             {(conversation ||
               receipt.receipt ||
               checkupPdf.pdf ||
+              skin.skin ||
               image ||
               isPendingShown) && (
               <ConversationMessages
@@ -886,6 +900,13 @@ export default function AiChatScreen({
                     avatarPet={avatarPet}
                   />
                 )}
+                {skin.skin && (
+                  <SkinAnalysisBubble
+                    skin={skin.skin}
+                    onRetry={skin.retry}
+                    avatarPet={avatarPet}
+                  />
+                )}
                 {checkupDraft && (
                   <CheckupCreateCard
                     key={checkupDraft.afterMsgSn}
@@ -916,6 +937,7 @@ export default function AiChatScreen({
             {selectedRoomSn === null &&
               !receipt.receipt &&
               !checkupPdf.pdf &&
+              !skin.skin &&
               !image &&
               !answer.pendingText && (
                 <div className="flex min-h-full items-center justify-center">
@@ -942,6 +964,7 @@ export default function AiChatScreen({
               isAnswering ||
               receipt.isBusy ||
               checkupPdf.isBusy ||
+              skin.isBusy ||
               judgeImage.isPending ||
               image?.characterStatus === 'creating'
             }

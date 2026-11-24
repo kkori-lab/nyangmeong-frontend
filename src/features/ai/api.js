@@ -249,6 +249,17 @@ export const createChatCheckup = ({ petSn, body }) =>
 export const getChatReceiptResult = ({ recptSn, petSn }) =>
   api.get(`/receipts/${recptSn}`, { params: { petSn } });
 
+/**
+ * 피부 사진 분석 (POST /ai/skin-analyses, multipart, ai 저장소 docs/api/skinlesion.md)
+ * - 응답 { rslt, grade, findings[{ lesionCd, lesionNm, cnfdnc }], guide[], notice, ruleVersion }, 결과는 저장하지 않는다
+ * - 오류 FILE_TYPE_NOT_ALLOWED·FILE_SIZE_EXCEEDED(400)·SKIN_ANALYZE_TIMEOUT(504)·SKIN_ANALYZE_API_ERROR(502)
+ */
+export const analyzeSkin = ({ file, signal }) => {
+  const form = new FormData();
+  form.append('file', file);
+  return aiApi.post('/skin-analyses', form, { signal });
+};
+
 /** 대화창에 첨부한 사진의 종류 */
 export const IMAGE_KIND = {
   CHARACTER: 'CHARACTER',
@@ -257,6 +268,8 @@ export const IMAGE_KIND = {
   ASK: 'ASK',
   /** PDF 첨부: 판단 LLM 없이 검사결과지 분석으로(2026-11-23) */
   CHECKUP_PDF: 'CHECKUP_PDF',
+  /** 반려동물 피부·털 문제 사진: 피부 분석으로(2026-11-24) */
+  SKIN: 'SKIN',
 };
 
 /**

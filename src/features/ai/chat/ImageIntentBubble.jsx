@@ -3,6 +3,7 @@ import { PdfFileChip } from './CheckupPdfBubble';
 import { isPdfFile } from '@/utils/chatAttachment';
 import ImageKindChips from './ImageKindChips';
 import AiAvatar from './AiAvatar';
+import AnalyzingStatus from '@/components/AnalyzingStatus';
 
 const bubbleClass =
   'max-w-[592px] rounded-[4px_18px_18px_18px] border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink';
@@ -67,7 +68,9 @@ export default function ImageIntentBubble({
       {image.status === 'judging' && (
         <AiRow avatarPet={avatarPet}>
           <p role="status" className={bubbleClass}>
-            {isPdf ? '파일을 살펴보고 있어요…' : '사진을 살펴보고 있어요…'}
+            <AnalyzingStatus>
+              {isPdf ? '파일을 살펴보고 있어요' : '사진을 살펴보고 있어요'}
+            </AnalyzingStatus>
           </p>
         </AiRow>
       )}
