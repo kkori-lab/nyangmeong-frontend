@@ -11,6 +11,12 @@
 - 이번엔 안 함: 결과 줄의 검진상세 바로가기, 검진기록 없음 판단을 ai noCardReason으로 바꾸기(다음에 할 것)
 - 연결 남음: 없음
 
+## SCR-AIM-012 대화창 · 확인 카드를 카드 모양으로(검사 수치·일정·케어 항목) — 대기
+- 기능: 명세 기능 ID 추가 없음(사람 결정 2026-11-24, 2026-11-13 "카드 내용은 요약 글, 확인·취소는 말로" 결정을 바꿈), 걸치는 기능 FN-AIM-012(확인 카드), SCR-AIM-013 검사 수치 카드
+- 기다리는 것: 없음(프론트만). 다시 열었을 때 카드 다시 보이기·AI 안내 문구("'등록해 줘'라고 말해 주세요" → 카드 확인 안내)는 ai 저장소 몫이라 필요하면 ai에서 /start
+- 완료 조건 후보: 확인 카드(`draft_inspection_values`·`draft_schedule`·`draft_care_item`)가 대화 안에 같은 모양의 카드로 보임(검사 수치는 항목·수치·단위·참고 범위 표와 넣을 검진기록 이름, 일정·케어 항목은 칸 이름·값) · [저장]은 "등록해 줘"와 같은 실행 경로(useActionCards execute → Java → action-result), [취소]는 취소 결과 기록 · 말로 하는 확인·취소도 그대로 · 검진기록이 안 정해진 카드는 카드 안에서 고르거나 말로 고름(기획 때 정함)
+- 함께 정할 것: 항목 코드 이름(`features/health/labInput/bloodItems.js`)·검진기록 목록을 features/ai에서 쓰는 방법(pages 조립 또는 공용 위치, 검진기록 목록은 features/ai/api.js에서 따로 조회)
+
 ## SCR-ADM-030 신고 처리 · 채팅 상대 회원 신고 — 대기
 - 기능: 명세 기능 ID 추가 없음(backend-6d 요청 2026-11-24, KSJ 채팅방 「신고하기」를 채팅 상대 회원 신고로 변경, 사람 결정: 검사결과지 PDF·피부 병변 뒤에 진행)
 - 기다리는 것: KSJ 백엔드 회원 신고(POST /reports otoChatRoomSn, ReportMapper 글·댓글·회원 3분기, AdminReportService, MemberSuspensionService.suspendBySystem, DCLR v0.15) 병합. 병합 전에는 targetType=MEMBER·otoChatRoomSn 응답을 가짜로

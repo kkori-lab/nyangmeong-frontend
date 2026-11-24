@@ -6,6 +6,7 @@
 
 ## 다음에 할 것
 
+- 다음 작업 순서(사람 2026-11-24): ① 피부 병변 분석(ai 병합 알림 뒤, 아래 줄) ② SCR-AIM-012 확인 카드를 카드 모양으로(검사 수치·일정·케어 항목, 마일스톤 대기 절) ③ SCR-ADM-030 채팅 상대 회원 신고(KSJ 병합 대기, 마일스톤 대기 절)
 - SCR-AIM-013 PDF 남은 것: ① 검진기록 없음 판단을 요약 글("검진기록이 없어요") 대신 ai 계약 `CheckupCardResult.noCardReason` `NO_CHECKUP`으로 바꾸기(`pages/ai/AiChatScreen.jsx` `needsCheckup`, ai 계약에 이미 생김) ② 결과 줄의 검진상세 바로가기(이번엔 안 함) ③ PR을 만들면 backend 세션에 PR 번호 알림(백엔드 handoff "SCR-AIM-013 검사 수치 카드 연결 남음" 줄 지우기)
 - SCR-AIM-013 ai 저장소 몫(ai-23에 요청함, 그 저장소에서 /start): 검진기록 0건 저장 글을 "검진기록이 없어요. 검진기록을 먼저 등록할까요? …"로(지금 "본창 건강 일지에서…"), 도구 없음 글의 "본창" 빼기, 실행 카드 values에 inspArtclCd와 직접입력명이 같이 붙음(프론트 `actionForm.js` `cleanInput`이 보내기 전에 이름을 뺌), 검진기록 여럿에서 "10월 20일 ○○병원"이라고 답해도 ckupRcdSn이 안 채워지고 참고 범위 칸이 빠진 적 있음, "BUN 카드도 띄울게요" 뒤 카드 안 나옴, 요약 글 마지막 항목 줄 뒤 문단이 목록에 붙어 보임(빈 줄 없음)
 - SCR-AIM-013 팀 알림(PR 본문 + 팀 채널, JAJ): AI 대화창이 검진기록 만들기에 `POST /api/pets/{petSn}/checkups`와 가까운 예정 병원 일정 찾기(`GET /pets/{petSn}/care-schedules`, 앞뒤 7일·FN-HLT-002-46 규칙)를 `features/ai/api.js`에 따로 둠(다른 도메인 함수 import 금지). 건강 일지 검진기록 추가 규칙·칸 길이(80·500·200)를 바꾸면 알려 달라. 모두: 새 공용 `utils/chatAttachment.js`(사진 + PDF 첨부 검사)
