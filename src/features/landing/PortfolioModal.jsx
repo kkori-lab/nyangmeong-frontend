@@ -39,7 +39,7 @@ const LOGIN_CARDS = [
 /** 랜딩 섹션 머리(SectionTitle)와 같은 영어 대문자 라벨 */
 function GroupLabel({ children }) {
   return (
-    <p className="mb-3 text-[13px] font-medium tracking-wider text-[#2c6669] uppercase">
+    <p className="mb-3 text-[13px] font-medium tracking-wider text-[#2c6669] uppercase max-[760px]:mb-2 max-[760px]:text-[12px]">
       {children}
     </p>
   );
@@ -63,10 +63,11 @@ export default function PortfolioModal({ redirect, onClose }) {
       isLarge
       isAutoHeight
       isHeaderHidden
+      isSheetDisabled
       onClose={onClose}
     >
       {/* 로그인 화면 사진 칸처럼 모달 가장자리까지 꽉 채운 사진 + 랜딩 히어로 같은 어두운 막·흰 글자 */}
-      <div className="relative h-[260px] shrink-0 bg-black md:h-[320px]">
+      <div className="relative h-[140px] shrink-0 bg-black md:h-[320px]">
         <img
           src={HERO_SLIDES[1].image}
           alt=""
@@ -85,30 +86,34 @@ export default function PortfolioModal({ redirect, onClose }) {
             라벨·로고·제목이 눈으로 같은 간격이 되게: 글자 줄 높이 여백을 없애고(leading-none) gap으로 띄운다.
             로고는 "p" 꼬리만큼 아래가 비어 보여 제목을 그만큼(6px) 끌어올린다
           */}
-        <div className="absolute inset-x-6 bottom-6 flex flex-col items-start gap-3 text-white [&>img+p]:-mt-1.5">
+        <div className="absolute inset-x-6 bottom-6 flex flex-col items-start gap-3 text-white max-[760px]:bottom-4 max-[760px]:gap-2.5 [&>img+p]:-mt-1.5">
           <p className="text-[13px] leading-none font-medium tracking-wider text-[#5cd1d6] uppercase">
             Portfolio Project
           </p>
-          <img src={logoWhite} alt="pawever" className="h-7 w-auto" />
+          <img
+            src={logoWhite}
+            alt="pawever"
+            className="h-7 w-auto max-[760px]:h-6"
+          />
           <p
             aria-hidden="true"
-            className="text-[24px] leading-none font-extrabold break-keep md:text-[30px]"
+            className="text-[20px] leading-none font-extrabold break-keep md:text-[30px]"
           >
             {TITLE}
           </p>
         </div>
       </div>
 
-      <div className="px-6 pt-5 pb-8 md:pb-10">
-        <p className="text-[15px] leading-relaxed break-keep text-[#555555]">
+      <div className="px-6 pt-5 pb-8 max-[760px]:px-5 max-[760px]:pt-4 max-[760px]:pb-5 md:pb-10">
+        <p className="text-[15px] leading-relaxed break-keep text-[#555555] max-[760px]:text-[13px]">
           반려동물의 건강 기록부터 케어미션, AI 매니저, 커뮤니티까지 한곳에 모은
           반려생활 서비스입니다. 역할을 골라 로그인하면 실제 기능을 확인할 수
           있습니다.
         </p>
 
-        <div className="mt-6">
+        <div className="mt-6 max-[760px]:mt-4">
           <GroupLabel>Login</GroupLabel>
-          <div className="grid gap-3 min-[760px]:grid-cols-2">
+          <div className="grid gap-2 min-[760px]:grid-cols-2 min-[760px]:gap-3">
             {LOGIN_CARDS.map((item) => {
               const Icon = item.icon;
               return (
@@ -116,23 +121,26 @@ export default function PortfolioModal({ redirect, onClose }) {
                   key={item.key}
                   to={loginPaths[item.key]}
                   state={{ demo: item.key }}
-                  className={`group flex items-center gap-4 rounded-[20px] px-5 py-4 transition-colors ${item.card}`}
+                  className={`group flex items-center gap-4 rounded-[20px] px-5 py-4 transition-colors max-[760px]:gap-3 max-[760px]:rounded-2xl max-[760px]:px-4 max-[760px]:py-3 ${item.card}`}
                 >
                   <span
-                    className={`grid size-11 shrink-0 place-items-center rounded-full ${item.iconWrap}`}
+                    className={`grid size-11 shrink-0 place-items-center rounded-full max-[760px]:size-9 ${item.iconWrap}`}
                   >
-                    <Icon className="size-5" aria-hidden="true" />
+                    <Icon
+                      className="size-5 max-[760px]:size-4"
+                      aria-hidden="true"
+                    />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[17px] font-bold">
+                    <span className="block text-[17px] font-bold max-[760px]:text-[15px]">
                       {item.title}
                     </span>
-                    <span className="mt-0.5 block text-[13px] leading-5 break-keep opacity-75">
+                    <span className="mt-0.5 block text-[13px] leading-5 break-keep opacity-75 max-[760px]:text-[12px] max-[760px]:leading-4">
                       {item.desc}
                     </span>
                   </span>
                   <ArrowRight
-                    className="size-5 shrink-0 transition-transform group-hover:translate-x-1"
+                    className="size-5 shrink-0 transition-transform group-hover:translate-x-1 max-[760px]:size-4"
                     aria-hidden="true"
                   />
                 </Link>
@@ -141,7 +149,7 @@ export default function PortfolioModal({ redirect, onClose }) {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 max-[760px]:mt-4">
           <GroupLabel>GitHub</GroupLabel>
           {/* 랜딩 헤더 [로그인]과 같은 알약 버튼 */}
           <ul className="grid grid-cols-2 gap-2 min-[760px]:grid-cols-4">
@@ -151,7 +159,7 @@ export default function PortfolioModal({ redirect, onClose }) {
                   href={url}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex h-10 items-center justify-center gap-1.5 rounded-full border border-line text-[13px] font-semibold text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
+                  className="flex h-10 items-center justify-center gap-1.5 rounded-full border border-line text-[13px] max-[760px]:h-9 max-[760px]:text-[12px] font-semibold text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
                 >
                   <GithubLogo />
                   {name}
@@ -161,7 +169,7 @@ export default function PortfolioModal({ redirect, onClose }) {
           </ul>
         </div>
 
-        <p className="mt-6 text-center text-[13px] break-keep text-[#999999]">
+        <p className="mt-6 text-center text-[13px] break-keep text-[#999999] max-[760px]:mt-4 max-[760px]:text-[11px]">
           데모 계정은 입력만 제공되며, 로그인 버튼을 직접 눌러야 접속됩니다.
         </p>
       </div>
