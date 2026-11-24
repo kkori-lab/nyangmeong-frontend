@@ -39,6 +39,7 @@ import useChatReceipt from '@/features/ai/chat/useChatReceipt';
 import useChatCheckupPdf from '@/features/ai/chat/useChatCheckupPdf';
 import useChatLesion, { LESION_KIND } from '@/features/ai/chat/useChatLesion';
 import { attachFile } from '@/features/ai/chat/actionForm';
+import { isPdfFile } from '@/utils/chatAttachment';
 import RouteGuideBubble from '@/features/ai/chat/RouteGuideBubble';
 import WelcomeMessage from '@/features/ai/chat/WelcomeMessage';
 import { useMemberSummary } from '@/features/member/queries';
@@ -346,8 +347,9 @@ export default function AiChatScreen({
   /**
    * 서버 판정별 화면 처리: 검색 답변은 말풍선 담당
    * - sentCardKey: 이번 요청에 실은 확인 카드, 카드 없이 답하면(취소 말 등) 그 카드를 버림
+   * - attachedFiles: 이번에 입력창으로 보내 그 카드에 붙인 사진(상태 반영 전이라 따로 받음)
    */
-  const handleResult = (result, afterSn, sentCardKey) => {
+  const handleResult = (result, afterSn, sentCardKey, attachedFiles = {}) => {
     if (!result) return;
     const { aiCnvrsRoomSn, intent } = result;
     if (sentCardKey != null && !result.action) actions.drop(sentCardKey);
@@ -363,10 +365,10 @@ export default function AiChatScreen({
         card: result.action,
         afterSn,
         anchorSn: result.message?.aiCnvrsMsgSn ?? null,
-        files:
-          sentCard?.card.tool === result.action.tool
-            ? actions.filesOf(sentCardKey)
-            : {},
+        ...(sentCard?.card.tool === result.action.tool && {
+          files: { ...actions.filesOf(sentCardKey), ...attachedFiles },
+          photoFields: actions.photoFieldsOf(sentCardKey),
+        }),
       };
       /** 확인 말("등록해 줘"): 서버가 다시 검증한 카드를 바로 실행 */
       if (result.execute) actions.execute(aiCnvrsRoomSn, params);
@@ -391,7 +393,7 @@ export default function AiChatScreen({
    * 메시지 전송: 처리 전 가장 최근 확인 카드를 함께 전송
    * - choicePetSn: 카드의 반려동물 이름 칩으로 고른 아이, 실을 카드의 petSn으로(같은 이름이 둘이어도 고른 아이)
    */
-  const handleSend = async (cnvrsCn, choicePetSn = null) => {
+  const handleSend = async (cnvrsCn, choicePetSn = null, attachedFiles) => {
     followBottom({ smooth: true });
     setFirstMessage(null);
     setIsAttachFailed(false);
@@ -427,7 +429,7 @@ export default function AiChatScreen({
       action,
       onRoom: setSelectedRoomSn,
     });
-    handleResult(result, afterSn, action ? latestCardKey : null);
+    handleResult(result, afterSn, action ? latestCardKey : null, attachedFiles);
   };
 
   /** [다시 시도]·[다시 생성]: 방의 마지막 사용자 메시지에 재답변 */
@@ -509,6 +511,15 @@ export default function AiChatScreen({
 
   /** 사진 첨부 전송: 사진+글로 종류를 판단한 뒤 그 흐름으로, 판단 실패면 종류 칩 */
   const handleSendImage = (file, text) => {
+    /** 사진을 기다리는 확인 카드가 있으면 그 카드에 붙이고, 함께 보낸 글은 그 카드와 함께 보냄(용도 판단 없음) */
+    const photoKey = isPdfFile(file)
+      ? null
+      : actions.photoCardKey(latestCardKey);
+    if (photoKey != null) {
+      const attached = actions.attachPhoto(photoKey, file);
+      if (text.trim()) handleSend(text, null, attached);
+      return;
+    }
     followBottom({ smooth: true });
     setFirstMessage(null);
     setIsAttachFailed(false);

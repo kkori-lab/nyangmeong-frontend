@@ -155,6 +155,9 @@ export const jsonInput = (card, rawInput) => {
   );
 };
 
+/** 관찰 기록 추가 도구: 관찰 항목 번호(obsrvArtclSn)만 오므로 카드가 이름을 따로 보인다 */
+export const OBSERVATION_CYCLE_TOOL = 'draft_observation_cycle';
+
 /** 케어 항목 등록 도구 */
 export const CARE_ITEM_TOOL = 'draft_care_item';
 

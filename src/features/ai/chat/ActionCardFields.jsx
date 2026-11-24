@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ImagePlus, RefreshCw } from 'lucide-react';
 import DatePicker from '@/components/DatePicker';
 import DropdownSelect from '@/components/DropdownSelect';
 import TimeSelect from '@/components/TimeSelect';
-import { CHIP, CHIP_ON } from '@/components/buttonStyles';
+import { BTN_SECONDARY, CHIP, CHIP_ON } from '@/components/buttonStyles';
 import { INPUT, TEXTAREA } from '@/components/formStyles';
 import { BADGE_COLORS, TONE_CLASSES } from '@/constants/calendarBadge';
 import {
@@ -15,21 +16,30 @@ import {
   getYmdOf,
   makeDateTime,
 } from '@/utils/formatDate';
-import { useChatCheckups } from '../queries';
+import {
+  RECEIPT_ACCEPT,
+  RECEIPT_HELP,
+  validateReceiptFile,
+} from '@/utils/receiptFile';
+import { useChatCheckups, useChatObservationItems } from '../queries';
 import { actionFieldName } from '../shared/actionFields';
 import {
   CARE_ITEM_TOOL,
   HOUR_INPUT_FIELD,
   INSPECTION_TOOL,
+  OBSERVATION_CYCLE_TOOL,
   cardRows,
   isHourInputDerived,
   hasPetChoice,
+  missingFields,
   nextDueYmd,
 } from './actionForm';
 
 const LABEL_CLASS = 'text-sm leading-[22px] text-subtle';
 const VALUE_CLASS = 'min-w-0 break-words text-base leading-6 text-ink';
 const MISSING = '입력해 주세요';
+/** 사진 칸만 빈 채로 확인 말("등록해 줘")이 왔을 때 */
+const PHOTO_FIRST = '사진을 올려야 등록돼요';
 
 /** 직접 입력 검사항목 코드(HLTG12) */
 const DIRECT_INPUT_ARTICLE = 'HLTC0035';
@@ -221,6 +231,21 @@ function CheckupValue({ input, isDisabled, onChange }) {
   );
 }
 
+/** 관찰 기록을 추가할 관찰 항목: "항목명 · 부위 · 세부 위치" */
+function ObservationItemValue({ petSn, obsrvArtclSn }) {
+  const { data: items, isPending, isError } = useChatObservationItems(petSn);
+  if (isEmpty(obsrvArtclSn))
+    return <span className="text-danger">{MISSING}</span>;
+  if (isPending) return <span className="text-subtle">불러오는 중…</span>;
+  const item = isError
+    ? null
+    : items.find((target) => target.obsrvArtclSn === Number(obsrvArtclSn));
+  if (!item) return `관찰 항목 ${obsrvArtclSn}`;
+  return [item.obsrvArtclNm, item.obsrvRegnCdNm, item.obsrvRegnDtlNm]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 /** 칩으로 고르는 칸이 이보다 많으면 펼침 목록 */
 const MAX_CHIP_COUNT = 6;
 /** 이보다 긴 글 칸은 여러 줄 */
@@ -373,6 +398,97 @@ function EditableValue({
 }
 
 /**
+ * 사진 칸(파일 칸): 비어 있으면 끌어다 놓기 칸 모양의 고르기 버튼, 고르면 미리보기 + [바꾸기]
+ * - 영수증 업로드와 같은 검사(jpg·jpeg·png·webp, 10MB, 실제 형식). 통과 못 하면 안내만 하고 붙이지 않는다
+ */
+function PhotoField({
+  label,
+  value,
+  isMissing,
+  missingText = MISSING,
+  isDisabled,
+  onPick,
+}) {
+  const fileRef = useRef(null);
+  const [fileError, setFileError] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  useEffect(() => {
+    if (!(value instanceof Blob)) return undefined;
+    const url = URL.createObjectURL(value);
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- 고른 파일이 바뀔 때 미리보기 주소를 만들고 정리 */
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [value]);
+
+  const handleChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    const message = await validateReceiptFile(file);
+    setFileError(message);
+    if (!message) onPick(file);
+  };
+
+  const hasFile = value instanceof Blob && previewUrl;
+  return (
+    <div className="flex flex-col gap-1">
+      {hasFile ? (
+        <div className="relative overflow-hidden rounded-box border border-line">
+          <img
+            src={previewUrl}
+            alt={`고른 ${label}`}
+            className="block h-40 w-full object-cover"
+          />
+          <button
+            type="button"
+            disabled={isDisabled}
+            className={`${BTN_SECONDARY} absolute right-2 bottom-2 h-8 px-3 text-sm`}
+            onClick={() => fileRef.current.click()}
+          >
+            <RefreshCw className="size-4" aria-hidden="true" />
+            바꾸기
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          disabled={isDisabled}
+          aria-invalid={isMissing || Boolean(fileError)}
+          className={`flex min-h-30 w-full flex-col items-center justify-center gap-2 rounded-box border border-dashed bg-surface-2 p-4 text-subtle enabled:hover:border-brand-500 enabled:hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60 ${
+            fileError ? 'border-danger' : 'border-line-strong'
+          }`}
+          onClick={() => fileRef.current.click()}
+        >
+          <ImagePlus className="size-8" aria-hidden="true" />
+          <b className="font-semibold text-ink">{label}을 올려 주세요</b>
+          <span className="text-sm">{RECEIPT_HELP}</span>
+        </button>
+      )}
+      {fileError ? (
+        <span role="alert" className="text-sm leading-[22px] text-danger">
+          {fileError}
+        </span>
+      ) : (
+        isMissing && (
+          <span className="text-sm leading-[22px] text-danger">
+            {missingText}
+          </span>
+        )
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept={RECEIPT_ACCEPT}
+        aria-label={`${label} 고르기`}
+        className="hidden"
+        onChange={handleChange}
+      />
+    </div>
+  );
+}
+
+/**
  * 칸 한 줄: 이름 | 값, 서버 칸 오류는 값 아래
  * - isStacked: 카드에서 입력하는 줄은 760 미만에서 이름을 위로 올려 입력이 카드 폭을 다 쓴다(시간 3칸이 넘치지 않게)
  */
@@ -411,6 +527,8 @@ export default function ActionCardFields({
   isDisabled,
   onChoosePet,
   onChangeInput,
+  photoFields = [],
+  isPhotoAsked = false,
 }) {
   const rows = cardRows(card, input);
   const isInspection = card.tool === INSPECTION_TOOL;
@@ -418,6 +536,7 @@ export default function ActionCardFields({
     card.petNm ??
     card.petChoices.find((pet) => pet.petSn === input.petSn)?.petNm;
   const hasPetChips = isActive && hasPetChoice(card) && input.petSn == null;
+  const missing = missingFields(card, input);
 
   return (
     <dl className="flex flex-col gap-2">
@@ -446,6 +565,15 @@ export default function ActionCardFields({
           )}
         </Row>
       )}
+      {card.tool === OBSERVATION_CYCLE_TOOL &&
+        'obsrvArtclSn' in card.params && (
+          <Row label="관찰 항목" error={fieldErrors.obsrvArtclSn}>
+            <ObservationItemValue
+              petSn={input.petSn ?? null}
+              obsrvArtclSn={input.obsrvArtclSn}
+            />
+          </Row>
+        )}
       {isInspection && 'ckupRcdSn' in card.params && (
         <Row label="검진기록" error={fieldErrors.ckupRcdSn}>
           <CheckupValue
@@ -512,6 +640,18 @@ export default function ActionCardFields({
           </Row>
         );
       })}
+      {photoFields.map((field) => (
+        <Row key={field} label={actionFieldName(field)} isStacked>
+          <PhotoField
+            label={actionFieldName(field)}
+            value={input[field]}
+            isMissing={missing.includes(field)}
+            missingText={isPhotoAsked ? PHOTO_FIRST : MISSING}
+            isDisabled={isDisabled || !isActive}
+            onPick={(file) => onChangeInput({ [field]: file })}
+          />
+        </Row>
+      ))}
       {card.tool === CARE_ITEM_TOOL && (
         <Row label="다음 예정일">
           {nextDueYmd(input) ? formatYmd(nextDueYmd(input)) : '—'}
