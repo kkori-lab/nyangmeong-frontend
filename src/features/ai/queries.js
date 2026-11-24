@@ -7,6 +7,7 @@ import {
   createChatCheckup,
   findChatNearSchedule,
   getChatCheckups,
+  getChatObservationItems,
   analyzeChatReceipt,
   deleteConversation,
   executeAction,
@@ -28,7 +29,16 @@ export const aiKeys = {
   receipt: (recptSn, petSn) => ['ai', 'receipts', recptSn, petSn],
   checkups: ['ai', 'checkups'],
   checkupList: (petSn) => ['ai', 'checkups', petSn],
+  observationItemList: (petSn) => ['ai', 'observation-items', petSn],
 };
+
+/** 관찰 기록 추가 확인 카드의 관찰 항목 목록 */
+export const useChatObservationItems = (petSn) =>
+  useQuery({
+    queryKey: aiKeys.observationItemList(petSn),
+    queryFn: () => getChatObservationItems(petSn),
+    enabled: petSn != null,
+  });
 
 /** 검사 수치 확인 카드의 검진기록 목록 */
 export const useChatCheckups = (petSn) =>

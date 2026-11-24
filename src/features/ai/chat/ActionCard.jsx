@@ -148,6 +148,8 @@ export default function ActionCard({
           isDisabled={isLocked}
           onChoosePet={onChoosePet}
           onChangeInput={onChangeInput}
+          photoFields={item.photoFields}
+          isPhotoAsked={item.isPhotoAsked}
         />
         {isBusy && (
           <p role="status" className="text-sm leading-[22px] text-subtle">

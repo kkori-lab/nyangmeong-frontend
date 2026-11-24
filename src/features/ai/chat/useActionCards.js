@@ -55,10 +55,21 @@ export function useActionCards() {
     );
 
   /** 새 카드 항목 */
-  const toItem = ({ key, card, afterSn, anchorSn = null, files = {} }) => ({
+  const toItem = ({
+    key,
+    card,
+    afterSn,
+    anchorSn = null,
+    files = {},
+    photoFields,
+  }) => ({
     key,
     card,
     input: { ...card.input, ...files },
+    /** 카드에 사진 줄로 보일 파일 칸: 분석한 사진을 붙여 받은 칸은 숨기고, 이어 받은 카드는 앞 카드 그대로 */
+    photoFields:
+      photoFields ??
+      fileFields(card).filter((field) => !(files[field] instanceof Blob)),
     afterSn,
     anchorSn,
     status: 'pending',
@@ -68,6 +79,8 @@ export function useActionCards() {
     unsaved: null,
     resultText: null,
     resultMsgSn: null,
+    /** 사진 칸만 빈 채로 확인 말이 왔는지: 사진 칸 아래 안내를 "사진을 올려야 등록돼요"로 */
+    isPhotoAsked: false,
   });
 
   /** 새 카드 */
@@ -123,9 +136,19 @@ export function useActionCards() {
     await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.DONE, savedInput);
   };
 
-  /** 새 카드를 받자마자 실행(done.execute): 확인 말에 서버가 다시 검증한 카드 */
+  /**
+   * 새 카드를 받자마자 실행(done.execute): 확인 말에 서버가 다시 검증한 카드
+   * - 서버는 파일 칸을 세지 않아 사진 칸만 비어도 실행이 온다(ai PR #114). 그때는 실행하지 않고 카드에서 사진을 받는다
+   */
   const execute = (aiCnvrsRoomSn, params) => {
     const item = toItem(params);
+    const missingFiles = fileFields(item.card).filter((field) =>
+      missingFields(item.card, item.input).includes(field),
+    );
+    if (missingFiles.length > 0) {
+      setActionCards((prev) => [...prev, { ...item, isPhotoAsked: true }]);
+      return Promise.resolve();
+    }
     setActionCards((prev) => [...prev, item]);
     return run(aiCnvrsRoomSn, item);
   };
@@ -185,6 +208,42 @@ export function useActionCards() {
     };
   };
 
+  /** 사진을 기다리는 카드: 가장 최근 처리 전 카드에 빈 파일 칸이 있으면 그 번호 */
+  const photoCardKey = (latestCardKey) => {
+    const latest = actionCards.at(-1);
+    if (
+      !latest ||
+      latest.key !== latestCardKey ||
+      latest.status !== 'pending' ||
+      latest.isBusy ||
+      latest.unsaved
+    ) {
+      return null;
+    }
+    const missing = missingFields(latest.card, latest.input);
+    return fileFields(latest.card).some((field) => missing.includes(field))
+      ? latest.key
+      : null;
+  };
+
+  /** 입력창으로 보낸 사진을 그 카드의 빈 파일 칸에 붙인다: 붙인 { 칸: File } */
+  const attachPhoto = (key, file) => {
+    const item = actionCards.find((target) => target.key === key);
+    if (!item) return {};
+    const missing = missingFields(item.card, item.input);
+    const files = Object.fromEntries(
+      fileFields(item.card)
+        .filter((field) => missing.includes(field))
+        .map((field) => [field, file]),
+    );
+    changeInput(key, files);
+    return files;
+  };
+
+  /** 카드의 사진 줄 칸: 말로 고쳐 새로 받은 같은 도구 카드에 이어 준다 */
+  const photoFieldsOf = (key) =>
+    actionCards.find((target) => target.key === key)?.photoFields;
+
   /** 카드에 붙인 파일: 말로 확인해 서버가 새로 준 같은 도구 카드에 이어 붙인다 */
   const filesOf = (key) => {
     const item = actionCards.find((target) => target.key === key);
@@ -209,6 +268,9 @@ export function useActionCards() {
     retrySave,
     pendingAction,
     filesOf,
+    photoCardKey,
+    attachPhoto,
+    photoFieldsOf,
     reset,
   };
 }
