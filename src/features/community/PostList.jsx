@@ -1,11 +1,11 @@
 import { Heart, MessageCircle, SearchX } from 'lucide-react';
-import { useState } from 'react';
 import { generatePath, Link, useLocation } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
-import BoardPagination from '@/components/BoardPagination';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
 import FileImage from '@/components/FileImage';
+import LoadMore from '@/components/LoadMore';
+import useSearchDraft from '@/hooks/useSearchDraft';
 import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
@@ -28,13 +28,15 @@ export default function PostList({
   onSortChange,
   onMineChange,
   onSearch,
-  onPageChange,
+  hasNext,
+  isFetchingNext,
+  onLoadMore,
   onReset,
   action,
 }) {
-  const [input, setInput] = useState(keyword);
+  const { input, setInput, commit } = useSearchDraft(keyword);
   const { search } = useLocation();
-  const { content, page, totalPages, totalElements } = posts;
+  const { content, totalElements } = posts;
 
   const handleReset = () => {
     setInput('');
@@ -51,13 +53,19 @@ export default function PostList({
           search={{
             value: input,
             onChange: setInput,
-            onSubmit: () => onSearch(input.trim()),
+            onSubmit: () => {
+              const next = commit();
+              if (next !== keyword) onSearch(next);
+            },
           }}
-          totalElements={totalElements}
-          onBoardChange={onBoardChange}
-          onSortChange={onSortChange}
-          onMineChange={onMineChange}
+          onBoardChange={(next) => onBoardChange(next, commit())}
+          onSortChange={(next) => onSortChange(next, commit())}
+          onMineChange={(next) => onMineChange(next, commit())}
         />
+
+        <p aria-live="polite" className="text-sm text-muted">
+          전체 <b className="font-bold text-ink">{totalElements}</b> 건
+        </p>
 
         {content.length === 0 ? (
           <EmptyResult
@@ -81,7 +89,7 @@ export default function PostList({
                     pstSn: item.pstSn,
                   })}
                   state={{ listSearch: search }}
-                  className={`group grid gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 ${item.thumbAtchFileSn ? 'grid-cols-[minmax(0,1fr)_200px]' : 'grid-cols-1'}`}
+                  className={`group grid gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden ${item.thumbAtchFileSn ? 'grid-cols-[minmax(0,1fr)_240px]' : 'grid-cols-1'}`}
                 >
                   <div className="min-w-0 max-[760px]:order-2">
                     <PostBadges post={item} showPopular={sort !== 'hot'} />
@@ -97,7 +105,7 @@ export default function PostList({
                   {item.thumbAtchFileSn && (
                     <span
                       aria-hidden="true"
-                      className="relative col-start-2 row-span-2 row-start-1 min-h-[150px] self-stretch overflow-hidden rounded-[10px] bg-surface-2 max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
+                      className="relative col-start-2 row-span-2 row-start-1 min-h-[150px] self-stretch overflow-hidden rounded-[10px] bg-surface-2 max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:min-h-0"
                     >
                       <FileImage
                         src={publicFileUrl(item.thumbAtchFileSn)}
@@ -142,13 +150,11 @@ export default function PostList({
           </ul>
         )}
 
-        <div className="mt-7 max-[760px]:mt-3">
-          <BoardPagination
-            page={page}
-            totalPages={totalPages}
-            onChange={onPageChange}
-          />
-        </div>
+        <LoadMore
+          hasNext={hasNext}
+          isFetching={isFetchingNext}
+          onLoad={onLoadMore}
+        />
       </div>
 
       <StoryRail action={action} />

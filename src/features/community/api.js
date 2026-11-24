@@ -1,5 +1,5 @@
 import { api } from '@/api/axios';
-import { REPORT_REASON_CODES } from './postCodes';
+import { REPORT_REASON_CODES } from '@/constants/reportReasons';
 
 /**
  * [펫이야기 API]

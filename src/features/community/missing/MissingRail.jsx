@@ -4,51 +4,16 @@ import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
 import { getPetLabel } from '../missingCodes';
 import { useMissingRail } from '../missingQueries';
-import CheckList from './CheckList';
 import MissingStatusBadge from './MissingStatusBadge';
-
-const GUIDE_ITEMS = [
-  ['반경 500m 먼저 찾기', '놀란 아이는 대부분 멀리 못 가고 근처에 숨어 있어요'],
-  [
-    '익숙한 냄새 두기',
-    '집 앞에 평소 쓰던 방석 · 옷을 놓아 스스로 돌아오게 해요',
-  ],
-  [
-    '바로 신고하기',
-    '동물보호관리시스템 · 관할 경찰서에 신고하고 인식칩 등록을 확인해요',
-  ],
-  [
-    '전단지 · SNS 알리기',
-    '실종 장소 주변에 전단지를 붙이고 동네 커뮤니티에 공유해요',
-  ],
-  ['해질녘 · 새벽에 다시 찾기', '사람이 적은 시간에 움직이는 경우가 많아요'],
-];
-
-/** 「자세한 대처 요령 보기」가 여는 공지사항 글(/notices/42) */
-const GUIDE_NOTICE_SN = 42;
 
 const H2_CLASS = 'pb-2 text-lg font-bold tracking-[-0.01em] text-ink';
 
-/** 실종센터 목록 오른쪽 레일: 실종 체크 가이드 · 최근 실종 소식 · 최근 찾은 반려동물 */
+/** 실종센터 목록 오른쪽 레일: 최근 실종 소식 · 최근 찾은 반려동물(실종 체크 가이드는 왼쪽 사이드 메뉴 아래 버튼) */
 export default function MissingRail() {
   const { data } = useMissingRail();
 
   return (
     <aside aria-label="실종 안내" className="flex min-w-0 flex-col gap-10">
-      <section aria-labelledby="missing-guide-title">
-        <h2 id="missing-guide-title" className={H2_CLASS}>
-          실종 체크 가이드
-        </h2>
-        <CheckList items={GUIDE_ITEMS} />
-        <Link
-          to={generatePath(PATHS.NOTICE_DETAIL, { ntcMttrSn: GUIDE_NOTICE_SN })}
-          className="mt-3 flex h-10 items-center justify-center gap-1 rounded-md bg-brand-50 text-base font-semibold text-brand-600 hover:bg-brand-100"
-        >
-          자세한 대처 요령 보기
-          <ChevronRight size={16} aria-hidden="true" />
-        </Link>
-      </section>
-
       <section aria-labelledby="missing-news-title">
         <h2 id="missing-news-title" className={H2_CLASS}>
           최근 실종 소식

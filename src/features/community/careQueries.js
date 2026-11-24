@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -12,6 +13,7 @@ import {
   getMinimumWage,
   updateCare,
 } from './careApi';
+import { INFINITE_OPTIONS } from '@/utils/infiniteList';
 import { reportPost } from './api';
 import { useOptimisticLike } from './optimisticLike';
 
@@ -27,6 +29,15 @@ export const useCareList = (params) =>
     queryKey: careKeys.list(params),
     queryFn: () => getCareList(params),
     /** 필터를 바꾸는 동안 이전 목록 유지로 필터 영역 보존 */
+    placeholderData: keepPreviousData,
+  });
+
+/** 무한 스크롤 목록: params에 page는 넣지 않는다 */
+export const useCareInfiniteList = (params) =>
+  useInfiniteQuery({
+    ...INFINITE_OPTIONS,
+    queryKey: [...careKeys.list(params), 'infinite'],
+    queryFn: ({ pageParam }) => getCareList({ ...params, page: pageParam }),
     placeholderData: keepPreviousData,
   });
 

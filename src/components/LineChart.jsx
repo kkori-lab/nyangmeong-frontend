@@ -61,6 +61,7 @@ const getCurvePath = (points, slopes) => {
  * - 시안 nyangmung-chart.js의 곡선 차트와 같은 모양: 곡선 + 연한 그라데이션, 범위는 점선 + 왼쪽 눈금(최대·최소), 최근 값은 말풍선
  * - points: [{ label, value }] 1개 이상(1개면 가운데 점 하나), band: [최소, 최대], goal: 목표, formatValue: 말풍선 값, formatTag: 범위 라벨 값
  * - bandLabelSide: 'left'(기본, 오른쪽 라벨 없이 왼쪽 눈금을 최대·최소로) / 'right'(오른쪽 최대·최소 라벨)
+ * - 왼쪽 라벨 자리 폭은 가장 긴 왼쪽 라벨 글자 폭 + 14에 맞추고 최소 80(세 자리 값도 잘리지 않게)
  * - activeIndex: 말풍선을 띄울 점(points의 순번). 없으면 마지막 점, null이면 말풍선 없이 점만
  * - 말풍선은 점 위, 자리가 없으면 점 아래(꼬리는 위로, 세로 점선은 말풍선 아래부터). 점 아래가 날짜 줄에 닿으면 맨 위쪽에 붙임
  * - isLeftColumn: 최대·목표·최소을 모두 왼쪽 한 열의 라벨로 두고 오른쪽 라벨은 없앤다(모바일 건강기록 변화). bandLabelSide보다 우선
@@ -115,6 +116,23 @@ const TIP_INSET = 2;
 /** 왼쪽 한 열 라벨(글자 14) 사이 최소 간격 */
 const LABEL_GAP = 24;
 
+/** 왼쪽 라벨 자리: 최소 폭, 라벨과 그래프 사이 간격(text x = left - 10), 글자 끝 여유 */
+const LEFT_LABEL_MIN = 80;
+const LEFT_LABEL_GAP = 10;
+const LEFT_LABEL_SPARE = 4;
+
+let measureContext;
+/** 라벨 글자 폭(글자 14, 화면 글꼴). 잴 수 없으면 글자 수로 어림 */
+const measureLabel = (text) => {
+  if (typeof document !== 'undefined') {
+    measureContext ??= document.createElement('canvas').getContext('2d');
+  }
+  if (!measureContext) return text.length * 9;
+  const { fontFamily } = getComputedStyle(document.body);
+  measureContext.font = `14px ${fontFamily}`;
+  return measureContext.measureText(text).width;
+};
+
 function Chart({
   width,
   height,
@@ -133,6 +151,27 @@ function Chart({
 }) {
   const gradientId = useId();
   const isBandLeft = bandLabelSide === 'left' || isLeftColumn;
+  // 왼쪽에 실제로 그리는 라벨: 범위(최대·최소)와 왼쪽 한 열일 때의 목표
+  const leftLabels = isBandLeft
+    ? [
+        ...(band
+          ? [`최대 ${formatTag(band[1])}`, `최소 ${formatTag(band[0])}`]
+          : []),
+        ...(isLeftColumn && goal != null ? [`목표 ${formatTag(goal)}`] : []),
+      ]
+    : [];
+  // 왼쪽 라벨 자리는 가장 긴 라벨 글자 폭에 맞춤(최소 80). 라벨이 없으면 예전 고정값
+  const leftLabelWidth =
+    leftLabels.length > 0
+      ? Math.max(
+          LEFT_LABEL_MIN,
+          Math.ceil(
+            Math.max(...leftLabels.map(measureLabel)) +
+              LEFT_LABEL_GAP +
+              LEFT_LABEL_SPARE,
+          ),
+        )
+      : null;
   const values = points.map((point) => point.value);
   const count = values.length;
   const isSmall = width < 600;
@@ -145,9 +184,7 @@ function Chart({
     : !hasGuide
       ? 12
       : isBandLeft
-        ? isSmall
-          ? 64
-          : 80
+        ? (leftLabelWidth ?? (isSmall ? 64 : 80))
         : isSmall
           ? 40
           : 56;

@@ -9,6 +9,31 @@
  */
 const OMITTED_FIELDS = ['schdlSrcCd', 'rprsIconId'];
 
+/** 검사 수치 저장 도구와 직접 입력 항목 코드(HLTG12 직접입력) */
+const INSPECTION_TOOL = 'draft_inspection_values';
+const DIRECT_INPUT_ARTICLE = 'HLTC0035';
+
+/**
+ * 검사 수치 항목 정리: 항목 코드가 있으면(직접 입력 코드 제외) 직접 입력 이름을 뺀다
+ * - Java는 직접 입력 이름이 있으면 코드를 비우거나 직접 입력 코드만 받는다(400 values[n].inspArtclCd)
+ * - AI 서버가 실행 카드에 이름을 같이 붙여 올 때가 있어 보내기 전에 맞춘다(근본 수정은 ai 저장소)
+ */
+const cleanInput = (card, input) => {
+  if (card.tool !== INSPECTION_TOOL || !Array.isArray(input.values)) {
+    return input;
+  }
+  return {
+    ...input,
+    values: input.values.map((value) => {
+      if (!value.inspArtclCd || value.inspArtclCd === DIRECT_INPUT_ARTICLE) {
+        return value;
+      }
+      const { inspArtclDrctInptNm: _omitted, ...rest } = value;
+      return rest;
+    }),
+  };
+};
+
 /** 카드가 쓰는 칸 */
 const isCardField = (card, field) =>
   field in card.params && !OMITTED_FIELDS.includes(field);
@@ -40,7 +65,8 @@ export const missingFields = (card, input) =>
  * Java 요청: path의 {칸}은 경로에, query 칸은 쿼리에, 나머지 목록 칸은 본문에
  * - call.path는 /api로 시작하고 axios api 인스턴스가 /api를 붙인다
  */
-export const buildActionRequest = (card, input) => {
+export const buildActionRequest = (card, rawInput) => {
+  const input = cleanInput(card, rawInput);
   const params = {};
   const data = {};
   Object.entries(card.params).forEach(([field, param]) => {
@@ -79,8 +105,9 @@ const isFieldOff = (card, input, field, seen = new Set()) => {
 };
 
 /** 결과 저장·Java 요청·다음 메시지에 보낼 input: 목록에 있는 칸만, 빈 값과 꺼진 조건부 칸은 뺀다 */
-export const resultInput = (card, input) =>
-  Object.fromEntries(
+export const resultInput = (card, rawInput) => {
+  const input = cleanInput(card, rawInput);
+  return Object.fromEntries(
     Object.entries(input).filter(
       ([field, value]) =>
         isCardField(card, field) &&
@@ -88,6 +115,7 @@ export const resultInput = (card, input) =>
         !isFieldOff(card, input, field),
     ),
   );
+};
 
 /** 케어 항목 등록 도구 */
 export const CARE_ITEM_TOOL = 'draft_care_item';

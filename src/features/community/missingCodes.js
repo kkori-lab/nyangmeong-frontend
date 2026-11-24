@@ -21,6 +21,19 @@ export const PET_SE_BY_FILTER = {
   cat: PET_SE.CAT,
 };
 
+/** 상태 필터: 실종·찾았어요(만료 글은 칩 없이 「전체」에서만) */
+export const STATUS_FILTERS = [
+  { value: '', label: '전체' },
+  { value: 'lost', label: '실종' },
+  { value: 'found', label: '찾았어요' },
+];
+
+/** URL ?stts= 값 → 서버 상태 코드(lostTpofSttsCd) */
+export const STTS_BY_FILTER = {
+  lost: LOST_STTS.LOST,
+  found: LOST_STTS.FOUND,
+};
+
 /** 실종 기간: 마지막 목격 날짜 기준. 31은 1개월 이상 */
 export const PERIOD_FILTERS = [
   { value: '', label: '전체' },

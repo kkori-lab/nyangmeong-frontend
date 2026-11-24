@@ -1,7 +1,7 @@
 /**
  * [채팅 모달] (SCR-COM-009, SCR-CMU-005)
  * - 본문은 새 창과 같은 ChatPanes. 760px 이하는 헤더 아래 전체 화면
- * - [새 창으로 띄우기] 새 창(/chat)으로 옮김, [✕]·Esc 닫기
+ * - [새 창으로 띄우기] 새 창(/chat)으로 옮김(760px 이하에서는 숨김), [✕]·Esc 닫기
  * - 페이지를 이동하면 모달을 닫기(같은 주소로 다시 이동해도 닫음: location.key 기준)
  * - 딤은 헤더(z-40) 아래, AI·TOP 버튼(z-30) 위(z-35): 모달이 떠 있어도 헤더 조작 가능 (FN-COM-009-12)
  * - 모달은 헤더 아래 영역의 가운데에 둔다(위쪽이 헤더에 가리지 않게)
@@ -95,7 +95,7 @@ function ChatModalPanel() {
           type="button"
           aria-label="새 창으로 띄우기"
           title="새 창으로 띄우기"
-          className={headButton}
+          className={`${headButton} max-[760px]:hidden`}
           onClick={handlePopOut}
         >
           <Icon name="open_in_new" className="text-[22px]" />

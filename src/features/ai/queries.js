@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { healthKeys } from '@/features/health/queries';
 import {
+  analyzeChatLabPdf,
+  createChatCheckup,
+  findChatNearSchedule,
   analyzeChatReceipt,
   deleteConversation,
   executeAction,
@@ -9,6 +13,7 @@ import {
   judgeImageIntent,
   recognizeCheckupReceipt,
   saveActionResult,
+  saveCheckupCard,
   saveReceiptResult,
 } from './api';
 
@@ -102,6 +107,43 @@ export const useJudgeImageIntent = () => {
 /** 대화창 영수증 분석 */
 export const useAnalyzeChatReceipt = () =>
   useMutation({ mutationFn: analyzeChatReceipt });
+
+/** 대화창 검사결과지 PDF 분석 */
+export const useAnalyzeChatLabPdf = () =>
+  useMutation({ mutationFn: analyzeChatLabPdf });
+
+/** 대화창 검진기록 만들기: 가까운 예정 병원 일정 */
+export const useFindChatNearSchedule = () =>
+  useMutation({ mutationFn: findChatNearSchedule });
+
+/** 대화창 검진기록 만들기: 건강기록 검진·일정·케어리스트 캐시 갱신 */
+export const useCreateChatCheckup = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createChatCheckup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: healthKeys.checkups });
+      queryClient.invalidateQueries({ queryKey: healthKeys.schedules });
+      queryClient.invalidateQueries({ queryKey: healthKeys.careItems });
+    },
+  });
+};
+
+/** 대화창 검사결과지 결과 저장: 대화를 다시 받은 뒤 끝냄(말풍선을 걷을 때 요약이 바로 보이게) */
+export const useSaveCheckupCard = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: saveCheckupCard,
+    onSuccess: ({ aiCnvrsRoomSn }) => {
+      queryClient.invalidateQueries({ queryKey: aiKeys.lists });
+      return queryClient.invalidateQueries({
+        queryKey: aiKeys.detail(aiCnvrsRoomSn),
+      });
+    },
+  });
+};
 
 /** 대화창 영수증 결과 이력 저장: 메시지가 저장된 대화 갱신 */
 export const useSaveReceiptResult = () => {

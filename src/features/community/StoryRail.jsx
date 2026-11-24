@@ -40,7 +40,7 @@ export default function StoryRail({ action }) {
       {photo?.imgs.length > 0 && (
         <section
           aria-labelledby="post-photo-title"
-          className="relative overflow-hidden rounded-[14px] bg-surface-2 max-[1100px]:mt-10 max-[760px]:[&+section]:mt-4"
+          className="relative overflow-hidden rounded-[14px] bg-surface-2 max-[1100px]:mt-10 max-[760px]:hidden"
         >
           <Link to={detailPath(photo.pstSn)} className="group block">
             <FileImage
@@ -77,7 +77,7 @@ export default function StoryRail({ action }) {
 
       <section
         aria-labelledby="post-tip-title"
-        className="mt-6 max-[1100px]:mt-10"
+        className="mt-6 max-[1100px]:mt-10 max-[760px]:hidden"
       >
         <h2
           id="post-tip-title"
