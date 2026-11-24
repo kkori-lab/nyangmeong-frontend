@@ -20,7 +20,7 @@ import {
   useChatRoom,
   useLeaveChatRoom,
   useReadChatRoom,
-  useReportRoomPost,
+  useReportChatRoom,
   useViewingChatRoom,
 } from '../queries';
 import {
@@ -176,7 +176,7 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
-  const report = useReportRoomPost();
+  const report = useReportChatRoom();
   /** 사진 보기에서 처음 보여 줄 사진(없으면 닫힘) */
   const [viewerPhotoSn, setViewerPhotoSn] = useState(null);
   const {
@@ -381,13 +381,13 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
 
       {isReportOpen && room && (
         <ReportModal
-          title="게시글 신고하기"
-          targetLabel={`"${room.pstTtl}"`}
+          title="채팅방 신고하기"
+          targetLabel={`${room.ctptMbrNcnm} 님과의 채팅`}
           isPending={report.isPending}
           errorMessage={report.isError && report.error.message}
           onSubmit={(values) =>
             report.mutate(
-              { pstSn: room.pstSn, ...values },
+              { otoChatRoomSn, ...values },
               {
                 onSuccess: () => {
                   showToast('신고가 접수되었어요', { type: 'success' });
