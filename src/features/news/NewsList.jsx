@@ -8,6 +8,7 @@ import {
 } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
 import LoadMore from '@/components/LoadMore';
+import { THUMB_COLS } from '@/constants/listLayout';
 import SearchInput from '@/components/SearchInput';
 import useSearchDraft from '@/hooks/useSearchDraft';
 import { PATHS } from '@/routes/paths';
@@ -34,13 +35,13 @@ function NewsCard({ item, search }) {
   const thumbSrc = isAdmin ? publicFileUrl(item.atchFileSn) : item.thmbUrlPath;
   const hasThumb = Boolean(thumbSrc) && !thumbFailed;
   return (
-    <li>
+    <li className="@container">
       <Link
         to={generatePath(PATHS.COMMUNITY_NEWS_DETAIL, {
           newsSn: item.newsSn,
         })}
         state={{ listSearch: search }}
-        className={`group grid gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden ${hasThumb ? 'grid-cols-[minmax(0,1fr)_240px]' : 'grid-cols-1'}`}
+        className={`group grid gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 transition hover:border-brand-100 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden ${hasThumb ? THUMB_COLS : 'grid-cols-1'}`}
       >
         <div className="min-w-0 max-[760px]:order-2">
           <NewsCategoryBadge news={item} />

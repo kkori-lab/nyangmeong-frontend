@@ -9,6 +9,7 @@ import StoryRail from '@/features/community/StoryRail';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 import Skeleton from '@/components/Skeleton';
+import { THUMB_COLS } from '@/constants/listLayout';
 
 const PAGE_SIZE = 10;
 const DESCRIPTION = '반려생활의 일상과 유용한 정보를 함께 나눠요';
@@ -16,26 +17,28 @@ const DESCRIPTION = '반려생활의 일상과 유용한 정보를 함께 나눠
 /** 로딩 자리: 카드 안쪽도 실제 카드 모양(왼쪽 글 · 오른쪽 썸네일)으로 그린다. 모바일은 실제 목록처럼 썸네일 있는 카드와 없는 카드를 섞는다 */
 function PostCardSkeleton({ hasThumbOnMobile }) {
   return (
-    <div
-      aria-hidden="true"
-      className="grid h-[208px] grid-cols-[minmax(0,1fr)_240px] gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 max-[760px]:h-auto max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden"
-    >
-      <div className="min-w-0 max-[760px]:order-2">
-        <div className="flex gap-2">
-          <Skeleton className="h-6 w-14 rounded-full" />
-          <Skeleton className="h-6 w-11 rounded-full" />
+    <div className="@container">
+      <div
+        aria-hidden="true"
+        className={`grid h-[208px] ${THUMB_COLS} gap-x-8 gap-y-4 rounded-[14px] border border-line bg-white px-7 py-6 max-[760px]:h-auto max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:px-4 max-[760px]:pt-4 max-[760px]:pb-5 max-[760px]:overflow-hidden`}
+      >
+        <div className="min-w-0 max-[760px]:order-2">
+          <div className="flex gap-2">
+            <Skeleton className="h-6 w-14 rounded-full" />
+            <Skeleton className="h-6 w-11 rounded-full" />
+          </div>
+          <Skeleton className="mt-3 h-[22px] w-3/4" />
+          <Skeleton className="mt-4 h-3.5 w-full" />
+          <Skeleton className="mt-2 h-3.5 w-3/5" />
         </div>
-        <Skeleton className="mt-3 h-[22px] w-3/4" />
-        <Skeleton className="mt-4 h-3.5 w-full" />
-        <Skeleton className="mt-2 h-3.5 w-3/5" />
-      </div>
-      <Skeleton
-        className={`col-start-2 row-span-2 row-start-1 h-[150px] self-start rounded-[10px] max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line ${hasThumbOnMobile ? '' : 'max-[760px]:hidden'} max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:h-auto`}
-      />
-      <div className="flex items-center gap-2 max-[760px]:order-3">
-        <Skeleton className="size-6 rounded-full" />
-        <Skeleton className="h-3.5 w-20" />
-        <Skeleton className="h-3.5 w-28" />
+        <Skeleton
+          className={`col-start-2 row-span-2 row-start-1 h-[150px] self-start rounded-[10px] max-[760px]:-mx-4 max-[760px]:-mt-4 max-[760px]:rounded-none max-[760px]:border-b max-[760px]:border-line ${hasThumbOnMobile ? '' : 'max-[760px]:hidden'} max-[760px]:order-1 max-[760px]:col-start-1 max-[760px]:row-span-1 max-[760px]:row-start-auto max-[760px]:aspect-[16/9] max-[760px]:h-auto`}
+        />
+        <div className="flex items-center gap-2 max-[760px]:order-3">
+          <Skeleton className="size-6 rounded-full" />
+          <Skeleton className="h-3.5 w-20" />
+          <Skeleton className="h-3.5 w-28" />
+        </div>
       </div>
     </div>
   );

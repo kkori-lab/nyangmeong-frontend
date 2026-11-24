@@ -29,7 +29,7 @@ export default function PostFilters({
   onMineChange,
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-card border border-line bg-white p-5">
+    <div className="@container flex flex-col gap-3 rounded-card border border-line bg-white p-5">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Chips
           name="post-board"
@@ -38,7 +38,7 @@ export default function PostFilters({
           value={board}
           onChange={onBoardChange}
         />
-        <div className="ml-auto flex items-center gap-2 max-[760px]:ml-0 max-[760px]:w-full">
+        <div className="ml-auto flex items-center gap-2 max-[760px]:ml-0 max-[760px]:w-full @max-[680px]:ml-0 @max-[680px]:w-full">
           <Select
             label="정렬 기준"
             value={sort}
@@ -52,7 +52,7 @@ export default function PostFilters({
             onSubmit={search.onSubmit}
             liveDelay={150}
             placeholder="제목 또는 내용 검색"
-            className="w-[280px] max-[760px]:w-auto max-[760px]:min-w-0 max-[760px]:flex-1 max-[760px]:[&_input]:h-11"
+            className="w-[280px] max-[760px]:w-auto max-[760px]:min-w-0 max-[760px]:flex-1 max-[760px]:[&_input]:h-11 @max-[680px]:w-auto @max-[680px]:min-w-0 @max-[680px]:flex-1"
           />
         </div>
       </div>
