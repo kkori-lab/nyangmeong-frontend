@@ -6,6 +6,7 @@ import HeroSlider from '@/features/landing/HeroSlider';
 import LandingFooter from '@/features/landing/LandingFooter';
 import LandingHeader from '@/features/landing/LandingHeader';
 import PartnersSection from '@/features/landing/PartnersSection';
+import PortfolioModal from '@/features/landing/PortfolioModal';
 import ProcessSection from '@/features/landing/ProcessSection';
 import ServiceSection from '@/features/landing/ServiceSection';
 import { PATHS } from '@/routes/paths';
@@ -13,6 +14,8 @@ import { PATHS } from '@/routes/paths';
 export default function LandingPage() {
   const { search } = useLocation();
   const [heroKey, setHeroKey] = useState(0);
+  /** 랜딩에 들어올 때마다 포트폴리오 안내를 띄운다 */
+  const [isPortfolioOpen, setIsPortfolioOpen] = useState(true);
   const redirect = new URLSearchParams(search).get('redirect');
   const loginTo = redirect
     ? `${PATHS.LOGIN}?redirect=${encodeURIComponent(redirect)}`
@@ -34,6 +37,12 @@ export default function LandingPage() {
         <FaqSection />
       </main>
       <LandingFooter />
+      {isPortfolioOpen && (
+        <PortfolioModal
+          redirect={redirect}
+          onClose={() => setIsPortfolioOpen(false)}
+        />
+      )}
     </div>
   );
 }
