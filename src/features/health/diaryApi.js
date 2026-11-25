@@ -51,8 +51,9 @@ export const getDailyTrend = async ({ petSn, dailyRcdIdctCd }) => {
   });
 };
 
-export const createDailyRecord = ({ petSn, body }) =>
-  api.post(`/pets/${petSn}/daily-health-records`, body);
+/** 오늘 기록 여러 종류를 한 번에 등록(1~5건, 같은 종류 한 번만). 하나라도 틀리면 아무것도 저장 안 됨 -> 등록된 기록 배열 */
+export const bulkCreateDailyRecords = ({ petSn, values }) =>
+  api.post(`/pets/${petSn}/daily-health-records/bulk`, { values });
 
 /** 지표·반려동물은 바꾸지 않고 시각과 값만 수정 */
 export const updateDailyRecord = ({ petSn, dailyHlthRcdSn, body }) =>

@@ -55,7 +55,7 @@ import {
 } from './checkupApi';
 import {
   createCheckup,
-  createDailyRecord,
+  bulkCreateDailyRecords,
   createObservationCycle,
   createObservationItem,
   deleteCheckup,
@@ -304,19 +304,22 @@ export const useDailyTrend = (petSn, dailyRcdIdctCd) =>
     enabled: petSn != null,
   });
 
-const useDailyRecordMutation = (mutationFn) => {
+const useDailyRecordMutation = (mutationFn, onError = showErrorToast) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: healthKeys.dailyRecords }),
-    onError: showErrorToast,
+    onError,
   });
 };
 
-export const useCreateDailyRecord = () =>
-  useDailyRecordMutation(createDailyRecord);
+/** 오늘 기록 한꺼번에 등록: 칸별 400 오류는 모달이 줄마다 보여 주므로 토스트를 띄우지 않음 */
+export const useBulkCreateDailyRecords = () =>
+  useDailyRecordMutation(bulkCreateDailyRecords, (error) => {
+    if (!error.fields) showErrorToast(error);
+  });
 
 export const useUpdateDailyRecord = () =>
   useDailyRecordMutation(updateDailyRecord);
