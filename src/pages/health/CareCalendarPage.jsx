@@ -193,14 +193,17 @@ function CareCalendarContent() {
   const petLabel = isShowAllPets ? '전체 반려동물' : petNm;
 
   // 인라인 상세는 보고 있는 달의 일정으로 그리므로, 달을 옮기면 선택 날짜도 그 달로 옮긴다(이번 달이면 오늘)
-  const handleMoveMonth = (offset) => {
-    const nextMonthYmd = addMonths(viewMonthYmd, offset);
+  const showMonth = (nextMonthYmd) => {
     setViewMonthYmd(nextMonthYmd);
     const isThisMonth =
       getYear(nextMonthYmd) === getYear(todayYmd) &&
       getMonth(nextMonthYmd) === getMonth(todayYmd);
     setSelectedYmd(isThisMonth ? todayYmd : nextMonthYmd);
   };
+  const handleMoveMonth = (offset) =>
+    showMonth(addMonths(viewMonthYmd, offset));
+  /** 달 고르기: 'YYYY-MM' -> 그 달 1일 */
+  const handleSelectMonth = (ym) => showMonth(`${ym}-01`);
 
   const openCreate = (ymd) =>
     setModal({ key: Date.now(), schedule: null, defaultYmd: ymd });
@@ -262,6 +265,7 @@ function CareCalendarContent() {
             selectedYmd={selectedYmd}
             canMoveMonth={(anyData?.length ?? 0) > 0}
             onMoveMonth={handleMoveMonth}
+            onSelectMonth={handleSelectMonth}
             onSelectDate={setSelectedYmd}
             petSwitch={
               pets.length > 1 && (

@@ -4,6 +4,7 @@ import { formatDate } from '@/utils/formatDate';
 import {
   getOptionLabel,
   getTargetLabel,
+  isMemberReport,
   REPORT_REASON_OPTIONS,
   REPORT_STATUS_OPTIONS,
 } from './reportLabels';
@@ -18,6 +19,12 @@ const COLUMNS = [
   '상태',
   '접수일',
 ];
+
+/** 내용 칸: 회원 신고는 채팅방의 돌봄 글 제목 */
+const getContentLabel = (report) => {
+  if (!isMemberReport(report)) return report.trgtCn;
+  return report.trgtCn ? `채팅 · ${report.trgtCn}` : '채팅';
+};
 
 /**
  * [신고 목록 표]
@@ -52,7 +59,7 @@ export default function ReportTable({ reports, onSelect }) {
                 {getTargetLabel(report)}
               </td>
               <td className="max-w-[320px] truncate px-4 py-3">
-                {report.trgtCn}
+                {getContentLabel(report)}
               </td>
               <td className="px-4 py-3 whitespace-nowrap">
                 {getOptionLabel(REPORT_REASON_OPTIONS, report.dclrRsnCd)}

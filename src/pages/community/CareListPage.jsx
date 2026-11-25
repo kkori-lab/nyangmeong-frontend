@@ -7,8 +7,12 @@ import {
   SIZE_BY_FILTER,
   SIZE_FILTERS,
 } from '@/features/community/careCodes';
-import { useCareInfiniteList } from '@/features/community/careQueries';
+import {
+  useCareInfiniteList,
+  useCareList,
+} from '@/features/community/careQueries';
 import CareList from '@/features/community/care/CareList';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 import LoadError from '@/components/LoadError';
@@ -87,6 +91,10 @@ function CareListSkeleton() {
             <CareCardSkeleton key={index} hasThumbOnMobile={index % 2 === 0} />
           ))}
         </div>
+        {/* 760px 이상은 쪽 번호가 있다(모바일은 무한 스크롤이라 없음) */}
+        <div aria-hidden="true" className="mt-7 hidden min-[760px]:block">
+          <Skeleton className="mx-auto h-9 w-64" />
+        </div>
       </div>
       <div
         aria-hidden="true"
@@ -131,15 +139,10 @@ export default function CareListPage() {
     pet === 'cat' ? '' : pick(searchParams.get('size'), SIZE_FILTERS);
   const filters = { mine, region, dong, from, to, pet, size };
 
-  const {
-    data: posts,
-    isPending,
-    isError,
-    refetch,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useCareInfiniteList({
+  /** 760px 미만(모바일)은 무한 스크롤, 그 밖은 ?page= 쪽 번호. 쓰는 쪽만 요청한다 */
+  const isMobile = useMediaQuery('(width < 760px)');
+  const page = Number(searchParams.get('page')) || 1;
+  const listParams = {
     size: PAGE_SIZE,
     mineYn: mine,
     rgnSn: dong || region,
@@ -147,7 +150,15 @@ export default function CareListPage() {
     toDate: to,
     petSeCd: PET_SE_BY_FILTER[pet] ?? '',
     petSizeCd: SIZE_BY_FILTER[size] ?? '',
-  });
+  };
+  const infinite = useCareInfiniteList(listParams, { enabled: isMobile });
+  const paged = useCareList({ ...listParams, page }, { enabled: !isMobile });
+  const {
+    data: posts,
+    isPending,
+    isError,
+    refetch,
+  } = isMobile ? infinite : paged;
 
   /** 빈 값은 URL에 남기지 않는다. 조건이 바뀌면 목록을 처음부터 다시 받는다 */
   const setQuery = (next) => {
@@ -162,10 +173,15 @@ export default function CareListPage() {
           to: merged.to,
           pet: merged.pet,
           size: merged.size,
+          page: merged.page,
         }).filter(([, value]) => value),
       ),
     );
   };
+
+  /** 조건이 바뀌면 page가 빠져 1쪽부터 */
+  const handlePageChange = (nextPage) =>
+    setQuery({ page: nextPage > 1 ? String(nextPage) : '' });
 
   let body;
   if (isPending) {
@@ -184,9 +200,12 @@ export default function CareListPage() {
         filters={filters}
         onChange={setQuery}
         onReset={() => setSearchParams({})}
-        hasNext={Boolean(hasNextPage)}
-        isFetchingNext={isFetchingNextPage}
-        onLoadMore={fetchNextPage}
+        isMobile={isMobile}
+        page={page}
+        onPageChange={handlePageChange}
+        hasNext={Boolean(infinite.hasNextPage)}
+        isFetchingNext={infinite.isFetchingNextPage}
+        onLoadMore={infinite.fetchNextPage}
         action={writeAction}
       />
     );

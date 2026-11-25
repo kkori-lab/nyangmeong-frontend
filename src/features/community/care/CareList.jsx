@@ -1,6 +1,6 @@
 import { SearchX } from 'lucide-react';
 import EmptyResult from '@/components/EmptyResult';
-import LoadMore from '@/components/LoadMore';
+import ListPager from '@/components/ListPager';
 import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import CareCard from './CareCard';
 import CareFilters from './CareFilters';
@@ -9,13 +9,16 @@ import CareGuideRail from './CareGuideRail';
 /**
  * 펫돌봄 목록: 왼쪽에 필터 · 건수와 내 글만 보기 · 카드 · 무한 스크롤, 오른쪽에 안내 레일
  * - [돌봄 요청 등록]은 오른쪽 레일 맨 위(action, CareListPage가 넘긴다). 탭과 모집중만 보기는 없다(모집중이 먼저 오도록 서버가 정렬)
- * - filters: { mine, region, dong, from, to, pet, size }, onChange(바뀐 값만), onReset, hasNext·isFetchingNext·onLoadMore(무한 스크롤)
+ * - filters: { mine, region, dong, from, to, pet, size }, onChange(바뀐 값만), onReset, 모바일은 hasNext·isFetchingNext·onLoadMore(무한 스크롤), 그 밖은 page·onPageChange(쪽 번호)
  */
 export default function CareList({
   posts,
   filters,
   onChange,
   onReset,
+  isMobile,
+  page,
+  onPageChange,
   hasNext,
   isFetchingNext,
   onLoadMore,
@@ -60,10 +63,14 @@ export default function CareList({
           </ul>
         )}
 
-        <LoadMore
+        <ListPager
+          isMobile={isMobile}
           hasNext={hasNext}
-          isFetching={isFetchingNext}
-          onLoad={onLoadMore}
+          isFetchingNext={isFetchingNext}
+          onLoadMore={onLoadMore}
+          page={page}
+          totalPages={posts.totalPages}
+          onPageChange={onPageChange}
         />
       </div>
 
