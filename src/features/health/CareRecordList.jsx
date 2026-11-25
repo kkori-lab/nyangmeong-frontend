@@ -64,8 +64,7 @@ export default function CareRecordList({ records, regularCycles, onCancel }) {
           icon={
             <Icon name="task_alt" className="text-[28px] text-line-strong" />
           }
-          title={`최근 ${periodDays}일 동안 완료한 케어가 없어요`}
-          description="위 케어 항목을 누르면 완료로 표시되고 여기에 날짜별로 쌓여요"
+          title="위 케어 항목을 누르면 완료로 표시되고 여기에 날짜별로 쌓여요"
         />
       ) : (
         <ul>

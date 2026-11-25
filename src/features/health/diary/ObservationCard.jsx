@@ -165,7 +165,7 @@ export default function ObservationCard({
       title="관찰 중인 항목이 없어요"
       description="피부·눈·상처처럼 계속 지켜볼 곳을 사진으로 남기고 변화를 비교해요"
     >
-      {registerButton(`${BTN_SECONDARY} mt-2`)}
+      {registerButton(BTN_SECONDARY)}
     </EmptyResult>
   );
 

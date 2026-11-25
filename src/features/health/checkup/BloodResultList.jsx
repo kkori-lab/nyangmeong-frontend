@@ -78,7 +78,7 @@ export default function BloodResultList({ checkup, items }) {
   return (
     <div>
       {items.length === 0 ? (
-        <p className="text-muted">결과가 없어요</p>
+        <p className="text-base text-muted">결과가 없어요</p>
       ) : (
         <>
           <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-2">

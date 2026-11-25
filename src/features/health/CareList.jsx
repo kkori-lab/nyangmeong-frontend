@@ -210,7 +210,7 @@ export default function CareList({ petSn, petNm, mission }) {
                   </small>
                 </h3>
                 {items.length === 0 ? (
-                  <p className="py-4 text-sm text-subtle">
+                  <p className="py-4 text-base text-muted">
                     {EMPTY_TEXTS[zone.id]}
                   </p>
                 ) : (

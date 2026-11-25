@@ -155,7 +155,7 @@ function TrendBody({ pet, goalBdwg, trend, type, isPc, onAddRecord }) {
       {
         <button
           type="button"
-          className={`${BTN_SECONDARY} mt-2`}
+          className={BTN_SECONDARY}
           onClick={() => onAddRecord(type.cd)}
         >
           오늘 기록 추가

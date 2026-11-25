@@ -1,6 +1,5 @@
 import { generatePath } from 'react-router-dom';
 import { PATHS } from '@/routes/paths';
-import { FUNCTION_TAGS, findName } from '../checkup/checkupTypes';
 import { round2 } from '../numberFormat';
 import { CHECKUP_TYPES, TONE_CLASSES } from '../scheduleTypes';
 
@@ -14,10 +13,6 @@ export const getCheckupType = (ckupTypeCd) => {
   const type = CHECKUP_TYPES.find((item) => item.cd === ckupTypeCd);
   return { ...type, toneKey: type.tone, tone: TONE_CLASSES[type.tone] };
 };
-
-/** 검사 항목 기능 태그 이름(검진상세와 같은 규칙) */
-export const getFunctionTagName = (fnctTagCd) =>
-  findName(FUNCTION_TAGS, fnctTagCd);
 
 /** 참고범위 "0.5 ~ 1.6". 한쪽이 없으면 있는 쪽만. 소수 둘째 자리까지 */
 export const formatRange = (refMinVal, refMaxVal, separator = ' ~ ') => {

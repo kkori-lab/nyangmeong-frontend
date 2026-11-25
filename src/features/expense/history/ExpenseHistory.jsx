@@ -453,7 +453,7 @@ export default function ExpenseHistory({ initialYm }) {
               </button>
             </div>
           ) : pageItems.length === 0 ? (
-            <p className="px-4 py-10 text-center text-subtle">
+            <p className="px-4 py-10 text-center text-base font-normal text-muted">
               조회된 지출이 없어요
             </p>
           ) : (

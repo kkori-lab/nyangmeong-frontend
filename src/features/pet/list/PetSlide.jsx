@@ -10,13 +10,14 @@ import {
 import { useLayoutEffect, useRef, useState } from 'react';
 import Badge from '@/components/Badge';
 import LoadError from '@/components/LoadError';
-import PetFace from '@/components/PetFace';
 import Skeleton from '@/components/Skeleton';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
 import { BRUP_ROLE, PET_SE } from '@/utils/petCodes';
 import { useCaregiversOf } from '../queries';
 import FamilySection, { OwnerLine } from './FamilySection';
 import MoreMenu from './MoreMenu';
+import PetStage from './PetStage';
+import { getStageToneIndex } from '../shared/stageTones';
 import {
   formatBirthAge,
   formatWeight,
@@ -95,6 +96,7 @@ export default function PetSlide({
             <PetCard
               key={pets[index].petSn}
               pet={pets[index]}
+              toneIndex={getStageToneIndex(pets, pets[index])}
               onEdit={onEdit}
               onDelete={onDelete}
               onUnlink={onUnlink}
@@ -313,7 +315,15 @@ function AddSlide({ limit, isFull, onAdd, children }) {
   );
 }
 
-function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
+function PetCard({
+  pet,
+  toneIndex,
+  onEdit,
+  onDelete,
+  onUnlink,
+  onInvite,
+  children,
+}) {
   const isCoParent = pet.brupRoleCd === BRUP_ROLE.CO_PARENT;
   const vrtyName = getVrtyName(pet);
   const birthText = formatBirthAge(pet.petBrdt);
@@ -322,24 +332,21 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
   return (
     <article
       aria-labelledby="pet-name"
-      className="relative grid gap-5 rounded-modal border border-line bg-white p-5 pt-10 pb-16 shadow-depth-sm max-[760px]:grid-cols-[84px_minmax(0,1fr)] max-[760px]:gap-x-4 max-[760px]:gap-y-0 min-[760px]:grid-cols-[140px_minmax(0,1fr)] min-[760px]:gap-x-8 min-[760px]:gap-y-6 min-[760px]:px-8 min-[1100px]:grid-cols-[180px_minmax(0,1fr)] min-[1100px]:gap-x-10 min-[1100px]:px-10"
+      className="relative grid gap-5 rounded-modal border border-line bg-white p-5 pt-10 pb-16 shadow-depth-sm max-[970px]:grid-cols-[84px_minmax(0,1fr)] max-[970px]:gap-x-4 max-[970px]:gap-y-0 min-[970px]:grid-cols-[140px_minmax(0,1fr)] min-[970px]:gap-x-8 min-[970px]:gap-y-6 min-[970px]:px-8 min-[1100px]:grid-cols-[180px_minmax(0,1fr)] min-[1100px]:gap-x-10 min-[1100px]:px-10"
     >
-      <div className="flex items-center justify-center max-[760px]:self-center">
-        <PetFace
-          petSn={pet.petSn}
-          petSeCd={pet.petSeCd}
-          isError={pet.bscCharSbstYn}
-          alt={`${pet.petNm} 캐릭터`}
-          className="size-[140px] shrink-0 rounded-full bg-surface-2 text-line-strong shadow-[inset_0_0_0_1px_var(--color-line-strong)] max-[760px]:size-[84px] min-[1100px]:size-40"
-          iconClassName="size-[70px] max-[760px]:size-9 min-[1100px]:size-20"
-        />
-      </div>
-      <div className="flex min-w-0 flex-col max-[760px]:contents">
-        <div className="flex items-start gap-3 pb-4 max-[760px]:items-center max-[760px]:pb-0">
+      <PetStage
+        petSn={pet.petSn}
+        petSeCd={pet.petSeCd}
+        isError={pet.bscCharSbstYn}
+        toneIndex={toneIndex}
+        alt={`${pet.petNm} 캐릭터`}
+      />
+      <div className="flex min-w-0 flex-col max-[970px]:contents">
+        <div className="flex items-start gap-3 pb-4 max-[970px]:items-center max-[970px]:pb-0">
           <div className="min-w-0 flex-1">
             <h2
               id="pet-name"
-              className="flex flex-wrap items-center gap-3 text-lg font-bold tracking-[-0.02em] min-[760px]:text-page"
+              className="flex flex-wrap items-center gap-3 text-lg font-bold tracking-[-0.02em] min-[970px]:text-page"
             >
               {pet.petNm}
               <span className="inline-flex flex-wrap gap-1 align-middle">
@@ -351,12 +358,12 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
                 {pet.bscCharSbstYn && <Badge tone="amber">오류 확인 중</Badge>}
               </span>
               {birthText && (
-                <span className="text-base font-normal tracking-normal text-muted tabular-nums max-[760px]:hidden">
+                <span className="text-base font-normal tracking-normal text-muted tabular-nums max-[970px]:hidden">
                   {birthText}
                 </span>
               )}
             </h2>
-            <p className="mt-1 hidden text-sm break-keep text-muted max-[760px]:block">
+            <p className="mt-1 hidden text-sm break-keep text-muted max-[970px]:block">
               {birthText && <span className="block">{birthText}</span>}
               <span className="block">{gndrText}</span>
             </p>
@@ -380,7 +387,7 @@ function PetCard({ pet, onEdit, onDelete, onUnlink, onInvite, children }) {
 /** PC 상세: 2열 × 4행 grid 하나. 같은 행끼리 높이가 같아 좌우 구분선이 맞는다 */
 function InfoGrid({ pet, vrtyName }) {
   return (
-    <dl className="m-0 grid grid-cols-2 gap-x-6 max-[760px]:hidden min-[1100px]:max-[1260px]:grid-cols-[minmax(0,1fr)_minmax(250px,1fr)] min-[1100px]:gap-x-12">
+    <dl className="m-0 grid grid-cols-2 gap-x-6 max-[970px]:hidden min-[1100px]:max-[1260px]:grid-cols-[minmax(0,1fr)_minmax(250px,1fr)] min-[1100px]:gap-x-12">
       <InfoRow label="품종">{vrtyName || getPetSeName(pet)}</InfoRow>
       <InfoRow label="인식 번호" valueClassName="tabular-nums">
         <ChipNo value={pet.chipNo} />
@@ -407,7 +414,7 @@ function PetMenu({ isCoParent, onEdit, onRemove }) {
   return (
     <MoreMenu
       label="반려동물 메뉴"
-      className="max-[760px]:self-start"
+      className="max-[970px]:self-start"
       items={[
         { label: '반려동물 정보 수정', onSelect: onEdit },
         {
@@ -429,7 +436,7 @@ function MobileInfo({ pet }) {
       : null;
 
   return (
-    <div className="col-span-full hidden max-[760px]:block">
+    <div className="col-span-full hidden max-[970px]:block">
       <dl className="m-0 mt-4 border-t border-line-strong">
         <MobileRow label="품종">
           {getVrtyName(pet) || getPetSeName(pet)}
@@ -507,8 +514,8 @@ function MobileList({ label, value, isOpen }) {
 
 /** 한 줄 행. 위 두 칸은 위 선, 마지막 두 칸은 아래 선이 없다 */
 const ROW =
-  'flex h-14 min-w-0 items-center gap-6 min-[760px]:max-[1260px]:gap-3 border-b border-line-soft [&:nth-child(-n+2)]:border-t [&:nth-child(-n+2)]:border-t-line-strong [&:nth-last-child(-n+2)]:border-b-0';
-const DT = 'w-20 shrink-0 text-subtle min-[760px]:max-[1260px]:w-16';
+  'flex h-14 min-w-0 items-center gap-6 min-[970px]:max-[1260px]:gap-3 border-b border-line-soft [&:nth-child(-n+2)]:border-t [&:nth-child(-n+2)]:border-t-line-strong [&:nth-last-child(-n+2)]:border-b-0';
+const DT = 'w-20 shrink-0 text-subtle min-[970px]:max-[1260px]:w-16';
 const DD = 'relative m-0 flex min-w-0 flex-1 items-center gap-2 font-semibold';
 
 /** 빈 값 표시: PC·모바일 공통 흐린 "-" */
@@ -521,7 +528,7 @@ function ChipNo({ value }) {
   if (!value) return <EmptyDash />;
   const digits = value.replace(/\s/g, '');
   return (
-    <span className="min-w-0 whitespace-nowrap min-[760px]:max-[1100px]:text-sm">
+    <span className="min-w-0 whitespace-nowrap min-[970px]:max-[1100px]:text-sm">
       {digits}
     </span>
   );
