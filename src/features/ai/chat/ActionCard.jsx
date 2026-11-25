@@ -12,6 +12,7 @@ import { useOpenMain } from './aiHost';
 import { CARE_ITEM_TOOL, errorFieldsShown, missingFields } from './actionForm';
 import ActionCardFields from './ActionCardFields';
 import AiAvatar from './AiAvatar';
+import useTypewriter from './useTypewriter';
 
 /**
  * 등록한 반려동물로 케어 캘린더 열기: 캘린더가 `?petSn=`을 보고 있는 아이로 고름
@@ -23,9 +24,20 @@ const calendarPath = (petSn, isCareItem) => {
   return `${PATHS.HEALTH_CALENDAR}${query}${hash}`;
 };
 
-/** 결과 줄: 저장한 요약 메시지와 같은 글, 등록 직후에는 그 아래 오른쪽에 케어 캘린더 바로가기 */
-function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
+/**
+ * 결과 줄: 저장한 요약 메시지와 같은 글, 등록 직후에는 그 아래 오른쪽에 케어 캘린더 바로가기
+ * - 결과는 이 창에서 처리한 카드에만 있어(카드는 저장되지 않음) 처음 그릴 때가 곧 방금 받은 때: 글자를 펼치고, 다 펼친 뒤 바로가기
+ */
+function ResultLine({
+  status,
+  text,
+  hasCalendarLink,
+  petSn,
+  isCareItem,
+  memoKey,
+}) {
   const openMain = useOpenMain();
+  const typed = useTypewriter(text.replace(/^✔\s*/, ''), true, memoKey);
   const isDone = status === 'done';
   const Icon = isDone ? CircleCheck : CircleX;
   let color = 'text-subtle';
@@ -37,9 +49,9 @@ function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
         className={`flex items-start gap-2 text-base font-semibold leading-6 ${color}`}
       >
         <Icon aria-hidden="true" className="mt-[3px] size-[18px] shrink-0" />
-        {text.replace(/^✔\s*/, '')}
+        {typed.text}
       </p>
-      {isDone && hasCalendarLink && (
+      {isDone && hasCalendarLink && !typed.isRevealing && (
         <div className="mt-2 flex justify-end">
           <button
             type="button"
@@ -88,6 +100,7 @@ export default function ActionCard({
             hasCalendarLink={hasCalendarLink}
             petSn={input.petSn ?? card.input.petSn}
             isCareItem={isCareItem}
+            memoKey={`action-result-${item.key}`}
           />
         </div>
       </div>
@@ -135,6 +148,8 @@ export default function ActionCard({
           isDisabled={isLocked}
           onChoosePet={onChoosePet}
           onChangeInput={onChangeInput}
+          photoFields={item.photoFields}
+          isPhotoAsked={item.isPhotoAsked}
         />
         {isBusy && (
           <p role="status" className="text-sm leading-[22px] text-subtle">
