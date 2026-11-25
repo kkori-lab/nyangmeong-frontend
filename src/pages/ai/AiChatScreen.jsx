@@ -327,9 +327,18 @@ export default function AiChatScreen({
   };
 
   const selectedPet = pets?.find((pet) => pet.petSn === selectedPetSn);
-  /** AI 말풍선 얼굴: 열린 방이면 그 방 펫 태그, 새 대화면 고른 칩의 반려동물(없으면 기본 강아지 얼굴) */
-  const avatarPetSn =
-    selectedRoomSn !== null ? conversation?.petSn : selectedPetSn;
+  /**
+   * AI 말풍선 얼굴: 열린 방이면 그 방 펫 태그, 새 대화면 고른 칩의 반려동물(없으면 기본 강아지 얼굴)
+   * - 방 상세를 받기 전(새 대화에서 방이 막 생겼을 때 등)에는 바로 앞 얼굴을 그대로 둔다(기본 강아지로 한 번 바뀌지 않게)
+   */
+  const isAvatarKnown = selectedRoomSn === null || conversation !== undefined;
+  const nextAvatarPetSn =
+    (selectedRoomSn !== null ? conversation?.petSn : selectedPetSn) ?? null;
+  const [shownAvatarPetSn, setShownAvatarPetSn] = useState(nextAvatarPetSn);
+  if (isAvatarKnown && nextAvatarPetSn !== shownAvatarPetSn) {
+    setShownAvatarPetSn(nextAvatarPetSn);
+  }
+  const avatarPetSn = isAvatarKnown ? nextAvatarPetSn : shownAvatarPetSn;
   const avatarPet = pets?.find((pet) => pet.petSn === avatarPetSn) ?? null;
   /** 분석·생성할 반려동물: 고른 칩, 1마리면 그 아이, 아니면 되묻기(null) */
   const autoPet = selectedPet ?? (pets?.length === 1 ? pets[0] : null);

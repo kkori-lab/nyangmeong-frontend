@@ -20,11 +20,21 @@ const blobToDataUrl = (blob) =>
 const getImageBlob = (url, params) =>
   api.get(url, { params, responseType: 'blob', skipAuthRedirect: true });
 
-/** 비공개 이미지 주소와 상태: src는 로딩 중·실패 때 null */
+/**
+ * 파일 없음(404 FILE_NOT_FOUND)은 오류가 아니라 "이미지 없음"(null)으로 캐시한다.
+ * 오류로 두면 같은 이미지를 쓰는 칸이 새로 그려질 때마다 다시 요청하며 모든 칸이 로딩 상태로 깜빡인다
+ */
+const toNoImage = (error) => {
+  if (error?.code === 'FILE_NOT_FOUND') return null;
+  throw error;
+};
+
+/** 비공개 이미지 주소와 상태: src는 로딩 중·실패·파일 없음 때 null */
 export const useFileImage = ({ queryKey, url, params, enabled = true }) => {
   const { data, isLoading, isError } = useQuery({
     queryKey,
-    queryFn: () => getImageBlob(url, params).then(blobToDataUrl),
+    queryFn: () =>
+      getImageBlob(url, params).then(blobToDataUrl).catch(toNoImage),
     enabled,
     retry: false,
     staleTime: 5 * 60 * 1000,
