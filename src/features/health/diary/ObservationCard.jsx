@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Badge from '@/components/Badge';
 import Card from '@/components/Card';
@@ -385,26 +385,29 @@ export default function ObservationCard({
             피부·눈·상처 등 지속적으로 확인할 항목을 기록하고 변화를 비교해요
           </p>
           <div className="grid gap-5 min-[1100px]:grid-cols-[242px_minmax(0,1fr)]">
-            <div
-              role="group"
-              aria-label="관찰 항목 목록"
-              className="flex flex-col"
-            >
-              {items.map((item) => (
-                <ItemButton
-                  key={item.obsrvArtclSn}
-                  item={item}
-                  isSelected={item.obsrvArtclSn === selectedItem.obsrvArtclSn}
-                  onSelect={() =>
-                    setSelection({
-                      obsrvArtclSn: item.obsrvArtclSn,
-                      obsrvCyclSn: null,
-                    })
-                  }
-                />
-              ))}
+            {/* 1100px 이상: 목록 높이를 오른쪽 상세에 맞추고 넘치면 목록 안에서 스크롤 (※신규 정책) */}
+            <div className="relative">
+              <div
+                role="group"
+                aria-label="관찰 항목 목록"
+                className="flex flex-col min-[1100px]:absolute min-[1100px]:inset-0 min-[1100px]:overflow-y-auto"
+              >
+                {items.map((item) => (
+                  <ItemButton
+                    key={item.obsrvArtclSn}
+                    item={item}
+                    isSelected={item.obsrvArtclSn === selectedItem.obsrvArtclSn}
+                    onSelect={() =>
+                      setSelection({
+                        obsrvArtclSn: item.obsrvArtclSn,
+                        obsrvCyclSn: null,
+                      })
+                    }
+                  />
+                ))}
+              </div>
             </div>
-            <div className="min-w-0 min-[1100px]:border-l min-[1100px]:border-line-soft min-[1100px]:pl-6">
+            <SmoothHeight className="min-w-0 min-[1100px]:border-l min-[1100px]:border-line-soft min-[1100px]:pl-6">
               {detailProps ? (
                 <ObservationDetail
                   key={selectedItem.obsrvArtclSn}
@@ -413,12 +416,38 @@ export default function ObservationCard({
               ) : (
                 detailPlaceholder
               )}
-            </div>
+            </SmoothHeight>
           </div>
         </>
       )}
       {dialogs}
     </Card>
+  );
+}
+
+/**
+ * 안쪽 내용 높이를 ResizeObserver로 재서 겉 칸 높이에 넣는다. 항목을 바꿔 높이가 달라지면 0.3초 동안 부드럽게 줄고 늘어난다.
+ * 동작 줄이기 설정이면 바로 바뀐다 (※신규 정책)
+ */
+function SmoothHeight({ className = '', children }) {
+  const innerRef = useRef(null);
+  const [height, setHeight] = useState(undefined);
+
+  useLayoutEffect(() => {
+    const inner = innerRef.current;
+    if (!inner) return undefined;
+    const observer = new ResizeObserver(() => setHeight(inner.offsetHeight));
+    observer.observe(inner);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      className={`overflow-hidden ease-out motion-safe:transition-[height] motion-safe:duration-300 ${className}`}
+      style={{ height }}
+    >
+      <div ref={innerRef}>{children}</div>
+    </div>
   );
 }
 
