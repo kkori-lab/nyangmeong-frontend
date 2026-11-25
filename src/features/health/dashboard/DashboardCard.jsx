@@ -12,9 +12,6 @@ import NoticeInfo from '../shared/NoticeInfo';
 import { CardTitle } from '../summary/SummaryParts';
 import { getMovePath, getMoveState } from './widgetItems';
 
-/** 빈 상태 문구가 길면 작은 글자 */
-const LONG_EMPTY_TEXT = 12;
-
 /**
  * [대시보드 카드 한 장] (※신규 정책)
  * - content가 null이면 빈 상태: 프로토타입 원문 문구
@@ -65,15 +62,7 @@ export default function DashboardCard({
       ) : (
         /** 빈 상태 글자는 본문 가로·세로 가운데, 줄바꿈돼도 줄마다 가운데(추가-2) */
         <div className="flex grow flex-col items-center justify-center gap-2 text-center">
-          <p
-            className={
-              item.emptyText.length > LONG_EMPTY_TEXT
-                ? 'leading-[1.6] font-semibold text-ink-2'
-                : 'text-2xl leading-tight font-bold text-ink'
-            }
-          >
-            {item.emptyText}
-          </p>
+          <p className="text-base text-muted">{item.emptyText}</p>
         </div>
       )}
     </Card>

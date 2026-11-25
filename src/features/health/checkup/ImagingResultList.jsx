@@ -27,7 +27,9 @@ export default function ImagingResultList({ petSn, ckupRcdSn, attachments }) {
 
   return (
     <div>
-      {attachments.length === 0 && <p className="text-muted">결과가 없어요</p>}
+      {attachments.length === 0 && (
+        <p className="text-base text-muted">결과가 없어요</p>
+      )}
       <ul>
         {attachments.map((attachment) => (
           <li
