@@ -247,6 +247,13 @@ export const getChatCheckups = async (petSn) => {
 };
 
 /**
+ * 관찰 기록 추가 확인 카드의 관찰 항목 목록 (GET /api/pets/{petSn}/observation-items, JAJ, 목록 그대로)
+ * - 카드가 번호(obsrvArtclSn)만 주므로 이름·부위를 보이려고 부른다. 다른 도메인 함수는 import 하지 않아 따로 둔다
+ */
+export const getChatObservationItems = (petSn) =>
+  api.get(`/pets/${petSn}/observation-items`);
+
+/**
  * 대화창 검진기록 만들기 (POST /api/pets/{petSn}/checkups, JAJ)
  * - body: ckupYmd·hsptlNm·ckupTypeCd·ckupCn·ckupMemoCn, schdlSn이 있으면 그 일정을 검진일로 옮겨 연결
  * - 응답: 저장한 검진기록({ petSn, ckupRcdSn, … })

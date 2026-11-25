@@ -31,6 +31,7 @@ export const REPORT_ACTION_SUSPEND = REPORT_ACTION_OPTIONS[2].value;
 export const TARGET_TYPE_OPTIONS = [
   { value: 'POST', label: '게시글' },
   { value: 'COMMENT', label: '댓글' },
+  { value: 'MEMBER', label: '회원' },
 ];
 
 /** 자동 블라인드 여부(autoBlindYn) */
@@ -53,12 +54,26 @@ export const SUSPENSION_DAY_OPTIONS = [7, 30];
 export const getOptionLabel = (options, code) =>
   options.find(({ value }) => value === code)?.label ?? code;
 
-/** 대상 종류 이름 */
-export const getTargetLabel = ({ cmntSn }) =>
-  cmntSn == null ? '게시글' : '댓글';
+/** 채팅 상대 회원 신고: 채팅방이 있으면 회원 신고 */
+export const isMemberReport = ({ otoChatRoomSn }) => otoChatRoomSn != null;
 
-/** 조치 표시 이름: 댓글은 블라인드 대신 삭제 */
-export const getActionLabel = (code, { cmntSn }) => {
-  if (code === REPORT_ACTION_BLIND && cmntSn != null) return '댓글 삭제';
+/** 대상 종류 이름 */
+export const getTargetLabel = (report) => {
+  if (isMemberReport(report)) return '회원';
+  return report.cmntSn == null ? '게시글' : '댓글';
+};
+
+/** 처리할 수 있는 조치: 회원 신고는 블라인드 없음 */
+export const getActionOptions = (report) =>
+  isMemberReport(report)
+    ? REPORT_ACTION_OPTIONS.filter(({ value }) => value !== REPORT_ACTION_BLIND)
+    : REPORT_ACTION_OPTIONS;
+
+/** 조치 표시 이름: 댓글은 블라인드 대신 삭제, 회원 신고는 회원 정지 */
+export const getActionLabel = (code, report) => {
+  if (code === REPORT_ACTION_BLIND && report.cmntSn != null) return '댓글 삭제';
+  if (code === REPORT_ACTION_SUSPEND && isMemberReport(report)) {
+    return '회원 정지';
+  }
   return getOptionLabel(REPORT_ACTION_OPTIONS, code);
 };
