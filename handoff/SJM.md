@@ -2,9 +2,10 @@
 
 ## 지금 하는 것
 
-SCR-MYP-005 공동양육자 추가 · 보낸 초대 0건 문구를 빈 상태 글자 규칙으로 — 끝 (2026-11-25, 검증 `통과`(1회차), lint·build 0, 사람 확인 완료, 추가 요청 없음, 정리 없음)
+SCR-MYP-010 픽셀 캐릭터 관리 · 빈 상태 두 곳을 공용 규칙으로 — 끝 (2026-11-25, 검증 `통과`(1회차), lint·build 0, 사람 확인 완료, 추가 요청 없음, 정리 없음)
 
-- FN-MYP-005-03: `features/pet/list/SentInvitations.jsx` 0건 문구에 `text-base font-normal`을 더했다(16px·400·muted·가운데 정렬). 테두리 상자는 그대로
+- FN-MYP-010-22: `features/pet/character/CharacterEmpty.jsx`를 공용 `EmptyResult`로 바꿨다(Cat 28px, 배경 상자 없음, 문구·버튼·경로 그대로)
+- FN-MYP-010-14: `ItemStorage.jsx` 보유 아이템 0개 문구를 상자 없이 16px·400·muted·가운데 정렬로 맞췄다
 
 ## 다음에 할 것
 
