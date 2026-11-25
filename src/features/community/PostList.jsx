@@ -78,6 +78,9 @@ export default function PostList({
           <EmptyResult
             icon={<SearchX size={32} aria-hidden="true" />}
             title={mine ? '내가 쓴 글이 없어요' : '검색 결과가 없어요'}
+            description={
+              mine ? undefined : '검색어나 필터를 바꿔 다시 찾아보세요'
+            }
           >
             <button
               type="button"
