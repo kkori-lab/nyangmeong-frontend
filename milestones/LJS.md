@@ -2,6 +2,14 @@
 
 기준: 공통레이아웃_기능명세서_v0.4_20261001, AI매니저_기능명세서_v0.7_20261009 (DMS, 2026-10-17), 커뮤니티_기능명세서_v0.7_20261019 (CMU-005만, KSJ 마일스톤에서 옮김, 2026-10-21), AI매니저_기능명세서_v0.9_20261026 (SCR-AIM-013만, DMS 업로드 전 로컬 사본, 2026-10-26), 관리자_기능명세서_v0.2_20261030 (DMS, 2026-10-30. 화면설계서 `관리자_화면설계서_v0.1_20261030`, 순서는 백엔드 `docs/admin/implementation-plan.md` 3절 단계)
 
+## SCR-COM-002 공용 달 선택 추가(케어 캘린더·DatePicker) — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 화면 SCR-HLT-003·공용 DatePicker
+- 기다리는 것: 없음
+- 결정: 기존 모양 그대로, 달 고르기만 없는 곳에 더함. 마이페이지만의 규칙(데이터 있는 달만·미래 달·안내 문구)은 마이페이지만(사람 2026-11-25)
+- 완료 조건: 케어 캘린더 연월을 눌러 `MonthPicker`로 아무 달이나 고르고, 모든 `DatePicker` 헤더로 연·월을 고를 수 있다. 가계부·포인트 달 고르기는 그대로
+- 추가 요청: 추가-1 `DatePicker` 날짜 → 월 → 연도(12년 칸), 추가-2 `MonthPicker` `yearSelect`(기본 꺼짐, 케어 캘린더만 켬, 마이페이지는 막음)(사람 2026-11-25)
+- 결과(2026-11-25): `components/MonthPicker.jsx`(막는 규칙·안내는 넘길 때만, `disabled`·`align`·`yearSelect`), `components/DatePicker.jsx`(`monthSelect` 기본 켬, 12년 칸), `features/health/MonthCalendar.jsx`·`pages/health/CareCalendarPage.jsx`(연월 `MonthPicker`). 검증 1회차 통과(M1~M4), 추가 요청 뒤 2회차 통과, 사람 확인 2026-11-25
+
 ## SCR-AIM-013 대화창 · 확인 카드 사진 칸 받기 — 끝
 - 기능: 명세 기능 ID 없음(피부·안구 FN 행 작성 전, ai-1a 알림 2026-11-24 ai PR #114). 사진 칸만 빈 확인 카드의 말로 확인(`done.execute`)과 카드에서 사진 받기
 - 기다리는 것: 없음(ai #114 병합)

@@ -25,6 +25,8 @@ const MOBILE_MIN_WIDTH = 280;
 const MOBILE_MAX = 760;
 const POPOVER_HEIGHT = 340;
 const EDGE_GAP = 16;
+/** 12년 칸: 보고 있는 해가 든 12년 묶음(예: 2016~2027) */
+const YEARS_PER_PAGE = 12;
 
 const NAV_BUTTON =
   'grid size-8 place-items-center rounded-md text-muted hover:enabled:bg-surface-2 disabled:cursor-not-allowed disabled:text-line-strong';
@@ -66,7 +68,7 @@ const clamp = (ymd, min, max) => {
  * - 팝오버는 포털(모달 안이면 그 dialog, 아니면 body)에 fixed로 띄워 모달 본문 끝에 잘리지 않는다. 열린 동안 바깥 스크롤은 막는다
  * - 팝오버 너비: 데스크톱 296px, 모바일(760px 이하)은 칸 너비(최소 280px). 화면 좌우 16px 안으로 당겨 연다.
  *   연 채로 스크롤·창 크기를 바꾸면 위·아래 방향과 위치를 다시 잰다
- * - monthSelect: true면 헤더 "yyyy년 M월"을 눌러 연도 ◀▶ + 12개월 칸으로 보이는 달을 바로 옮긴다(기본 꺼짐).
+ * - monthSelect: true면 헤더 "yyyy년 M월"을 눌러 연도 ◀▶ + 12개월 칸으로 보이는 달을 바로 옮긴다(기본 켜짐, 끄려면 false). 연·월 칸 헤더 "yyyy년"을 누르면 12년 칸으로 해를 고른다(날짜 → 월 → 연도).
  *   월을 골라도 value는 바뀌지 않고, 날짜를 눌렀을 때만 onChange가 불린다
  * - 키보드: ←→ 하루, ↑↓ 한 주 이동, Enter·Space 선택, Esc·Tab 닫기. 아래 공간이 모자라면 위로 열림
  */
@@ -83,7 +85,7 @@ export default function DatePicker({
   id,
   describedBy,
   disabled = false,
-  monthSelect = false,
+  monthSelect = true,
   className = '',
 }) {
   const dialogId = useId();
@@ -100,6 +102,9 @@ export default function DatePicker({
   /** monthSelect가 켜졌을 때 달력 대신 연·월 칸을 보이는 중인지 */
   const [isMonthView, setIsMonthView] = useState(false);
   const [pickerYear, setPickerYear] = useState(0);
+  /** 연·월 칸에서 한 단계 더 올라가 12년 칸을 보이는 중인지, 그 첫 해 */
+  const [isYearView, setIsYearView] = useState(false);
+  const [yearStart, setYearStart] = useState(0);
 
   useImperativeHandle(ref, () => buttonRef.current, []);
 
@@ -129,6 +134,7 @@ export default function DatePicker({
     measure();
     setActiveYmd(clamp(value || today, min, max));
     setIsMonthView(false);
+    setIsYearView(false);
     setIsOpen(true);
   };
 
@@ -183,10 +189,13 @@ export default function DatePicker({
       return;
     }
     const steps = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
-    if (isMonthView && event.key in steps) {
+    if ((isMonthView || isYearView) && event.key in steps) {
       // 연·월 칸에서는 날짜를 옮기지 않는다
       event.preventDefault();
-    } else if (isMonthView && (event.key === 'Enter' || event.key === ' ')) {
+    } else if (
+      (isMonthView || isYearView) &&
+      (event.key === 'Enter' || event.key === ' ')
+    ) {
       // 값은 날짜를 눌렀을 때만 바뀐다
       event.preventDefault();
     } else if (event.key in steps) {
@@ -231,6 +240,23 @@ export default function DatePicker({
     setActiveYmd(clamp(addMonths(activeYmd, diff), min, max));
     setIsMonthView(false);
   };
+
+  const openYearView = () => {
+    setYearStart(Math.floor(pickerYear / YEARS_PER_PAGE) * YEARS_PER_PAGE);
+    setIsMonthView(false);
+    setIsYearView(true);
+  };
+
+  /** 해를 고르면 그 해의 연·월 칸으로 돌아간다 */
+  const pickYear = (year) => {
+    setPickerYear(year);
+    setIsYearView(false);
+    setIsMonthView(true);
+  };
+
+  const isYearOutOfRange = (year) =>
+    (minYear !== null && year < minYear) ||
+    (maxYear !== null && year > maxYear);
 
   const isMonthOutOfRange = (year, month) => {
     const first = toYmd(new Date(year, month, 1));
@@ -299,26 +325,48 @@ export default function DatePicker({
             <div className="mb-2 flex items-center justify-between">
               <button
                 type="button"
-                aria-label={isMonthView ? '이전 연도' : '이전 달'}
+                aria-label={
+                  isYearView
+                    ? '이전 12년'
+                    : isMonthView
+                      ? '이전 연도'
+                      : '이전 달'
+                }
                 disabled={
-                  isMonthView
-                    ? minYear !== null && pickerYear <= minYear
-                    : isPrevDisabled
+                  isYearView
+                    ? minYear !== null && yearStart <= minYear
+                    : isMonthView
+                      ? minYear !== null && pickerYear <= minYear
+                      : isPrevDisabled
                 }
-                onClick={() =>
-                  isMonthView ? setPickerYear(pickerYear - 1) : moveMonth(-1)
-                }
+                onClick={() => {
+                  if (isYearView) setYearStart(yearStart - YEARS_PER_PAGE);
+                  else if (isMonthView) setPickerYear(pickerYear - 1);
+                  else moveMonth(-1);
+                }}
                 className={NAV_BUTTON}
               >
                 <ChevronLeft size={18} aria-hidden="true" />
               </button>
-              {isMonthView ? (
+              {isYearView ? (
                 <span
                   aria-live="polite"
                   className="text-base leading-tight font-semibold tracking-[-0.03em] text-ink"
                 >
-                  {pickerYear}년
+                  {yearStart}년 – {yearStart + YEARS_PER_PAGE - 1}년
                 </span>
+              ) : isMonthView ? (
+                <button
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded={false}
+                  aria-label={`${pickerYear}년, 연도 선택`}
+                  onClick={openYearView}
+                  className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-md px-2 text-base leading-tight font-semibold tracking-[-0.03em] text-ink hover:bg-surface-2"
+                >
+                  {pickerYear}년
+                  <ChevronDown size={16} aria-hidden="true" />
+                </button>
               ) : monthSelect ? (
                 <button
                   type="button"
@@ -341,21 +389,56 @@ export default function DatePicker({
               )}
               <button
                 type="button"
-                aria-label={isMonthView ? '다음 연도' : '다음 달'}
+                aria-label={
+                  isYearView
+                    ? '다음 12년'
+                    : isMonthView
+                      ? '다음 연도'
+                      : '다음 달'
+                }
                 disabled={
-                  isMonthView
-                    ? maxYear !== null && pickerYear >= maxYear
-                    : isNextDisabled
+                  isYearView
+                    ? maxYear !== null &&
+                      yearStart + YEARS_PER_PAGE - 1 >= maxYear
+                    : isMonthView
+                      ? maxYear !== null && pickerYear >= maxYear
+                      : isNextDisabled
                 }
-                onClick={() =>
-                  isMonthView ? setPickerYear(pickerYear + 1) : moveMonth(1)
-                }
+                onClick={() => {
+                  if (isYearView) setYearStart(yearStart + YEARS_PER_PAGE);
+                  else if (isMonthView) setPickerYear(pickerYear + 1);
+                  else moveMonth(1);
+                }}
                 className={NAV_BUTTON}
               >
                 <ChevronRight size={18} aria-hidden="true" />
               </button>
             </div>
-            {isMonthView ? (
+            {isYearView ? (
+              <div className="grid grid-cols-4 gap-1">
+                {Array.from({ length: YEARS_PER_PAGE }, (_, index) => {
+                  const year = yearStart + index;
+                  const isCurrent = year === pickerYear;
+                  return (
+                    <button
+                      key={year}
+                      type="button"
+                      tabIndex={-1}
+                      disabled={isYearOutOfRange(year)}
+                      aria-pressed={isCurrent}
+                      onClick={() => pickYear(year)}
+                      className={`h-10 rounded-md text-sm tracking-[-0.03em] tabular-nums hover:enabled:bg-surface-2 disabled:cursor-not-allowed disabled:text-line-strong ${
+                        isCurrent
+                          ? 'bg-brand-500 font-bold text-white hover:enabled:bg-brand-500'
+                          : 'text-ink-2'
+                      }`}
+                    >
+                      {year}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : isMonthView ? (
               <div className="grid grid-cols-4 gap-1">
                 {Array.from({ length: 12 }, (_, index) => {
                   const isCurrent =

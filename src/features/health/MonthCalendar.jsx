@@ -1,5 +1,6 @@
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
+import MonthPicker from '@/components/MonthPicker';
 import {
   getDay,
   getDaysInMonth,
@@ -35,6 +36,7 @@ export default function MonthCalendar({
   selectedYmd,
   canMoveMonth,
   onMoveMonth,
+  onSelectMonth,
   onSelectDate,
   petSwitch,
 }) {
@@ -65,7 +67,7 @@ export default function MonthCalendar({
     <Card
       title="케어 캘린더"
       action={
-        <div className="flex items-center gap-1">
+        <div className="relative flex items-center gap-1">
           <button
             type="button"
             aria-label="이전 달"
@@ -75,9 +77,16 @@ export default function MonthCalendar({
           >
             <Icon name="chevron_left" />
           </button>
-          <span className="min-w-28 text-center text-lg font-semibold text-ink">
-            {year}년 {month}월
-          </span>
+          {/* 연월을 눌러 달 고르기. 막는 달 없음. 선택 창은 ◀ ▶ 묶음 오른쪽 끝에 맞춰 열어 화면 밖으로 안 나가게 한다 */}
+          <div className="contents [&>div]:static">
+            <MonthPicker
+              ym={`${year}-${String(month).padStart(2, '0')}`}
+              disabled={!canMoveMonth}
+              align="end"
+              yearSelect
+              onSelect={onSelectMonth}
+            />
+          </div>
           <button
             type="button"
             aria-label="다음 달"
