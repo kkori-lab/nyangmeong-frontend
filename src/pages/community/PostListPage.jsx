@@ -4,8 +4,9 @@ import { BTN_PRIMARY } from '@/components/buttonStyles';
 import LoadError from '@/components/LoadError';
 import PostList, { POST_LIST_GRID } from '@/features/community/PostList';
 import { getBoardCode } from '@/features/community/postCodes';
-import { usePostInfiniteList } from '@/features/community/queries';
+import { usePostInfiniteList, usePostList } from '@/features/community/queries';
 import StoryRail from '@/features/community/StoryRail';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 import Skeleton from '@/components/Skeleton';
@@ -72,6 +73,10 @@ function PostListSkeleton() {
             <PostCardSkeleton key={index} hasThumbOnMobile={index % 2 === 0} />
           ))}
         </div>
+        {/* 760px 이상은 쪽 번호가 있다(모바일은 무한 스크롤이라 없음) */}
+        <div aria-hidden="true" className="mt-7 hidden min-[760px]:block">
+          <Skeleton className="mx-auto h-9 w-64" />
+        </div>
       </div>
       <StoryRail action={writeAction} />
     </div>
@@ -98,21 +103,18 @@ export default function PostListPage() {
   const bbsCd = getBoardCode(boardName) ?? '';
   const board = bbsCd ? boardName : '';
   const mine = searchParams.get('mine') === '1';
+  /** 760px 미만(모바일)은 무한 스크롤, 그 밖은 ?page= 쪽 번호. 쓰는 쪽만 요청한다 */
+  const isMobile = useMediaQuery('(width < 760px)');
+  const page = Number(searchParams.get('page')) || 1;
+  const listParams = { size: PAGE_SIZE, bbsCd, sort, keyword, mineYn: mine };
+  const infinite = usePostInfiniteList(listParams, { enabled: isMobile });
+  const paged = usePostList({ ...listParams, page }, { enabled: !isMobile });
   const {
     data: posts,
     isPending,
     isError,
     refetch,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = usePostInfiniteList({
-    size: PAGE_SIZE,
-    bbsCd,
-    sort,
-    keyword,
-    mineYn: mine,
-  });
+  } = isMobile ? infinite : paged;
 
   /** 기본값(최신순)과 빈 값은 URL에 남기지 않는다. 검색어는 ?q=, 내 글만 보기는 ?mine=1 */
   const setQuery = (
@@ -144,6 +146,15 @@ export default function PostListPage() {
   const handleMineChange = (nextMine, typed = keyword) =>
     setQuery({ board, sort, keyword: typed, mine: nextMine });
 
+  const handlePageChange = (nextPage) =>
+    setQuery({
+      board,
+      sort,
+      keyword,
+      mine,
+      page: nextPage > 1 ? nextPage : '',
+    });
+
   let body;
   if (isPending) {
     body = <PostListSkeleton />;
@@ -170,9 +181,12 @@ export default function PostListPage() {
         onSortChange={handleSortChange}
         onMineChange={handleMineChange}
         onSearch={handleSearch}
-        hasNext={Boolean(hasNextPage)}
-        isFetchingNext={isFetchingNextPage}
-        onLoadMore={fetchNextPage}
+        isMobile={isMobile}
+        page={page}
+        onPageChange={handlePageChange}
+        hasNext={Boolean(infinite.hasNextPage)}
+        isFetchingNext={infinite.isFetchingNextPage}
+        onLoadMore={infinite.fetchNextPage}
         onReset={() => setSearchParams({})}
         action={writeAction}
       />
