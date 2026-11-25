@@ -86,7 +86,12 @@ const toFormData = (data) => {
  * Java 요청: path의 {칸}은 경로에, query 칸은 쿼리에, 나머지 목록 칸은 본문에
  * - call.path는 /api로 시작하고 axios api 인스턴스가 /api를 붙인다
  * - call.contentType이 multipart면 본문을 FormData로(관찰 항목 등록처럼 파일 칸이 있는 도구)
+ * - DELETE(삭제 카드)는 본문 없이 보낸다(칸은 경로 번호뿐, AI 계약 2026-11-25)
  */
+/** 삭제 카드: 고칠 칸 없이 대상 글(targetText)과 [삭제]로 보인다 */
+export const isDeleteCard = (card) =>
+  card.call?.method?.toUpperCase() === 'DELETE';
+
 export const buildActionRequest = (card, rawInput) => {
   const input = cleanInput(card, rawInput);
   const params = {};
@@ -105,6 +110,7 @@ export const buildActionRequest = (card, rawInput) => {
   const url = card.call.path
     .replace(/^\/api/, '')
     .replace(/\{(\w+)\}/g, (_, field) => encodeURIComponent(input[field]));
+  if (isDeleteCard(card)) return { method: card.call.method, url, params };
   const isMultipart = card.call.contentType?.includes('multipart') ?? false;
   return {
     method: card.call.method,
