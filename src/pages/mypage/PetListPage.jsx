@@ -101,7 +101,7 @@ export default function PetListPage() {
     <SubPageLayout section="mypage">
       {isPending ? (
         <PageSkeleton>
-          <SkeletonCard className="h-[577px] max-[760px]:h-[683px]" />
+          <SkeletonCard className="h-[577px] max-[970px]:h-[683px]" />
           <div aria-hidden="true" className="mt-7 flex flex-col gap-5">
             <Skeleton className="h-7 w-32" />
             <SkeletonCard className="h-[427px]" />
