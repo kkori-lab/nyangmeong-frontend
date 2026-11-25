@@ -61,7 +61,7 @@
 - 이번엔 안 함: FN-AIM-012-10 이미 있는 값 카드에서 고치기, 관찰 기록 추가 사진 칸
 - 연결 남음: 없음(ai 저장소 몫 hrInptYn 칸 이름 노출·안내 문구는 handoff "다음에 할 것")
 
-## SCR-ADM-030 신고 처리 · 채팅 상대 회원 신고 — 대기
+## SCR-ADM-030 신고 처리 · 채팅 상대 회원 신고 — 끝
 - 기능: 명세 기능 ID 추가 없음(backend-6d 요청 2026-11-24, KSJ 채팅방 「신고하기」를 채팅 상대 회원 신고로 변경, 사람 결정: 검사결과지 PDF·피부 병변 뒤에 진행)
 - 기다리는 것: KSJ 백엔드 회원 신고(POST /reports otoChatRoomSn, ReportMapper 글·댓글·회원 3분기, AdminReportService, MemberSuspensionService.suspendBySystem, DCLR v0.15) 병합. 병합 전에는 targetType=MEMBER·otoChatRoomSn 응답을 가짜로
 - 완료 조건 후보: 목록 대상 종류 「회원」 필터·표시(targetType=MEMBER) · 회원 신고 상세에서 [블라인드] 숨김(백엔드 400, 자동 블라인드 목록·복구에서도 회원 신고 제외, 복구 409) · 상세에 대상 회원·채팅방 표시(AdminReportSummary·AdminReportDetailResponse otoChatRoomSn, 목록 대상 내용은 그 방의 돌봄 글 제목, 채팅 원문은 보이지 않음). 회원 신고를 정지로 처리하면 신고된 상대 회원이 정지됨

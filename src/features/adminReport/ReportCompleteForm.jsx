@@ -4,7 +4,7 @@ import { showToast } from '@/components/toastStore';
 import { useCompleteReport } from './queries';
 import {
   getActionLabel,
-  REPORT_ACTION_OPTIONS,
+  getActionOptions,
   REPORT_ACTION_SUSPEND,
   SUSPENSION_DAY_OPTIONS,
 } from './reportLabels';
@@ -19,6 +19,7 @@ const MAX_MEMO_LENGTH = 1000;
 /**
  * [신고 처리 영역]
  * - 조치 필수 -> 같은 대상의 접수 신고 함께 처리
+ * - 회원 신고는 유지·회원 정지만(블라인드 없음)
  * - 작성자 정지는 회원 제재와 같은 입력: 종류·기간·사유
  * - 실패하면 입력을 유지하고 서버 문구 표시
  */
@@ -56,7 +57,7 @@ export default function ReportCompleteForm({ report, onReject }) {
           조치
         </legend>
         <div className="flex flex-wrap gap-4">
-          {REPORT_ACTION_OPTIONS.map(({ value }) => (
+          {getActionOptions(report).map(({ value }) => (
             <label key={value} className={RADIO_LABEL_CLASS}>
               <input
                 type="radio"
