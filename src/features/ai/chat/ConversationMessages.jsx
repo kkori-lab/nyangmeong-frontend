@@ -40,28 +40,80 @@ function PhotoMessage({ text, previewUrl }) {
 
 /**
  * 확인 카드 자리: 서버에 저장되지 않아 번호 없음
- * - 결과 요약이 저장됐으면 그 메시지 자리, 아니면 카드를 부른 내 메시지(afterSn보다 큰 첫 사용자 메시지) 뒤
+ * - 결과 요약이 저장됐으면 그 메시지 자리, 아니면 카드를 부른 내 메시지(afterSn보다 큰 첫 사용자 메시지)에 대한 AI 답변("이렇게 할까요?" 요약) 뒤
+ *   ([확인]·[취소] 직후 결과 메시지를 받기 전에 카드가 요약 위로 올라가지 않게). 답변이 아직 목록에 없으면 답변 말풍선 뒤(afterChildren)
  * - 그 메시지를 아직 받지 못했으면 목록 끝
  * - anchorSn이 있으면(검색 답변 끝에 온 확인 카드) 그 AI 메시지 뒤, 그 메시지가 아직 답변 말풍선이면 말풍선 뒤(afterChildren)
  */
+/** 내 메시지는 받았는데 그 답변이 아직 목록에 없음 */
+const REPLY_PENDING = 'reply-pending';
+
+/**
+ * 카드를 둘 AI 답변: afterSn보다 큰 첫 사용자 메시지 다음부터 다음 사용자 메시지 전까지의 마지막 AI 메시지
+ * - 내 메시지가 없으면 null(목록 끝), 내 메시지만 있으면 REPLY_PENDING
+ */
+const findReplyAnchor = (messages, afterSn) => {
+  const userIndex = messages.findIndex(
+    (message) =>
+      message.roleCd === AI_ROLE.USER && message.aiCnvrsMsgSn > afterSn,
+  );
+  if (userIndex === -1) return null;
+  let reply = null;
+  for (const message of messages.slice(userIndex + 1)) {
+    if (message.roleCd === AI_ROLE.USER) break;
+    reply = message;
+  }
+  return reply ?? REPLY_PENDING;
+};
+
+/**
+ * 카드가 붙는 답변(요약)이 목록에 보이는지
+ * - 방금 받은 요약은 목록에서 숨기고 답변 말풍선(children)으로 그리므로, 그동안은 false
+ * - anchorSn이 있으면 그 메시지, 없으면 결과 메시지 앞의 내 메시지 답변
+ * - 내 메시지를 찾지 못하면 true(결과 자리 그대로)
+ */
+const hasShownReply = (messages, card) => {
+  if (card.anchorSn != null)
+    return messages.some((message) => message.aiCnvrsMsgSn === card.anchorSn);
+  const userIndex = messages.findIndex(
+    (message) =>
+      message.roleCd === AI_ROLE.USER && message.aiCnvrsMsgSn > card.afterSn,
+  );
+  if (userIndex === -1) return true;
+  const resultIndex = messages.findIndex(
+    (message) => message.aiCnvrsMsgSn === card.resultMsgSn,
+  );
+  return messages
+    .slice(userIndex + 1, resultIndex)
+    .some((message) => message.roleCd !== AI_ROLE.USER);
+};
+
 const placeCards = (messages, cards) => {
   const replaced = new Map();
   const after = new Map();
   const atEnd = [];
   const afterChildren = [];
+  /** 카드가 말풍선 뒤로 간 동안 목록에서 그리지 않을 결과 메시지 */
+  const deferred = new Set();
   cards.forEach((card) => {
     if (messages.some((message) => message.aiCnvrsMsgSn === card.resultMsgSn)) {
+      /** 요약이 아직 답변 말풍선(children)으로 그려지는 동안은 결과 자리 대신 말풍선 뒤 */
+      if (!hasShownReply(messages, card)) {
+        deferred.add(card.resultMsgSn);
+        afterChildren.push(card);
+        return;
+      }
       replaced.set(card.resultMsgSn, card);
       return;
     }
     const anchor =
       card.anchorSn != null
         ? messages.find((message) => message.aiCnvrsMsgSn === card.anchorSn)
-        : messages.find(
-            (message) =>
-              message.roleCd === AI_ROLE.USER &&
-              message.aiCnvrsMsgSn > card.afterSn,
-          );
+        : findReplyAnchor(messages, card.afterSn);
+    if (anchor === REPLY_PENDING) {
+      afterChildren.push(card);
+      return;
+    }
     if (!anchor) {
       (card.anchorSn != null ? afterChildren : atEnd).push(card);
       return;
@@ -71,7 +123,7 @@ const placeCards = (messages, cards) => {
       card,
     ]);
   });
-  return { replaced, after, atEnd, afterChildren };
+  return { replaced, after, atEnd, afterChildren, deferred };
 };
 
 /**
@@ -108,7 +160,7 @@ export default function ConversationMessages({
   children,
 }) {
   const lastSn = messages.at(-1)?.aiCnvrsMsgSn;
-  const { replaced, after, atEnd, afterChildren } = placeCards(
+  const { replaced, after, atEnd, afterChildren, deferred } = placeCards(
     messages,
     actionCards,
   );
@@ -194,6 +246,7 @@ export default function ConversationMessages({
   return (
     <ul className="mx-auto flex w-full max-w-[820px] flex-col gap-4">
       {messages.map((message) => {
+        if (deferred.has(message.aiCnvrsMsgSn)) return null;
         const resultCard = replaced.get(message.aiCnvrsMsgSn);
         return [
           resultCard ? renderCard(resultCard) : renderMessage(message),
