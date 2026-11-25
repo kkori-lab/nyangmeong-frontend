@@ -135,9 +135,10 @@ export default function FaqList({
       >
         {content.length === 0 ? (
           <EmptyResult
+            isUnified
             icon={<SearchX size={32} aria-hidden="true" />}
-            title="찾는 질문이 없어요"
-            description="다른 카테고리를 고르거나 검색어를 바꿔 보세요"
+            title="검색 결과가 없어요"
+            description="검색어나 필터를 바꿔 다시 찾아보세요"
           >
             <button
               type="button"

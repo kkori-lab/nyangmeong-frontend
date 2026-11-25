@@ -24,6 +24,7 @@ export default function InquiryDetailPage() {
     return (
       <div role="alert">
         <EmptyResult
+          isUnified
           icon={<FileX size={32} aria-hidden="true" />}
           title={error.message}
         >

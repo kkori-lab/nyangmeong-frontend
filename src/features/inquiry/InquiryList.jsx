@@ -45,6 +45,7 @@ export default function InquiryList({
       >
         {content.length === 0 ? (
           <EmptyResult
+            isUnified
             icon={<Inbox size={32} aria-hidden="true" />}
             title={`${status} 문의가 없어요`}
             description="다른 상태의 문의는 전체에서 볼 수 있어요"
