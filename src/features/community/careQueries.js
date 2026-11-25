@@ -24,8 +24,10 @@ export const careKeys = {
   minimumWage: ['care', 'minimumWage'],
 };
 
-export const useCareList = (params) =>
+/** 쪽 번호 목록(760px 이상). options.enabled가 false면 요청하지 않는다(모바일은 무한 스크롤 훅만 쓴다) */
+export const useCareList = (params, { enabled = true } = {}) =>
   useQuery({
+    enabled,
     queryKey: careKeys.list(params),
     queryFn: () => getCareList(params),
     /** 필터를 바꾸는 동안 이전 목록 유지로 필터 영역 보존 */
@@ -33,8 +35,9 @@ export const useCareList = (params) =>
   });
 
 /** 무한 스크롤 목록: params에 page는 넣지 않는다 */
-export const useCareInfiniteList = (params) =>
+export const useCareInfiniteList = (params, { enabled = true } = {}) =>
   useInfiniteQuery({
+    enabled,
     ...INFINITE_OPTIONS,
     queryKey: [...careKeys.list(params), 'infinite'],
     queryFn: ({ pageParam }) => getCareList({ ...params, page: pageParam }),
