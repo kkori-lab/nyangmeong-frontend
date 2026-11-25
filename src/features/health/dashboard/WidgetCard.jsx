@@ -64,22 +64,6 @@ const deltaChip = (delta, unit) => {
 /** 처방·투약 카드 최대 줄 수 */
 const PRESCRIPTION_ROW_COUNT = 3;
 
-function BigValue({ value, unit }) {
-  return (
-    <p className="flex max-w-full min-w-0 items-baseline gap-1">
-      <b
-        className={`leading-none font-bold tracking-[-0.02em] text-ink ${
-          typeof value === 'number' ? 'text-[28px]' : 'truncate text-2xl'
-        }`}
-        title={typeof value === 'string' ? value : undefined}
-      >
-        {value}
-      </b>
-      {unit && <span className="text-muted">{unit}</span>}
-    </p>
-  );
-}
-
 function Note({ children }) {
   return <p className="mt-1 text-sm text-subtle">{children}</p>;
 }
@@ -397,12 +381,11 @@ const stoolBody = ({ stools }) => {
     /** 기록 시간은 기간 줄 오른쪽 끝(「기록하기 ›」 아래 줄), 값 옆에는 두지 않음 */
     periodAside: (
       <p className="shrink-0 text-sm whitespace-nowrap text-subtle">
-        {latestTime}
+        마지막 기록 {latestTime}
       </p>
     ),
     body: (
       <>
-        <BigValue value={latestName} />
         <ul
           aria-label="배변 상태별 횟수"
           className="mt-auto grid grid-cols-5 gap-2 pt-4 text-center"
@@ -534,9 +517,8 @@ const observationChip = (hasCompare, sizeDiff, obsrvChgCdNm) => {
     : { tone: 'rose', text: `▲ ${amount}mm 커짐` };
 };
 
-const observationBody = ({ summary, petSn }) => {
-  const item = summary.observations[0];
-  if (!item) return null;
+/** 관찰 항목 한 개의 첫·최근 비교 값 */
+const getObservationCompare = (item) => {
   const { firstCycle: first, lastCycle: last, cyclCnt } = item;
   const hasCompare = cyclCnt > 1;
   const sizeDiff =
@@ -554,6 +536,62 @@ const observationBody = ({ summary, petSn }) => {
       : formatDiff(sizeDiff)
         ? `${days}일 동안 ${Math.abs(round2(sizeDiff))}mm ${sizeDiff > 0 ? '커짐' : '작아짐'}`
         : `${days}일 동안 변화 없음`;
+  return { first, last, cyclCnt, hasCompare, sizeDiff, days, summaryText };
+};
+
+/**
+ * [지속 관찰 카드 본문] 맨 위 한 줄: 왼쪽 관찰 중 n건, 오른쪽 항목 선택창([부위] 항목명). 처음 항목은 가장 최근 관찰, 고른 항목은 저장 안 함 (※신규 정책, 2026-11-25)
+ * - 그 아래 첫 기록 사진·최근 사진, 변화 문구
+ */
+function ObservationCompare({ items, petSn }) {
+  const [selectedSn, setSelectedSn] = useState(items[0].obsrvArtclSn);
+  const item =
+    items.find((entry) => entry.obsrvArtclSn === selectedSn) ?? items[0];
+  const { first, last, cyclCnt, hasCompare, sizeDiff, summaryText } =
+    getObservationCompare(item);
+
+  return (
+    <>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="shrink-0 text-sm text-subtle">관찰 중 {items.length}건</p>
+        <DropdownSelect
+          label="관찰 항목 선택"
+          value={item.obsrvArtclSn}
+          options={items.map((entry) => ({
+            value: entry.obsrvArtclSn,
+            label: `[${formatPart(entry)}] ${entry.obsrvArtclNm}`,
+          }))}
+          className="max-w-[60%]"
+          onChange={setSelectedSn}
+        />
+      </div>
+      {/* 항목명·부위는 선택창에 보이므로 따로 줄을 두지 않음: 카드 높이(300px) 안에 변화 문구까지 들어가게 (※신규 정책, 2026-11-25 사람 결정) */}
+      <div className="grid grid-cols-2 gap-3">
+        <ObservationFigure
+          petSn={petSn}
+          label="첫 기록 사진"
+          cycle={first}
+          cycleNo={1}
+        />
+        {hasCompare && (
+          <ObservationFigure
+            petSn={petSn}
+            label="최근 사진"
+            cycle={last}
+            cycleNo={cyclCnt}
+            diffText={sizeDiff == null ? '' : formatDiff(sizeDiff)}
+          />
+        )}
+      </div>
+      {summaryText && <Note>{summaryText}</Note>}
+    </>
+  );
+}
+
+const observationBody = ({ summary, petSn }) => {
+  const item = summary.observations[0];
+  if (!item) return null;
+  const { last, hasCompare, sizeDiff, days } = getObservationCompare(item);
   return {
     tile: {
       value: `관찰 중 ${summary.observations.length}건`,
@@ -563,29 +601,11 @@ const observationBody = ({ summary, petSn }) => {
         : item.obsrvArtclNm,
     },
     body: (
-      <>
-        <p className="font-semibold text-ink">
-          {item.obsrvArtclNm} · {formatPart(item)}
-        </p>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <ObservationFigure
-            petSn={petSn}
-            label="첫 기록 사진"
-            cycle={first}
-            cycleNo={1}
-          />
-          {hasCompare && (
-            <ObservationFigure
-              petSn={petSn}
-              label="최근 사진"
-              cycle={last}
-              cycleNo={cyclCnt}
-              diffText={sizeDiff == null ? '' : formatDiff(sizeDiff)}
-            />
-          )}
-        </div>
-        {summaryText && <Note>{summaryText}</Note>}
-      </>
+      <ObservationCompare
+        key={petSn}
+        items={summary.observations}
+        petSn={petSn}
+      />
     ),
   };
 };

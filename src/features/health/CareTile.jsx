@@ -58,6 +58,8 @@ export default function CareTile({
   className = '',
 }) {
   const isDose = item.prscSn != null;
+  /** 투약을 한 번 이상 눌렀지만 다 하지 않은 줄 (※신규 정책) */
+  const isDosing = isDose && item.todayCmptnCnt > 0 && !isDone;
   const isLinked = isLinkedCareItem(item);
   /** 줄 버튼 밖 칸은 투약 줄에만(복용 종료일·[마지막 1회 취소]) */
   const hasSideArea = isDose;
@@ -77,7 +79,9 @@ export default function CareTile({
       } ${
         isDone
           ? 'border-brand-100 bg-brand-50 max-[760px]:border-brand-500 max-[760px]:bg-brand-100'
-          : 'border-line-soft max-[760px]:border-line max-[760px]:bg-white'
+          : isDosing
+            ? 'border-line-soft bg-brand-50/50 max-[760px]:border-brand-100 max-[760px]:bg-brand-50'
+            : 'border-line-soft max-[760px]:border-line max-[760px]:bg-white'
       } ${className}`}
     >
       <button

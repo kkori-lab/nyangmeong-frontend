@@ -9,7 +9,7 @@ import CareManageModal from './CareManageModal';
 import CareProgressBox from './CareProgressBox';
 import CareRecordList from './CareRecordList';
 import CareTile from './CareTile';
-import { CARE_ZONE, MIN_CARE_COUNT } from './careDue';
+import { CARE_ZONE, MIN_CARE_COUNT, getCareCycleName } from './careDue';
 import { readTodayKept, writeTodayKept } from './careTodayKept';
 import UnderlineTabs from '@/components/UnderlineTabs';
 import {
@@ -74,10 +74,10 @@ export default function CareList({ petSn, petNm, mission }) {
   const { careItems, careRecords } = data;
   const todayYmd = getTodayYmd();
   const shownItems = careItems.filter((item) => item.indctYn);
-  const regularSns = new Set(
+  const regularCycles = new Map(
     careItems
       .filter((item) => item.careZoneCd === CARE_ZONE.REGULAR)
-      .map((item) => item.careArtclSn),
+      .map((item) => [item.careArtclSn, getCareCycleName(item)]),
   );
 
   const findTodayRecord = (item) =>
@@ -265,7 +265,7 @@ export default function CareList({ petSn, petNm, mission }) {
       <CareRecordList
         key={petSn}
         records={careRecords}
-        regularSns={regularSns}
+        regularCycles={regularCycles}
         onCancel={(record) =>
           cancelCareRecord.mutate({
             petSn,
