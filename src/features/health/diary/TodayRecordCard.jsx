@@ -139,7 +139,9 @@ function TodayRow({ typeCd, summary, isCompact }) {
       <div className="col-start-2 row-span-2 row-start-1 flex flex-col items-end justify-center text-right tabular-nums min-[760px]:max-[1100px]:items-start min-[760px]:max-[1100px]:text-left">
         {count === 0 ? (
           <>
-            <span className="text-sm/[1.6] text-muted min-[760px]:max-[1100px]:hidden">
+            <span
+              className={`${typeCd === STOOL ? 'text-base/[1.6]' : 'text-sm/[1.6]'} text-muted min-[760px]:max-[1100px]:hidden`}
+            >
               {typeCd === STOOL ? '기록이 없어요' : '-'}
             </span>
             <b className="hidden text-lg font-semibold text-line-strong min-[760px]:max-[1100px]:block">
