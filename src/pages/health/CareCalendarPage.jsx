@@ -8,6 +8,7 @@ import Toggle from '@/components/Toggle';
 import { showToast } from '@/components/toastStore';
 import CareList from '@/features/health/CareList';
 import UnderlineTabs from '@/components/UnderlineTabs';
+import NoPetDashboard from '@/features/health/dashboard/NoPetDashboard';
 import MonthCalendar from '@/features/health/MonthCalendar';
 import PetSwitcher from '@/features/health/shared/PetSwitcher';
 import SelectedPetProvider from '@/features/health/shared/SelectedPetProvider';
@@ -66,21 +67,24 @@ export default function CareCalendarPage() {
   );
 }
 
-/** 공용 페이지 틀 + 공통 반려동물 카드 (※신규 정책) */
-function CalendarLayout({ children }) {
+/**
+ * 공용 페이지 틀 + 공통 반려동물 카드 (※신규 정책)
+ * - isNoPet: 0마리면 등록 안내와 겹치지 않게 반려동물 카드를 그리지 않음 (※신규 정책)
+ */
+function CalendarLayout({ isNoPet = false, children }) {
   return (
     <SubPageLayout
       {...LAYOUT_PROPS}
-      sideBottom={<PetSwitcher variant="card" />}
+      sideBottom={isNoPet ? null : <PetSwitcher variant="card" />}
     >
-      <PetSwitcher variant="pill" />
+      {!isNoPet && <PetSwitcher variant="pill" />}
       {children}
     </SubPageLayout>
   );
 }
 
 function CareCalendarContent() {
-  const { hash } = useLocation();
+  const { hash, pathname } = useLocation();
   const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
   const todayYmd = getTodayYmd();
   const [viewMonthYmd, setViewMonthYmd] = useState(() =>
@@ -171,6 +175,17 @@ function CareCalendarContent() {
         <LoadError
           message="반려동물 정보를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요"
           onRetry={() => refetchPets()}
+        />
+      </CalendarLayout>
+    );
+  }
+  /** 0마리: 캘린더·케어리스트 탭 모두 탭·탭 내용 없이 등록 안내만 (※신규 정책) */
+  if (!selectedPet) {
+    return (
+      <CalendarLayout isNoPet>
+        <NoPetDashboard
+          returnTo={pathname}
+          description="반려동물을 등록하면 케어 일정과 케어리스트를 관리할 수 있어요"
         />
       </CalendarLayout>
     );
