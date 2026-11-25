@@ -22,11 +22,7 @@ import { STOOL_STATES } from '../diaryTypes';
 import AttachmentImage from '../summary/AttachmentImage';
 import { round2 } from '../numberFormat';
 import PhotoModal from '../summary/PhotoModal';
-import {
-  getCheckupDetailPath,
-  getCheckupType,
-  getFunctionTagName,
-} from '../summary/summaryUtils';
+import { getCheckupDetailPath, getCheckupType } from '../summary/summaryUtils';
 import DashboardCard from './DashboardCard';
 import WidgetTile from './WidgetTile';
 import { MOBILE_HIDDEN_IDS } from './widgetItems';
@@ -222,7 +218,7 @@ const DEFAULT_INSPECTION = 'CREA';
 
 /**
  * [검사 수치 카드 본문] (※신규 정책, 추가-4)
- * - 맨 위 한 줄: 왼쪽 "최근 n회", 오른쪽 항목 선택창([기능 태그] 항목명)
+ * - 맨 위 한 줄: 왼쪽 "최근 n회", 오른쪽 항목 선택창(항목명)
  * - 처음 항목: CREA → 첫 항목 (?inspection= 처음 항목은 검진상세 [추이 보기]와 함께 취소, 2026-11-23)
  */
 function InspectionTrend({ trends }) {
@@ -247,9 +243,9 @@ function InspectionTrend({ trends }) {
           value={trend.inspNm}
           options={itemNames.map((name) => ({
             value: name,
-            label: `[${getFunctionTagName(trends[name].fnctTagCd)}] ${name}`,
+            label: name,
           }))}
-          className="max-w-[60%]"
+          className="w-48 max-w-[60%]"
           onChange={setSelectedNm}
         />
       </div>
@@ -561,7 +557,7 @@ function ObservationCompare({ items, petSn }) {
             value: entry.obsrvArtclSn,
             label: `[${formatPart(entry)}] ${entry.obsrvArtclNm}`,
           }))}
-          className="max-w-[60%]"
+          className="w-48 max-w-[60%]"
           onChange={setSelectedSn}
         />
       </div>
