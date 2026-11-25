@@ -4,7 +4,7 @@ import Avatar from '@/components/Avatar';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
 import FileImage from '@/components/FileImage';
-import LoadMore from '@/components/LoadMore';
+import ListPager from '@/components/ListPager';
 import useSearchDraft from '@/hooks/useSearchDraft';
 import { PATHS } from '@/routes/paths';
 import { formatRelativeTime } from '@/utils/formatDate';
@@ -32,6 +32,9 @@ export default function PostList({
   onSortChange,
   onMineChange,
   onSearch,
+  isMobile,
+  page,
+  onPageChange,
   hasNext,
   isFetchingNext,
   onLoadMore,
@@ -156,10 +159,14 @@ export default function PostList({
           </ul>
         )}
 
-        <LoadMore
+        <ListPager
+          isMobile={isMobile}
           hasNext={hasNext}
-          isFetching={isFetchingNext}
-          onLoad={onLoadMore}
+          isFetchingNext={isFetchingNext}
+          onLoadMore={onLoadMore}
+          page={page}
+          totalPages={posts.totalPages}
+          onPageChange={onPageChange}
         />
       </div>
 

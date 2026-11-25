@@ -7,7 +7,7 @@ import {
   FILTER_CHIP_ON,
 } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
-import LoadMore from '@/components/LoadMore';
+import ListPager from '@/components/ListPager';
 import { THUMB_COLS } from '@/constants/listLayout';
 import SearchInput from '@/components/SearchInput';
 import useSearchDraft from '@/hooks/useSearchDraft';
@@ -81,6 +81,9 @@ export default function NewsList({
   keyword,
   onCategoryChange,
   onSearch,
+  isMobile,
+  page,
+  onPageChange,
   hasNext,
   isFetchingNext,
   onLoadMore,
@@ -167,10 +170,14 @@ export default function NewsList({
           </ul>
         )}
 
-        <LoadMore
+        <ListPager
+          isMobile={isMobile}
           hasNext={hasNext}
-          isFetching={isFetchingNext}
-          onLoad={onLoadMore}
+          isFetchingNext={isFetchingNext}
+          onLoadMore={onLoadMore}
+          page={page}
+          totalPages={news.totalPages}
+          onPageChange={onPageChange}
         />
       </div>
     </div>
