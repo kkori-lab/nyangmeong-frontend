@@ -17,48 +17,63 @@ export default function ExpensePetChart({ stats, isExpanded, onToggle }) {
     ? stats.pets
     : stats.pets.slice(0, VISIBLE_PET_COUNT);
 
+  /** 동물·공용 지출이 모두 0원이면 막대 대신 빈 문구 */
+  const isEmpty =
+    stats.shared == null && stats.pets.every((pet) => pet.totalAmt === 0);
+
   return (
-    <section aria-labelledby="expense-pet-title" className={CARD}>
+    <section
+      aria-labelledby="expense-pet-title"
+      className={`${CARD} ${isEmpty ? 'flex flex-col' : ''}`}
+    >
       <div className={CARD_HEAD}>
         <h2 id="expense-pet-title" className={CARD_TITLE}>
           반려동물별 지출
         </h2>
       </div>
-      <div className={`${CARD_BODY} flex flex-col gap-4`}>
-        <ul className="flex flex-col gap-4">
-          {visiblePets.map((pet) => (
-            <PetBar
-              key={pet.petSn}
-              label={pet.label}
-              totalAmt={pet.totalAmt}
-              ratio={pet.ratio}
-            />
-          ))}
-        </ul>
-        {hiddenCount > 0 && (
-          <button
-            type="button"
-            onClick={onToggle}
-            aria-expanded={isExpanded}
-            className="flex h-10 items-center justify-center gap-1 rounded-md border border-dashed border-line-strong bg-white font-semibold text-muted hover:border-brand-500 hover:text-brand-600"
-          >
-            {isExpanded ? '접기' : `더보기 (${hiddenCount}마리)`}
-            <ChevronDown
-              className={`size-4 ${isExpanded ? 'rotate-180' : ''}`}
-              aria-hidden="true"
-            />
-          </button>
-        )}
-        {stats.shared && (
-          <ul>
-            <PetBar
-              label="공용"
-              totalAmt={stats.shared.totalAmt}
-              ratio={stats.shared.ratio}
-            />
+      {isEmpty ? (
+        <div className={`${CARD_BODY} flex flex-1 items-center justify-center`}>
+          <p className="text-center text-base font-normal text-muted">
+            이번 달 지출이 없어요
+          </p>
+        </div>
+      ) : (
+        <div className={`${CARD_BODY} flex flex-col gap-4`}>
+          <ul className="flex flex-col gap-4">
+            {visiblePets.map((pet) => (
+              <PetBar
+                key={pet.petSn}
+                label={pet.label}
+                totalAmt={pet.totalAmt}
+                ratio={pet.ratio}
+              />
+            ))}
           </ul>
-        )}
-      </div>
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-expanded={isExpanded}
+              className="flex h-10 items-center justify-center gap-1 rounded-md border border-dashed border-line-strong bg-white font-semibold text-muted hover:border-brand-500 hover:text-brand-600"
+            >
+              {isExpanded ? '접기' : `더보기 (${hiddenCount}마리)`}
+              <ChevronDown
+                className={`size-4 ${isExpanded ? 'rotate-180' : ''}`}
+                aria-hidden="true"
+              />
+            </button>
+          )}
+          {stats.shared && (
+            <ul>
+              <PetBar
+                label="공용"
+                totalAmt={stats.shared.totalAmt}
+                ratio={stats.shared.ratio}
+              />
+            </ul>
+          )}
+        </div>
+      )}
     </section>
   );
 }
