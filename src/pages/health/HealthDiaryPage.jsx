@@ -14,6 +14,7 @@ import {
   CHAT_RECEIPT_LOAD_ERROR,
   getChatReceiptFailure,
 } from '@/features/ai/receipt/receiptFailure';
+import NoPetDashboard from '@/features/health/dashboard/NoPetDashboard';
 import CheckupListCard from '@/features/health/diary/CheckupListCard';
 import CheckupModal from '@/features/health/diary/CheckupModal';
 import DailyTrendCard from '@/features/health/diary/DailyTrendCard';
@@ -68,8 +69,11 @@ export default function HealthDiaryPage() {
   );
 }
 
-/** 공용 페이지 틀 + 공통 반려동물 카드. 설명 첫머리에 어느 아이의 기록인지 보인다 (※신규 정책) */
-function HealthLayout({ petNm, children }) {
+/**
+ * 공용 페이지 틀 + 공통 반려동물 카드. 설명 첫머리에 어느 아이의 기록인지 보인다 (※신규 정책)
+ * - isNoPet: 0마리면 등록 안내와 겹치지 않게 반려동물 카드를 그리지 않음 (※신규 정책)
+ */
+function HealthLayout({ petNm, isNoPet = false, children }) {
   return (
     <SubPageLayout
       {...LAYOUT_PROPS}
@@ -78,9 +82,9 @@ function HealthLayout({ petNm, children }) {
           ? `${petNm}의 매일 기록과 관찰, 병원 기록을 모아 봐요`
           : LAYOUT_PROPS.description
       }
-      sideBottom={<PetSwitcher variant="card" />}
+      sideBottom={isNoPet ? null : <PetSwitcher variant="card" />}
     >
-      <PetSwitcher variant="pill" />
+      {!isNoPet && <PetSwitcher variant="pill" />}
       {children}
     </SubPageLayout>
   );
@@ -249,6 +253,17 @@ function HealthDiaryContent({ mbrSn }) {
         <LoadError
           message="반려동물 정보를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요"
           onRetry={() => refetchPets()}
+        />
+      </HealthLayout>
+    );
+  }
+  /** 0마리: 탭·탭 내용 없이 등록 안내만 (※신규 정책) */
+  if (!selectedPet) {
+    return (
+      <HealthLayout isNoPet>
+        <NoPetDashboard
+          returnTo={location.pathname}
+          description="반려동물을 등록하면 매일 기록과 관찰, 검진기록을 남길 수 있어요"
         />
       </HealthLayout>
     );

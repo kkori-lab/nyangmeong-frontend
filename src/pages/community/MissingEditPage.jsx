@@ -77,7 +77,6 @@ export default function MissingEditPage() {
     body = (
       <div role="alert">
         <EmptyResult
-          isUnified
           icon={<FileX size={32} aria-hidden="true" />}
           title="게시글을 찾지 못했어요"
           description="삭제되었거나 주소가 잘못되었을 수 있어요"

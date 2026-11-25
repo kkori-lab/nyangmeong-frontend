@@ -39,7 +39,7 @@ export default function ScheduleDayDetail({
       title={formatMonthDayWeekday(ymd)}
       sub={`${sorted.length}건 · ${petLabel}`}
       className={className}
-      bodyClassName={bodyClassName}
+      bodyClassName={`${bodyClassName} flex flex-col`}
       action={
         // 좁은 화면에서는 제목·부제가 잘리지 않게 ＋ 아이콘만 남긴다
         <button
@@ -54,16 +54,10 @@ export default function ScheduleDayDetail({
       }
     >
       {sorted.length === 0 ? (
-        <EmptyResult
-          isCompact
-          icon={
-            <Icon
-              name="calendar_month"
-              className="text-[28px] text-line-strong"
-            />
-          }
-          title="등록된 일정이 없어요"
-        />
+        // 테두리 없는 빈 상태: 카드 칸 세로 가운데 (※신규 정책)
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <p className="text-base text-muted">등록된 일정이 없어요</p>
+        </div>
       ) : (
         <>
           <ul>

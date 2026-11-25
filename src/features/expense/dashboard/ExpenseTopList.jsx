@@ -19,7 +19,7 @@ export default function ExpenseTopList({ expenses, onViewAll, isGrow }) {
   return (
     <section
       aria-labelledby="expense-top-title"
-      className={`${CARD} ${isGrow ? 'min-[1100px]:flex-1' : ''}`}
+      className={`${CARD} ${isGrow ? 'min-[1100px]:flex-1' : ''} ${expenses.length === 0 ? 'flex flex-col' : ''}`}
     >
       <div className={CARD_HEAD}>
         <h2 id="expense-top-title" className={CARD_TITLE}>
@@ -34,9 +34,13 @@ export default function ExpenseTopList({ expenses, onViewAll, isGrow }) {
           <ChevronRight className="size-4" aria-hidden="true" />
         </button>
       </div>
-      <div className={CARD_BODY}>
+      <div
+        className={`${CARD_BODY} ${expenses.length === 0 ? 'flex flex-1 items-center justify-center' : ''}`}
+      >
         {expenses.length === 0 ? (
-          <p className="text-subtle">이번 달 지출이 없어요</p>
+          <p className="text-center text-base font-normal text-muted">
+            이번 달 지출이 없어요
+          </p>
         ) : (
           <ul>
             {expenses.map((expense) => (

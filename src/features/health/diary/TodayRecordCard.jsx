@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Card from '@/components/Card';
 import Icon from '@/components/Icon';
 import { BTN_PRIMARY } from '@/components/buttonStyles';
@@ -11,7 +10,6 @@ import {
   findRecordType,
 } from '../diaryTypes';
 import { DAILY_ITEMS, keepWidgetOrder } from '../dashboard/widgetItems';
-import DayRecordEditModal from './DayRecordEditModal';
 import { formatAmount, formatRecordValue, summarizeType } from './recordUtils';
 
 /** 줄에 나열하는 개별 값 최대 수 */
@@ -22,9 +20,9 @@ const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
 /**
  * [오늘의 기록 카드]
  * - 종류별 한 줄: 종류·횟수 | 합계(체중·배변 상태는 최신 값), 아래 줄에 개별 값 (FN-HLT-002-12)
- * - 맨 밑 [오늘 기록 수정하기]: 오늘 기록 수정 모달(최근 건강기록 날짜 행과 같은 모달). 오늘 기록이 없으면 숨김 (※신규 정책)
- * - 버튼이 있을 때 종류 줄 위아래·본문 아래 여백을 줄여 카드 높이를 버튼이 없던 때와 같게 둔다.
- *   버튼 줄이 카드 폭 전체를 쓰도록 본문 좌우 여백은 목록(ul)으로 옮기고(Card 본문과 같은 18·22px), 카드 overflow-hidden으로 아래 모서리를 카드 둥글기에 맞춘다
+ * - 맨 밑 안내 한 줄: 「고치려면 아래 「최근 건강기록」에서 날짜를 눌러 주세요」. 카드에는 수정 버튼이 없고, 고치기는 최근 건강기록 날짜 행의 하루 기록 수정 모달에서만. 오늘 기록이 없으면 숨김 (※신규 정책, 2026-11-25)
+ * - 안내 줄이 있을 때 종류 줄 위아래·본문 아래 여백을 줄여 카드 높이를 안내 줄이 없던 때와 같게 둔다.
+ *   안내 줄이 카드 폭 전체를 쓰도록 본문 좌우 여백은 목록(ul)으로 옮기고(Card 본문과 같은 18·22px), 카드 overflow-hidden으로 아래 모서리를 카드 둥글기에 맞춘다
  * - 태블릿(640~1100px)은 가로 5칸 (※신규 정책): 칸마다 종류·횟수 / 큰 값 / 보조 줄(측정 시각·마지막 시각).
  *   1100px은 HealthDiaryPage가 두 카드를 위아래로 쌓는 기준이라 이 폭에서 카드가 넓어진다
  * - [대시보드 편집]·[항목 편집]에서 켠 매일 기록만, 대시보드 카드 순서로 보임. widgetIds가 null(고른 적 없음)이면 5개 모두 (※신규 정책, 2026-11-14)
@@ -32,8 +30,6 @@ const LATEST_ONLY_TYPES = [WEIGHT, STOOL];
  * - [오늘 기록 추가]: 오늘 기록하기 모달을 엶(onAddRecord)
  */
 export default function TodayRecordCard({
-  petSn,
-  petBdwg,
   records,
   todayYmd,
   widgetIds,
@@ -42,7 +38,6 @@ export default function TodayRecordCard({
   const todayRecords = records.filter(
     (record) => getYmdOf(record.rcdDt) === todayYmd,
   );
-  const [isEditOpen, setIsEditOpen] = useState(false);
   const hasRecords = todayRecords.length > 0;
   const shownTypeCds =
     widgetIds == null
@@ -93,26 +88,10 @@ export default function TodayRecordCard({
       )}
 
       {hasRecords && (
-        <button
-          type="button"
-          aria-haspopup="dialog"
-          className="flex h-11 w-full items-center justify-center gap-1 border-t border-line text-sm font-semibold text-brand-600 hover:bg-surface-2"
-          onClick={() => setIsEditOpen(true)}
-        >
-          <Icon name="edit" className="text-lg text-brand-600" />
-          오늘 기록 수정하기
-        </button>
-      )}
-
-      {isEditOpen && hasRecords && (
-        <DayRecordEditModal
-          petSn={petSn}
-          petBdwg={petBdwg}
-          ymd={todayYmd}
-          isToday
-          dayRecords={todayRecords}
-          onClose={() => setIsEditOpen(false)}
-        />
+        <p className="flex items-center justify-center gap-1 border-t border-line-soft px-4 py-3 text-center text-sm text-subtle">
+          <Icon name="info" className="text-base text-line-strong" />
+          고치려면 아래 「최근 건강기록」에서 날짜를 눌러 주세요
+        </p>
       )}
     </Card>
   );
@@ -160,7 +139,9 @@ function TodayRow({ typeCd, summary, isCompact }) {
       <div className="col-start-2 row-span-2 row-start-1 flex flex-col items-end justify-center text-right tabular-nums min-[760px]:max-[1100px]:items-start min-[760px]:max-[1100px]:text-left">
         {count === 0 ? (
           <>
-            <span className="text-sm/[1.6] text-muted min-[760px]:max-[1100px]:hidden">
+            <span
+              className={`${typeCd === STOOL ? 'text-base/[1.6]' : 'text-sm/[1.6]'} text-muted min-[760px]:max-[1100px]:hidden`}
+            >
               {typeCd === STOOL ? '기록이 없어요' : '-'}
             </span>
             <b className="hidden text-lg font-semibold text-line-strong min-[760px]:max-[1100px]:block">

@@ -8,6 +8,7 @@ import Toggle from '@/components/Toggle';
 import { showToast } from '@/components/toastStore';
 import CareList from '@/features/health/CareList';
 import UnderlineTabs from '@/components/UnderlineTabs';
+import NoPetDashboard from '@/features/health/dashboard/NoPetDashboard';
 import MonthCalendar from '@/features/health/MonthCalendar';
 import PetSwitcher from '@/features/health/shared/PetSwitcher';
 import SelectedPetProvider from '@/features/health/shared/SelectedPetProvider';
@@ -66,21 +67,24 @@ export default function CareCalendarPage() {
   );
 }
 
-/** 공용 페이지 틀 + 공통 반려동물 카드 (※신규 정책) */
-function CalendarLayout({ children }) {
+/**
+ * 공용 페이지 틀 + 공통 반려동물 카드 (※신규 정책)
+ * - isNoPet: 0마리면 등록 안내와 겹치지 않게 반려동물 카드를 그리지 않음 (※신규 정책)
+ */
+function CalendarLayout({ isNoPet = false, children }) {
   return (
     <SubPageLayout
       {...LAYOUT_PROPS}
-      sideBottom={<PetSwitcher variant="card" />}
+      sideBottom={isNoPet ? null : <PetSwitcher variant="card" />}
     >
-      <PetSwitcher variant="pill" />
+      {!isNoPet && <PetSwitcher variant="pill" />}
       {children}
     </SubPageLayout>
   );
 }
 
 function CareCalendarContent() {
-  const { hash } = useLocation();
+  const { hash, pathname } = useLocation();
   const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
   const todayYmd = getTodayYmd();
   const [viewMonthYmd, setViewMonthYmd] = useState(() =>
@@ -175,6 +179,17 @@ function CareCalendarContent() {
       </CalendarLayout>
     );
   }
+  /** 0마리: 캘린더·케어리스트 탭 모두 탭·탭 내용 없이 등록 안내만 (※신규 정책) */
+  if (!selectedPet) {
+    return (
+      <CalendarLayout isNoPet>
+        <NoPetDashboard
+          returnTo={pathname}
+          description="반려동물을 등록하면 케어 일정과 케어리스트를 관리할 수 있어요"
+        />
+      </CalendarLayout>
+    );
+  }
 
   const petNm = selectedPet?.petNm ?? '';
   /** 스위치 켬: 모든 아이 일정(공통 카드의 아이가 아니면 isOtherPet으로 연하게). 끔: 공통 카드의 아이 일정만 */
@@ -193,14 +208,17 @@ function CareCalendarContent() {
   const petLabel = isShowAllPets ? '전체 반려동물' : petNm;
 
   // 인라인 상세는 보고 있는 달의 일정으로 그리므로, 달을 옮기면 선택 날짜도 그 달로 옮긴다(이번 달이면 오늘)
-  const handleMoveMonth = (offset) => {
-    const nextMonthYmd = addMonths(viewMonthYmd, offset);
+  const showMonth = (nextMonthYmd) => {
     setViewMonthYmd(nextMonthYmd);
     const isThisMonth =
       getYear(nextMonthYmd) === getYear(todayYmd) &&
       getMonth(nextMonthYmd) === getMonth(todayYmd);
     setSelectedYmd(isThisMonth ? todayYmd : nextMonthYmd);
   };
+  const handleMoveMonth = (offset) =>
+    showMonth(addMonths(viewMonthYmd, offset));
+  /** 달 고르기: 'YYYY-MM' -> 그 달 1일 */
+  const handleSelectMonth = (ym) => showMonth(`${ym}-01`);
 
   const openCreate = (ymd) =>
     setModal({ key: Date.now(), schedule: null, defaultYmd: ymd });
@@ -262,6 +280,7 @@ function CareCalendarContent() {
             selectedYmd={selectedYmd}
             canMoveMonth={(anyData?.length ?? 0) > 0}
             onMoveMonth={handleMoveMonth}
+            onSelectMonth={handleSelectMonth}
             onSelectDate={setSelectedYmd}
             petSwitch={
               pets.length > 1 && (
