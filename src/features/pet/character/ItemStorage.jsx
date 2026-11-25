@@ -15,7 +15,9 @@ export default function ItemStorage({ items, worn, onToggle }) {
     <div className="flex flex-col gap-4">
       <PartTabs value={part} onChange={setPart} />
       {partItems.length === 0 ? (
-        <p className="text-sm text-subtle">보유한 아이템이 없어요</p>
+        <p className="text-center text-base font-normal text-muted">
+          보유한 아이템이 없어요
+        </p>
       ) : (
         <div className="grid max-h-[296px] grid-cols-4 gap-2 overflow-y-auto">
           {partItems.map((item) => {
