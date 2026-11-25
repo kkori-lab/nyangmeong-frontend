@@ -104,14 +104,17 @@ export default function Modal({
       event.preventDefault();
   };
 
-  /** 배경(backdrop) 클릭 판별. isTop은 dialog의 스크롤바를 잡는 것도 dialog 클릭이라 그 영역은 제외 */
+  /**
+   * 배경(backdrop) 클릭 판별. isTop은 dialog가 화면 전체라 오른쪽 스크롤바를 잡는 것도 dialog 클릭이므로 그 영역만 제외.
+   * 다른 모달은 dialog가 모달 크기라 같은 계산이면 모달 오른쪽 바깥 배경이 전부 빠지므로 적용하지 않는다
+   */
   const handleMouseDown = (event) => {
     if (event.target !== event.currentTarget || isPending || isDismissDisabled)
       return;
     const dialog = event.currentTarget;
     if (
-      event.clientX >=
-      dialog.getBoundingClientRect().left + dialog.clientWidth
+      isTop &&
+      event.clientX >= dialog.getBoundingClientRect().left + dialog.clientWidth
     )
       return;
     event.preventDefault();

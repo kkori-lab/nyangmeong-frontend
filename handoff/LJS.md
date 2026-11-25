@@ -2,9 +2,15 @@
 
 ## 지금 하는 것
 
-끝남: SCR-COM-002 공용 달 선택 추가 (2026-11-25, 검증 2회차 통과·사람 확인). M1 `MonthPicker` 막는 규칙은 넘길 때만 · M2 모든 `DatePicker` 연·월 칸 기본 켬 · M3 케어 캘린더 연월 달 고르기 · M4 390px · 추가-1 `DatePicker` 날짜 → 월 → 연도(12년 칸) · 추가-2 `MonthPicker` `yearSelect`(기본 꺼짐, 케어 캘린더만 켬, 마이페이지는 그대로)
+끝남: SCR-COM-002 공용 Modal 오른쪽 바깥 클릭 닫기 핫픽스 (2026-11-25, 검증 통과·사람 확인). M1 `Modal` 스크롤 막대 예외를 `isTop`만 · 추가-1 AI 대화창 확인 카드 [확인]·[취소] 직후 결과 줄이 요약 위로 올라가던 것 · 추가-2 `useFileImage` 404 `FILE_NOT_FOUND`를 이미지 없음으로 캐시(응답마다 아바타 깜빡임) · 추가-3 새 대화 첫 응답 때 아바타가 기본 강아지로 한 번 바뀌던 것
 
 ## 다음에 할 것
+
+- SCR-COM-002 Modal 핫픽스 팀 알림(PR 본문 + 팀 채널): 모두 — 공용 `Modal` 배경 오른쪽 클릭도 닫힘(전에는 왼쪽·위·아래만, `isTop`은 스크롤 막대 자리만 예외). 공용 `hooks/useFileImage`가 404 `FILE_NOT_FOUND`를 `src: null`·`isError: false`로 캐시(다시 요청 안 함, 화면은 기본 그림). SJM — `handoff/SJM.md` 오른쪽 배경 클릭 메모는 이 수정으로 끝남. 반려동물 등록·수정 `isDismissDisabled`는 그대로(사람 결정 2026-11-25). JAJ·KSJ 등 AI 대화창 사용자: 확인 카드 결과 줄 자리(`ConversationMessages` `placeCards`), 아바타가 방 상세를 받기 전에는 앞 얼굴 유지(`AiChatScreen`)
+- SJM에 보낼 디스코드(초안은 2026-11-25 대화): 오른쪽 배경 클릭 수정 알림 + 반려동물 등록·수정 모달 `isDismissDisabled` 의도 확인(사람은 유지로 정함)
+- AI 저장소 미리 알림(ai-ce, 2026-11-25, 승인 전): 대화창 수정 카드 6개·삭제 카드 11개(DELETE). 프론트 몫 — 삭제 카드 `targetText` 표시·빨간 [삭제]·다음 메시지/action-result에 `targetText` 돌려보내기·DELETE 본문 없이·삭제 뒤 본창 새로고침. AI가 `docs/api/chat.md` ActionCard 계약을 올렸다고 알리면 `/start`(SCR-AIM-012)
+- SCR-COM-002 Modal 핫픽스 검증 데이터 정리(8081 공용 DB, tester 계정, 대화창 ⋮ 삭제): AI 대화방 "탄이 체중 기록 수정"·"탄이 체중 4.57kg 수정" 계열·"[검증] 강아지 하루 산책 몇 번이 좋아?"·"[검증] 탄이 산책 몇 번이 좋아?"·"[검증] 취두부 산책 몇 번이 좋아?"·나비 "고양이 하루 물 섭취량 기준"(873). 탄이 방들의 "[검증]" 메시지는 메시지 삭제 기능이 없어 남음
+- 참고: 아바타 `<img>`가 응답 한 번에 대기 말풍선 → 답변 말풍선 → 저장 메시지로 세 번 새로 만들어짐(눈에 띄지 않아 이번엔 안 함). 얼굴 이미지 처음 받는 동안 약 0.5초 로딩 칸은 그대로
 
 - SCR-COM-002 달 선택 팀 알림(PR 본문 + 팀 채널): 모두 — 모든 `DatePicker` 달력 헤더 "YYYY년 M월 ▾"로 연·월 칸, 그 위 "YYYY년 ▾"로 12년 칸(끄려면 `monthSelect={false}`). JAJ — 케어 캘린더(`MonthCalendar`·`CareCalendarPage`) 연월을 눌러 달·연도를 고름(◀ ▶ 그대로, `onSelectMonth` prop). SJM — `MonthPicker`의 `enabledYms`·`maxYm`이 선택 prop(넘길 때만 막음, 안내 문구도 `enabledYms` 있을 때만), 새 `disabled`·`align`·`yearSelect`(기본 꺼짐). 가계부·포인트 동작 그대로
 - SCR-COM-002 달 선택 이번엔 안 함: 케어미션 날짜 이동·관찰 사진 회차 이동(달 선택 아님), `TimeSelect`·펫돌봄 일정 시간 칸, ◀ ▶ 버튼 모양 통일(사람 결정: 그대로)
@@ -25,7 +31,7 @@
 - 핫픽스 배포 확인(사람): 배포 빌드에 `VITE_DEMO_MEMBER_*`·`VITE_DEMO_ADMIN_*` 값이 들어가 있는지. 없으면 운영에서는 바로 로그인 대신 로그인 화면으로 감(H3)
 - 핫픽스 팀 알림(PR 본문 + 팀 채널, YAY): 랜딩 팝업(`features/landing/PortfolioModal`) 로그인 카드가 링크에서 버튼(`onDemoLogin`·`pendingKey`)으로 바뀌고, `pages/landing/LandingPage`가 데모 계정으로 바로 로그인(`useLogin`·`useFetchMe`, 실패하면 전처럼 `/login?method=email` + `state.demo`). 팝업 안내 문구 변경
 - SCR-AIM-013 피부·눈 팀 알림(PR 본문 + 팀 채널): 모두: 공용 `hooks/useFloatingLayer` `getPortalTarget`가 `<dialog>`뿐 아니라 `role="dialog"`인 고정 창(AI 매니저 창·채팅 모달·모바일 메뉴 서랍·장소 팝업·반려동물 바꾸기 등)도 포털 대상으로 잡음 → 그 창 안의 `DropdownSelect`·`DatePicker`·`TimeSelect` 펼침 창이 body 대신 그 창에 붙음(`TimeSelect`도 같은 함수). JAJ: AI 대화창이 지속 관찰 항목 등록 `POST /api/pets/{petSn}/observation-items`(multipart, 분석한 사진 `file`)를 확인 카드로 실행함. 요청 칸이 바뀌면 알려 달라
-- SCR-AIM-013 피부·눈 참고(검증 보고, 판정 밖): `role="dialog"` 다른 창들의 펼침 목록은 검증이 보지 않음(사람 확인 때 봄). 카드 [취소]·[확인] 직후 결과 줄이 "이렇게 할까요?" 요약 위에 보임(방을 다시 열면 맞음, `ConversationMessages` `placeCards` 자리 규칙, SCR-AIM-012부터). 분석 요약이 펼쳐지는 동안 그 아래 카드는 바로 보임
+- SCR-AIM-013 피부·눈 참고(검증 보고, 판정 밖): `role="dialog"` 다른 창들의 펼침 목록은 검증이 보지 않음(사람 확인 때 봄). 분석 요약이 펼쳐지는 동안 그 아래 카드는 바로 보임
 - SCR-AIM-013 피부·눈 사람이 고치는 문서: AI매니저 기능명세서 피부 분석 FN 행에 눈 분석(image-intent EYE·ASK 칩 [눈 분석])과 결과 저장(요약 메시지 + 지속 관찰 확인 카드, 사진 첨부), 화면설계서 SCR-AIM-013에 반려동물 되묻기·분석 중 [취소]·요약 + 카드
 - SCR-AIM-013 피부·눈 검증 데이터 정리(8081 공용 DB, tester 계정): 까미 지속 관찰 "털 빠짐 · 등"·"눈곱 · 얼굴", AI 대화방 "[검증] 피부 봐줘"·"[검증] 까미 눈 봐줘 …" 계열·"[검증] 까미 피부 봐줘 실제"·"동물병원 일정 등록 요청"·"피부 상태 확인 요청"·"강아지 산책 횟수와 시간 기준"·"까미 발톱 깎기 2주 주기 일정 등록"·"강아지 발톱 깎기 주기와 관리 방법"·"[검증] 고양이 하루 물 섭취량은?"·"까미 피부 상태 봐줘" 안 검증 메시지·"사진 대화"(대화창 ⋮ 삭제). 까미 일정 "[검증]동물병원" 12-03 14:00(케어 캘린더)
 - SCR-AIM-012 ai 저장소 몫(ai-23 받음 2026-11-24, ai 세션이 따로 기획): 확인 카드 요약 글의 빈 칸 되물음에 Java 칸 이름이 그대로 나옴("아직 일정 날짜, hrInptYn가 비어 있어요"). 안내 문구 "말로 알려 주세요"·"'등록해 줘'라고 말해 주세요"를 카드 [확인]·빈 칸 입력에 맞게 바꿀지는 사람 결정(ai 쪽 2026-11-20 결정 "[확인] 버튼을 누르라고 하지 않는다"와 다름)
