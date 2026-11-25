@@ -2,9 +2,9 @@
 
 ## 지금 하는 것
 
-SCR-MYP-002 반려동물 프로필 목록 · 0마리 빈 상태를 공용 EmptyResult로 — 끝 (2026-11-25, 검증 `통과`(1회차), lint·build 0, 사람 확인 완료, 추가 요청 없음, 정리 없음)
+SCR-MYP-005 공동양육자 추가 · 보낸 초대 0건 문구를 빈 상태 글자 규칙으로 — 끝 (2026-11-25, 검증 `통과`(1회차), lint·build 0, 사람 확인 완료, 추가 요청 없음, 정리 없음)
 
-- FN-MYP-002-06: `features/pet/list/PetEmpty.jsx`를 공용 `EmptyResult`로 바꿨다(PawPrint 28px, 원형 배경 없음, 설명 2줄, 한도 로딩 중 둘째 줄 스켈레톤, 버튼 밑 문구 삭제). 목록과 마이페이지 홈(SCR-MYP-001)이 같이 바뀐다. 공용 파일 변경 없음
+- FN-MYP-005-03: `features/pet/list/SentInvitations.jsx` 0건 문구에 `text-base font-normal`을 더했다(16px·400·muted·가운데 정렬). 테두리 상자는 그대로
 
 ## 다음에 할 것
 
