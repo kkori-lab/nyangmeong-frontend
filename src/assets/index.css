@@ -89,6 +89,7 @@
   /** 글자 */
   --color-ink: #1a3234;
   --color-ink-2: #3d4a4b;
+  --color-heading: #203739;
   --color-muted: #566465;
   --color-subtle: #5f6b6c; /* 대비 4.5:1(brand-50·surface-3 바탕 포함), 2026-11-18 */
   --color-placeholder: #8c9899;

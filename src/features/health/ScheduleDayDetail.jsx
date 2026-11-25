@@ -55,12 +55,8 @@ export default function ScheduleDayDetail({
     >
       {sorted.length === 0 ? (
         // 테두리 없는 빈 상태: 카드 칸 세로 가운데 (※신규 정책)
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-muted">
-          <Icon
-            name="calendar_month"
-            className="text-[28px] text-line-strong"
-          />
-          <p className="text-lg">등록된 일정이 없어요</p>
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <p className="text-base text-muted">등록된 일정이 없어요</p>
         </div>
       ) : (
         <>
