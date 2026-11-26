@@ -8,7 +8,7 @@ const MAP_LEVEL = 4;
 const RADIUS_METER = 250;
 
 /**
- * 목격 장소 지도: 카카오맵 SDK(@/hooks/useKakaoMap)로 반경 원 + 장소명 라벨, 키가 없거나 SDK 오류면 안내만
+ * 실종 장소 지도: 카카오맵 SDK(@/hooks/useKakaoMap)로 반경 원 + 장소명 라벨, 키가 없거나 SDK 오류면 안내만
  * - 길찾기: 카카오맵 앱·웹으로 연결
  * - isPreview: 길찾기 링크 없음(글쓰기 미리보기·장소 검색·펫돌봄)
  * - mapLabel·emptyText: 지도 이름(스크린 리더)과 장소가 없을 때 안내(펫돌봄이 교체해 사용)
@@ -20,7 +20,7 @@ export default function MissingMap({
   place,
   isPreview = false,
   height = 'h-[400px]',
-  mapLabel = '목격 장소 지도',
+  mapLabel = '실종 장소 지도',
   emptyText = '장소를 고르면 지도에 표시돼요',
   onMove,
 }) {

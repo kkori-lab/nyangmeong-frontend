@@ -366,7 +366,7 @@ export default function MissingDetail({ post }) {
                       className="text-subtle"
                     />
                   }
-                  label="마지막 목격"
+                  label="실종 일시"
                 >
                   {formatSeenAt(post.lastWtnsDt)}
                 </InfoRow>
@@ -392,12 +392,9 @@ export default function MissingDetail({ post }) {
                       className="text-subtle"
                     />
                   }
-                  label="목격 장소"
+                  label="실종 장소"
                 >
                   {post.wtnsPlcNm}
-                  <span className="mt-1 block text-sm text-muted">
-                    {post.rgnNm}
-                  </span>
                 </InfoRow>
               </dl>
               <div className="mt-3">
