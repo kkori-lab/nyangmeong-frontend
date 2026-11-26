@@ -31,7 +31,6 @@ const EXCLUDES = [
   { reason: '다른 회원에게 가는 행동: 채팅', methods: WRITES, path: /^\/api\/chat/ },
   { reason: '다른 회원에게 가는 행동: 신고', methods: WRITES, path: /\/reports?(\/|$)/ },
   { reason: '다른 회원에게 가는 행동: 차단', methods: WRITES, path: /\/blocks?(\/|$)/ },
-  { reason: '다른 회원에게 가는 행동: 초대 보내기', methods: ['POST'], path: /^\/api\/caregiver-invitations$/ },
   { reason: '다른 회원에게 가는 행동: 좋아요(작성자에게 알림)', methods: WRITES, path: /\/likes(\/|$)/ },
   {
     reason: '커뮤니티 글·댓글 쓰기(사람 결정)',
@@ -39,6 +38,11 @@ const EXCLUDES = [
     path: /^\/api\/(posts|comments|lost-reports|care-recruitments|community)(\/|$)/,
   },
 ];
+
+/** 회원 기능이 아닌 공용 보조 API 도메인(사람 2026-11-26): 요약·후보에서 빼고 따로 싣는다 */
+const SUPPORT_DOMAINS = { global: '공용 보조 API(드롭다운 코드·지역·파일 열기)' };
+/** 해당 없음 행에 붙일 안내 */
+const SUPPORT_NOTES = [{ path: /^\/api\/files(\/|$)/, note: '공통 규칙 b(사진·파일 보기)에서 다룸' }];
 
 const METHODS = ['get', 'post', 'put', 'patch', 'delete'];
 const ROUTES_MD = 'docs/routes.md';
@@ -229,12 +233,13 @@ const build = () => {
   const screens = readScreens();
   const keys = new Set(endpoints.map((e) => e.key));
   const callsByKey = groupBy(calls, (c) => c.key);
-  const domains = [...new Set(endpoints.map((e) => e.domain))].sort();
+  const domains = [...new Set(endpoints.map((e) => e.domain))].filter((d) => !SUPPORT_DOMAINS[d]).sort();
 
   const rows = endpoints
     .map((e) => ({ ...e, support: supportOf(e, skips), calls: callsByKey.get(e.key) ?? [] }))
     .sort((a, b) => a.domain.localeCompare(b.domain) || a.path.localeCompare(b.path) || a.method.localeCompare(b.method));
   const tools = rows.filter((r) => r.tool);
+  const supportRows = rows.filter((r) => SUPPORT_DOMAINS[r.domain]);
 
   const out = [];
   out.push('# 사이트 기능 전체 표 (AI 매니저 대화창 지원 범위)');
@@ -282,7 +287,20 @@ const build = () => {
     out.push('');
   }
 
-  out.push('## 3. 바로가기(화면)');
+  out.push('## 3. 해당 없음(공용 보조 API)');
+  out.push('');
+  out.push('회원 기능이 아니라 화면을 거드는 API라 1·2장의 개수와 후보에서 뺐다. 필요하면 각 도메인 도구 안에서 쓴다.');
+  out.push('');
+  out.push('| 도메인 | 메서드 | 경로 | 기능 | 안내 | 프론트 함수 |');
+  out.push('| --- | --- | --- | --- | --- | --- |');
+  for (const r of supportRows) {
+    const fns = [...new Set(r.calls.map((c) => code(c.file) + ' ' + code(c.fn)))].join('<br>') || '화면에서 안 씀';
+    const note = SUPPORT_NOTES.find((n) => n.path.test(r.path))?.note ?? SUPPORT_DOMAINS[r.domain];
+    out.push('| ' + [r.domain, r.method, code(r.path), esc(r.summary), esc(note), fns].join(' | ') + ' |');
+  }
+  out.push('');
+
+  out.push('## 4. 바로가기(화면)');
   out.push('');
   out.push(code('docs/routes.md') + ' 1장의 화면. AI ✓는 대화창이 그 화면으로 보낼 수 있는 URL(AI 라우팅 매핑 대상)이다.');
   out.push('');
@@ -294,7 +312,7 @@ const build = () => {
   out.push('');
 
   const missing = calls.filter((c) => !keys.has(c.key));
-  out.push('## 4. 백엔드에서 못 찾은 프론트 호출');
+  out.push('## 5. 백엔드에서 못 찾은 프론트 호출');
   out.push('');
   if (missing.length === 0) out.push('없음.');
   else {

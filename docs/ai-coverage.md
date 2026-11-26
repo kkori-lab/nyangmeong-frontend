@@ -15,14 +15,13 @@
 | auth | 8 | 0 | 0 | 0 | 0 | 8 | 0 | 0 | 6 |
 | community | 49 | 8 | 0 | 11 | 0 | 30 | 0 | 0 | 48 |
 | expense | 17 | 6 | 4 | 1 | 5 | 0 | 0 | 1 | 16 |
-| global | 3 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 2 |
 | health | 57 | 13 | 24 | 6 | 14 | 0 | 0 | 0 | 54 |
 | member | 20 | 0 | 0 | 4 | 3 | 13 | 0 | 0 | 20 |
 | notification | 6 | 0 | 0 | 3 | 3 | 0 | 0 | 0 | 6 |
-| pet | 30 | 10 | 1 | 7 | 11 | 1 | 0 | 0 | 27 |
+| pet | 30 | 10 | 1 | 7 | 12 | 0 | 0 | 0 | 27 |
 | place | 4 | 2 | 1 | 0 | 1 | 0 | 0 | 0 | 4 |
 | support | 9 | 0 | 0 | 5 | 3 | 0 | 0 | 1 | 9 |
-| 합계 | 203 | 39 | 30 | 40 | 40 | 52 | 0 | 2 | 192 |
+| 합계 | 200 | 39 | 30 | 37 | 41 | 51 | 0 | 2 | 190 |
 
 `@AiTool` 71개(READ 40·CARD 31).
 
@@ -116,14 +115,6 @@
 | GET | `/api/receipts/{}/image` | 영수증 원본 이미지 |  | 읽기 후보 | 화면에서 안 씀 |
 | POST | `/api/receipts/{}/save` | 영수증 확인 후 저장(검진기록·가계부 일괄) | `draft_receipt_save` CARD | 보류(ai skip: 저장 전 영수증 번호를 주는 READ 없음(SCR-AIM-013 ⑤ 팀 결정 대기)) | `features/health/receiptApi.js` `saveReceiptCheckups` |
 | POST | `/api/receipts/{}/save-check` | 영수증 저장 전 확인(가계부 중복·가까운 예정 일정) |  | 쓰기 카드 후보 | `features/health/receiptApi.js` `prepareReceiptSave` |
-
-### global
-
-| 메서드 | 경로 | 기능 | `@AiTool` | 지원 방식(안) | 프론트 함수 |
-| --- | --- | --- | --- | --- | --- |
-| GET | `/api/common-codes` | 공통코드 하위 목록 |  | 읽기 후보 | `features/audit/api.js` `getAuditTaskTypes`<br>`features/inquiry/api.js` `getInquiryTypes` |
-| GET | `/api/files/{}` | 로그인 회원 누구나 여는 파일 |  | 읽기 후보 | 화면에서 안 씀 |
-| GET | `/api/regions` | 하위 지역 목록(없으면 시도) |  | 읽기 후보 | `features/community/missingApi.js` `getRegions` |
 
 ### health
 
@@ -229,7 +220,7 @@
 | --- | --- | --- | --- | --- | --- |
 | GET | `/api/breeds` | 구분별 품종 목록 |  | 읽기 후보 | `features/community/missingApi.js` `getBreeds`<br>`features/pet/api.js` `getVarieties` |
 | GET | `/api/caregiver-invitations` | 보낸 공동양육 초대 목록 | `list_sent_caregiver_invitations` READ | 읽기 | `features/pet/api.js` `getSentInvitations` |
-| POST | `/api/caregiver-invitations` | 공동양육 초대 발송 |  | 뺌(다른 회원에게 가는 행동: 초대 보내기) | `features/pet/api.js` `createInvitation` |
+| POST | `/api/caregiver-invitations` | 공동양육 초대 발송 |  | 쓰기 카드 후보 | `features/pet/api.js` `createInvitation` |
 | DELETE | `/api/caregiver-invitations/{}` | 취소한 공동양육 초대 삭제 |  | 쓰기 카드 후보 | `features/pet/api.js` `deleteInvitation` |
 | GET | `/api/caregiver-invitations/{}` | 받은 공동양육 초대 상세 |  | 읽기 후보 | `features/pet/api.js` `getInvitation` |
 | POST | `/api/caregiver-invitations/{}/accept` | 공동양육 초대 수락 |  | 쓰기 카드 후보 | `features/pet/api.js` `acceptInvitation` |
@@ -281,7 +272,17 @@
 | GET | `/api/notices` | 공지사항 목록 (상단 고정 우선, latestYn=true 면 최신순) |  | 읽기 후보 | `features/notice/api.js` `getNotices` |
 | GET | `/api/notices/{}` | 공지사항 상세 |  | 읽기 후보 | `features/notice/api.js` `getNotice` |
 
-## 3. 바로가기(화면)
+## 3. 해당 없음(공용 보조 API)
+
+회원 기능이 아니라 화면을 거드는 API라 1·2장의 개수와 후보에서 뺐다. 필요하면 각 도메인 도구 안에서 쓴다.
+
+| 도메인 | 메서드 | 경로 | 기능 | 안내 | 프론트 함수 |
+| --- | --- | --- | --- | --- | --- |
+| global | GET | `/api/common-codes` | 공통코드 하위 목록 | 공용 보조 API(드롭다운 코드·지역·파일 열기) | `features/audit/api.js` `getAuditTaskTypes`<br>`features/inquiry/api.js` `getInquiryTypes` |
+| global | GET | `/api/files/{}` | 로그인 회원 누구나 여는 파일 | 공통 규칙 b(사진·파일 보기)에서 다룸 | 화면에서 안 씀 |
+| global | GET | `/api/regions` | 하위 지역 목록(없으면 시도) | 공용 보조 API(드롭다운 코드·지역·파일 열기) | `features/community/missingApi.js` `getRegions` |
+
+## 4. 바로가기(화면)
 
 `docs/routes.md` 1장의 화면. AI ✓는 대화창이 그 화면으로 보낼 수 있는 URL(AI 라우팅 매핑 대상)이다.
 
@@ -352,6 +353,6 @@
 
 화면 62개 중 AI 바로가기 14개.
 
-## 4. 백엔드에서 못 찾은 프론트 호출
+## 5. 백엔드에서 못 찾은 프론트 호출
 
 없음.
