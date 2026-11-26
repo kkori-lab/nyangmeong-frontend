@@ -87,9 +87,10 @@ const measureFootBox = async (src) => {
  * - 캐릭터 전신 이미지(data URL)에서 발 가로 중심(x)과 캐릭터 위·아래·좌우 끝(top·bottom·left·right)을 0~1 비율로 돌려준다
  * - 꼬리 등으로 발이 이미지 가운데에서 벗어난 캐릭터의 그림자·가운데 정렬용
  * - src가 없거나 측정에 실패하면 기본값(measured: false)
+ * - isPending: 측정 중(캐릭터 그림을 재는 동안 화면이 그림자·캐릭터 자리를 정하지 못한다)
  */
 export const useFootBox = (src) => {
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['foot-box', src],
     queryFn: () => measureFootBox(src).catch(() => null),
     enabled: Boolean(src),
@@ -97,5 +98,5 @@ export const useFootBox = (src) => {
     gcTime: 60 * 1000,
     retry: false,
   });
-  return data ?? DEFAULT_FOOT_BOX;
+  return { ...(data ?? DEFAULT_FOOT_BOX), isPending: isLoading };
 };

@@ -198,22 +198,45 @@ export function OwnerLine({ pet }) {
   );
 }
 
+/**
+ * 가족 영역 로딩: 실제 섹션과 같은 겉틀(진한 구분선·제목·카드 1장 자리). 인원을 모르므로 카드 1장 기준
+ * 공동양육자 시점은 970px 미만에서만 보이고 제목 + 주양육자 한 줄
+ */
+export function FamilySkeleton({ isCoParent = false }) {
+  return (
+    <section
+      aria-busy="true"
+      aria-hidden="true"
+      className={`col-span-full mt-2 border-t border-line-strong pt-6 ${isCoParent ? 'hidden max-[970px]:block' : ''}`}
+    >
+      <Skeleton
+        className={`h-7 w-14 ${isCoParent ? 'mb-2' : 'mb-3 max-[970px]:h-8 max-[970px]:w-28'}`}
+      />
+      {isCoParent ? (
+        <div className="flex h-[37.6px] items-center px-0.5">
+          <Skeleton className="h-5 w-40" />
+        </div>
+      ) : (
+        <>
+          <ul className={`${GRID} max-[970px]:hidden`}>
+            <li className="flex">
+              <Skeleton className="h-[97.6px] w-full rounded-card" />
+            </li>
+          </ul>
+          <Skeleton className="hidden h-[54px] w-full rounded-card max-[970px]:block" />
+        </>
+      )}
+    </section>
+  );
+}
+
 /** 슬라이드 카드 안 가족 영역: 주양육자는 공동양육자 전원, 공동양육자는 모바일에서만 주양육자 한 줄 */
 export default function FamilySection({ pet, onInvite }) {
   const { data: caregivers = [], isPending } = useCaregivers(pet.petSn);
   const [deletingCaregiver, setDeletingCaregiver] = useState(null);
   const isCoParent = pet.brupRoleCd === BRUP_ROLE.CO_PARENT;
 
-  if (isPending) {
-    return (
-      <div
-        aria-busy="true"
-        className={isCoParent ? 'hidden max-[970px]:block' : undefined}
-      >
-        <Skeleton lines={3} />
-      </div>
-    );
-  }
+  if (isPending) return <FamilySkeleton isCoParent={isCoParent} />;
 
   /** 공동양육자 시점: 970px 이상은 이름 줄 아래 한 줄(OwnerLine)이라 섹션이 없고, 모바일만 한 줄 항목. 삭제·초대 없음 */
   if (isCoParent) {
@@ -302,7 +325,7 @@ export default function FamilySection({ pet, onInvite }) {
             <button
               type="button"
               onClick={() => onInvite(pet)}
-              className={`${MEMBER_CARD} w-full cursor-pointer border-dashed text-brand-600 hover:border-brand-500 hover:bg-brand-50`}
+              className={`${MEMBER_CARD} min-h-[97.6px] w-full cursor-pointer border-dashed text-brand-600 hover:border-brand-500 hover:bg-brand-50`}
             >
               <span className="grid size-9 shrink-0 place-items-center rounded-full border border-dashed border-line-strong">
                 <Plus className="size-[18px]" aria-hidden="true" />
