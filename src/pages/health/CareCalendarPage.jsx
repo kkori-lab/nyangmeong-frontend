@@ -9,6 +9,7 @@ import { showToast } from '@/components/toastStore';
 import CareList from '@/features/health/CareList';
 import UnderlineTabs from '@/components/UnderlineTabs';
 import NoPetDashboard from '@/features/health/dashboard/NoPetDashboard';
+import WidgetTutorialGate from '@/features/health/dashboard/WidgetTutorialGate';
 import MonthCalendar from '@/features/health/MonthCalendar';
 import PetSwitcher from '@/features/health/shared/PetSwitcher';
 import SelectedPetProvider from '@/features/health/shared/SelectedPetProvider';
@@ -57,12 +58,13 @@ const getTabFromHash = (hash) =>
 /**
  * [케어 캘린더 SCR-HLT-003]
  * - 반려동물은 건강기록 공통 반려동물 카드(shared/PetSwitcher)의 선택을 따른다 (※신규 정책)
+ * - 반려동물이 있고 대시보드 항목을 저장한 적 없으면 첫 진입에 건강 대시보드 튜토리얼을 캘린더 위에 엶(WidgetTutorialGate, ※신규 정책, 2026-11-26)
  */
 export default function CareCalendarPage() {
   const { data: me } = useMe();
   return (
     <SelectedPetProvider mbrSn={me?.mbrSn}>
-      <CareCalendarContent />
+      <CareCalendarContent mbrSn={me?.mbrSn} />
     </SelectedPetProvider>
   );
 }
@@ -83,7 +85,7 @@ function CalendarLayout({ isNoPet = false, children }) {
   );
 }
 
-function CareCalendarContent() {
+function CareCalendarContent({ mbrSn }) {
   const { hash, pathname } = useLocation();
   const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
   const todayYmd = getTodayYmd();
@@ -352,6 +354,13 @@ function CareCalendarContent() {
           onCreateNew={() => openCreate(modal.defaultYmd)}
         />
       )}
+
+      {/* 저장한 적 없으면 첫 진입에 튜토리얼 (※신규 정책, 2026-11-26) */}
+      <WidgetTutorialGate
+        mbrSn={mbrSn}
+        petSn={selectedPet.petSn}
+        petNm={selectedPet.petNm}
+      />
     </CalendarLayout>
   );
 }
