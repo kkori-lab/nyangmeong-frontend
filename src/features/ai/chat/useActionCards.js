@@ -4,6 +4,7 @@ import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import { useExecuteAction, useSaveActionResult } from '../queries';
 import {
   buildActionRequest,
+  errorFieldsShown,
   fileFields,
   jsonInput,
   missingFields,
@@ -24,6 +25,20 @@ const SERVER_FAILURE_CODES = [
   'INTERNAL_SERVER_ERROR',
 ];
 
+/** 결과 저장에 싣는 Java 400 칸 오류 최대 수(ActionResultRequest errors) */
+const MAX_RESULT_ERRORS = 50;
+
+/**
+ * 카드에서 고칠 수 없는 400인지: 칸 오류가 있고 모두 카드에 보이지 않는 칸(경로 번호 칸·숨긴 칸)
+ * - 보이는 칸(사진 줄 포함)이 하나라도 있으면 카드를 살려 두고 고치게 한다(FN-AIM-012-12)
+ */
+const isUnfixableError = (item, input, error) => {
+  const fields = error?.fields ?? [];
+  if (fields.length === 0) return false;
+  const shown = [...errorFieldsShown(item.card, input), ...item.photoFields];
+  return fields.every(({ field }) => !shown.includes(field));
+};
+
 /** 카드 결과 상태: 처리 전 pending */
 const STATUS_BY_RESULT = {
   [ACTION_STATUS.DONE]: 'done',
@@ -37,7 +52,7 @@ const STATUS_BY_RESULT = {
  * - 항목: { key, card, input, afterSn, anchorSn, status, isBusy, fieldErrors, formError, unsaved, resultText, resultMsgSn }
  * - status: 'pending' | 'done' | 'cancelled' | 'failed' | 'dropped'(취소 말·다른 말로 버림)
  * - key는 등록 카드와 같은 번호를 써서 "가장 최근 카드"를 함께 따진다
- * - unsaved: 결과 저장에 실패한 { status, input }, [다시 시도]로 저장만 다시
+ * - unsaved: 결과 저장에 실패한 { status, input, errors }, [다시 시도]로 저장만 다시
  * - files: 파일 칸에 붙일 { 칸: File }(분석한 사진). input에 넣어 Java 실행에만 쓰고 결과 저장·다음 메시지에는 싣지 않는다
  */
 export function useActionCards() {
@@ -90,7 +105,7 @@ export function useActionCards() {
   const drop = (key) => patchCard(key, { status: 'dropped' });
 
   /** 결과 저장: 성공하면 요약 메시지 자리로, 실패하면 [다시 시도] */
-  const saveResult = async (aiCnvrsRoomSn, item, status, input) => {
+  const saveResult = async (aiCnvrsRoomSn, item, status, input, errors) => {
     patchCard(item.key, { isBusy: true, unsaved: null });
     try {
       const message = await saveActionResult.mutateAsync({
@@ -99,6 +114,7 @@ export function useActionCards() {
         status,
         input,
         targetText: item.card.targetText,
+        errors,
       });
       patchCard(item.key, {
         isBusy: false,
@@ -107,11 +123,17 @@ export function useActionCards() {
         resultMsgSn: message.aiCnvrsMsgSn,
       });
     } catch {
-      patchCard(item.key, { isBusy: false, unsaved: { status, input } });
+      patchCard(item.key, {
+        isBusy: false,
+        unsaved: { status, input, errors },
+      });
     }
   };
 
-  /** 실행: Java 실행 → 결과 저장, 회원이 고칠 수 있는 오류면 카드를 살려 두고 말로 고치게 한다 */
+  /**
+   * 실행: Java 실행 → 결과 저장, 회원이 고칠 수 있는 오류면 카드를 살려 두고 말로 고치게 한다
+   * - 카드에서 고칠 수 없는 칸의 400은 칸 오류를 errors로 실어 실패로 저장한다(서버가 칸 이름으로 실패 글을 만든다)
+   */
   const run = async (aiCnvrsRoomSn, item) => {
     const key = item.key;
     if (missingFields(item.card, item.input).length > 0) return;
@@ -123,6 +145,19 @@ export function useActionCards() {
     } catch (error) {
       if (SERVER_FAILURE_CODES.includes(error?.code)) {
         await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.FAILED, savedInput);
+        return;
+      }
+      if (isUnfixableError(item, item.input, error)) {
+        const errors = error.fields
+          .slice(0, MAX_RESULT_ERRORS)
+          .map(({ field, message }) => ({ field, message }));
+        await saveResult(
+          aiCnvrsRoomSn,
+          item,
+          ACTION_STATUS.FAILED,
+          savedInput,
+          errors,
+        );
         return;
       }
       const fieldErrors = toFieldErrors(error);
@@ -189,7 +224,13 @@ export function useActionCards() {
   const retrySave = (aiCnvrsRoomSn, key) => {
     const item = actionCards.find((target) => target.key === key);
     if (!item?.unsaved) return;
-    saveResult(aiCnvrsRoomSn, item, item.unsaved.status, item.unsaved.input);
+    saveResult(
+      aiCnvrsRoomSn,
+      item,
+      item.unsaved.status,
+      item.unsaved.input,
+      item.unsaved.errors,
+    );
   };
 
   /** 다음 메시지에 실을 가장 최근 확인 카드: 그 카드가 전체에서 가장 최근이고 처리 전일 때만 */
