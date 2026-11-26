@@ -68,6 +68,19 @@ export const ACTION_FIELD_NAMES = {
   obsrvDt: '관찰 일시',
   obsrvSz: '크기',
   file: '사진',
+  /** 수정 카드(2026-11-25): 건강기록 입력 창과 같은 이름 */
+  ckupCn: '검진 내용',
+  ckupMemoCn: '검진 메모',
+  mdcnNm: '약품명',
+  mdcnBgngYmd: '복용 시작일',
+  mdcnEndYmd: '복용 종료일',
+  dayMdcnNmtm: '1일 복용 횟수',
+  prscSttsCd: '복용 상태',
+  careRfltYn: '주기 체크',
+  inspNm: '검사명',
+  inspRsltCn: '검사 결과',
+  refRange: '참고 범위',
+  obsrvChgCd: '변화',
 };
 
 /** 칸 표시 이름 */

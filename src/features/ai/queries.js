@@ -102,9 +102,24 @@ const useResultMessage = (mutationFn) => {
   });
 };
 
-/** 확인 카드 실행(Java): 성공 뒤 본창 새로고침은 화면이 알린다 */
-export const useExecuteAction = () =>
-  useMutation({ mutationFn: executeAction });
+/**
+ * 확인 카드 Java 실행: 성공 뒤 본창 새로고침은 화면이 알린다(aiWriteChannel)
+ * - 대화창이 있는 창의 다른 도메인 캐시도 다시 받는다
+ * - /ai-chat은 UserLayout 밖이라, 같은 탭에서 건강 일지로 돌아가면 바꾼 관찰 사진이 캐시(5분) 그대로 보였다
+ */
+export const useExecuteAction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: executeAction,
+    /** 다시 받기를 기다리지 않고 결과 저장으로 넘어간다 */
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: ({ queryKey }) => queryKey[0] !== 'ai',
+      });
+    },
+  });
+};
 
 /** 확인 카드 결과 저장: 결과 요약 메시지가 붙은 대화 상세 갱신 */
 export const useSaveActionResult = () => useResultMessage(saveActionResult);
