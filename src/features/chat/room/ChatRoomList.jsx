@@ -15,8 +15,9 @@ import { showToast } from '@/components/toastStore';
 import { formatChatListTime } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
 import { useChatRooms, useLeaveChatRooms } from '../queries';
-import { MTCH_STTS, ROLE, ROOM_STTS, isEndedRoom } from '../shared/chatCodes';
+import { MTCH_STTS, ROLE, isEndedRoom } from '../shared/chatCodes';
 import DealBadge from './DealBadge';
+import { LEAVE_DESCRIPTION } from './dealSteps';
 
 const TABS = [
   { key: 'mine', label: '내 글' },
@@ -42,9 +43,10 @@ const menuItemClass =
 /** 이 방이 속한 탭: 내가 보호자(돌봄 글 작성자)면 내 글, 돌보미(지원한 사람)면 지원한 글 */
 const tabOf = (room) => (room.myRole === ROLE.GUARDIAN ? 'mine' : 'applied');
 
-/** 나갈 수 있는 방: 끝난 방(상대방 나감·무응답 종료)과 거래 완료·요청 취소. 진행 중인 방은 나갈 수 없다 */
+/** 나갈 수 있는 방: 끝난 방(닫힘·무응답 종료)·상대가 나간 방과 거래 완료·요청 취소. 진행 중인 방은 나갈 수 없다 */
 const isDeletableRoom = (room) =>
   isEndedRoom(room) ||
+  room.ctptLeft ||
   room.mtchDlngSttsCd === MTCH_STTS.COMPLETE ||
   room.mtchDlngSttsCd === MTCH_STTS.CANCELED;
 
@@ -171,7 +173,7 @@ function ChatRoomRow({
             >
               {room.lastMsgCn ?? '아직 메시지가 없어요'}
             </span>
-            {room.chatRoomSttsCd === ROOM_STTS.READ_ONLY && (
+            {room.ctptLeft && (
               <DealBadge label="상대방 나감" tone="gray" />
             )}
             <DealBadge stage={room.mtchDlngSttsCd} />
@@ -467,11 +469,8 @@ export default function ChatRoomList({
             </div>
           )}
           {visibleRooms?.length === 0 && (
-            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center text-muted">
-              <span className="grid size-14 place-items-center rounded-full bg-surface-3">
-                <Icon name="mark_chat_read" className="text-[28px]" />
-              </span>
-              <p>{EMPTY_TEXT[activeTab]}</p>
+            <div className="flex h-full flex-col items-center justify-center px-6 py-16 text-center">
+              <p className="text-base text-muted">{EMPTY_TEXT[activeTab]}</p>
             </div>
           )}
           {visibleRooms?.length > 0 && (
@@ -505,18 +504,20 @@ export default function ChatRoomList({
         )}
       </div>
 
-      <p className="flex h-16.25 shrink-0 items-center gap-2 border-t border-line px-5 text-[12px] leading-4 text-subtle">
-        <Icon name="info" className="shrink-0 text-lg" />
-        거래는 채팅방 위 카드에서 단계별로 진행해요. 냥멍케어는 결제를 대신하지
-        않아요.
+      <p className="flex h-16.25 shrink-0 items-center border-t border-line px-5 text-[12px] leading-4 text-subtle">
+        <span>
+          거래는 채팅방 위 카드에서 단계별로 진행해요.
+          <br />
+          냥멍케어는 결제를 대신하지 않아요.
+        </span>
       </p>
 
       {isDeleteOpen && (
         <Modal
           isConfirm
           isPending={isDeleting}
-          title={`채팅방 ${checkedRooms.length}개에서 나가시겠어요?`}
-          description="선택한 대화가 내 목록에서 사라져요. 상대방에게는 그대로 남고, 나간 대화는 되돌릴 수 없어요."
+          title="채팅방에서 나가시겠어요?"
+          description={LEAVE_DESCRIPTION}
           onClose={() => setIsDeleteOpen(false)}
           footer={
             <>
