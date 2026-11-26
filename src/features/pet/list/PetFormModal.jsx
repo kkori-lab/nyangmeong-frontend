@@ -12,11 +12,16 @@ import { HELP, INPUT, LABEL } from '@/components/formStyles';
 import Modal from '@/components/Modal';
 import Skeleton from '@/components/Skeleton';
 import { showToast } from '@/components/toastStore';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import { PATHS } from '@/routes/paths';
 import {
   COLR_DRCT_INPT,
   COLR_OPTIONS,
   findColrName,
+  COLR_DRCT_PLACEHOLDER,
+  COLR_GUIDE,
+  COLR_GUIDE_DRCT,
+  getColrDesc,
   PET_GNDR_OPTIONS,
   PET_SE,
   PET_SE_OPTIONS,
@@ -341,6 +346,15 @@ function PetForm({
   const orphanNotice = isOrphanSelected
     ? `${PET_SE_NAME[form.petSeCd]} 털색 목록에 없는 값이에요. 다시 골라 주세요`
     : null;
+  /** 모바일은 털색 칸이 절반 폭이라 안내가 잘려 보여, 목록 설명이 대신하고 종별·직접 입력 안내는 숨긴다. 다시 고르라는 안내는 모바일에서도 보인다 */
+  const isMobile = useMediaQuery('(max-width: 760px)');
+  const colrHelp =
+    orphanNotice ??
+    (isMobile
+      ? null
+      : isColrDrctInpt
+        ? COLR_GUIDE_DRCT
+        : COLR_GUIDE[form.petSeCd]);
 
   const clearError = (...fields) =>
     setErrors((prev) => {
@@ -636,7 +650,7 @@ function PetForm({
               id="pet-colr"
               label="털색"
               required
-              help={orphanNotice}
+              help={colrHelp}
               helpId="pet-colr-h"
               error={errors.colr}
             >
@@ -652,11 +666,12 @@ function PetForm({
                     ...colrOptions.map((colr) => ({
                       value: colr.code,
                       label: colr.name,
+                      description: getColrDesc(form.petSeCd, colr.code),
                     })),
                   ]}
                   invalid={Boolean(errors.colr)}
                   describedBy={
-                    orphanNotice ? 'pet-colr-h pet-colr-e' : 'pet-colr-e'
+                    colrHelp ? 'pet-colr-h pet-colr-e' : 'pet-colr-e'
                   }
                   onChange={(value) => setField('colrCd', value)}
                 />
@@ -681,7 +696,7 @@ function PetForm({
                     value={form.colrDrctInptNm}
                     onChange={handleChange}
                     maxLength={20}
-                    placeholder="예: 갈색 바탕에 흰 반점"
+                    placeholder={COLR_DRCT_PLACEHOLDER[form.petSeCd]}
                     aria-invalid={errors.colr ? 'true' : undefined}
                     aria-describedby="pet-colr-e"
                     className={INPUT}

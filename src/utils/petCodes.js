@@ -46,7 +46,7 @@ const COLR = {
   DRCT_INPT: { code: COLR_DRCT_INPT, name: '직접 입력' },
 };
 
-/** 목록 순서는 기능명세서 FN-MYP-003-03. 얼룩은 기존 데이터(PETC0011) 때문에 파티 뒤에 남긴다 */
+/** 목록 순서는 기능명세서 FN-MYP-003-03. 얼룩(PETC0011)은 화면설계서 v0.9에서 강아지 목록에서 빠졌다(이름 조회용으로 COLR에만 남김) */
 export const COLR_OPTIONS = {
   [PET_SE.DOG]: [
     COLR.WHITE,
@@ -57,7 +57,6 @@ export const COLR_OPTIONS = {
     COLR.GRAY,
     COLR.BLACK_TAN,
     COLR.PARTI,
-    COLR.SPOTTED,
     COLR.TRICOLOR,
     COLR.SABLE,
     COLR.BRINDLE,
@@ -79,6 +78,54 @@ export const COLR_OPTIONS = {
     COLR.POINT,
     COLR.DRCT_INPT,
   ],
+};
+
+/**
+ * 털색 목록의 보조 설명(화면 표시용). 서버로 보내는 값이 아니다.
+ * 종마다 같은 털색도 설명이 다를 수 있어 종 → 코드 순으로 둔다. 없으면 이름만 보인다
+ */
+const COLR_DESC = {
+  [PET_SE.DOG]: {
+    [COLR.CREAM.code]: '연한 베이지',
+    [COLR.BROWN.code]: '초콜릿·적갈색 (레드 포함)',
+    [COLR.TAN.code]: '누런 황갈색 (황구 등)',
+    [COLR.BLACK_TAN.code]: '검정 바탕에 눈썹·주둥이·다리만 황갈색',
+    [COLR.PARTI.code]: '흰색과 다른 한 가지 색이 섞임',
+    [COLR.TRICOLOR.code]: '검정·흰색·황갈색',
+    [COLR.SABLE.code]: '갈색 털끝이 검게 물든 색',
+    [COLR.BRINDLE.code]: '호랑이 같은 어두운 줄무늬',
+    [COLR.MERLE.code]: '회색·갈색 바탕에 진한 얼룩이 흩어짐',
+  },
+  [PET_SE.CAT]: {
+    [COLR.CREAM.code]: '연한 베이지',
+    [COLR.CHEESE.code]: '노란·주황색 (흰색 섞여도 포함)',
+    [COLR.MACKEREL.code]: '회갈색 바탕에 검은 줄무늬',
+    [COLR.TUXEDO.code]: '검정 바탕에 가슴·발만 흰색',
+    [COLR.COW.code]: '흰 바탕에 검은 얼룩',
+    [COLR.TRICOLOR.code]: '흰색·검정·주황 얼룩',
+    [COLR.CHAOS.code]: '검정·주황이 섞임, 흰색 거의 없음',
+    [COLR.POINT.code]: '얼굴·귀·발·꼬리만 진한 색 (샴·렉돌 등)',
+  },
+};
+
+export const getColrDesc = (petSeCd, colrCd) =>
+  COLR_DESC[petSeCd]?.[colrCd] ?? '';
+
+/** 털색 칸 아래 안내 문구. 모바일(760px 이하)은 목록 설명이 대신해 보이지 않는다 */
+export const COLR_GUIDE = {
+  [PET_SE.DOG]:
+    '두 가지 이상 색이 섞여 있으면 블랙탄·파티처럼 무늬 이름으로 골라 주세요. 목록에 없으면 맨 아래 [직접 입력]을 골라 주세요.',
+  [PET_SE.CAT]:
+    '무늬가 있으면 고등어·턱시도처럼 무늬 이름으로 골라 주세요. 목록에 없으면 맨 아래 [직접 입력]을 골라 주세요.',
+};
+
+/** 털색에서 [직접 입력]을 골랐을 때 안내 문구(모바일은 보이지 않음) */
+export const COLR_GUIDE_DRCT = '목록에 없는 털색을 적어 주세요';
+
+/** 털색 [직접 입력] 칸 placeholder */
+export const COLR_DRCT_PLACEHOLDER = {
+  [PET_SE.DOG]: '예: 블루, 레드 세이블',
+  [PET_SE.CAT]: '예: 실버 태비, 씰 바이컬러',
 };
 
 /** 종과 상관없이 털색 코드로 이름 찾기 (종에 맞지 않는 값도 이름은 보여 주기 위함) */

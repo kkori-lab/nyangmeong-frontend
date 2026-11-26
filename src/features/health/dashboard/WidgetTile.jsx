@@ -32,9 +32,11 @@ export default function WidgetTile({ item, content, petSn, petNm }) {
           aria-hidden="true"
         />
       </span>
-      <b className="mt-1 truncate text-lg font-bold text-ink">
-        {tile ? tile.value : '기록이 없어요'}
-      </b>
+      {tile ? (
+        <b className="mt-1 truncate text-lg font-bold text-ink">{tile.value}</b>
+      ) : (
+        <p className="mt-1 truncate text-base text-muted">기록이 없어요</p>
+      )}
       {tile?.chip && (
         <Badge tone={tile.chip.tone} className="max-w-full self-start">
           <span className="truncate">{tile.chip.text}</span>

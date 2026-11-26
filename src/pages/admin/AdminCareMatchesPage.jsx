@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import BoardPagination from '@/components/BoardPagination';
 import { BTN_SECONDARY } from '@/components/buttonStyles';
 import Skeleton from '@/components/Skeleton';
@@ -14,6 +14,12 @@ import AdminPageFrame from './AdminPageFrame';
 
 const PAGE_SIZE = 20;
 
+/** ?mbrSn=: 양의 정수만 쓰고 나머지는 무시(전체 목록) */
+const toMbrSn = (raw) => {
+  const value = Number(raw);
+  return raw && Number.isInteger(value) && value > 0 ? value : null;
+};
+
 /** 표 20행 + 쪽 번호 자리 */
 function CareRecruitSkeleton() {
   return (
@@ -27,6 +33,7 @@ function CareRecruitSkeleton() {
 /**
  * [펫돌봄 거래]
  * - ?rcrtSn=<모집글 번호>로 들어오면 그 매칭 상세 모달을 연다(1:1 문의 분쟁 대응)
+ * - ?mbrSn=<회원 번호>면 그 회원이 보호자·돌보미로 낀 모집글만 보인다(FN-ADM-042-08). 탭·쪽 이동에도 유지
  */
 export default function AdminCareMatchesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,8 +41,12 @@ export default function AdminCareMatchesPage() {
   const page = Number(searchParams.get('page')) || 1;
   const status = searchParams.get('rcrtSttsCd') ?? '';
   const selectedSn = searchParams.get('rcrtSn');
+  const mbrSn = toMbrSn(searchParams.get('mbrSn'));
+  const location = useLocation();
+  const memberName = location.state?.mbrNcnm ?? `회원 ${mbrSn}`;
 
   const recruits = useAdminCareRecruits({
+    ...(mbrSn && { mbrSn }),
     ...(status && { rcrtSttsCd: status }),
     page,
     size: PAGE_SIZE,
@@ -43,19 +54,36 @@ export default function AdminCareMatchesPage() {
 
   /** 목록 조건은 두고 모달 번호만 바꾼다 */
   const setSelectedSn = (petPrtcRcrtSn) =>
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (petPrtcRcrtSn == null) next.delete('rcrtSn');
-      else next.set('rcrtSn', petPrtcRcrtSn);
-      return next;
-    });
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (petPrtcRcrtSn == null) next.delete('rcrtSn');
+        else next.set('rcrtSn', petPrtcRcrtSn);
+        return next;
+      },
+      { state: location.state },
+    );
+  /** 탭·쪽을 바꿔도 회원 조건과 화면에 보일 이름은 남긴다 */
+  const keepState = { state: location.state };
   const handleStatusChange = (nextStatus) =>
-    setSearchParams(nextStatus ? { rcrtSttsCd: nextStatus } : {});
+    setSearchParams(
+      {
+        ...(mbrSn && { mbrSn }),
+        ...(nextStatus && { rcrtSttsCd: nextStatus }),
+      },
+      keepState,
+    );
   const handlePageChange = (nextPage) =>
-    setSearchParams({
-      ...(status && { rcrtSttsCd: status }),
-      page: nextPage,
-    });
+    setSearchParams(
+      {
+        ...(mbrSn && { mbrSn }),
+        ...(status && { rcrtSttsCd: status }),
+        page: nextPage,
+      },
+      keepState,
+    );
+  const handleClearMember = () =>
+    setSearchParams(status ? { rcrtSttsCd: status } : {});
 
   /** 목록: 로딩 / 그 밖의 오류 / 빈 결과 / 목록 */
   const renderList = () => {
@@ -73,7 +101,9 @@ export default function AdminCareMatchesPage() {
     if (recruits.data.content.length === 0) {
       return (
         <p className="rounded-[14px] border border-line bg-white py-16 text-center text-base text-subtle">
-          펫돌봄 모집글이 없어요
+          {mbrSn
+            ? '이 회원이 낀 펫돌봄 모집글이 없어요'
+            : '펫돌봄 모집글이 없어요'}
         </p>
       );
     }
@@ -82,6 +112,7 @@ export default function AdminCareMatchesPage() {
         <CareRecruitTable
           recruits={recruits.data.content}
           onSelect={setSelectedSn}
+          viewerMbrSn={mbrSn ?? undefined}
         />
         <p className="mt-3 mb-2 text-sm text-subtle">
           총 {recruits.data.totalElements.toLocaleString()}건 · {PAGE_SIZE}건씩
@@ -105,6 +136,21 @@ export default function AdminCareMatchesPage() {
 
   return (
     <AdminPageFrame title="펫돌봄 거래">
+      {mbrSn && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-line bg-white px-4 py-3">
+          <p className="text-base text-ink-2">
+            <span className="font-semibold text-ink">{memberName}</span> 회원이
+            보호자·돌보미로 낀 모집글
+          </p>
+          <button
+            type="button"
+            className={`${BTN_SECONDARY} text-sm`}
+            onClick={handleClearMember}
+          >
+            전체 보기
+          </button>
+        </div>
+      )}
       <div
         role="tablist"
         aria-label="모집 상태"

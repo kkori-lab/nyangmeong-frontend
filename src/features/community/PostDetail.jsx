@@ -12,6 +12,7 @@ import { showToast } from '@/components/toastStore';
 import { PATHS } from '@/routes/paths';
 import { formatDateTime, formatMonthDayDot } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import AttachedImages from './AttachedImages';
 import CommentSection from './CommentSection';
 import PostBadges from './PostBadges';
@@ -42,7 +43,9 @@ export default function PostDetail({ post }) {
   const isLiked = post.liked;
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10`}
+    >
       <div className="flex min-w-0 flex-col gap-4">
         <article className="rounded-[14px] border border-line bg-white px-9 pt-8 pb-7 max-[760px]:px-5 max-[760px]:pt-6 max-[760px]:pb-5">
           <PostBadges post={post} />

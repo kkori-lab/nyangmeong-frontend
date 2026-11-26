@@ -1,7 +1,7 @@
 import { api } from '@/api/axios';
 import { addDays, getTodayYmd, getYear, getYmdOf } from '@/utils/formatDate';
 import { findNearHospitalSchedule } from './api';
-import { RECENT_RECORD_COUNT } from './diary/recordUtils';
+import { RECENT_RECORD_COUNT, STOOL_TREND_DAYS } from './diary/recordUtils';
 import { MEAL, NORMAL_STOOL, STOOL, WALK, WATER, WEIGHT } from './diaryTypes';
 
 /**
@@ -30,18 +30,23 @@ export const getDailyRecords = ({ petSn }) =>
 /**
  * 그래프용 한 지표의 최근 기록 5개
  * - 식사량·음수량·산책은 하루 합계로 그리므로 받은 기록 중 가장 이른 날짜의 기록을 모두 받아 합친다
+ * - 배변 상태는 건수 대신 오늘을 포함한 최근 7일 전부 (※신규 정책, 2026-11-26)
  */
 export const getDailyTrend = async ({ petSn, dailyRcdIdctCd }) => {
+  if (dailyRcdIdctCd === STOOL) {
+    return searchDailyRecords({
+      petSn,
+      dailyRcdIdctCd,
+      fromYmd: addDays(getTodayYmd(), -(STOOL_TREND_DAYS - 1)),
+      toYmd: getTodayYmd(),
+    });
+  }
   const recent = await searchDailyRecords({
     petSn,
     dailyRcdIdctCd,
     size: RECENT_RECORD_COUNT,
   });
-  if (
-    recent.length === 0 ||
-    dailyRcdIdctCd === WEIGHT ||
-    dailyRcdIdctCd === STOOL
-  ) {
+  if (recent.length === 0 || dailyRcdIdctCd === WEIGHT) {
     return recent;
   }
   return searchDailyRecords({
@@ -51,8 +56,9 @@ export const getDailyTrend = async ({ petSn, dailyRcdIdctCd }) => {
   });
 };
 
-export const createDailyRecord = ({ petSn, body }) =>
-  api.post(`/pets/${petSn}/daily-health-records`, body);
+/** 오늘 기록 여러 종류를 한 번에 등록(1~5건, 같은 종류 한 번만). 하나라도 틀리면 아무것도 저장 안 됨 -> 등록된 기록 배열 */
+export const bulkCreateDailyRecords = ({ petSn, values }) =>
+  api.post(`/pets/${petSn}/daily-health-records/bulk`, { values });
 
 /** 지표·반려동물은 바꾸지 않고 시각과 값만 수정 */
 export const updateDailyRecord = ({ petSn, dailyHlthRcdSn, body }) =>

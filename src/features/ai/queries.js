@@ -2,10 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { healthKeys } from '@/features/health/queries';
 import {
   analyzeChatLabPdf,
+  analyzeEye,
   analyzeSkin,
   createChatCheckup,
   findChatNearSchedule,
   getChatCheckups,
+  getChatObservationItems,
   analyzeChatReceipt,
   deleteConversation,
   executeAction,
@@ -16,6 +18,7 @@ import {
   recognizeCheckupReceipt,
   saveActionResult,
   saveCheckupCard,
+  saveLesionCard,
   saveReceiptResult,
 } from './api';
 
@@ -26,7 +29,16 @@ export const aiKeys = {
   receipt: (recptSn, petSn) => ['ai', 'receipts', recptSn, petSn],
   checkups: ['ai', 'checkups'],
   checkupList: (petSn) => ['ai', 'checkups', petSn],
+  observationItemList: (petSn) => ['ai', 'observation-items', petSn],
 };
+
+/** 관찰 기록 추가 확인 카드의 관찰 항목 목록 */
+export const useChatObservationItems = (petSn) =>
+  useQuery({
+    queryKey: aiKeys.observationItemList(petSn),
+    queryFn: () => getChatObservationItems(petSn),
+    enabled: petSn != null,
+  });
 
 /** 검사 수치 확인 카드의 검진기록 목록 */
 export const useChatCheckups = (petSn) =>
@@ -90,9 +102,24 @@ const useResultMessage = (mutationFn) => {
   });
 };
 
-/** 확인 카드 실행(Java): 성공 뒤 본창 새로고침은 화면이 알린다 */
-export const useExecuteAction = () =>
-  useMutation({ mutationFn: executeAction });
+/**
+ * 확인 카드 Java 실행: 성공 뒤 본창 새로고침은 화면이 알린다(aiWriteChannel)
+ * - 대화창이 있는 창의 다른 도메인 캐시도 다시 받는다
+ * - /ai-chat은 UserLayout 밖이라, 같은 탭에서 건강 일지로 돌아가면 바꾼 관찰 사진이 캐시(5분) 그대로 보였다
+ */
+export const useExecuteAction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: executeAction,
+    /** 다시 받기를 기다리지 않고 결과 저장으로 넘어간다 */
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: ({ queryKey }) => queryKey[0] !== 'ai',
+      });
+    },
+  });
+};
 
 /** 확인 카드 결과 저장: 결과 요약 메시지가 붙은 대화 상세 갱신 */
 export const useSaveActionResult = () => useResultMessage(saveActionResult);
@@ -126,6 +153,24 @@ export const useAnalyzeChatLabPdf = () =>
 
 /** 대화창 피부 사진 분석 */
 export const useAnalyzeSkin = () => useMutation({ mutationFn: analyzeSkin });
+
+/** 대화창 눈 사진 분석 */
+export const useAnalyzeEye = () => useMutation({ mutationFn: analyzeEye });
+
+/** 대화창 피부·눈 분석 결과 저장: 대화를 다시 받은 뒤 끝냄(말풍선을 걷을 때 요약이 바로 보이게) */
+export const useSaveLesionCard = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: saveLesionCard,
+    onSuccess: ({ aiCnvrsRoomSn }) => {
+      queryClient.invalidateQueries({ queryKey: aiKeys.lists });
+      return queryClient.invalidateQueries({
+        queryKey: aiKeys.detail(aiCnvrsRoomSn),
+      });
+    },
+  });
+};
 
 /** 대화창 검진기록 만들기: 가까운 예정 병원 일정 */
 export const useFindChatNearSchedule = () =>

@@ -30,6 +30,7 @@ import {
   getYmdOf,
 } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
+import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import AttachedImages from '../AttachedImages';
 import CommentSection from '../CommentSection';
 import {
@@ -123,7 +124,9 @@ const Dot = () => <i className="text-line-strong not-italic">·</i>;
 function FoundPublicView({ post, listTo }) {
   const { data: rail } = useMissingRail();
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10`}
+    >
       <article className={ARTICLE_CLASS} aria-labelledby="missing-title">
         <PostHead post={post}>
           <span>{formatDate(post.dscvSwtcDt)} 찾음</span>
@@ -244,7 +247,9 @@ export default function MissingDetail({ post }) {
     });
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_280px] items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10">
+    <div
+      className={`grid ${LIST_RAIL_COLS} items-start gap-8 max-[1100px]:grid-cols-1 max-[1100px]:gap-10`}
+    >
       <div className="flex min-w-0 flex-col gap-4">
         <article className={ARTICLE_CLASS} aria-labelledby="missing-title">
           <PostHead
@@ -361,7 +366,7 @@ export default function MissingDetail({ post }) {
                       className="text-subtle"
                     />
                   }
-                  label="마지막 목격"
+                  label="실종 일시"
                 >
                   {formatSeenAt(post.lastWtnsDt)}
                 </InfoRow>
@@ -387,12 +392,9 @@ export default function MissingDetail({ post }) {
                       className="text-subtle"
                     />
                   }
-                  label="목격 장소"
+                  label="실종 장소"
                 >
                   {post.wtnsPlcNm}
-                  <span className="mt-1 block text-sm text-muted">
-                    {post.rgnNm}
-                  </span>
                 </InfoRow>
               </dl>
               <div className="mt-3">
@@ -413,6 +415,7 @@ export default function MissingDetail({ post }) {
                 isLiked={isLiked}
                 count={post.rcmdtnCnt}
                 disabled={toggleLike.isPending}
+                locked={(found || expired) && !isLiked}
                 onToggle={() =>
                   toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
                 }

@@ -4,7 +4,6 @@ import { DOSING } from './checkup/checkupTypes';
 import { getCheckupAttachments } from './checkupApi';
 import { getCheckups, getObservationItems } from './diaryApi';
 import { OBSERVATION_ONGOING } from './diaryTypes';
-import { findBloodItem } from './labInput/bloodItems';
 import { HOSPITAL } from './scheduleTypes';
 
 /**
@@ -63,7 +62,6 @@ const buildLab = (petSn, values) => {
     const nm = getInspectionName(value);
     const trend = (trends[nm] ??= {
       inspNm: nm,
-      fnctTagCd: findBloodItem(nm)?.fnctTagCd,
       points: [],
     });
     trend.unitNm = value.unitNm;

@@ -26,7 +26,7 @@ export default function EtcResultList({ petSn, ckupRcdSn, etcInspections }) {
   return (
     <div>
       {etcInspections.length === 0 && (
-        <p className="text-muted">결과가 없어요</p>
+        <p className="text-base text-muted">결과가 없어요</p>
       )}
       <ul>
         {etcInspections.map((etc) => (

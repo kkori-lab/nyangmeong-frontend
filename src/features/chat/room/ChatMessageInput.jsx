@@ -46,12 +46,16 @@ const checkPhotos = (files, currentCount) => {
   return null;
 };
 
-/** isDisabled: 대화할 수 없는 방. 입력칸·사진·주소·전송을 모두 막고 안내 문구를 보인다 */
+/**
+ * isDisabled: 대화할 수 없는 방. 입력칸·사진·주소·전송을 모두 막고 안내 문구를 보인다
+ * isCtptLeft: 상대가 나간 방. 막지는 않고 입력칸 위에 안내만 보인다(메시지를 보내면 상대가 돌아온다)
+ */
 export default function ChatMessageInput({
   otoChatRoomSn,
   stage,
   ctptMbrNcnm,
   isDisabled = false,
+  isCtptLeft = false,
 }) {
   const [msgCn, setMsgCn] = useState('');
   const [photos, setPhotos] = useState([]);
@@ -219,6 +223,12 @@ export default function ChatMessageInput({
             </li>
           ))}
         </ul>
+      )}
+      {isCtptLeft && !isDisabled && (
+        <p className="mb-2 flex items-center justify-center gap-1.5 text-center text-sm font-medium text-brand-600">
+          <Icon name="info" className="text-base" />
+          상대가 나간 방이에요. 메시지를 보내 대화를 다시 시작할 수 있어요.
+        </p>
       )}
       {photoError && (
         <p role="alert" className="mb-2 text-sm text-danger">

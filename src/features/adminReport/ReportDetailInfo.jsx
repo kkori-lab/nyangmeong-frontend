@@ -5,6 +5,7 @@ import {
   getActionLabel,
   getOptionLabel,
   getTargetLabel,
+  isMemberReport,
   REPORT_REASON_OPTIONS,
   REPORT_STATUS_OPTIONS,
   TARGET_POST_STATUS_OPTIONS,
@@ -30,15 +31,34 @@ const getTargetStatus = (report) => {
   return report.delYn ? '삭제' : '정상';
 };
 
-/**
- * [신고 상세 정보]
- * - 게시글 대상 -> 게시글 상세, 작성자·신고자 -> 회원 상세
- * - 처리 정보는 처리된 신고에만 표시
- */
-export default function ReportDetailInfo({ report }) {
-  const isPost = report.cmntSn == null;
+/** 채팅방 줄: 같은 방 신고 목록의 돌봄 글 제목, 원문은 서버가 주지 않음 */
+const getChatRoomLabel = (report) => {
+  const postTitle = report.sameTargetReports?.find(
+    (item) => item.otoChatRoomSn === report.otoChatRoomSn && item.trgtCn,
+  )?.trgtCn;
+  return postTitle
+    ? `${postTitle} · 채팅 내용은 볼 수 없어요`
+    : '채팅 내용은 볼 수 없어요';
+};
 
-  const rows = [
+/** 회원 신고 대상 줄: 신고된 회원 + 채팅방 */
+const getMemberTargetRows = (report) => [
+  ['대상', getTargetLabel(report)],
+  [
+    '신고된 회원',
+    <MemberLink
+      key="target"
+      mbrSn={report.trgtMbrSn}
+      mbrNcnm={report.trgtMbrNcnm}
+    />,
+  ],
+  ['채팅방', getChatRoomLabel(report)],
+];
+
+/** 게시글·댓글 신고 대상 줄: 작성자·제목·내용 */
+const getContentTargetRows = (report) => {
+  const isPost = report.cmntSn == null;
+  return [
     ['대상', `${getTargetLabel(report)} · ${getTargetStatus(report)}`],
     [
       '작성자',
@@ -70,6 +90,20 @@ export default function ReportDetailInfo({ report }) {
         {isPost ? report.pstCn : report.cmntCn}
       </p>,
     ],
+  ];
+};
+
+/**
+ * [신고 상세 정보]
+ * - 게시글 대상 -> 게시글 상세, 작성자·신고자·신고된 회원 -> 회원 상세
+ * - 회원 신고는 채팅방만 표시(채팅 원문 없음)
+ * - 처리 정보는 처리된 신고에만 표시
+ */
+export default function ReportDetailInfo({ report }) {
+  const rows = [
+    ...(isMemberReport(report)
+      ? getMemberTargetRows(report)
+      : getContentTargetRows(report)),
     ['신고 사유', getOptionLabel(REPORT_REASON_OPTIONS, report.dclrRsnCd)],
     ...(report.dclrDtlCn
       ? [

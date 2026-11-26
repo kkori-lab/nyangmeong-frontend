@@ -1,7 +1,8 @@
 import { useSearchParams } from 'react-router-dom';
 import NewsList from '@/features/news/NewsList';
 import { getCategoryCode } from '@/features/news/newsCodes';
-import { useNewsInfiniteList } from '@/features/news/queries';
+import { useNewsInfiniteList, useNewsList } from '@/features/news/queries';
+import useMediaQuery from '@/hooks/useMediaQuery';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import { PATHS } from '@/routes/paths';
 import LoadError from '@/components/LoadError';
@@ -57,6 +58,10 @@ function NewsListSkeleton() {
           <NewsCardSkeleton key={index} />
         ))}
       </div>
+      {/* 760px 이상은 쪽 번호가 있다(모바일은 무한 스크롤이라 없음) */}
+      <div aria-hidden="true" className="mt-2 hidden min-[760px]:block">
+        <Skeleton className="mx-auto h-9 w-64" />
+      </div>
     </PageSkeleton>
   );
 }
@@ -68,15 +73,18 @@ export default function NewsListPage() {
   const categoryName = searchParams.get('category') ?? '';
   const newsClsfCd = getCategoryCode(categoryName) ?? '';
   const category = newsClsfCd ? categoryName : '';
+  /** 760px 미만(모바일)은 무한 스크롤, 그 밖은 ?page= 쪽 번호. 쓰는 쪽만 요청한다 */
+  const isMobile = useMediaQuery('(width < 760px)');
+  const page = Number(searchParams.get('page')) || 1;
+  const listParams = { size: PAGE_SIZE, newsClsfCd, keyword };
+  const infinite = useNewsInfiniteList(listParams, { enabled: isMobile });
+  const paged = useNewsList({ ...listParams, page }, { enabled: !isMobile });
   const {
     data: news,
     isPending,
     isError,
     refetch,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useNewsInfiniteList({ size: PAGE_SIZE, newsClsfCd, keyword });
+  } = isMobile ? infinite : paged;
 
   const setQuery = (next, options) =>
     setSearchParams(
@@ -87,6 +95,13 @@ export default function NewsListPage() {
   /** 칩·검색어가 바뀌면 첫 쪽부터 */
   const handleCategoryChange = (nextCategory, typed = keyword) =>
     setQuery({ category: nextCategory, keyword: typed });
+
+  const handlePageChange = (nextPage) =>
+    setQuery({
+      category,
+      keyword,
+      page: nextPage > 1 ? nextPage : '',
+    });
 
   /** 입력하는 동안 자동 검색이 뒤로 가기 기록을 쌓지 않게 바꿔 끼운다 */
   const handleSearch = (nextKeyword) =>
@@ -110,9 +125,12 @@ export default function NewsListPage() {
         keyword={keyword}
         onCategoryChange={handleCategoryChange}
         onSearch={handleSearch}
-        hasNext={Boolean(hasNextPage)}
-        isFetchingNext={isFetchingNextPage}
-        onLoadMore={fetchNextPage}
+        isMobile={isMobile}
+        page={page}
+        onPageChange={handlePageChange}
+        hasNext={Boolean(infinite.hasNextPage)}
+        isFetchingNext={infinite.isFetchingNextPage}
+        onLoadMore={infinite.fetchNextPage}
         onReset={() => setSearchParams({})}
       />
     );

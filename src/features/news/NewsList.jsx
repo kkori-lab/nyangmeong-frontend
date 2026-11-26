@@ -7,7 +7,7 @@ import {
   FILTER_CHIP_ON,
 } from '@/components/buttonStyles';
 import EmptyResult from '@/components/EmptyResult';
-import LoadMore from '@/components/LoadMore';
+import ListPager from '@/components/ListPager';
 import { THUMB_COLS } from '@/constants/listLayout';
 import SearchInput from '@/components/SearchInput';
 import useSearchDraft from '@/hooks/useSearchDraft';
@@ -81,6 +81,9 @@ export default function NewsList({
   keyword,
   onCategoryChange,
   onSearch,
+  isMobile,
+  page,
+  onPageChange,
   hasNext,
   isFetchingNext,
   onLoadMore,
@@ -145,8 +148,8 @@ export default function NewsList({
         {content.length === 0 ? (
           <EmptyResult
             icon={<SearchX size={32} aria-hidden="true" />}
-            title="해당하는 뉴스가 없어요"
-            description="다른 카테고리를 고르거나 검색어를 바꿔 보세요"
+            title="검색 결과가 없어요"
+            description="검색어나 필터를 바꿔 다시 찾아보세요"
           >
             <button
               type="button"
@@ -167,10 +170,14 @@ export default function NewsList({
           </ul>
         )}
 
-        <LoadMore
+        <ListPager
+          isMobile={isMobile}
           hasNext={hasNext}
-          isFetching={isFetchingNext}
-          onLoad={onLoadMore}
+          isFetchingNext={isFetchingNext}
+          onLoadMore={onLoadMore}
+          page={page}
+          totalPages={news.totalPages}
+          onPageChange={onPageChange}
         />
       </div>
     </div>

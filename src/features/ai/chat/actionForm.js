@@ -63,10 +63,35 @@ export const requiredFields = (card, input) => {
 export const missingFields = (card, input) =>
   requiredFields(card, input).filter((field) => isEmptyValue(input[field]));
 
+/** 파일 칸(type file): 서버가 채우지 않고 React가 붙인다(분석한 사진 등) */
+export const fileFields = (card) =>
+  Object.entries(card.params)
+    .filter(([, param]) => param.type === 'file')
+    .map(([field]) => field);
+
+/** 파일 칸에 같은 파일 붙이기: { 칸: File } */
+export const attachFile = (card, file) =>
+  Object.fromEntries(fileFields(card).map((field) => [field, file]));
+
+/** 본문 칸 → multipart: 파일은 그대로, 그 밖은 글자로 */
+const toFormData = (data) => {
+  const form = new FormData();
+  Object.entries(data).forEach(([field, value]) => {
+    form.append(field, value instanceof Blob ? value : String(value));
+  });
+  return form;
+};
+
 /**
  * Java 요청: path의 {칸}은 경로에, query 칸은 쿼리에, 나머지 목록 칸은 본문에
  * - call.path는 /api로 시작하고 axios api 인스턴스가 /api를 붙인다
+ * - call.contentType이 multipart면 본문을 FormData로(관찰 항목 등록처럼 파일 칸이 있는 도구)
+ * - DELETE(삭제 카드)는 본문 없이 보낸다(칸은 경로 번호뿐, AI 계약 2026-11-25)
  */
+/** 삭제 카드: 고칠 칸 없이 대상 글(targetText)과 [삭제]로 보인다 */
+export const isDeleteCard = (card) =>
+  card.call?.method?.toUpperCase() === 'DELETE';
+
 export const buildActionRequest = (card, rawInput) => {
   const input = cleanInput(card, rawInput);
   const params = {};
@@ -85,7 +110,14 @@ export const buildActionRequest = (card, rawInput) => {
   const url = card.call.path
     .replace(/^\/api/, '')
     .replace(/\{(\w+)\}/g, (_, field) => encodeURIComponent(input[field]));
-  return { method: card.call.method, url, params, data };
+  if (isDeleteCard(card)) return { method: card.call.method, url, params };
+  const isMultipart = card.call.contentType?.includes('multipart') ?? false;
+  return {
+    method: card.call.method,
+    url,
+    params,
+    data: isMultipart ? toFormData(data) : data,
+  };
 };
 
 /**
@@ -118,6 +150,19 @@ export const resultInput = (card, rawInput) => {
     ),
   );
 };
+
+/** 결과 저장·다음 메시지에 보낼 input: resultInput에서 파일 칸을 뺀다(JSON으로 보내므로) */
+export const jsonInput = (card, rawInput) => {
+  const files = fileFields(card);
+  return Object.fromEntries(
+    Object.entries(resultInput(card, rawInput)).filter(
+      ([field]) => !files.includes(field),
+    ),
+  );
+};
+
+/** 관찰 기록 추가 도구: 관찰 항목 번호(obsrvArtclSn)만 오므로 카드가 이름을 따로 보인다 */
+export const OBSERVATION_CYCLE_TOOL = 'draft_observation_cycle';
 
 /** 케어 항목 등록 도구 */
 export const CARE_ITEM_TOOL = 'draft_care_item';

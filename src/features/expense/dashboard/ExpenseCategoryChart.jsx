@@ -24,15 +24,22 @@ const buildGradient = (stats) => {
 
 export default function ExpenseCategoryChart({ stats }) {
   return (
-    <section aria-labelledby="expense-category-title" className={CARD}>
+    <section
+      aria-labelledby="expense-category-title"
+      className={`${CARD} ${stats.length === 0 ? 'flex flex-col' : ''}`}
+    >
       <div className={CARD_HEAD}>
         <h2 id="expense-category-title" className={CARD_TITLE}>
           카테고리별 지출
         </h2>
       </div>
-      <div className={CARD_BODY}>
+      <div
+        className={`${CARD_BODY} ${stats.length === 0 ? 'flex flex-1 items-center justify-center' : ''}`}
+      >
         {stats.length === 0 ? (
-          <p className="text-subtle">이번 달 지출이 없어요</p>
+          <p className="text-center text-base font-normal text-muted">
+            이번 달 지출이 없어요
+          </p>
         ) : (
           <div className="flex flex-wrap items-center gap-6 max-[760px]:justify-center">
             <div

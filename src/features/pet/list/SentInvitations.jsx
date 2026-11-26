@@ -115,7 +115,7 @@ export default function SentInvitations() {
         </small>
       </h2>
       {invitations.length === 0 ? (
-        <p className="rounded-card border border-line bg-white px-6 py-6 text-center text-muted shadow-depth-sm">
+        <p className="rounded-card border border-line bg-white px-6 py-6 text-center text-base font-normal text-muted shadow-depth-sm">
           아직 보낸 초대가 없어요
         </p>
       ) : (

@@ -1,8 +1,6 @@
 import { ArrowRight, ShieldCheck, UserRound, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import logoWhite from '@/assets/logo-white.svg';
 import Modal from '@/components/Modal';
-import { PATHS } from '@/routes/paths';
 import { GITHUB_REPOS, HERO_SLIDES } from './landingData';
 
 const TITLE = 'pawever를 체험해 보세요';
@@ -47,15 +45,10 @@ function GroupLabel({ children }) {
 
 /**
  * 랜딩 진입 때 뜨는 포트폴리오 안내. 위는 히어로 사진 배너, 아래는 팀 저장소 4개와 로그인 입구 2개.
- * 로그인 카드는 이메일 로그인 화면으로 가며 이동 state의 demo(member·admin)로 데모 계정을 칸에 미리 채운다(LoginPage).
- * 관리자는 로그인하면 역할에 따라 관리자 홈으로 가므로(getLoginDestination) redirect를 붙이지 않는다
+ * 로그인 카드는 그 역할의 데모 계정으로 바로 로그인한다(onDemoLogin('member' | 'admin'), LandingPage가 로그인·이동).
+ * pendingKey: 로그인 중인 카드. 그동안 두 카드를 잠근다
  */
-export default function PortfolioModal({ redirect, onClose }) {
-  const loginPaths = {
-    member: `${PATHS.LOGIN}?${new URLSearchParams({ method: 'email', ...(redirect && { redirect }) })}`,
-    admin: `${PATHS.LOGIN}?method=email`,
-  };
-
+export default function PortfolioModal({ onDemoLogin, pendingKey, onClose }) {
   return (
     <Modal
       title={TITLE}
@@ -116,12 +109,15 @@ export default function PortfolioModal({ redirect, onClose }) {
           <div className="grid gap-2 min-[760px]:grid-cols-2 min-[760px]:gap-3">
             {LOGIN_CARDS.map((item) => {
               const Icon = item.icon;
+              const isPending = pendingKey === item.key;
               return (
-                <Link
+                <button
                   key={item.key}
-                  to={loginPaths[item.key]}
-                  state={{ demo: item.key }}
-                  className={`group flex items-center gap-4 rounded-[20px] px-5 py-4 transition-colors max-[760px]:gap-3 max-[760px]:rounded-2xl max-[760px]:px-4 max-[760px]:py-3 ${item.card}`}
+                  type="button"
+                  disabled={pendingKey != null}
+                  aria-busy={isPending}
+                  onClick={() => onDemoLogin(item.key)}
+                  className={`group flex items-center gap-4 rounded-[20px] px-5 py-4 text-left transition-colors disabled:cursor-wait disabled:opacity-80 max-[760px]:gap-3 max-[760px]:rounded-2xl max-[760px]:px-4 max-[760px]:py-3 ${item.card}`}
                 >
                   <span
                     className={`grid size-11 shrink-0 place-items-center rounded-full max-[760px]:size-9 ${item.iconWrap}`}
@@ -136,14 +132,14 @@ export default function PortfolioModal({ redirect, onClose }) {
                       {item.title}
                     </span>
                     <span className="mt-0.5 block text-[13px] leading-5 break-keep opacity-75 max-[760px]:text-[12px] max-[760px]:leading-4">
-                      {item.desc}
+                      {isPending ? '로그인 중…' : item.desc}
                     </span>
                   </span>
                   <ArrowRight
                     className="size-5 shrink-0 transition-transform group-hover:translate-x-1 max-[760px]:size-4"
                     aria-hidden="true"
                   />
-                </Link>
+                </button>
               );
             })}
           </div>
@@ -170,7 +166,7 @@ export default function PortfolioModal({ redirect, onClose }) {
         </div>
 
         <p className="mt-6 text-center text-[13px] break-keep text-[#999999] max-[760px]:mt-4 max-[760px]:text-[11px]">
-          데모 계정은 입력만 제공되며, 로그인 버튼을 직접 눌러야 접속됩니다.
+          카드를 누르면 데모 계정으로 바로 로그인됩니다.
         </p>
       </div>
     </Modal>

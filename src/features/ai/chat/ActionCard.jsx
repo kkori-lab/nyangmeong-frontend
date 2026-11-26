@@ -5,13 +5,23 @@ import {
   ClipboardCheck,
   Info,
 } from 'lucide-react';
-import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
+import {
+  BTN_DANGER,
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+} from '@/components/buttonStyles';
 import { PATHS } from '@/routes/paths';
 import { actionFieldName } from '../shared/actionFields';
 import { useOpenMain } from './aiHost';
-import { CARE_ITEM_TOOL, errorFieldsShown, missingFields } from './actionForm';
+import {
+  CARE_ITEM_TOOL,
+  errorFieldsShown,
+  isDeleteCard,
+  missingFields,
+} from './actionForm';
 import ActionCardFields from './ActionCardFields';
 import AiAvatar from './AiAvatar';
+import useTypewriter from './useTypewriter';
 
 /**
  * 등록한 반려동물로 케어 캘린더 열기: 캘린더가 `?petSn=`을 보고 있는 아이로 고름
@@ -23,9 +33,20 @@ const calendarPath = (petSn, isCareItem) => {
   return `${PATHS.HEALTH_CALENDAR}${query}${hash}`;
 };
 
-/** 결과 줄: 저장한 요약 메시지와 같은 글, 등록 직후에는 그 아래 오른쪽에 케어 캘린더 바로가기 */
-function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
+/**
+ * 결과 줄: 저장한 요약 메시지와 같은 글, 등록 직후에는 그 아래 오른쪽에 케어 캘린더 바로가기
+ * - 결과는 이 창에서 처리한 카드에만 있어(카드는 저장되지 않음) 처음 그릴 때가 곧 방금 받은 때: 글자를 펼치고, 다 펼친 뒤 바로가기
+ */
+function ResultLine({
+  status,
+  text,
+  hasCalendarLink,
+  petSn,
+  isCareItem,
+  memoKey,
+}) {
   const openMain = useOpenMain();
+  const typed = useTypewriter(text.replace(/^✔\s*/, ''), true, memoKey);
   const isDone = status === 'done';
   const Icon = isDone ? CircleCheck : CircleX;
   let color = 'text-subtle';
@@ -37,9 +58,9 @@ function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
         className={`flex items-start gap-2 text-base font-semibold leading-6 ${color}`}
       >
         <Icon aria-hidden="true" className="mt-[3px] size-[18px] shrink-0" />
-        {text.replace(/^✔\s*/, '')}
+        {typed.text}
       </p>
-      {isDone && hasCalendarLink && (
+      {isDone && hasCalendarLink && !typed.isRevealing && (
         <div className="mt-2 flex justify-end">
           <button
             type="button"
@@ -61,6 +82,7 @@ function ResultLine({ status, text, hasCalendarLink, petSn, isCareItem }) {
  * - [확인]은 빈 필수 칸·처리 중·답변 중이면 비활성, 가장 최근 카드가 아니면 버튼 없음
  * - 처리한 카드: 결과 요약 메시지 자리에 결과 줄(케어 캘린더 바로가기 포함)
  * - 지난 카드·버린 카드는 그리지 않는다
+ * - 삭제 카드(DELETE): 칸 대신 대상 글(targetText) 한 줄, [확인] 대신 빨간 [삭제]
  */
 export default function ActionCard({
   item,
@@ -76,6 +98,7 @@ export default function ActionCard({
 }) {
   const { card, input, status, isBusy, fieldErrors } = item;
   const isCareItem = card.tool === CARE_ITEM_TOOL;
+  const isDelete = isDeleteCard(card);
 
   if (item.resultText) {
     return (
@@ -88,6 +111,7 @@ export default function ActionCard({
             hasCalendarLink={hasCalendarLink}
             petSn={input.petSn ?? card.input.petSn}
             isCareItem={isCareItem}
+            memoKey={`action-result-${item.key}`}
           />
         </div>
       </div>
@@ -127,15 +151,25 @@ export default function ActionCard({
             {card.notice}
           </p>
         )}
-        <ActionCardFields
-          card={card}
-          input={input}
-          fieldErrors={fieldErrors}
-          isActive={isActive}
-          isDisabled={isLocked}
-          onChoosePet={onChoosePet}
-          onChangeInput={onChangeInput}
-        />
+        {isDelete ? (
+          card.targetText && (
+            <p className="text-base leading-6 break-keep text-ink-2">
+              {card.targetText}
+            </p>
+          )
+        ) : (
+          <ActionCardFields
+            card={card}
+            input={input}
+            fieldErrors={fieldErrors}
+            isActive={isActive}
+            isDisabled={isLocked}
+            onChoosePet={onChoosePet}
+            onChangeInput={onChangeInput}
+            photoFields={item.photoFields}
+            isPhotoAsked={item.isPhotoAsked}
+          />
+        )}
         {isBusy && (
           <p role="status" className="text-sm leading-[22px] text-subtle">
             {card.label ?? '요청'}을(를) 처리하고 있어요…
@@ -179,11 +213,11 @@ export default function ActionCard({
             </button>
             <button
               type="button"
-              className={BTN_PRIMARY}
+              className={isDelete ? BTN_DANGER : BTN_PRIMARY}
               disabled={isConfirmDisabled}
               onClick={onConfirm}
             >
-              확인
+              {isDelete ? '삭제' : '확인'}
             </button>
           </div>
         )}

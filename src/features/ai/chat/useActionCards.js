@@ -2,7 +2,14 @@ import { useState } from 'react';
 import { notifyAiWrite } from '@/utils/aiWriteChannel';
 import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import { useExecuteAction, useSaveActionResult } from '../queries';
-import { buildActionRequest, missingFields, resultInput } from './actionForm';
+import {
+  buildActionRequest,
+  errorFieldsShown,
+  fileFields,
+  jsonInput,
+  missingFields,
+  resultInput,
+} from './actionForm';
 
 /** 결과 저장 status(ActionResultRequest) */
 export const ACTION_STATUS = {
@@ -18,6 +25,20 @@ const SERVER_FAILURE_CODES = [
   'INTERNAL_SERVER_ERROR',
 ];
 
+/** 결과 저장에 싣는 Java 400 칸 오류 최대 수(ActionResultRequest errors) */
+const MAX_RESULT_ERRORS = 50;
+
+/**
+ * 카드에서 고칠 수 없는 400인지: 칸 오류가 있고 모두 카드에 보이지 않는 칸(경로 번호 칸·숨긴 칸)
+ * - 보이는 칸(사진 줄 포함)이 하나라도 있으면 카드를 살려 두고 고치게 한다(FN-AIM-012-12)
+ */
+const isUnfixableError = (item, input, error) => {
+  const fields = error?.fields ?? [];
+  if (fields.length === 0) return false;
+  const shown = [...errorFieldsShown(item.card, input), ...item.photoFields];
+  return fields.every(({ field }) => !shown.includes(field));
+};
+
 /** 카드 결과 상태: 처리 전 pending */
 const STATUS_BY_RESULT = {
   [ACTION_STATUS.DONE]: 'done',
@@ -31,7 +52,8 @@ const STATUS_BY_RESULT = {
  * - 항목: { key, card, input, afterSn, anchorSn, status, isBusy, fieldErrors, formError, unsaved, resultText, resultMsgSn }
  * - status: 'pending' | 'done' | 'cancelled' | 'failed' | 'dropped'(취소 말·다른 말로 버림)
  * - key는 등록 카드와 같은 번호를 써서 "가장 최근 카드"를 함께 따진다
- * - unsaved: 결과 저장에 실패한 { status, input }, [다시 시도]로 저장만 다시
+ * - unsaved: 결과 저장에 실패한 { status, input, errors }, [다시 시도]로 저장만 다시
+ * - files: 파일 칸에 붙일 { 칸: File }(분석한 사진). input에 넣어 Java 실행에만 쓰고 결과 저장·다음 메시지에는 싣지 않는다
  */
 export function useActionCards() {
   const [actionCards, setActionCards] = useState([]);
@@ -48,10 +70,21 @@ export function useActionCards() {
     );
 
   /** 새 카드 항목 */
-  const toItem = ({ key, card, afterSn, anchorSn = null }) => ({
+  const toItem = ({
     key,
     card,
-    input: { ...card.input },
+    afterSn,
+    anchorSn = null,
+    files = {},
+    photoFields,
+  }) => ({
+    key,
+    card,
+    input: { ...card.input, ...files },
+    /** 카드에 사진 줄로 보일 파일 칸: 분석한 사진을 붙여 받은 칸은 숨기고, 이어 받은 카드는 앞 카드 그대로 */
+    photoFields:
+      photoFields ??
+      fileFields(card).filter((field) => !(files[field] instanceof Blob)),
     afterSn,
     anchorSn,
     status: 'pending',
@@ -61,6 +94,8 @@ export function useActionCards() {
     unsaved: null,
     resultText: null,
     resultMsgSn: null,
+    /** 사진 칸만 빈 채로 확인 말이 왔는지: 사진 칸 아래 안내를 "사진을 올려야 등록돼요"로 */
+    isPhotoAsked: false,
   });
 
   /** 새 카드 */
@@ -70,7 +105,7 @@ export function useActionCards() {
   const drop = (key) => patchCard(key, { status: 'dropped' });
 
   /** 결과 저장: 성공하면 요약 메시지 자리로, 실패하면 [다시 시도] */
-  const saveResult = async (aiCnvrsRoomSn, item, status, input) => {
+  const saveResult = async (aiCnvrsRoomSn, item, status, input, errors) => {
     patchCard(item.key, { isBusy: true, unsaved: null });
     try {
       const message = await saveActionResult.mutateAsync({
@@ -78,6 +113,8 @@ export function useActionCards() {
         tool: item.card.tool,
         status,
         input,
+        targetText: item.card.targetText,
+        errors,
       });
       patchCard(item.key, {
         isBusy: false,
@@ -86,21 +123,41 @@ export function useActionCards() {
         resultMsgSn: message.aiCnvrsMsgSn,
       });
     } catch {
-      patchCard(item.key, { isBusy: false, unsaved: { status, input } });
+      patchCard(item.key, {
+        isBusy: false,
+        unsaved: { status, input, errors },
+      });
     }
   };
 
-  /** 실행: Java 실행 → 결과 저장, 회원이 고칠 수 있는 오류면 카드를 살려 두고 말로 고치게 한다 */
+  /**
+   * 실행: Java 실행 → 결과 저장, 회원이 고칠 수 있는 오류면 카드를 살려 두고 말로 고치게 한다
+   * - 카드에서 고칠 수 없는 칸의 400은 칸 오류를 errors로 실어 실패로 저장한다(서버가 칸 이름으로 실패 글을 만든다)
+   */
   const run = async (aiCnvrsRoomSn, item) => {
     const key = item.key;
     if (missingFields(item.card, item.input).length > 0) return;
     const input = resultInput(item.card, item.input);
+    const savedInput = jsonInput(item.card, item.input);
     patchCard(key, { isBusy: true, fieldErrors: {}, formError: null });
     try {
       await executeAction.mutateAsync(buildActionRequest(item.card, input));
     } catch (error) {
       if (SERVER_FAILURE_CODES.includes(error?.code)) {
-        await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.FAILED, input);
+        await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.FAILED, savedInput);
+        return;
+      }
+      if (isUnfixableError(item, item.input, error)) {
+        const errors = error.fields
+          .slice(0, MAX_RESULT_ERRORS)
+          .map(({ field, message }) => ({ field, message }));
+        await saveResult(
+          aiCnvrsRoomSn,
+          item,
+          ACTION_STATUS.FAILED,
+          savedInput,
+          errors,
+        );
         return;
       }
       const fieldErrors = toFieldErrors(error);
@@ -112,12 +169,22 @@ export function useActionCards() {
       return;
     }
     notifyAiWrite({ domain: item.card.domain, petSn: input.petSn ?? null });
-    await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.DONE, input);
+    await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.DONE, savedInput);
   };
 
-  /** 새 카드를 받자마자 실행(done.execute): 확인 말에 서버가 다시 검증한 카드 */
+  /**
+   * 새 카드를 받자마자 실행(done.execute): 확인 말에 서버가 다시 검증한 카드
+   * - 서버는 파일 칸을 세지 않아 사진 칸만 비어도 실행이 온다(ai PR #114). 그때는 실행하지 않고 카드에서 사진을 받는다
+   */
   const execute = (aiCnvrsRoomSn, params) => {
     const item = toItem(params);
+    const missingFiles = fileFields(item.card).filter((field) =>
+      missingFields(item.card, item.input).includes(field),
+    );
+    if (missingFiles.length > 0) {
+      setActionCards((prev) => [...prev, { ...item, isPhotoAsked: true }]);
+      return Promise.resolve();
+    }
     setActionCards((prev) => [...prev, item]);
     return run(aiCnvrsRoomSn, item);
   };
@@ -141,7 +208,7 @@ export function useActionCards() {
       aiCnvrsRoomSn,
       item,
       ACTION_STATUS.CANCELED,
-      resultInput(item.card, item.input),
+      jsonInput(item.card, item.input),
     );
   };
 
@@ -157,7 +224,13 @@ export function useActionCards() {
   const retrySave = (aiCnvrsRoomSn, key) => {
     const item = actionCards.find((target) => target.key === key);
     if (!item?.unsaved) return;
-    saveResult(aiCnvrsRoomSn, item, item.unsaved.status, item.unsaved.input);
+    saveResult(
+      aiCnvrsRoomSn,
+      item,
+      item.unsaved.status,
+      item.unsaved.input,
+      item.unsaved.errors,
+    );
   };
 
   /** 다음 메시지에 실을 가장 최근 확인 카드: 그 카드가 전체에서 가장 최근이고 처리 전일 때만 */
@@ -173,8 +246,57 @@ export function useActionCards() {
     }
     return {
       tool: latest.card.tool,
-      input: resultInput(latest.card, latest.input),
+      input: jsonInput(latest.card, latest.input),
+      /** 삭제 카드는 대상 글도 그대로 돌려보낸다(AI 계약 2026-11-25) */
+      ...(latest.card.targetText && { targetText: latest.card.targetText }),
     };
+  };
+
+  /** 사진을 기다리는 카드: 가장 최근 처리 전 카드에 빈 파일 칸이 있으면 그 번호 */
+  const photoCardKey = (latestCardKey) => {
+    const latest = actionCards.at(-1);
+    if (
+      !latest ||
+      latest.key !== latestCardKey ||
+      latest.status !== 'pending' ||
+      latest.isBusy ||
+      latest.unsaved
+    ) {
+      return null;
+    }
+    const missing = missingFields(latest.card, latest.input);
+    return fileFields(latest.card).some((field) => missing.includes(field))
+      ? latest.key
+      : null;
+  };
+
+  /** 입력창으로 보낸 사진을 그 카드의 빈 파일 칸에 붙인다: 붙인 { 칸: File } */
+  const attachPhoto = (key, file) => {
+    const item = actionCards.find((target) => target.key === key);
+    if (!item) return {};
+    const missing = missingFields(item.card, item.input);
+    const files = Object.fromEntries(
+      fileFields(item.card)
+        .filter((field) => missing.includes(field))
+        .map((field) => [field, file]),
+    );
+    changeInput(key, files);
+    return files;
+  };
+
+  /** 카드의 사진 줄 칸: 말로 고쳐 새로 받은 같은 도구 카드에 이어 준다 */
+  const photoFieldsOf = (key) =>
+    actionCards.find((target) => target.key === key)?.photoFields;
+
+  /** 카드에 붙인 파일: 말로 확인해 서버가 새로 준 같은 도구 카드에 이어 붙인다 */
+  const filesOf = (key) => {
+    const item = actionCards.find((target) => target.key === key);
+    if (!item) return {};
+    return Object.fromEntries(
+      fileFields(item.card)
+        .filter((field) => item.input[field] instanceof Blob)
+        .map((field) => [field, item.input[field]]),
+    );
   };
 
   const reset = () => setActionCards([]);
@@ -189,6 +311,10 @@ export function useActionCards() {
     drop,
     retrySave,
     pendingAction,
+    filesOf,
+    photoCardKey,
+    attachPhoto,
+    photoFieldsOf,
     reset,
   };
 }

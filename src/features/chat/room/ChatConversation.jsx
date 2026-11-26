@@ -360,6 +360,7 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
           stage={room.mtchDlngSttsCd}
           ctptMbrNcnm={room.ctptMbrNcnm}
           isDisabled={isClosed}
+          isCtptLeft={room.ctptLeft}
         />
       )}
 
