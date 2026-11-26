@@ -7,7 +7,7 @@
 - 기다리는 것: AI PR #119(develop 대상, 병합 전, 계약 ai LJS 6a0bc84 `docs/api/chat.md` ActionCard·ActionDraft·ActionResultRequest `targetText`), 백엔드 #306(삭제·수정 @AiTool). 둘이 같이 병합됨
 - 완료 조건: AI가 주는 삭제 카드 11개(`call.method` DELETE)는 입력 칸 대신 `targetText`(예 "11-25(수) 11:29 · 체중 · 4.57kg")를 보이고 [확인] 대신 빨간 [삭제]. [삭제]는 `buildActionRequest`로 본문 없이 DELETE를 보내고, 성공하면 본창 새로고침 대상에 포함. 다음 메시지 action(s)·action-result 본문에 `targetText`를 그대로 돌려보낸다. 말로 "응"만이면 실행하지 않고 "삭제해 줘"면 실행(AI가 판정). 수정 카드 6개는 지금 카드 그대로 동작하는지 확인
 
-## SCR-COM-002 서브 화면 머리 · 태블릿 폭 픽셀 그림이 설명 문구 덮음 — 대기
+## SCR-COM-002 서브 화면 머리 · 태블릿 폭 픽셀 그림이 설명 문구 덮음 — 끝
 - 기능: 명세 기능 ID 추가 없음(공용 틀 `layouts/SubPageHead.jsx` 수정)
 - 기다리는 것: 없음. 고칠 방향 사람 결정(① 그림이 있을 때 문구 칸 오른쪽에 그림 폭만큼 자리 비우기(1100 이하 약 128px·그 위 160px, 긴 문구는 두 줄) — 추천, ② 약 760~900px에서 그림 숨기기)
 - 원인(2026-11-25 5180 확인): 그림이 `absolute right-0 -bottom-1`(1100 이하 `scale-80`)이라 설명 문구 칸이 그림 자리를 비우지 않음. 11/20 태블릿 사이드 메뉴 180px로 본문이 좁아지며 드러남. 760px에서 덮이는 폭 `/community/missing` 127px(약 887px까지)·`/mypage` 44px(약 804px까지, "…한눈에 확인해요")·`/inquiries` 26px(약 786px까지)·`/mypage/characters` 4px. 나머지 서브 화면 9개와 900px 이상·1101px 이상은 겹침 없음
