@@ -418,6 +418,7 @@ export default function MissingDetail({ post }) {
                 isLiked={isLiked}
                 count={post.rcmdtnCnt}
                 disabled={toggleLike.isPending}
+                locked={(found || expired) && !isLiked}
                 onToggle={() =>
                   toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
                 }
