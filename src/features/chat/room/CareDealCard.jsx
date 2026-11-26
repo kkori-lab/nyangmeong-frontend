@@ -36,14 +36,21 @@ const BUTTON_VARIANT = {
     'border-transparent bg-danger text-white hover:enabled:bg-danger-600 disabled:bg-surface-3 disabled:text-line-strong',
 };
 
-function DealButton({ action, isSmall = false, isPending, onClick }) {
+/** isBlocked: 상대가 나간 방이면 매칭 요청 버튼을 막는다(서버도 409 CARE_MATCH_COUNTERPART_LEFT) */
+function DealButton({
+  action,
+  isSmall = false,
+  isPending,
+  isBlocked = false,
+  onClick,
+}) {
   const size = isSmall ? 'h-9 px-3.5' : 'h-10 min-w-24 px-4';
 
   return (
     <button
       type="button"
       className={`${BUTTON_BASE} ${BUTTON_VARIANT[action.variant]} ${size}`}
-      disabled={isPending}
+      disabled={isPending || (isBlocked && action.key === 'request')}
       onClick={() => onClick(action.key)}
     >
       {action.label}
@@ -333,6 +340,7 @@ export default function CareDealCard({ room }) {
               action={mainAction}
               isSmall
               isPending={isPending}
+              isBlocked={room.ctptLeft}
               onClick={handleAction}
             />
           </div>
@@ -382,6 +390,7 @@ export default function CareDealCard({ room }) {
                     key={action.key}
                     action={action}
                     isPending={isPending}
+                    isBlocked={room.ctptLeft}
                     onClick={handleAction}
                   />
                 ))}
@@ -389,6 +398,7 @@ export default function CareDealCard({ room }) {
                   <DealButton
                     action={mainAction}
                     isPending={isPending}
+                    isBlocked={room.ctptLeft}
                     onClick={handleAction}
                   />
                 )}

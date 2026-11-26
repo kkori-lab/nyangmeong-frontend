@@ -332,22 +332,14 @@ export const getDealGuide = (stage, role, isRecruiting = true) => {
   }
 };
 
+/** 나가면 이 사람 화면의 채팅 목록과 대화가 지워진다(상대 쪽과 서버 기록은 그대로) */
+export const LEAVE_DESCRIPTION =
+  '채팅방을 나가면 채팅 목록 및 대화 내용이 삭제되고 복구할 수 없어요.';
+
 /** 채팅방 나가기 확인 문구: [제목, 설명] */
-export const getLeaveText = (stage) => {
-  if (isActiveStage(stage)) {
-    return [
-      '나가면 진행 중인 매칭이 취소돼요',
-      '상대방에게 "상대방이 나갔어요"가 표시되고, 다시 대화할 수 없어요.',
-    ];
-  }
-  if (stage === COMPLETE) {
-    return [
-      '채팅방을 나갈까요?',
-      '거래 기록은 보관되지만 이 대화는 목록에서 사라져요.',
-    ];
-  }
-  return [
-    '채팅방을 나갈까요?',
-    '이 대화는 목록에서 사라지고 다시 볼 수 없어요.',
-  ];
-};
+export const getLeaveText = (stage) => [
+  '채팅방에서 나가시겠어요?',
+  isActiveStage(stage)
+    ? `진행 중인 매칭도 함께 취소돼요. ${LEAVE_DESCRIPTION}`
+    : LEAVE_DESCRIPTION,
+];
