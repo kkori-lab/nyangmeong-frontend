@@ -60,7 +60,7 @@ export function VisitorSide({ post }) {
               aria-hidden="true"
               className="shrink-0 text-subtle"
             />
-            {formatSeenAtShort(post.lastWtnsDt)} 마지막 목격
+            {formatSeenAtShort(post.lastWtnsDt)} 실종
           </li>
           <li className="flex items-start gap-2 py-1">
             <MapPin

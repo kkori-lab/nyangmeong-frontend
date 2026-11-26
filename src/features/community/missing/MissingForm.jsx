@@ -141,11 +141,11 @@ export default function MissingForm({
       next.breed = '품종을 직접 입력해 주세요';
     }
     if (!values.seenDate || !values.seenTime) {
-      next.seen = '목격 날짜와 시간을 골라 주세요';
+      next.seen = '실종 날짜와 시간을 골라 주세요';
     } else if (new Date(`${values.seenDate}T${values.seenTime}`) > new Date()) {
       next.seen = '아직 오지 않은 날짜 · 시간이에요. 다시 확인해 주세요';
     }
-    if (!values.place) next.place = '마지막 목격 장소를 골라 주세요';
+    if (!values.place) next.place = '실종 장소를 골라 주세요';
     if (!values.title.trim()) next.title = '제목을 입력해 주세요';
     if (!values.body.trim()) next.body = '상세 설명을 입력해 주세요';
     if (!values.cnpl) next.cnpl = '연락 가능한 전화번호를 입력해 주세요';
@@ -210,7 +210,7 @@ export default function MissingForm({
           <Info size={18} aria-hidden="true" className="mt-1 shrink-0" />
           <span>
             {isEdit
-              ? '등록한 정보가 채워져 있어요. 바꿀 항목만 고친 뒤 저장해 주세요. 목격 장소를 바꾸면 실종 지역도 함께 바뀌어요.'
+              ? '등록한 정보가 채워져 있어요. 바꿀 항목만 고친 뒤 저장해 주세요. 실종 장소를 바꾸면 실종 지역도 함께 바뀌어요.'
               : '정확한 정보와 특징이 잘 보이는 선명한 사진을 올리면 찾는 데 큰 도움이 돼요.'}
           </span>
         </p>
@@ -337,19 +337,19 @@ export default function MissingForm({
           <Section number={2} title="실종 정보">
             <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
               <legend className={`${LABEL} mb-2`}>
-                마지막 목격 날짜 · 시간
+                실종 날짜 · 시간
                 <Required />
               </legend>
               <div className="grid grid-cols-2 gap-8 max-[760px]:grid-cols-1">
                 <DatePicker
-                  label="목격 날짜"
+                  label="실종 날짜"
                   max={getTodayYmd()}
                   value={values.seenDate}
                   invalid={Boolean(errors.seen)}
                   onChange={(value) => set({ seenDate: value }, ['seen'])}
                 />
                 <TimeSelect
-                  aria-label="목격 시간"
+                  aria-label="실종 시간"
                   value={values.seenTime}
                   invalid={Boolean(errors.seen)}
                   onChange={(value) => set({ seenTime: value }, ['seen'])}
@@ -360,7 +360,7 @@ export default function MissingForm({
 
             <div className="flex flex-col gap-2">
               <span id="missing-place-label" className={LABEL}>
-                마지막 목격 장소
+                실종 장소
                 <Required />
               </span>
               <div className="flex flex-wrap items-center gap-3">
@@ -512,7 +512,7 @@ export default function MissingForm({
                   className="min-h-8"
                 >
                   <span>
-                    <b>(필수)</b> 반려동물 정보, 목격 장소, 연락처를 수집 ·
+                    <b>(필수)</b> 반려동물 정보, 실종 장소, 연락처를 수집 ·
                     이용하고 게시글에 공개하는 것에 동의해요
                   </span>
                 </Checkbox>
