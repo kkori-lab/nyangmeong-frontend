@@ -2,6 +2,8 @@
 
 ## 지금 하는 것
 
+끝남: SCR-CMU-002 실종센터 · 종료 실종 글 좋아요 차단 (2026-11-26, 검증 1회차 `통과`, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인). 작성자 본인의 찾았어요·만료 실종 글 상세에서 좋아요를 안 누른 상태면 버튼이 잠기고(공용 `LikeButton` `locked`), 이미 누른 좋아요는 취소할 수 있다(취소 뒤 잠김). 서버 400 `LOST_REPORT_LIKE_CLOSED` 문구는 기존 `optimisticLike.js` `onError` 토스트가 보인다. 근거는 `milestones/KSJ.md`
+
 끝남: SCR-CMU·CSC 커뮤니티·고객센터 · 빈 화면(검색 결과·내용 없음) 디자인 통일 (2026-11-25, 검증 3회차 `통과`, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인, 추가-1 포함). 공용 `EmptyResult`의 통일 모양(JAJ가 develop에 먼저 반영, 우리 `isUnified` 옵션은 병합 때 걷어냄)을 커뮤니티·고객센터 호출부 15곳이 그대로 쓴다(아이콘 #B9C4C4 → 16px → 제목 18px medium → 8px → 설명 16px → 32px → 기존 버튼, 버튼 없으면 16px 한 줄). 제목색은 가장 가까운 `text-ink`. 추가-1: 목록 결과 없음 제목을 「검색 결과가 없어요」·설명 「검색어나 필터를 바꿔 다시 찾아보세요」로 통일(공지는 검색어가 있을 때만). 백엔드 변경 없음. 근거는 `milestones/KSJ.md`
 
 끝남: SCR-CMU 커뮤니티 · 목록 무한 스크롤을 모바일에만 쓰고 760px 이상은 기존 페이지네이션 (2026-11-25, 검증 1회차 `통과`, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인). 펫이야기·펫돌봄·실종센터·펫뉴스 목록이 760px 미만에서는 무한 스크롤(`LoadMore`), 760px 이상(태블릿·데스크탑)에서는 `?page=` 쪽 번호(`BoardPagination`)로 동작한다. 공용 `components/ListPager.jsx`가 둘을 고르고 각 조회 훅이 `{ enabled }`를 받아 한 방식만 요청한다. 필터·검색·정렬을 바꾸면 1쪽부터. 근거는 `milestones/KSJ.md`
