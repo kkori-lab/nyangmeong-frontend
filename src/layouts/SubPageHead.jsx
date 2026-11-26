@@ -53,10 +53,10 @@ export default function SubPageHead({
             <div className="relative flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[28px] leading-[1.3] tracking-[-0.02em] max-[760px]:text-2xl">
               <h1 className="font-bold text-ink">{heading}</h1>
             </div>
-            {/** 설명이 없어도 한 줄 높이를 비워 콘텐츠 시작 위치를 맞춤 */}
+            {/** 설명이 없어도 한 줄 높이를 비워 콘텐츠 시작 위치를 맞춤. 픽셀 그림이 있으면 오른쪽에 그림 폭(760~1100 128px·그 위 160px)만큼 비워 문구가 덮이지 않게 함 */}
             <p
               aria-hidden={description ? undefined : 'true'}
-              className={`mt-2 text-muted max-[760px]:mt-1.5 max-[760px]:text-sm ${description ? '' : 'invisible'}`}
+              className={`mt-2 text-muted max-[760px]:mt-1.5 max-[760px]:text-sm ${description ? '' : 'invisible'} ${pixel ? 'min-[760px]:pr-32 min-[1101px]:pr-40' : ''}`}
             >
               {description || ' '}
             </p>

@@ -82,7 +82,7 @@ function Avatar({ className = 'size-9' }) {
 const REMOVE_BUTTON =
   'grid size-7 place-items-center rounded-full text-subtle hover:bg-surface-2 hover:text-ink';
 
-/** 760px 이상: 이름·배지·연동일을 세로로 쌓은 카드. 이름은 한 줄 말줄임, [✕]는 오른쪽 위 */
+/** 970px 이상: 이름·배지·연동일을 세로로 쌓은 카드. 이름은 한 줄 말줄임, [✕]는 오른쪽 위 */
 function MemberCard({ caregiver, onRemove }) {
   return (
     <li className={MEMBER_CARD}>
@@ -118,7 +118,7 @@ function MobileCaregiverList({ caregivers, onRemove }) {
       : caregivers;
 
   return (
-    <div className="hidden max-[760px]:block">
+    <div className="hidden max-[970px]:block">
       <ul className="flex flex-col gap-2">
         {visible.map((caregiver) => (
           <li key={caregiver.brupRelSn} className={MOBILE_CARD}>
@@ -165,9 +165,9 @@ function MobileCaregiverList({ caregivers, onRemove }) {
 }
 
 const GRID =
-  'grid grid-cols-2 gap-3 min-[760px]:grid-cols-3 min-[1100px]:grid-cols-5';
+  'grid grid-cols-2 gap-3 min-[970px]:grid-cols-3 min-[1100px]:grid-cols-5';
 
-/** 공동양육자 시점, 760px 이상: 이름·배지 줄 아래에 주양육자 닉네임 한 줄 (가족 섹션 대신) */
+/** 공동양육자 시점, 970px 이상: 이름·배지 줄 아래에 주양육자 닉네임 한 줄 (가족 섹션 대신) */
 export function OwnerLine({ pet }) {
   const { data: caregivers = [], isPending } = useCaregivers(pet.petSn);
   const owner = caregivers.find(
@@ -179,7 +179,7 @@ export function OwnerLine({ pet }) {
     return (
       <div
         aria-busy="true"
-        className="mt-1.5 flex min-w-0 items-baseline gap-2 max-[760px]:hidden"
+        className="mt-1.5 flex min-w-0 items-baseline gap-2 max-[970px]:hidden"
       >
         <span className="shrink-0 text-muted">주양육자</span>
         <Skeleton className="h-4 w-24" />
@@ -189,12 +189,44 @@ export function OwnerLine({ pet }) {
   if (!owner) return null;
 
   return (
-    <p className="mt-1.5 flex min-w-0 items-baseline gap-2 max-[760px]:hidden">
+    <p className="mt-1.5 flex min-w-0 items-baseline gap-2 max-[970px]:hidden">
       <span className="shrink-0 text-muted">주양육자</span>
       <strong className="min-w-0 truncate font-semibold" title={owner.mbrNcnm}>
         {owner.mbrNcnm}
       </strong>
     </p>
+  );
+}
+
+/**
+ * 가족 영역 로딩: 실제 섹션과 같은 겉틀(진한 구분선·제목·카드 1장 자리). 인원을 모르므로 카드 1장 기준
+ * 공동양육자 시점은 970px 미만에서만 보이고 제목 + 주양육자 한 줄
+ */
+export function FamilySkeleton({ isCoParent = false }) {
+  return (
+    <section
+      aria-busy="true"
+      aria-hidden="true"
+      className={`col-span-full mt-2 border-t border-line-strong pt-6 ${isCoParent ? 'hidden max-[970px]:block' : ''}`}
+    >
+      <Skeleton
+        className={`h-7 w-14 ${isCoParent ? 'mb-2' : 'mb-3 max-[970px]:h-8 max-[970px]:w-28'}`}
+      />
+      {isCoParent ? (
+        <div className="flex h-[37.6px] items-center px-0.5">
+          <Skeleton className="h-5 w-40" />
+        </div>
+      ) : (
+        <>
+          <ul className={`${GRID} max-[970px]:hidden`}>
+            <li className="flex">
+              <Skeleton className="h-[97.6px] w-full rounded-card" />
+            </li>
+          </ul>
+          <Skeleton className="hidden h-[54px] w-full rounded-card max-[970px]:block" />
+        </>
+      )}
+    </section>
   );
 }
 
@@ -204,18 +236,9 @@ export default function FamilySection({ pet, onInvite }) {
   const [deletingCaregiver, setDeletingCaregiver] = useState(null);
   const isCoParent = pet.brupRoleCd === BRUP_ROLE.CO_PARENT;
 
-  if (isPending) {
-    return (
-      <div
-        aria-busy="true"
-        className={isCoParent ? 'hidden max-[760px]:block' : undefined}
-      >
-        <Skeleton lines={3} />
-      </div>
-    );
-  }
+  if (isPending) return <FamilySkeleton isCoParent={isCoParent} />;
 
-  /** 공동양육자 시점: 760px 이상은 이름 줄 아래 한 줄(OwnerLine)이라 섹션이 없고, 모바일만 한 줄 항목. 삭제·초대 없음 */
+  /** 공동양육자 시점: 970px 이상은 이름 줄 아래 한 줄(OwnerLine)이라 섹션이 없고, 모바일만 한 줄 항목. 삭제·초대 없음 */
   if (isCoParent) {
     const owner = caregivers.find(
       (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.PRIMARY,
@@ -223,7 +246,7 @@ export default function FamilySection({ pet, onInvite }) {
     return (
       <section
         aria-labelledby="family-title"
-        className="col-span-full mt-2 hidden border-t border-line-strong pt-6 max-[760px]:block"
+        className="col-span-full mt-2 hidden border-t border-line-strong pt-6 max-[970px]:block"
       >
         <h3 id="family-title" className="mb-2 text-lg font-bold">
           가족
@@ -244,7 +267,7 @@ export default function FamilySection({ pet, onInvite }) {
     );
   }
 
-  /** 주양육자 시점: 연동된 공동양육자 전원, 상한 5명. 760px 이상은 점선 초대 카드, 모바일은 제목 옆 [+ 초대] */
+  /** 주양육자 시점: 연동된 공동양육자 전원, 상한 5명. 970px 이상은 점선 초대 카드, 모바일은 제목 옆 [+ 초대] */
   const coParents = caregivers.filter(
     (caregiver) => caregiver.brupRoleCd === BRUP_ROLE.CO_PARENT,
   );
@@ -270,11 +293,11 @@ export default function FamilySection({ pet, onInvite }) {
           className="flex items-baseline gap-2 text-lg font-bold"
         >
           가족
-          <span className="hidden text-sm font-medium text-subtle max-[760px]:inline">
+          <span className="hidden text-sm font-medium text-subtle max-[970px]:inline">
             {coParents.length}/{MAX_CAREGIVERS}
           </span>
           {isFull && (
-            <small className="text-sm font-medium text-subtle max-[760px]:hidden">
+            <small className="text-sm font-medium text-subtle max-[970px]:hidden">
               {MAX_CAREGIVERS}명이 모두 연동돼 더 초대할 수 없어요
             </small>
           )}
@@ -283,13 +306,13 @@ export default function FamilySection({ pet, onInvite }) {
           type="button"
           onClick={handleMobileInvite}
           aria-disabled={isFull}
-          className={`relative hidden h-8 items-center gap-1 rounded-full px-3 text-badge font-semibold before:absolute before:-inset-y-1.5 before:inset-x-0 before:content-[''] max-[760px]:inline-flex ${isFull ? 'bg-surface-3 text-subtle' : 'bg-brand-50 text-brand-600'}`}
+          className={`relative hidden h-8 items-center gap-1 rounded-full px-3 text-badge font-semibold before:absolute before:-inset-y-1.5 before:inset-x-0 before:content-[''] max-[970px]:inline-flex ${isFull ? 'bg-surface-3 text-subtle' : 'bg-brand-50 text-brand-600'}`}
         >
           <Plus className="size-3.5" aria-hidden="true" />
           초대
         </button>
       </div>
-      <ul className={`${GRID} max-[760px]:hidden`}>
+      <ul className={`${GRID} max-[970px]:hidden`}>
         {coParents.map((caregiver) => (
           <MemberCard
             key={caregiver.brupRelSn}
@@ -302,7 +325,7 @@ export default function FamilySection({ pet, onInvite }) {
             <button
               type="button"
               onClick={() => onInvite(pet)}
-              className={`${MEMBER_CARD} w-full cursor-pointer border-dashed text-brand-600 hover:border-brand-500 hover:bg-brand-50`}
+              className={`${MEMBER_CARD} min-h-[97.6px] w-full cursor-pointer border-dashed text-brand-600 hover:border-brand-500 hover:bg-brand-50`}
             >
               <span className="grid size-9 shrink-0 place-items-center rounded-full border border-dashed border-line-strong">
                 <Plus className="size-[18px]" aria-hidden="true" />
