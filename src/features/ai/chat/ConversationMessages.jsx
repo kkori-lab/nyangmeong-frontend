@@ -147,7 +147,7 @@ export default function ConversationMessages({
   messages,
   fallbackCount,
   actionCards = [],
-  latestCardKey,
+  latestGroupKey,
   photoPreviews = {},
   isChoiceDisabled = false,
   onRegenerate,
@@ -170,7 +170,7 @@ export default function ConversationMessages({
     <li key={`card-${item.key}`} className="empty:hidden">
       <ActionCard
         item={item}
-        isActive={item.key === latestCardKey}
+        isActive={item.group === latestGroupKey}
         hasCalendarLink={
           CALENDAR_TOOLS.includes(item.card.tool) &&
           item.resultMsgSn != null &&

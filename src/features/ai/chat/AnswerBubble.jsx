@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import AnalyzingStatus from '@/components/AnalyzingStatus';
 import MarkdownText from '@/components/MarkdownText';
 import { useOpenMain } from './aiHost';
 import { shortcutChips } from './shortcutChips';
@@ -44,11 +45,16 @@ function TypingDots() {
   );
 }
 
+/** 에이전트 진행 문구: 읽기는 "○○ 확인 중이에요", 카드 고르기는 "○○ 준비 중이에요"(끝 "…"는 AnalyzingStatus, 사람 결정 2026-11-26) */
+const stepText = ({ label, kind }) =>
+  kind === 'CARD' ? `${label} 준비 중이에요` : `${label} 확인 중이에요`;
+
 /**
  * AI 답변 말풍선
  * - isTyping: 글을 앞에서부터 펼친다(이번에 받은 답변). 지난 메시지는 false로 바로 전체
  * - 펼치는 동안에는 아래 버튼(바로가기·다시 생성)을 숨긴다
  * - memoKey: 저장 메시지 키. 이 창에서 한 번 펼친(또는 답변 말풍선으로 본) 메시지는 방을 다시 열어도 바로 전체
+ * - step: 첫 글자 전 에이전트 진행 { label, kind }, label이 비면 점 세 개
  */
 export default function AnswerBubble({
   status,
@@ -59,6 +65,7 @@ export default function AnswerBubble({
   avatarPet,
   isTyping = true,
   memoKey = null,
+  step = null,
 }) {
   const openMain = useOpenMain();
   const typed = useTypewriter(text, isTyping, memoKey);
@@ -69,7 +76,14 @@ export default function AnswerBubble({
       <AiAvatar pet={avatarPet} />
       <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
         <div className="max-w-[min(592px,100%)] rounded-[4px_18px_18px_18px] border border-line bg-white px-4 py-3 text-[15px] leading-relaxed text-ink">
-          {status === 'waiting' && <TypingDots />}
+          {status === 'waiting' &&
+            (step?.label ? (
+              <span role="status" className="inline-flex h-[25px] items-center">
+                <AnalyzingStatus>{stepText(step)}</AnalyzingStatus>
+              </span>
+            ) : (
+              <TypingDots />
+            ))}
           {status === 'error' && (
             <p role="alert">일시적으로 답변할 수 없어요</p>
           )}

@@ -2,13 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-AIM-004 대화창 · 사이트 기능 전체 표(대화창 지원 범위) — 끝(2026-11-26, 검증 통과·사람 확인, 추가-1 global 해당 없음·추가-2 초대 발송 후보). `scripts/ai-coverage.mjs`로 `docs/ai-coverage.md`를 만든다(엔드포인트 200: 읽기 39·카드 30·읽기 후보 37·카드 후보 41·뺌 51·보류 2, 해당 없음 3). 뺌 규칙은 스크립트 맨 위 `EXCLUDES`
+SCR-AIM-012 대화창 · 쓰기 결과 이어 가기(agent-continue) — 끝(2026-11-26, 검증 1회차 통과·사람 확인). 여러 카드(`done.actions`) 받기·순서 실행·`actions`로 되돌려 보내기, 진행 문구(`step`, "○○ 확인 중이에요…" 쉬머), 카드 묶음 결과를 모아 `POST /ai/conversations/{sn}/agent-continue` 한 번, 실패는 "남은 일은 이어서 하지 못했어요."
 
 ## 다음에 할 것
 
+- SCR-AIM-012 쓰기 결과 이어 가기 연결 남음(LJS ai): ai ③(`done.pending`·`agent-continue`) develop 병합과 AI 서버 `AGENT_STATE_KEY` 설정 뒤 실제 흐름 확인. "탄이 체중 4.2kg 기록하고 지난주보다 늘었는지 알려 줘" → 결과 줄 → 진행 문구 → 이어 간 답, 네트워크 `agent-continue` 본문 `{agentToken, results:[{tool, status, data}]}`. 이번 검증은 `/ai/**` 전체를 Playwright route 가짜로만 봄. 카드 8장(`actions` 최대 개수)은 ai와 합의 뒤
+- SCR-AIM-012 쓰기 결과 이어 가기 ai 세션에 알릴 것: 프론트가 `done.actions`(여러 카드)·`step`·`done.pending`·`agent-continue`를 받음(계약 초안 그대로, 결과 `data`는 Java 성공 응답 `data` 객체일 때만, 모두 취소면 안 부름, 새 메시지를 보내면 토큰 버림). 진행 문구는 READ "${label} 확인 중이에요…"·CARD "${label} 준비 중이에요…"(사람 결정 2026-11-26). agent.md 9절 5·6번 합의 항목은 이 구현대로
+- SCR-AIM-012 쓰기 결과 이어 가기 참고(검증 보고, 판정 밖): 로컬 AI 서버(8000)가 8081 로그인 토큰을 401로 거절함(검증용 백엔드와 AI 서버 토큰 설정 다름으로 보임). 검증 캡처가 같은 날 SCR-AIM-012 수정·삭제 카드 캡처(`.playwright-mcp/pr/LJS-20261126-SCR-AIM-012-after-*.png`)를 덮어씀
+
 - SCR-AIM-004 기능 전체 표 팀 알림(PR 본문): ai 세션(ai-97)에는 위치·숫자(추가-1·2 반영본)와 보류 2건(`draft_receipt_save`·`list_faqs` skip, ② 도구 거르기 때 같이 볼지 의견 요청) 전달함. 백엔드 세션(backend-19)에도 알림(2026-11-26, 뺌 대상에 @AiTool 붙이지 말 것 포함) — `@AiTool` 도메인 단위 추가 때 이 표(`frontend/docs/ai-coverage.md`, 다시 만들기 `node scripts/ai-coverage.mjs --backend ../backend --ai ../ai`)를 기준으로. 뺌 규칙을 바꾸면 사람 결정 → `EXCLUDES` 한 곳
 - SCR-AIM-004 기능 전체 표 참고(검증 보고, 판정 밖): 모으는 파일이 `api.js`와 `<이름>Api.js`(`careApi.js`·`checkupApi.js` 등) 둘 다. 백엔드 `rg -c "@AiTool\("`은 `src/main`만 셈(`src/test` 13건 제외)
-- AI 매니저 쓰기 결과 이어 가기(ai 세션 ③ 마일스톤, 2026-11-26 받음): ai가 끝나면 프론트 연결. `action-result`는 그대로, `done.pending`이 있을 때만 카드 실행·`action-result` 뒤 `POST /ai/conversations/{aiCnvrsRoomSn}/agent-continue`(SSE step·delta·done·error)를 한 번 더 부름. 새 SSE `step`({tool,label,kind})은 ②부터 옴(모르면 무시). `AgentContinueRequest.results[]`에 Java 성공 응답의 새 번호(`ckupRcdSn` 등)를 싣는 `data` 칸은 ai가 ③ 기획에서 초안을 고쳐 프론트 합의 항목으로 줌. 초안은 ai 저장소 `docs/api/chat.md` "(에이전트 초안, 2026-11-26)"
 - SCR-AIM-012 수정 카드 팀 알림(PR 본문, JAJ·SJM): AI 대화창 확인 카드가 수정 도구 10종(일정·케어 항목·지출·반려동물·건강 일지·검진·처방·기타 검사·검사 수치·관찰 기록 multipart)을 Java PATCH로 실행함. 카드에 보이지 않는 칸(경로 번호 등)만 400이면 카드를 닫고 `action-result` `FAILED` + `errors`로 저장(ai가 "…을 다시 확인해 주세요." 글). PATCH 경로·400 `data[].field` 이름을 바꾸면 알려 달라
 - SCR-AIM-012 수정 카드 사람이 고치는 문서: AI매니저 기능명세서 v0.16 FN-AIM-012-12에 "카드에 보이지 않는 칸만의 400은 FAILED + errors로 저장, 결과 줄에 칸 표시 이름으로 다시 확인 안내"(사람 결정 2026-11-26), 화면설계서 v0.15 SCR-AIM-012 ⑨ 같은 내용
 - SCR-AIM-012 수정 카드 참고(검증 보고, 판정 밖): 지출 수정 카드 반려동물 줄이 "입력해 주세요"로 보임(실행은 됨). `draft_pet_update` `bdwgRngDrctInptYn` 값이 Y/N 글자 그대로 보일 수 있음
