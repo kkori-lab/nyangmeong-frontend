@@ -1,8 +1,8 @@
 /**
  * [채팅 목록]
- * - 내 글·지원한 글 탭, 「안 읽음 N」 칩, [편집]으로 끝난 방 골라 삭제 (FN-COM-009-05~08, FN-CMU-005-02)
- * - 방을 열어도 마운트를 유지해 탭·편집·스크롤 위치 보존
- * - 삭제는 기존 나가기를 방마다 부른다: 내 목록에서만 사라지고 상대 쪽에는 남는다
+ * - 내 글·지원한 글 탭, [⋮] 메뉴(최신 메시지 순·안 읽은 메시지 순 / 채팅방 관리)로 끝난 방 골라 나가기 (FN-COM-009-05~08, FN-CMU-005-02)
+ * - 방을 열어도 마운트를 유지해 탭·정렬·선택 모드·스크롤 위치 보존
+ * - 나가기는 방마다 기존 나가기를 부른다: 내 목록에서만 사라지고 상대 쪽에는 남는다
  */
 import { useEffect, useRef, useState } from 'react';
 import Avatar from '@/components/Avatar';
@@ -15,8 +15,9 @@ import { showToast } from '@/components/toastStore';
 import { formatChatListTime } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
 import { useChatRooms, useLeaveChatRooms } from '../queries';
-import { MTCH_STTS, ROLE, ROOM_STTS, isEndedRoom } from '../shared/chatCodes';
+import { MTCH_STTS, ROLE, isEndedRoom } from '../shared/chatCodes';
 import DealBadge from './DealBadge';
+import { LEAVE_DESCRIPTION } from './dealSteps';
 
 const TABS = [
   { key: 'mine', label: '내 글' },
@@ -28,25 +29,46 @@ const EMPTY_TEXT = {
   applied: '지원한 글의 채팅이 없어요',
 };
 
-const LOCKED_NOTICE = '진행 중인 거래는 삭제할 수 없어요';
+const LOCKED_NOTICE = '진행 중인 거래는 나갈 수 없어요';
+
+/** 정렬: 기본은 최신 메시지 순. 고른 값은 화면 상태로만 두고 새로 열면 기본으로 돌아간다 */
+const SORTS = [
+  { key: 'latest', label: '최신 메시지 순' },
+  { key: 'unread', label: '안 읽은 메시지 순' },
+];
+
+const menuItemClass =
+  'flex h-11 w-full items-center gap-2.5 px-4 text-left text-ink-2 hover:bg-surface-2';
 
 /** 이 방이 속한 탭: 내가 보호자(돌봄 글 작성자)면 내 글, 돌보미(지원한 사람)면 지원한 글 */
 const tabOf = (room) => (room.myRole === ROLE.GUARDIAN ? 'mine' : 'applied');
 
-/** 지울 수 있는 방: 끝난 방(상대방 나감·무응답 종료)과 거래 완료·요청 취소. 진행 중인 방은 지울 수 없다 */
+/** 나갈 수 있는 방: 끝난 방(닫힘·무응답 종료)·상대가 나간 방과 거래 완료·요청 취소. 진행 중인 방은 나갈 수 없다 */
 const isDeletableRoom = (room) =>
   isEndedRoom(room) ||
+  room.ctptLeft ||
   room.mtchDlngSttsCd === MTCH_STTS.COMPLETE ||
   room.mtchDlngSttsCd === MTCH_STTS.CANCELED;
 
 const sumUnread = (rooms) =>
   rooms.reduce((sum, room) => sum + (room.unreadCnt ?? 0), 0);
 
-/** 처음 열 때 탭: 안 읽은 메시지가 있는 탭, 둘 다 있거나 둘 다 없으면 내 글 */
-const pickUnreadTab = (rooms) => {
-  const mine = sumUnread(rooms.filter((room) => tabOf(room) === 'mine'));
-  const applied = sumUnread(rooms.filter((room) => tabOf(room) === 'applied'));
-  return mine === 0 && applied > 0 ? 'applied' : 'mine';
+/**
+ * 처음 열 때 탭
+ * - 안 읽은 메시지가 한 탭에만 있으면 그 탭
+ * - 아니면 내 글에 방이 없고 지원한 글에만 방이 있으면 지원한 글
+ * - 그 밖(둘 다 있거나 둘 다 없음)은 내 글
+ */
+const pickFirstTab = (rooms) => {
+  const mineRooms = rooms.filter((room) => tabOf(room) === 'mine');
+  const appliedRooms = rooms.filter((room) => tabOf(room) === 'applied');
+  const mine = sumUnread(mineRooms);
+  const applied = sumUnread(appliedRooms);
+  if (mine === 0 && applied > 0) return 'applied';
+  if (mine === 0 && mineRooms.length === 0 && appliedRooms.length > 0) {
+    return 'applied';
+  }
+  return 'mine';
 };
 
 /** lastMsgDt 내림차순, 메시지 없는 방은 끝 */
@@ -54,6 +76,16 @@ const sortByLastMessage = (rooms) =>
   [...rooms].sort((a, b) =>
     (b.lastMsgDt ?? '').localeCompare(a.lastMsgDt ?? ''),
   );
+
+/** 안 읽은 메시지 순: 안 읽은 방을 위로, 그 안과 나머지는 각각 최신 메시지 순 */
+const sortRooms = (rooms, sort) => {
+  const byLatest = sortByLastMessage(rooms);
+  if (sort !== 'unread') return byLatest;
+  return [
+    ...byLatest.filter((room) => room.unreadCnt > 0),
+    ...byLatest.filter((room) => (room.unreadCnt ?? 0) <= 0),
+  ];
+};
 
 /** 글 상세에서 열었다면 그 글의 채팅을 맨 위로(묶음 안과 나머지는 각각 기존 순서) */
 const putPostFirst = (rooms, pstSn) =>
@@ -141,7 +173,7 @@ function ChatRoomRow({
             >
               {room.lastMsgCn ?? '아직 메시지가 없어요'}
             </span>
-            {room.chatRoomSttsCd === ROOM_STTS.READ_ONLY && (
+            {room.ctptLeft && (
               <DealBadge label="상대방 나감" tone="gray" />
             )}
             <DealBadge stage={room.mtchDlngSttsCd} />
@@ -167,10 +199,12 @@ export default function ChatRoomList({
   onSelect,
 }) {
   const [tab, setTab] = useState(null);
-  const [isUnreadOnly, setIsUnreadOnly] = useState(false);
+  const [sort, setSort] = useState('latest');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [checkedSns, setCheckedSns] = useState([]);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const menuRef = useRef(null);
   const scrollRef = useRef(null);
   const savedScroll = useRef(0);
   /** 탭을 맞춰 둔 방: 사용자가 탭을 바꿔도 같은 방이면 되돌리지 않는다 */
@@ -181,7 +215,7 @@ export default function ChatRoomList({
     isError,
     error,
     refetch,
-  } = useChatRooms(isUnreadOnly);
+  } = useChatRooms(false);
   const { mutate: leaveRooms, isPending: isDeleting } = useLeaveChatRooms();
 
   /** 처음 열 때 탭 정하기, 선택된 방이 바뀌면 그 방의 탭으로(렌더 중 조건부 갱신) */
@@ -199,7 +233,7 @@ export default function ChatRoomList({
       } else if (listPstSn !== null) {
         setTab('mine');
       } else {
-        setTab(pickUnreadTab(rooms));
+        setTab(pickFirstTab(rooms));
       }
     } else if (selected && syncedSn !== selectedRoomSn) {
       setSyncedSn(selectedRoomSn);
@@ -214,18 +248,37 @@ export default function ChatRoomList({
     }
   }, [isHidden]);
 
+  /** 메뉴 밖을 누르거나 Esc로 닫기 */
+  useEffect(() => {
+    if (!isMenuOpen) return undefined;
+    const handlePointerDown = (event) => {
+      if (!menuRef.current?.contains(event.target)) setIsMenuOpen(false);
+    };
+    /** preventDefault: 채팅 모달의 Esc 닫기가 함께 동작하지 않게 */
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setIsMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMenuOpen]);
+
   const activeTab = tab ?? 'mine';
   const tabRooms = rooms?.filter((room) => tabOf(room) === activeTab);
   const visibleRooms =
-    tabRooms && putPostFirst(sortByLastMessage(tabRooms), listPstSn);
+    tabRooms && putPostFirst(sortRooms(tabRooms, sort), listPstSn);
   const deletableRooms = visibleRooms?.filter(isDeletableRoom) ?? [];
-  /** 지금 보이는 지울 수 있는 방 중 체크된 것(목록이 바뀌어 사라진 방은 빠진다) */
+  /** 지금 보이는 나갈 수 있는 방 중 체크된 것(목록이 바뀌어 사라진 방은 빠진다) */
   const checkedRooms = deletableRooms.filter((room) =>
     checkedSns.includes(room.otoChatRoomSn),
   );
   const isAllChecked =
     deletableRooms.length > 0 && checkedRooms.length === deletableRooms.length;
-  const unreadCount = tabRooms ? sumUnread(tabRooms) : 0;
   const hasUnreadInOtherTab = (key) =>
     key !== activeTab &&
     (rooms?.some((room) => tabOf(room) === key && room.unreadCnt > 0) ?? false);
@@ -274,8 +327,8 @@ export default function ChatRoomList({
         }
         showToast(
           failed.length > 0
-            ? `${failed.length}개는 삭제하지 못했어요`
-            : `채팅방 ${succeeded.length}개를 삭제했어요`,
+            ? `${failed.length}개는 나가지 못했어요`
+            : `채팅방 ${succeeded.length}개에서 나갔어요`,
           { type: failed.length > 0 ? 'error' : 'success' },
         );
       },
@@ -336,35 +389,57 @@ export default function ChatRoomList({
               </button>
             ))}
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div ref={menuRef} className="relative shrink-0">
             <button
               type="button"
-              aria-pressed={isUnreadOnly}
-              className={`h-8 rounded-full border px-3 text-sm font-semibold whitespace-nowrap ${
-                isUnreadOnly
-                  ? 'border-brand-500 bg-brand-500 text-white'
-                  : 'border-input-line bg-white text-ink-2 hover:border-line-strong'
-              }`}
-              onClick={() => setIsUnreadOnly((current) => !current)}
+              aria-label="채팅 목록 메뉴"
+              aria-haspopup="menu"
+              aria-expanded={isMenuOpen}
+              className="grid size-11 place-items-center rounded-full text-ink-2 hover:bg-surface-3"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
             >
-              안 읽음
-              {unreadCount > 0 && (
-                <b
-                  className={`ml-1 font-bold ${
-                    isUnreadOnly ? 'text-white' : 'text-alert'
-                  }`}
+              <Icon name="more_vert" className="text-2xl" />
+            </button>
+            {isMenuOpen && (
+              <div
+                role="menu"
+                className="absolute top-full right-0 z-20 mt-1 w-48 overflow-hidden rounded-box border border-line bg-white py-1 shadow-depth-md"
+              >
+                {SORTS.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={sort === key}
+                    className={menuItemClass}
+                    onClick={() => {
+                      setSort(key);
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <span className="grid size-5 place-items-center text-brand-500">
+                      {sort === key && <Icon name="check" className="text-xl" />}
+                    </span>
+                    {label}
+                  </button>
+                ))}
+                <hr className="my-1 border-line" />
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsEdit(true);
+                  }}
                 >
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </b>
-              )}
-            </button>
-            <button
-              type="button"
-              className="h-8 rounded-md px-2.5 text-sm font-semibold whitespace-nowrap text-ink-2 hover:bg-surface-2"
-              onClick={() => setIsEdit(true)}
-            >
-              편집
-            </button>
+                  <span className="grid size-5 place-items-center">
+                    <Icon name="logout" className="text-xl" />
+                  </span>
+                  채팅방 관리
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -394,13 +469,8 @@ export default function ChatRoomList({
             </div>
           )}
           {visibleRooms?.length === 0 && (
-            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center text-muted">
-              <span className="grid size-14 place-items-center rounded-full bg-surface-3">
-                <Icon name="mark_chat_read" className="text-[28px]" />
-              </span>
-              <p>
-                {isUnreadOnly ? '안 읽은 채팅이 없어요' : EMPTY_TEXT[activeTab]}
-              </p>
+            <div className="flex h-full flex-col items-center justify-center px-6 py-16 text-center">
+              <p className="text-base text-muted">{EMPTY_TEXT[activeTab]}</p>
             </div>
           )}
           {visibleRooms?.length > 0 && (
@@ -428,24 +498,26 @@ export default function ChatRoomList({
               className={`${BTN_DANGER} max-[760px]:w-full`}
               onClick={() => setIsDeleteOpen(true)}
             >
-              {checkedRooms.length}개 삭제
+              {checkedRooms.length}개 나가기
             </button>
           </div>
         )}
       </div>
 
-      <p className="flex h-16.25 shrink-0 items-center gap-2 border-t border-line px-5 text-[12px] leading-4 text-subtle">
-        <Icon name="info" className="shrink-0 text-lg" />
-        거래는 채팅방 위 카드에서 단계별로 진행해요. 냥멍케어는 결제를 대신하지
-        않아요.
+      <p className="flex h-16.25 shrink-0 items-center border-t border-line px-5 text-[12px] leading-4 text-subtle">
+        <span>
+          거래는 채팅방 위 카드에서 단계별로 진행해요.
+          <br />
+          냥멍케어는 결제를 대신하지 않아요.
+        </span>
       </p>
 
       {isDeleteOpen && (
         <Modal
           isConfirm
           isPending={isDeleting}
-          title={`채팅방 ${checkedRooms.length}개를 삭제할까요?`}
-          description="선택한 대화가 내 목록에서 사라져요. 상대방에게는 그대로 남고, 삭제한 대화는 되돌릴 수 없어요."
+          title="채팅방에서 나가시겠어요?"
+          description={LEAVE_DESCRIPTION}
           onClose={() => setIsDeleteOpen(false)}
           footer={
             <>
@@ -463,7 +535,7 @@ export default function ChatRoomList({
                 disabled={isDeleting}
                 onClick={handleDelete}
               >
-                삭제하기
+                나가기
               </button>
             </>
           }
