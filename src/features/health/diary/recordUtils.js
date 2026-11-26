@@ -1,11 +1,5 @@
 import { addDays, getYmdOf } from '@/utils/formatDate';
-import {
-  STOOL,
-  STOOL_STATES,
-  WEIGHT,
-  findRecordType,
-  findStoolState,
-} from '../diaryTypes';
+import { STOOL, WEIGHT, findRecordType, findStoolState } from '../diaryTypes';
 import { round2 } from '../numberFormat';
 
 /**
@@ -15,6 +9,9 @@ import { round2 } from '../numberFormat';
 
 /** 건강기록 변화 그래프에 쓰는 최근 기록 수 */
 export const RECENT_RECORD_COUNT = 5;
+
+/** 건강기록 변화 배변 상태 띠의 날 수: 오늘 포함 최근 7일 (※신규 정책, 2026-11-26) */
+export const STOOL_TREND_DAYS = 7;
 
 const compareRecords = (a, b) => {
   const aKey = a.rcdDt;
@@ -84,16 +81,16 @@ export const getTrendPoints = (records, typeCd) => {
   };
 };
 
-/** 배변 상태별 횟수. 5종을 고정 순서로 0회도 포함 */
-export const getStoolCounts = (records) => {
-  const recent = pickType(records, STOOL).slice(-RECENT_RECORD_COUNT);
-  return {
-    recordCount: recent.length,
-    counts: STOOL_STATES.map((state) => ({
-      ...state,
-      count: recent.filter((record) => record.crsdSttsCd === state.cd).length,
-    })),
-  };
+/** 배변 상태 띠: 오늘 포함 최근 7일을 오래된 날부터, 날마다 그날 기록(기록일시 오름차순) */
+export const getStoolDays = (records, todayYmd) => {
+  const stools = pickType(records, STOOL);
+  return Array.from({ length: STOOL_TREND_DAYS }, (_, index) => {
+    const ymd = addDays(todayYmd, index - (STOOL_TREND_DAYS - 1));
+    return {
+      ymd,
+      items: stools.filter((record) => getYmdOf(record.rcdDt) === ymd),
+    };
+  });
 };
 
 /** 기록이 있는 날짜를 최근 순으로. periodDays는 오늘을 포함한 조회 일수 */

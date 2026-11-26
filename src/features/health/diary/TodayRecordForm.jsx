@@ -3,6 +3,7 @@ import DropdownSelect from '@/components/DropdownSelect';
 import Modal from '@/components/Modal';
 import TimeSelect from '@/components/TimeSelect';
 import Icon from '@/components/Icon';
+import NoticeBox from '@/components/NoticeBox';
 import { BTN_PRIMARY, CHIP, CHIP_ON } from '@/components/buttonStyles';
 import { getNowHm, getTodayYmd, makeDateTime } from '@/utils/formatDate';
 import { DAILY_ITEMS, keepWidgetOrder } from '../dashboard/widgetItems';
@@ -54,7 +55,9 @@ const getValueError = (typeCd, value, petBdwg) => {
 /**
  * [오늘 기록하기 모달] (※신규 정책, 2026-11-14 페이지 영역 → 모달 / 2026-11-25 켠 항목 한꺼번에 입력)
  * - 켠 매일 기록마다 한 줄(종류 | 시간 | 값)을 모두 보여 주고, 값을 넣은 줄만 한꺼번에 등록 (FN-HLT-002-11)
- * - 공통 Modal(✕, isWide 688px). 배치: 설명 + [항목 편집] / 칩 줄 / 줄 목록 / 푸터(왼쪽 입력 개수, 오른쪽 [n개 등록하기])
+ * - 공통 Modal(✕, isWide 688px). 배치: 안내 상자 + [항목 편집] / 칩 줄 / 줄 목록 / 푸터(왼쪽 입력 개수, 오른쪽 [n개 등록하기])
+ *   안내 상자(NoticeBox info, 아이콘 없음)는 점 목록 2줄 「입력한 줄만 한꺼번에 등록돼요」·「꺼 둔 항목은 [항목 편집]에서 켤 수 있어요」를 항상 보임.
+ *   상자는 남는 폭, [항목 편집]은 같은 줄 오른쪽에 세로 가운데 (※신규 정책, 2026-11-26)
  *   PC는 머리줄 「종류 · 시간 · 값」 + 3칸 한 줄, 760px 미만은 종류 이름 한 줄 + 아래 시간·값(폭이 모자라면 값이 다음 줄로) (※신규 정책, 2026-11-25)
  * - 시간은 열 때 모든 줄이 지금 시각, 줄마다 따로 바꿈. 값은 비어 있고 배변 상태는 「선택 안 함」(정상을 미리 고르지 않음) (※신규 정책, 2026-11-25)
  * - 값을 넣은 줄은 바탕 bg-brand-50, 숫자 값 칸 청록 테두리. 비운 줄은 보내지 않음. 0개거나 오류 있는 줄이 있으면 [등록하기]가 꺼짐 (※신규 정책, 2026-11-25)
@@ -64,10 +67,9 @@ const getValueError = (typeCd, value, petBdwg) => {
  *   400 칸별 오류(values[번호].칸)는 보낸 줄의 그 칸 아래, 칸 없는 오류는 푸터 위 한 줄. 그 줄을 고치면 서버 오류를 걷음
  * - 열릴 때 initialTypeCd 줄(없으면 첫 줄) 값 칸에 포커스
  * - petBdwg: 선택된 반려동물의 프로필 체중(kg). 음수량·식사량 1회 상한 계산용 (※신규 정책)
- * - 대시보드에서 고른 매일 기록만 줄로 보임 (※신규 정책, D11). widgetIds가 null(고른 적 없음)이면 5종 모두, [항목 편집] 없음
- * - [항목 편집]: 매일 기록 5개 칩을 펼침. 칩을 누를 때마다 켜고 끄며 바로 저장(대시보드 기록 항목과 같은 저장소).
+ * - 대시보드에서 고른 매일 기록만 줄로 보임 (※신규 정책, D11). widgetIds가 null(고른 적 없음)이면 5종 모두 켜진 것으로 봄
+ * - [항목 편집]: 항상 보임. widgetIds가 null이어도 5개 켜진 상태에서 칩을 누르면 같은 방식으로 저장 (※신규 정책, 2026-11-26). 매일 기록 5개 칩을 펼침. 칩을 누를 때마다 켜고 끄며 바로 저장(대시보드 기록 항목과 같은 저장소).
  *   끈 줄만 빠지고 그 줄 값은 버림, 다른 줄 값은 그대로. 마지막으로 켜 둔 하나는 끌 수 없음. [완료](칩 줄 끝 세로 구분선 뒤 청록 네모 버튼)로 접음 (※신규 정책, 2026-11-08)
- * - 꺼 둔 매일 기록이 있고 [항목 편집]이 접혀 있으면 줄 목록 아래 안내 (※신규 정책)
  */
 export default function TodayRecordForm({
   petSn,
@@ -88,12 +90,11 @@ export default function TodayRecordForm({
   /** 다시 그리기만 한다: 시각 검사는 그릴 때마다 현재 시각으로 하므로, 등록 순간 검사 결과를 화면에 맞춘다 */
   const [, rerender] = useReducer((count) => count + 1, 0);
 
-  const isFiltered = widgetIds != null;
-  const shownTypeCds = isFiltered
-    ? DAILY_ITEMS.filter((item) => widgetIds.includes(item.id)).map(
-        (item) => item.typeCd,
-      )
-    : RECORD_TYPES.map((item) => item.cd);
+  /** 켠 항목 id. null(고른 적 없음)이면 매일 기록 5개 모두 켜진 것으로 봄 (※신규 정책, 2026-11-26) */
+  const onIds = widgetIds ?? DAILY_ITEMS.map((item) => item.id);
+  const shownTypeCds = DAILY_ITEMS.filter((item) =>
+    onIds.includes(item.id),
+  ).map((item) => item.typeCd);
   const recordTypes = RECORD_TYPES.filter((item) =>
     shownTypeCds.includes(item.cd),
   );
@@ -108,9 +109,7 @@ export default function TodayRecordForm({
   }, []);
 
   /** 켠 매일 기록 수: 마지막 하나는 끌 수 없음 */
-  const onCount = isFiltered
-    ? DAILY_ITEMS.filter((item) => widgetIds.includes(item.id)).length
-    : 0;
+  const onCount = shownTypeCds.length;
 
   const updateRow = (typeCd, patch) => {
     setRows((prev) => ({ ...prev, [typeCd]: { ...prev[typeCd], ...patch } }));
@@ -126,11 +125,11 @@ export default function TodayRecordForm({
   const handleToggle = (item) => {
     /** 서버 저장 중에는 누름 무시: 끝나기 전 값으로 다시 저장하면 앞 저장을 덮어씀 */
     if (saveWidgets.isPending) return;
-    const isOn = widgetIds.includes(item.id);
+    const isOn = onIds.includes(item.id);
     if (isOn && onCount <= 1) return;
     const nextIds = isOn
-      ? widgetIds.filter((id) => id !== item.id)
-      : [...widgetIds, item.id];
+      ? onIds.filter((id) => id !== item.id)
+      : [...onIds, item.id];
     saveWidgets.mutate(
       { mbrSn, widgetIds: keepWidgetOrder(nextIds) },
       {
@@ -253,23 +252,26 @@ export default function TodayRecordForm({
         className="flex flex-col gap-4"
         onSubmit={handleSubmit}
       >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-subtle">입력한 줄만 한꺼번에 등록돼요</p>
-          {isFiltered && (
-            <button
-              type="button"
-              aria-expanded={isEditOpen}
-              aria-controls="hlt002-record-edit"
-              className={isEditOpen ? CHIP_ON : CHIP}
-              onClick={() => setIsEditOpen((isOpen) => !isOpen)}
-            >
-              <Icon name="tune" className="text-lg" />
-              항목 편집
-            </button>
-          )}
+        <div className="flex items-center gap-2">
+          <NoticeBox className="min-w-0 flex-1">
+            <ul className="list-disc space-y-1 pl-5">
+              <li>입력한 줄만 한꺼번에 등록돼요</li>
+              <li>꺼 둔 항목은 [항목 편집]에서 켤 수 있어요</li>
+            </ul>
+          </NoticeBox>
+          <button
+            type="button"
+            aria-expanded={isEditOpen}
+            aria-controls="hlt002-record-edit"
+            className={`${isEditOpen ? CHIP_ON : CHIP} shrink-0`}
+            onClick={() => setIsEditOpen((isOpen) => !isOpen)}
+          >
+            <Icon name="tune" className="text-lg" />
+            항목 편집
+          </button>
         </div>
 
-        {isFiltered && isEditOpen && (
+        {isEditOpen && (
           <div
             id="hlt002-record-edit"
             className="flex flex-col gap-2 border-l-2 border-brand-100 pl-3"
@@ -280,7 +282,7 @@ export default function TodayRecordForm({
               className="flex flex-wrap items-center gap-2"
             >
               {DAILY_ITEMS.map((item) => {
-                const isOn = widgetIds.includes(item.id);
+                const isOn = onIds.includes(item.id);
                 const isLastOn = isOn && onCount <= 1;
                 return (
                   <button
@@ -406,12 +408,6 @@ export default function TodayRecordForm({
               );
             })}
           </ul>
-          {/* 꺼 둔 매일 기록이 있고 [항목 편집]이 접혀 있을 때만 안내 (※신규 정책) */}
-          {isFiltered && onCount < DAILY_ITEMS.length && !isEditOpen && (
-            <p className="px-3 pt-1 text-sm text-subtle">
-              꺼 둔 항목은 [항목 편집]에서 켤 수 있어요
-            </p>
-          )}
         </div>
 
         {formError && <FieldError>{formError}</FieldError>}

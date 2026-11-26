@@ -98,6 +98,7 @@ export function useActionCards() {
         tool: item.card.tool,
         status,
         input,
+        targetText: item.card.targetText,
       });
       patchCard(item.key, {
         isBusy: false,
@@ -205,6 +206,8 @@ export function useActionCards() {
     return {
       tool: latest.card.tool,
       input: jsonInput(latest.card, latest.input),
+      /** 삭제 카드는 대상 글도 그대로 돌려보낸다(AI 계약 2026-11-25) */
+      ...(latest.card.targetText && { targetText: latest.card.targetText }),
     };
   };
 
