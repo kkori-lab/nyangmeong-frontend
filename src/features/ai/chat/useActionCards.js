@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { notifyAiWrite } from '@/utils/aiWriteChannel';
 import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
 import { useExecuteAction, useSaveActionResult } from '../queries';
@@ -39,6 +39,10 @@ const isUnfixableError = (item, input, error) => {
   return fields.every(({ field }) => !shown.includes(field));
 };
 
+/** Java 성공 응답 data 중 이어 가기에 싣는 모양(객체) */
+const isPlainObject = (value) =>
+  value != null && typeof value === 'object' && !Array.isArray(value);
+
 /** 카드 결과 상태: 처리 전 pending */
 const STATUS_BY_RESULT = {
   [ACTION_STATUS.DONE]: 'done',
@@ -54,11 +58,63 @@ const STATUS_BY_RESULT = {
  * - key는 등록 카드와 같은 번호를 써서 "가장 최근 카드"를 함께 따진다
  * - unsaved: 결과 저장에 실패한 { status, input, errors }, [다시 시도]로 저장만 다시
  * - files: 파일 칸에 붙일 { 칸: File }(분석한 사진). input에 넣어 Java 실행에만 쓰고 결과 저장·다음 메시지에는 싣지 않는다
+ * - group: 한 응답(done.actions)으로 함께 받은 카드 묶음 번호(첫 카드 key). 묶음은 함께 보이고 함께 다음 메시지에 실린다
+ * - agentToken: 그 응답의 done.pending.agentToken. 묶음 카드가 모두 끝나면 onAgentReady로 이어 가기를 넘긴다
+ *
+ * onAgentReady({ aiCnvrsRoomSn, agentToken, results, afterSn }): results는 카드 순서 [{ tool, status, errors?, data? }]
+ * - 모두 취소면 부르지 않는다. 카드를 버리거나(drop) 새 메시지를 보내면(discardAgents) 그 토큰은 버린다
  */
-export function useActionCards() {
+export function useActionCards({ onAgentReady } = {}) {
   const [actionCards, setActionCards] = useState([]);
   const executeAction = useExecuteAction();
   const saveActionResult = useSaveActionResult();
+  /** 이어 가기 대기: agentToken → { keys, results: Map(key → 결과), closed } */
+  const agentsRef = useRef(new Map());
+  const onAgentReadyRef = useRef(onAgentReady);
+  useEffect(() => {
+    onAgentReadyRef.current = onAgentReady;
+  });
+
+  /** 이어 갈 토큰 등록: 같은 응답의 카드 번호 순서 */
+  const registerAgent = (items) => {
+    const token = items[0]?.agentToken;
+    if (!token) return;
+    agentsRef.current.set(token, {
+      keys: items.map((item) => item.key),
+      results: new Map(),
+      closed: false,
+    });
+  };
+
+  /** 이어 가기 버림: 토큰을 다시 쓰지 않는다 */
+  const closeAgent = (token) => {
+    const agent = token && agentsRef.current.get(token);
+    if (agent) agent.closed = true;
+  };
+
+  /** 결과 저장이 끝난 카드를 기록하고, 묶음이 다 끝났으면 이어 가기를 넘긴다 */
+  const recordAgent = (aiCnvrsRoomSn, item, result, resultMsgSn) => {
+    const agent = item.agentToken && agentsRef.current.get(item.agentToken);
+    if (!agent || agent.closed) return;
+    agent.results.set(item.key, { ...result, resultMsgSn });
+    if (agent.results.size < agent.keys.length) return;
+    agent.closed = true;
+    const ordered = agent.keys.map((key) => agent.results.get(key));
+    if (ordered.every(({ status }) => status === ACTION_STATUS.CANCELED)) {
+      return;
+    }
+    onAgentReadyRef.current?.({
+      aiCnvrsRoomSn,
+      agentToken: item.agentToken,
+      results: ordered.map(({ tool, status, errors, data }) => ({
+        tool,
+        status,
+        ...(errors?.length > 0 && { errors }),
+        ...(data && { data }),
+      })),
+      afterSn: Math.max(...ordered.map(({ resultMsgSn: sn }) => sn ?? 0)),
+    });
+  };
 
   const patchCard = (key, patch) =>
     setActionCards((prev) =>
@@ -72,6 +128,8 @@ export function useActionCards() {
   /** 새 카드 항목 */
   const toItem = ({
     key,
+    group = key,
+    agentToken = null,
     card,
     afterSn,
     anchorSn = null,
@@ -79,6 +137,8 @@ export function useActionCards() {
     photoFields,
   }) => ({
     key,
+    group,
+    agentToken,
     card,
     input: { ...card.input, ...files },
     /** 카드에 사진 줄로 보일 파일 칸: 분석한 사진을 붙여 받은 칸은 숨기고, 이어 받은 카드는 앞 카드 그대로 */
@@ -98,14 +158,44 @@ export function useActionCards() {
     isPhotoAsked: false,
   });
 
-  /** 새 카드 */
-  const add = (params) => setActionCards((prev) => [...prev, toItem(params)]);
+  /** 새 카드(한 응답의 묶음): params 목록 */
+  const add = (paramsList) => {
+    const items = paramsList.map(toItem);
+    registerAgent(items);
+    setActionCards((prev) => [...prev, ...items]);
+  };
 
   /** 카드 버림: 보낸 카드에 대해 서버가 카드 없이 답함(취소 말 등), 다음 메시지에 싣지 않는다 */
-  const drop = (key) => patchCard(key, { status: 'dropped' });
+  const drop = (keys) => {
+    actionCards
+      .filter((item) => keys.includes(item.key))
+      .forEach((item) => closeAgent(item.agentToken));
+    setActionCards((prev) =>
+      prev.map((item) =>
+        keys.includes(item.key) ? { ...item, status: 'dropped' } : item,
+      ),
+    );
+  };
 
-  /** 결과 저장: 성공하면 요약 메시지 자리로, 실패하면 [다시 시도] */
-  const saveResult = async (aiCnvrsRoomSn, item, status, input, errors) => {
+  /** 새 메시지를 보냄: 기다리던 이어 가기는 모두 버린다(다음 메시지는 새 턴) */
+  const discardAgents = () => {
+    agentsRef.current.forEach((agent) => {
+      agent.closed = true;
+    });
+  };
+
+  /**
+   * 결과 저장: 성공하면 요약 메시지 자리로, 실패하면 [다시 시도]
+   * - data: DONE일 때 Java 성공 응답 data(이어 가기 결과에만 싣는다)
+   */
+  const saveResult = async (
+    aiCnvrsRoomSn,
+    item,
+    status,
+    input,
+    errors,
+    data,
+  ) => {
     patchCard(item.key, { isBusy: true, unsaved: null });
     try {
       const message = await saveActionResult.mutateAsync({
@@ -122,10 +212,16 @@ export function useActionCards() {
         resultText: message.cnvrsCn,
         resultMsgSn: message.aiCnvrsMsgSn,
       });
+      recordAgent(
+        aiCnvrsRoomSn,
+        item,
+        { tool: item.card.tool, status, errors, data },
+        message.aiCnvrsMsgSn,
+      );
     } catch {
       patchCard(item.key, {
         isBusy: false,
-        unsaved: { status, input, errors },
+        unsaved: { status, input, errors, data },
       });
     }
   };
@@ -140,8 +236,11 @@ export function useActionCards() {
     const input = resultInput(item.card, item.input);
     const savedInput = jsonInput(item.card, item.input);
     patchCard(key, { isBusy: true, fieldErrors: {}, formError: null });
+    let data;
     try {
-      await executeAction.mutateAsync(buildActionRequest(item.card, input));
+      data = await executeAction.mutateAsync(
+        buildActionRequest(item.card, input),
+      );
     } catch (error) {
       if (SERVER_FAILURE_CODES.includes(error?.code)) {
         await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.FAILED, savedInput);
@@ -169,24 +268,34 @@ export function useActionCards() {
       return;
     }
     notifyAiWrite({ domain: item.card.domain, petSn: input.petSn ?? null });
-    await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.DONE, savedInput);
+    await saveResult(
+      aiCnvrsRoomSn,
+      item,
+      ACTION_STATUS.DONE,
+      savedInput,
+      undefined,
+      isPlainObject(data) ? data : undefined,
+    );
   };
 
   /**
-   * 새 카드를 받자마자 실행(done.execute): 확인 말에 서버가 다시 검증한 카드
-   * - 서버는 파일 칸을 세지 않아 사진 칸만 비어도 실행이 온다(ai PR #114). 그때는 실행하지 않고 카드에서 사진을 받는다
+   * 새 카드 묶음을 받자마자 실행(done.execute): 확인 말·동사형 명령에 서버가 다시 검증한 카드
+   * - 순서대로 실행하고, 하나가 실패해도 나머지를 이어 실행한다(카드마다 결과 저장, FN-AIM-012-25)
+   * - 서버는 파일 칸을 세지 않아 사진 칸만 비어도 실행이 온다(ai PR #114). 그 카드는 실행하지 않고 카드에서 사진을 받는다
    */
-  const execute = (aiCnvrsRoomSn, params) => {
-    const item = toItem(params);
-    const missingFiles = fileFields(item.card).filter((field) =>
-      missingFields(item.card, item.input).includes(field),
-    );
-    if (missingFiles.length > 0) {
-      setActionCards((prev) => [...prev, { ...item, isPhotoAsked: true }]);
-      return Promise.resolve();
+  const execute = async (aiCnvrsRoomSn, paramsList) => {
+    const items = paramsList.map((params) => {
+      const item = toItem(params);
+      const isPhotoAsked = fileFields(item.card).some((field) =>
+        missingFields(item.card, item.input).includes(field),
+      );
+      return { ...item, isPhotoAsked };
+    });
+    registerAgent(items);
+    setActionCards((prev) => [...prev, ...items]);
+    for (const item of items) {
+      if (!item.isPhotoAsked) await run(aiCnvrsRoomSn, item);
     }
-    setActionCards((prev) => [...prev, item]);
-    return run(aiCnvrsRoomSn, item);
   };
 
   /** 카드 [확인]: 확인 말("등록해 줘")과 같은 실행 */
@@ -230,44 +339,46 @@ export function useActionCards() {
       item.unsaved.status,
       item.unsaved.input,
       item.unsaved.errors,
+      item.unsaved.data,
     );
   };
 
-  /** 다음 메시지에 실을 가장 최근 확인 카드: 그 카드가 전체에서 가장 최근이고 처리 전일 때만 */
-  const pendingAction = (latestCardKey) => {
+  /** 가장 최근 묶음의 카드: 그 묶음의 마지막 카드가 전체에서 가장 최근일 때만 */
+  const latestGroupItems = (latestCardKey) => {
     const latest = actionCards.at(-1);
-    if (
-      !latest ||
-      latest.key !== latestCardKey ||
-      latest.status !== 'pending' ||
-      latest.unsaved
-    ) {
-      return null;
-    }
+    if (!latest || latest.key !== latestCardKey) return [];
+    return actionCards.filter((item) => item.group === latest.group);
+  };
+
+  /**
+   * 다음 메시지에 실을 가장 최근 확인 카드 묶음: 처리 전 카드만 { keys, actions }
+   * - actions: [{ tool, input, targetText? }], 1장이면 action으로, 2장 이상이면 actions로 보낸다(api.sendMessage)
+   */
+  const pendingActions = (latestCardKey) => {
+    const items = latestGroupItems(latestCardKey).filter(
+      (item) => item.status === 'pending' && !item.unsaved,
+    );
     return {
-      tool: latest.card.tool,
-      input: jsonInput(latest.card, latest.input),
-      /** 삭제 카드는 대상 글도 그대로 돌려보낸다(AI 계약 2026-11-25) */
-      ...(latest.card.targetText && { targetText: latest.card.targetText }),
+      keys: items.map((item) => item.key),
+      actions: items.map((item) => ({
+        tool: item.card.tool,
+        input: jsonInput(item.card, item.input),
+        /** 삭제 카드는 대상 글도 그대로 돌려보낸다(AI 계약 2026-11-25) */
+        ...(item.card.targetText && { targetText: item.card.targetText }),
+      })),
     };
   };
 
-  /** 사진을 기다리는 카드: 가장 최근 처리 전 카드에 빈 파일 칸이 있으면 그 번호 */
+  /** 사진을 기다리는 카드: 가장 최근 묶음에서 빈 파일 칸이 있는 첫 처리 전 카드 번호 */
   const photoCardKey = (latestCardKey) => {
-    const latest = actionCards.at(-1);
-    if (
-      !latest ||
-      latest.key !== latestCardKey ||
-      latest.status !== 'pending' ||
-      latest.isBusy ||
-      latest.unsaved
-    ) {
-      return null;
-    }
-    const missing = missingFields(latest.card, latest.input);
-    return fileFields(latest.card).some((field) => missing.includes(field))
-      ? latest.key
-      : null;
+    const target = latestGroupItems(latestCardKey).find((item) => {
+      if (item.status !== 'pending' || item.isBusy || item.unsaved) {
+        return false;
+      }
+      const missing = missingFields(item.card, item.input);
+      return fileFields(item.card).some((field) => missing.includes(field));
+    });
+    return target?.key ?? null;
   };
 
   /** 입력창으로 보낸 사진을 그 카드의 빈 파일 칸에 붙인다: 붙인 { 칸: File } */
@@ -299,7 +410,10 @@ export function useActionCards() {
     );
   };
 
-  const reset = () => setActionCards([]);
+  const reset = () => {
+    agentsRef.current = new Map();
+    setActionCards([]);
+  };
 
   return {
     actionCards,
@@ -309,8 +423,9 @@ export function useActionCards() {
     cancel,
     changeInput,
     drop,
+    discardAgents,
     retrySave,
-    pendingAction,
+    pendingActions,
     filesOf,
     photoCardKey,
     attachPhoto,
