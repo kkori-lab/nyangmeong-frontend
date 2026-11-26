@@ -254,7 +254,8 @@ export default function CareDealCard({ room }) {
   const dealAction = useDealAction(room);
   const { data: careMatch } = useCareMatch(room.petPrtcMtchSn);
   const isActiveRoom = room.chatRoomSttsCd === ROOM_STTS.ACTIVE;
-  const guide = getDealCancelGuide(room) ??
+  const guide =
+    getDealCancelGuide(room) ??
     getDealGuide(stage, myRole, room.rcrtSttsCd === RCRT_STTS_RECRUITING);
   const isCancelRequesting = isDealCancelRequesting(room);
   /** 상대가 동의해 거래가 취소된 방: 방이 읽기 전용이어도 취소 안내와 구분되는 배지를 보인다 */
@@ -317,9 +318,7 @@ export default function CareDealCard({ room }) {
         }`}
       >
         <p className="order-1 flex min-w-0 flex-1 items-center gap-2">
-          {isCancelRequesting && (
-            <DealBadge label="취소 요청중" tone="amber" />
-          )}
+          {isCancelRequesting && <DealBadge label="취소 요청중" tone="amber" />}
           {isDealCanceled && <DealBadge label="거래 취소" tone="gray" />}
           {!isCancelRequesting && !isDealCanceled && (
             <DealBadge stage={stage} />
@@ -377,34 +376,38 @@ export default function CareDealCard({ room }) {
 
           <StepList stage={stage} />
 
-          <div
-            className={`mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-card bg-surface-2 py-3 pr-3 pl-3.5 ${ACT_TONE[guide.tone]}`}
-          >
-            <p className="min-w-0 flex-1 text-sm leading-normal text-muted @max-[559px]:basis-full">
-              {guide.description}
-            </p>
-            {!ask && guide.actions.length > 0 && (
-              <div className="flex shrink-0 flex-wrap gap-1.5 @max-[559px]:w-full @max-[559px]:*:flex-1">
-                {otherActions.map((action) => (
-                  <DealButton
-                    key={action.key}
-                    action={action}
-                    isPending={isPending}
-                    isBlocked={room.ctptLeft}
-                    onClick={handleAction}
-                  />
-                ))}
-                {mainAction && (
-                  <DealButton
-                    action={mainAction}
-                    isPending={isPending}
-                    isBlocked={room.ctptLeft}
-                    onClick={handleAction}
-                  />
-                )}
-              </div>
-            )}
-          </div>
+          {(guide.description || (!ask && guide.actions.length > 0)) && (
+            <div
+              className={`mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-card bg-surface-2 py-3 pr-3 pl-3.5 ${ACT_TONE[guide.tone]}`}
+            >
+              {guide.description && (
+                <p className="min-w-0 flex-1 text-sm leading-normal text-muted @max-[559px]:basis-full">
+                  {guide.description}
+                </p>
+              )}
+              {!ask && guide.actions.length > 0 && (
+                <div className="flex shrink-0 flex-wrap gap-1.5 @max-[559px]:w-full @max-[559px]:*:flex-1">
+                  {otherActions.map((action) => (
+                    <DealButton
+                      key={action.key}
+                      action={action}
+                      isPending={isPending}
+                      isBlocked={room.ctptLeft}
+                      onClick={handleAction}
+                    />
+                  ))}
+                  {mainAction && (
+                    <DealButton
+                      action={mainAction}
+                      isPending={isPending}
+                      isBlocked={room.ctptLeft}
+                      onClick={handleAction}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {ask && (
             <ConfirmPanel
