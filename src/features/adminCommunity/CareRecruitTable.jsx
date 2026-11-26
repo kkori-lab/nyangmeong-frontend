@@ -3,6 +3,10 @@ import { formatCost, getRcrtStatusLabel, RCRT_STATUS } from './careMatchLabels';
 
 const COLUMNS = ['상태', '제목', '작성자', '비용', '작성일'];
 
+/** 거른 회원이 글 작성자면 보호자, 아니면 돌보미 */
+const roleOf = (recruit, viewerMbrSn) =>
+  recruit.mbrSn === viewerMbrSn ? '보호자' : '돌보미';
+
 /** "10-28" 꼴 날짜 */
 const toMonthDay = (dateTime) =>
   formatDate(dateTime, { hasYear: false, separator: '-' });
@@ -15,8 +19,12 @@ const statusClassOf = (code) =>
  * [펫돌봄 모집글 목록]
  * - 행 클릭·Enter -> 매칭 상세 모달(onSelect)
  * - 760px 이하는 표 대신 한 줄 목록이라 가로 스크롤이 없다
+ * - viewerMbrSn(회원으로 거른 목록)이 있으면 그 회원의 역할(보호자·돌보미)을 보여 준다
  */
-export default function CareRecruitTable({ recruits, onSelect }) {
+export default function CareRecruitTable({ recruits, onSelect, viewerMbrSn }) {
+  const hasRole = viewerMbrSn != null;
+  const columns = hasRole ? ['역할', ...COLUMNS] : COLUMNS;
+
   const handleKeyDown = (event, petPrtcRcrtSn) => {
     if (event.key === 'Enter') onSelect(petPrtcRcrtSn);
   };
@@ -26,7 +34,7 @@ export default function CareRecruitTable({ recruits, onSelect }) {
       <table className="w-full text-left text-base max-[760px]:hidden">
         <thead>
           <tr className="border-b border-line text-sm text-subtle">
-            {COLUMNS.map((column) => (
+            {columns.map((column) => (
               <th key={column} scope="col" className="px-4 py-3 font-semibold">
                 {column}
               </th>
@@ -42,6 +50,11 @@ export default function CareRecruitTable({ recruits, onSelect }) {
               onClick={() => onSelect(recruit.petPrtcRcrtSn)}
               onKeyDown={(event) => handleKeyDown(event, recruit.petPrtcRcrtSn)}
             >
+              {hasRole && (
+                <td className="px-4 py-3 font-semibold whitespace-nowrap text-ink">
+                  {roleOf(recruit, viewerMbrSn)}
+                </td>
+              )}
               <td
                 className={`px-4 py-3 whitespace-nowrap ${statusClassOf(recruit.rcrtSttsCd)}`}
               >
@@ -84,6 +97,11 @@ export default function CareRecruitTable({ recruits, onSelect }) {
                 </span>
               </span>
               <span className="mt-1 block text-sm leading-[1.3] text-subtle tabular-nums">
+                {hasRole && (
+                  <span className="font-semibold text-ink">
+                    {roleOf(recruit, viewerMbrSn)} ·{' '}
+                  </span>
+                )}
                 {recruit.mbrNcnm} ·{' '}
                 {formatCost(recruit.cstAmt, recruit.cstUnitCd)} · 작성{' '}
                 {toMonthDay(recruit.regDt)}

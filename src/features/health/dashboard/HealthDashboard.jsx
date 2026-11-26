@@ -35,12 +35,14 @@ const GRID_CLASS =
 
 /**
  * [건강 대시보드] 종합 건강기록 히어로 아래 (※신규 정책, 흐름도 D1~D10)
- * - 고른 항목은 회원 단위(반려동물을 새로 등록해도 같은 선택). 저장한 적이 없으면 튜토리얼을 연다(D1·D2)
- * - 고른 항목을 불러오는 중이거나 실패하면 튜토리얼을 열지 않음. 저장 여부는 서버(savedYn)라 브라우저가 달라도 같음
+ * - 고른 항목은 회원 단위(반려동물을 새로 등록해도 같은 선택). 저장 여부는 서버(savedYn)라 브라우저가 달라도 같음
+ * - 저장한 적이 없을 때 튜토리얼 자동 열림(D1·D2)은 여기서 하지 않고 페이지의 WidgetTutorialGate 한 곳에서만 한다.
+ *   건강 일지·케어 캘린더도 같은 Gate를 써서 세 화면 어디서든 첫 진입에 열림 (※신규 정책, 2026-11-26)
  * - 카드 순서는 저장한 순서 그대로([대시보드 편집] 미리보기에서 끌어 바꿈, D8 4묶음 고정은 버림), AI 건강분석 리포트는 항상 맨 앞(D9)
  * - 검진상세 [추이 보기]로 들어와 검사 수치 카드를 그 항목으로 여는 것은 취소 (※신규 정책 취소, 2026-11-23)
  * - 제목 줄 오른쪽 [대시보드 편집]: 편집 모달을 바로 엶(⋮ 메뉴 대신, ※신규 정책)
  * - isTutorialRequested: 부모의 튜토리얼 요청(0마리에서 등록하고 돌아옴). 1단계부터 열고 닫으면 onTutorialClose (※신규 정책)
+ *   저장한 적 없는 회원이면 Gate가 열고 닫을 때 요청을 끄므로, 여기서는 이미 고른 항목이 있을 때만 연다(두 번 뜨지 않게, ※신규 정책, 2026-11-26)
  * - 이미 고른 항목이 있는 회원이 튜토리얼을 다시 열면 2단계 처음 체크가 고른 항목이고, 끝까지 가지 않고 닫으면 저장하지 않음(isReplay) (※신규 정책)
  * - isEditRequested: 부모의 편집 모달 요청(둘러보기 「대시보드 편집 바로 열기 ›」). 고른 항목이 있을 때만 열고 닫으면 onEditClose (※신규 정책)
  * - 760px 미만: AI 띠 + 요약 타일 2열, 기준일은 요약 띠에만 (※신규 정책)
@@ -57,21 +59,16 @@ export default function HealthDashboard({
   const widgets = useHealthWidgets(mbrSn);
   /** null: 닫힘 / 'tutorial' / 'edit' */
   const [modalMode, setModalMode] = useState(null);
-  /** 이 화면에서 튜토리얼을 한 번 닫았으면 저장 실패여도 다시 열지 않음 */
-  const [isTutorialDone, setIsTutorialDone] = useState(false);
 
   const savedIds = widgets.data ? keepWidgetOrder(widgets.data) : null;
-  const isTutorialNeeded =
-    widgets.isSuccess && widgets.data === null && !isTutorialDone;
+  /** 요청은 고른 항목이 있을 때만 받음: 저장한 적 없으면 WidgetTutorialGate가 연다 (※신규 정책, 2026-11-26) */
   const openMode =
     modalMode ??
-    (isEditRequested && savedIds
+    (savedIds && isEditRequested
       ? 'edit'
-      : isTutorialRequested || isTutorialNeeded
+      : savedIds && isTutorialRequested
         ? 'tutorial'
         : null);
-  /** 저장한 적이 없다고 확인된 회원만 처음 튜토리얼(닫으면 추천 3개 저장). 불러오는 중·실패도 다시 보기로 다뤄 덮어쓰지 않음 */
-  const isReplay = !(widgets.isSuccess && widgets.data === null);
 
   const shownIds = savedIds ?? [];
   const isShown = (id) => shownIds.includes(id);
@@ -102,7 +99,6 @@ export default function HealthDashboard({
 
   const closeModal = () => {
     setModalMode(null);
-    setIsTutorialDone(true);
     onTutorialClose?.();
     onEditClose?.();
   };
@@ -173,7 +169,7 @@ export default function HealthDashboard({
       {(openMode === 'tutorial' || openMode === 'edit') && (
         <WidgetTutorialModal
           mode={openMode}
-          isReplay={openMode === 'tutorial' && isReplay}
+          isReplay={openMode === 'tutorial'}
           mbrSn={mbrSn}
           petSn={pet.petSn}
           petNm={pet.petNm}
