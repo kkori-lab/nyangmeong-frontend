@@ -2,31 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 대화창 · 삭제 확인 카드(targetText·빨간 [삭제]) (시작 2026-11-25 12:25, 승인 12:27, 검증 1회차 통과 — 사람 확인 남음)
-
-- 기준: AI 계약 ai LJS 6a0bc84 `docs/api/chat.md` ActionCard(`targetText`, 삭제 11·수정 6 도구 이름, "응"만이면 실행 안 함·"삭제해 줘"면 `execute`, React는 DELETE를 본문 없이)·MessageSendRequest `action(s).targetText`·ActionResultRequest `targetText`(200자, 저장 글 `✔ <label> — <targetText>`·`취소됨 — <label> · <targetText> · 삭제하지 않았어요.`). AI PR #119(병합 전), 백엔드 #306(병합됨 2026-11-25, `@AiTool` 17개). AI매니저 기능명세서 v0.16·화면설계서 v0.15 SCR-AIM-012에는 아직 삭제 도구 없음(FN-AIM-012-19 쓰기 도구 13종)
-- 디자인: 없음(Figma 토큰 없음, `html/`에 SCR-AIM-012 파일 없음). 기존 확인 카드 모양(`ActionCard`) 그대로에 대상 줄과 빨간 버튼만 바꿈
-- M1 삭제 카드 표시: `src/features/ai/chat/ActionCard.jsx`(필요하면 `ActionCardFields.jsx`) — `card.call.method`가 `DELETE`면 칸 줄 대신 대상 줄 하나(`targetText`, 없으면 그 줄 없이 제목만), [확인] 대신 `BTN_DANGER` [삭제]. [취소]·처리 중 문구·결과 줄은 지금 카드 그대로. API 없음(카드는 AI가 줌). 완료 조건 `화면:` 삭제 카드(예 "탄이 건강 일지 체중 기록 지워줘")가 대상 글과 빨간 [삭제]·[취소]로 보이고, [삭제]하면 결과 줄 "✔ 건강 일지 삭제 — <대상 글>", [취소]하면 "취소됨 — … · 삭제하지 않았어요."
-- M2 targetText 돌려보내기: `src/features/ai/chat/useActionCards.js`(`pendingAction`·`saveResult`·[다시 시도] 저장)·`src/features/ai/api.js`(`saveActionResult`·`sendMessage` 주석) — 카드에 `targetText`가 있으면 다음 메시지 `action`과 `action-result` 본문에 그대로 싣는다. 없으면 키 없음. 부를 API `POST /ai/conversations/{aiCnvrsRoomSn}/messages`·`…/action-result`(LJS AI, #119). 완료 조건 `화면:` 삭제 카드가 있는 채로 다른 말을 보내면 요청 본문 `action.targetText`가 카드 값과 같고, [삭제]·[취소] 때 `action-result` 본문에 `targetText`가 있음(네트워크 요청으로 확인)
-- M3 DELETE 본문 없이: `src/features/ai/chat/actionForm.js` `buildActionRequest` — `call.method`가 DELETE면 `data`를 넣지 않는다(경로 번호만). 부를 API Java DELETE 11개(백엔드 #306, 기존 공개 API). 완료 조건 `화면:` [삭제] 때 Java DELETE 요청에 본문이 없고(Content-Length 0 또는 본문 없음) 200, 본창 해당 기록이 사라짐(지금 `notifyAiWrite` → `UserLayout` 전체 무효화로 새로고침되는지 확인만)
-- M4 수정 카드 6개 칸 이름: `src/features/ai/shared/actionFields.js` — 새 수정 도구 칸 중 이름표가 없는 `ckupCn`·`ckupMemoCn`(검진)·`mdcnNm`·`mdcnBgngYmd`·`mdcnEndYmd`·`dayMdcnNmtm`·`prscSttsCd`·`careRfltYn`(처방)·`inspNm`·`inspRsltCn`(기타 검사)·`refRange`(검사 수치)·`obsrvChgCd`(관찰 회차)를 건강기록 입력 모달과 같은 이름으로 넣는다. 관찰 회차 수정(`draft_observation_cycle_update`, multipart, 사진 `file` 선택)은 사진을 안 붙여도 [확인]이 되고, 붙이면 multipart로 간다. 완료 조건 `화면:` 수정 카드 6개 중 실제로 받을 수 있는 것(적어도 건강 일지·검진·관찰 회차)에 영어 칸 이름이 보이지 않고 [확인]으로 PATCH 200, 관찰 회차 수정은 사진 없이·있이 둘 다 저장됨
-- 공통 완료 조건 `명령:` `yarn -s lint`, `yarn -s build` 종료 코드 0
-- 검증 방법: 로컬 AI 서버에 #119(삭제 도구)가 없으면 Playwright route로 `/messages` SSE `done.action`을 계약 모양의 삭제·수정 카드로 바꿔 보고, Java DELETE·PATCH와 `action-result`는 실제로 부른다(이유와 함께 보고). 지울 기록은 검증용으로 먼저 만든 것만 쓴다(8081 공용 DB)
-- 질문: 디자인 파일이 없습니다. 디자인 HTML 경로를 알려 주시면 `html/SCR-AIM-012.html`로 복사해 씁니다. AI가 초안을 만들거나 화면설계서 기준으로 갈 수도 있습니다. (추천: 기존 확인 카드 모양 그대로 + 대상 줄·빨간 [삭제], 초안 없이)
-  - 결정: 추천안대로(디자인: 없음, 기존 확인 카드 모양 + 대상 줄·빨간 [삭제])
-- 질문: 계약에 같은 날(11-25) `action-result` `errors`(실행 실패 때 Java 400 `[{field, message}]`를 보내면 저장 글 끝에 칸 이름으로 다시 확인 안내)도 생겼습니다. 지금 프론트는 400이면 카드를 살려 칸 아래 빨간 오류를 보이고 결과를 저장하지 않습니다. 이번에 같이 바꿀까요? (추천: 이번엔 안 함, 삭제 카드와 따로 정함. 지금 동작이 카드에서 바로 고치기 좋음)
-  - 결정: 추천안대로(이번엔 안 함)
-- 질문: 삭제 카드 버튼 글자는 [삭제], 취소는 [취소] 그대로 둘까요? (추천: 그대로)
-  - 결정: 추천안대로([삭제]·[취소])
-- 새 의존성: 없음
+SCR-AIM-012 대화창 · 삭제 확인 카드(targetText·빨간 [삭제]) — 끝(2026-11-26, 검증 통과·사람 확인, 추가-1 대화창 창의 캐시 갱신 포함)
 
 ## 다음에 할 것
 
-- **SCR-AIM-012 삭제 확인 카드 사람 확인 남음**(검증 통과 2026-11-25, 사람 확인 뒤 `/end`로 끝 판정). 띄우기: `yarn dev`, 로컬 AI 서버(ai LJS 브랜치, 8000)·백엔드 8080(사람용)
-  - M1: 건강 일지에 체중 기록 하나 → http://localhost:5180/ai-chat "탄이 건강 일지 오늘 HH:MM 체중 N kg 기록 지워줘" → 대상 글 한 줄과 [취소]·빨간 [삭제] → [삭제]면 "✔ 건강 일지 삭제 — <대상 글>", 다른 카드 [취소]면 "취소됨 — … · 삭제하지 않았어요."
-  - M2: 삭제 카드가 있는 채로 "응" → 네트워크 `…/messages` 본문 `action.targetText`가 카드 글과 같고 답은 "지우려면 '삭제해 줘'라고 말해 주세요."(기록 그대로). [삭제]·[취소] 때 `…/action-result` 본문에 `targetText`
-  - M3: http://localhost:5180/health/diary 에서 [AI] → 삭제 카드 [삭제] → `DELETE …/daily-health-records/{번호}` 본문 없이 200, 오늘 체중 횟수가 새로고침 없이 줄어듦
-  - M4: /ai-chat 에서 체중·검진 메모·관찰 회차 메모 수정 요청 → 칸 이름 한글, [확인] PATCH 200. 관찰 회차는 사진 없이·사진 붙여 둘 다 저장(사진이 실제로 바뀌었는지는 검증이 화면으로 못 봄)
+- **AI 매니저 대응 범위(사람 결정 대기, ai 세션과 의견 맞춤 2026-11-26)**: 사이트에서 회원이 하는 기능은 대화창에서도 다 되게 하되 사례별로 만들지 않는다. ① API로 되는 일은 Java `@AiTool` 붙이기로(회원용 엔드포인트 약 232개 중 71개, 빈 곳 1:1 문의·펫돌봄 매칭·채팅·회원정보·알림·검진 첨부·글 작성·반려동물 등록·초대 보내기) ② 공통 규칙 a 사진 붙이기(image-intent 새 kind `MESSAGE`(가칭) 하나 → 사진 들고 /messages `hasFile`, 고른 카드 `type: file` 칸에 붙임) b 사진·파일 보기(파일 GET에 @AiTool + 이미지 표시, `done.files: [{path, label}]`(가칭)를 프론트가 말풍선에 그림) c 화면 이동(`done.shortcut` 인자에 같은 턴 READ 기록 번호) ③ 일부러 빼는 것(추천: 탈퇴·비밀번호·이메일 변경, 채팅 보내기·신고·펫돌봄 거래 수락)은 Java `@AiExclude`로 표시. 순서(ai 제안): 기능 전체 표 → a → b → c. 사람이 정하면 ai가 `docs/api/chat.md` 초안, 프론트는 기능 전체 표부터 `/start`
+  - 계기(ai 핸드오프에 남김): 사진 + "흰자 충혈 건 이미지를 이걸로 변경해줘"가 ASK 칩, "이미지가 어떻게 돼?"가 "사진을 볼 수 없어요", 같은 수정 요청에 카드 없이 "관찰 기록을 불러오지 못해서…"(ai가 재현해 원인 가림)
+- SCR-AIM-012 삭제 카드 팀 알림 추가(PR 본문, 모두): AI 확인 카드 실행이 성공하면 대화창이 있는 그 창의 `ai` 밖 react-query 캐시를 모두 무효화(`features/ai/queries.js` `useExecuteAction`). 본창은 전처럼 `aiWriteChannel`로 갱신
+- SCR-AIM-012 추가-1 검증 데이터(8081 공용 DB, tester): 탄이 관찰 회차 510 사진이 검증 그림(원래 검증용), AI 대화방 "탄이 관찰 기록 사진·메모 수정 안내"·"탄이 11월 24일 관찰 사진 교체 안내" 등 2026-11-26 탄이 관찰 수정 방(대화창 ⋮ 삭제)
 - SCR-AIM-012 삭제 카드 ai 저장소 몫(검증 보고, 아직 안 보냄): 수정 카드 요약 글 끝에 "✔ 검진기록 수정 — …"처럼 결과 줄 모양 글이 붙어 실행 전인데 실행된 것처럼 보임(관찰 기록 수정도 같음)
 - SCR-AIM-012 삭제 카드 이번엔 안 함: action-result `errors`(실행 실패 때 Java 400 칸 목록, 사람 결정), 처방·기타 검사·검사 수치 수정 카드 화면 확인(칸 이름표만 넣음). AI #119 develop 병합 뒤 한 번 더 보기
 - SCR-AIM-012 삭제 카드 사람이 고치는 문서: AI매니저 기능명세서 v0.16 FN-AIM-012-19 쓰기 도구 13종 → 수정 6·삭제 11 추가, 화면설계서 v0.15 SCR-AIM-012에 삭제 카드(대상 글·빨간 [삭제], "삭제해 줘" 확인 말)
@@ -35,7 +18,6 @@ SCR-AIM-012 대화창 · 삭제 확인 카드(targetText·빨간 [삭제]) (시�
 
 - SCR-COM-002 Modal 핫픽스 팀 알림(PR 본문 + 팀 채널): 모두 — 공용 `Modal` 배경 오른쪽 클릭도 닫힘(전에는 왼쪽·위·아래만, `isTop`은 스크롤 막대 자리만 예외). 공용 `hooks/useFileImage`가 404 `FILE_NOT_FOUND`를 `src: null`·`isError: false`로 캐시(다시 요청 안 함, 화면은 기본 그림). SJM — `handoff/SJM.md` 오른쪽 배경 클릭 메모는 이 수정으로 끝남. 반려동물 등록·수정 `isDismissDisabled`는 그대로(사람 결정 2026-11-25). JAJ·KSJ 등 AI 대화창 사용자: 확인 카드 결과 줄 자리(`ConversationMessages` `placeCards`), 아바타가 방 상세를 받기 전에는 앞 얼굴 유지(`AiChatScreen`)
 - SJM에 보낼 디스코드(초안은 2026-11-25 대화): 오른쪽 배경 클릭 수정 알림 + 반려동물 등록·수정 모달 `isDismissDisabled` 의도 확인(사람은 유지로 정함)
-- AI 대화창 수정·삭제 카드(ai-ce 계약 올림 2026-11-25, ai LJS 브랜치 6a0bc84 `docs/api/chat.md` ActionCard·ActionDraft·ActionResultRequest `targetText`, 백엔드 #306과 같이 병합, AI PR #119 develop 대상 병합 전): 수정 카드 6개는 지금 카드 그대로. 삭제 카드 11개(`call.method` DELETE) 프론트 몫 — 입력 칸 대신 `targetText` 표시, [확인] 대신 빨간 [삭제], 다음 메시지 action(s)·action-result 본문에 `targetText` 그대로 돌려보내기(지금 `pendingAction`은 {tool, input}만), DELETE 본문 비움 확인(`buildActionRequest`), 삭제 뒤 본창 새로고침 대상에 포함. 확인 말 "응"만이면 execute 없음·"삭제해 줘"면 실행. 도구 17개 이름은 chat.md ActionCard tool 행. `/start`(SCR-AIM-012)로 기획
 - SCR-COM-002 Modal 핫픽스 검증 데이터 정리(8081 공용 DB, tester 계정, 대화창 ⋮ 삭제): AI 대화방 "탄이 체중 기록 수정"·"탄이 체중 4.57kg 수정" 계열·"[검증] 강아지 하루 산책 몇 번이 좋아?"·"[검증] 탄이 산책 몇 번이 좋아?"·"[검증] 취두부 산책 몇 번이 좋아?"·나비 "고양이 하루 물 섭취량 기준"(873). 탄이 방들의 "[검증]" 메시지는 메시지 삭제 기능이 없어 남음
 - 참고: 아바타 `<img>`가 응답 한 번에 대기 말풍선 → 답변 말풍선 → 저장 메시지로 세 번 새로 만들어짐(눈에 띄지 않아 이번엔 안 함). 얼굴 이미지 처음 받는 동안 약 0.5초 로딩 칸은 그대로
 

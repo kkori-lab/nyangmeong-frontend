@@ -2,7 +2,7 @@
 
 기준: 공통레이아웃_기능명세서_v0.4_20261001, AI매니저_기능명세서_v0.7_20261009 (DMS, 2026-10-17), 커뮤니티_기능명세서_v0.7_20261019 (CMU-005만, KSJ 마일스톤에서 옮김, 2026-10-21), AI매니저_기능명세서_v0.9_20261026 (SCR-AIM-013만, DMS 업로드 전 로컬 사본, 2026-10-26), 관리자_기능명세서_v0.2_20261030 (DMS, 2026-10-30. 화면설계서 `관리자_화면설계서_v0.1_20261030`, 순서는 백엔드 `docs/admin/implementation-plan.md` 3절 단계)
 
-## SCR-AIM-012 대화창 · 삭제 확인 카드(targetText·빨간 [삭제]) — 진행
+## SCR-AIM-012 대화창 · 삭제 확인 카드(targetText·빨간 [삭제]) — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012 확인 카드
 - 기다리는 것: AI PR #119(develop 대상, 병합 전, 계약 ai LJS 6a0bc84 `docs/api/chat.md` ActionCard·ActionDraft·ActionResultRequest `targetText`), 백엔드 #306(삭제·수정 @AiTool). 둘이 같이 병합됨
 - 완료 조건: AI가 주는 삭제 카드 11개(`call.method` DELETE)는 입력 칸 대신 `targetText`(예 "11-25(수) 11:29 · 체중 · 4.57kg")를 보이고 [확인] 대신 빨간 [삭제]. [삭제]는 `buildActionRequest`로 본문 없이 DELETE를 보내고, 성공하면 본창 새로고침 대상에 포함. 다음 메시지 action(s)·action-result 본문에 `targetText`를 그대로 돌려보낸다. 말로 "응"만이면 실행하지 않고 "삭제해 줘"면 실행(AI가 판정). 수정 카드 6개는 지금 카드 그대로 동작하는지 확인
