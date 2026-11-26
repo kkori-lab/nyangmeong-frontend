@@ -60,7 +60,7 @@ const STREAM_CLOSED = { code: 'STREAM_CLOSED', message: '연결이 끊겼어요'
  * - 방이 없으면 대화 생성(첫 메시지 저장, 펫 태그 petSn) 뒤 같은 방에 cnvrsCn 없이 전송
  * - petSn은 방을 만들 때만 쓴다: 열린 방 메시지 본문에는 싣지 않는다(늘 방 태그 기준)
  * - cnvrsCn이 없으면 저장 없이 방의 마지막 사용자 메시지에 답한다([다시 시도]·[다시 생성])
- * - action: 가장 최근 처리 안 한 확인 카드 { tool, input }(회원이 고친 값 포함), 새 방에는 없음
+ * - action: 가장 최근 처리 안 한 확인 카드 { tool, input, targetText? }(회원이 고친 값 포함, 삭제 카드는 대상 글도), 새 방에는 없음
  * - error 이벤트는 { code, message }로 실패
  */
 export const sendMessage = async ({
@@ -116,12 +116,22 @@ export const sendMessage = async ({
 /** 확인 카드 실행: 카드의 call로 Java 공개 API(요청 모양은 actionForm.buildActionRequest) */
 export const executeAction = (request) => api.request(request);
 
-/** 확인 카드 결과를 요약 AI 메시지로 저장(요약 글은 서버가 만든다): 저장된 ConversationMessage */
-export const saveActionResult = ({ aiCnvrsRoomSn, tool, status, input }) =>
+/**
+ * 확인 카드 결과를 요약 AI 메시지로 저장(요약 글은 서버가 만든다): 저장된 ConversationMessage
+ * - targetText: 삭제 카드의 대상 글 그대로(요약 글에 들어간다), 없으면 키 없음
+ */
+export const saveActionResult = ({
+  aiCnvrsRoomSn,
+  tool,
+  status,
+  input,
+  targetText,
+}) =>
   aiApi.post(`/conversations/${aiCnvrsRoomSn}/action-result`, {
     tool,
     status,
     input,
+    ...(targetText && { targetText }),
   });
 
 /** 건강 일지에서 연 영수증 분석의 요청 출처 */
