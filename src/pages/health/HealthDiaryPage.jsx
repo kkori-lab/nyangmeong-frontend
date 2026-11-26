@@ -15,6 +15,7 @@ import {
   getChatReceiptFailure,
 } from '@/features/ai/receipt/receiptFailure';
 import NoPetDashboard from '@/features/health/dashboard/NoPetDashboard';
+import WidgetTutorialGate from '@/features/health/dashboard/WidgetTutorialGate';
 import CheckupListCard from '@/features/health/diary/CheckupListCard';
 import CheckupModal from '@/features/health/diary/CheckupModal';
 import DailyTrendCard from '@/features/health/diary/DailyTrendCard';
@@ -59,6 +60,8 @@ const getTabFromHash = (hash) =>
 /**
  * [건강 일지 SCR-HLT-002]
  * - 반려동물은 건강기록 공통 반려동물 카드(shared/PetSwitcher)의 선택을 따른다 (※신규 정책)
+ * - 반려동물이 있고 대시보드 항목을 저장한 적 없으면 첫 진입에 건강 대시보드 튜토리얼을 일지 위에 엶(WidgetTutorialGate).
+ *   닫힌 뒤 저장된 항목이 widgetIds 캐시에 들어가 오늘 기록하기 줄·카드 구성이 그 항목을 따름 (※신규 정책, 2026-11-26)
  */
 export default function HealthDiaryPage() {
   const { data: me } = useMe();
@@ -402,6 +405,13 @@ function HealthDiaryContent({ mbrSn }) {
           onClose={() => setReceiptFlow(null)}
         />
       )}
+
+      {/* 저장한 적 없으면 첫 진입에 튜토리얼 (※신규 정책, 2026-11-26) */}
+      <WidgetTutorialGate
+        mbrSn={mbrSn}
+        petSn={selectedPet.petSn}
+        petNm={selectedPet.petNm}
+      />
     </HealthLayout>
   );
 }
