@@ -2,12 +2,10 @@
 
 ## 지금 하는 것
 
-SCR-MYP-003 반려동물 등록/수정 · 털색 목록 설명과 종별 안내 문구 — 끝 (2026-11-26, 검증 `통과`(1회차), lint·build 0, 사람 확인 완료, 추가 요청 6건 모두 사람이 요청한 것, 정리: 검증 중 PET_SN 2·17 수정 일시만 바뀜, 복구 불필요)
+SCR-MYP-020 포인트 관리/케어미션 · 카드 안 빈 상태 두 곳을 박스 없이 — 끝 (2026-11-26, lint·build 0, 사람 확인 완료, 추가 요청 없음, 정리: DB 변경 없음. 0마리·빈 달·미션 0건은 Playwright에서 응답만 바꿔 재현)
 
-- 털색 목록: `DropdownSelect`가 `description`을 받아 이름+설명 2줄(없으면 1줄)로 그린다. 설명은 `petCodes.js`의 종별 `COLR_DESC`(화면 표시용, 서버로 안 감). 닫힌 칸은 이름만
-- 안내 문구: PC는 종별·[직접 입력] 문구, 모바일(≤760px)은 목록 설명이 대신해 안내를 숨김(`useMediaQuery`). 오류·"다시 골라 주세요"는 모바일에서도 보임. 안내가 있을 때만 `describedBy`에 `pet-colr-h`
-- 강아지 목록에서 얼룩(`PETC0011`)을 뺌(화면설계서 v0.9). 이름 조회용 정의는 남김. 저장된 얼룩은 수정 모달에서 "다시 골라 주세요"로 열림
-- 캐릭터 생성 쪽 털색은 백엔드가 DB 공통코드 이름 또는 직접 입력 값으로 만들어 설명 문구가 닿지 않음. 공용 DB `PETC0011` 3건(시드 2·테스트 1)은 시드 개편 때 정리
+- `PointHistory.jsx`: 빈 달 문구를 가계부와 같은 `<p>`(16px·400·muted)로, 내역이 없을 때만 `<ul>`을 flex 가운데. `CareMission.jsx`: `MissionEmpty`·`MissionNone`의 `EmptyResult` 박스를 뺌(MissionEmpty는 아이콘·문구·버튼 간격 그대로)
+- 기준: 카드 안 빈 상태는 박스 없이, 카드 밖은 `EmptyResult`. `EmptyResult` 컴포넌트·다른 화면은 안 건드림
 
 ## 다음에 할 것
 
@@ -16,6 +14,7 @@ SCR-MYP-003 반려동물 등록/수정 · 털색 목록 설명과 종별 안내 
 
 ### 내 코드 작업
 
+- 같은 기준으로 손볼 후보(범위 밖, JAJ 담당): 건강기록 `Card` 안 `EmptyResult` 9곳(`CareRecordList`·`UpcomingSchedules`·`AttachmentTab`·`PrescriptionTab`·`PreventionTab`·`CheckupListCard`·`DailyTrendCard`·`ObservationCard`·`RecentRecordTable`). `ScheduleDayDetail.jsx`에 안 쓰는 `EmptyResult` import가 남아 있다
 - SCR-MYP-002 슬라이드 화면 확인: 착용한 캐릭터와 실제 생성 이미지(이 PC 공용 DB는 `character-image`가 404라 기본 이미지로만 봤다)에서 발이 그림자에 닿는지, 측정 실패 때 80% 표시. 970px 미만 스켈레톤 높이(683)와 실제 카드(637)는 46px 차이가 이전부터 있다(필요하면 따로)
 - JAJ·LJS 알림: 공용 `components/AnalyzeProgress.jsx`를 새로 만들었다(영수증 분석 게이지, `label` prop). JAJ의 `features/ai/receipt/ReceiptUploadModal.jsx`는 함수·상수를 지우고 import만 바꿨고 화면 동작은 같다. 새 분석 화면에 게이지가 필요하면 이 컴포넌트를 쓴다
 - SCR-MYP-002·005 화면 확인: 삭제 때 공동양육자에게 알림이 실제로 갔는지(백엔드 알림 테스트), 초대 → 수락 → 삭제 → 자동 해제 흐름

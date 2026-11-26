@@ -1,6 +1,5 @@
 import { ChevronDown, Receipt } from 'lucide-react';
 import { useState } from 'react';
-import EmptyResult from '@/components/EmptyResult';
 import LoadError from '@/components/LoadError';
 import MonthNav from '@/components/MonthNav';
 import MonthPicker from '@/components/MonthPicker';
@@ -102,11 +101,14 @@ export default function PointHistory() {
       <ul
         tabIndex={0}
         aria-label={`${formatYm(ym)} 포인트 내역`}
-        className="min-h-80 flex-1 basis-0 overflow-y-auto px-6 pt-1 max-[760px]:h-auto max-[760px]:min-h-0 max-[760px]:flex-none max-[760px]:overflow-visible"
+        className={`min-h-80 flex-1 basis-0 overflow-y-auto px-6 pt-1 max-[760px]:h-auto max-[760px]:min-h-0 max-[760px]:flex-none max-[760px]:overflow-visible ${data.length === 0 ? 'flex items-center justify-center' : ''}`}
       >
+        {/* 카드 안 빈 상태는 박스 없이 문구만(가계부 빈 상태와 같은 스타일) */}
         {data.length === 0 && (
-          <li className="py-5">
-            <EmptyResult title="이 달의 내역이 없어요" isCompact />
+          <li className="list-none max-[760px]:py-10">
+            <p className="text-center text-base font-normal text-muted">
+              이 달의 내역이 없어요
+            </p>
           </li>
         )}
         {data.map((item, index) => {
