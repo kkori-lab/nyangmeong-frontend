@@ -1,6 +1,7 @@
 import defaultCatCharacter from '@/assets/pets/default-character-cat-full.png';
 import defaultDogCharacter from '@/assets/pets/default-character-dog-full.png';
 import FileImage from '@/components/FileImage';
+import Skeleton from '@/components/Skeleton';
 import { characterImageOptions } from '@/hooks/useCharacterImage';
 import { useFileImage } from '@/hooks/useFileImage';
 import { useFootBox } from '@/hooks/useFootBox';
@@ -9,6 +10,7 @@ import { PET_SE } from '@/utils/petCodes';
 import { useCharState } from '../queries';
 import { CHRC_STTS } from '../shared/petCodes';
 import { STAGE_TONES } from '../shared/stageTones';
+import { STAGE_BOX } from './slideLayout';
 
 /** 캐릭터 이미지 박스 폭 / 무대 폭(원본 PNG 여백 때문에 박스보다 실제 캐릭터가 작아 크게 잡는다) */
 const CHARACTER_WIDTH = 0.8;
@@ -67,13 +69,17 @@ export default function PetStage({
   const shadowCenterY = foot.bottom - SHADOW_LIFT / boxWidth;
   const bundleBottom = shadowCenterY + shadowHeight / 2;
   const bundleCenterY = (foot.top + bundleBottom) / 2;
+  /** 이미지를 받는 중이거나 발 위치를 재는 중: 안쪽 상자·배경색·그림자 없이 사각형 전체가 스켈레톤 하나 */
+  const isLoading = isPending || foot.isPending;
   const imageClass = `size-full object-contain [image-rendering:pixelated]${
     isError ? ' opacity-55 grayscale' : ''
   }`;
 
+  if (isLoading) return <Skeleton className={`${STAGE_BOX} rounded-card`} />;
+
   return (
     <div
-      className={`relative overflow-hidden rounded-card ${isNotDone ? 'bg-surface-2' : STAGE_TONES[toneIndex % STAGE_TONES.length]} max-[970px]:size-[84px] max-[970px]:self-center`}
+      className={`relative overflow-hidden rounded-card ${isNotDone ? 'bg-surface-2' : STAGE_TONES[toneIndex % STAGE_TONES.length]} ${STAGE_BOX}`}
     >
       <div
         className="absolute top-1/2 left-1/2 aspect-square"
