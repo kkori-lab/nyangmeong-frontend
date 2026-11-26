@@ -12,7 +12,6 @@ import {
   FILTER_CHIP,
   FILTER_CHIP_ON,
 } from '@/components/buttonStyles';
-import EmptyResult from '@/components/EmptyResult';
 import LoadError from '@/components/LoadError';
 import ProgressBar from '@/components/ProgressBar';
 import SkeletonCard from '@/components/SkeletonCard';
@@ -35,24 +34,32 @@ const shiftYmd = (ymd, delta) => {
 /** 주양육 동물이 없을 때 케어미션 영역을 대신하는 등록 유도 */
 function MissionEmpty({ onRegister }) {
   return (
-    <div className="p-6">
-      <EmptyResult
-        icon={<PawPrint className="size-7" aria-hidden="true" />}
-        title="반려동물을 등록하면 케어미션을 받을 수 있어요"
-        description="케어미션은 주양육자로 등록한 반려동물에게만 주어져요"
-        isCompact
-      >
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
+      <div className="mb-4 flex text-line-strong">
+        <PawPrint className="size-7" aria-hidden="true" />
+      </div>
+      <p className="text-lg font-medium text-heading">
+        반려동물을 등록하면 케어미션을 받을 수 있어요
+      </p>
+      <p className="mt-2 text-base text-muted">
+        케어미션은 주양육자로 등록한 반려동물에게만 주어져요
+      </p>
+      <div className="mt-8">
         <button type="button" onClick={onRegister} className={BTN_PRIMARY}>
           반려동물 등록하기
         </button>
-      </EmptyResult>
+      </div>
     </div>
   );
 }
 
-/** 그 동물의 미션이 그날 0건일 때 */
+/** 그 동물의 미션이 그날 0건일 때. 카드 안이라 박스 없이 문구만 */
 function MissionNone() {
-  return <EmptyResult title="이 날은 출제된 미션이 없어요" isCompact />;
+  return (
+    <p className="py-10 text-center text-base font-normal text-muted">
+      이 날은 출제된 미션이 없어요
+    </p>
+  );
 }
 
 /** 그 동물의 미션을 못 받았을 때 */
@@ -188,7 +195,7 @@ export default function CareMission({
     <section
       id="care-mission"
       aria-labelledby="care-mission-title"
-      className={`${CARD} scroll-mt-20`}
+      className={`${CARD} scroll-mt-20 ${hasOwnPets ? '' : 'flex flex-col'}`}
     >
       <div className={CARD_HEAD}>
         <h2 id="care-mission-title" className={CARD_TITLE}>
