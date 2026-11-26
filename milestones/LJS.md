@@ -1835,11 +1835,14 @@
 - 완료 조건 결과: 검증 1회차 `통과`(2026-11-26, D1~D3, 8081 실제 API, 쪽 이동만 route로 쪽 수 늘림), 사람 확인 2026-11-26
 - 연결 남음: 없음
 
-## SCR-AIM-012 AI 일정 생성 확인 · 대화창 수정·삭제 카드 실행 — 대기
-- 기능: 명세 기능 ID 추가 없음. 걸치는 기능 FN-AIM-012-05·06·07·13
-- 기다리는 것: 백엔드 SCR-AIM-012 대화창 수정·삭제 도구(LJS, 끝 2026-11-25). ai 세션의 수정·삭제 카드(ai-ce, 구현 중)
-- 완료 조건: 대화창 확인 카드가 `GET /internal/ai/tools`의 수정 도구(PATCH, `draft_observation_cycle_update`는 multipart)와 삭제 도구(DELETE, 본문 없이 경로 칸만, 예: `delete_expense` → `DELETE /api/expenses/{expndSn}`)를 실행하고, 400이면 `data[].field` 칸 이름을 실패 글에 쓴다
-
+## SCR-AIM-012 AI 일정 생성 확인 · 대화창 수정·삭제 카드 실행 — 끝
+- 기능: 명세 기능 ID 추가 없음. 걸치는 기능 FN-AIM-012-05·06·07·09·10·12·13·19
+- 기다리는 것: 없음(백엔드 수정·삭제 도구, ai 수정·삭제 카드·action-result `errors` develop에 있음)
+- 완료 조건: 핸드오프 기획 U1 수정 카드 10종 실행 · U2 카드에서 고칠 수 없는 칸의 400을 `FAILED` + `errors` 실패 글로
+- 결정(사람 2026-11-26): Q1 보이는 칸·빈 `data` 400은 카드 유지, 보이지 않는 칸만의 400은 실패 글(추천안대로), Q2 기존 카드 모양
+- 결과(2026-11-26): `features/ai/chat/useActionCards.js`(`isUnfixableError`, 결과 저장·[다시 시도]에 errors), `features/ai/api.js`(`saveActionResult` errors), `features/ai/shared/actionFields.js`(`bdwgRngDrctInptYn` 이름표). 삭제 카드 실행은 앞 "삭제 확인 카드" 절에서 끝남
+- 완료 조건 결과: 검증 1회차 `통과`(U1 5180·8081 실제 PATCH 4종, U2 Playwright route), 사람 확인 2026-11-26
+- 연결 남음: 없음
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)

@@ -119,6 +119,7 @@ export const executeAction = (request) => api.request(request);
 /**
  * 확인 카드 결과를 요약 AI 메시지로 저장(요약 글은 서버가 만든다): 저장된 ConversationMessage
  * - targetText: 삭제 카드의 대상 글 그대로(요약 글에 들어간다), 없으면 키 없음
+ * - errors: FAILED일 때 Java 400 data([{ field, message }]) 그대로, 서버가 칸 표시 이름으로 다시 확인 안내를 붙인다. 없으면 키 없음
  */
 export const saveActionResult = ({
   aiCnvrsRoomSn,
@@ -126,12 +127,14 @@ export const saveActionResult = ({
   status,
   input,
   targetText,
+  errors,
 }) =>
   aiApi.post(`/conversations/${aiCnvrsRoomSn}/action-result`, {
     tool,
     status,
     input,
     ...(targetText && { targetText }),
+    ...(errors?.length > 0 && { errors }),
   });
 
 /** 건강 일지에서 연 영수증 분석의 요청 출처 */
