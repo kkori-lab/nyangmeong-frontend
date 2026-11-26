@@ -181,7 +181,6 @@ export const getDealGuide = (stage, role, isRecruiting = true) => {
     return {
       icon: 'event_busy',
       title: '모집이 마감돼 매칭을 요청할 수 없어요',
-      description: '대화는 이어서 할 수 있어요',
       actions: [],
       tone: 'end',
     };
@@ -309,7 +308,6 @@ export const getDealGuide = (stage, role, isRecruiting = true) => {
         : {
             icon: 'block',
             title: '보호자가 매칭 요청을 취소했어요',
-            description: '대화는 이어서 할 수 있어요',
             actions: [],
             tone: 'end',
           };
