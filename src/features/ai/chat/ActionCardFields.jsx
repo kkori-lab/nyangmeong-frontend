@@ -40,6 +40,7 @@ import {
   HOUR_INPUT_FIELD,
   INSPECTION_TOOL,
   INVITE_TOOL,
+  MEMBER_PROFILE_TOOL,
   PET_CREATE_TOOL,
   PURCHASE_TOOL,
   cardRows,
@@ -50,6 +51,7 @@ import {
   hasPlaceRow,
   isNumberList,
   isHourInputDerived,
+  isProfileReset,
   hasPetChoice,
   missingFields,
   nextDueYmd,
@@ -60,6 +62,14 @@ const VALUE_CLASS = 'min-w-0 break-words text-base leading-6 text-ink';
 const MISSING = '입력해 주세요';
 /** 사진 칸만 빈 채로 확인 말("등록해 줘")이 왔을 때 */
 const PHOTO_FIRST = '사진을 올려야 등록돼요';
+/** 프로필 사진 카드는 등록이 아니라 수정이라 사진 안내를 따로 둔다 */
+const PROFILE_PHOTO_MISSING = '사진을 올려 주세요';
+
+/** 빈 사진 칸 안내: 프로필 사진 카드는 늘 "사진을 올려 주세요" */
+const photoMissingText = (card, isPhotoAsked) => {
+  if (card.tool === MEMBER_PROFILE_TOOL) return PROFILE_PHOTO_MISSING;
+  return isPhotoAsked ? PHOTO_FIRST : MISSING;
+};
 
 /** 직접 입력 검사항목 코드(HLTG12) */
 const DIRECT_INPUT_ARTICLE = 'HLTC0035';
@@ -918,13 +928,13 @@ export default function ActionCardFields({
         return row;
       })}
       {!hasKindRow && breedRow}
-      {photoFields.map((field) => (
+      {(isProfileReset(card, input) ? [] : photoFields).map((field) => (
         <Row key={field} label={actionFieldName(field)} isStacked>
           <PhotoField
             label={actionFieldName(field)}
             value={input[field]}
             isMissing={missing.includes(field)}
-            missingText={isPhotoAsked ? PHOTO_FIRST : MISSING}
+            missingText={photoMissingText(card, isPhotoAsked)}
             isDisabled={isDisabled || !isActive}
             onPick={(file) => onChangeInput({ [field]: file })}
           />

@@ -21,6 +21,7 @@ const DIRECT_INPUT_ARTICLE = 'HLTC0035';
  * - AI 서버가 실행 카드에 이름을 같이 붙여 올 때가 있어 보내기 전에 맞춘다(근본 수정은 ai 저장소)
  */
 const cleanInput = (card, input) => {
+  if (card.tool === MEMBER_PROFILE_TOOL) return cleanProfileInput(input);
   if (card.tool !== INSPECTION_TOOL || !Array.isArray(input.values)) {
     return input;
   }
@@ -34,6 +35,26 @@ const cleanInput = (card, input) => {
       return rest;
     }),
   };
+};
+
+/**
+ * 회원 프로필 사진 수정 도구(2026-11-27): 새 사진(profilePhoto) 또는 기본 이미지로 되돌리기(profilePhotoReset) 하나만
+ * - Java는 둘을 같이 받으면 400, 둘 다 없으면 바꾸지 않고 성공이다
+ */
+export const MEMBER_PROFILE_TOOL = 'draft_member_profile_update';
+const PROFILE_PHOTO_FIELD = 'profilePhoto';
+const PROFILE_RESET_FIELD = 'profilePhotoReset';
+
+/** 기본 이미지로 되돌리는 카드인지: AI 서버가 true(또는 글자 'true')를 싣는다 */
+export const isProfileReset = (card, input) =>
+  card.tool === MEMBER_PROFILE_TOOL &&
+  [true, 'true'].includes(input[PROFILE_RESET_FIELD]);
+
+/** 사진을 고르면 되돌리기는 보내지 않는다(같이 보내면 400) */
+const cleanProfileInput = (input) => {
+  if (!(input[PROFILE_PHOTO_FIELD] instanceof Blob)) return input;
+  const { [PROFILE_RESET_FIELD]: _omitted, ...rest } = input;
+  return rest;
 };
 
 /** 카드가 쓰는 칸 */
@@ -56,6 +77,10 @@ export const requiredFields = (card, input) => {
   card.rules.forEach(({ field, when, equals }) => {
     if (input[when] === equals) fields.push(field);
   });
+  /** 프로필 사진 카드: 되돌리기가 아니면 사진을 골라야 실행(아무것도 안 바뀌는 실행을 막는다) */
+  if (card.tool === MEMBER_PROFILE_TOOL && !isProfileReset(card, input)) {
+    fields.push(PROFILE_PHOTO_FIELD);
+  }
   return [...new Set(fields)];
 };
 
@@ -254,7 +279,13 @@ export const cardRows = (card, input) => {
         param.type !== 'file' &&
         !isFieldOff(card, input, field) &&
         !(isHourDerived && field === HOUR_INPUT_FIELD) &&
-        !(hasBreedRow(card) && field === 'vrtyDrctInptNm'),
+        !(hasBreedRow(card) && field === 'vrtyDrctInptNm') &&
+        /** 프로필 사진 카드: 되돌리기 줄은 되돌릴 때만("예"), 아니요는 사진 줄로 보인다 */
+        !(
+          field === PROFILE_RESET_FIELD &&
+          card.tool === MEMBER_PROFILE_TOOL &&
+          !isProfileReset(card, input)
+        ),
     )
     .map(([field, param]) => ({
       field,

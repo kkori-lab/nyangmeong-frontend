@@ -60,6 +60,10 @@ export const ACTION_FIELD_NAMES = {
   jntBrupInvtnSn: '초대',
   hldItemSns: '착용 아이템',
   itemSns: '아이템',
+  /** 회원 닉네임·프로필 사진 수정(2026-11-27) */
+  mbrNcnm: '닉네임',
+  profilePhoto: '프로필 사진',
+  profilePhotoReset: '기본 이미지로 되돌리기',
   /** 플레이스 즐겨찾기 저장(2026-11-27) */
   plcSn: '장소',
   /** 검진기록·처방·기타 검사·반복 예방 등록(2026-11-27) */
