@@ -8,6 +8,13 @@ import {
   findChatNearSchedule,
   getChatCheckups,
   getChatObservationItems,
+  getChatBreeds,
+  getChatPets,
+  getChatPixelCharacter,
+  getChatReceivedInvitation,
+  getChatSentInvitations,
+  getChatShopItems,
+  saveChatEquippedImage,
   analyzeChatReceipt,
   deleteConversation,
   executeAction,
@@ -30,6 +37,82 @@ export const aiKeys = {
   checkups: ['ai', 'checkups'],
   checkupList: (petSn) => ['ai', 'checkups', petSn],
   observationItemList: (petSn) => ['ai', 'observation-items', petSn],
+  /** 반려동물 쓰기 확인 카드의 이름 조회: 카드 실행이 성공하면 모두 다시 읽는다 */
+  pet: ['ai', 'pet'],
+  pets: ['ai', 'pet', 'pets'],
+  receivedInvitation: (jntBrupInvtnSn) => [
+    'ai',
+    'pet',
+    'received-invitation',
+    jntBrupInvtnSn,
+  ],
+  sentInvitations: ['ai', 'pet', 'sent-invitations'],
+  shopItems: (pixelCharSn) => ['ai', 'pet', 'shop-items', pixelCharSn],
+  pixelCharacter: (pixelCharSn) => [
+    'ai',
+    'pet',
+    'pixel-character',
+    pixelCharSn,
+  ],
+  breeds: (petSeCd) => ['ai', 'pet', 'breeds', petSeCd],
+};
+
+/** 초대 발송 카드의 반려동물 이름 */
+export const useChatPets = () =>
+  useQuery({ queryKey: aiKeys.pets, queryFn: getChatPets });
+
+/** 수락·거절 카드의 받은 초대 */
+export const useChatReceivedInvitation = (jntBrupInvtnSn) =>
+  useQuery({
+    queryKey: aiKeys.receivedInvitation(jntBrupInvtnSn),
+    queryFn: () => getChatReceivedInvitation(jntBrupInvtnSn),
+    enabled: jntBrupInvtnSn != null,
+  });
+
+/** 취소 카드의 보낸 초대 목록 */
+export const useChatSentInvitations = () =>
+  useQuery({
+    queryKey: aiKeys.sentInvitations,
+    queryFn: getChatSentInvitations,
+  });
+
+/** 구매 카드의 상점 아이템과 보유 포인트 */
+export const useChatShopItems = (pixelCharSn) =>
+  useQuery({
+    queryKey: aiKeys.shopItems(pixelCharSn),
+    queryFn: () => getChatShopItems(pixelCharSn),
+    enabled: pixelCharSn != null,
+  });
+
+/** 착용 카드의 보유 아이템 */
+export const useChatPixelCharacter = (pixelCharSn) =>
+  useQuery({
+    queryKey: aiKeys.pixelCharacter(pixelCharSn),
+    queryFn: () => getChatPixelCharacter(pixelCharSn),
+    enabled: pixelCharSn != null,
+  });
+
+/** 반려동물 등록 카드의 품종 이름 */
+export const useChatBreeds = (petSeCd) =>
+  useQuery({
+    queryKey: aiKeys.breeds(petSeCd),
+    queryFn: () => getChatBreeds(petSeCd),
+    enabled: !!petSeCd,
+  });
+
+/**
+ * 착용 저장 뒤 대표 이미지 저장: 성공·실패와 관계없이 끝나면 캐릭터 그림(전신·얼굴)을 다시 읽는다
+ * - 캐릭터 그림 키는 반려동물 화면(features/pet useSaveEquippedItems)과 같은 ['pets', petSn, 'character-image']
+ */
+export const useSaveChatEquippedImage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: saveChatEquippedImage,
+    onSettled: (_, __, { petSn }) =>
+      queryClient.invalidateQueries({
+        queryKey: ['pets', petSn, 'character-image'],
+      }),
+  });
 };
 
 /** 관찰 기록 추가 확인 카드의 관찰 항목 목록 */
@@ -116,6 +199,15 @@ export const useExecuteAction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         predicate: ({ queryKey }) => queryKey[0] !== 'ai',
+      });
+      /**
+       * 이름 조회는 다시 읽되, 초대는 빼고 앞 값을 둔다: 처리한 초대의 GET은 보낸 사람·반려동물이 비어
+       * 실행 뒤 카드가 "초대 N"으로 바뀐다(검증 2026-11-27)
+       */
+      queryClient.invalidateQueries({
+        queryKey: aiKeys.pet,
+        predicate: ({ queryKey }) =>
+          !['received-invitation', 'sent-invitations'].includes(queryKey[2]),
       });
     },
   });
