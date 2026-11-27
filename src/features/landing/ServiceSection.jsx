@@ -122,7 +122,7 @@ export default function ServiceSection() {
                   alt=""
                   className="size-full object-cover object-top"
                 />
-                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 via-black/60 to-transparent px-5 pt-20 pb-6 text-white">
+                <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.8)_0%,rgba(0,0,0,0.78)_10%,rgba(0,0,0,0.72)_20%,rgba(0,0,0,0.63)_30%,rgba(0,0,0,0.52)_40%,rgba(0,0,0,0.4)_50%,rgba(0,0,0,0.28)_60%,rgba(0,0,0,0.17)_70%,rgba(0,0,0,0.08)_80%,rgba(0,0,0,0.02)_90%,transparent_100%)] px-5 pt-40 pb-6 text-white">
                   <p className="text-[20px] font-bold lg:text-[22px]">
                     {card.title}
                   </p>
