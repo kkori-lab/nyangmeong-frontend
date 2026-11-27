@@ -170,7 +170,16 @@ export default function AiChatScreen({
       pets.find((pet) => pet.rprsPetYn)?.petSn ??
       null)
     : undefined;
-  const selectedPetSn = pickedPetSn !== undefined ? pickedPetSn : defaultPetSn;
+  /**
+   * 고른 칩이 목록에서 사라지면(대화창 카드로 삭제·공동양육 연동 해제) 고르기 전처럼 기본 칩으로 돌아간다
+   * - 목록을 받기 전·[전체](null)는 고른 그대로
+   */
+  const isPickedGone =
+    pickedPetSn != null &&
+    pets !== undefined &&
+    !pets.some((pet) => pet.petSn === pickedPetSn);
+  const selectedPetSn =
+    pickedPetSn !== undefined && !isPickedGone ? pickedPetSn : defaultPetSn;
   /** 선택된 대화 번호 */
   const [selectedRoomSn, setSelectedRoomSn] = useState(null);
   /** 첫 메시지 */
