@@ -182,6 +182,42 @@ export const hasObservationItemRow = (card) => 'obsrvArtclSn' in card.params;
 export const hasCheckupRow = (card) =>
   'ckupRcdSn' in card.params && card.params.ckupRcdSn.in !== 'path';
 
+/** 반려동물 쓰기 카드(2026-11-27): 번호 목록 칸·대상 번호를 이름으로 보이는 도구 */
+export const PET_CREATE_TOOL = 'draft_pet';
+export const INVITE_TOOL = 'draft_caregiver_invitation';
+export const ACCEPT_INVITATION_TOOL = 'accept_caregiver_invitation';
+export const CANCEL_INVITATION_TOOL = 'cancel_caregiver_invitation';
+export const EQUIP_TOOL = 'draft_equipped_items';
+export const PURCHASE_TOOL = 'draft_item_purchase';
+
+/**
+ * 번호 목록 칸(petSns·itemSns·hldItemSns): array 칸이 itemType(long·int)이거나 줄 칸(items)이 없다
+ * - AI 서버가 itemType을 싣기 전에도 줄 칸이 없는 array는 번호 목록으로 본다
+ */
+export const isNumberList = (param) =>
+  param?.type === 'array' && (param.itemType != null || !param.items);
+
+/**
+ * 서버가 만드는 칸(generated: uuid, 예: 구매 중복 방지 키 idmptDmndId): 카드 하나에 한 번 만든다
+ * - Java 요청에만 싣고 결과 저장·다음 메시지 input에는 싣지 않는다(useActionCards)
+ */
+export const generatedInput = (card) =>
+  Object.fromEntries(
+    Object.entries(card.params)
+      .filter(([, param]) => param.generated === 'uuid')
+      .map(([field]) => [field, crypto.randomUUID()]),
+  );
+
+/**
+ * 품종 줄을 따로 보이는 카드: 품종 번호(vrtySn)·직접 입력(vrtyDrctInptNm) 중 하나를 "품종" 한 줄로
+ * - 번호 칸(…Sn)은 카드에 보이지 않아 품종 목록 이름으로 보인다
+ */
+export const hasBreedRow = (card) =>
+  'vrtySn' in card.params && 'vrtyDrctInptNm' in card.params;
+
+/** 초대 줄을 따로 보이는 카드: 경로 칸 초대 번호(jntBrupInvtnSn), 수락·거절·취소 */
+export const hasInvitationRow = (card) => 'jntBrupInvtnSn' in card.params;
+
 /** 케어 항목 등록 도구 */
 export const CARE_ITEM_TOOL = 'draft_care_item';
 
@@ -191,7 +227,7 @@ export const CALENDAR_TOOLS = ['draft_schedule', CARE_ITEM_TOOL];
 /**
  * 카드에 보일 칸: 칸 규칙 순서대로, 경로 칸·카드에 두지 않는 칸·꺼진 조건부 칸·번호 칸(…Sn)·서버가 만드는 칸·파일 칸은 뺀다
  * - 빈 칸은 필수(조건부 필수 포함)일 때만 보이고 isMissing
- * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검진기록(ckupRcdSn)·관찰 항목(obsrvArtclSn)도 카드가 따로 보인다
+ * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검진기록(ckupRcdSn)·관찰 항목(obsrvArtclSn)·품종(vrtySn)·초대(jntBrupInvtnSn)도 카드가 따로 보인다
  */
 export const cardRows = (card, input) => {
   const missing = missingFields(card, input);
@@ -207,7 +243,8 @@ export const cardRows = (card, input) => {
         !param.generated &&
         param.type !== 'file' &&
         !isFieldOff(card, input, field) &&
-        !(isHourDerived && field === HOUR_INPUT_FIELD),
+        !(isHourDerived && field === HOUR_INPUT_FIELD) &&
+        !(hasBreedRow(card) && field === 'vrtyDrctInptNm'),
     )
     .map(([field, param]) => ({
       field,
@@ -264,6 +301,7 @@ export const errorFieldsShown = (card, input) => [
   ...('petSn' in card.params ? ['petSn'] : []),
   ...(hasCheckupRow(card) ? ['ckupRcdSn'] : []),
   ...(hasObservationItemRow(card) ? ['obsrvArtclSn'] : []),
+  ...(hasBreedRow(card) ? ['vrtySn', 'vrtyDrctInptNm'] : []),
   ...cardRows(card, input)
     .filter(
       ({ field }) => !(card.tool === INSPECTION_TOOL && field === 'values'),

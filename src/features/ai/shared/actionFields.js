@@ -53,6 +53,13 @@ export const ACTION_FIELD_NAMES = {
   algyCn: '알레르기',
   dssCn: '질환',
   goalBdwgReset: '목표 몸무게 초기화',
+  /** 반려동물 쓰기 카드(2026-11-27): 등록·공동양육 초대·착용·구매 */
+  vrtySn: '품종',
+  invtnTrgtEml: '초대할 이메일',
+  petSns: '반려동물',
+  jntBrupInvtnSn: '초대',
+  hldItemSns: '착용 아이템',
+  itemSns: '아이템',
   /** 검진기록·처방·기타 검사·반복 예방 등록(2026-11-27) */
   ckupYmd: '검진일',
   reptPrvntArtclCd: '예방 항목',

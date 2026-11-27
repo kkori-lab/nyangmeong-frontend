@@ -2,9 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 건강 등록·종료 카드 실행 — 끝(2026-11-27, 검증 1회차 "확인 못 함 있음"(연결 남음만)·사람 확인). 대화창 확인 카드가 검진기록·처방·기타 검사·반복 예방 등록, 관찰 종료(본문 없는 POST), 오늘 복용 취소(DELETE)를 그리고 Java로 실행. 처방·기타 검사·반복 예방은 빈 검진기록을 카드에서 고름
+SCR-AIM-012 AI 일정 생성 확인 · 반려동물 쓰기 카드 실행 확인 — 끝남(2026-11-27, 검증 3회차 통과·사람 확인). 대화창 확인 카드가 반려동물 쓰기 도구 8개를 실행(번호 목록 칸 이름 표시, `generated: uuid`, 착용 뒤 대표 이미지 저장, 칸 오류가 아닌 실행 오류는 결과 줄 — 추가-1)
 
 ## 다음에 할 것
+
+- SCR-AIM-012 반려동물 쓰기 카드 연결 남음(ai 저장소에서 /start, 아직 안 보냄): `data/tool_prompts.yaml`에 8개 설명(`draft_pet`·`set_representative_pet`·`draft_caregiver_invitation`·`accept_caregiver_invitation`·`reject_caregiver_invitation`·`cancel_caregiver_invitation`·`draft_equipped_items`·`draft_item_purchase`, `label` 포함, 거절·취소는 `target_fields`), `app/chat/catalog.py` Param에 `itemType` 받아 카드에 싣기. `draft_pet` 카드를 주기 전에 등록 한도(10마리) 확인. 없으면 AI가 이 도구를 고르지 않고 `action-result`가 400 "모르는 도구입니다."(Java 실행은 됨). 넣었다고 알리면 프론트에서 실제 대화로 결과 줄만 다시 본다
+- SCR-AIM-012 반려동물 쓰기 카드 팀 알림(PR 본문): 모두 — AI 확인 카드 실행 오류가 칸 오류(`INVALID_INPUT_VALUE`)가 아니면(409 한도·이미 보유·처리된 초대 등) 카드를 닫고 `action-result` `FAILED`로 저장해 결과 줄로 보임(추가-1, 모든 카드). SJM — 대화창이 이름 표시용으로 `GET /api/pets`·`/caregiver-invitations`·`/caregiver-invitations/{sn}`·`/pixel-characters/{sn}`·`/pixel-characters/{sn}/shop-items`를 `features/ai/api.js`에서 따로 부르고, 착용 저장 뒤 `POST /ai/characters/{sn}/equipped-image` 뒤 `['pets', petSn, 'character-image']` 무효화. KSJ — `GET /api/breeds?petSeCd=`. 응답 칸이 바뀌면 알려 달라
+- SCR-AIM-012 반려동물 쓰기 카드 참고: 처리한 초대의 GET은 보낸 사람·반려동물이 비어 와서 실행 뒤 초대 이름 조회는 다시 읽지 않음(`useExecuteAction`)
+- SCR-AIM-012 반려동물 쓰기 카드 검증 데이터 정리(8081 공용 DB): 초대 263~269와 그로 생긴 봄이·보리 공동양육 연동(해제), 반려동물 1103, 취두부 착용(빨간 뿔 → turtle_bag), tester 아이템 구매분, AI 대화방 "[검증]"·"확인" 계열(대화창 ⋮ 삭제)
 
 - SCR-AIM-012 건강 등록·종료 카드 연결 남음(ai 저장소, 아직 안 보냄): `data/tool_prompts.yaml`에 `draft_checkup`·`draft_prescription`·`draft_etc_inspection`·`draft_repeat_prevention`·`end_observation_item`·`cancel_last_dose` 설명(`label` 포함, `cancel_last_dose`는 삭제 카드라 `target_fields`도). 없으면 AI가 이 도구를 고르지 않고("대화창에서는 검진기록을 직접 등록할 수 없어요"), 결과 저장 `action-result`가 400 "모르는 도구입니다."(Java 실행은 됨). 넣었다고 알리면 프론트에서 실제 대화로 성공 결과 줄만 다시 본다
 - SCR-AIM-012 건강 등록·종료 카드 사람이 고치는 문서: AI매니저 기능명세서 v0.16 FN-AIM-012-13 "반복 예방 관리(REQ-HLT-002)는 생성하지 않는다" → 대화창 반복 예방 등록 카드, FN-AIM-012-19 쓰기 도구에 6개 추가
