@@ -16,6 +16,10 @@ import {
 
 const menuItem =
   'flex h-11 w-full items-center gap-2.5 px-4 text-left text-ink-2 hover:bg-surface-2';
+/** 아래에 안내 글이 붙는 항목: 안내가 이 항목의 것으로 읽히도록 높이를 줄이고 안내를 바짝 붙인다 */
+const menuItemWithNote = menuItem.replace('h-11', 'h-9');
+const menuNote =
+  '-mt-0.5 px-4 pb-2.5 text-sm leading-normal whitespace-pre-line text-subtle';
 
 export default function ChatRoomHeader({
   room,
@@ -31,7 +35,7 @@ export default function ChatRoomHeader({
   const cancelBlockedNote = {
     'requesting-mine': '상대의 응답을 기다리고 있어요',
     'requesting-theirs': '상대가 보낸 취소 요청에 먼저 답해 주세요',
-    'rejected-mine': '상대가 거절해 이 거래에서는 다시 요청할 수 없어요',
+    'rejected-mine': '상대가 거절해 이 거래에서는\n다시 요청할 수 없어요',
   }[cancelState];
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -101,7 +105,7 @@ export default function ChatRoomHeader({
         {isMenuOpen && (
           <div
             role="menu"
-            className="absolute top-full right-0 z-20 mt-1 w-44 overflow-hidden rounded-box border border-line bg-white py-1 shadow-depth-md"
+            className="absolute top-full right-0 z-20 mt-1 w-52 max-w-[calc(100vw-2rem)] overflow-hidden rounded-box border border-line bg-white py-1 shadow-depth-md"
           >
             <a
               role="menuitem"
@@ -135,7 +139,7 @@ export default function ChatRoomHeader({
                   type="button"
                   role="menuitem"
                   aria-disabled={Boolean(cancelBlockedNote)}
-                  className={`${menuItem} ${cancelBlockedNote ? 'text-line-strong' : ''}`}
+                  className={`${cancelBlockedNote ? menuItemWithNote : menuItem} ${cancelBlockedNote ? 'text-line-strong' : ''}`}
                   onClick={() => {
                     if (cancelBlockedNote) return;
                     setIsMenuOpen(false);
@@ -146,7 +150,7 @@ export default function ChatRoomHeader({
                   거래 취소 요청
                 </button>
                 {cancelBlockedNote && (
-                  <p className="px-4 pt-1 pb-2 text-sm leading-normal text-subtle">
+                  <p className={menuNote}>
                     {cancelBlockedNote}
                   </p>
                 )}
@@ -156,7 +160,7 @@ export default function ChatRoomHeader({
               type="button"
               role="menuitem"
               aria-disabled={isLeaveBlocked}
-              className={`${menuItem} ${isLeaveBlocked ? 'text-line-strong' : 'text-danger'}`}
+              className={`${isLeaveBlocked ? menuItemWithNote : menuItem} ${isLeaveBlocked ? 'text-line-strong' : 'text-danger'}`}
               onClick={() => {
                 if (isLeaveBlocked) return;
                 setIsMenuOpen(false);
@@ -167,8 +171,8 @@ export default function ChatRoomHeader({
               채팅방 나가기
             </button>
             {isLeaveBlocked && (
-              <p className="px-4 pt-1 pb-2 text-sm leading-normal text-subtle">
-                거래를 마치거나 취소한 뒤에 나갈 수 있어요
+              <p className={menuNote}>
+                {'거래를 마치거나 취소한 뒤에\n나갈 수 있어요'}
               </p>
             )}
           </div>
