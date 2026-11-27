@@ -2,13 +2,16 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 대화창 · 쓰기 결과 이어 가기(agent-continue) — 끝(2026-11-26, 검증 1회차 통과·사람 확인). 여러 카드(`done.actions`) 받기·순서 실행·`actions`로 되돌려 보내기, 진행 문구(`step`, "○○ 확인 중이에요…" 쉬머), 카드 묶음 결과를 모아 `POST /ai/conversations/{sn}/agent-continue` 한 번, 실패는 "남은 일은 이어서 하지 못했어요."
+SCR-AIM-012 대화창 · 쓰기 결과 이어 가기 실제 흐름 연결 — 끝(2026-11-27, 검증 2회차 통과·사람 확인). 실제 AI 서버로 이어 가기(결과 줄 → 진행 문구 → 이어 간 답, `agent-continue` 한 번) 확인, 계약 맞음(코드 그대로). 추가-1: 바로 실행(`done.execute`) 카드는 실행 중 숨기고 결과 줄만
 
 ## 다음에 할 것
 
-- SCR-AIM-012 쓰기 결과 이어 가기 연결 남음(LJS ai): ai ③(`done.pending`·`agent-continue`) develop 병합과 AI 서버 `AGENT_STATE_KEY` 설정 뒤 실제 흐름 확인. "탄이 체중 4.2kg 기록하고 지난주보다 늘었는지 알려 줘" → 결과 줄 → 진행 문구 → 이어 간 답, 네트워크 `agent-continue` 본문 `{agentToken, results:[{tool, status, data}]}`. 이번 검증은 `/ai/**` 전체를 Playwright route 가짜로만 봄. 카드 8장(`actions` 최대 개수)은 ai와 합의 뒤
+- SCR-AIM-012 이어 가기 연결 ai 저장소 몫(ai-bd에 알림 2026-11-27, 그쪽 마일스톤 뒤 사람이 /start로 정함): ① 진행 문구가 "get_health_indicators 확인 중이에요…"(`data/tool_prompts.yaml` READ 도구에 `label:` 없음, step label이 도구 이름) ② 이미 실행된(`execute: true`) 턴의 요약 글이 "'등록해 줘'라고 말씀해 주시면" ③ 같은 문장 두 번째 이어 가기 답에 앞 기록 중복 안내. 고쳤다고 알리면 프론트에서 진행 문구만 다시 본다
+- SCR-AIM-012 이어 가기 연결 남음(ai와 합의 뒤): 카드 8장(`actions` 최대 개수, 지금 3장)
+- SCR-AIM-012 이어 가기 연결 팀 알림(PR 본문, 모두): AI 대화창이 받자마자 실행(`done.execute: true`)하는 확인 카드는 실행·결과 저장 중 카드를 그리지 않고 결과 줄만 보임(`useActionCards` `isAuto`, 사람 결정 2026-11-27). 사진 칸이 비어 멈춘 카드·실행 오류·결과 저장 실패는 카드가 보임
+- SCR-AIM-012 이어 가기 연결 검증 데이터 정리(8081 공용 DB, tester): 탄이 건강 일지 2026-11-27 체중 4.2·4.3kg 여러 건, 산책 30·15·20분, AI 대화방 948~965("탄이 체중 기록 및 변화 확인"·"탄이 산책 30분 기록해 줘"·"12월 4일 탄이 정기검진 예약 등록"·"탄이 등 털 빠짐 관찰" 등, 대화창 ⋮ 삭제)
+- 검증 환경 참고: 이어 가기 확인은 ai 저장소에서 `BACKEND_BASE_URL=http://localhost:8081`을 명령 앞에 준 AI 서버 8001 + 5180 `VITE_AI_API_URL=http://localhost:8001`로 하면 401 없이 됨(8000은 사람용)
 - SCR-AIM-012 쓰기 결과 이어 가기 ai 세션에 알릴 것: 프론트가 `done.actions`(여러 카드)·`step`·`done.pending`·`agent-continue`를 받음(계약 초안 그대로, 결과 `data`는 Java 성공 응답 `data` 객체일 때만, 모두 취소면 안 부름, 새 메시지를 보내면 토큰 버림). 진행 문구는 READ "${label} 확인 중이에요…"·CARD "${label} 준비 중이에요…"(사람 결정 2026-11-26). agent.md 9절 5·6번 합의 항목은 이 구현대로
-- SCR-AIM-012 쓰기 결과 이어 가기 참고(검증 보고, 판정 밖): 로컬 AI 서버(8000)가 8081 로그인 토큰을 401로 거절함(검증용 백엔드와 AI 서버 토큰 설정 다름으로 보임). 검증 캡처가 같은 날 SCR-AIM-012 수정·삭제 카드 캡처(`.playwright-mcp/pr/LJS-20261126-SCR-AIM-012-after-*.png`)를 덮어씀
 
 - SCR-AIM-004 기능 전체 표 팀 알림(PR 본문): ai 세션(ai-97)에는 위치·숫자(추가-1·2 반영본)와 보류 2건(`draft_receipt_save`·`list_faqs` skip, ② 도구 거르기 때 같이 볼지 의견 요청) 전달함. 백엔드 세션(backend-19)에도 알림(2026-11-26, 뺌 대상에 @AiTool 붙이지 말 것 포함) — `@AiTool` 도메인 단위 추가 때 이 표(`frontend/docs/ai-coverage.md`, 다시 만들기 `node scripts/ai-coverage.mjs --backend ../backend --ai ../ai`)를 기준으로. 뺌 규칙을 바꾸면 사람 결정 → `EXCLUDES` 한 곳
 - SCR-AIM-004 기능 전체 표 참고(검증 보고, 판정 밖): 모으는 파일이 `api.js`와 `<이름>Api.js`(`careApi.js`·`checkupApi.js` 등) 둘 다. 백엔드 `rg -c "@AiTool\("`은 `src/main`만 셈(`src/test` 13건 제외)

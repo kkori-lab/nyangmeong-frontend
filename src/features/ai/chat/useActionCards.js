@@ -156,6 +156,8 @@ export function useActionCards({ onAgentReady } = {}) {
     resultMsgSn: null,
     /** 사진 칸만 빈 채로 확인 말이 왔는지: 사진 칸 아래 안내를 "사진을 올려야 등록돼요"로 */
     isPhotoAsked: false,
+    /** 받자마자 실행(done.execute)하는 카드: 실행·결과 저장 중에는 카드를 숨기고 결과 줄만, 고칠 일이 생기면 false로 카드를 보인다 */
+    isAuto: false,
   });
 
   /** 새 카드(한 응답의 묶음): params 목록 */
@@ -221,6 +223,7 @@ export function useActionCards({ onAgentReady } = {}) {
     } catch {
       patchCard(item.key, {
         isBusy: false,
+        isAuto: false,
         unsaved: { status, input, errors, data },
       });
     }
@@ -262,6 +265,7 @@ export function useActionCards({ onAgentReady } = {}) {
       const fieldErrors = toFieldErrors(error);
       patchCard(key, {
         isBusy: false,
+        isAuto: false,
         fieldErrors,
         formError: toFormError(error, Object.keys(fieldErrors)),
       });
@@ -289,7 +293,7 @@ export function useActionCards({ onAgentReady } = {}) {
       const isPhotoAsked = fileFields(item.card).some((field) =>
         missingFields(item.card, item.input).includes(field),
       );
-      return { ...item, isPhotoAsked };
+      return { ...item, isPhotoAsked, isAuto: !isPhotoAsked };
     });
     registerAgent(items);
     setActionCards((prev) => [...prev, ...items]);
