@@ -1908,7 +1908,7 @@
 - 결과 (2026-11-27): 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인. 값 목록 칸 보기·고르기, 서버 칸 오류 난 값 목록 칸 다시 고르기, 알림 설정 저장 PUT(가짜 카드 + 8081 실제 400·200)
 - 연결 남음: 3 알림 설정 저장 카드 실제 대화 (ai `CatalogItemParam.values`·`draft_notification_settings` 설명, ai 세션)
 
-## SCR-AIM-012 AI 일정 생성 확인 · 케어 캘린더 1마리 일정 목록을 AI 도구 뺌 규칙에 넣기 — 대기
+## SCR-AIM-012 AI 일정 생성 확인 · 케어 캘린더 1마리 일정 목록을 AI 도구 뺌 규칙에 넣기 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
 - 기다리는 것: 없음(백엔드 SCR-AIM-012 케어 캘린더 일정 목록 읽기 도구(LJS, 끝, 2026-11-27): `GET /api/pets/{petSn}/care-schedules`는 `list_my_care_schedules`(`GET /api/care-schedules`, `petSns=1`로 한 마리)와 같아 도구로 붙이지 않음)
 - 할 것: `scripts/ai-coverage.mjs` `EXCLUDES`에 GET `/api/pets/{}/care-schedules` 규칙(이유: `list_my_care_schedules`와 같음)을 넣고 `node scripts/ai-coverage.mjs --backend ../backend --ai ../ai`로 `docs/ai-coverage.md`를 다시 만든다

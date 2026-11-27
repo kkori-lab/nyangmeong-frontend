@@ -37,6 +37,11 @@ const EXCLUDES = [
     methods: WRITES,
     path: /^\/api\/(posts|comments|lost-reports|care-recruitments|community)(\/|$)/,
   },
+  {
+    reason: '읽기 도구가 같음: list_my_care_schedules(한 마리는 petSns=1)',
+    methods: ['GET'],
+    path: /^\/api\/pets\/\{\}\/care-schedules$/,
+  },
 ];
 
 /** 회원 기능이 아닌 공용 보조 API 도메인(사람 2026-11-26): 요약·후보에서 빼고 따로 싣는다 */
