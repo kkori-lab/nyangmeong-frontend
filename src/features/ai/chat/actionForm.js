@@ -87,6 +87,7 @@ const toFormData = (data) => {
  * - call.path는 /api로 시작하고 axios api 인스턴스가 /api를 붙인다
  * - call.contentType이 multipart면 본문을 FormData로(관찰 항목 등록처럼 파일 칸이 있는 도구)
  * - DELETE(삭제 카드)는 본문 없이 보낸다(칸은 경로 번호뿐, AI 계약 2026-11-25)
+ * - 본문 칸이 하나도 없는 POST(관찰 종료 end_observation_item)도 본문 없이 보낸다
  */
 /** 삭제 카드: 고칠 칸 없이 대상 글(targetText)과 [삭제]로 보인다 */
 export const isDeleteCard = (card) =>
@@ -112,6 +113,9 @@ export const buildActionRequest = (card, rawInput) => {
     .replace(/\{(\w+)\}/g, (_, field) => encodeURIComponent(input[field]));
   if (isDeleteCard(card)) return { method: card.call.method, url, params };
   const isMultipart = card.call.contentType?.includes('multipart') ?? false;
+  if (!isMultipart && Object.keys(data).length === 0) {
+    return { method: card.call.method, url, params };
+  }
   return {
     method: card.call.method,
     url,
@@ -164,6 +168,20 @@ export const jsonInput = (card, rawInput) => {
 /** 관찰 기록 추가 도구: 관찰 항목 번호(obsrvArtclSn)만 오므로 카드가 이름을 따로 보인다 */
 export const OBSERVATION_CYCLE_TOOL = 'draft_observation_cycle';
 
+/**
+ * 관찰 항목 줄을 따로 보이는 카드: 관찰 항목 번호(obsrvArtclSn) 칸이 있는 카드
+ * - 관찰 기록 추가(본문 칸)·관찰 종료(end_observation_item, 경로 칸)
+ */
+export const hasObservationItemRow = (card) => 'obsrvArtclSn' in card.params;
+
+/**
+ * 검진기록 줄을 따로 보이는 카드: 본문에 검진기록 번호(ckupRcdSn)를 싣는 카드
+ * - 검사 수치·처방·기타 검사·반복 예방 등록. 비어 있으면 카드에서 고른다
+ * - 경로 칸(검진기록 수정·삭제)은 대상 번호라 보이지 않는다
+ */
+export const hasCheckupRow = (card) =>
+  'ckupRcdSn' in card.params && card.params.ckupRcdSn.in !== 'path';
+
 /** 케어 항목 등록 도구 */
 export const CARE_ITEM_TOOL = 'draft_care_item';
 
@@ -173,7 +191,7 @@ export const CALENDAR_TOOLS = ['draft_schedule', CARE_ITEM_TOOL];
 /**
  * 카드에 보일 칸: 칸 규칙 순서대로, 경로 칸·카드에 두지 않는 칸·꺼진 조건부 칸·번호 칸(…Sn)·서버가 만드는 칸·파일 칸은 뺀다
  * - 빈 칸은 필수(조건부 필수 포함)일 때만 보이고 isMissing
- * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검사 수치의 검진기록(ckupRcdSn)도 카드가 따로 보인다
+ * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검진기록(ckupRcdSn)·관찰 항목(obsrvArtclSn)도 카드가 따로 보인다
  */
 export const cardRows = (card, input) => {
   const missing = missingFields(card, input);
@@ -241,10 +259,11 @@ export const isHourInputDerived = (card, input) =>
     (field) => card.params[field].type === 'datetime',
   );
 
-/** 칸 아래에 서버 오류를 보이는 칸: 반려동물·검사 수치 검진기록·보이는 칸(검사 수치 표 제외) */
+/** 칸 아래에 서버 오류를 보이는 칸: 반려동물·검진기록·관찰 항목·보이는 칸(검사 수치 표 제외) */
 export const errorFieldsShown = (card, input) => [
   ...('petSn' in card.params ? ['petSn'] : []),
-  ...(card.tool === INSPECTION_TOOL ? ['ckupRcdSn'] : []),
+  ...(hasCheckupRow(card) ? ['ckupRcdSn'] : []),
+  ...(hasObservationItemRow(card) ? ['obsrvArtclSn'] : []),
   ...cardRows(card, input)
     .filter(
       ({ field }) => !(card.tool === INSPECTION_TOOL && field === 'values'),
