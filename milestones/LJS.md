@@ -1895,21 +1895,29 @@
 - 연결 남음: FN-AIM-012-05·13 (사진 없이 확인 말 "수정할게요." 문구·이미 쓰는 닉네임이면 카드 안 띄우기·사진 + "프로필 사진 변경해줘"가 캐릭터 만들기로 빠짐, ai 저장소, LJS)
 
 
-## SCR-AIM-012 AI 일정 생성 확인 · 반려동물 삭제·연동 해제·초대 삭제 카드 실행 확인 — 대기
+## SCR-AIM-012 AI 일정 생성 확인 · 반려동물 삭제·연동 해제·초대 삭제 카드 실행 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
 - 기다리는 것: 백엔드 SCR-AIM-012 반려동물 삭제·연동 해제·초대 삭제 카드(LJS, 끝 2026-11-27), ai 세션 `tool_prompts.yaml` 세 도구 설명
 - 완료 조건: 대화창 확인 카드로 `delete_pet`(DELETE /api/pets/{petSn})·`unlink_caregiver`(DELETE /api/pets/{petSn}/caregivers/{brupRelSn})·`delete_caregiver_invitation`(DELETE /api/caregiver-invitations/{jntBrupInvtnSn})을 본문 없이 실행하고, 삭제 뒤 반려동물 목록·양육자 목록·보낸 초대 목록에서 사라진다
+- 연결 남음: FN-AIM-012-05·06·07·13 `delete_pet`·`unlink_caregiver`·`delete_caregiver_invitation` 실제 대화·결과 줄 (ai `tool_prompts.yaml` 세 도구 설명·`target_fields`, ai 세션)
 
-## SCR-AIM-012 AI 일정 생성 확인 · 값 목록 칸·알림 설정 저장 카드 실행 확인 — 대기
+## SCR-AIM-012 AI 일정 생성 확인 · 값 목록 칸·알림 설정 저장 카드 실행 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
 - 기다리는 것: 백엔드 SCR-AIM-012 도구 목록 enum 칸·알림 설정 저장 카드(LJS, 끝 2026-11-27), ai 세션 `tool_prompts.yaml` `draft_notification_settings` 설명
 - 완료 조건: 대화창 확인 카드가 `values`가 있는 칸(`string`, 또는 `array`+`itemType: string`)을 그 값 중에서 고르게 보여 주고, `draft_notification_settings`(PUT /api/members/me/notification-settings, `leadTimes` TODAY·D1·D3·D7)를 실행한 뒤 알림 설정 화면에 저장한 값이 보인다. 케어 일정 ON에 시점을 하나도 고르지 않으면 400 `data[0].field`=leadTimes가 그 칸에 표시된다
+- 결과 (2026-11-27): 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인. 값 목록 칸 보기·고르기, 서버 칸 오류 난 값 목록 칸 다시 고르기, 알림 설정 저장 PUT(가짜 카드 + 8081 실제 400·200)
+- 연결 남음: 3 알림 설정 저장 카드 실제 대화 (ai `CatalogItemParam.values`·`draft_notification_settings` 설명, ai 세션)
 
 ## SCR-AIM-012 AI 일정 생성 확인 · 케어 캘린더 1마리 일정 목록을 AI 도구 뺌 규칙에 넣기 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
 - 기다리는 것: 없음(백엔드 SCR-AIM-012 케어 캘린더 일정 목록 읽기 도구(LJS, 끝, 2026-11-27): `GET /api/pets/{petSn}/care-schedules`는 `list_my_care_schedules`(`GET /api/care-schedules`, `petSns=1`로 한 마리)와 같아 도구로 붙이지 않음)
 - 할 것: `scripts/ai-coverage.mjs` `EXCLUDES`에 GET `/api/pets/{}/care-schedules` 규칙(이유: `list_my_care_schedules`와 같음)을 넣고 `node scripts/ai-coverage.mjs --backend ../backend --ai ../ai`로 `docs/ai-coverage.md`를 다시 만든다
 - 완료 조건: `docs/ai-coverage.md`에서 그 GET 줄이 "읽기 후보"가 아니라 "뺌"이다
+
+## SCR-AIM-012 AI 일정 생성 확인 · 가계부 여러 건·조건 전체 삭제 카드 실행 확인 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13, FN-MYP-030-17·18·19·21
+- 기다리는 것: 백엔드 SCR-AIM-012 가계부 여러 건·조건 전체 삭제 카드(LJS, 끝 2026-11-27), ai 세션 두 도구 설명·Param 파서 쿼리 배열 칸
+- 완료 조건: 대화창 확인 카드에서 `delete_expenses`를 실행하면 쿼리 번호 목록이 `DELETE /api/expenses?expndSn=1&expndSn=2`처럼 같은 이름을 되풀이해 보내져 200, `delete_expenses_by_condition`은 `POST /api/expenses/bulk-delete` 본문으로 200이고 건수가 바뀌었으면 409 `EXPENSE_BULK_DELETE_CHANGED`를 보여 준다
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

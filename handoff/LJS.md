@@ -2,10 +2,15 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 AI 일정 생성 확인 · 회원 닉네임·회원정보 수정 카드 실행 확인 — 끝남(2026-11-27, 검증 1회차 통과·사람 확인). 대화창 확인 카드 `draft_member_nickname_update`(409 이미 쓰는 닉네임은 카드를 남기고 닉네임 줄 아래 서버 문구)·`draft_member_profile_update`(사진을 골라야 [확인], 되돌리기면 사진 줄 숨김, 사진을 고르면 되돌리기는 보내지 않음)
+SCR-AIM-012 AI 일정 생성 확인 · 값 목록 칸·알림 설정 저장 카드 실행 확인 — 끝남(2026-11-27, 검증 1회차 확인 못 함 있음(연결 남음만)·사람 확인). 확인 카드가 도구 목록 `values` 칸(enum·enum 목록)을 값 이름·칩으로 보이고 고르며(`actionForm.js` `hasValues`·`isValueList`, `ActionCardFields.jsx`), 서버 칸 오류가 난 값 목록 칸은 카드에서 다시 고른다(사람 결정 2026-11-27). `draft_notification_settings` PUT은 가짜 카드 + 8081 실제로 확인
 
 ## 다음에 할 것
 
+- 연결 남음: SCR-AIM-012 알림 설정 저장 카드·값 목록 칸 3번 (ai `CatalogItemParam.values`·`tool_prompts.yaml` `draft_notification_settings` 설명·`label`·목록 밖 값 버리기, ai 세션 "백엔드 새 AI 도구 싣기 ③" 구현 중 2026-11-27). 지금은 가짜 `done.action`으로만 봄. ai가 develop에 병합하면 8081 → 8001 순서로 다시 띄우고 5180 실제 대화 "케어 일정 알림 3일 전으로 바꿔 줘" → 카드 → [확인] → 결과 줄 → `/settings/notifications` 3일 전 켜짐을 보고 원래 값으로 되돌린다. 같은 ai 작업에 아래 삭제 카드 세 도구도 들어 있어 함께 본다
+- SCR-AIM-012 값 목록 칸 참고(검증 보고, 판정 밖): 카드 칸 이름 "펫돌봄 거래 상태 알림"·"실종 제보 글 만료 예고"·"월 지출 한도 초과 알림"이 1440에서도 두 줄로 꺾임, 카드 8줄(사람 결정 그대로). 400 문구가 서버 "입력값이 올바르지 않습니다." 그대로라 무엇을 고칠지 안 알려 줌. ai 쪽 `catalog.py` 번호 목록 판정(`item_type in ("long","int")`)은 `itemType: string`과 섞이지 않음
+- SCR-AIM-012 값 목록 칸 팀 알림(PR 본문, 모두): AI 확인 카드 `params`에 `values`가 있으면 값 목록 칸(`string`이면 한 개, `array`+`itemType: string`이면 여러 개 고르는 칩), 값 이름은 `features/ai/shared/actionFields.js` `ACTION_VALUE_NAMES`(없으면 상수 이름). `isNumberList`는 `values`가 있는 array를 번호 목록으로 보지 않음. YAY·SJM 등 알림 설정 담당: AI 대화창이 `PUT /api/members/me/notification-settings`를 확인 카드로 실행함(본문 8칸)
+- 연결 남음: SCR-AIM-012 `delete_pet`·`unlink_caregiver`·`delete_caregiver_invitation` (ai `tool_prompts.yaml` 세 도구 설명·`target_fields`, ai 세션). 설명이 없어 ai `app/chat/catalog.py`가 도구를 싣지 않음 → 실제 대화에서 "보리 삭제해줘"가 화면 안내로 답하고, 카드 실행 뒤 `action-result`가 400 "모르는 도구입니다."(결과 줄 대신 "결과를 저장하지 못했어요"). 대상 글은 프론트가 채우지 않고 `target_fields`를 기다림(사람 결정 2026-11-27: delete_pet 반려동물 이름, unlink_caregiver 반려동물·양육자 닉네임, delete_caregiver_invitation 받는 사람 이메일). 넣었다고 알리면 5180 실제 대화로 카드 → [삭제] → 결과 줄을 보고 캡처(`.playwright-mcp/pr/LJS-20261127-SCR-AIM-012-after-*.png`)를 다시 찍는다
+- SCR-AIM-012 삭제·연동 해제·초대 삭제 카드 검증 데이터 정리(8081 공용 DB, 대화창 ⋮ 삭제): user0133 AI 대화방 "[검증] 반려동물 삭제 카드" 2개(1087 등), tester 1088 "[검증] 연동 해제 카드"·1089 "[검증] 초대 삭제 카드". 초대 270(tester → user0133 루루)은 수락 뒤 연동 해제 상태로 남음. 반려동물 1103 "[검증]등록"은 검증에서 삭제됨
 - SCR-AIM-012 반려동물 카드 ai 몫(ai-bd에 전달 2026-11-27): `reject_caregiver_invitation` `target_fields` 없음(대상 글 빔), 삭제 도구 `delete_pet`·`unlink_caregiver`·`delete_caregiver_invitation` 설명 없음(마일스톤 대기 절이 기다림). 반려동물 쓰기 8개·건강 등록·종료 6개 설명과 `itemType`은 ai에 들어가 있음(2026-11-27 확인) — 넣었다고 알리면 실제 대화로 결과 줄만 다시 본다
 - SCR-AIM-012 닉네임·프로필 사진 카드 검증 데이터(8081 공용 DB, tester): 닉네임·사진은 원래대로 되돌림, 올린 파일 5068이 연결 없이 남음. 사람이 8080에서 바꾼 닉네임·사진도 같은 계정이면 되돌리기
 - SCR-AIM-012 닉네임·프로필 사진 카드 참고(검증 보고, 판정 밖): 사진 칸 안 "프로필 사진을 올려 주세요"와 아래 빨간 "사진을 올려 주세요"가 겹침(사람이 봄, 고칠지 안 정함), 「기본 이미지로 되돌리기」 칸 이름이 두 줄로 꺾임, 대화창 창엔 원래 프로필 사진 자리가 없음
