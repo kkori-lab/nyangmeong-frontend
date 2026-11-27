@@ -237,12 +237,19 @@ function ObservationItemValue({ petSn, obsrvArtclSn }) {
   if (isEmpty(obsrvArtclSn))
     return <span className="text-danger">{MISSING}</span>;
   if (isPending) return <span className="text-subtle">불러오는 중…</span>;
-  const item = isError
-    ? null
-    : items.find((target) => target.obsrvArtclSn === Number(obsrvArtclSn));
+  if (isError) {
+    return <span className="text-danger">관찰 항목을 불러오지 못했어요</span>;
+  }
+  const item = items.find(
+    (target) => target.obsrvArtclSn === Number(obsrvArtclSn),
+  );
   if (!item) return `관찰 항목 ${obsrvArtclSn}`;
-  return [item.obsrvArtclNm, item.obsrvRegnCdNm, item.obsrvRegnDtlNm]
-    .filter(Boolean)
+  /** 부위와 세부 위치가 같으면("등 · 등") 한 번만 */
+  const names = [item.obsrvArtclNm, item.obsrvRegnCdNm, item.obsrvRegnDtlNm]
+    .map((name) => name?.trim())
+    .filter(Boolean);
+  return names
+    .filter((name, index) => name !== names[index - 1])
     .join(' · ');
 }
 

@@ -16,14 +16,19 @@ const SWIPE_PX = 40;
 const offsetOf = (index, active) =>
   ((index - active + COUNT + HALF) % COUNT) - HALF;
 
-// 가운데에서 떨어진 칸 수(d)에 따른 카드 모양. 양옆은 작아지고 안쪽으로 기울며 흑백이 된다
+// 가운데에서 떨어진 칸 수(d)에 따른 카드 모양. 양옆은 작아지고 안쪽으로 기울며, 멀수록 흐려진다(바로 옆 1px·약간 어둡게, 맨 끝 3px)
 function cardStyle(d) {
   const abs = Math.abs(d);
   return {
     transform: `translateX(calc(var(--gap) * ${d})) scale(${abs === 0 ? 1 : abs === 1 ? 0.84 : 0.7}) rotateY(${Math.max(-2, Math.min(2, d)) * -14}deg)`,
     zIndex: 10 - abs,
     opacity: abs > 2 ? 0 : 1,
-    filter: abs === 0 ? 'none' : 'grayscale(1) brightness(0.8)',
+    filter:
+      abs === 0
+        ? 'none'
+        : abs === 1
+          ? 'blur(1px) brightness(0.92)'
+          : 'blur(3px) brightness(0.92)',
   };
 }
 

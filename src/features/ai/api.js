@@ -60,23 +60,27 @@ const STREAM_CLOSED = { code: 'STREAM_CLOSED', message: '연결이 끊겼어요'
  * - 방이 없으면 대화 생성(첫 메시지 저장, 펫 태그 petSn) 뒤 같은 방에 cnvrsCn 없이 전송
  * - petSn은 방을 만들 때만 쓴다: 열린 방 메시지 본문에는 싣지 않는다(늘 방 태그 기준)
  * - cnvrsCn이 없으면 저장 없이 방의 마지막 사용자 메시지에 답한다([다시 시도]·[다시 생성])
- * - action: 가장 최근 처리 안 한 확인 카드 { tool, input, targetText? }(회원이 고친 값 포함, 삭제 카드는 대상 글도), 새 방에는 없음
+ * - actions: 가장 최근 처리 안 한 확인 카드 묶음 [{ tool, input, targetText? }](회원이 고친 값 포함, 삭제 카드는 대상 글도), 새 방에는 없음
+ *   1장이면 action, 2장 이상이면 actions로 싣는다(AI 계약 MessageSendRequest)
+ * - onStep: 에이전트 진행 { tool, label, kind: READ|CARD }(저장 안 함)
  * - error 이벤트는 { code, message }로 실패
  */
 export const sendMessage = async ({
   aiCnvrsRoomSn,
   petSn,
   cnvrsCn,
-  action,
+  actions = [],
   signal,
   onRoom,
   onIntent,
+  onStep,
   onDelta,
 }) => {
   let roomSn = aiCnvrsRoomSn;
   let body = {
     ...(cnvrsCn != null && { cnvrsCn }),
-    ...(action && { action }),
+    ...(actions.length === 1 && { action: actions[0] }),
+    ...(actions.length > 1 && { actions }),
   };
   if (roomSn == null) {
     roomSn = (await createConversation({ petSn, cnvrsCn })).aiCnvrsRoomSn;
@@ -86,16 +90,36 @@ export const sendMessage = async ({
   }
   onRoom?.(roomSn);
 
+  return readAnswer(`/conversations/${roomSn}/messages`, body, {
+    aiCnvrsRoomSn: roomSn,
+    signal,
+    onIntent,
+    onStep,
+    onDelta,
+  });
+};
+
+/**
+ * 답변 SSE 읽기: intent → (step·delta…) → done|error
+ * - actions: done.actions(최대 3장), 없으면 done.action 한 장
+ * - pending: 카드 실행 뒤 이어 갈 수 있을 때 { agentToken, cards }, 없으면 null
+ */
+const readAnswer = async (
+  url,
+  body,
+  { aiCnvrsRoomSn, signal, onIntent, onStep, onDelta },
+) => {
   let intent = null;
   let done = null;
   let failure = null;
-  await aiStream(`/conversations/${roomSn}/messages`, body, {
+  await aiStream(url, body, {
     signal,
     onEvent: (name, data) => {
       if (name === 'intent') {
         intent = data;
         onIntent?.(data);
       }
+      if (name === 'step') onStep?.(data);
       if (name === 'delta') onDelta?.(data.text);
       if (name === 'done') done = data;
       if (name === 'error') failure = data;
@@ -103,15 +127,41 @@ export const sendMessage = async ({
   });
   if (failure) throw failure;
   if (!done) throw STREAM_CLOSED;
+  const actions = done.actions?.length
+    ? done.actions
+    : done.action
+      ? [done.action]
+      : [];
   return {
-    aiCnvrsRoomSn: roomSn,
+    aiCnvrsRoomSn,
     intent,
     message: done.message,
     shortcut: done.shortcut,
-    action: done.action ?? null,
+    actions,
     execute: done.execute ?? false,
+    pending: done.pending?.agentToken ? done.pending : null,
   };
 };
+
+/**
+ * 쓰기 카드로 멈춘 에이전트 이어 가기(SSE, 응답 모양은 sendMessage와 같다)
+ * - results: 그 멈춤의 카드 순서대로 [{ tool, status, errors?, data? }], data는 Java 성공 응답 data
+ * - 사용자 메시지는 저장되지 않고, 이어 간 답이 AI 메시지로 저장된다
+ */
+export const continueAgent = ({
+  aiCnvrsRoomSn,
+  agentToken,
+  results,
+  signal,
+  onIntent,
+  onStep,
+  onDelta,
+}) =>
+  readAnswer(
+    `/conversations/${aiCnvrsRoomSn}/agent-continue`,
+    { agentToken, results },
+    { aiCnvrsRoomSn, signal, onIntent, onStep, onDelta },
+  );
 
 /** 확인 카드 실행: 카드의 call로 Java 공개 API(요청 모양은 actionForm.buildActionRequest) */
 export const executeAction = (request) => api.request(request);
@@ -119,6 +169,7 @@ export const executeAction = (request) => api.request(request);
 /**
  * 확인 카드 결과를 요약 AI 메시지로 저장(요약 글은 서버가 만든다): 저장된 ConversationMessage
  * - targetText: 삭제 카드의 대상 글 그대로(요약 글에 들어간다), 없으면 키 없음
+ * - errors: FAILED일 때 Java 400 data([{ field, message }]) 그대로, 서버가 칸 표시 이름으로 다시 확인 안내를 붙인다. 없으면 키 없음
  */
 export const saveActionResult = ({
   aiCnvrsRoomSn,
@@ -126,12 +177,14 @@ export const saveActionResult = ({
   status,
   input,
   targetText,
+  errors,
 }) =>
   aiApi.post(`/conversations/${aiCnvrsRoomSn}/action-result`, {
     tool,
     status,
     input,
     ...(targetText && { targetText }),
+    ...(errors?.length > 0 && { errors }),
   });
 
 /** 건강 일지에서 연 영수증 분석의 요청 출처 */

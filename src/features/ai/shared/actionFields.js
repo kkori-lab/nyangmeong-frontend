@@ -42,6 +42,7 @@ export const ACTION_FIELD_NAMES = {
   chipNo: '동물등록번호',
   petGndrCd: '성별',
   nutrYn: '중성화',
+  bdwgRngDrctInptYn: '체중 범위 직접 입력',
   petBdwg: '몸무게(kg)',
   goalBdwg: '목표 몸무게(kg)',
   minBdwg: '최소 몸무게(kg)',
