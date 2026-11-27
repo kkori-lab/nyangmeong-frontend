@@ -218,6 +218,16 @@ export const hasBreedRow = (card) =>
 /** 초대 줄을 따로 보이는 카드: 경로 칸 초대 번호(jntBrupInvtnSn), 수락·거절·취소 */
 export const hasInvitationRow = (card) => 'jntBrupInvtnSn' in card.params;
 
+/** 플레이스 즐겨찾기 저장 도구(2026-11-27) */
+export const PLACE_BOOKMARK_TOOL = 'draft_place_bookmark';
+
+/**
+ * 장소 줄을 따로 보이는 카드: 본문에 장소 번호(plcSn)를 싣는 카드
+ * - 번호는 카드에서 고를 수 없어 말로 정하고, 이름은 카드 대상 글(targetText)로 보인다
+ */
+export const hasPlaceRow = (card) =>
+  'plcSn' in card.params && card.params.plcSn.in !== 'path';
+
 /** 케어 항목 등록 도구 */
 export const CARE_ITEM_TOOL = 'draft_care_item';
 
@@ -227,7 +237,7 @@ export const CALENDAR_TOOLS = ['draft_schedule', CARE_ITEM_TOOL];
 /**
  * 카드에 보일 칸: 칸 규칙 순서대로, 경로 칸·카드에 두지 않는 칸·꺼진 조건부 칸·번호 칸(…Sn)·서버가 만드는 칸·파일 칸은 뺀다
  * - 빈 칸은 필수(조건부 필수 포함)일 때만 보이고 isMissing
- * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검진기록(ckupRcdSn)·관찰 항목(obsrvArtclSn)·품종(vrtySn)·초대(jntBrupInvtnSn)도 카드가 따로 보인다
+ * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검진기록(ckupRcdSn)·관찰 항목(obsrvArtclSn)·품종(vrtySn)·초대(jntBrupInvtnSn)·장소(plcSn)도 카드가 따로 보인다
  */
 export const cardRows = (card, input) => {
   const missing = missingFields(card, input);
@@ -302,6 +312,7 @@ export const errorFieldsShown = (card, input) => [
   ...(hasCheckupRow(card) ? ['ckupRcdSn'] : []),
   ...(hasObservationItemRow(card) ? ['obsrvArtclSn'] : []),
   ...(hasBreedRow(card) ? ['vrtySn', 'vrtyDrctInptNm'] : []),
+  ...(hasPlaceRow(card) ? ['plcSn'] : []),
   ...cardRows(card, input)
     .filter(
       ({ field }) => !(card.tool === INSPECTION_TOOL && field === 'values'),

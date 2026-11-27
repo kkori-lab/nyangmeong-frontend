@@ -47,6 +47,7 @@ import {
   hasCheckupRow,
   hasInvitationRow,
   hasObservationItemRow,
+  hasPlaceRow,
   isNumberList,
   isHourInputDerived,
   hasPetChoice,
@@ -437,6 +438,24 @@ function InvitationValue({ card, input }) {
   );
 }
 
+/**
+ * 장소 줄 값: 카드 대상 글(장소 이름·주소), 없으면 "장소 번호 N"
+ * - 번호는 카드에서 고를 수 없어 비었으면 말로 알려 달라고 한다
+ */
+function PlaceValue({ card, plcSn }) {
+  if (isEmpty(plcSn)) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-danger">{MISSING}</span>
+        <span className="text-sm leading-[22px] text-subtle">
+          어느 장소인지 말로 알려 주세요
+        </span>
+      </div>
+    );
+  }
+  return card.targetText || `장소 번호 ${plcSn}`;
+}
+
 /** 품종 줄을 보일지: 등록 카드는 늘(비면 입력해 주세요), 수정 카드는 값이 있을 때만 */
 const isBreedShown = (card, input) =>
   hasBreedRow(card) &&
@@ -807,6 +826,11 @@ export default function ActionCardFields({
       {hasInvitationRow(card) && (
         <Row label={actionFieldName('jntBrupInvtnSn')}>
           <InvitationValue card={card} input={input} />
+        </Row>
+      )}
+      {hasPlaceRow(card) && (
+        <Row label={actionFieldName('plcSn')} error={fieldErrors.plcSn}>
+          <PlaceValue card={card} plcSn={input.plcSn} />
         </Row>
       )}
       {hasCheckupRow(card) && (

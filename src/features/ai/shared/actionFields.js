@@ -60,6 +60,8 @@ export const ACTION_FIELD_NAMES = {
   jntBrupInvtnSn: '초대',
   hldItemSns: '착용 아이템',
   itemSns: '아이템',
+  /** 플레이스 즐겨찾기 저장(2026-11-27) */
+  plcSn: '장소',
   /** 검진기록·처방·기타 검사·반복 예방 등록(2026-11-27) */
   ckupYmd: '검진일',
   reptPrvntArtclCd: '예방 항목',
