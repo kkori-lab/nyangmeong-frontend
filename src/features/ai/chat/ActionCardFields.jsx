@@ -27,8 +27,9 @@ import {
   CARE_ITEM_TOOL,
   HOUR_INPUT_FIELD,
   INSPECTION_TOOL,
-  OBSERVATION_CYCLE_TOOL,
   cardRows,
+  hasCheckupRow,
+  hasObservationItemRow,
   isHourInputDerived,
   hasPetChoice,
   missingFields,
@@ -572,16 +573,15 @@ export default function ActionCardFields({
           )}
         </Row>
       )}
-      {card.tool === OBSERVATION_CYCLE_TOOL &&
-        'obsrvArtclSn' in card.params && (
-          <Row label="관찰 항목" error={fieldErrors.obsrvArtclSn}>
-            <ObservationItemValue
-              petSn={input.petSn ?? null}
-              obsrvArtclSn={input.obsrvArtclSn}
-            />
-          </Row>
-        )}
-      {isInspection && 'ckupRcdSn' in card.params && (
+      {hasObservationItemRow(card) && (
+        <Row label="관찰 항목" error={fieldErrors.obsrvArtclSn}>
+          <ObservationItemValue
+            petSn={input.petSn ?? null}
+            obsrvArtclSn={input.obsrvArtclSn}
+          />
+        </Row>
+      )}
+      {hasCheckupRow(card) && (
         <Row label="검진기록" error={fieldErrors.ckupRcdSn}>
           <CheckupValue
             input={input}

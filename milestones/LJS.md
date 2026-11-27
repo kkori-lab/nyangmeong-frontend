@@ -1870,10 +1870,16 @@
 - 결과(2026-11-26): `features/ai/chat/useActionCards.js`(`isUnfixableError`, 결과 저장·[다시 시도]에 errors), `features/ai/api.js`(`saveActionResult` errors), `features/ai/shared/actionFields.js`(`bdwgRngDrctInptYn` 이름표). 삭제 카드 실행은 앞 "삭제 확인 카드" 절에서 끝남
 - 완료 조건 결과: 검증 1회차 `통과`(U1 5180·8081 실제 PATCH 4종, U2 Playwright route), 사람 확인 2026-11-26
 - 연결 남음: 없음
-## SCR-AIM-012 AI 일정 생성 확인 · 건강 등록·종료 카드 실행 확인 — 대기
+## SCR-AIM-012 AI 일정 생성 확인 · 건강 등록·종료 카드 실행 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
 - 기다리는 것: 백엔드 SCR-AIM-012 건강 등록·종료 카드(LJS, 끝 2026-11-27)와 ai 세션의 새 도구 6개 설명(`tool_prompts.yaml`)
 - 완료 조건: 대화창 확인 카드로 `draft_checkup`·`draft_prescription`·`draft_etc_inspection`·`draft_repeat_prevention`(JSON 본문 POST)과 `end_observation_item`(본문 없는 POST)·`cancel_last_dose`(본문 없는 DELETE)을 실행하면 성공하고, 400이면 `data[].field` 칸에 오류가 표시된다
+- 연결 남음: FN-AIM-012-05·06·07·13 새 도구 6개 성공 결과 줄 (ai `tool_prompts.yaml` 6개 설명, ai 세션)
+
+## SCR-AIM-012 AI 일정 생성 확인 · 반려동물 쓰기 카드 실행 확인 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 LJS 반려동물 쓰기 카드 8개(2026-11-27 끝)와 ai 세션의 `tool_prompts.yaml` 설명
+- 완료 조건: 대화창 확인 카드로 `draft_pet`·`set_representative_pet`·`draft_caregiver_invitation`·`accept_caregiver_invitation`·`reject_caregiver_invitation`·`cancel_caregiver_invitation`·`draft_equipped_items`·`draft_item_purchase`가 실행된다. 본문 없는 POST, 번호 목록 칸(`type: array`+`itemType: long`, 예: `petSns`), `generated: uuid`(`idmptDmndId`)를 처리한다
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
