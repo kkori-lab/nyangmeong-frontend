@@ -34,6 +34,12 @@ export const ACTION_FIELD_NAMES = {
   expndAmt: '금액(원)',
   dtlMttr: '상세 내용',
   expndPlcusNm: '사용처',
+  /** 지출 여러 건·조건 전체 삭제(2026-11-27) */
+  expndSn: '지출',
+  expectedCnt: '삭제할 건수',
+  startYmd: '시작일',
+  endYmd: '종료일',
+  excludeExpndSn: '빼고 지울 지출',
   /** 반려동물 */
   petNm: '이름',
   petSeCd: '종류',

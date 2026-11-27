@@ -2,9 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 AI 일정 생성 확인 · 케어 캘린더 1마리 일정 목록을 AI 도구 뺌 규칙에 넣기 — 끝남(2026-11-27, 검증 1회차 통과·사람 확인). `scripts/ai-coverage.mjs` `EXCLUDES`에 GET `/api/pets/{}/care-schedules`(이유: `list_my_care_schedules`와 같음)를 넣고 `docs/ai-coverage.md`를 다시 만듦
+SCR-AIM-012 AI 일정 생성 확인 · 가계부 여러 건·조건 전체 삭제 카드 실행 확인 — 끝남(2026-11-27, 검증 1회차 확인 못 함 있음(연결 남음만)·사람 확인). 쿼리 번호 목록을 같은 이름 되풀이로 보내고(`actionForm.js`), `delete_`로 시작하는 POST 도구도 빨간 [삭제](`ActionCard.jsx`), 지출 삭제 칸 이름표(`actionFields.js`)
 
 ## 다음에 할 것
+
+- 연결 남음: SCR-AIM-012 가계부 여러 건·조건 전체 삭제 카드 FN-AIM-012-05·06·07·13 / FN-MYP-030-17·18·19·21 (ai `tool_prompts.yaml` `delete_expenses`·`delete_expenses_by_condition` 설명·`target_fields`·확인 말 "삭제해 줘", Param 파서 쿼리 `array` 칸, ai 세션 구현 중 2026-11-27). 지금은 `action-result`가 400 "모르는 도구입니다." → "결과를 저장하지 못했어요". ai가 develop에 병합하면 8081 → 8001 순서로 다시 띄우고 5180 실제 대화로 여러 건 삭제(`DELETE /api/expenses?expndSn=…&expndSn=…` 200·결과 줄)·조건 전체 삭제(200·결과 줄, 카드 받은 뒤 같은 조건 지출 추가 → 409 → 카드 닫힘·실패 결과 줄)를 보고 캡처(`.playwright-mcp/pr/LJS-20261127-SCR-AIM-012-after-*.png`)를 다시 찍는다
+- SCR-AIM-012 가계부 삭제 카드 팀 알림(PR 본문): SJM — AI 대화창이 `DELETE /api/expenses`(쿼리 `expndSn` 되풀이)·`POST /api/expenses/bulk-delete`를 확인 카드로 실행함. 경로·409 코드를 바꾸면 알려 달라. 모두 — AI 확인 카드 쿼리 칸이 배열이면 `?a=1&a=2`로 보냄(`buildActionRequest`), 도구 이름이 `delete_`로 시작하면 POST여도 버튼이 빨간 [삭제]
+- SCR-AIM-012 가계부 삭제 카드 검증 데이터 정리(8081 공용 DB, tester): AI 대화방 1101 "지출 여러 건 한 번에 삭제 불가 안내"(대화창 ⋮ 삭제). 검증 지출 10512~10515는 검증에서 지워짐
+- 참고: 이번 검증 캡처가 같은 날 SCR-AIM-012 캡처를 덮어씀
 
 - 연결 남음: SCR-AIM-012 알림 설정 저장 카드·값 목록 칸 3번 (ai `CatalogItemParam.values`·`tool_prompts.yaml` `draft_notification_settings` 설명·`label`·목록 밖 값 버리기, ai 세션 "백엔드 새 AI 도구 싣기 ③" 구현 중 2026-11-27). 지금은 가짜 `done.action`으로만 봄. ai가 develop에 병합하면 8081 → 8001 순서로 다시 띄우고 5180 실제 대화 "케어 일정 알림 3일 전으로 바꿔 줘" → 카드 → [확인] → 결과 줄 → `/settings/notifications` 3일 전 켜짐을 보고 원래 값으로 되돌린다. 같은 ai 작업에 아래 삭제 카드 세 도구도 들어 있어 함께 본다
 - SCR-AIM-004 기능 전체 표 다시 만듦(2026-11-27, backend `e6d3d41`·ai `cd6bace` 기준): `@AiTool` 125개(READ 67·CARD 58), 남은 읽기 후보 11·쓰기 카드 후보 12, 보류 1(`list_faqs`). 다음 도메인 도구 추가는 이 표의 후보 줄부터

@@ -1914,10 +1914,12 @@
 - 할 것: `scripts/ai-coverage.mjs` `EXCLUDES`에 GET `/api/pets/{}/care-schedules` 규칙(이유: `list_my_care_schedules`와 같음)을 넣고 `node scripts/ai-coverage.mjs --backend ../backend --ai ../ai`로 `docs/ai-coverage.md`를 다시 만든다
 - 완료 조건: `docs/ai-coverage.md`에서 그 GET 줄이 "읽기 후보"가 아니라 "뺌"이다
 
-## SCR-AIM-012 AI 일정 생성 확인 · 가계부 여러 건·조건 전체 삭제 카드 실행 확인 — 대기
+## SCR-AIM-012 AI 일정 생성 확인 · 가계부 여러 건·조건 전체 삭제 카드 실행 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13, FN-MYP-030-17·18·19·21
 - 기다리는 것: 백엔드 SCR-AIM-012 가계부 여러 건·조건 전체 삭제 카드(LJS, 끝 2026-11-27), ai 세션 두 도구 설명·Param 파서 쿼리 배열 칸
 - 완료 조건: 대화창 확인 카드에서 `delete_expenses`를 실행하면 쿼리 번호 목록이 `DELETE /api/expenses?expndSn=1&expndSn=2`처럼 같은 이름을 되풀이해 보내져 200, `delete_expenses_by_condition`은 `POST /api/expenses/bulk-delete` 본문으로 200이고 건수가 바뀌었으면 409 `EXPENSE_BULK_DELETE_CHANGED`를 보여 준다
+- 결과 (2026-11-27): 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인(ai 구현 뒤 실제 대화로 다시 봄). 가짜 카드 + 8081 실제로 쿼리 되풀이 DELETE 200·bulk-delete 200·409, `delete_`로 시작하는 POST 도구도 빨간 [삭제](사람 결정)
+- 연결 남음: FN-AIM-012-05·06·07·13 / FN-MYP-030-17·18·19·21 결과 줄·409 실패 결과 줄·실제 대화 (ai `tool_prompts.yaml` `delete_expenses`·`delete_expenses_by_condition` 설명·`target_fields`·확인 말 "삭제해 줘", Param 파서 쿼리 `array` 칸, ai 세션 구현 중 2026-11-27)
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
