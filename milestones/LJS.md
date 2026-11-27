@@ -1921,6 +1921,13 @@
 - 결과 (2026-11-27): 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인(ai 구현 뒤 실제 대화로 다시 봄). 가짜 카드 + 8081 실제로 쿼리 되풀이 DELETE 200·bulk-delete 200·409, `delete_`로 시작하는 POST 도구도 빨간 [삭제](사람 결정)
 - 연결 남음: FN-AIM-012-05·06·07·13 / FN-MYP-030-17·18·19·21 결과 줄·409 실패 결과 줄·실제 대화 (ai `tool_prompts.yaml` `delete_expenses`·`delete_expenses_by_condition` 설명·`target_fields`·확인 말 "삭제해 줘", Param 파서 쿼리 `array` 칸, ai 세션 구현 중 2026-11-27)
 
+## SCR-AIM-012 AI 일정 생성 확인 · ai 새 도구 ③ 실제 대화 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13, FN-MYP-030-17·18·19·21
+- 기다리는 것: ai 세션 "백엔드 새 AI 도구 싣기 ③"(구현 중 2026-11-27)
+- 완료 조건: 실제 대화로 `delete_expenses`·`delete_expenses_by_condition`(409 포함)·`draft_notification_settings`·`delete_pet`·`unlink_caregiver`·`delete_caregiver_invitation`·`mark_service_tutorial_viewed`·`draft_receipt_checkup` 카드가 뜨고, 실행 뒤 `action-result`가 200이며 결과 줄이 보인다
+- 결과 (2026-11-27): 검증 3회차 확인 못 함 있음(연결 남음만), 사람 확인. 1회차 검증 서버가 옛 코드(재기동), 2회차 조건 삭제 카드 빈 반려동물 줄 "입력해 주세요" → 숨김. 칸 0개 카드는 칸 목록 안 그림
+- 연결 남음: FN-AIM-012-05·06·07·13 `draft_receipt_checkup` 저장 성공 200 (ai `tool_prompts.yaml` 영수증 번호 고르는 규칙, ai 세션)
+
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)

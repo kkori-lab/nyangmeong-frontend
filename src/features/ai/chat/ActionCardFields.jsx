@@ -825,6 +825,8 @@ export default function ActionCardFields({
   isPhotoAsked = false,
 }) {
   const rows = cardRows(card, input);
+  /** 칸 없는 카드(예: 튜토리얼 봤음 저장): 빈 목록이 카드 간격을 하나 더 만들지 않게 그리지 않음 */
+  const hasNoParams = Object.keys(card.params ?? {}).length === 0;
   const isInspection = card.tool === INSPECTION_TOOL;
   /**
    * 서버 칸 오류가 난 값 목록 칸은 카드에서 고른다(사람 결정 2026-11-27, 값 목록 칸만)
@@ -837,11 +839,19 @@ export default function ActionCardFields({
   if (newlyErrored.length > 0) {
     setErrorOpened([...errorOpened, ...newlyErrored]);
   }
+  if (hasNoParams) return null;
   const petNm =
     card.petNm ??
     card.petChoices.find((pet) => pet.petSn === input.petSn)?.petNm;
   const hasPetChips = isActive && hasPetChoice(card) && input.petSn == null;
   const missing = missingFields(card, input);
+  /** 반려동물 줄: 선택 칸(필수 아님)이 비면 다른 선택 칸처럼 숨김(예: 지출 조건 삭제의 빈 반려동물 = 전체) */
+  const isPetRowShown =
+    'petSn' in card.params &&
+    (input.petSn != null ||
+      hasPetChips ||
+      missing.includes('petSn') ||
+      Boolean(fieldErrors.petSn));
   const breedRow = isBreedShown(card, input) && (
     <Row
       key="vrtySn"
@@ -856,7 +866,7 @@ export default function ActionCardFields({
 
   return (
     <dl className="flex flex-col gap-2">
-      {'petSn' in card.params && (
+      {isPetRowShown && (
         <Row label="반려동물" error={fieldErrors.petSn}>
           {input.petSn != null && (petNm ?? '')}
           {hasPetChips && (
