@@ -9,10 +9,13 @@ import {
 
 const ITEM_HEIGHT = 36;
 const LIST_MAX_HEIGHT = 256;
+/** 설명이 붙은 항목의 대략 높이(설명이 두 줄로 접히는 폭까지 감안해 목록이 열리는 방향을 정할 때만 씀) */
+const ITEM_HEIGHT_DESC = 56;
 
 /**
  * 목록을 직접 그리는 셀렉트 (디자인의 custom select)
- * - options: [{ value, label, disabled? }], 고르지 않았을 때는 placeholder 표시. disabled 항목은 회색이고 고를 수 없다
+ * - options: [{ value, label, description?, disabled? }], 고르지 않았을 때는 placeholder 표시. disabled 항목은 회색이고 고를 수 없다
+ * - 목록 항목은 한 줄, 넘치면 …(마우스를 올리면 전체 이름). description이 있으면 이름 아래에 작은 회색 글자로 한 줄 더 보이고 길면 줄바꿈한다. 닫힌 칸에는 label만 보인다
  * - isPill: 알약형 버튼에 종합 건강기록 히어로와 같은 색(초록 바탕·흰 글자). 목록은 버튼보다 좁아지지 않고 긴 이름만큼 넓어짐
  * - placeholderValue: 이 값을 고른 상태면 닫힌 칸에 placeholder 문구를 보인다(첫 항목 '전체'를 '상태: 전체'로 보일 때)
  * - size: 'md'(기본, 높이 40px·16px) / 'sm'(높이 36px·14px) / 'xs'(높이 34px·14px)
@@ -85,8 +88,12 @@ export default function DropdownSelect({
     setAnchorRect(rect);
     setPortalTarget(getPortalTarget(buttonRef.current));
     const below = window.innerHeight - rect.bottom;
-    const need =
-      Math.min(options.length * ITEM_HEIGHT + 10, listMaxHeight) + 12;
+    const itemsHeight = options.reduce(
+      (sum, option) =>
+        sum + (option.description ? ITEM_HEIGHT_DESC : ITEM_HEIGHT),
+      0,
+    );
+    const need = Math.min(itemsHeight + 10, listMaxHeight) + 12;
     setIsUp(below < need && rect.top > below);
     setActiveIndex(Math.max(selectedIndex, 0));
     setIsOpen(true);
@@ -229,11 +236,27 @@ export default function DropdownSelect({
                   role="option"
                   aria-selected={isSelected}
                   aria-disabled={option.disabled || undefined}
+                  title={
+                    typeof option.label === 'string' ? option.label : undefined
+                  }
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => pick(index)}
-                  className={`flex h-9 cursor-pointer items-center justify-between gap-2 rounded px-2.5 pt-px ${isSmall ? 'text-sm' : 'text-base'} ${isSelected ? 'bg-brand-50 font-semibold text-brand-600' : option.disabled ? 'cursor-not-allowed text-placeholder' : 'text-ink'} ${index === activeIndex && !isSelected ? 'bg-surface-2' : ''} ${isSelected || option.disabled ? '' : 'hover:bg-surface-2'}`}
+                  className={`flex ${option.description ? 'min-h-9 py-1.5' : 'h-9'} cursor-pointer items-center justify-between gap-2 rounded px-2.5 pt-px ${isSmall ? 'text-sm' : 'text-base'} ${isSelected ? 'bg-brand-50 font-semibold text-brand-600' : option.disabled ? 'cursor-not-allowed text-placeholder' : 'text-ink'} ${index === activeIndex && !isSelected ? 'bg-surface-2' : ''} ${isSelected || option.disabled ? '' : 'hover:bg-surface-2'}`}
                 >
-                  {option.label}
+                  {option.description ? (
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">{option.label}</span>
+                      <span
+                        className={`block text-xs leading-snug font-normal ${isSelected ? 'text-brand-600' : 'text-muted'}`}
+                      >
+                        {option.description}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="min-w-0 flex-1 truncate">
+                      {option.label}
+                    </span>
+                  )}
                   {isSelected && (
                     <Check
                       size={18}

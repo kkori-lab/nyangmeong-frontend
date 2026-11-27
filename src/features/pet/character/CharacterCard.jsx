@@ -6,15 +6,7 @@ import FileImage from '@/components/FileImage';
 import { characterImageOptions } from '@/hooks/useCharacterImage';
 import { useFileImage } from '@/hooks/useFileImage';
 import { CHRC_STTS, PET_SE } from '../shared/petCodes';
-
-/** 카드마다 돌려 쓰는 무대 배경 */
-const STAGE_TONES = [
-  'bg-tone-blue-bg',
-  'bg-tone-rose-bg',
-  'bg-tone-amber-bg',
-  'bg-tone-violet-bg',
-  'bg-tone-green-bg',
-];
+import { STAGE_TONES } from '../shared/stageTones';
 
 /**
  * [캐릭터 카드]

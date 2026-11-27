@@ -14,8 +14,8 @@ const DEFAULT_PERIOD = 3;
 // 최근 케어 기록(FN-HLT-003-12). 케어리스트 카드 아래의 별도 카드다(숨긴 항목의 지난 기록도 그대로 나온다, ※신규 정책). 아이콘을 누르면 그날 완료 기록이 취소되고, 마우스를 올리면 아이콘이 ✕로 바뀐다
 // 조회기간(오늘을 포함한 최근 3·7·14일, 처음 3일) 안의 완료 기록만 보여 준다. 기간을 바꾸면 1페이지로 돌아간다 (※신규 정책)
 // 날짜 10줄씩 페이지로 나눠 보여 준다. 기록을 취소해 줄어들면 마지막 페이지로 당겨 온다
-// regularSns: 정기관리 항목 번호(완료 기록 응답에 구역이 없어 R 표시에 쓴다)
-export default function CareRecordList({ records, regularSns, onCancel }) {
+// regularCycles: 정기관리 항목 번호 → 주기 이름 Map(완료 기록 응답에 구역이 없어 정기관리 표시에 쓴다. Map에 있으면 정기관리, ※신규 정책)
+export default function CareRecordList({ records, regularCycles, onCancel }) {
   const [page, setPage] = useState(1);
   const [periodDays, setPeriodDays] = useState(DEFAULT_PERIOD);
   const todayYmd = getTodayYmd();
@@ -64,8 +64,7 @@ export default function CareRecordList({ records, regularSns, onCancel }) {
           icon={
             <Icon name="task_alt" className="text-[28px] text-line-strong" />
           }
-          title={`최근 ${periodDays}일 동안 완료한 케어가 없어요`}
-          description="위 케어 항목을 누르면 완료로 표시되고 여기에 날짜별로 쌓여요"
+          title="위 케어 항목을 누르면 완료로 표시되고 여기에 날짜별로 쌓여요"
         />
       ) : (
         <ul>
@@ -82,35 +81,42 @@ export default function CareRecordList({ records, regularSns, onCancel }) {
               <span className="flex flex-wrap gap-x-3 gap-y-2">
                 {records
                   .filter((record) => record.cmptnYmd === ymd)
-                  .map((record) => (
-                    <button
-                      key={record.careCmptnHstrySn}
-                      type="button"
-                      aria-label={`${formatMonthDayDot(ymd)} ${record.careArtclNm} 완료 기록 취소`}
-                      className="group inline-flex items-center gap-1 text-ink"
-                      onClick={() => onCancel(record)}
-                    >
-                      <span className="relative grid size-7 place-items-center rounded-full bg-surface-3 text-muted group-hover:bg-danger-soft group-hover:text-danger">
-                        <Icon
-                          name={toCareIcon(record.rprsIconId)}
-                          className="text-[18px] group-hover:hidden"
-                        />
-                        <Icon
-                          name="close"
-                          className="hidden text-[18px] group-hover:inline-flex"
-                        />
-                        {regularSns.has(record.careArtclSn) && (
-                          <span
-                            aria-hidden="true"
-                            className="absolute -top-1 -left-1 grid size-4 place-items-center rounded-full bg-tone-violet-fg text-[13px] leading-none font-semibold text-white"
-                          >
-                            R
+                  .map((record) => {
+                    const cycleName = regularCycles.get(record.careArtclSn);
+                    const isRegular = cycleName !== undefined;
+                    return (
+                      <button
+                        key={record.careCmptnHstrySn}
+                        type="button"
+                        aria-label={`${formatMonthDayDot(ymd)} ${record.careArtclNm} 완료 기록 취소`}
+                        className="group inline-flex items-center gap-1 text-ink"
+                        onClick={() => onCancel(record)}
+                      >
+                        <span
+                          className={`grid size-7 place-items-center rounded-full group-hover:bg-danger-soft group-hover:text-danger ${
+                            isRegular
+                              ? 'bg-brand-100 text-brand-600'
+                              : 'bg-surface-3 text-muted'
+                          }`}
+                        >
+                          <Icon
+                            name={toCareIcon(record.rprsIconId)}
+                            className="text-[18px] group-hover:hidden"
+                          />
+                          <Icon
+                            name="close"
+                            className="hidden text-[18px] group-hover:inline-flex"
+                          />
+                        </span>
+                        {record.careArtclNm}
+                        {isRegular && (
+                          <span className="text-sm text-brand-500">
+                            {cycleName}마다
                           </span>
                         )}
-                      </span>
-                      {record.careArtclNm}
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
               </span>
             </li>
           ))}

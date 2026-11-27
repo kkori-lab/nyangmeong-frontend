@@ -21,6 +21,7 @@ const DIRECT_INPUT_ARTICLE = 'HLTC0035';
  * - AI 서버가 실행 카드에 이름을 같이 붙여 올 때가 있어 보내기 전에 맞춘다(근본 수정은 ai 저장소)
  */
 const cleanInput = (card, input) => {
+  if (card.tool === MEMBER_PROFILE_TOOL) return cleanProfileInput(input);
   if (card.tool !== INSPECTION_TOOL || !Array.isArray(input.values)) {
     return input;
   }
@@ -34,6 +35,26 @@ const cleanInput = (card, input) => {
       return rest;
     }),
   };
+};
+
+/**
+ * 회원 프로필 사진 수정 도구(2026-11-27): 새 사진(profilePhoto) 또는 기본 이미지로 되돌리기(profilePhotoReset) 하나만
+ * - Java는 둘을 같이 받으면 400, 둘 다 없으면 바꾸지 않고 성공이다
+ */
+export const MEMBER_PROFILE_TOOL = 'draft_member_profile_update';
+const PROFILE_PHOTO_FIELD = 'profilePhoto';
+const PROFILE_RESET_FIELD = 'profilePhotoReset';
+
+/** 기본 이미지로 되돌리는 카드인지: AI 서버가 true(또는 글자 'true')를 싣는다 */
+export const isProfileReset = (card, input) =>
+  card.tool === MEMBER_PROFILE_TOOL &&
+  [true, 'true'].includes(input[PROFILE_RESET_FIELD]);
+
+/** 사진을 고르면 되돌리기는 보내지 않는다(같이 보내면 400) */
+const cleanProfileInput = (input) => {
+  if (!(input[PROFILE_PHOTO_FIELD] instanceof Blob)) return input;
+  const { [PROFILE_RESET_FIELD]: _omitted, ...rest } = input;
+  return rest;
 };
 
 /** 카드가 쓰는 칸 */
@@ -56,6 +77,10 @@ export const requiredFields = (card, input) => {
   card.rules.forEach(({ field, when, equals }) => {
     if (input[when] === equals) fields.push(field);
   });
+  /** 프로필 사진 카드: 되돌리기가 아니면 사진을 골라야 실행(아무것도 안 바뀌는 실행을 막는다) */
+  if (card.tool === MEMBER_PROFILE_TOOL && !isProfileReset(card, input)) {
+    fields.push(PROFILE_PHOTO_FIELD);
+  }
   return [...new Set(fields)];
 };
 
@@ -86,8 +111,30 @@ const toFormData = (data) => {
  * Java 요청: path의 {칸}은 경로에, query 칸은 쿼리에, 나머지 목록 칸은 본문에
  * - call.path는 /api로 시작하고 axios api 인스턴스가 /api를 붙인다
  * - call.contentType이 multipart면 본문을 FormData로(관찰 항목 등록처럼 파일 칸이 있는 도구)
+ * - DELETE(삭제 카드)는 본문 없이 보낸다(칸은 경로 번호뿐, AI 계약 2026-11-25)
+ * - 본문 칸이 하나도 없는 POST(관찰 종료 end_observation_item)도 본문 없이 보낸다
  */
-export const buildActionRequest = (card, rawInput) => {
+/** 삭제 카드: 고칠 칸 없이 대상 글(targetText)과 [삭제]로 보인다 */
+export const isDeleteCard = (card) =>
+  card.call?.method?.toUpperCase() === 'DELETE';
+
+/**
+ * 지우는 도구: 삭제 카드이거나 도구 이름이 delete_로 시작한다
+ * - 조건 전체 삭제(delete_expenses_by_condition)는 POST라 칸은 보이고 버튼만 빨간 [삭제](사람 결정 2026-11-27)
+ */
+export const isDeleteTool = (card) =>
+  isDeleteCard(card) || (card.tool?.startsWith('delete_') ?? false);
+
+/**
+ * 쿼리 번호 목록(delete_expenses의 expndSn)은 같은 이름을 되풀이해 보낸다(?expndSn=1&expndSn=2)
+ * - axios 기본은 expndSn[]=1이라 Spring @RequestParam List가 받지 못한다
+ */
+const withQueryList = (request) =>
+  Object.values(request.params).some(Array.isArray)
+    ? { ...request, paramsSerializer: { indexes: null } }
+    : request;
+
+const toActionRequest = (card, rawInput) => {
   const input = cleanInput(card, rawInput);
   const params = {};
   const data = {};
@@ -105,7 +152,11 @@ export const buildActionRequest = (card, rawInput) => {
   const url = card.call.path
     .replace(/^\/api/, '')
     .replace(/\{(\w+)\}/g, (_, field) => encodeURIComponent(input[field]));
+  if (isDeleteCard(card)) return { method: card.call.method, url, params };
   const isMultipart = card.call.contentType?.includes('multipart') ?? false;
+  if (!isMultipart && Object.keys(data).length === 0) {
+    return { method: card.call.method, url, params };
+  }
   return {
     method: card.call.method,
     url,
@@ -113,6 +164,9 @@ export const buildActionRequest = (card, rawInput) => {
     data: isMultipart ? toFormData(data) : data,
   };
 };
+
+export const buildActionRequest = (card, rawInput) =>
+  withQueryList(toActionRequest(card, rawInput));
 
 /**
  * 조건부 칸이 꺼졌는지: rules에 나오는 칸은 그 조건 중 하나라도 맞을 때만 쓴다
@@ -158,6 +212,79 @@ export const jsonInput = (card, rawInput) => {
 /** 관찰 기록 추가 도구: 관찰 항목 번호(obsrvArtclSn)만 오므로 카드가 이름을 따로 보인다 */
 export const OBSERVATION_CYCLE_TOOL = 'draft_observation_cycle';
 
+/**
+ * 관찰 항목 줄을 따로 보이는 카드: 관찰 항목 번호(obsrvArtclSn) 칸이 있는 카드
+ * - 관찰 기록 추가(본문 칸)·관찰 종료(end_observation_item, 경로 칸)
+ */
+export const hasObservationItemRow = (card) => 'obsrvArtclSn' in card.params;
+
+/**
+ * 검진기록 줄을 따로 보이는 카드: 본문에 검진기록 번호(ckupRcdSn)를 싣는 카드
+ * - 검사 수치·처방·기타 검사·반복 예방 등록. 비어 있으면 카드에서 고른다
+ * - 경로 칸(검진기록 수정·삭제)은 대상 번호라 보이지 않는다
+ */
+export const hasCheckupRow = (card) =>
+  'ckupRcdSn' in card.params && card.params.ckupRcdSn.in !== 'path';
+
+/** 반려동물 쓰기 카드(2026-11-27): 번호 목록 칸·대상 번호를 이름으로 보이는 도구 */
+export const PET_CREATE_TOOL = 'draft_pet';
+export const INVITE_TOOL = 'draft_caregiver_invitation';
+export const ACCEPT_INVITATION_TOOL = 'accept_caregiver_invitation';
+export const CANCEL_INVITATION_TOOL = 'cancel_caregiver_invitation';
+export const EQUIP_TOOL = 'draft_equipped_items';
+export const PURCHASE_TOOL = 'draft_item_purchase';
+
+/**
+ * 번호 목록 칸(petSns·itemSns·hldItemSns): array 칸이 itemType(long·int)이거나 줄 칸(items)이 없다
+ * - AI 서버가 itemType을 싣기 전에도 줄 칸이 없는 array는 번호 목록으로 본다
+ */
+export const isNumberList = (param) =>
+  param?.type === 'array' &&
+  !hasValues(param) &&
+  (param.itemType != null || !param.items);
+
+/**
+ * 값 목록이 있는 칸(2026-11-27): Java enum 칸(string)·enum 목록 칸(array + itemType string)에 고를 값(values)이 온다
+ * - 값은 enum 상수 이름 그대로 Java에 보낸다(예: 알림 설정 leadTimes TODAY·D1·D3·D7)
+ */
+export const hasValues = (param) =>
+  Array.isArray(param?.values) && param.values.length > 0;
+
+/** 값 여러 개를 고르는 칸: enum 목록 칸 */
+export const isValueList = (param) =>
+  param?.type === 'array' && hasValues(param);
+
+/**
+ * 서버가 만드는 칸(generated: uuid, 예: 구매 중복 방지 키 idmptDmndId): 카드 하나에 한 번 만든다
+ * - Java 요청에만 싣고 결과 저장·다음 메시지 input에는 싣지 않는다(useActionCards)
+ */
+export const generatedInput = (card) =>
+  Object.fromEntries(
+    Object.entries(card.params)
+      .filter(([, param]) => param.generated === 'uuid')
+      .map(([field]) => [field, crypto.randomUUID()]),
+  );
+
+/**
+ * 품종 줄을 따로 보이는 카드: 품종 번호(vrtySn)·직접 입력(vrtyDrctInptNm) 중 하나를 "품종" 한 줄로
+ * - 번호 칸(…Sn)은 카드에 보이지 않아 품종 목록 이름으로 보인다
+ */
+export const hasBreedRow = (card) =>
+  'vrtySn' in card.params && 'vrtyDrctInptNm' in card.params;
+
+/** 초대 줄을 따로 보이는 카드: 경로 칸 초대 번호(jntBrupInvtnSn), 수락·거절·취소 */
+export const hasInvitationRow = (card) => 'jntBrupInvtnSn' in card.params;
+
+/** 플레이스 즐겨찾기 저장 도구(2026-11-27) */
+export const PLACE_BOOKMARK_TOOL = 'draft_place_bookmark';
+
+/**
+ * 장소 줄을 따로 보이는 카드: 본문에 장소 번호(plcSn)를 싣는 카드
+ * - 번호는 카드에서 고를 수 없어 말로 정하고, 이름은 카드 대상 글(targetText)로 보인다
+ */
+export const hasPlaceRow = (card) =>
+  'plcSn' in card.params && card.params.plcSn.in !== 'path';
+
 /** 케어 항목 등록 도구 */
 export const CARE_ITEM_TOOL = 'draft_care_item';
 
@@ -167,7 +294,7 @@ export const CALENDAR_TOOLS = ['draft_schedule', CARE_ITEM_TOOL];
 /**
  * 카드에 보일 칸: 칸 규칙 순서대로, 경로 칸·카드에 두지 않는 칸·꺼진 조건부 칸·번호 칸(…Sn)·서버가 만드는 칸·파일 칸은 뺀다
  * - 빈 칸은 필수(조건부 필수 포함)일 때만 보이고 isMissing
- * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검사 수치의 검진기록(ckupRcdSn)도 카드가 따로 보인다
+ * - 반려동물(petSn)은 경로 칸이라 카드가 따로 보이고, 검진기록(ckupRcdSn)·관찰 항목(obsrvArtclSn)·품종(vrtySn)·초대(jntBrupInvtnSn)·장소(plcSn)도 카드가 따로 보인다
  */
 export const cardRows = (card, input) => {
   const missing = missingFields(card, input);
@@ -183,7 +310,14 @@ export const cardRows = (card, input) => {
         !param.generated &&
         param.type !== 'file' &&
         !isFieldOff(card, input, field) &&
-        !(isHourDerived && field === HOUR_INPUT_FIELD),
+        !(isHourDerived && field === HOUR_INPUT_FIELD) &&
+        !(hasBreedRow(card) && field === 'vrtyDrctInptNm') &&
+        /** 프로필 사진 카드: 되돌리기 줄은 되돌릴 때만("예"), 아니요는 사진 줄로 보인다 */
+        !(
+          field === PROFILE_RESET_FIELD &&
+          card.tool === MEMBER_PROFILE_TOOL &&
+          !isProfileReset(card, input)
+        ),
     )
     .map(([field, param]) => ({
       field,
@@ -198,7 +332,7 @@ export const cardRows = (card, input) => {
 /** 시간 입력 칸: 일시 칸과 짝 */
 export const HOUR_INPUT_FIELD = 'hrInptYn';
 
-/** 카드에서 바로 채우는 칸 종류: 목록·파일 칸은 말로 */
+/** 카드에서 바로 채우는 칸 종류: 목록·파일 칸은 말로(값 목록 칸은 칩으로 고른다) */
 const EDITABLE_TYPES = [
   'string',
   'code',
@@ -223,7 +357,7 @@ export const editableFields = (card, input) =>
       isCardField(card, field) &&
       !/Sn$/.test(field) &&
       !param.generated &&
-      EDITABLE_TYPES.includes(param.type) &&
+      (EDITABLE_TYPES.includes(param.type) || isValueList(param)) &&
       isEmptyValue(card.input[field])
     );
   });
@@ -235,10 +369,13 @@ export const isHourInputDerived = (card, input) =>
     (field) => card.params[field].type === 'datetime',
   );
 
-/** 칸 아래에 서버 오류를 보이는 칸: 반려동물·검사 수치 검진기록·보이는 칸(검사 수치 표 제외) */
+/** 칸 아래에 서버 오류를 보이는 칸: 반려동물·검진기록·관찰 항목·보이는 칸(검사 수치 표 제외) */
 export const errorFieldsShown = (card, input) => [
   ...('petSn' in card.params ? ['petSn'] : []),
-  ...(card.tool === INSPECTION_TOOL ? ['ckupRcdSn'] : []),
+  ...(hasCheckupRow(card) ? ['ckupRcdSn'] : []),
+  ...(hasObservationItemRow(card) ? ['obsrvArtclSn'] : []),
+  ...(hasBreedRow(card) ? ['vrtySn', 'vrtyDrctInptNm'] : []),
+  ...(hasPlaceRow(card) ? ['plcSn'] : []),
   ...cardRows(card, input)
     .filter(
       ({ field }) => !(card.tool === INSPECTION_TOOL && field === 'values'),

@@ -5,10 +5,12 @@ import Skeleton from '@/components/Skeleton';
 import SkeletonCard from '@/components/SkeletonCard';
 import InviteModal from '@/features/pet/list/InviteModal';
 import PetDeleteDialog from '@/features/pet/list/PetDeleteDialog';
+import { FamilySkeleton } from '@/features/pet/list/FamilySection';
 import PetEmpty from '@/features/pet/list/PetEmpty';
 import PetFormModal from '@/features/pet/list/PetFormModal';
 import PetSlide from '@/features/pet/list/PetSlide';
 import PetUnlinkDialog from '@/features/pet/list/PetUnlinkDialog';
+import { SLIDE_CARD, STAGE_BOX } from '@/features/pet/list/slideLayout';
 import SentInvitations from '@/features/pet/list/SentInvitations';
 import { usePetLimit, usePets } from '@/features/pet/queries';
 import SubPageLayout from '@/layouts/SubPageLayout';
@@ -26,6 +28,38 @@ const withPetSn = (returnTo, petSn) => {
   url.searchParams.set('petSn', petSn);
   return `${url.pathname}${url.search}${url.hash}`;
 };
+
+/** 첫 로딩: 실제 슬라이드 카드 배치(왼쪽 사각형 + 오른쪽 정보 + 구분선 + 가족 카드 1장). 모바일은 970px 미만 */
+function PetSlideSkeleton() {
+  return (
+    <div aria-hidden="true" className={SLIDE_CARD}>
+      <Skeleton className={`${STAGE_BOX} rounded-card`} />
+      <div className="flex min-w-0 flex-col max-[970px]:contents">
+        <Skeleton className="mb-4 h-[37.8px] w-56 max-w-full max-[970px]:hidden" />
+        <div className="grid auto-rows-[56.55px] grid-cols-2 items-center gap-x-10 max-[970px]:hidden">
+          {Array.from({ length: 8 }, (_, index) => (
+            <Skeleton key={index} className="h-6" />
+          ))}
+        </div>
+        <div className="hidden h-[84px] flex-col gap-2 pt-1.5 max-[970px]:flex">
+          <Skeleton className="h-7 w-44" />
+          <Skeleton className="h-[18px] w-32" />
+        </div>
+        <div className="col-span-full mt-4 hidden max-[970px]:block">
+          <div className="border-t border-line-strong">
+            {Array.from({ length: 5 }, (_, index) => (
+              <div key={index} className="flex h-[50.6px] items-center">
+                <Skeleton className="h-6 w-full" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="mt-2 h-[37.6px] w-full" />
+        </div>
+      </div>
+      <FamilySkeleton />
+    </div>
+  );
+}
 
 export default function PetListPage() {
   const { data: pets = [], isPending } = usePets();
@@ -101,7 +135,7 @@ export default function PetListPage() {
     <SubPageLayout section="mypage">
       {isPending ? (
         <PageSkeleton>
-          <SkeletonCard className="h-[577px] max-[760px]:h-[683px]" />
+          <PetSlideSkeleton />
           <div aria-hidden="true" className="mt-7 flex flex-col gap-5">
             <Skeleton className="h-7 w-32" />
             <SkeletonCard className="h-[427px]" />

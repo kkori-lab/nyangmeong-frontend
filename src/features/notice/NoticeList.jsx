@@ -41,8 +41,8 @@ export default function NoticeList({
       {content.length === 0 ? (
         <EmptyResult
           icon={keyword && <SearchX size={32} aria-hidden="true" />}
-          title={keyword ? '검색한 공지가 없어요' : '등록된 공지가 없어요'}
-          description={keyword && '검색어를 바꿔 보세요'}
+          title={keyword ? '검색 결과가 없어요' : '등록된 공지가 없어요'}
+          description={keyword && '검색어를 바꿔 다시 찾아보세요'}
         >
           {keyword && (
             <button

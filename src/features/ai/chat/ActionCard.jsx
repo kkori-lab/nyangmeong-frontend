@@ -5,11 +5,21 @@ import {
   ClipboardCheck,
   Info,
 } from 'lucide-react';
-import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
+import {
+  BTN_DANGER,
+  BTN_PRIMARY,
+  BTN_SECONDARY,
+} from '@/components/buttonStyles';
 import { PATHS } from '@/routes/paths';
 import { actionFieldName } from '../shared/actionFields';
 import { useOpenMain } from './aiHost';
-import { CARE_ITEM_TOOL, errorFieldsShown, missingFields } from './actionForm';
+import {
+  CARE_ITEM_TOOL,
+  errorFieldsShown,
+  isDeleteCard,
+  isDeleteTool,
+  missingFields,
+} from './actionForm';
 import ActionCardFields from './ActionCardFields';
 import AiAvatar from './AiAvatar';
 import useTypewriter from './useTypewriter';
@@ -73,6 +83,9 @@ function ResultLine({
  * - [확인]은 빈 필수 칸·처리 중·답변 중이면 비활성, 가장 최근 카드가 아니면 버튼 없음
  * - 처리한 카드: 결과 요약 메시지 자리에 결과 줄(케어 캘린더 바로가기 포함)
  * - 지난 카드·버린 카드는 그리지 않는다
+ * - 받자마자 실행하는 카드(isAuto)는 실행·결과 저장 중에 그리지 않는다(결과 줄만, 사람 결정 2026-11-27)
+ * - 삭제 카드(DELETE): 칸 대신 대상 글(targetText) 한 줄, [확인] 대신 빨간 [삭제]
+ * - delete_로 시작하는 POST 도구(조건 전체 삭제): 칸은 그대로, 버튼만 빨간 [삭제]
  */
 export default function ActionCard({
   item,
@@ -88,6 +101,8 @@ export default function ActionCard({
 }) {
   const { card, input, status, isBusy, fieldErrors } = item;
   const isCareItem = card.tool === CARE_ITEM_TOOL;
+  const isDelete = isDeleteCard(card);
+  const isDeleteButton = isDeleteTool(card);
 
   if (item.resultText) {
     return (
@@ -107,7 +122,10 @@ export default function ActionCard({
     );
   }
 
-  const isShown = status === 'pending' && (isActive || item.unsaved || isBusy);
+  const isShown =
+    status === 'pending' &&
+    !(item.isAuto && isBusy) &&
+    (isActive || item.unsaved || isBusy);
   if (!isShown) return null;
 
   const shownFields = errorFieldsShown(card, input);
@@ -140,17 +158,25 @@ export default function ActionCard({
             {card.notice}
           </p>
         )}
-        <ActionCardFields
-          card={card}
-          input={input}
-          fieldErrors={fieldErrors}
-          isActive={isActive}
-          isDisabled={isLocked}
-          onChoosePet={onChoosePet}
-          onChangeInput={onChangeInput}
-          photoFields={item.photoFields}
-          isPhotoAsked={item.isPhotoAsked}
-        />
+        {isDelete ? (
+          card.targetText && (
+            <p className="text-base leading-6 break-keep text-ink-2">
+              {card.targetText}
+            </p>
+          )
+        ) : (
+          <ActionCardFields
+            card={card}
+            input={input}
+            fieldErrors={fieldErrors}
+            isActive={isActive}
+            isDisabled={isLocked}
+            onChoosePet={onChoosePet}
+            onChangeInput={onChangeInput}
+            photoFields={item.photoFields}
+            isPhotoAsked={item.isPhotoAsked}
+          />
+        )}
         {isBusy && (
           <p role="status" className="text-sm leading-[22px] text-subtle">
             {card.label ?? '요청'}을(를) 처리하고 있어요…
@@ -194,11 +220,11 @@ export default function ActionCard({
             </button>
             <button
               type="button"
-              className={BTN_PRIMARY}
+              className={isDeleteButton ? BTN_DANGER : BTN_PRIMARY}
               disabled={isConfirmDisabled}
               onClick={onConfirm}
             >
-              확인
+              {isDeleteButton ? '삭제' : '확인'}
             </button>
           </div>
         )}

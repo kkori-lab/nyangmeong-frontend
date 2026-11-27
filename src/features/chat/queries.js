@@ -9,6 +9,7 @@ import { showToast } from '@/components/toastStore';
 import { useFileImage } from '@/hooks/useFileImage';
 import useKakaoMap from '@/hooks/useKakaoMap';
 import { careKeys } from '@/features/community/careQueries';
+import { notificationKeys } from '@/features/notification/queries';
 import { searchPlaces } from '@/utils/placeSearch';
 import {
   acceptCareMatch,
@@ -197,12 +198,17 @@ export const useCreateChatRoom = () => {
   });
 };
 
+/** 읽음이 성공하면 서버가 그 방의 거래 알림도 읽음 처리하므로 헤더 종 배지와 알림 목록도 바로 맞춘다(60초 폴링을 기다리지 않음) */
 export const useReadChatRoom = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: readChatRoom,
-    onSuccess: () => invalidateSummaries(queryClient),
+    onSuccess: () => {
+      invalidateSummaries(queryClient);
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount });
+      queryClient.invalidateQueries({ queryKey: notificationKeys.list });
+    },
   });
 };
 

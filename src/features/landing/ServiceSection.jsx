@@ -16,14 +16,19 @@ const SWIPE_PX = 40;
 const offsetOf = (index, active) =>
   ((index - active + COUNT + HALF) % COUNT) - HALF;
 
-// 가운데에서 떨어진 칸 수(d)에 따른 카드 모양. 양옆은 작아지고 안쪽으로 기울며 흑백이 된다
+// 가운데에서 떨어진 칸 수(d)에 따른 카드 모양. 양옆은 작아지고 안쪽으로 기울며, 멀수록 흐려진다(바로 옆 1px·약간 어둡게, 맨 끝 3px)
 function cardStyle(d) {
   const abs = Math.abs(d);
   return {
     transform: `translateX(calc(var(--gap) * ${d})) scale(${abs === 0 ? 1 : abs === 1 ? 0.84 : 0.7}) rotateY(${Math.max(-2, Math.min(2, d)) * -14}deg)`,
     zIndex: 10 - abs,
     opacity: abs > 2 ? 0 : 1,
-    filter: abs === 0 ? 'none' : 'grayscale(1) brightness(0.8)',
+    filter:
+      abs === 0
+        ? 'none'
+        : abs === 1
+          ? 'blur(1px) brightness(0.92)'
+          : 'blur(3px) brightness(0.92)',
   };
 }
 
@@ -117,7 +122,7 @@ export default function ServiceSection() {
                   alt=""
                   className="size-full object-cover object-top"
                 />
-                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 via-black/60 to-transparent px-5 pt-20 pb-6 text-white">
+                <div className="absolute inset-x-0 bottom-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.8)_0%,rgba(0,0,0,0.78)_10%,rgba(0,0,0,0.72)_20%,rgba(0,0,0,0.63)_30%,rgba(0,0,0,0.52)_40%,rgba(0,0,0,0.4)_50%,rgba(0,0,0,0.28)_60%,rgba(0,0,0,0.17)_70%,rgba(0,0,0,0.08)_80%,rgba(0,0,0,0.02)_90%,transparent_100%)] px-5 pt-40 pb-6 text-white">
                   <p className="text-[20px] font-bold lg:text-[22px]">
                     {card.title}
                   </p>

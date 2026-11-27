@@ -30,6 +30,7 @@ import {
   getYmdOf,
 } from '@/utils/formatDate';
 import { publicFileUrl } from '@/utils/fileUrl';
+import { pickJosa } from '@/utils/josa';
 import { LIST_RAIL_COLS } from '@/constants/listLayout';
 import AttachedImages from '../AttachedImages';
 import CommentSection from '../CommentSection';
@@ -141,8 +142,8 @@ function FoundPublicView({ post, listTo }) {
             className="text-tone-green-fg"
           />
           <h3 className="text-lg font-bold text-ink">
-            {post.petNm ? `${post.petNm}가 ` : ''}무사히 가족의 품으로
-            돌아갔어요
+            {post.petNm ? `${post.petNm}${pickJosa(post.petNm, '이/가')} ` : ''}
+            무사히 가족의 품으로 돌아갔어요
           </h3>
           <p className="text-ink-2">
             여러분의 제보와 관심 덕분이에요. 감사합니다!
@@ -366,7 +367,7 @@ export default function MissingDetail({ post }) {
                       className="text-subtle"
                     />
                   }
-                  label="마지막 목격"
+                  label="실종 일시"
                 >
                   {formatSeenAt(post.lastWtnsDt)}
                 </InfoRow>
@@ -392,12 +393,9 @@ export default function MissingDetail({ post }) {
                       className="text-subtle"
                     />
                   }
-                  label="목격 장소"
+                  label="실종 장소"
                 >
                   {post.wtnsPlcNm}
-                  <span className="mt-1 block text-sm text-muted">
-                    {post.rgnNm}
-                  </span>
                 </InfoRow>
               </dl>
               <div className="mt-3">
@@ -418,6 +416,7 @@ export default function MissingDetail({ post }) {
                 isLiked={isLiked}
                 count={post.rcmdtnCnt}
                 disabled={toggleLike.isPending}
+                locked={(found || expired) && !isLiked}
                 onToggle={() =>
                   toggleLike.mutate({ pstSn: post.pstSn, liked: isLiked })
                 }

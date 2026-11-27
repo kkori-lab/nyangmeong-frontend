@@ -8,6 +8,8 @@ import Toggle from '@/components/Toggle';
 import { showToast } from '@/components/toastStore';
 import CareList from '@/features/health/CareList';
 import UnderlineTabs from '@/components/UnderlineTabs';
+import NoPetDashboard from '@/features/health/dashboard/NoPetDashboard';
+import WidgetTutorialGate from '@/features/health/dashboard/WidgetTutorialGate';
 import MonthCalendar from '@/features/health/MonthCalendar';
 import PetSwitcher from '@/features/health/shared/PetSwitcher';
 import SelectedPetProvider from '@/features/health/shared/SelectedPetProvider';
@@ -56,31 +58,35 @@ const getTabFromHash = (hash) =>
 /**
  * [케어 캘린더 SCR-HLT-003]
  * - 반려동물은 건강기록 공통 반려동물 카드(shared/PetSwitcher)의 선택을 따른다 (※신규 정책)
+ * - 반려동물이 있고 대시보드 항목을 저장한 적 없으면 첫 진입에 건강 대시보드 튜토리얼을 캘린더 위에 엶(WidgetTutorialGate, ※신규 정책, 2026-11-26)
  */
 export default function CareCalendarPage() {
   const { data: me } = useMe();
   return (
     <SelectedPetProvider mbrSn={me?.mbrSn}>
-      <CareCalendarContent />
+      <CareCalendarContent mbrSn={me?.mbrSn} />
     </SelectedPetProvider>
   );
 }
 
-/** 공용 페이지 틀 + 공통 반려동물 카드 (※신규 정책) */
-function CalendarLayout({ children }) {
+/**
+ * 공용 페이지 틀 + 공통 반려동물 카드 (※신규 정책)
+ * - isNoPet: 0마리면 등록 안내와 겹치지 않게 반려동물 카드를 그리지 않음 (※신규 정책)
+ */
+function CalendarLayout({ isNoPet = false, children }) {
   return (
     <SubPageLayout
       {...LAYOUT_PROPS}
-      sideBottom={<PetSwitcher variant="card" />}
+      sideBottom={isNoPet ? null : <PetSwitcher variant="card" />}
     >
-      <PetSwitcher variant="pill" />
+      {!isNoPet && <PetSwitcher variant="pill" />}
       {children}
     </SubPageLayout>
   );
 }
 
-function CareCalendarContent() {
-  const { hash } = useLocation();
+function CareCalendarContent({ mbrSn }) {
+  const { hash, pathname } = useLocation();
   const [sectionId, setSectionId] = useState(() => getTabFromHash(hash));
   const todayYmd = getTodayYmd();
   const [viewMonthYmd, setViewMonthYmd] = useState(() =>
@@ -171,6 +177,17 @@ function CareCalendarContent() {
         <LoadError
           message="반려동물 정보를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요"
           onRetry={() => refetchPets()}
+        />
+      </CalendarLayout>
+    );
+  }
+  /** 0마리: 캘린더·케어리스트 탭 모두 탭·탭 내용 없이 등록 안내만 (※신규 정책) */
+  if (!selectedPet) {
+    return (
+      <CalendarLayout isNoPet>
+        <NoPetDashboard
+          returnTo={pathname}
+          description="반려동물을 등록하면 케어 일정과 케어리스트를 관리할 수 있어요"
         />
       </CalendarLayout>
     );
@@ -337,6 +354,13 @@ function CareCalendarContent() {
           onCreateNew={() => openCreate(modal.defaultYmd)}
         />
       )}
+
+      {/* 저장한 적 없으면 첫 진입에 튜토리얼 (※신규 정책, 2026-11-26) */}
+      <WidgetTutorialGate
+        mbrSn={mbrSn}
+        petSn={selectedPet.petSn}
+        petNm={selectedPet.petNm}
+      />
     </CalendarLayout>
   );
 }

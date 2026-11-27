@@ -50,6 +50,9 @@ const MessageTime = ({ message }) =>
     </time>
   ) : null;
 
+const CTPT_LEFT_NOTICE =
+  '상대가 나간 방이에요. 메시지를 보내 대화를 다시 시작할 수 있어요.';
+
 /** 거래 단계 안내(요청·수락·완료 등). 서버가 강조 구분을 주지 않아 한 모양 */
 function SystemNotice({ message }) {
   return (
@@ -213,7 +216,7 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
     list.scrollTop = restore
       ? list.scrollHeight - restore.height + restore.top
       : list.scrollHeight;
-  }, [messages]);
+  }, [messages, room?.ctptLeft]);
 
   const handleScroll = (event) => {
     const list = event.currentTarget;
@@ -270,6 +273,8 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
     : [];
   /** 끝난 방(상대가 나감·무응답 종료)은 대화를 막는다 */
   const isClosed = room && isEndedRoom(room);
+  /** 상대가 나간 방(대화가 막힌 방은 제외): 목록 맨 아래에 안내를 붙인다. 메시지를 보내면 상대가 돌아온다 */
+  const hasCtptLeftNotice = Boolean(room?.ctptLeft) && !isClosed;
   /** 사진 보기에서 넘겨 볼 방의 모든 사진(시간 순, 지금까지 불러온 것) */
   const roomPhotos = (messages ?? []).flatMap((message) =>
     message.msgTypeCd === MSG_TYPE.IMAGE ? message.photos : [],
@@ -330,9 +335,9 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
             첫 메시지를 보내 보세요
           </p>
         )}
-        {messages?.length > 0 && (
+        {(messages?.length > 0 || hasCtptLeftNotice) && (
           <ul>
-            {messages.map((message, index) => {
+            {(messages ?? []).map((message, index) => {
               const previous = messages[index - 1];
               const isContinued =
                 previous !== undefined &&
@@ -350,6 +355,9 @@ export default function ChatConversation({ otoChatRoomSn, onBack, onLeft }) {
                 />
               );
             })}
+            {hasCtptLeftNotice && (
+              <SystemNotice message={{ msgCn: CTPT_LEFT_NOTICE }} />
+            )}
           </ul>
         )}
       </div>
