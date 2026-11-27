@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { notifyAiWrite } from '@/utils/aiWriteChannel';
 import { toFieldErrors, toFormError } from '@/utils/fieldErrors';
-import { useExecuteAction, useSaveActionResult } from '../queries';
 import {
+  useExecuteAction,
+  useSaveActionResult,
+  useSaveChatEquippedImage,
+} from '../queries';
+import {
+  EQUIP_TOOL,
   buildActionRequest,
   errorFieldsShown,
   fileFields,
+  generatedInput,
   jsonInput,
   missingFields,
   resultInput,
@@ -24,6 +30,22 @@ const SERVER_FAILURE_CODES = [
   'NETWORK_ERROR',
   'INTERNAL_SERVER_ERROR',
 ];
+
+/** Java 입력 검증 오류: 칸 오류(data)·빈 data 모두 카드를 살려 두고 고치게 한다(FN-AIM-012-12) */
+const INPUT_ERROR_CODE = 'INVALID_INPUT_VALUE';
+
+/**
+ * 카드를 고쳐도 풀리지 않는 오류: 입력 검증 오류가 아닌 업무 오류(추가-1, 사람 요청 2026-11-27)
+ * - 예: 반려동물 한도 409·이미 보유한 아이템·이미 처리된 초대. 카드에 [확인]만 켜진 채 남지 않게 실패로 저장한다
+ */
+const isNonFieldError = (error) =>
+  Boolean(error?.code) && error.code !== INPUT_ERROR_CODE;
+
+/**
+ * 닉네임만 바꾸면 풀리는 409: 카드를 닫지 않고 닉네임 줄 아래 서버 문구를 보인다(사람 결정 2026-11-27)
+ * - 닉네임은 말로 고쳐 새 카드를 받는다(이미 값이 있는 칸은 카드에서 고치지 않음)
+ */
+const FIELD_CONFLICTS = { NICKNAME_ALREADY_USED: 'mbrNcnm' };
 
 /** 결과 저장에 싣는 Java 400 칸 오류 최대 수(ActionResultRequest errors) */
 const MAX_RESULT_ERRORS = 50;
@@ -68,6 +90,7 @@ export function useActionCards({ onAgentReady } = {}) {
   const [actionCards, setActionCards] = useState([]);
   const executeAction = useExecuteAction();
   const saveActionResult = useSaveActionResult();
+  const saveEquippedImage = useSaveChatEquippedImage();
   /** 이어 가기 대기: agentToken → { keys, results: Map(key → 결과), closed } */
   const agentsRef = useRef(new Map());
   const onAgentReadyRef = useRef(onAgentReady);
@@ -158,6 +181,8 @@ export function useActionCards({ onAgentReady } = {}) {
     isPhotoAsked: false,
     /** 받자마자 실행(done.execute)하는 카드: 실행·결과 저장 중에는 카드를 숨기고 결과 줄만, 고칠 일이 생기면 false로 카드를 보인다 */
     isAuto: false,
+    /** 서버가 만드는 칸 값(generated: uuid): 처음 실행할 때 만들고, 고쳐서 다시 실행해도 같은 값 */
+    generated: null,
   });
 
   /** 새 카드(한 응답의 묶음): params 목록 */
@@ -230,6 +255,31 @@ export function useActionCards({ onAgentReady } = {}) {
   };
 
   /**
+   * 착용 저장 성공 뒤 대표 이미지 저장(반려동물 화면 [장착]과 같다, 사람 결정 2026-11-27)
+   * - 착용 아이템이 없으면 서버가 대표 이미지를 지워 맨몸이라 부르지 않는다(캐릭터 그림은 실행 성공 때 다시 읽음)
+   * - 기다리지 않고 결과 저장으로 넘어가며, 실패해도 알리지 않는다
+   */
+  const saveEquippedImageOf = (character, domain) => {
+    if (!isPlainObject(character) || character.pixelCharSn == null) return;
+    const itemSns = (character.heldItems ?? [])
+      .filter((held) => held.equipYn)
+      .map((held) => held.itemSn);
+    if (itemSns.length === 0) return;
+    saveEquippedImage.mutate(
+      {
+        pixelCharSn: character.pixelCharSn,
+        petSn: character.petSn,
+        itemSns,
+      },
+      /** 본창은 실행 성공 때 이미 다시 읽어 옛 그림이라, 대표 이미지 저장이 끝나면 한 번 더 알린다 */
+      {
+        onSettled: () =>
+          notifyAiWrite({ domain, petSn: character.petSn ?? null }),
+      },
+    );
+  };
+
+  /**
    * 실행: Java 실행 → 결과 저장, 회원이 고칠 수 있는 오류면 카드를 살려 두고 말로 고치게 한다
    * - 카드에서 고칠 수 없는 칸의 400은 칸 오류를 errors로 실어 실패로 저장한다(서버가 칸 이름으로 실패 글을 만든다)
    */
@@ -238,14 +288,33 @@ export function useActionCards({ onAgentReady } = {}) {
     if (missingFields(item.card, item.input).length > 0) return;
     const input = resultInput(item.card, item.input);
     const savedInput = jsonInput(item.card, item.input);
-    patchCard(key, { isBusy: true, fieldErrors: {}, formError: null });
+    const generated = item.generated ?? generatedInput(item.card);
+    patchCard(key, {
+      isBusy: true,
+      fieldErrors: {},
+      formError: null,
+      generated,
+    });
     let data;
     try {
       data = await executeAction.mutateAsync(
-        buildActionRequest(item.card, input),
+        buildActionRequest(item.card, { ...input, ...generated }),
       );
     } catch (error) {
-      if (SERVER_FAILURE_CODES.includes(error?.code)) {
+      const conflictField = FIELD_CONFLICTS[error?.code];
+      if (conflictField && conflictField in item.card.params) {
+        patchCard(key, {
+          isBusy: false,
+          isAuto: false,
+          fieldErrors: { [conflictField]: error.message },
+          formError: null,
+        });
+        return;
+      }
+      if (
+        SERVER_FAILURE_CODES.includes(error?.code) ||
+        isNonFieldError(error)
+      ) {
         await saveResult(aiCnvrsRoomSn, item, ACTION_STATUS.FAILED, savedInput);
         return;
       }
@@ -272,6 +341,9 @@ export function useActionCards({ onAgentReady } = {}) {
       return;
     }
     notifyAiWrite({ domain: item.card.domain, petSn: input.petSn ?? null });
+    if (item.card.tool === EQUIP_TOOL) {
+      saveEquippedImageOf(data, item.card.domain);
+    }
     await saveResult(
       aiCnvrsRoomSn,
       item,

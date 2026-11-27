@@ -1876,10 +1876,40 @@
 - 완료 조건: 대화창 확인 카드로 `draft_checkup`·`draft_prescription`·`draft_etc_inspection`·`draft_repeat_prevention`(JSON 본문 POST)과 `end_observation_item`(본문 없는 POST)·`cancel_last_dose`(본문 없는 DELETE)을 실행하면 성공하고, 400이면 `data[].field` 칸에 오류가 표시된다
 - 연결 남음: FN-AIM-012-05·06·07·13 새 도구 6개 성공 결과 줄 (ai `tool_prompts.yaml` 6개 설명, ai 세션)
 
-## SCR-AIM-012 AI 일정 생성 확인 · 반려동물 쓰기 카드 실행 확인 — 대기
+## SCR-AIM-012 AI 일정 생성 확인 · 반려동물 쓰기 카드 실행 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
 - 기다리는 것: 백엔드 LJS 반려동물 쓰기 카드 8개(2026-11-27 끝)와 ai 세션의 `tool_prompts.yaml` 설명
 - 완료 조건: 대화창 확인 카드로 `draft_pet`·`set_representative_pet`·`draft_caregiver_invitation`·`accept_caregiver_invitation`·`reject_caregiver_invitation`·`cancel_caregiver_invitation`·`draft_equipped_items`·`draft_item_purchase`가 실행된다. 본문 없는 POST, 번호 목록 칸(`type: array`+`itemType: long`, 예: `petSns`), `generated: uuid`(`idmptDmndId`)를 처리한다
+- 연결 남음: FN-AIM-012-05·06·07 (ai `tool_prompts.yaml` 8개 설명·`catalog.py` `itemType`·`draft_pet` 등록 한도 확인, ai 저장소에서 /start)
+
+## SCR-AIM-012 AI 일정 생성 확인 · 플레이스 즐겨찾기 저장 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 LJS 플레이스 즐겨찾기 저장 카드 `draft_place_bookmark`(2026-11-27 끝)와 ai 세션의 `tool_prompts.yaml` 설명
+- 완료 조건: 대화창 확인 카드로 `draft_place_bookmark`(POST `/api/place-bookmarks`, 본문 `plcSn`)가 실행되고, 저장한 장소가 즐겨찾기 목록에 보인다. 이미 저장한 장소는 409 안내
+- 연결 남음: FN-AIM-012-05·13 (저장 카드 `targetText` 장소 이름·확인 말 "저장해 줘"·지역+상호명 검색 0건, ai 저장소에서 /start, LJS)
+
+## SCR-AIM-012 AI 일정 생성 확인 · 회원 닉네임·회원정보 수정 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 LJS 회원 닉네임·회원정보 수정 카드 `draft_member_nickname_update`·`draft_member_profile_update`(2026-11-27 끝)와 ai 세션의 `tool_prompts.yaml` 설명
+- 완료 조건: 대화창 확인 카드로 `draft_member_nickname_update`(PATCH `/api/members/me/nickname`, 본문 `mbrNcnm`)가 실행돼 헤더·마이페이지 닉네임이 바뀌고, 이미 쓰는 닉네임은 409 안내. `draft_member_profile_update`(PATCH `/api/members/me` multipart, `profilePhoto` 사진 선택·`profilePhotoReset`)로 프로필 사진이 바뀌거나 기본 이미지로 돌아간다. 둘을 같이 보내면 400 `data[].field`로 안내
+- 연결 남음: FN-AIM-012-05·13 (사진 없이 확인 말 "수정할게요." 문구·이미 쓰는 닉네임이면 카드 안 띄우기·사진 + "프로필 사진 변경해줘"가 캐릭터 만들기로 빠짐, ai 저장소, LJS)
+
+
+## SCR-AIM-012 AI 일정 생성 확인 · 반려동물 삭제·연동 해제·초대 삭제 카드 실행 확인 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 SCR-AIM-012 반려동물 삭제·연동 해제·초대 삭제 카드(LJS, 끝 2026-11-27), ai 세션 `tool_prompts.yaml` 세 도구 설명
+- 완료 조건: 대화창 확인 카드로 `delete_pet`(DELETE /api/pets/{petSn})·`unlink_caregiver`(DELETE /api/pets/{petSn}/caregivers/{brupRelSn})·`delete_caregiver_invitation`(DELETE /api/caregiver-invitations/{jntBrupInvtnSn})을 본문 없이 실행하고, 삭제 뒤 반려동물 목록·양육자 목록·보낸 초대 목록에서 사라진다
+
+## SCR-AIM-012 AI 일정 생성 확인 · 값 목록 칸·알림 설정 저장 카드 실행 확인 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 SCR-AIM-012 도구 목록 enum 칸·알림 설정 저장 카드(LJS, 끝 2026-11-27), ai 세션 `tool_prompts.yaml` `draft_notification_settings` 설명
+- 완료 조건: 대화창 확인 카드가 `values`가 있는 칸(`string`, 또는 `array`+`itemType: string`)을 그 값 중에서 고르게 보여 주고, `draft_notification_settings`(PUT /api/members/me/notification-settings, `leadTimes` TODAY·D1·D3·D7)를 실행한 뒤 알림 설정 화면에 저장한 값이 보인다. 케어 일정 ON에 시점을 하나도 고르지 않으면 400 `data[0].field`=leadTimes가 그 칸에 표시된다
+
+## SCR-AIM-012 AI 일정 생성 확인 · 케어 캘린더 1마리 일정 목록을 AI 도구 뺌 규칙에 넣기 — 대기
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 없음(백엔드 SCR-AIM-012 케어 캘린더 일정 목록 읽기 도구(LJS, 끝, 2026-11-27): `GET /api/pets/{petSn}/care-schedules`는 `list_my_care_schedules`(`GET /api/care-schedules`, `petSns=1`로 한 마리)와 같아 도구로 붙이지 않음)
+- 할 것: `scripts/ai-coverage.mjs` `EXCLUDES`에 GET `/api/pets/{}/care-schedules` 규칙(이유: `list_my_care_schedules`와 같음)을 넣고 `node scripts/ai-coverage.mjs --backend ../backend --ai ../ai`로 `docs/ai-coverage.md`를 다시 만든다
+- 완료 조건: `docs/ai-coverage.md`에서 그 GET 줄이 "읽기 후보"가 아니라 "뺌"이다
 
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)

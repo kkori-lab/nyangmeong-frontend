@@ -317,6 +317,39 @@ export const getChatObservationItems = (petSn) =>
   api.get(`/pets/${petSn}/observation-items`);
 
 /**
+ * 반려동물 쓰기 확인 카드(2026-11-27)의 이름 조회: 번호 목록 칸·대상 번호를 이름으로 보인다(SJM, 품종 KSJ)
+ * - 다른 도메인 함수를 import 하지 않으려고 여기에 따로 둔다
+ */
+/** 내 반려동물 목록 GET /api/pets (초대 발송 카드의 petSns) */
+export const getChatPets = () => api.get('/pets');
+
+/** 받은 초대 GET /api/caregiver-invitations/{jntBrupInvtnSn} (수락·거절 카드): { sndrMbrNcnm, pets } */
+export const getChatReceivedInvitation = (jntBrupInvtnSn) =>
+  api.get(`/caregiver-invitations/${jntBrupInvtnSn}`);
+
+/** 보낸 초대 목록 GET /api/caregiver-invitations (취소 카드): [{ jntBrupInvtnSn, invtnTrgtEml, pets }] */
+export const getChatSentInvitations = () => api.get('/caregiver-invitations');
+
+/** 상점 아이템 GET /api/pixel-characters/{pixelCharSn}/shop-items (구매 카드): { hldPnt, items } */
+export const getChatShopItems = (pixelCharSn) =>
+  api.get(`/pixel-characters/${pixelCharSn}/shop-items`);
+
+/** 캐릭터 GET /api/pixel-characters/{pixelCharSn} (착용 카드): heldItems [{ hldItemSn, itemSn, itemNm, equipYn }] */
+export const getChatPixelCharacter = (pixelCharSn) =>
+  api.get(`/pixel-characters/${pixelCharSn}`);
+
+/** 품종 목록 GET /api/breeds?petSeCd= (반려동물 등록 카드의 vrtySn, KSJ) */
+export const getChatBreeds = (petSeCd) =>
+  api.get('/breeds', { params: { petSeCd } });
+
+/**
+ * 착용 모습 대표 이미지 저장 POST /ai/characters/{pixelCharSn}/equipped-image
+ * - 반려동물 화면 [장착]과 같이 착용 저장(PUT equipped-items)이 성공한 뒤 착용 아이템 번호(itemSns)로 부른다(사람 결정 2026-11-27)
+ */
+export const saveChatEquippedImage = ({ pixelCharSn, itemSns }) =>
+  aiApi.post(`/characters/${pixelCharSn}/equipped-image`, { itemSns });
+
+/**
  * 대화창 검진기록 만들기 (POST /api/pets/{petSn}/checkups, JAJ)
  * - body: ckupYmd·hsptlNm·ckupTypeCd·ckupCn·ckupMemoCn, schdlSn이 있으면 그 일정을 검진일로 옮겨 연결
  * - 응답: 저장한 검진기록({ petSn, ckupRcdSn, … })
