@@ -2,9 +2,14 @@
 
 ## 지금 하는 것
 
-SCR-AIM-012 AI 일정 생성 확인 · 반려동물 쓰기 카드 실행 확인 — 끝남(2026-11-27, 검증 3회차 통과·사람 확인). 대화창 확인 카드가 반려동물 쓰기 도구 8개를 실행(번호 목록 칸 이름 표시, `generated: uuid`, 착용 뒤 대표 이미지 저장, 칸 오류가 아닌 실행 오류는 결과 줄 — 추가-1)
+SCR-AIM-012 AI 일정 생성 확인 · 플레이스 즐겨찾기 저장 카드 실행 확인 — 끝남(2026-11-27, 검증 1회차 확인 못 함 있음(결과 줄 연결 남음)·사람 확인). 대화창 확인 카드 `draft_place_bookmark`의 「장소」 줄(targetText 또는 "장소 번호 N", 비면 말로 알려 달라는 안내), 본창 `/places`(`PlaceLayout`)도 AI 쓰기 알림으로 새로고침
 
 ## 다음에 할 것
+
+- SCR-AIM-012 플레이스 즐겨찾기 카드 연결 남음(ai 저장소에서 /start, 아직 안 보냄): ① `draft_place_bookmark`에 `target_fields`(`plcConm`·`plcAddr`)로 저장 카드에도 `targetText` 싣기(사람 결정 2026-11-27 "추천안대로") — 카드 "장소 번호 1003"과 결과 줄 "✔ 장소 즐겨찾기"(요약 없음)가 장소 이름으로 바뀜. 프론트는 targetText를 보이고 다음 메시지·`action-result`에 돌려보냄(이미 됨) ② 요약 글 확인 말이 "'등록해 줘'"(즐겨찾기는 "저장해 줘"가 맞음) ③ "전주 올리몰스동물메디컬센터 즐겨찾기 해 줘"가 장소를 못 찾음(같은 상호명만으로는 찾음). 백엔드 `PlaceCategory.toQuery`가 검색어 뒤에 분류 단어("동물병원")를 붙여 카카오로 보냄 — 지역+상호명+분류 단어면 0건일 수 있음(카카오 결과는 확인 못 함). ai `list_places` 설명에서 상호명이면 지역 빼기 또는 0건이면 상호명만 다시 찾기. 409 전용 문구("이미 즐겨찾기한 장소예요")도 ai 몫(사람 결정: 이번엔 공통 실패 글)
+- SCR-AIM-012 플레이스 즐겨찾기 카드 팀 알림(PR 본문, YAY): AI 대화창이 `POST /api/place-bookmarks`를 확인 카드로 실행하고, `layouts/PlaceLayout`이 `subscribeAiWrite`로 AI 창 쓰기 뒤 react-query를 모두 무효화함(UserLayout과 같음)
+- SCR-AIM-012 플레이스 즐겨찾기 카드 검증 데이터 정리(8081 공용 DB, tester): 올리몰스동물메디컬센터(plcSn 1003) 즐겨찾기 해제, AI 대화방 1072 "올리몰스동물메디컬센터 즐겨찾기 방법 안내"·"[검증] 장소 번호 카드"·"[검증] 빈 장소 카드"·"[검증] 장소 카드 캡처"·"전주 덕진구 동물병원 즐겨찾기 안내와 기능 한계"(대화창 ⋮ 삭제). 사람이 8080에서 확인한 대화방·즐겨찾기도 같은 계정이면 정리
+- 검증 환경 참고: AI 서버는 기동 때만 Java 도구 목록을 받고 `--reload`는 `.py`만 봄 — 백엔드 @AiTool이 바뀌면 Java → AI 순서로 다시 띄움(yaml 수정 자동 반영은 `--reload-include "*.yaml"`)
 
 - SCR-AIM-012 반려동물 쓰기 카드 연결 남음(ai 저장소에서 /start, 아직 안 보냄): `data/tool_prompts.yaml`에 8개 설명(`draft_pet`·`set_representative_pet`·`draft_caregiver_invitation`·`accept_caregiver_invitation`·`reject_caregiver_invitation`·`cancel_caregiver_invitation`·`draft_equipped_items`·`draft_item_purchase`, `label` 포함, 거절·취소는 `target_fields`), `app/chat/catalog.py` Param에 `itemType` 받아 카드에 싣기. `draft_pet` 카드를 주기 전에 등록 한도(10마리) 확인. 없으면 AI가 이 도구를 고르지 않고 `action-result`가 400 "모르는 도구입니다."(Java 실행은 됨). 넣었다고 알리면 프론트에서 실제 대화로 결과 줄만 다시 본다
 - SCR-AIM-012 반려동물 쓰기 카드 팀 알림(PR 본문): 모두 — AI 확인 카드 실행 오류가 칸 오류(`INVALID_INPUT_VALUE`)가 아니면(409 한도·이미 보유·처리된 초대 등) 카드를 닫고 `action-result` `FAILED`로 저장해 결과 줄로 보임(추가-1, 모든 카드). SJM — 대화창이 이름 표시용으로 `GET /api/pets`·`/caregiver-invitations`·`/caregiver-invitations/{sn}`·`/pixel-characters/{sn}`·`/pixel-characters/{sn}/shop-items`를 `features/ai/api.js`에서 따로 부르고, 착용 저장 뒤 `POST /ai/characters/{sn}/equipped-image` 뒤 `['pets', petSn, 'character-image']` 무효화. KSJ — `GET /api/breeds?petSeCd=`. 응답 칸이 바뀌면 알려 달라
