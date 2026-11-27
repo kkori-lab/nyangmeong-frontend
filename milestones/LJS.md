@@ -1901,10 +1901,12 @@
 - 완료 조건: 대화창 확인 카드로 `delete_pet`(DELETE /api/pets/{petSn})·`unlink_caregiver`(DELETE /api/pets/{petSn}/caregivers/{brupRelSn})·`delete_caregiver_invitation`(DELETE /api/caregiver-invitations/{jntBrupInvtnSn})을 본문 없이 실행하고, 삭제 뒤 반려동물 목록·양육자 목록·보낸 초대 목록에서 사라진다
 - 연결 남음: FN-AIM-012-05·06·07·13 `delete_pet`·`unlink_caregiver`·`delete_caregiver_invitation` 실제 대화·결과 줄 (ai `tool_prompts.yaml` 세 도구 설명·`target_fields`, ai 세션)
 
-## SCR-AIM-012 AI 일정 생성 확인 · 값 목록 칸·알림 설정 저장 카드 실행 확인 — 대기
+## SCR-AIM-012 AI 일정 생성 확인 · 값 목록 칸·알림 설정 저장 카드 실행 확인 — 끝
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
 - 기다리는 것: 백엔드 SCR-AIM-012 도구 목록 enum 칸·알림 설정 저장 카드(LJS, 끝 2026-11-27), ai 세션 `tool_prompts.yaml` `draft_notification_settings` 설명
 - 완료 조건: 대화창 확인 카드가 `values`가 있는 칸(`string`, 또는 `array`+`itemType: string`)을 그 값 중에서 고르게 보여 주고, `draft_notification_settings`(PUT /api/members/me/notification-settings, `leadTimes` TODAY·D1·D3·D7)를 실행한 뒤 알림 설정 화면에 저장한 값이 보인다. 케어 일정 ON에 시점을 하나도 고르지 않으면 400 `data[0].field`=leadTimes가 그 칸에 표시된다
+- 결과 (2026-11-27): 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인. 값 목록 칸 보기·고르기, 서버 칸 오류 난 값 목록 칸 다시 고르기, 알림 설정 저장 PUT(가짜 카드 + 8081 실제 400·200)
+- 연결 남음: 3 알림 설정 저장 카드 실제 대화 (ai `CatalogItemParam.values`·`draft_notification_settings` 설명, ai 세션)
 
 ## SCR-AIM-012 AI 일정 생성 확인 · 케어 캘린더 1마리 일정 목록을 AI 도구 뺌 규칙에 넣기 — 대기
 - 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13

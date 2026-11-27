@@ -31,7 +31,7 @@ import {
   useChatSentInvitations,
   useChatShopItems,
 } from '../queries';
-import { actionFieldName } from '../shared/actionFields';
+import { actionFieldName, actionValueName } from '../shared/actionFields';
 import {
   ACCEPT_INVITATION_TOOL,
   CANCEL_INVITATION_TOOL,
@@ -49,7 +49,9 @@ import {
   hasInvitationRow,
   hasObservationItemRow,
   hasPlaceRow,
+  hasValues,
   isNumberList,
+  isValueList,
   isHourInputDerived,
   isProfileReset,
   hasPetChoice,
@@ -109,6 +111,16 @@ const formatValue = (param, value, input) => {
     default:
       return String(value);
   }
+};
+
+/** 값 목록 칸 값: 값 이름, 목록은 values 순서대로 " · ", 빈 목록은 "없음" */
+const valuesText = (field, param, value) => {
+  if (!Array.isArray(value)) return actionValueName(field, value);
+  if (value.length === 0) return '없음';
+  return param.values
+    .filter((item) => value.includes(item))
+    .map((item) => actionValueName(field, item))
+    .join(' · ');
 };
 
 /** 캘린더 뱃지 색: 색 점 + 이름 */
@@ -557,17 +569,50 @@ function EditableValue({
 }) {
   const set = (next) => onChangeInput({ [field]: next });
   const label = actionFieldName(field);
-  if (param.type === 'code' || param.type === 'boolean') {
-    const options =
-      param.type === 'boolean'
-        ? [
-            { value: true, label: '예' },
-            { value: false, label: '아니요' },
-          ]
-        : (param.codes ?? []).map((code) => ({
-            value: code.cd,
-            label: code.nm,
-          }));
+  if (isValueList(param)) {
+    /** 여러 개 고르기: 다시 누르면 뺀다, 값은 values 순서대로 넣는다 */
+    const picked = Array.isArray(value) ? value : [];
+    const toggle = (item) =>
+      set(
+        param.values.filter((one) =>
+          one === item ? !picked.includes(one) : picked.includes(one),
+        ),
+      );
+    return (
+      <div role="group" aria-label={label} className="flex flex-wrap gap-2">
+        {param.values.map((item) => (
+          <button
+            key={item}
+            type="button"
+            aria-pressed={picked.includes(item)}
+            disabled={isDisabled}
+            className={picked.includes(item) ? CHIP_ON : CHIP}
+            onClick={() => toggle(item)}
+          >
+            {actionValueName(field, item)}
+          </button>
+        ))}
+      </div>
+    );
+  }
+  if (param.type === 'code' || param.type === 'boolean' || hasValues(param)) {
+    let options;
+    if (hasValues(param)) {
+      options = param.values.map((item) => ({
+        value: item,
+        label: actionValueName(field, item),
+      }));
+    } else if (param.type === 'boolean') {
+      options = [
+        { value: true, label: '예' },
+        { value: false, label: '아니요' },
+      ];
+    } else {
+      options = (param.codes ?? []).map((code) => ({
+        value: code.cd,
+        label: code.nm,
+      }));
+    }
     if (options.length > MAX_CHIP_COUNT) {
       return (
         <DropdownSelect
@@ -781,6 +826,17 @@ export default function ActionCardFields({
 }) {
   const rows = cardRows(card, input);
   const isInspection = card.tool === INSPECTION_TOOL;
+  /**
+   * 서버 칸 오류가 난 값 목록 칸은 카드에서 고른다(사람 결정 2026-11-27, 값 목록 칸만)
+   * - 고르면 오류가 지워지므로 한 번 열린 칸은 카드가 남아 있는 동안 계속 고를 수 있다
+   */
+  const [errorOpened, setErrorOpened] = useState([]);
+  const newlyErrored = Object.keys(fieldErrors).filter(
+    (field) => hasValues(card.params[field]) && !errorOpened.includes(field),
+  );
+  if (newlyErrored.length > 0) {
+    setErrorOpened([...errorOpened, ...newlyErrored]);
+  }
   const petNm =
     card.petNm ??
     card.petChoices.find((pet) => pet.petSn === input.petSn)?.petNm;
@@ -852,81 +908,86 @@ export default function ActionCardFields({
           />
         </Row>
       )}
-      {rows.map(({ field, param, value, isMissing, isEditable }) => {
-        if (isInspection && field === 'values' && Array.isArray(value)) {
-          return (
-            <div key={field} className="flex flex-col gap-1">
-              <dt className={LABEL_CLASS}>
-                {actionFieldName(field)} {value.length}항목
-              </dt>
-              <dd>
-                <InspectionTable card={card} values={value} />
-              </dd>
-            </div>
-          );
-        }
-        let content;
-        if (isEditable) {
-          content = (
-            <div className="flex flex-col gap-1">
-              <EditableValue
+      {rows.map(
+        ({ field, param, value, isMissing, isEditable: isEditableAtFirst }) => {
+          const isEditable = isEditableAtFirst || errorOpened.includes(field);
+          if (isInspection && field === 'values' && Array.isArray(value)) {
+            return (
+              <div key={field} className="flex flex-col gap-1">
+                <dt className={LABEL_CLASS}>
+                  {actionFieldName(field)} {value.length}항목
+                </dt>
+                <dd>
+                  <InspectionTable card={card} values={value} />
+                </dd>
+              </div>
+            );
+          }
+          let content;
+          if (isEditable) {
+            content = (
+              <div className="flex flex-col gap-1">
+                <EditableValue
+                  card={card}
+                  field={field}
+                  param={param}
+                  value={value}
+                  isMissing={isMissing}
+                  isDisabled={isDisabled || !isActive}
+                  onChangeInput={onChangeInput}
+                />
+                {isMissing && (
+                  <span className="text-sm leading-[22px] text-danger">
+                    {MISSING}
+                  </span>
+                )}
+              </div>
+            );
+          } else if (isMissing) {
+            content = <span className="text-danger">{MISSING}</span>;
+          } else if (hasValues(param)) {
+            content = valuesText(field, param, value);
+          } else if (isNumberList(param) && Array.isArray(value)) {
+            content = (
+              <NumberListValue
                 card={card}
                 field={field}
-                param={param}
                 value={value}
-                isMissing={isMissing}
-                isDisabled={isDisabled || !isActive}
-                onChangeInput={onChangeInput}
+                input={input}
               />
-              {isMissing && (
-                <span className="text-sm leading-[22px] text-danger">
-                  {MISSING}
-                </span>
-              )}
-            </div>
+            );
+          } else if (param.type === 'array' && Array.isArray(value)) {
+            content = <ArrayItems param={param} values={value} input={input} />;
+          } else if (field === 'cldrBadgeColrCd') {
+            content = <BadgeColor value={value} />;
+          } else {
+            content = (
+              <span className="whitespace-pre-wrap">
+                {formatValue(param, value, input)}
+              </span>
+            );
+          }
+          const row = (
+            <Row
+              key={field}
+              label={actionFieldName(field)}
+              isStacked={isEditable}
+              error={fieldErrors[field]}
+            >
+              {content}
+            </Row>
           );
-        } else if (isMissing) {
-          content = <span className="text-danger">{MISSING}</span>;
-        } else if (isNumberList(param) && Array.isArray(value)) {
-          content = (
-            <NumberListValue
-              card={card}
-              field={field}
-              value={value}
-              input={input}
-            />
-          );
-        } else if (param.type === 'array' && Array.isArray(value)) {
-          content = <ArrayItems param={param} values={value} input={input} />;
-        } else if (field === 'cldrBadgeColrCd') {
-          content = <BadgeColor value={value} />;
-        } else {
-          content = (
-            <span className="whitespace-pre-wrap">
-              {formatValue(param, value, input)}
-            </span>
-          );
-        }
-        const row = (
-          <Row
-            key={field}
-            label={actionFieldName(field)}
-            isStacked={isEditable}
-            error={fieldErrors[field]}
-          >
-            {content}
-          </Row>
-        );
-        if (field === 'petSeCd' && breedRow) {
-          return (
-            <Fragment key={field}>
-              {row}
-              {breedRow}
-            </Fragment>
-          );
-        }
-        return row;
-      })}
+          if (field === 'petSeCd' && breedRow) {
+            return (
+              <Fragment key={field}>
+                {row}
+                {breedRow}
+              </Fragment>
+            );
+          }
+          return row;
+        },
+      )}
       {!hasKindRow && breedRow}
       {(isProfileReset(card, input) ? [] : photoFields).map((field) => (
         <Row key={field} label={actionFieldName(field)} isStacked>

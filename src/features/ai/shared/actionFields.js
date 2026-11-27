@@ -100,7 +100,28 @@ export const ACTION_FIELD_NAMES = {
   inspRsltCn: '검사 결과',
   refRange: '참고 범위',
   obsrvChgCd: '변화',
+  /** 알림 설정 저장(2026-11-27): 알림 설정 화면과 같은 글 */
+  emlNotiRcptnYn: '이메일로 받기',
+  inappNotiRcptnYn: '앱 알림함으로 받기',
+  careSchdlNotiRcptnYn: '케어 일정 알림',
+  leadTimes: '사전 알림 시점',
+  mtchDlngNotiRcptnYn: '펫돌봄 거래 상태 알림',
+  cmntNotiRcptnYn: '댓글 알림',
+  lostExpryNotiRcptnYn: '실종 제보 글 만료 예고',
+  expndLimNotiRcptnYn: '월 지출 한도 초과 알림',
 };
 
 /** 칸 표시 이름 */
 export const actionFieldName = (field) => ACTION_FIELD_NAMES[field] ?? field;
+
+/**
+ * 값 목록 칸(values)의 값 표시 이름: 도구 목록은 enum 상수 이름만 준다
+ * - 알림 설정 사전 알림 시점은 알림 설정 화면(BEFORE_DAYS)과 같은 글
+ */
+export const ACTION_VALUE_NAMES = {
+  leadTimes: { TODAY: '당일', D1: '1일 전', D3: '3일 전', D7: '7일 전' },
+};
+
+/** 값 표시 이름: 없으면 상수 이름 그대로 */
+export const actionValueName = (field, value) =>
+  ACTION_VALUE_NAMES[field]?.[value] ?? String(value);

@@ -220,7 +220,20 @@ export const PURCHASE_TOOL = 'draft_item_purchase';
  * - AI 서버가 itemType을 싣기 전에도 줄 칸이 없는 array는 번호 목록으로 본다
  */
 export const isNumberList = (param) =>
-  param?.type === 'array' && (param.itemType != null || !param.items);
+  param?.type === 'array' &&
+  !hasValues(param) &&
+  (param.itemType != null || !param.items);
+
+/**
+ * 값 목록이 있는 칸(2026-11-27): Java enum 칸(string)·enum 목록 칸(array + itemType string)에 고를 값(values)이 온다
+ * - 값은 enum 상수 이름 그대로 Java에 보낸다(예: 알림 설정 leadTimes TODAY·D1·D3·D7)
+ */
+export const hasValues = (param) =>
+  Array.isArray(param?.values) && param.values.length > 0;
+
+/** 값 여러 개를 고르는 칸: enum 목록 칸 */
+export const isValueList = (param) =>
+  param?.type === 'array' && hasValues(param);
 
 /**
  * 서버가 만드는 칸(generated: uuid, 예: 구매 중복 방지 키 idmptDmndId): 카드 하나에 한 번 만든다
@@ -300,7 +313,7 @@ export const cardRows = (card, input) => {
 /** 시간 입력 칸: 일시 칸과 짝 */
 export const HOUR_INPUT_FIELD = 'hrInptYn';
 
-/** 카드에서 바로 채우는 칸 종류: 목록·파일 칸은 말로 */
+/** 카드에서 바로 채우는 칸 종류: 목록·파일 칸은 말로(값 목록 칸은 칩으로 고른다) */
 const EDITABLE_TYPES = [
   'string',
   'code',
@@ -325,7 +338,7 @@ export const editableFields = (card, input) =>
       isCardField(card, field) &&
       !/Sn$/.test(field) &&
       !param.generated &&
-      EDITABLE_TYPES.includes(param.type) &&
+      (EDITABLE_TYPES.includes(param.type) || isValueList(param)) &&
       isEmptyValue(card.input[field])
     );
   });
