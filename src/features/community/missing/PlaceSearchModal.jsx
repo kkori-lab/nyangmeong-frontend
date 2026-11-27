@@ -7,7 +7,7 @@ import MissingMap from './MissingMap';
 import { findRegion, searchPlaces } from '@/utils/placeSearch';
 
 /**
- * 장소 찾기 모달(전북 한정): 실종센터 목격 장소, 펫돌봄 돌봄 장소 공용
+ * 장소 찾기 모달(전북 한정): 실종센터 실종 장소, 펫돌봄 돌봄 장소 공용
  * - 1단계 검색: 장소명·동·주소를 한 칸에서 카카오 장소·주소 검색(./placeSearch)으로 찾고 전북 결과만 표시
  *   입력을 멈추고 SEARCH_DELAY 뒤 자동 검색. 돋보기 버튼·Enter는 즉시 검색. 늦게 온 이전 검색어의 결과는 폐기
  * - 2단계 위치 맞추기: 고른 결과를 지도(반경)로 보여 주고, 지도를 끌면 그 자리의 주소·시군구·동으로 바뀐다(전북 밖은 되돌림)
@@ -18,8 +18,8 @@ import { findRegion, searchPlaces } from '@/utils/placeSearch';
 const SEARCH_DELAY = 300;
 
 export default function PlaceSearchModal({
-  title = '목격 장소 찾기',
-  confirmLabel = '목격 장소로 설정',
+  title = '실종 장소 찾기',
+  confirmLabel = '실종 장소로 설정',
   guide = '마지막으로 본 곳 근처의 장소나 동 이름 검색',
   onSelect,
   onClose,

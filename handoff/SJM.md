@@ -2,19 +2,19 @@
 
 ## 지금 하는 것
 
-SCR-MYP-002 반려동물 프로필 목록 · 슬라이드 로딩 중 표시 정리 — 끝 (2026-11-26, 검증 `통과`(3회차, 1·2회차 실패 뒤 수정), lint·build 0, 사람 확인 완료, 추가 요청 없음, 정리 없음)
+SCR-MYP-020 포인트 관리/케어미션 · 카드 안 빈 상태 두 곳을 박스 없이 — 끝 (2026-11-26, lint·build 0, 사람 확인 완료, 추가 요청 없음, 정리: DB 변경 없음. 0마리·빈 달·미션 0건은 Playwright에서 응답만 바꿔 재현)
 
-- 캐릭터 사각형: 이미지·발 위치 측정 중이면 사각형 전체가 `Skeleton` 하나(`PetStage`, `useFootBox`의 `isPending`). 크기·자리 클래스는 `slideLayout.js`의 `STAGE_BOX`로 로딩 전후 같다
-- 가족 영역: `FamilySkeleton`(진한 구분선 + 제목 + 카드 1장 자리). PC 초대 카드에 `min-h-[97.6px]`를 줘 공동양육자 0명도 로딩 전후 높이가 같다(사람이 정함, 0명일 때 실제 초대 카드가 30px 커짐)
-- 첫 진입: `PetListPage`의 `PetSlideSkeleton`을 슬라이드 배치로, 모바일 기준 970px 미만. 높이 PC 580.6·모바일 636.6
-- 로딩 전에는 역할·인원을 몰라 생기는 차이(기획대로 보고): 공동양육자 시점 PC 580.6→415.4(사각형 280→309.4), 모바일 공동양육자 0명 636.6→582.6, 슬라이드 데이터가 온 뒤에는 공동양육자 시점 PC가 가족 섹션 없이 415.4로 같다
+- `PointHistory.jsx`: 빈 달 문구를 가계부와 같은 `<p>`(16px·400·muted)로, 내역이 없을 때만 `<ul>`을 flex 가운데. `CareMission.jsx`: `MissionEmpty`·`MissionNone`의 `EmptyResult` 박스를 뺌(MissionEmpty는 아이콘·문구·버튼 간격 그대로)
+- 기준: 카드 안 빈 상태는 박스 없이, 카드 밖은 `EmptyResult`. `EmptyResult` 컴포넌트·다른 화면은 안 건드림
 
 ## 다음에 할 것
 
+- 백엔드 연결: FN-MYP-003-03 `PetColor.java`의 `DOG_ONLY`에 얼룩(`PETC0011`)이 남아 강아지에 허용됨 (백엔드 저장소에서 /start, 프론트 목록에서는 이미 뺌)
 - 주의: `slideLayout.js`의 `SLIDE_CARD`와 `PetSlide.jsx`의 `PetCard` article 클래스는 같은 문자열을 따로 들고 있다. 한쪽을 고치면 다른 쪽도 고친다(스켈레톤 높이가 어긋남). 공동양육자 PC 두 줄·모바일 2명 이상 높이는 데이터가 없어 보지 못했다
 
 ### 내 코드 작업
 
+- 같은 기준으로 손볼 후보(범위 밖, JAJ 담당): 건강기록 `Card` 안 `EmptyResult` 9곳(`CareRecordList`·`UpcomingSchedules`·`AttachmentTab`·`PrescriptionTab`·`PreventionTab`·`CheckupListCard`·`DailyTrendCard`·`ObservationCard`·`RecentRecordTable`). `ScheduleDayDetail.jsx`에 안 쓰는 `EmptyResult` import가 남아 있다
 - SCR-MYP-002 슬라이드 화면 확인: 착용한 캐릭터와 실제 생성 이미지(이 PC 공용 DB는 `character-image`가 404라 기본 이미지로만 봤다)에서 발이 그림자에 닿는지, 측정 실패 때 80% 표시. 970px 미만 스켈레톤 높이(683)와 실제 카드(637)는 46px 차이가 이전부터 있다(필요하면 따로)
 - JAJ·LJS 알림: 공용 `components/AnalyzeProgress.jsx`를 새로 만들었다(영수증 분석 게이지, `label` prop). JAJ의 `features/ai/receipt/ReceiptUploadModal.jsx`는 함수·상수를 지우고 import만 바꿨고 화면 동작은 같다. 새 분석 화면에 게이지가 필요하면 이 컴포넌트를 쓴다
 - SCR-MYP-002·005 화면 확인: 삭제 때 공동양육자에게 알림이 실제로 갔는지(백엔드 알림 테스트), 초대 → 수락 → 삭제 → 자동 해제 흐름
@@ -30,7 +30,7 @@ SCR-MYP-002 반려동물 프로필 목록 · 슬라이드 로딩 중 표시 정�
 - FN-MYP-020-04: "그날 획득 포인트·남은 미션 수(남은 포인트)를 표시"에 "남은 미션 수와 자정 정산 안내는 오늘만, 지난 날짜는 그날 획득만"을 더한다. 화면설계서 SCR-MYP-020 요약·안내도 맞춘다. v0.7은 날짜 구분 없이 남은 미션 수를 표시하게 되어 있어 이번 변경과 다르다
 - FN-MYP-010-02·03·07·23·화면설계서 10-1: 카드 그림 규칙을 명세에 쓴다. 안 만든·만드는 중 = 실루엣+"?", 만든 카드 이미지 실패 = 컬러 기본 전신, 오류 확인 중 = 흑백·흐림. 지금 문서는 "종별 기본 캐릭터가 들어간 점선 카드"
 - FN-MYP-010-05·화면설계서 REP 용어: 대표는 AI매니저 기준 동물만이다(케어미션 등 기본 선택 아님, 11-18 정정)
-- FN-MYP-003-03 털색 "얼룩": 명세엔 있는데 DB v0.14 (8)에서 `USE_YN='N'`이다. 명세·DB 중 어느 쪽으로 맞출지 결정이 필요하다(결정 전까지 코드는 그대로)
+- FN-MYP-003-03 털색 "얼룩": 화면설계서 v0.9에서 삭제됨. 기능명세서에서도 얼룩을 지운다(프론트 목록은 이미 뺌, DB `USE_YN='N'`)
 - FN-MYP-011-03·04(사람이 준 수치로 만듦)를 기능명세서 v0.10_20261123과 대조
 
 ### 팀 답 기다림

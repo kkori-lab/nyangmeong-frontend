@@ -1,6 +1,7 @@
 import { ChevronRight, Heart } from 'lucide-react';
 import { generatePath, Link } from 'react-router-dom';
 import { PATHS } from '@/routes/paths';
+import { pickJosa } from '@/utils/josa';
 import { formatRelativeTime } from '@/utils/formatDate';
 import { getPetLabel } from '../missingCodes';
 import { useMissingRail } from '../missingQueries';
@@ -64,10 +65,12 @@ export default function MissingRail() {
                   aria-hidden="true"
                   className="shrink-0 text-tone-green-fg"
                 />
-                {/* 남의 찾았어요 글은 이름이 null이라 제목으로 */}
+                {/* 이름이 없는 글만 제목으로(남의 찾았어요 글도 서버가 이름을 준다) */}
                 {item.petNm ? (
                   <span>
-                    <b>{item.petNm}</b>가 무사히 가족의 품으로 돌아갔어요
+                    <b>{item.petNm}</b>
+                    {pickJosa(item.petNm, '이/가')} 무사히 가족의 품으로
+                    돌아갔어요
                   </span>
                 ) : (
                   <span>{item.pstTtl}</span>
