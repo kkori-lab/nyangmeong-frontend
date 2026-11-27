@@ -41,6 +41,12 @@ const INPUT_ERROR_CODE = 'INVALID_INPUT_VALUE';
 const isNonFieldError = (error) =>
   Boolean(error?.code) && error.code !== INPUT_ERROR_CODE;
 
+/**
+ * 닉네임만 바꾸면 풀리는 409: 카드를 닫지 않고 닉네임 줄 아래 서버 문구를 보인다(사람 결정 2026-11-27)
+ * - 닉네임은 말로 고쳐 새 카드를 받는다(이미 값이 있는 칸은 카드에서 고치지 않음)
+ */
+const FIELD_CONFLICTS = { NICKNAME_ALREADY_USED: 'mbrNcnm' };
+
 /** 결과 저장에 싣는 Java 400 칸 오류 최대 수(ActionResultRequest errors) */
 const MAX_RESULT_ERRORS = 50;
 
@@ -295,6 +301,16 @@ export function useActionCards({ onAgentReady } = {}) {
         buildActionRequest(item.card, { ...input, ...generated }),
       );
     } catch (error) {
+      const conflictField = FIELD_CONFLICTS[error?.code];
+      if (conflictField && conflictField in item.card.params) {
+        patchCard(key, {
+          isBusy: false,
+          isAuto: false,
+          fieldErrors: { [conflictField]: error.message },
+          formError: null,
+        });
+        return;
+      }
       if (
         SERVER_FAILURE_CODES.includes(error?.code) ||
         isNonFieldError(error)
