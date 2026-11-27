@@ -9,7 +9,7 @@ import { LOST_STTS } from './missingCodes';
  * - 찾았어요 POST …/found, 30일 연장 POST …/renew(둘 다 응답 data 없음)
  * - 실종 지역(rgnSn)은 서버가 목격 좌표로 계산하므로 보내지 않음
  * - 댓글·좋아요·신고는 실종 글의 pstSn으로 펫이야기 API(./api)를 같이 씀
- * - 찾았어요 글은 작성자가 아니면 목록의 이름·지역·사진 등과 상세의 본문·연락처·위치가 null
+ * - 찾았어요 글은 작성자가 아니면 목록의 지역·사진 등과 상세의 이름·본문·연락처·위치가 null(목록의 이름은 공개)
  */
 
 const RAIL_NEWS_COUNT = 4;

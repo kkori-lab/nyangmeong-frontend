@@ -34,6 +34,12 @@ export const ACTION_FIELD_NAMES = {
   expndAmt: '금액(원)',
   dtlMttr: '상세 내용',
   expndPlcusNm: '사용처',
+  /** 지출 여러 건·조건 전체 삭제(2026-11-27) */
+  expndSn: '지출',
+  expectedCnt: '삭제할 건수',
+  startYmd: '시작일',
+  endYmd: '종료일',
+  excludeExpndSn: '빼고 지울 지출',
   /** 반려동물 */
   petNm: '이름',
   petSeCd: '종류',
@@ -53,6 +59,24 @@ export const ACTION_FIELD_NAMES = {
   algyCn: '알레르기',
   dssCn: '질환',
   goalBdwgReset: '목표 몸무게 초기화',
+  /** 반려동물 쓰기 카드(2026-11-27): 등록·공동양육 초대·착용·구매 */
+  vrtySn: '품종',
+  invtnTrgtEml: '초대할 이메일',
+  petSns: '반려동물',
+  jntBrupInvtnSn: '초대',
+  hldItemSns: '착용 아이템',
+  itemSns: '아이템',
+  /** 회원 닉네임·프로필 사진 수정(2026-11-27) */
+  mbrNcnm: '닉네임',
+  profilePhoto: '프로필 사진',
+  profilePhotoReset: '기본 이미지로 되돌리기',
+  /** 플레이스 즐겨찾기 저장(2026-11-27) */
+  plcSn: '장소',
+  /** 검진기록·처방·기타 검사·반복 예방 등록(2026-11-27) */
+  ckupYmd: '검진일',
+  reptPrvntArtclCd: '예방 항목',
+  reptCycleCd: '주기',
+  bgngYmd: '시작일',
   /** 검사 수치 */
   ckupRcdSn: '검진기록',
   values: '검사 수치',
@@ -82,7 +106,28 @@ export const ACTION_FIELD_NAMES = {
   inspRsltCn: '검사 결과',
   refRange: '참고 범위',
   obsrvChgCd: '변화',
+  /** 알림 설정 저장(2026-11-27): 알림 설정 화면과 같은 글 */
+  emlNotiRcptnYn: '이메일로 받기',
+  inappNotiRcptnYn: '앱 알림함으로 받기',
+  careSchdlNotiRcptnYn: '케어 일정 알림',
+  leadTimes: '사전 알림 시점',
+  mtchDlngNotiRcptnYn: '펫돌봄 거래 상태 알림',
+  cmntNotiRcptnYn: '댓글 알림',
+  lostExpryNotiRcptnYn: '실종 제보 글 만료 예고',
+  expndLimNotiRcptnYn: '월 지출 한도 초과 알림',
 };
 
 /** 칸 표시 이름 */
 export const actionFieldName = (field) => ACTION_FIELD_NAMES[field] ?? field;
+
+/**
+ * 값 목록 칸(values)의 값 표시 이름: 도구 목록은 enum 상수 이름만 준다
+ * - 알림 설정 사전 알림 시점은 알림 설정 화면(BEFORE_DAYS)과 같은 글
+ */
+export const ACTION_VALUE_NAMES = {
+  leadTimes: { TODAY: '당일', D1: '1일 전', D3: '3일 전', D7: '7일 전' },
+};
+
+/** 값 표시 이름: 없으면 상수 이름 그대로 */
+export const actionValueName = (field, value) =>
+  ACTION_VALUE_NAMES[field]?.[value] ?? String(value);

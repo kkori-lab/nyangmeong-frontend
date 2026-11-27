@@ -152,14 +152,14 @@ export default function RecentRecordTable({
 }
 
 /**
- * 오늘이면 「[오늘] 날짜」. 오늘 줄은 바탕·글자색을 다른 줄과 같게 두고 배지로만 표시 (※신규 정책, 2026-11-23)
+ * 오늘이면 「날짜 [오늘]」. 오늘 줄은 바탕·글자색을 다른 줄과 같게 두고 배지로만 표시 (※신규 정책, 2026-11-23 / 2026-11-27 배지를 날짜 뒤로)
  */
 function DayDate({ dateText, isToday }) {
   if (!isToday) return dateText;
   return (
     <span className="inline-flex items-center gap-1.5">
-      <Badge tone="brand">오늘</Badge>
       {dateText}
+      <Badge tone="brand">오늘</Badge>
     </span>
   );
 }

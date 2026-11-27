@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { ImagePlus, RefreshCw } from 'lucide-react';
 import DatePicker from '@/components/DatePicker';
 import DropdownSelect from '@/components/DropdownSelect';
@@ -21,15 +21,39 @@ import {
   RECEIPT_HELP,
   validateReceiptFile,
 } from '@/utils/receiptFile';
-import { useChatCheckups, useChatObservationItems } from '../queries';
-import { actionFieldName } from '../shared/actionFields';
 import {
+  useChatBreeds,
+  useChatCheckups,
+  useChatObservationItems,
+  useChatPets,
+  useChatPixelCharacter,
+  useChatReceivedInvitation,
+  useChatSentInvitations,
+  useChatShopItems,
+} from '../queries';
+import { actionFieldName, actionValueName } from '../shared/actionFields';
+import {
+  ACCEPT_INVITATION_TOOL,
+  CANCEL_INVITATION_TOOL,
   CARE_ITEM_TOOL,
+  EQUIP_TOOL,
   HOUR_INPUT_FIELD,
   INSPECTION_TOOL,
-  OBSERVATION_CYCLE_TOOL,
+  INVITE_TOOL,
+  MEMBER_PROFILE_TOOL,
+  PET_CREATE_TOOL,
+  PURCHASE_TOOL,
   cardRows,
+  hasBreedRow,
+  hasCheckupRow,
+  hasInvitationRow,
+  hasObservationItemRow,
+  hasPlaceRow,
+  hasValues,
+  isNumberList,
+  isValueList,
   isHourInputDerived,
+  isProfileReset,
   hasPetChoice,
   missingFields,
   nextDueYmd,
@@ -40,6 +64,14 @@ const VALUE_CLASS = 'min-w-0 break-words text-base leading-6 text-ink';
 const MISSING = '입력해 주세요';
 /** 사진 칸만 빈 채로 확인 말("등록해 줘")이 왔을 때 */
 const PHOTO_FIRST = '사진을 올려야 등록돼요';
+/** 프로필 사진 카드는 등록이 아니라 수정이라 사진 안내를 따로 둔다 */
+const PROFILE_PHOTO_MISSING = '사진을 올려 주세요';
+
+/** 빈 사진 칸 안내: 프로필 사진 카드는 늘 "사진을 올려 주세요" */
+const photoMissingText = (card, isPhotoAsked) => {
+  if (card.tool === MEMBER_PROFILE_TOOL) return PROFILE_PHOTO_MISSING;
+  return isPhotoAsked ? PHOTO_FIRST : MISSING;
+};
 
 /** 직접 입력 검사항목 코드(HLTG12) */
 const DIRECT_INPUT_ARTICLE = 'HLTC0035';
@@ -79,6 +111,16 @@ const formatValue = (param, value, input) => {
     default:
       return String(value);
   }
+};
+
+/** 값 목록 칸 값: 값 이름, 목록은 values 순서대로 " · ", 빈 목록은 "없음" */
+const valuesText = (field, param, value) => {
+  if (!Array.isArray(value)) return actionValueName(field, value);
+  if (value.length === 0) return '없음';
+  return param.values
+    .filter((item) => value.includes(item))
+    .map((item) => actionValueName(field, item))
+    .join(' · ');
 };
 
 /** 캘린더 뱃지 색: 색 점 + 이름 */
@@ -237,13 +279,232 @@ function ObservationItemValue({ petSn, obsrvArtclSn }) {
   if (isEmpty(obsrvArtclSn))
     return <span className="text-danger">{MISSING}</span>;
   if (isPending) return <span className="text-subtle">불러오는 중…</span>;
-  const item = isError
-    ? null
-    : items.find((target) => target.obsrvArtclSn === Number(obsrvArtclSn));
+  if (isError) {
+    return <span className="text-danger">관찰 항목을 불러오지 못했어요</span>;
+  }
+  const item = items.find(
+    (target) => target.obsrvArtclSn === Number(obsrvArtclSn),
+  );
   if (!item) return `관찰 항목 ${obsrvArtclSn}`;
-  return [item.obsrvArtclNm, item.obsrvRegnCdNm, item.obsrvRegnDtlNm]
+  /** 부위와 세부 위치가 같으면("등 · 등") 한 번만 */
+  const names = [item.obsrvArtclNm, item.obsrvRegnCdNm, item.obsrvRegnDtlNm]
+    .map((name) => name?.trim())
+    .filter(Boolean);
+  return names.filter((name, index) => name !== names[index - 1]).join(' · ');
+}
+
+const LOADING = '불러오는 중…';
+const NOTE_CLASS = 'text-sm leading-[22px] text-subtle';
+
+/** 포인트: "1,200P"(아이템 상점과 같다) */
+const formatPoint = (value) => `${Number(value).toLocaleString('ko-KR')}P`;
+
+/**
+ * 번호 목록 이름: 모두 찾으면 "까미, 탄이", 조회 중이면 불러오는 중, 못 찾은 번호가 있으면 "N개"
+ * - nameOf(번호) → 이름 또는 null
+ */
+function NumberNames({ sns, query, nameOf }) {
+  if (sns.length === 0) return '없음';
+  if (query.isPending) return <span className="text-subtle">{LOADING}</span>;
+  const names = query.isError ? [] : sns.map((sn) => nameOf(Number(sn)));
+  if (names.length === 0 || names.some((name) => !name)) {
+    return `${sns.length}개`;
+  }
+  return names.join(', ');
+}
+
+/** 반려동물 이름 목록: [{ petSn, petNm }]에서 */
+const petNameOf = (pets) => (petSn) =>
+  pets?.find((pet) => pet.petSn === petSn)?.petNm ?? null;
+
+/** 초대 발송: 내 반려동물 이름 */
+function InvitePetsValue({ sns }) {
+  const query = useChatPets();
+  return <NumberNames sns={sns} query={query} nameOf={petNameOf(query.data)} />;
+}
+
+/** 초대 수락: 받은 초대의 반려동물 이름, 고르지 않은 아이는 거절(사람 결정 2026-11-27, 고치기는 말로) */
+function AcceptPetsValue({ sns, jntBrupInvtnSn }) {
+  const query = useChatReceivedInvitation(jntBrupInvtnSn ?? null);
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span>
+        <NumberNames
+          sns={sns}
+          query={query}
+          nameOf={petNameOf(query.data?.pets)}
+        />
+      </span>
+      <span className={NOTE_CLASS}>고르지 않은 아이는 거절돼요</span>
+    </div>
+  );
+}
+
+/** 아이템 구매: 이름(필요 포인트), 아래 합계·보유 포인트 */
+function PurchaseItemsValue({ sns, pixelCharSn }) {
+  const query = useChatShopItems(pixelCharSn ?? null);
+  const items = sns.map((sn) =>
+    query.data?.items?.find((item) => item.itemSn === Number(sn)),
+  );
+  const isFound = !query.isPending && items.every(Boolean);
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span>
+        <NumberNames
+          sns={sns}
+          query={query}
+          nameOf={(itemSn) => {
+            const item = items.find((target) => target?.itemSn === itemSn);
+            return item ? `${item.itemNm}(${formatPoint(item.needPnt)})` : null;
+          }}
+        />
+      </span>
+      {isFound && sns.length > 0 && (
+        <span className={NOTE_CLASS}>
+          합계{' '}
+          <span className="tabular-nums">
+            {formatPoint(items.reduce((sum, item) => sum + item.needPnt, 0))}
+          </span>{' '}
+          · 보유{' '}
+          <span className="tabular-nums">
+            {formatPoint(query.data.hldPnt ?? 0)}
+          </span>
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** 착용 저장: 보유 아이템 이름, 빈 목록이면 모두 벗기(목록에 없는 보유 아이템은 해제) */
+function EquippedItemsValue({ sns, pixelCharSn }) {
+  const query = useChatPixelCharacter(pixelCharSn ?? null);
+  if (sns.length === 0) return '모두 벗기';
+  return (
+    <NumberNames
+      sns={sns}
+      query={query}
+      nameOf={(hldItemSn) =>
+        query.data?.heldItems?.find((held) => held.hldItemSn === hldItemSn)
+          ?.itemNm ?? null
+      }
+    />
+  );
+}
+
+/** 번호 목록 칸 값: 도구마다 이름을 받을 곳이 다르다, 모르는 칸은 "N개" */
+function NumberListValue({ card, field, value, input }) {
+  if (card.tool === INVITE_TOOL && field === 'petSns') {
+    return <InvitePetsValue sns={value} />;
+  }
+  if (card.tool === ACCEPT_INVITATION_TOOL && field === 'petSns') {
+    return (
+      <AcceptPetsValue sns={value} jntBrupInvtnSn={input.jntBrupInvtnSn} />
+    );
+  }
+  if (card.tool === PURCHASE_TOOL && field === 'itemSns') {
+    return <PurchaseItemsValue sns={value} pixelCharSn={input.pixelCharSn} />;
+  }
+  if (card.tool === EQUIP_TOOL && field === 'hldItemSns') {
+    return <EquippedItemsValue sns={value} pixelCharSn={input.pixelCharSn} />;
+  }
+  return value.length === 0 ? '없음' : `${value.length}개`;
+}
+
+/** 초대에 든 반려동물 이름 "까미, 탄이" */
+const invitationPetNames = (invitation) =>
+  (invitation?.pets ?? []).map((pet) => pet.petNm).join(', ');
+
+/** 받은 초대(수락·거절): "○○님의 초대", 거절 카드는 반려동물 이름까지 */
+function ReceivedInvitationValue({ jntBrupInvtnSn, hasPets }) {
+  const { data, isPending, isError } = useChatReceivedInvitation(
+    jntBrupInvtnSn ?? null,
+  );
+  if (isEmpty(jntBrupInvtnSn)) {
+    return <span className="text-danger">{MISSING}</span>;
+  }
+  if (isPending) return <span className="text-subtle">{LOADING}</span>;
+  /** 처리한 초대는 보낸 사람이 비어 올 수 있다 */
+  if (isError || !data?.sndrMbrNcnm) return `초대 ${jntBrupInvtnSn}`;
+  const pets = invitationPetNames(data);
+  return [`${data.sndrMbrNcnm}님의 초대`, hasPets && pets]
     .filter(Boolean)
     .join(' · ');
+}
+
+/** 보낸 초대(취소): "받는 이메일 · 반려동물 이름" */
+function SentInvitationValue({ jntBrupInvtnSn }) {
+  const { data, isPending, isError } = useChatSentInvitations();
+  if (isEmpty(jntBrupInvtnSn)) {
+    return <span className="text-danger">{MISSING}</span>;
+  }
+  if (isPending) return <span className="text-subtle">{LOADING}</span>;
+  const invitation = isError
+    ? null
+    : data?.find((item) => item.jntBrupInvtnSn === Number(jntBrupInvtnSn));
+  if (!invitation) return `초대 ${jntBrupInvtnSn}`;
+  return [invitation.invtnTrgtEml, invitationPetNames(invitation)]
+    .filter(Boolean)
+    .join(' · ');
+}
+
+/** 초대 줄 값: 취소는 보낸 초대, 수락·거절은 받은 초대 */
+function InvitationValue({ card, input }) {
+  if (card.tool === CANCEL_INVITATION_TOOL) {
+    return <SentInvitationValue jntBrupInvtnSn={input.jntBrupInvtnSn} />;
+  }
+  return (
+    <ReceivedInvitationValue
+      jntBrupInvtnSn={input.jntBrupInvtnSn}
+      hasPets={card.tool !== ACCEPT_INVITATION_TOOL}
+    />
+  );
+}
+
+/**
+ * 장소 줄 값: 카드 대상 글(장소 이름·주소), 없으면 "장소 번호 N"
+ * - 번호는 카드에서 고를 수 없어 비었으면 말로 알려 달라고 한다
+ */
+function PlaceValue({ card, plcSn }) {
+  if (isEmpty(plcSn)) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-danger">{MISSING}</span>
+        <span className="text-sm leading-[22px] text-subtle">
+          어느 장소인지 말로 알려 주세요
+        </span>
+      </div>
+    );
+  }
+  return card.targetText || `장소 번호 ${plcSn}`;
+}
+
+/** 품종 줄을 보일지: 등록 카드는 늘(비면 입력해 주세요), 수정 카드는 값이 있을 때만 */
+const isBreedShown = (card, input) =>
+  hasBreedRow(card) &&
+  (card.tool === PET_CREATE_TOOL ||
+    !isEmpty(input.vrtySn) ||
+    !isEmpty(input.vrtyDrctInptNm));
+
+/** 품종 값: 번호면 품종 목록 이름, 아니면 직접 입력한 이름 */
+function BreedValue({ input }) {
+  const hasSn = !isEmpty(input.vrtySn);
+  const { data, isPending, isError } = useChatBreeds(
+    hasSn ? input.petSeCd : null,
+  );
+  if (!hasSn) {
+    return isEmpty(input.vrtyDrctInptNm) ? (
+      <span className="text-danger">{MISSING}</span>
+    ) : (
+      `${input.vrtyDrctInptNm}(직접 입력)`
+    );
+  }
+  if (input.petSeCd && isPending) {
+    return <span className="text-subtle">{LOADING}</span>;
+  }
+  const breed = isError
+    ? null
+    : data?.find((item) => item.vrtySn === Number(input.vrtySn));
+  return breed?.vrtyNm ?? `품종 ${input.vrtySn}`;
 }
 
 /** 칩으로 고르는 칸이 이보다 많으면 펼침 목록 */
@@ -308,17 +569,50 @@ function EditableValue({
 }) {
   const set = (next) => onChangeInput({ [field]: next });
   const label = actionFieldName(field);
-  if (param.type === 'code' || param.type === 'boolean') {
-    const options =
-      param.type === 'boolean'
-        ? [
-            { value: true, label: '예' },
-            { value: false, label: '아니요' },
-          ]
-        : (param.codes ?? []).map((code) => ({
-            value: code.cd,
-            label: code.nm,
-          }));
+  if (isValueList(param)) {
+    /** 여러 개 고르기: 다시 누르면 뺀다, 값은 values 순서대로 넣는다 */
+    const picked = Array.isArray(value) ? value : [];
+    const toggle = (item) =>
+      set(
+        param.values.filter((one) =>
+          one === item ? !picked.includes(one) : picked.includes(one),
+        ),
+      );
+    return (
+      <div role="group" aria-label={label} className="flex flex-wrap gap-2">
+        {param.values.map((item) => (
+          <button
+            key={item}
+            type="button"
+            aria-pressed={picked.includes(item)}
+            disabled={isDisabled}
+            className={picked.includes(item) ? CHIP_ON : CHIP}
+            onClick={() => toggle(item)}
+          >
+            {actionValueName(field, item)}
+          </button>
+        ))}
+      </div>
+    );
+  }
+  if (param.type === 'code' || param.type === 'boolean' || hasValues(param)) {
+    let options;
+    if (hasValues(param)) {
+      options = param.values.map((item) => ({
+        value: item,
+        label: actionValueName(field, item),
+      }));
+    } else if (param.type === 'boolean') {
+      options = [
+        { value: true, label: '예' },
+        { value: false, label: '아니요' },
+      ];
+    } else {
+      options = (param.codes ?? []).map((code) => ({
+        value: code.cd,
+        label: code.nm,
+      }));
+    }
     if (options.length > MAX_CHIP_COUNT) {
       return (
         <DropdownSelect
@@ -532,11 +826,33 @@ export default function ActionCardFields({
 }) {
   const rows = cardRows(card, input);
   const isInspection = card.tool === INSPECTION_TOOL;
+  /**
+   * 서버 칸 오류가 난 값 목록 칸은 카드에서 고른다(사람 결정 2026-11-27, 값 목록 칸만)
+   * - 고르면 오류가 지워지므로 한 번 열린 칸은 카드가 남아 있는 동안 계속 고를 수 있다
+   */
+  const [errorOpened, setErrorOpened] = useState([]);
+  const newlyErrored = Object.keys(fieldErrors).filter(
+    (field) => hasValues(card.params[field]) && !errorOpened.includes(field),
+  );
+  if (newlyErrored.length > 0) {
+    setErrorOpened([...errorOpened, ...newlyErrored]);
+  }
   const petNm =
     card.petNm ??
     card.petChoices.find((pet) => pet.petSn === input.petSn)?.petNm;
   const hasPetChips = isActive && hasPetChoice(card) && input.petSn == null;
   const missing = missingFields(card, input);
+  const breedRow = isBreedShown(card, input) && (
+    <Row
+      key="vrtySn"
+      label={actionFieldName('vrtySn')}
+      error={fieldErrors.vrtySn ?? fieldErrors.vrtyDrctInptNm}
+    >
+      <BreedValue input={input} />
+    </Row>
+  );
+  /** 품종은 종류 줄 바로 아래, 종류 줄이 없으면 맨 아래 */
+  const hasKindRow = rows.some(({ field }) => field === 'petSeCd');
 
   return (
     <dl className="flex flex-col gap-2">
@@ -565,16 +881,25 @@ export default function ActionCardFields({
           )}
         </Row>
       )}
-      {card.tool === OBSERVATION_CYCLE_TOOL &&
-        'obsrvArtclSn' in card.params && (
-          <Row label="관찰 항목" error={fieldErrors.obsrvArtclSn}>
-            <ObservationItemValue
-              petSn={input.petSn ?? null}
-              obsrvArtclSn={input.obsrvArtclSn}
-            />
-          </Row>
-        )}
-      {isInspection && 'ckupRcdSn' in card.params && (
+      {hasObservationItemRow(card) && (
+        <Row label="관찰 항목" error={fieldErrors.obsrvArtclSn}>
+          <ObservationItemValue
+            petSn={input.petSn ?? null}
+            obsrvArtclSn={input.obsrvArtclSn}
+          />
+        </Row>
+      )}
+      {hasInvitationRow(card) && (
+        <Row label={actionFieldName('jntBrupInvtnSn')}>
+          <InvitationValue card={card} input={input} />
+        </Row>
+      )}
+      {hasPlaceRow(card) && (
+        <Row label={actionFieldName('plcSn')} error={fieldErrors.plcSn}>
+          <PlaceValue card={card} plcSn={input.plcSn} />
+        </Row>
+      )}
+      {hasCheckupRow(card) && (
         <Row label="검진기록" error={fieldErrors.ckupRcdSn}>
           <CheckupValue
             input={input}
@@ -583,70 +908,94 @@ export default function ActionCardFields({
           />
         </Row>
       )}
-      {rows.map(({ field, param, value, isMissing, isEditable }) => {
-        if (isInspection && field === 'values' && Array.isArray(value)) {
-          return (
-            <div key={field} className="flex flex-col gap-1">
-              <dt className={LABEL_CLASS}>
-                {actionFieldName(field)} {value.length}항목
-              </dt>
-              <dd>
-                <InspectionTable card={card} values={value} />
-              </dd>
-            </div>
-          );
-        }
-        let content;
-        if (isEditable) {
-          content = (
-            <div className="flex flex-col gap-1">
-              <EditableValue
+      {rows.map(
+        ({ field, param, value, isMissing, isEditable: isEditableAtFirst }) => {
+          const isEditable = isEditableAtFirst || errorOpened.includes(field);
+          if (isInspection && field === 'values' && Array.isArray(value)) {
+            return (
+              <div key={field} className="flex flex-col gap-1">
+                <dt className={LABEL_CLASS}>
+                  {actionFieldName(field)} {value.length}항목
+                </dt>
+                <dd>
+                  <InspectionTable card={card} values={value} />
+                </dd>
+              </div>
+            );
+          }
+          let content;
+          if (isEditable) {
+            content = (
+              <div className="flex flex-col gap-1">
+                <EditableValue
+                  card={card}
+                  field={field}
+                  param={param}
+                  value={value}
+                  isMissing={isMissing}
+                  isDisabled={isDisabled || !isActive}
+                  onChangeInput={onChangeInput}
+                />
+                {isMissing && (
+                  <span className="text-sm leading-[22px] text-danger">
+                    {MISSING}
+                  </span>
+                )}
+              </div>
+            );
+          } else if (isMissing) {
+            content = <span className="text-danger">{MISSING}</span>;
+          } else if (hasValues(param)) {
+            content = valuesText(field, param, value);
+          } else if (isNumberList(param) && Array.isArray(value)) {
+            content = (
+              <NumberListValue
                 card={card}
                 field={field}
-                param={param}
                 value={value}
-                isMissing={isMissing}
-                isDisabled={isDisabled || !isActive}
-                onChangeInput={onChangeInput}
+                input={input}
               />
-              {isMissing && (
-                <span className="text-sm leading-[22px] text-danger">
-                  {MISSING}
-                </span>
-              )}
-            </div>
+            );
+          } else if (param.type === 'array' && Array.isArray(value)) {
+            content = <ArrayItems param={param} values={value} input={input} />;
+          } else if (field === 'cldrBadgeColrCd') {
+            content = <BadgeColor value={value} />;
+          } else {
+            content = (
+              <span className="whitespace-pre-wrap">
+                {formatValue(param, value, input)}
+              </span>
+            );
+          }
+          const row = (
+            <Row
+              key={field}
+              label={actionFieldName(field)}
+              isStacked={isEditable}
+              error={fieldErrors[field]}
+            >
+              {content}
+            </Row>
           );
-        } else if (isMissing) {
-          content = <span className="text-danger">{MISSING}</span>;
-        } else if (param.type === 'array' && Array.isArray(value)) {
-          content = <ArrayItems param={param} values={value} input={input} />;
-        } else if (field === 'cldrBadgeColrCd') {
-          content = <BadgeColor value={value} />;
-        } else {
-          content = (
-            <span className="whitespace-pre-wrap">
-              {formatValue(param, value, input)}
-            </span>
-          );
-        }
-        return (
-          <Row
-            key={field}
-            label={actionFieldName(field)}
-            isStacked={isEditable}
-            error={fieldErrors[field]}
-          >
-            {content}
-          </Row>
-        );
-      })}
-      {photoFields.map((field) => (
+          if (field === 'petSeCd' && breedRow) {
+            return (
+              <Fragment key={field}>
+                {row}
+                {breedRow}
+              </Fragment>
+            );
+          }
+          return row;
+        },
+      )}
+      {!hasKindRow && breedRow}
+      {(isProfileReset(card, input) ? [] : photoFields).map((field) => (
         <Row key={field} label={actionFieldName(field)} isStacked>
           <PhotoField
             label={actionFieldName(field)}
             value={input[field]}
             isMissing={missing.includes(field)}
-            missingText={isPhotoAsked ? PHOTO_FIRST : MISSING}
+            missingText={photoMissingText(card, isPhotoAsked)}
             isDisabled={isDisabled || !isActive}
             onPick={(file) => onChangeInput({ [field]: file })}
           />

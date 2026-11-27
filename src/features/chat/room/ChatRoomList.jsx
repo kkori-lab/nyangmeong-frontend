@@ -173,9 +173,7 @@ function ChatRoomRow({
             >
               {room.lastMsgCn ?? '아직 메시지가 없어요'}
             </span>
-            {room.ctptLeft && (
-              <DealBadge label="상대방 나감" tone="gray" />
-            )}
+            {room.ctptLeft && <DealBadge label="상대방 나감" tone="gray" />}
             <DealBadge stage={room.mtchDlngSttsCd} />
             <CountBadge count={room.unreadCnt} className="shrink-0" />
           </span>
@@ -349,9 +347,6 @@ export default function ChatRoomList({
             />
             전체 선택
           </label>
-          <span className="text-sm font-bold text-brand-500">
-            {checkedRooms.length}개 선택
-          </span>
           <button
             type="button"
             className="ml-auto h-8 shrink-0 rounded-md px-2.5 text-sm font-semibold text-ink-2 hover:bg-white/70"
@@ -418,7 +413,9 @@ export default function ChatRoomList({
                     }}
                   >
                     <span className="grid size-5 place-items-center text-brand-500">
-                      {sort === key && <Icon name="check" className="text-xl" />}
+                      {sort === key && (
+                        <Icon name="check" className="text-xl" />
+                      )}
                     </span>
                     {label}
                   </button>
@@ -474,7 +471,7 @@ export default function ChatRoomList({
             </div>
           )}
           {visibleRooms?.length > 0 && (
-            <ul className={isEdit && checkedRooms.length > 0 ? 'pb-20' : ''}>
+            <ul>
               {visibleRooms.map((room) => (
                 <ChatRoomRow
                   key={room.otoChatRoomSn}
@@ -490,27 +487,31 @@ export default function ChatRoomList({
             </ul>
           )}
         </div>
-
-        {isEdit && checkedRooms.length > 0 && (
-          <div className="absolute inset-x-0 bottom-0 z-10 flex justify-end border-t border-line-strong bg-white px-4 py-3 shadow-[0_-6px_16px_rgba(20,40,35,0.08)]">
-            <button
-              type="button"
-              className={`${BTN_DANGER} max-[760px]:w-full`}
-              onClick={() => setIsDeleteOpen(true)}
-            >
-              {checkedRooms.length}개 나가기
-            </button>
-          </div>
-        )}
       </div>
 
-      <p className="flex h-16.25 shrink-0 items-center border-t border-line px-5 text-[12px] leading-4 text-subtle">
-        <span>
-          거래는 채팅방 위 카드에서 단계별로 진행해요.
-          <br />
-          냥멍케어는 결제를 대신하지 않아요.
-        </span>
-      </p>
+      {isEdit ? (
+        <div className="flex h-16.25 shrink-0 items-center justify-between gap-3 border-t border-line px-5">
+          <span className="text-base font-medium text-ink-2">
+            {checkedRooms.length}개 선택됨
+          </span>
+          <button
+            type="button"
+            className={BTN_DANGER}
+            disabled={checkedRooms.length === 0}
+            onClick={() => setIsDeleteOpen(true)}
+          >
+            나가기
+          </button>
+        </div>
+      ) : (
+        <p className="flex h-16.25 shrink-0 items-center border-t border-line px-5 text-[12px] leading-4 text-subtle">
+          <span>
+            거래는 채팅방 위 카드에서 단계별로 진행해요.
+            <br />
+            냥멍케어는 결제를 대신하지 않아요.
+          </span>
+        </p>
+      )}
 
       {isDeleteOpen && (
         <Modal

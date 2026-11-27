@@ -2,6 +2,26 @@
 
 기준: 공통레이아웃_기능명세서_v0.4_20261001, AI매니저_기능명세서_v0.7_20261009 (DMS, 2026-10-17), 커뮤니티_기능명세서_v0.7_20261019 (CMU-005만, KSJ 마일스톤에서 옮김, 2026-10-21), AI매니저_기능명세서_v0.9_20261026 (SCR-AIM-013만, DMS 업로드 전 로컬 사본, 2026-10-26), 관리자_기능명세서_v0.2_20261030 (DMS, 2026-10-30. 화면설계서 `관리자_화면설계서_v0.1_20261030`, 순서는 백엔드 `docs/admin/implementation-plan.md` 3절 단계)
 
+## SCR-AIM-013 대화창 · 관찰 기록 추가 카드 "관찰 항목" 줄 정리 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-013-17(관찰 항목 카드)
+- 요청: 핸드오프 "SCR-AIM-013 사진 칸 남은 것"(사람이 고치기로 정함 2026-11-27)
+- 기다리는 것: 없음
+- 완료 조건: 관찰 기록 추가 카드 "관찰 항목" 줄에서 같은 부위·세부 위치가 한 번만 보이고, 관찰 항목 목록 조회 실패 때 "관찰 항목을 불러오지 못했어요". "변화" 칸 이름 확인
+- 결과 (2026-11-27): 검증 1회차 통과(고침-1·2, 확인-3), 사람 확인. 부위=세부 위치 경우와 조회 실패는 Playwright route로 확인(8081에 그런 데이터 없음). 확인-3은 이미 맞아 코드 수정 없음
+
+## SCR-AIM-012 대화창 · 쓰기 결과 이어 가기 실제 흐름 연결 — 끝
+- 기능: 명세 기능 ID 추가 없음(연결 작업, 대조 수 그대로). 앞 절 "쓰기 결과 이어 가기(agent-continue)"의 연결 남음 이어-2·이어-3
+- 완료 조건: ai develop의 `done.pending`·`agent-continue` 계약과 맞춤, 실제 AI 서버로 이어 가기 흐름(결과 줄 → 진행 문구 → 이어 간 답, 요청 한 번), 단순 명령·모두 취소는 안 부름, 실패는 안내
+- 결과 (2026-11-27): 검증 2회차 통과(연결-1~3·추가-1), 사람 확인. 계약이 맞아 연결 코드는 그대로. 추가-1 바로 실행 카드는 실행 중 숨기고 결과 줄만(사람 결정)
+- 연결 남음: 카드 8장(`actions` 최대 개수, ai와 합의 뒤, LJS ai). 진행 문구 영어 도구 이름은 ai 저장소 몫(READ 도구 label, ai-bd에 알림)
+
+## SCR-AIM-012 대화창 · 쓰기 결과 이어 가기(agent-continue) — 끝
+- 기능: 명세 기능 ID 추가 없음(AI 계약 초안 `done.pending`·`agent-continue`·`step`), 걸치는 기능 FN-AIM-012 확인 카드
+- 요청: AI 세션 ③ 마일스톤(2026-11-26 받음, 핸드오프 "AI 매니저 쓰기 결과 이어 가기")
+- 완료 조건: 여러 카드(`done.actions`) 받기·실행·되돌려 보내기, 읽기 진행 문구(step, "○○ 확인 중이에요…" 쉬머), 카드 실행 결과를 모아 agent-continue 한 번, 이어 간 답을 결과 줄 뒤에, 취소만·단순 명령은 요청 안 함, 실패는 결과 줄 유지 + 안내
+- 결과 (2026-11-26): 검증 1회차 통과(이어-0~3, 가짜 응답 기준), 사람 확인. 사람 결정: 진행 문구 "…중이에요…" 쉬머, 여러 카드 다 보이기(이어-0 추가), 실패는 안내만, 검증은 가짜 응답
+- 연결 남음: 이어-2·이어-3 → 2026-11-27 "실제 흐름 연결" 절에서 끝
+
 ## SCR-AIM-004 대화창 · 사이트 기능 전체 표(대화창 지원 범위) — 끝
 - 기능: 화면·기능별 대화창 지원 방식(읽기·쓰기 카드·바로가기·일부러 뺌)·`@AiTool` 유무·도메인을 한 표로 만드는 스크립트와 표. 기능 ID 추가 없음
 - 요청: 2026-11-26 사람 결정(AI 매니저 대응 범위 "추천안대로", ai 세션에서 받음)
@@ -1850,6 +1870,57 @@
 - 결과(2026-11-26): `features/ai/chat/useActionCards.js`(`isUnfixableError`, 결과 저장·[다시 시도]에 errors), `features/ai/api.js`(`saveActionResult` errors), `features/ai/shared/actionFields.js`(`bdwgRngDrctInptYn` 이름표). 삭제 카드 실행은 앞 "삭제 확인 카드" 절에서 끝남
 - 완료 조건 결과: 검증 1회차 `통과`(U1 5180·8081 실제 PATCH 4종, U2 Playwright route), 사람 확인 2026-11-26
 - 연결 남음: 없음
+## SCR-AIM-012 AI 일정 생성 확인 · 건강 등록·종료 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 SCR-AIM-012 건강 등록·종료 카드(LJS, 끝 2026-11-27)와 ai 세션의 새 도구 6개 설명(`tool_prompts.yaml`)
+- 완료 조건: 대화창 확인 카드로 `draft_checkup`·`draft_prescription`·`draft_etc_inspection`·`draft_repeat_prevention`(JSON 본문 POST)과 `end_observation_item`(본문 없는 POST)·`cancel_last_dose`(본문 없는 DELETE)을 실행하면 성공하고, 400이면 `data[].field` 칸에 오류가 표시된다
+- 연결 남음: FN-AIM-012-05·06·07·13 새 도구 6개 성공 결과 줄 (ai `tool_prompts.yaml` 6개 설명, ai 세션)
+
+## SCR-AIM-012 AI 일정 생성 확인 · 반려동물 쓰기 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 LJS 반려동물 쓰기 카드 8개(2026-11-27 끝)와 ai 세션의 `tool_prompts.yaml` 설명
+- 완료 조건: 대화창 확인 카드로 `draft_pet`·`set_representative_pet`·`draft_caregiver_invitation`·`accept_caregiver_invitation`·`reject_caregiver_invitation`·`cancel_caregiver_invitation`·`draft_equipped_items`·`draft_item_purchase`가 실행된다. 본문 없는 POST, 번호 목록 칸(`type: array`+`itemType: long`, 예: `petSns`), `generated: uuid`(`idmptDmndId`)를 처리한다
+- 연결 남음: FN-AIM-012-05·06·07 (ai `tool_prompts.yaml` 8개 설명·`catalog.py` `itemType`·`draft_pet` 등록 한도 확인, ai 저장소에서 /start)
+
+## SCR-AIM-012 AI 일정 생성 확인 · 플레이스 즐겨찾기 저장 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 LJS 플레이스 즐겨찾기 저장 카드 `draft_place_bookmark`(2026-11-27 끝)와 ai 세션의 `tool_prompts.yaml` 설명
+- 완료 조건: 대화창 확인 카드로 `draft_place_bookmark`(POST `/api/place-bookmarks`, 본문 `plcSn`)가 실행되고, 저장한 장소가 즐겨찾기 목록에 보인다. 이미 저장한 장소는 409 안내
+- 연결 남음: FN-AIM-012-05·13 (저장 카드 `targetText` 장소 이름·확인 말 "저장해 줘"·지역+상호명 검색 0건, ai 저장소에서 /start, LJS)
+
+## SCR-AIM-012 AI 일정 생성 확인 · 회원 닉네임·회원정보 수정 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 LJS 회원 닉네임·회원정보 수정 카드 `draft_member_nickname_update`·`draft_member_profile_update`(2026-11-27 끝)와 ai 세션의 `tool_prompts.yaml` 설명
+- 완료 조건: 대화창 확인 카드로 `draft_member_nickname_update`(PATCH `/api/members/me/nickname`, 본문 `mbrNcnm`)가 실행돼 헤더·마이페이지 닉네임이 바뀌고, 이미 쓰는 닉네임은 409 안내. `draft_member_profile_update`(PATCH `/api/members/me` multipart, `profilePhoto` 사진 선택·`profilePhotoReset`)로 프로필 사진이 바뀌거나 기본 이미지로 돌아간다. 둘을 같이 보내면 400 `data[].field`로 안내
+- 연결 남음: FN-AIM-012-05·13 (사진 없이 확인 말 "수정할게요." 문구·이미 쓰는 닉네임이면 카드 안 띄우기·사진 + "프로필 사진 변경해줘"가 캐릭터 만들기로 빠짐, ai 저장소, LJS)
+
+
+## SCR-AIM-012 AI 일정 생성 확인 · 반려동물 삭제·연동 해제·초대 삭제 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 SCR-AIM-012 반려동물 삭제·연동 해제·초대 삭제 카드(LJS, 끝 2026-11-27), ai 세션 `tool_prompts.yaml` 세 도구 설명
+- 완료 조건: 대화창 확인 카드로 `delete_pet`(DELETE /api/pets/{petSn})·`unlink_caregiver`(DELETE /api/pets/{petSn}/caregivers/{brupRelSn})·`delete_caregiver_invitation`(DELETE /api/caregiver-invitations/{jntBrupInvtnSn})을 본문 없이 실행하고, 삭제 뒤 반려동물 목록·양육자 목록·보낸 초대 목록에서 사라진다
+- 연결 남음: FN-AIM-012-05·06·07·13 `delete_pet`·`unlink_caregiver`·`delete_caregiver_invitation` 실제 대화·결과 줄 (ai `tool_prompts.yaml` 세 도구 설명·`target_fields`, ai 세션)
+
+## SCR-AIM-012 AI 일정 생성 확인 · 값 목록 칸·알림 설정 저장 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 백엔드 SCR-AIM-012 도구 목록 enum 칸·알림 설정 저장 카드(LJS, 끝 2026-11-27), ai 세션 `tool_prompts.yaml` `draft_notification_settings` 설명
+- 완료 조건: 대화창 확인 카드가 `values`가 있는 칸(`string`, 또는 `array`+`itemType: string`)을 그 값 중에서 고르게 보여 주고, `draft_notification_settings`(PUT /api/members/me/notification-settings, `leadTimes` TODAY·D1·D3·D7)를 실행한 뒤 알림 설정 화면에 저장한 값이 보인다. 케어 일정 ON에 시점을 하나도 고르지 않으면 400 `data[0].field`=leadTimes가 그 칸에 표시된다
+- 결과 (2026-11-27): 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인. 값 목록 칸 보기·고르기, 서버 칸 오류 난 값 목록 칸 다시 고르기, 알림 설정 저장 PUT(가짜 카드 + 8081 실제 400·200)
+- 연결 남음: 3 알림 설정 저장 카드 실제 대화 (ai `CatalogItemParam.values`·`draft_notification_settings` 설명, ai 세션)
+
+## SCR-AIM-012 AI 일정 생성 확인 · 케어 캘린더 1마리 일정 목록을 AI 도구 뺌 규칙에 넣기 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13
+- 기다리는 것: 없음(백엔드 SCR-AIM-012 케어 캘린더 일정 목록 읽기 도구(LJS, 끝, 2026-11-27): `GET /api/pets/{petSn}/care-schedules`는 `list_my_care_schedules`(`GET /api/care-schedules`, `petSns=1`로 한 마리)와 같아 도구로 붙이지 않음)
+- 할 것: `scripts/ai-coverage.mjs` `EXCLUDES`에 GET `/api/pets/{}/care-schedules` 규칙(이유: `list_my_care_schedules`와 같음)을 넣고 `node scripts/ai-coverage.mjs --backend ../backend --ai ../ai`로 `docs/ai-coverage.md`를 다시 만든다
+- 완료 조건: `docs/ai-coverage.md`에서 그 GET 줄이 "읽기 후보"가 아니라 "뺌"이다
+
+## SCR-AIM-012 AI 일정 생성 확인 · 가계부 여러 건·조건 전체 삭제 카드 실행 확인 — 끝
+- 기능: 명세 기능 ID 추가 없음, 걸치는 기능 FN-AIM-012-05·06·07·13, FN-MYP-030-17·18·19·21
+- 기다리는 것: 백엔드 SCR-AIM-012 가계부 여러 건·조건 전체 삭제 카드(LJS, 끝 2026-11-27), ai 세션 두 도구 설명·Param 파서 쿼리 배열 칸
+- 완료 조건: 대화창 확인 카드에서 `delete_expenses`를 실행하면 쿼리 번호 목록이 `DELETE /api/expenses?expndSn=1&expndSn=2`처럼 같은 이름을 되풀이해 보내져 200, `delete_expenses_by_condition`은 `POST /api/expenses/bulk-delete` 본문으로 200이고 건수가 바뀌었으면 409 `EXPENSE_BULK_DELETE_CHANGED`를 보여 준다
+- 결과 (2026-11-27): 검증 1회차 확인 못 함 있음(연결 남음만), 사람 확인(ai 구현 뒤 실제 대화로 다시 봄). 가짜 카드 + 8081 실제로 쿼리 되풀이 DELETE 200·bulk-delete 200·409, `delete_`로 시작하는 POST 도구도 빨간 [삭제](사람 결정)
+- 연결 남음: FN-AIM-012-05·06·07·13 / FN-MYP-030-17·18·19·21 결과 줄·409 실패 결과 줄·실제 대화 (ai `tool_prompts.yaml` `delete_expenses`·`delete_expenses_by_condition` 설명·`target_fields`·확인 말 "삭제해 줘", Param 파서 쿼리 `array` 칸, ai 세션 구현 중 2026-11-27)
+
 ## 제외
 - FN-AIM-009-01~27: 화면 담당이 JAJ(milestone.md "화면과 API 담당이 다른 곳" — AIM-009 영수증 결과 규칙, 화면은 SCR-HLT-002)
 - FN-CMU-005를 뺀 커뮤니티 기능 46개: 화면 담당이 KSJ(milestone.md 담당 표 "커뮤니티(CMU, CMU-005 제외)", 목록은 `milestones/KSJ.md`)

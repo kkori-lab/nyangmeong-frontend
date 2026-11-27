@@ -170,7 +170,16 @@ export default function AiChatScreen({
       pets.find((pet) => pet.rprsPetYn)?.petSn ??
       null)
     : undefined;
-  const selectedPetSn = pickedPetSn !== undefined ? pickedPetSn : defaultPetSn;
+  /**
+   * 고른 칩이 목록에서 사라지면(대화창 카드로 삭제·공동양육 연동 해제) 고르기 전처럼 기본 칩으로 돌아간다
+   * - 목록을 받기 전·[전체](null)는 고른 그대로
+   */
+  const isPickedGone =
+    pickedPetSn != null &&
+    pets !== undefined &&
+    !pets.some((pet) => pet.petSn === pickedPetSn);
+  const selectedPetSn =
+    pickedPetSn !== undefined && !isPickedGone ? pickedPetSn : defaultPetSn;
   /** 선택된 대화 번호 */
   const [selectedRoomSn, setSelectedRoomSn] = useState(null);
   /** 첫 메시지 */
@@ -181,7 +190,10 @@ export default function AiChatScreen({
 
   const { data: conversation, isError } = useConversation(selectedRoomSn);
   /** 확인 카드(2단계 쓰기) */
-  const actions = useActionCards();
+  /** 카드 묶음이 다 끝나면 에이전트 이어 가기(done.pending), 함수는 아래에서 정의 */
+  const actions = useActionCards({
+    onAgentReady: (params) => handleAgentReady(params),
+  });
   const answer = useAnswerStream();
   /** 영수증 파일 고르기 창 */
   const fileInputRef = useRef(null);
@@ -214,13 +226,15 @@ export default function AiChatScreen({
       setFirstMessage(null);
       setSelectedRoomSn(aiCnvrsRoomSn);
       if (!action) return;
-      actions.add({
-        key: nextCardKey++,
-        card: action,
-        afterSn: afterMsgSn,
-        anchorSn: messages.at(-1)?.aiCnvrsMsgSn ?? null,
-        files: attachFile(action, file),
-      });
+      actions.add([
+        {
+          key: nextCardKey++,
+          card: action,
+          afterSn: afterMsgSn,
+          anchorSn: messages.at(-1)?.aiCnvrsMsgSn ?? null,
+          files: attachFile(action, file),
+        },
+      ]);
     },
   });
   /** 검진기록 없음 뒤 대화 안 검진기록 만들기: { aiCnvrsRoomSn, pet, request, afterMsgSn }, 버튼은 요약 메시지 바로 아래 */
@@ -228,12 +242,14 @@ export default function AiChatScreen({
   /** checkup-card가 준 확인 카드를 요약 메시지 뒤에 */
   const addCheckupCard = ({ messages, action, afterMsgSn }) => {
     if (!action) return;
-    actions.add({
-      key: nextCardKey++,
-      card: action,
-      afterSn: afterMsgSn,
-      anchorSn: messages.at(-1)?.aiCnvrsMsgSn ?? null,
-    });
+    actions.add([
+      {
+        key: nextCardKey++,
+        card: action,
+        afterSn: afterMsgSn,
+        anchorSn: messages.at(-1)?.aiCnvrsMsgSn ?? null,
+      },
+    ]);
   };
   const judgeImage = useJudgeImageIntent();
   const createCharacter = useCreateCharacter();
@@ -301,6 +317,8 @@ export default function AiChatScreen({
         message.aiCnvrsMsgSn > pendingAfterSn,
     );
   const latestCardKey = actions.actionCards.at(-1)?.key ?? null;
+  /** 가장 최근 카드 묶음(한 응답으로 받은 카드들): 묶음 카드가 모두 [확인]·[취소]를 보인다 */
+  const latestGroupKey = actions.actionCards.at(-1)?.group ?? null;
 
   const updateImage = (id, patch) =>
     setImage((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
@@ -355,35 +373,51 @@ export default function AiChatScreen({
 
   /**
    * 서버 판정별 화면 처리: 검색 답변은 말풍선 담당
-   * - sentCardKey: 이번 요청에 실은 확인 카드, 카드 없이 답하면(취소 말 등) 그 카드를 버림
-   * - attachedFiles: 이번에 입력창으로 보내 그 카드에 붙인 사진(상태 반영 전이라 따로 받음)
+   * - sentKeys: 이번 요청에 실은 확인 카드 번호들, 카드 없이 답하면(취소 말 등) 그 카드를 모두 버림
+   * - attachedByKey: 이번에 입력창으로 보내 카드에 붙인 사진 { 카드 번호: { 칸: File } }(상태 반영 전이라 따로 받음)
    */
-  const handleResult = (result, afterSn, sentCardKey, attachedFiles = {}) => {
+  const handleResult = (result, afterSn, sentKeys = [], attachedByKey = {}) => {
     if (!result) return;
     const { aiCnvrsRoomSn, intent } = result;
-    if (sentCardKey != null && !result.action) actions.drop(sentCardKey);
-    /** 확인 카드: ACTION 판정, 또는 검색 답변 끝(요약 글 메시지 뒤 자리) */
-    if (result.action) {
-      setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
-      /** 보낸 카드와 같은 도구면 붙인 파일(분석한 사진)을 이어 붙임 */
-      const sentCard = actions.actionCards.find(
-        (item) => item.key === sentCardKey,
-      );
-      const params = {
-        key: nextCardKey++,
-        card: result.action,
-        afterSn,
-        anchorSn: result.message?.aiCnvrsMsgSn ?? null,
-        ...(sentCard?.card.tool === result.action.tool && {
-          files: { ...actions.filesOf(sentCardKey), ...attachedFiles },
-          photoFields: actions.photoFieldsOf(sentCardKey),
-        }),
-      };
-      /** 확인 말("등록해 줘"): 서버가 다시 검증한 카드를 바로 실행 */
-      if (result.execute) actions.execute(aiCnvrsRoomSn, params);
-      else actions.add(params);
+    if (sentKeys.length > 0 && result.actions.length === 0) {
+      actions.drop(sentKeys);
     }
-    if (intent.kind === 'ROUTE') {
+    /** 확인 카드 묶음: ACTION 판정, 또는 검색 답변 끝(요약 글 메시지 뒤 자리) */
+    if (result.actions.length > 0) {
+      setFallbackCount(resetFallbackCount(aiCnvrsRoomSn));
+      /** 보낸 카드와 같은 도구면 붙인 파일(분석한 사진)을 이어 붙임: 같은 도구 카드끼리 순서대로 */
+      const sentCards = actions.actionCards.filter((item) =>
+        sentKeys.includes(item.key),
+      );
+      const group = nextCardKey;
+      const paramsList = result.actions.map((card, index) => {
+        const sameTool = result.actions
+          .slice(0, index)
+          .filter((prev) => prev.tool === card.tool).length;
+        const sentCard = sentCards.filter(
+          (item) => item.card.tool === card.tool,
+        )[sameTool];
+        return {
+          key: nextCardKey++,
+          group,
+          agentToken: result.pending?.agentToken ?? null,
+          card,
+          afterSn,
+          anchorSn: result.message?.aiCnvrsMsgSn ?? null,
+          ...(sentCard && {
+            files: {
+              ...actions.filesOf(sentCard.key),
+              ...attachedByKey[sentCard.key],
+            },
+            photoFields: actions.photoFieldsOf(sentCard.key),
+          }),
+        };
+      });
+      /** 확인 말("등록해 줘")·동사형 명령: 서버가 다시 검증한 카드를 바로 실행 */
+      if (result.execute) actions.execute(aiCnvrsRoomSn, paramsList);
+      else actions.add(paramsList);
+    }
+    if (intent?.kind === 'ROUTE') {
       const nextRoute = toRoute(intent);
       if (nextRoute) {
         setRoute({ ...nextRoute, id: Date.now(), status: 'waiting' });
@@ -392,17 +426,51 @@ export default function AiChatScreen({
         setNotice('fallback');
       }
     }
-    if (intent.kind === 'FALLBACK') {
+    if (intent?.kind === 'FALLBACK') {
       setFallbackCount(increaseFallbackCount(aiCnvrsRoomSn));
     }
-    if (intent.kind === 'RECEIPT') setNotice('receipt');
+    if (intent?.kind === 'RECEIPT') setNotice('receipt');
   };
 
   /**
-   * 메시지 전송: 처리 전 가장 최근 확인 카드를 함께 전송
-   * - choicePetSn: 카드의 반려동물 이름 칩으로 고른 아이, 실을 카드의 petSn으로(같은 이름이 둘이어도 고른 아이)
+   * 에이전트 이어 가기: 카드 묶음 결과를 AI 서버에 돌려주고 이어 간 답을 결과 줄 뒤에
+   * - 다른 방으로 옮겼거나 다른 답변을 받는 중이면 하지 않는다
+   * - 이어 간 답에 새 카드·pending이 오면 같은 길(handleResult)로 한 번 더
    */
-  const handleSend = async (cnvrsCn, choicePetSn = null, attachedFiles) => {
+  const handleAgentReady = async ({
+    aiCnvrsRoomSn,
+    agentToken,
+    results,
+    afterSn,
+  }) => {
+    if (aiCnvrsRoomSn !== selectedRoomSn || isAnswering) return;
+    followBottom({ smooth: true });
+    setRoute(null);
+    setNotice(null);
+    const result = await answer.resume({ aiCnvrsRoomSn, agentToken, results });
+    handleResult(result, afterSn);
+  };
+
+  /** 다음 메시지에 실을 카드 묶음: 이름 칩으로 고른 아이(choicePetSn)는 반려동물이 빈 카드에(1장이면 그 카드에) */
+  const sendingActions = (choicePetSn) => {
+    const pending = actions.pendingActions(latestCardKey);
+    if (choicePetSn == null) return pending;
+    return {
+      ...pending,
+      actions: pending.actions.map((action) =>
+        pending.actions.length === 1 || action.input.petSn == null
+          ? { ...action, input: { ...action.input, petSn: choicePetSn } }
+          : action,
+      ),
+    };
+  };
+
+  /**
+   * 메시지 전송: 처리 전 가장 최근 확인 카드 묶음을 함께 전송
+   * - choicePetSn: 카드의 반려동물 이름 칩으로 고른 아이, 실을 카드의 petSn으로(같은 이름이 둘이어도 고른 아이)
+   * - attachedByKey: 입력창으로 보내 카드에 붙인 사진 { 카드 번호: { 칸: File } }
+   */
+  const handleSend = async (cnvrsCn, choicePetSn = null, attachedByKey) => {
     followBottom({ smooth: true });
     setFirstMessage(null);
     setIsAttachFailed(false);
@@ -425,20 +493,18 @@ export default function AiChatScreen({
     ) {
       setPickedPetSn(newRoomPetSn);
     }
-    const pending = actions.pendingAction(latestCardKey);
-    const action =
-      pending && choicePetSn != null
-        ? { ...pending, input: { ...pending.input, petSn: choicePetSn } }
-        : pending;
+    const sending = sendingActions(choicePetSn);
+    /** 새 메시지는 새 턴: 기다리던 이어 가기는 버린다 */
+    actions.discardAgents();
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
       /** 펫 태그는 새 방을 만들 때만: 열린 방은 늘 방 태그 기준 */
       ...(newRoomPetSn !== undefined && { petSn: newRoomPetSn }),
       cnvrsCn,
-      action,
+      actions: sending.actions,
       onRoom: setSelectedRoomSn,
     });
-    handleResult(result, afterSn, action ? latestCardKey : null, attachedFiles);
+    handleResult(result, afterSn, sending.keys, attachedByKey);
   };
 
   /** [다시 시도]·[다시 생성]: 방의 마지막 사용자 메시지에 재답변 */
@@ -451,13 +517,14 @@ export default function AiChatScreen({
       conversation?.messages.findLast(
         (message) => message.roleCd === AI_ROLE.USER,
       )?.aiCnvrsMsgSn ?? 0;
-    const action = actions.pendingAction(latestCardKey);
+    const sending = actions.pendingActions(latestCardKey);
+    actions.discardAgents();
     const result = await answer.start({
       aiCnvrsRoomSn: selectedRoomSn,
-      action,
+      actions: sending.actions,
       replaceMsgSn,
     });
-    handleResult(result, lastUserSn - 1, action ? latestCardKey : null);
+    handleResult(result, lastUserSn - 1, sending.keys);
   };
 
   /**
@@ -526,7 +593,7 @@ export default function AiChatScreen({
       : actions.photoCardKey(latestCardKey);
     if (photoKey != null) {
       const attached = actions.attachPhoto(photoKey, file);
-      if (text.trim()) handleSend(text, null, attached);
+      if (text.trim()) handleSend(text, null, { [photoKey]: attached });
       return;
     }
     followBottom({ smooth: true });
@@ -867,7 +934,7 @@ export default function AiChatScreen({
                 ]}
                 fallbackCount={fallbackCount}
                 actionCards={actions.actionCards}
-                latestCardKey={latestCardKey}
+                latestGroupKey={latestGroupKey}
                 onRegenerate={(message) =>
                   handleAnswerAgain(message.aiCnvrsMsgSn)
                 }
@@ -885,6 +952,7 @@ export default function AiChatScreen({
                     status={answer.status}
                     text={answer.text}
                     shortcuts={answer.shortcuts}
+                    step={answer.step}
                     onRetry={() => handleAnswerAgain()}
                     avatarPet={avatarPet}
                     onRegenerate={() =>

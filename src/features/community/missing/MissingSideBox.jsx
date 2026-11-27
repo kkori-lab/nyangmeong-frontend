@@ -1,6 +1,7 @@
 import { CalendarDays, MapPin, MessageCircle, PartyPopper } from 'lucide-react';
 import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/buttonStyles';
 import { formatDate } from '@/utils/formatDate';
+import { pickJosa } from '@/utils/josa';
 import { EXTEND_BEFORE_DAYS, isExpired, isFound } from '../missingCodes';
 import CheckList from './CheckList';
 import {
@@ -51,7 +52,10 @@ export function VisitorSide({ post }) {
   return (
     <>
       <aside aria-label="연락하기" className={BOX_CLASS}>
-        <p className="text-sm text-muted">{post.petNm}를 보셨나요?</p>
+        <p className="text-sm text-muted">
+          {post.petNm}
+          {pickJosa(post.petNm, '을/를')} 보셨나요?
+        </p>
         <p className="mt-1 text-2xl font-bold tracking-[0.01em]">{post.cnpl}</p>
         <ul className="mt-4 border-t border-line pt-4 text-sm text-ink-2">
           <li className="flex items-start gap-2 py-1">
@@ -128,7 +132,10 @@ export function OwnerSide({ post, onFound, onExtend }) {
           </div>
         ) : (
           <>
-            <p className="text-sm text-muted">{post.petNm}를 찾으셨나요?</p>
+            <p className="text-sm text-muted">
+              {post.petNm}
+              {pickJosa(post.petNm, '을/를')} 찾으셨나요?
+            </p>
             <p className="mt-2 text-sm text-muted">
               게시 종료 {formatDate(post.expryCrtrDt)} ·{' '}
               <b className="font-bold text-warn">{remainDays}일 남음</b>

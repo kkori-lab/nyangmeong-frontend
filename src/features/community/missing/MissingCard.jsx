@@ -13,7 +13,7 @@ import { FOUND_PRIVATE_TEXT, formatArea } from './missingUtils';
 /**
  * 실종 카드: 사진 · 상태 배지 · 이름(품종) · 지역 · 경과 시간 · 특징 한 줄
  * - 내 글(owner)은 상태 배지 옆에 「내 글」 배지
- * - 남의 찾았어요 글은 서버가 이름·지역 등을 null로 줌: 이름 자리에 제목, 지역은 숨김
+ * - 남의 찾았어요 글은 서버가 이름은 주고 지역 등은 null로 줌: 지역은 숨김(이름이 없으면 이름 자리에 제목)
  */
 export default function MissingCard({ post }) {
   const { search } = useLocation();

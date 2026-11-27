@@ -22,7 +22,6 @@ import {
 import { useBulkCreateDailyRecords, useSaveHealthWidgets } from '../queries';
 import { DECIMAL_MESSAGE, hasOverTwoDecimals } from '../numberFormat';
 import FieldError from '@/components/FieldError';
-import { INPUT } from '@/components/formStyles';
 
 /** 서버 칸 이름 → 줄 안 칸(시간·값). 종류 칸 등 줄에 붙일 수 없는 오류는 푸터 위 한 줄로 */
 const SERVER_FIELDS = { rcdDt: 'time', rcdNvl: 'value', crsdSttsCd: 'value' };
@@ -362,6 +361,8 @@ export default function TodayRecordForm({
                           ref={setValueRef}
                           label={`${type.nm} ${type.valueLabel}`}
                           value={row.value}
+                          // 숫자 칸처럼 값을 오른쪽에(화살표 바로 왼쪽). 공용 컴포넌트는 그대로 두고 이 모달에서만
+                          className="[&_button>span]:text-right"
                           options={[
                             { value: NO_STOOL, label: '선택 안 함' },
                             ...STOOL_STATES.map((state) => ({
@@ -374,7 +375,10 @@ export default function TodayRecordForm({
                           onChange={(value) => updateRow(type.cd, { value })}
                         />
                       ) : (
-                        <span className="relative block">
+                        // 테두리·상태는 바깥 label, 값과 단위는 gap-2로 나란히 둬 단위마다 간격이 같게. 단위·빈 곳을 눌러도 입력칸에 포커스 (※신규 정책, 2026-11-27)
+                        <label
+                          className={`flex h-10 w-full items-center gap-2 rounded-md border border-input-line bg-white px-3 hover:not-focus-within:border-line-strong focus-within:border-brand-500 focus-within:ring-focus has-disabled:bg-surface-2 has-disabled:text-subtle has-[[aria-invalid=true]]:border-danger! has-[[aria-invalid=true]]:focus-within:ring-error ${isFilled && valueError == null ? 'border-brand-500!' : ''}`}
+                        >
                           <input
                             ref={setValueRef}
                             type="number"
@@ -387,15 +391,15 @@ export default function TodayRecordForm({
                               valueError ? valueErrorId : undefined
                             }
                             value={row.value}
-                            className={`${INPUT} pr-12 text-right tabular-nums ${isFilled && valueError == null ? 'border-brand-500!' : ''}`}
+                            // [direction:rtl]: 크롬 증감 화살표를 칸 왼쪽 끝으로 (※신규 정책, 2026-11-27)
+                            // unicode-bidi:plaintext: rtl에서 「4.」이 「.4」로 뒤집혀 보이는 것 방지
+                            className="min-w-0 flex-1 bg-transparent text-right tabular-nums focus:outline-none [direction:rtl] [unicode-bidi:plaintext]"
                             onChange={(event) =>
                               updateRow(type.cd, { value: event.target.value })
                             }
                           />
-                          <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted">
-                            {type.unit}
-                          </span>
-                        </span>
+                          <span className="text-muted">{type.unit}</span>
+                        </label>
                       )}
                       {valueError && (
                         <span id={valueErrorId}>
