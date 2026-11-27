@@ -1,3 +1,4 @@
+import { NotebookPen, Sparkles, Stethoscope } from 'lucide-react';
 import banner1 from '@/assets/landing/top/MainBanner1.webp';
 import banner2 from '@/assets/landing/top/MainBanner2.webp';
 import banner3 from '@/assets/landing/top/MainBanner3.webp';
@@ -13,9 +14,7 @@ import step1 from '@/assets/landing/process/step1.gif';
 import step2 from '@/assets/landing/process/step2.gif';
 import step3 from '@/assets/landing/process/step3.gif';
 import step4 from '@/assets/landing/process/step4.gif';
-import missingCenter from '@/assets/landing/banner/missingCenter.png';
-import petStory from '@/assets/landing/banner/petStory.png';
-import place from '@/assets/landing/banner/place.png';
+import healthScreen from '@/assets/landing/phone/health.png';
 
 /** 랜딩 진입 팝업(PortfolioModal)의 팀 저장소 */
 export const GITHUB_REPOS = [
@@ -141,24 +140,43 @@ export const PROCESS_STEPS = [
   },
 ];
 
-export const BANNER_CARDS = [
+/** 폰 목업 안 화면(종합 건강기록 대시보드를 390 폭으로 캡처) */
+export const PHONE_SCREEN = healthScreen;
+
+/**
+ * 폰 밖으로 한 번씩 튀어나오는 큰 기능 카드. 값과 AI 문구는 폰 안 캡처 화면(로컬 테스트 계정 탄이)에서 가져왔다
+ * - rows: 라벨/값 줄, lead·note: 큰 문장과 보조 문장, dir: 튀어나오는 쪽(-1 왼쪽, 1 오른쪽)
+ * - pos: 폰 기준 위치(작은 화면 / 큰 화면)
+ */
+export const PHONE_CARDS = [
   {
-    title: '플레이스',
-    description:
-      '동물병원·미용·용품·동반 가능 장소·호텔을 지도에서 찾고,\n자주 가는 곳은 즐겨찾기로 모아 두세요.',
-    image: place,
+    icon: NotebookPen,
+    title: '매일 기록',
+    rows: [
+      { label: '체중', value: '5.3kg' },
+      { label: '식사량', value: '88g' },
+      { label: '음수량', value: '320ml' },
+    ],
+    dir: -1,
+    pos: 'top-[10%] -left-[22%] lg:-left-[58%]',
   },
   {
-    title: '펫이야기',
-    description:
-      '귀여운 사진 자랑부터 나만의 돌봄 팁까지. 보호자들의 경험과 소식을 나누고, 펫뉴스도 만나요.',
-    image: petStory,
+    icon: Sparkles,
+    title: 'AI 건강분석 리포트',
+    lead: '건강을 잘 지키고 있어요',
+    note: '식사량과 음수량이 함께 늘고 있으니 지금 루틴을 이어 가세요.',
+    dir: 1,
+    pos: 'top-[38%] -right-[22%] lg:-right-[38%]',
   },
   {
-    title: '실종센터·펫돌봄',
-    description:
-      '반려동물이 보이지 않을 때는 실종 글로 이웃과 함께 찾고, 잠시 맡길 곳이 필요할 땐 우리동네 펫돌봄에서 이웃을 만나요.',
-    image: missingCenter,
+    icon: Stethoscope,
+    title: '검진·처방',
+    rows: [
+      { label: '최근 검진', value: '171일 전' },
+      { label: '현재 처방', value: '0건' },
+    ],
+    dir: -1,
+    pos: 'top-[64%] -left-[22%] lg:-left-[58%]',
   },
 ];
 

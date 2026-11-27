@@ -7,7 +7,7 @@ import FaqSection from '@/features/landing/FaqSection';
 import HeroSlider from '@/features/landing/HeroSlider';
 import LandingFooter from '@/features/landing/LandingFooter';
 import LandingHeader from '@/features/landing/LandingHeader';
-import PartnersSection from '@/features/landing/PartnersSection';
+import HealthShowcaseSection from '@/features/landing/HealthShowcaseSection';
 import PortfolioModal from '@/features/landing/PortfolioModal';
 import ProcessSection from '@/features/landing/ProcessSection';
 import ServiceSection from '@/features/landing/ServiceSection';
@@ -87,7 +87,7 @@ export default function LandingPage() {
         <HeroSlider key={heroKey} />
         <ServiceSection />
         <ProcessSection />
-        <PartnersSection />
+        <HealthShowcaseSection />
         <CountSection />
         <FaqSection />
       </main>
