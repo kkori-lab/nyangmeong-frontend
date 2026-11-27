@@ -29,7 +29,6 @@ import {
   toInputText,
 } from '../numberFormat';
 import FieldError from '@/components/FieldError';
-import { INPUT } from '@/components/formStyles';
 import { formatAmount, summarizeType } from './recordUtils';
 
 /** 묶음 머리에 합계를 붙이지 않는 종류 */
@@ -358,6 +357,8 @@ function RecordRow({
               label={type.nm}
               value={draft.value}
               disabled={isDisabled}
+              // 숫자 칸처럼 값을 오른쪽에(화살표 바로 왼쪽). 공용 컴포넌트는 그대로 두고 이 모달에서만
+              className="[&_button>span]:text-right"
               options={STOOL_STATES.map((state) => ({
                 value: state.cd,
                 label: state.nm,
@@ -365,7 +366,8 @@ function RecordRow({
               onChange={(value) => onChange({ value })}
             />
           ) : (
-            <span className="relative block">
+            // 테두리·상태는 바깥 label, 값과 단위는 gap-2로 나란히 둬 단위마다 간격이 같게. 단위·빈 곳을 눌러도 입력칸에 포커스 (※신규 정책, 2026-11-27)
+            <label className="flex h-10 w-full items-center gap-2 rounded-md border border-input-line bg-white px-3 hover:not-focus-within:border-line-strong focus-within:border-brand-500 focus-within:ring-focus has-disabled:bg-surface-2 has-disabled:text-subtle">
               <input
                 type="number"
                 min="0"
@@ -374,13 +376,13 @@ function RecordRow({
                 aria-label={`${type.nm}(${type.unit})`}
                 value={draft.value}
                 disabled={isDisabled}
-                className={`${INPUT} pr-11 text-right tabular-nums`}
+                // [direction:rtl]: 크롬 증감 화살표를 칸 왼쪽 끝으로 (※신규 정책, 2026-11-27)
+                // unicode-bidi:plaintext: rtl에서 「4.」이 「.4」로 뒤집혀 보이는 것 방지
+                className="min-w-0 flex-1 bg-transparent text-right tabular-nums focus:outline-none [direction:rtl] [unicode-bidi:plaintext]"
                 onChange={(event) => onChange({ value: event.target.value })}
               />
-              <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted">
-                {type.unit}
-              </span>
-            </span>
+              <span className="text-muted">{type.unit}</span>
+            </label>
           )}
         </div>
         <button
