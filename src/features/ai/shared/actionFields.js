@@ -53,6 +53,11 @@ export const ACTION_FIELD_NAMES = {
   algyCn: '알레르기',
   dssCn: '질환',
   goalBdwgReset: '목표 몸무게 초기화',
+  /** 검진기록·처방·기타 검사·반복 예방 등록(2026-11-27) */
+  ckupYmd: '검진일',
+  reptPrvntArtclCd: '예방 항목',
+  reptCycleCd: '주기',
+  bgngYmd: '시작일',
   /** 검사 수치 */
   ckupRcdSn: '검진기록',
   values: '검사 수치',
