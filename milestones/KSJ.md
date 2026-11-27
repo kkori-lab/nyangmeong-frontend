@@ -453,7 +453,7 @@
 - 기능: 명세 기능 ID 추가 없음(사람 요청 2026-11-26 「채팅을 모두 읽었는데 헤더 알림 숫자가 그대로」). 걸치는 FN-CMU-005-03 읽음, COM-004-06 알림 읽음. 채팅·헤더 화면은 LJS 이관 범위라 손대기 전 LJS와 맞춘다
 - 기다리는 것: 없음(백엔드 SCR-CMU-005 채팅방 읽음 때 거래 알림 읽음은 끝, 2026-11-27). `POST /api/chat-rooms/{sn}/read`가 그 방 이동 경로(`/chat?otoChatRoomSn={sn}`)의 내 미읽음 알림도 읽음 처리한다(읽음 위치가 그대로여도)
 - 완료 조건: 채팅방 읽음이 성공하면 헤더 종 배지와 알림 목록이 바로 갱신된다(`features/chat/queries.js` `useReadChatRoom` onSuccess에서 `['notifications','unread-count']`와 알림 목록 쿼리 무효화). 지금은 60초 폴링으로만 줄어든다
-- 결과: 검증 3회차 `통과`, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인. `useReadChatRoom` 성공 뒤 `notificationKeys.unreadCount`·`list`를 무효화해, 방 알림을 읽으면 실제 서버에서 6.5초 안에 종 배지가 줄고 그 알림만 읽음으로 바뀜(다른 알림 그대로). 1·2회차는 로컬 DB에서 DBeaver의 `FOR UPDATE` 트랜잭션이 회원 1의 알림 행을 잠가 읽음 요청이 51초 뒤 500이었던 환경 문제로 `확인 못 함`이었고 연결을 끊자 풀림(코드·백엔드 쿼리 문제 아님, 실행 계획 key=IDX_INAPP_NOTI_1·rows 30). 서버 변경 없음
+- 결과: 검증 3회차 `통과`, `yarn -s lint` 0·`yarn -s build` 0, 사람 확인. `useReadChatRoom` 성공 뒤 `notificationKeys.unreadCount`·`list`를 무효화해, 방 알림을 읽으면 실제 서버에서 6.5초 안에 종 배지가 줄고 그 알림만 읽음으로 바뀜(다른 알림 그대로). 1·2회차는 로컬 DB에서 읽음 요청이 잠금 대기(`Lock wait timeout`)로 51초 뒤 500이 나 `확인 못 함`이었고 DBeaver 연결을 끊자 풀림(잠금을 쥔 세션은 PROCESS 권한이 없어 직접 못 봄, 원인은 DBeaver의 열린 트랜잭션으로 추정, 코드·백엔드 쿼리 문제 아님: 실행 계획 key=IDX_INAPP_NOTI_1·rows 30). 서버 변경 없음
 - 이번에 안 한 것: 새 창으로 띄운 채팅(`/chat`)에서 읽을 때 본창 종 배지 즉시 갱신(쿼리 캐시가 따로, 60초 폴링)
 
 ## SCR-CMU 커뮤니티 · 좋아요 버튼 기본 아이콘을 라인형으로 — 끝
