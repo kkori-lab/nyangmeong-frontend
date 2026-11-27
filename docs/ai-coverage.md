@@ -6,24 +6,24 @@
 - 지원 방식(안): `@AiTool` READ는 읽기, CARD는 쓰기 카드. 도구가 없는 GET은 읽기 후보, 도구가 없는 그 밖은 쓰기 카드 후보. 뺌 규칙에 걸리면 뺌. 도구가 있는데 뺌 규칙에 걸리면 충돌, ai가 일부러 싣지 않은 도구는 보류
 - 순서(사람 결정 2026-11-26): 이 표 → 도메인별 도구 거르기(ai) → 도메인 하나 늘릴 때마다 `tool_eval`로 정답률·토큰을 잰 뒤 다음 도메인(백엔드 `@AiTool` 추가도 도메인 단위)
 
-만든 날: 2026-11-26
+만든 날: 2026-11-27
 
 ## 1. 도메인별 요약
 
 | 도메인 | 전체 | 읽기 | 카드 | 읽기 후보 | 카드 후보 | 뺌 | 충돌 | 보류 | 화면에서 부름 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | auth | 8 | 0 | 0 | 0 | 0 | 8 | 0 | 0 | 6 |
-| community | 49 | 8 | 0 | 11 | 0 | 30 | 0 | 0 | 48 |
-| expense | 17 | 6 | 4 | 1 | 5 | 0 | 0 | 1 | 16 |
-| health | 57 | 13 | 24 | 6 | 14 | 0 | 0 | 0 | 54 |
-| member | 20 | 0 | 0 | 4 | 3 | 13 | 0 | 0 | 20 |
-| notification | 6 | 0 | 0 | 3 | 3 | 0 | 0 | 0 | 6 |
-| pet | 30 | 10 | 1 | 7 | 12 | 0 | 0 | 0 | 27 |
-| place | 4 | 2 | 1 | 0 | 1 | 0 | 0 | 0 | 4 |
-| support | 9 | 0 | 0 | 5 | 3 | 0 | 0 | 1 | 9 |
-| 합계 | 200 | 39 | 30 | 37 | 41 | 51 | 0 | 2 | 190 |
+| community | 49 | 15 | 0 | 4 | 0 | 30 | 0 | 0 | 48 |
+| expense | 17 | 8 | 8 | 1 | 0 | 0 | 0 | 0 | 16 |
+| health | 57 | 16 | 30 | 2 | 8 | 1 | 0 | 0 | 54 |
+| member | 20 | 3 | 3 | 1 | 0 | 13 | 0 | 0 | 20 |
+| notification | 6 | 3 | 3 | 0 | 0 | 0 | 0 | 0 | 6 |
+| pet | 30 | 15 | 12 | 2 | 1 | 0 | 0 | 0 | 27 |
+| place | 4 | 2 | 2 | 0 | 0 | 0 | 0 | 0 | 4 |
+| support | 9 | 4 | 0 | 1 | 3 | 0 | 0 | 1 | 9 |
+| 합계 | 200 | 66 | 58 | 11 | 12 | 52 | 0 | 1 | 190 |
 
-`@AiTool` 71개(READ 40·CARD 31).
+`@AiTool` 125개(READ 67·CARD 58).
 
 ## 2. 엔드포인트별
 
@@ -45,7 +45,7 @@
 | 메서드 | 경로 | 기능 | `@AiTool` | 지원 방식(안) | 프론트 함수 |
 | --- | --- | --- | --- | --- | --- |
 | POST | `/api/care-matches` | 매칭 요청(보호자) |  | 뺌(다른 회원에게 가는 행동: 펫돌봄 거래 단계) | `features/chat/api.js` `requestCareMatch` |
-| GET | `/api/care-matches/{}` | 매칭 조건·완료 요청 회차·수령 상태 조회(참여자만) |  | 읽기 후보 | `features/chat/api.js` `getCareMatch` |
+| GET | `/api/care-matches/{}` | 매칭 조건·완료 요청 회차·수령 상태 조회(참여자만) | `get_care_match` READ | 읽기 | `features/chat/api.js` `getCareMatch` |
 | POST | `/api/care-matches/{}/accept` | 매칭 수락(제공자) |  | 뺌(다른 회원에게 가는 행동: 펫돌봄 거래 단계) | `features/chat/api.js` `acceptCareMatch` |
 | POST | `/api/care-matches/{}/cancel` | 수락 전 매칭 요청 취소(보호자) |  | 뺌(다른 회원에게 가는 행동: 펫돌봄 거래 단계) | `features/chat/api.js` `cancelCareMatch` |
 | POST | `/api/care-matches/{}/cancel-request` | 거래 취소 요청(매칭 완료~수령 대기, 두 당사자) |  | 뺌(다른 회원에게 가는 행동: 펫돌봄 거래 단계) | `features/chat/api.js` `requestDealCancel` |
@@ -58,9 +58,9 @@
 | GET | `/api/care-recruitments` | 펫돌봄 모집 목록 | `list_care_recruitments` READ | 읽기 | `features/community/careApi.js` `getCareList` |
 | POST | `/api/care-recruitments` | 펫돌봄 모집 등록 |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/careApi.js` `createCare` |
 | DELETE | `/api/care-recruitments/{}` | 펫돌봄 모집 삭제(작성자) |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/careApi.js` `deleteCare` |
-| GET | `/api/care-recruitments/{}` | 펫돌봄 모집 상세 |  | 읽기 후보 | `features/community/careApi.js` `getCare` |
+| GET | `/api/care-recruitments/{}` | 펫돌봄 모집 상세 | `get_care_recruitment` READ | 읽기 | `features/community/careApi.js` `getCare` |
 | PATCH | `/api/care-recruitments/{}` | 펫돌봄 모집 수정(작성자, 모집중만) |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/careApi.js` `updateCare` |
-| GET | `/api/care-recruitments/minimum-wage` | 펫돌봄 최저시급 조회 |  | 읽기 후보 | `features/community/careApi.js` `getMinimumWage` |
+| GET | `/api/care-recruitments/minimum-wage` | 펫돌봄 최저시급 조회 | `get_minimum_wage` READ | 읽기 | `features/community/careApi.js` `getMinimumWage` |
 | GET | `/api/chat-rooms` | 내 채팅 목록(탭·안 읽음 필터) |  | 읽기 후보 | `features/chat/api.js` `getChatRooms` |
 | POST | `/api/chat-rooms` | 채팅하기(채팅방 생성 또는 기존 방 반환) |  | 뺌(다른 회원에게 가는 행동: 채팅) | `features/chat/api.js` `createChatRoom` |
 | GET | `/api/chat-rooms/{}` | 채팅방 조회(참여자만) |  | 읽기 후보 | `features/chat/api.js` `getChatRoom` |
@@ -69,17 +69,17 @@
 | GET | `/api/chat-rooms/{}/messages` | 대화 메시지 조회(커서, 최신순) |  | 읽기 후보 | `features/chat/api.js` `getChatMessages` |
 | POST | `/api/chat-rooms/{}/messages` | 메시지 전송(텍스트·사진·주소 공유) |  | 뺌(다른 회원에게 가는 행동: 채팅) | `features/chat/api.js` `createChatMessage` |
 | POST | `/api/chat-rooms/{}/read` | 읽음 처리 |  | 뺌(다른 회원에게 가는 행동: 채팅) | `features/chat/api.js` `readChatRoom` |
-| GET | `/api/chat-rooms/unread-count` | 읽지 않은 메시지 총수 |  | 읽기 후보 | `features/chat/api.js` `getChatUnreadCount` |
-| GET | `/api/community-ai-commentaries` | 오늘의 이야기 |  | 읽기 후보 | `features/community/api.js` `getTodayStory` |
+| GET | `/api/chat-rooms/unread-count` | 읽지 않은 메시지 총수 | `get_chat_unread_count` READ | 읽기 | `features/chat/api.js` `getChatUnreadCount` |
+| GET | `/api/community-ai-commentaries` | 오늘의 이야기 | `get_today_story` READ | 읽기 | `features/community/api.js` `getTodayStory` |
 | GET | `/api/lost-reports` | 실종 제보 목록 | `list_lost_reports` READ | 읽기 | `features/community/missingApi.js` `getMissingList` |
 | POST | `/api/lost-reports` | 실종 제보 등록 |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/missingApi.js` `createMissing` |
 | DELETE | `/api/lost-reports/{}` | 실종 제보 삭제(작성자) |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/missingApi.js` `deleteMissing` |
-| GET | `/api/lost-reports/{}` | 실종 제보 상세 |  | 읽기 후보 | `features/community/missingApi.js` `getMissing` |
+| GET | `/api/lost-reports/{}` | 실종 제보 상세 | `get_lost_report` READ | 읽기 | `features/community/missingApi.js` `getMissing` |
 | PATCH | `/api/lost-reports/{}` | 실종 제보 수정(작성자, 실종 상태만) |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/missingApi.js` `updateMissing` |
 | POST | `/api/lost-reports/{}/found` | 찾았어요 전환(작성자) |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/missingApi.js` `markMissingFound` |
 | POST | `/api/lost-reports/{}/renew` | 게시 기간 30일 연장(작성자) |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/missingApi.js` `extendMissing` |
 | GET | `/api/news` | 펫뉴스 목록 (카테고리·제목/내용 검색, 최신순) | `list_news` READ | 읽기 | `features/news/api.js` `getNewsList` |
-| GET | `/api/news/{}` | 펫뉴스 상세 |  | 읽기 후보 | `features/news/api.js` `getNews` |
+| GET | `/api/news/{}` | 펫뉴스 상세 | `get_news` READ | 읽기 | `features/news/api.js` `getNews` |
 | GET | `/api/posts` | 펫이야기 게시글 목록 | `list_posts` READ | 읽기 | `features/community/api.js` `getPostList` |
 | POST | `/api/posts` | 게시글 작성 |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/api.js` `createPost` |
 | DELETE | `/api/posts/{}` | 게시글 삭제(작성자) |  | 뺌(커뮤니티 글·댓글 쓰기(사람 결정)) | `features/community/api.js` `deletePost` |
@@ -98,30 +98,30 @@
 
 | 메서드 | 경로 | 기능 | `@AiTool` | 지원 방식(안) | 프론트 함수 |
 | --- | --- | --- | --- | --- | --- |
-| DELETE | `/api/expenses` | 가계부 지출 여러 건 삭제(개별 선택) |  | 쓰기 카드 후보 | `features/expense/api.js` `deleteExpenses` |
+| DELETE | `/api/expenses` | 가계부 지출 여러 건 삭제(개별 선택) | `delete_expenses` CARD | 쓰기 카드 | `features/expense/api.js` `deleteExpenses` |
 | GET | `/api/expenses` | 가계부 지출 목록(기간·반려동물·공용·카테고리 필터, 최신순·금액순) | `list_expenses` READ | 읽기 | `features/expense/api.js` `getExpenses` |
 | POST | `/api/expenses` | 가계부 지출 등록(반려동물별 줄, 영수증 연결) | `draft_expense` CARD | 쓰기 카드 | `features/expense/api.js` `createExpenses` |
 | DELETE | `/api/expenses/{}` | 가계부 지출 한 건 삭제 | `delete_expense` CARD | 쓰기 카드 | `features/expense/api.js` `deleteExpense` |
 | PATCH | `/api/expenses/{}` | 가계부 지출 수정 | `draft_expense_update` CARD | 쓰기 카드 | `features/expense/api.js` `updateExpense` |
-| POST | `/api/expenses/bulk-delete` | 가계부 지출 조건 전체 삭제(조회 결과 전체 선택) |  | 쓰기 카드 후보 | `features/expense/api.js` `bulkDeleteExpenses` |
-| POST | `/api/expenses/duplicate-check` | 가계부 지출 저장 전 중복 확인 |  | 쓰기 카드 후보 | `features/expense/api.js` `findDuplicateExpenses` |
+| POST | `/api/expenses/bulk-delete` | 가계부 지출 조건 전체 삭제(조회 결과 전체 선택) | `delete_expenses_by_condition` CARD | 쓰기 카드 | `features/expense/api.js` `bulkDeleteExpenses` |
+| POST | `/api/expenses/duplicate-check` | 가계부 지출 저장 전 중복 확인 | `check_expense_duplicates` READ | 읽기 | `features/expense/api.js` `findDuplicateExpenses` |
 | GET | `/api/expenses/months` | 가계부 지출이 있는 연월(월 피커) | `list_expense_months` READ | 읽기 | `features/expense/api.js` `getExpenseMonths` |
 | GET | `/api/expenses/pets` | 가계부 필터 반려동물(연동 해제·삭제된 반려동물 포함) | `list_expense_pets` READ | 읽기 | `features/expense/api.js` `getExpensePets` |
 | GET | `/api/expenses/statistics` | 가계부 월 통계(총 지출·한도·달력·카테고리별·반려동물별·주요 지출) | `get_expense_statistics` READ | 읽기 | `features/expense/api.js` `getExpenseStatistics` |
 | GET | `/api/expenses/totals` | 가계부 조건별 지출 건수·합계 | `get_expense_total` READ | 읽기 | `features/expense/api.js` `getExpenseTotals` |
 | PUT | `/api/members/me/expense-limit` | 월 지출 한도 저장(처음 저장하면 한도 알림 수신을 켬) | `draft_expense_limit` CARD | 쓰기 카드 | `features/expense/api.js` `saveExpenseLimit` |
 | GET | `/api/receipts/{}` | 영수증 분석 결과 다시 열기 | `get_receipt` READ | 읽기 | `features/ai/api.js` `getChatReceiptResult` |
-| POST | `/api/receipts/{}/checkups` | 영수증 인식 실패 뒤 [직접 입력] 검진기록 등록(영수증 저장완료·연결, 가계부 없음) |  | 쓰기 카드 후보 | `features/health/receiptApi.js` `createReceiptCheckup` |
+| POST | `/api/receipts/{}/checkups` | 영수증 인식 실패 뒤 [직접 입력] 검진기록 등록(영수증 저장완료·연결, 가계부 없음) | `draft_receipt_checkup` CARD | 쓰기 카드 | `features/health/receiptApi.js` `createReceiptCheckup` |
 | GET | `/api/receipts/{}/image` | 영수증 원본 이미지 |  | 읽기 후보 | 화면에서 안 씀 |
-| POST | `/api/receipts/{}/save` | 영수증 확인 후 저장(검진기록·가계부 일괄) | `draft_receipt_save` CARD | 보류(ai skip: 저장 전 영수증 번호를 주는 READ 없음(SCR-AIM-013 ⑤ 팀 결정 대기)) | `features/health/receiptApi.js` `saveReceiptCheckups` |
-| POST | `/api/receipts/{}/save-check` | 영수증 저장 전 확인(가계부 중복·가까운 예정 일정) |  | 쓰기 카드 후보 | `features/health/receiptApi.js` `prepareReceiptSave` |
+| POST | `/api/receipts/{}/save` | 영수증 확인 후 저장(검진기록·가계부 일괄) | `draft_receipt_save` CARD | 쓰기 카드 | `features/health/receiptApi.js` `saveReceiptCheckups` |
+| POST | `/api/receipts/{}/save-check` | 영수증 저장 전 확인(가계부 중복·가까운 예정 일정) | `check_receipt_save` READ | 읽기 | `features/health/receiptApi.js` `prepareReceiptSave` |
 
 ### health
 
 | 메서드 | 경로 | 기능 | `@AiTool` | 지원 방식(안) | 프론트 함수 |
 | --- | --- | --- | --- | --- | --- |
 | GET | `/api/care-schedules` | 케어 캘린더 일정 목록(여러 반려동물) | `list_my_care_schedules` READ | 읽기 | `features/health/api.js` `getSchedules` |
-| GET | `/api/members/me/dashboard-widgets` | 건강기록 대시보드 고른 항목 조회 |  | 읽기 후보 | `features/health/dashboardApi.js` `getHealthWidgets` |
+| GET | `/api/members/me/dashboard-widgets` | 건강기록 대시보드 고른 항목 조회 | `get_health_dashboard_widgets` READ | 읽기 | `features/health/dashboardApi.js` `getHealthWidgets` |
 | PUT | `/api/members/me/dashboard-widgets` | 건강기록 대시보드 고른 항목 저장 |  | 쓰기 카드 후보 | `features/health/dashboardApi.js` `saveHealthWidgets` |
 | GET | `/api/pets/{}/care-completions` | 케어 완료 기록 목록 | `list_care_completions` READ | 읽기 | `features/health/api.js` `getCareItems` |
 | POST | `/api/pets/{}/care-completions` | 케어 완료 체크 | `draft_care_completion` CARD | 쓰기 카드 | `features/health/api.js` `checkCareItem` |
@@ -130,20 +130,20 @@
 | POST | `/api/pets/{}/care-items` | 케어 항목 추가 | `draft_care_item` CARD | 쓰기 카드 | `features/health/api.js` `createCareItem` |
 | DELETE | `/api/pets/{}/care-items/{}` | 케어 항목 삭제 | `delete_care_item` CARD | 쓰기 카드 | `features/health/api.js` `deleteCareItem` |
 | PATCH | `/api/pets/{}/care-items/{}` | 케어 항목 수정 | `draft_care_item_update` CARD | 쓰기 카드 | `features/health/api.js` `updateCareItem` |
-| DELETE | `/api/pets/{}/care-items/{}/today-completion/last` | 투약 오늘 마지막 1회 취소 |  | 쓰기 카드 후보 | `features/health/api.js` `cancelLastDose` |
+| DELETE | `/api/pets/{}/care-items/{}/today-completion/last` | 투약 오늘 마지막 1회 취소 | `cancel_last_dose` CARD | 쓰기 카드 | `features/health/api.js` `cancelLastDose` |
 | PUT | `/api/pets/{}/care-items/indications` | 케어리스트 표시 항목 저장 |  | 쓰기 카드 후보 | `features/health/api.js` `saveCareIndications` |
-| GET | `/api/pets/{}/care-items/mission-progress` | 케어리스트 오늘 케어미션 진행 |  | 읽기 후보 | `features/health/api.js` `getCareMissionProgress` |
-| GET | `/api/pets/{}/care-schedules` | 케어 캘린더 일정 목록 |  | 읽기 후보 | `features/ai/api.js` `findChatNearSchedule`<br>`features/health/api.js` `findNearHospitalSchedule`<br>`features/health/summaryApi.js` `getInspectionName` |
+| GET | `/api/pets/{}/care-items/mission-progress` | 케어리스트 오늘 케어미션 진행 | `get_care_mission_progress` READ | 읽기 | `features/health/api.js` `getCareMissionProgress` |
+| GET | `/api/pets/{}/care-schedules` | 케어 캘린더 일정 목록 |  | 뺌(읽기 도구가 같음: list_my_care_schedules(한 마리는 petSns=1)) | `features/ai/api.js` `findChatNearSchedule`<br>`features/health/api.js` `findNearHospitalSchedule`<br>`features/health/summaryApi.js` `getInspectionName` |
 | POST | `/api/pets/{}/care-schedules` | 일정 등록 | `draft_schedule` CARD | 쓰기 카드 | `features/health/api.js` `createSchedule` |
 | DELETE | `/api/pets/{}/care-schedules/{}` | 일정 삭제 | `delete_schedule` CARD | 쓰기 카드 | `features/health/api.js` `deleteSchedule` |
 | PATCH | `/api/pets/{}/care-schedules/{}` | 일정 수정 | `draft_schedule_update` CARD | 쓰기 카드 | `features/health/api.js` `updateSchedule` |
-| GET | `/api/pets/{}/checkup-attachments` | 검진기록 첨부 목록 |  | 읽기 후보 | 화면에서 안 씀 |
+| GET | `/api/pets/{}/checkup-attachments` | 검진기록 첨부 목록 | `list_checkup_attachments` READ | 읽기 | 화면에서 안 씀 |
 | POST | `/api/pets/{}/checkup-attachments` | 검진기록 첨부 등록 |  | 쓰기 카드 후보 | `features/health/checkupApi.js` `createAttachment` |
 | DELETE | `/api/pets/{}/checkup-attachments/{}` | 검진기록 첨부 삭제 |  | 쓰기 카드 후보 | `features/health/checkupApi.js` `deleteAttachment` |
 | GET | `/api/pets/{}/checkup-attachments/{}` | 검진기록 첨부 파일 |  | 읽기 후보 | `features/health/checkupApi.js` `getAttachmentFile` |
 | PATCH | `/api/pets/{}/checkup-attachments/{}` | 검진기록 첨부 교체·수정 |  | 쓰기 카드 후보 | `features/health/checkupApi.js` `replaceAttachment` |
 | GET | `/api/pets/{}/checkups` | 검진기록 목록 | `list_checkups` READ | 읽기 | `features/ai/api.js` `getChatCheckups`<br>`features/health/diaryApi.js` `getCheckups` |
-| POST | `/api/pets/{}/checkups` | 검진기록 직접 등록 |  | 쓰기 카드 후보 | `features/ai/api.js` `createChatCheckup`<br>`features/health/diaryApi.js` `createCheckup` |
+| POST | `/api/pets/{}/checkups` | 검진기록 직접 등록 | `draft_checkup` CARD | 쓰기 카드 | `features/ai/api.js` `createChatCheckup`<br>`features/health/diaryApi.js` `createCheckup` |
 | DELETE | `/api/pets/{}/checkups/{}` | 검진기록 삭제 | `delete_checkup` CARD | 쓰기 카드 | `features/health/diaryApi.js` `deleteCheckup` |
 | GET | `/api/pets/{}/checkups/{}` | 검진상세 기본정보 | `get_checkup` READ | 읽기 | `features/health/diaryApi.js` `getCheckup` |
 | PATCH | `/api/pets/{}/checkups/{}` | 검진기록 수정 | `draft_checkup_update` CARD | 쓰기 카드 | `features/health/diaryApi.js` `updateCheckup` |
@@ -153,7 +153,7 @@
 | PATCH | `/api/pets/{}/daily-health-records/{}` | 일상 건강기록 수정 | `draft_daily_health_record_update` CARD | 쓰기 카드 | `features/health/diaryApi.js` `updateDailyRecord` |
 | POST | `/api/pets/{}/daily-health-records/bulk` | 일상 건강기록 일괄 등록 |  | 쓰기 카드 후보 | `features/health/diaryApi.js` `bulkCreateDailyRecords` |
 | GET | `/api/pets/{}/etc-inspections` | 기타검사 목록 | `list_etc_inspections` READ | 읽기 | `features/health/checkupApi.js` `getEtcInspections` |
-| POST | `/api/pets/{}/etc-inspections` | 기타검사 입력 |  | 쓰기 카드 후보 | `features/health/checkupApi.js` `createEtcInspection` |
+| POST | `/api/pets/{}/etc-inspections` | 기타검사 입력 | `draft_etc_inspection` CARD | 쓰기 카드 | `features/health/checkupApi.js` `createEtcInspection` |
 | DELETE | `/api/pets/{}/etc-inspections/{}` | 기타검사 삭제 | `delete_etc_inspection` CARD | 쓰기 카드 | `features/health/checkupApi.js` `deleteEtcInspection` |
 | PATCH | `/api/pets/{}/etc-inspections/{}` | 기타검사 수정 | `draft_etc_inspection_update` CARD | 쓰기 카드 | `features/health/checkupApi.js` `updateEtcInspection` |
 | GET | `/api/pets/{}/health-indicators` | 메인 건강 지표 조회 | `get_health_indicators` READ | 읽기 | `features/health/dashboardApi.js` `getHealthIndicators` |
@@ -168,14 +168,14 @@
 | GET | `/api/pets/{}/observation-cycles/{}/photo` | 관찰 사진 |  | 읽기 후보 | 화면에서 안 씀 |
 | GET | `/api/pets/{}/observation-items` | 관찰 항목 목록 | `list_observation_items` READ | 읽기 | `features/ai/api.js` `getChatObservationItems`<br>`features/health/diaryApi.js` `getObservationItems` |
 | POST | `/api/pets/{}/observation-items` | 관찰 항목 등록(1회차 포함) | `draft_observation_item` CARD | 쓰기 카드 | `features/health/diaryApi.js` `createObservationItem` |
-| POST | `/api/pets/{}/observation-items/{}/end` | 관찰 종료 |  | 쓰기 카드 후보 | `features/health/diaryApi.js` `endObservationItem` |
+| POST | `/api/pets/{}/observation-items/{}/end` | 관찰 종료 | `end_observation_item` CARD | 쓰기 카드 | `features/health/diaryApi.js` `endObservationItem` |
 | GET | `/api/pets/{}/prescriptions` | 처방약 목록 | `list_prescriptions` READ | 읽기 | `features/health/checkupApi.js` `getPrescriptions`<br>`features/health/summaryApi.js` `getHealthSummary` |
-| POST | `/api/pets/{}/prescriptions` | 처방약 추가 |  | 쓰기 카드 후보 | `features/health/checkupApi.js` `createPrescription` |
+| POST | `/api/pets/{}/prescriptions` | 처방약 추가 | `draft_prescription` CARD | 쓰기 카드 | `features/health/checkupApi.js` `createPrescription` |
 | DELETE | `/api/pets/{}/prescriptions/{}` | 처방약 삭제 | `delete_prescription` CARD | 쓰기 카드 | `features/health/checkupApi.js` `deletePrescription` |
 | PATCH | `/api/pets/{}/prescriptions/{}` | 처방약 수정 | `draft_prescription_update` CARD | 쓰기 카드 | `features/health/checkupApi.js` `updatePrescription` |
 | POST | `/api/pets/{}/prescriptions/bulk-save` | 처방약 일괄 저장 |  | 쓰기 카드 후보 | `features/health/checkupApi.js` `bulkSavePrescriptions` |
 | GET | `/api/pets/{}/repeat-preventions` | 반복 예방 목록 | `list_repeat_preventions` READ | 읽기 | `features/health/checkupApi.js` `getRepeatPreventions` |
-| POST | `/api/pets/{}/repeat-preventions` | 반복 예방 등록 |  | 쓰기 카드 후보 | `features/health/checkupApi.js` `createPrevention` |
+| POST | `/api/pets/{}/repeat-preventions` | 반복 예방 등록 | `draft_repeat_prevention` CARD | 쓰기 카드 | `features/health/checkupApi.js` `createPrevention` |
 | DELETE | `/api/pets/{}/repeat-preventions/{}` | 반복 예방 해지 | `delete_repeat_prevention` CARD | 쓰기 카드 | `features/health/checkupApi.js` `cancelPrevention` |
 
 ### member
@@ -188,73 +188,73 @@
 | POST | `/api/email-certifications/{}/verify` | 이메일 인증번호 확인 |  | 뺌(로그인 전·인증 흐름(대화창은 로그인 뒤)) | `features/member/api.js` `verifyRecoveryCode` |
 | POST | `/api/members` | 회원가입(이메일) |  | 뺌(로그인 전·인증 흐름(대화창은 로그인 뒤)) | `features/member/api.js` `joinMember`<br>`features/member/api.js` `joinSnsMember` |
 | GET | `/api/members/me` | 회원정보 수정 화면 조회 |  | 읽기 후보 | `features/member/api.js` `getMyProfile` |
-| PATCH | `/api/members/me` | 회원정보 수정(휴대전화번호·프로필 사진) |  | 쓰기 카드 후보 | `features/member/api.js` `updateProfileImage`<br>`features/member/api.js` `updatePhone` |
-| PATCH | `/api/members/me/nickname` | 닉네임 설정 완료 |  | 쓰기 카드 후보 | `features/member/api.js` `setupNickname` |
+| PATCH | `/api/members/me` | 회원정보 수정(휴대전화번호·프로필 사진) | `draft_member_profile_update` CARD | 쓰기 카드 | `features/member/api.js` `updateProfileImage`<br>`features/member/api.js` `updatePhone` |
+| PATCH | `/api/members/me/nickname` | 닉네임 설정 완료 | `draft_member_nickname_update` CARD | 쓰기 카드 | `features/member/api.js` `setupNickname` |
 | PATCH | `/api/members/me/password` | 비밀번호 변경(로그인 상태) |  | 뺌(본인 계정: 비밀번호 변경) | `features/member/api.js` `updatePassword` |
 | POST | `/api/members/me/password-verification` | 현재 비밀번호 확인(회원정보 수정 본인 확인) |  | 뺌(본인 계정: 비밀번호 변경) | `features/member/api.js` `verifyPassword` |
 | POST | `/api/members/me/sns-links` | SNS 계정 연동(로그인 상태) |  | 뺌(본인 계정: SNS 연동) | `features/member/api.js` `linkSns` |
-| GET | `/api/members/me/tutorial` | 서비스 튜토리얼 봤음 여부 조회 |  | 읽기 후보 | `features/dashboard/api.js` `getServiceTutorial` |
-| PUT | `/api/members/me/tutorial` | 서비스 튜토리얼 봤음 저장 |  | 쓰기 카드 후보 | `features/dashboard/api.js` `saveServiceTutorialSeen` |
+| GET | `/api/members/me/tutorial` | 서비스 튜토리얼 봤음 여부 조회 | `get_service_tutorial` READ | 읽기 | `features/dashboard/api.js` `getServiceTutorial` |
+| PUT | `/api/members/me/tutorial` | 서비스 튜토리얼 봤음 저장 | `mark_service_tutorial_viewed` CARD | 쓰기 카드 | `features/dashboard/api.js` `saveServiceTutorialSeen` |
 | POST | `/api/members/me/withdraw` | 회원탈퇴 |  | 뺌(본인 계정: 탈퇴) | `features/member/api.js` `withdrawMember` |
 | GET | `/api/members/nickname-availability` | 닉네임 중복확인 |  | 뺌(로그인 전·인증 흐름(대화창은 로그인 뒤)) | `features/member/api.js` `checkNicknameAvailability` |
 | GET | `/api/members/phone-availability` | 휴대전화번호 정규화·중복확인 |  | 뺌(로그인 전·인증 흐름(대화창은 로그인 뒤)) | `features/member/api.js` `checkPhoneAvailability` |
 | POST | `/api/members/recovery` | 탈퇴 회원 기존 정보 복구 실행(복구 확인 권한 토큰) |  | 뺌(로그인 전·인증 흐름(대화창은 로그인 뒤)) | `features/member/api.js` `recoverMember` |
 | POST | `/api/members/recovery-info` | 탈퇴 회원 기존 정보 복구 안내(복구 확인 권한 토큰) |  | 뺌(로그인 전·인증 흐름(대화창은 로그인 뒤)) | `features/member/api.js` `getRecoveryInfo` |
-| GET | `/api/terms` | 사용 중인 약관 목록 |  | 읽기 후보 | `features/member/api.js` `getTermsList` |
-| GET | `/api/terms/{}` | 약관 전문 조회 |  | 읽기 후보 | `features/member/api.js` `getTerms` |
+| GET | `/api/terms` | 사용 중인 약관 목록 | `list_terms` READ | 읽기 | `features/member/api.js` `getTermsList` |
+| GET | `/api/terms/{}` | 약관 전문 조회 | `get_terms` READ | 읽기 | `features/member/api.js` `getTerms` |
 
 ### notification
 
 | 메서드 | 경로 | 기능 | `@AiTool` | 지원 방식(안) | 프론트 함수 |
 | --- | --- | --- | --- | --- | --- |
-| GET | `/api/members/me/notification-settings` | 알림 설정 조회 |  | 읽기 후보 | `features/notification/api.js` `getNotificationSettings` |
-| PUT | `/api/members/me/notification-settings` | 알림 설정 저장 |  | 쓰기 카드 후보 | `features/notification/api.js` `saveNotificationSettings` |
-| GET | `/api/notifications` | 알림 드롭다운 목록 페이지(탭별, 기본 5건) |  | 읽기 후보 | `features/notification/api.js` `getNotifications` |
-| POST | `/api/notifications/{}/read` | 알림 읽음 처리 |  | 쓰기 카드 후보 | `features/notification/api.js` `readNotification` |
-| POST | `/api/notifications/read-all` | 알림 모두 읽음 처리(탭 무관, 숨김 기준 안의 미읽음 전부) |  | 쓰기 카드 후보 | `features/notification/api.js` `readAllNotifications` |
-| GET | `/api/notifications/unread-count` | 미읽음 알림 개수(헤더 배지) |  | 읽기 후보 | `features/notification/api.js` `getUnreadCount` |
+| GET | `/api/members/me/notification-settings` | 알림 설정 조회 | `get_notification_settings` READ | 읽기 | `features/notification/api.js` `getNotificationSettings` |
+| PUT | `/api/members/me/notification-settings` | 알림 설정 저장 | `draft_notification_settings` CARD | 쓰기 카드 | `features/notification/api.js` `saveNotificationSettings` |
+| GET | `/api/notifications` | 알림 드롭다운 목록 페이지(탭별, 기본 5건) | `list_notifications` READ | 읽기 | `features/notification/api.js` `getNotifications` |
+| POST | `/api/notifications/{}/read` | 알림 읽음 처리 | `mark_notification_read` CARD | 쓰기 카드 | `features/notification/api.js` `readNotification` |
+| POST | `/api/notifications/read-all` | 알림 모두 읽음 처리(탭 무관, 숨김 기준 안의 미읽음 전부) | `mark_all_notifications_read` CARD | 쓰기 카드 | `features/notification/api.js` `readAllNotifications` |
+| GET | `/api/notifications/unread-count` | 미읽음 알림 개수(헤더 배지) | `get_unread_notification_count` READ | 읽기 | `features/notification/api.js` `getUnreadCount` |
 
 ### pet
 
 | 메서드 | 경로 | 기능 | `@AiTool` | 지원 방식(안) | 프론트 함수 |
 | --- | --- | --- | --- | --- | --- |
-| GET | `/api/breeds` | 구분별 품종 목록 |  | 읽기 후보 | `features/community/missingApi.js` `getBreeds`<br>`features/pet/api.js` `getVarieties` |
-| GET | `/api/caregiver-invitations` | 보낸 공동양육 초대 목록 | `list_sent_caregiver_invitations` READ | 읽기 | `features/pet/api.js` `getSentInvitations` |
-| POST | `/api/caregiver-invitations` | 공동양육 초대 발송 |  | 쓰기 카드 후보 | `features/pet/api.js` `createInvitation` |
-| DELETE | `/api/caregiver-invitations/{}` | 취소한 공동양육 초대 삭제 |  | 쓰기 카드 후보 | `features/pet/api.js` `deleteInvitation` |
-| GET | `/api/caregiver-invitations/{}` | 받은 공동양육 초대 상세 |  | 읽기 후보 | `features/pet/api.js` `getInvitation` |
-| POST | `/api/caregiver-invitations/{}/accept` | 공동양육 초대 수락 |  | 쓰기 카드 후보 | `features/pet/api.js` `acceptInvitation` |
-| POST | `/api/caregiver-invitations/{}/cancel` | 보낸 공동양육 초대 취소 |  | 쓰기 카드 후보 | `features/pet/api.js` `cancelInvitation` |
-| POST | `/api/caregiver-invitations/{}/reject` | 공동양육 초대 거절 |  | 쓰기 카드 후보 | `features/pet/api.js` `rejectInvitation` |
+| GET | `/api/breeds` | 구분별 품종 목록 | `list_breeds` READ | 읽기 | `features/ai/api.js` `getChatBreeds`<br>`features/community/missingApi.js` `getBreeds`<br>`features/pet/api.js` `getVarieties` |
+| GET | `/api/caregiver-invitations` | 보낸 공동양육 초대 목록 | `list_sent_caregiver_invitations` READ | 읽기 | `features/ai/api.js` `getChatSentInvitations`<br>`features/pet/api.js` `getSentInvitations` |
+| POST | `/api/caregiver-invitations` | 공동양육 초대 발송 | `draft_caregiver_invitation` CARD | 쓰기 카드 | `features/pet/api.js` `createInvitation` |
+| DELETE | `/api/caregiver-invitations/{}` | 취소한 공동양육 초대 삭제 | `delete_caregiver_invitation` CARD | 쓰기 카드 | `features/pet/api.js` `deleteInvitation` |
+| GET | `/api/caregiver-invitations/{}` | 받은 공동양육 초대 상세 | `get_caregiver_invitation` READ | 읽기 | `features/ai/api.js` `getChatReceivedInvitation`<br>`features/pet/api.js` `getInvitation` |
+| POST | `/api/caregiver-invitations/{}/accept` | 공동양육 초대 수락 | `accept_caregiver_invitation` CARD | 쓰기 카드 | `features/pet/api.js` `acceptInvitation` |
+| POST | `/api/caregiver-invitations/{}/cancel` | 보낸 공동양육 초대 취소 | `cancel_caregiver_invitation` CARD | 쓰기 카드 | `features/pet/api.js` `cancelInvitation` |
+| POST | `/api/caregiver-invitations/{}/reject` | 공동양육 초대 거절 | `reject_caregiver_invitation` CARD | 쓰기 카드 | `features/pet/api.js` `rejectInvitation` |
 | GET | `/api/items/{}/image` | 아이템 이미지 |  | 읽기 후보 | 화면에서 안 씀 |
 | GET | `/api/members/me/points` | 포인트 요약 | `get_points` READ | 읽기 | `features/point/api.js` `getPointBalance` |
-| GET | `/api/pets` | 내 반려동물 목록 | `list_pets` READ | 읽기 | `features/health/api.js` `getMyPets`<br>`features/pet/api.js` `getPets` |
-| POST | `/api/pets` | 반려동물 등록 |  | 쓰기 카드 후보 | `features/pet/api.js` `createPet` |
-| DELETE | `/api/pets/{}` | 반려동물 삭제 |  | 쓰기 카드 후보 | `features/pet/api.js` `deletePet` |
+| GET | `/api/pets` | 내 반려동물 목록 | `list_pets` READ | 읽기 | `features/ai/api.js` `getChatPets`<br>`features/health/api.js` `getMyPets`<br>`features/pet/api.js` `getPets` |
+| POST | `/api/pets` | 반려동물 등록 | `draft_pet` CARD | 쓰기 카드 | `features/pet/api.js` `createPet` |
+| DELETE | `/api/pets/{}` | 반려동물 삭제 | `delete_pet` CARD | 쓰기 카드 | `features/pet/api.js` `deletePet` |
 | GET | `/api/pets/{}` | 반려동물 상세 | `get_pet` READ | 읽기 | `features/health/api.js` `getPetDetail`<br>`features/pet/api.js` `getPet` |
 | PATCH | `/api/pets/{}` | 반려동물 수정 | `draft_pet_update` CARD | 쓰기 카드 | `features/pet/api.js` `updatePet` |
 | GET | `/api/pets/{}/caregivers` | 양육자 목록 | `list_caregivers` READ | 읽기 | `features/pet/api.js` `getCaregivers` |
-| DELETE | `/api/pets/{}/caregivers/{}` | 공동양육 연동 해제 |  | 쓰기 카드 후보 | `features/pet/api.js` `deleteCaregiver`<br>`features/pet/api.js` `leavePet` |
+| DELETE | `/api/pets/{}/caregivers/{}` | 공동양육 연동 해제 | `unlink_caregiver` CARD | 쓰기 카드 | `features/pet/api.js` `deleteCaregiver`<br>`features/pet/api.js` `leavePet` |
 | GET | `/api/pets/{}/character-image` | 캐릭터 이미지(part=full 전신, face 얼굴) |  | 읽기 후보 | 화면에서 안 씀 |
 | GET | `/api/pets/{}/daily-missions` | 그날의 케어미션 | `list_daily_missions` READ | 읽기 | `features/point/api.js` `getCareMissions` |
-| POST | `/api/pets/{}/representative` | 대표 반려동물 지정 |  | 쓰기 카드 후보 | `features/pet/api.js` `setRepresentativePet` |
-| GET | `/api/pets/limit` | 내 반려동물 한도 (운영 설정 최대 수와 남은 자리) |  | 읽기 후보 | `features/health/api.js` `getPetLimit`<br>`features/pet/api.js` `getPetLimit` |
-| GET | `/api/pets/main-shortcuts` | 메인 반려동물 바로가기 조회(저장한 적 없거나 전부 숨기면 빈 목록) |  | 읽기 후보 | `features/dashboard/api.js` `getMainShortcuts` |
+| POST | `/api/pets/{}/representative` | 대표 반려동물 지정 | `set_representative_pet` CARD | 쓰기 카드 | `features/pet/api.js` `setRepresentativePet` |
+| GET | `/api/pets/limit` | 내 반려동물 한도 (운영 설정 최대 수와 남은 자리) | `get_pet_limit` READ | 읽기 | `features/health/api.js` `getPetLimit`<br>`features/pet/api.js` `getPetLimit` |
+| GET | `/api/pets/main-shortcuts` | 메인 반려동물 바로가기 조회(저장한 적 없거나 전부 숨기면 빈 목록) | `list_main_shortcuts` READ | 읽기 | `features/dashboard/api.js` `getMainShortcuts` |
 | PUT | `/api/pets/main-shortcuts` | 메인 반려동물 바로가기 저장(반려동물마다 보일 순서대로, 본문에 없는 반려동물은 그대로) |  | 쓰기 카드 후보 | `features/dashboard/api.js` `saveMainShortcuts` |
 | GET | `/api/pixel-characters` | 내 캐릭터·공동양육 캐릭터 목록 | `list_pixel_characters` READ | 읽기 | 화면에서 안 씀 |
-| GET | `/api/pixel-characters/{}` | 캐릭터 꾸미기 상세 | `get_pixel_character` READ | 읽기 | `features/pet/api.js` `getPixelCharacter` |
-| PUT | `/api/pixel-characters/{}/equipped-items` | 착용 상태 저장 |  | 쓰기 카드 후보 | `features/pet/api.js` `saveEquippedItems` |
-| POST | `/api/pixel-characters/{}/held-items` | 아이템 구매 |  | 쓰기 카드 후보 | `features/pet/api.js` `purchaseItems` |
-| GET | `/api/pixel-characters/{}/shop-items` | 상점 아이템 목록 | `list_shop_items` READ | 읽기 | `features/pet/api.js` `getShopItems` |
+| GET | `/api/pixel-characters/{}` | 캐릭터 꾸미기 상세 | `get_pixel_character` READ | 읽기 | `features/ai/api.js` `getChatPixelCharacter`<br>`features/pet/api.js` `getPixelCharacter` |
+| PUT | `/api/pixel-characters/{}/equipped-items` | 착용 상태 저장 | `draft_equipped_items` CARD | 쓰기 카드 | `features/pet/api.js` `saveEquippedItems` |
+| POST | `/api/pixel-characters/{}/held-items` | 아이템 구매 | `draft_item_purchase` CARD | 쓰기 카드 | `features/pet/api.js` `purchaseItems` |
+| GET | `/api/pixel-characters/{}/shop-items` | 상점 아이템 목록 | `list_shop_items` READ | 읽기 | `features/ai/api.js` `getChatShopItems`<br>`features/pet/api.js` `getShopItems` |
 | GET | `/api/point-ledgers` | 월 포인트 내역 | `list_point_ledgers` READ | 읽기 | `features/point/api.js` `getPointHistory` |
-| GET | `/api/point-ledgers/months` | 포인트 내역이 있는 연월(월 선택 창) |  | 읽기 후보 | `features/point/api.js` `getPointMonths` |
+| GET | `/api/point-ledgers/months` | 포인트 내역이 있는 연월(월 선택 창) | `list_point_ledger_months` READ | 읽기 | `features/point/api.js` `getPointMonths` |
 
 ### place
 
 | 메서드 | 경로 | 기능 | `@AiTool` | 지원 방식(안) | 프론트 함수 |
 | --- | --- | --- | --- | --- | --- |
 | GET | `/api/place-bookmarks` | 내 장소 즐겨찾기 목록 (카테고리별, 생략하면 전체 분류, 저장 최신순) | `list_place_bookmarks` READ | 읽기 | `features/place/api.js` `getPlaceBookmarks` |
-| POST | `/api/place-bookmarks` | 장소 즐겨찾기 저장 |  | 쓰기 카드 후보 | `features/place/api.js` `addPlaceBookmark` |
+| POST | `/api/place-bookmarks` | 장소 즐겨찾기 저장 | `draft_place_bookmark` CARD | 쓰기 카드 | `features/place/api.js` `addPlaceBookmark` |
 | DELETE | `/api/place-bookmarks/{}` | 장소 즐겨찾기 해제 | `delete_place_bookmark` CARD | 쓰기 카드 | `features/place/api.js` `removePlaceBookmark` |
 | GET | `/api/places` | 장소 검색 (카테고리·키워드·지도 범위, 추천·거리·이름순, 15건씩 또는 whole=true면 범위 전체를 한 번에) | `list_places` READ | 읽기 | `features/place/api.js` `searchPlaces` |
 
@@ -263,14 +263,14 @@
 | 메서드 | 경로 | 기능 | `@AiTool` | 지원 방식(안) | 프론트 함수 |
 | --- | --- | --- | --- | --- | --- |
 | GET | `/api/faqs` | FAQ 목록 (카테고리·질문/답변 검색, 답변 포함) | `list_faqs` READ | 보류(ai skip: 사용법 문항이 search_guide와 겹침(운영 FAQ 문항이 정해지면 다시)) | `features/faq/api.js` `getFaqs` |
-| GET | `/api/inquiries` | 내 1:1 문의 목록 |  | 읽기 후보 | `features/inquiry/api.js` `getInquiries` |
+| GET | `/api/inquiries` | 내 1:1 문의 목록 | `list_inquiries` READ | 읽기 | `features/inquiry/api.js` `getInquiries` |
 | POST | `/api/inquiries` | 1:1 문의 작성 |  | 쓰기 카드 후보 | `features/inquiry/api.js` `createInquiry` |
 | DELETE | `/api/inquiries/{}` | 1:1 문의 삭제(접수 상태만) |  | 쓰기 카드 후보 | `features/inquiry/api.js` `deleteInquiry` |
-| GET | `/api/inquiries/{}` | 내 1:1 문의 상세 |  | 읽기 후보 | `features/inquiry/api.js` `getInquiry` |
+| GET | `/api/inquiries/{}` | 내 1:1 문의 상세 | `get_inquiry` READ | 읽기 | `features/inquiry/api.js` `getInquiry` |
 | PATCH | `/api/inquiries/{}` | 1:1 문의 수정(미답변 상태만) |  | 쓰기 카드 후보 | `features/inquiry/api.js` `updateInquiry` |
 | GET | `/api/inquiries/{}/images/{}` | 내 1:1 문의 첨부 이미지 |  | 읽기 후보 | `features/inquiry/api.js` `getInquiryImage` |
-| GET | `/api/notices` | 공지사항 목록 (상단 고정 우선, latestYn=true 면 최신순) |  | 읽기 후보 | `features/notice/api.js` `getNotices` |
-| GET | `/api/notices/{}` | 공지사항 상세 |  | 읽기 후보 | `features/notice/api.js` `getNotice` |
+| GET | `/api/notices` | 공지사항 목록 (상단 고정 우선, latestYn=true 면 최신순) | `list_notices` READ | 읽기 | `features/notice/api.js` `getNotices` |
+| GET | `/api/notices/{}` | 공지사항 상세 | `get_notice` READ | 읽기 | `features/notice/api.js` `getNotice` |
 
 ## 3. 해당 없음(공용 보조 API)
 

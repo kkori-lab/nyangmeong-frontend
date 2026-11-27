@@ -17,6 +17,7 @@ import {
   CARE_ITEM_TOOL,
   errorFieldsShown,
   isDeleteCard,
+  isDeleteTool,
   missingFields,
 } from './actionForm';
 import ActionCardFields from './ActionCardFields';
@@ -84,6 +85,7 @@ function ResultLine({
  * - 지난 카드·버린 카드는 그리지 않는다
  * - 받자마자 실행하는 카드(isAuto)는 실행·결과 저장 중에 그리지 않는다(결과 줄만, 사람 결정 2026-11-27)
  * - 삭제 카드(DELETE): 칸 대신 대상 글(targetText) 한 줄, [확인] 대신 빨간 [삭제]
+ * - delete_로 시작하는 POST 도구(조건 전체 삭제): 칸은 그대로, 버튼만 빨간 [삭제]
  */
 export default function ActionCard({
   item,
@@ -100,6 +102,7 @@ export default function ActionCard({
   const { card, input, status, isBusy, fieldErrors } = item;
   const isCareItem = card.tool === CARE_ITEM_TOOL;
   const isDelete = isDeleteCard(card);
+  const isDeleteButton = isDeleteTool(card);
 
   if (item.resultText) {
     return (
@@ -217,11 +220,11 @@ export default function ActionCard({
             </button>
             <button
               type="button"
-              className={isDelete ? BTN_DANGER : BTN_PRIMARY}
+              className={isDeleteButton ? BTN_DANGER : BTN_PRIMARY}
               disabled={isConfirmDisabled}
               onClick={onConfirm}
             >
-              {isDelete ? '삭제' : '확인'}
+              {isDeleteButton ? '삭제' : '확인'}
             </button>
           </div>
         )}

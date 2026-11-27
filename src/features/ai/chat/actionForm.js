@@ -118,7 +118,23 @@ const toFormData = (data) => {
 export const isDeleteCard = (card) =>
   card.call?.method?.toUpperCase() === 'DELETE';
 
-export const buildActionRequest = (card, rawInput) => {
+/**
+ * 지우는 도구: 삭제 카드이거나 도구 이름이 delete_로 시작한다
+ * - 조건 전체 삭제(delete_expenses_by_condition)는 POST라 칸은 보이고 버튼만 빨간 [삭제](사람 결정 2026-11-27)
+ */
+export const isDeleteTool = (card) =>
+  isDeleteCard(card) || (card.tool?.startsWith('delete_') ?? false);
+
+/**
+ * 쿼리 번호 목록(delete_expenses의 expndSn)은 같은 이름을 되풀이해 보낸다(?expndSn=1&expndSn=2)
+ * - axios 기본은 expndSn[]=1이라 Spring @RequestParam List가 받지 못한다
+ */
+const withQueryList = (request) =>
+  Object.values(request.params).some(Array.isArray)
+    ? { ...request, paramsSerializer: { indexes: null } }
+    : request;
+
+const toActionRequest = (card, rawInput) => {
   const input = cleanInput(card, rawInput);
   const params = {};
   const data = {};
@@ -148,6 +164,9 @@ export const buildActionRequest = (card, rawInput) => {
     data: isMultipart ? toFormData(data) : data,
   };
 };
+
+export const buildActionRequest = (card, rawInput) =>
+  withQueryList(toActionRequest(card, rawInput));
 
 /**
  * 조건부 칸이 꺼졌는지: rules에 나오는 칸은 그 조건 중 하나라도 맞을 때만 쓴다
